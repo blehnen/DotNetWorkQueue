@@ -15,14 +15,16 @@ TODO - not yet published to nuget.
 Usage
 ------
 
-[**Producer - Sql server**]
-
-```csharp
-private class SimpleMessage
+[**Message**]
+public class SimpleMessage
 {
 	public string Message { get; set; }
 }
-		
+	
+
+[**Producer - Sql server**]
+
+```csharp		
 //Create the queue if it doesn't exist
 var queueName = "testing";
 var connectionString = "Server=V-SQL;Application Name=SQLProducer;Database=TestR;Trusted_Connection=True;";
@@ -47,7 +49,16 @@ using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
 ```
 
 [**Producer - Redis**]
-
+var queueName = "example";
+var connectionString = "192.168.0.212";
+using (var queueContainer = new QueueContainer<RedisQueueInit>())
+{
+	using (var queue = queueContainer.CreateProducer<SimpleMessage.SimpleMessage>(queueName, connectionString))
+	{
+		queue.Send(new SimpleMessage.SimpleMessage{Message = "hello world"});
+	}
+}
+				
 [**Consumer - Sql server**]
 
 ```csharp
@@ -69,7 +80,18 @@ private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNoti
 ```
 
 [**Consumer - Redis**]
-
+```csharp
+using (var queueContainer = new QueueContainer<RedisQueueInit>())
+{
+	using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
+    {
+		queue.Start<SimpleMessage.SimpleMessage>(HandleMessages);
+        Console.WriteLine("Processing messages - press any key to stop");
+        Console.ReadKey((true));
+    }
+}
+```
+	
 [**More examples**] (https://github.com/blehnen/DotNetWorkQueue/tree/master/Source/Examples)
 ------
 
