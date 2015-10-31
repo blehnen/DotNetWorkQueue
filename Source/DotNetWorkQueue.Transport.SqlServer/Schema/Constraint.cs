@@ -26,6 +26,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
 	public class Constraint
     {
         #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Constraint"/> class.
+        /// </summary>
+        public Constraint()
+        {
+        } 
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Constraint" /> class.
         /// </summary>

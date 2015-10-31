@@ -17,6 +17,30 @@ Usage
 
 [**Producer - Sql server**]
 
+```csharp
+//Create the queue if it doesn't exist
+var queueName = "testing";
+var connectionString = "Server=V-SQL;Application Name=SQLProducer;Database=TestR;Trusted_Connection=True;";
+using (var createQueueContainer = new QueueCreationContainer<SqlServerMessageQueueInit>())
+{
+	using (var createQueue = createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueName, connectionString))
+	{
+		if (!createQueue.QueueExists)
+		{
+			createQueue.CreateQueue();
+		}
+	}
+}
+
+using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
+{
+	using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
+    {
+		queue.Send(new SimpleMessage {Message = "Hello World"});
+    }
+}
+```
+
 [**Producer - Redis**]
 
 [**Consumer - Sql server**]
