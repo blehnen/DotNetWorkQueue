@@ -144,18 +144,28 @@ along with this program.  If not, see [http://www.gnu.org/licenses/](http://www.
 This library uses multiple 3rd party libaries, listed below.
 
 [**DotNetWorkQueue**]
+
 ILMerge (http://research.microsoft.com/en-us/people/mbarnett/ILMerge.aspx)
+
 LibLog (https://github.com/damianh/LibLog)
+
 NetFX-Guard (http://netfx.codeplex.com/)
+
 SimpleInjector (https://simpleinjector.org/index.html)
+
 Microsoft.IO.RecyclableMemoryStream (https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream)
+
 NetwtonSoft.JSON (http://www.newtonsoft.com/json)
+
 SmartThreadPool (https://github.com/amibar/SmartThreadPool)
+
 
 [**DotNetWorkQueue.Transport.Redis**]
 
 GuerrillaNTP (https://bitbucket.org/robertvazan/guerrillantp)
+
 MsgPack-CLI* (https://github.com/msgpack/msgpack-cli)
+
 StackExchange.Redis (https://github.com/StackExchange/StackExchange.Redis)
 
 *This module cannot be merged via ILMerge - causes serialization failures
@@ -164,13 +174,20 @@ StackExchange.Redis (https://github.com/StackExchange/StackExchange.Redis)
 None
 
 [**DotNetWorkQueue.Metrics.Net**]
+
 Metrics.net (https://github.com/etishor/Metrics.NET)
 
 [**Unit / Integration Tests**]
 
 AutoFixture (https://github.com/AutoFixture/AutoFixture)
+
 CompareNetObjects (http://comparenetobjects.codeplex.com/)
+
 FluentAssertions (http://www.fluentassertions.com/)
+
 nsubstitute (http://nsubstitute.github.io/)
+
 ObjectFiler (http://objectfiller.net/)
+
 Xunit (https://github.com/xunit/xunit)
+
