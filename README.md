@@ -16,11 +16,12 @@ Usage
 ------
 
 [**Message**]
+```csharp
 public class SimpleMessage
 {
 	public string Message { get; set; }
 }
-	
+```
 
 [**Producer - Sql server**]
 
@@ -49,6 +50,7 @@ using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
 ```
 
 [**Producer - Redis**]
+```csharp
 var queueName = "example";
 var connectionString = "192.168.0.212";
 using (var queueContainer = new QueueContainer<RedisQueueInit>())
@@ -58,7 +60,8 @@ using (var queueContainer = new QueueContainer<RedisQueueInit>())
 		queue.Send(new SimpleMessage.SimpleMessage{Message = "hello world"});
 	}
 }
-				
+```		
+
 [**Consumer - Sql server**]
 
 ```csharp
@@ -90,6 +93,12 @@ using (var queueContainer = new QueueContainer<RedisQueueInit>())
         Console.ReadKey((true));
     }
 }
+
+private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
+{
+	notifications.Log.Debug($"Processing Message {message.Body.Message}");
+}
+
 ```
 	
 [**More examples**] (https://github.com/blehnen/DotNetWorkQueue/tree/master/Source/Examples)
