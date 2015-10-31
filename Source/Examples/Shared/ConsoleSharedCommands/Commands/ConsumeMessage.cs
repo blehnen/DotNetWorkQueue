@@ -214,7 +214,7 @@ namespace ConsoleSharedCommands.Commands
         public ConsoleExecuteResult StartQueue(string queueName)
         {
             CreateModuleIfNeeded(queueName);
-            Queues[queueName].Start<SimpleMessage>((HandleMessages));
+            Queues[queueName].Start<SimpleMessage>(HandleMessages);
             return new ConsoleExecuteResult($"{queueName} started");
         }
 

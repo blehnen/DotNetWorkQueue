@@ -18,6 +18,11 @@ Usage
 [**Producer - Sql server**]
 
 ```csharp
+private class SimpleMessage
+{
+	public string Message { get; set; }
+}
+		
 //Create the queue if it doesn't exist
 var queueName = "testing";
 var connectionString = "Server=V-SQL;Application Name=SQLProducer;Database=TestR;Trusted_Connection=True;";
@@ -44,6 +49,24 @@ using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
 [**Producer - Redis**]
 
 [**Consumer - Sql server**]
+
+```csharp
+using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
+{
+	using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
+    {
+		queue.Start<SimpleMessage>(HandleMessages);
+		Console.WriteLine("Processing messages - press any key to stop");
+        Console.ReadKey((true));
+    }
+}
+
+private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
+{
+	notifications.Log.Debug($"Processing Message {message.Body.Message}");
+}
+		
+```
 
 [**Consumer - Redis**]
 
