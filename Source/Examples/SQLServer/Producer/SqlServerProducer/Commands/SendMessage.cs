@@ -271,9 +271,9 @@ namespace SqlServerProducer.Commands
             {
                 _queues.Add(queueName,
                     _queueContainer.Value.CreateProducer<SimpleMessage>(queueName,
-                        ConfigurationManager.AppSettings["SQLConnection"]));
+                        ConfigurationManager.AppSettings["Connection"]));
 
-                QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<SqlServerMessageQueueInit>(queueName, ConfigurationManager.AppSettings["SQLConnection"]));
+                QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<SqlServerMessageQueueInit>(queueName, ConfigurationManager.AppSettings["Connection"]));
             }
         }
     }

@@ -302,7 +302,7 @@ namespace SqlServerRpcProducer.Commands
         {
             if (!_queues.ContainsKey(queueNameReceive))
             {
-                var connection = ConfigurationManager.AppSettings["SQLConnection"];
+                var connection = ConfigurationManager.AppSettings["Connection"];
                 _queues.Add(queueNameReceive,
                     _queueContainer.Value.CreateRpc<SimpleResponse, SimpleMessage, SqlServerRpcConnection>(
                         new SqlServerRpcConnection(connection, queueNameReceive, connection, queueNameResponse)));

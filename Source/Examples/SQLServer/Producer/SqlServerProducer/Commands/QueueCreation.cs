@@ -293,7 +293,7 @@ namespace SqlServerProducer.Commands
             {
                 _queueCreators.Add(queueName,
                     _queueCreation.Value.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                        ConfigurationManager.AppSettings["SQLConnection"]));
+                        ConfigurationManager.AppSettings["Connection"]));
             }
         }
     }
