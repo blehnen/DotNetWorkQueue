@@ -1,0 +1,446 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{26E740DA-E63D-497A-BF5B-FBBF28C8846F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DotNetWorkQueue</RootNamespace>
+    <AssemblyName>DotNetWorkQueue</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;LIBLOG_PUBLIC</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Debug\DotNetWorkQueue.xml</DocumentationFile>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;LIBLOG_PUBLIC</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\DotNetWorkQueue.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.1.0.0\lib\net45\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SimpleInjector, Version=3.1.0.0, Culture=neutral, PublicKeyToken=984cb50dea722e99, processorArchitecture=MSIL">
+      <HintPath>..\packages\SimpleInjector.3.1.0\lib\net45\SimpleInjector.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SmartThreadPool, Version=2.2.3.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\SmartThreadPool.dll.2.2.3\lib\SmartThreadPool.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\SharedAssemblyInfo.cs">
+      <Link>SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
+    <Compile Include="ATaskScheduler.cs" />
+    <Compile Include="Configuration\AdditionalConfiguration.cs" />
+    <Compile Include="Configuration\BaseConnectionInformation.cs" />
+    <Compile Include="Configuration\BaseRpcConnection.cs" />
+    <Compile Include="Configuration\BaseTimeConfiguration.cs" />
+    <Compile Include="Configuration\ConnectionTypes.cs" />
+    <Compile Include="Configuration\HeartBeatConfiguration.cs" />
+    <Compile Include="Configuration\HeartBeatThreadPoolConfiguration.cs" />
+    <Compile Include="Configuration\MessageExpirationConfiguration.cs" />
+    <Compile Include="Configuration\QueueStatusHttpConfiguration.cs" />
+    <Compile Include="Configuration\RetryInformation.cs" />
+    <Compile Include="Configuration\TransportInitDuplex.cs" />
+    <Compile Include="Configuration\TransportInitReceive.cs" />
+    <Compile Include="Configuration\TransportInitSend.cs" />
+    <Compile Include="Factory\ContainerFactory.cs" />
+    <Compile Include="IContainerFactory.cs" />
+    <Compile Include="Logging\NoSpecifiedLogProvider.cs" />
+    <Compile Include="QueueStatusContainer.cs" />
+    <Compile Include="Factory\GetTimeFactory.cs" />
+    <Compile Include="Factory\GetTimeFactoryNoOp.cs" />
+    <Compile Include="Factory\InterceptorFactory.cs" />
+    <Compile Include="Factory\PrimaryWorkerFactory.cs" />
+    <Compile Include="Factory\TaskFactoryFactory.cs" />
+    <Compile Include="Factory\TaskSchedulerFactory.cs" />
+    <Compile Include="ICompositeSerialization.cs" />
+    <Compile Include="IInterceptorFactory.cs" />
+    <Compile Include="IQueueInformation.cs" />
+    <Compile Include="IQueueStatusProvider.cs" />
+    <Compile Include="ITransportInit.cs" />
+    <Compile Include="ITransportInitDuplex.cs" />
+    <Compile Include="ITransportInitReceive.cs" />
+    <Compile Include="ITransportInitSend.cs" />
+    <Compile Include="Logging\Decorator\IAbortWorkerThreadDecorator.cs" />
+    <Compile Include="Logging\Decorator\IClearExpiredMessagesDecorator.cs" />
+    <Compile Include="Logging\Decorator\IReceivePoisonMessageDecorator.cs" />
+    <Compile Include="Logging\Decorator\IResetHeartBeatDecorator.cs" />
+    <Compile Include="Logging\Decorator\IRollbackMessageDecorator.cs" />
+    <Compile Include="MessageProcessingModes.cs" />
+    <Compile Include="Messages\QueueOutputMessages.cs" />
+    <Compile Include="Metrics\Decorator\IMessageInterceptorDecorator.cs" />
+    <Compile Include="QueueContexts.cs" />
+    <Compile Include="QueueStatus\QueueInformation.cs" />
+    <Compile Include="QueueStatus\QueueInformationError.cs" />
+    <Compile Include="QueueStatus\QueueStatus.cs" />
+    <Compile Include="QueueStatus\QueueStatusHttp.cs" />
+    <Compile Include="ICommitMessage.cs" />
+    <Compile Include="IConfiguration.cs" />
+    <Compile Include="ICreateContainer.cs" />
+    <Compile Include="IGetFirstMessageDeliveryTime.cs" />
+    <Compile Include="IGetTime.cs" />
+    <Compile Include="IGetTimeFactory.cs" />
+    <Compile Include="IHandleMessage.cs" />
+    <Compile Include="IMessageProcessing.cs" />
+    <Compile Include="IMessageProcessingFactory.cs" />
+    <Compile Include="IMetrics.cs" />
+    <Compile Include="IPrimaryWorkerFactory.cs" />
+    <Compile Include="IQueueStatus.cs" />
+    <Compile Include="IRollbackMessage.cs" />
+    <Compile Include="ISerializer.cs" />
+    <Compile Include="ITaskFactoryFactory.cs" />
+    <Compile Include="ITaskSchedulerFactory.cs" />
+    <Compile Include="Messages\HandleMessage.cs" />
+    <Compile Include="IQueueOutputMessage.cs" />
+    <Compile Include="IQueueOutputMessages.cs" />
+    <Compile Include="Messages\QueueMessage.cs" />
+    <Compile Include="Messages\QueueOutputMessage.cs" />
+    <Compile Include="Metrics\Decorator\IClearExpiredMessagesDecorator.cs" />
+    <Compile Include="Metrics\Decorator\ICommitMessageDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IInternalSerializerDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IMessageHandlerAsyncDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IMessageHandlerDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IQueueCreationDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IReceiveMessagesDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IReceiveMessagesErrorDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IReceivePoisonMessageDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IResetHeartBeatDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IRollbackMessageDecorator.cs" />
+    <Compile Include="Metrics\Decorator\ISendHeartBeatDecorator.cs" />
+    <Compile Include="Metrics\Decorator\ISendMessagesDecorator.cs" />
+    <Compile Include="Metrics\Decorator\ISerializerDecorator.cs" />
+    <Compile Include="Metrics\NoOp\MetricsNoOp.cs" />
+    <Compile Include="QueueStatus\QueueStatusInit.cs" />
+    <Compile Include="QueueStatus\QueueStatusProviderBase.cs" />
+    <Compile Include="QueueStatus\QueueStatusProviderError.cs" />
+    <Compile Include="QueueStatus\QueueStatusProviderNoOp.cs" />
+    <Compile Include="QueueStatus\SystemEntry.cs" />
+    <Compile Include="Queue\AddStandardMessageHeaders.cs" />
+    <Compile Include="Queue\GenerateMessageHeaders.cs" />
+    <Compile Include="Queue\MessageErrorEventArgs.cs" />
+    <Compile Include="Queue\MessageProcessingMode.cs" />
+    <Compile Include="Queue\QueueContext.cs" />
+    <Compile Include="Queue\RollbackMessage.cs" />
+    <Compile Include="Queue\StopThread.cs" />
+    <Compile Include="Queue\WorkerErrorEventArgs.cs" />
+    <Compile Include="Serialization\CompositeSerialization.cs" />
+    <Compile Include="Serialization\MessageBody.cs" />
+    <Compile Include="Serialization\RootSerializer.cs" />
+    <Compile Include="TaskScheduling\SchedulerMessageHandler.cs" />
+    <Compile Include="TaskScheduling\SchedulerInit.cs" />
+    <Compile Include="Configuration\TaskSchedulerConfiguration.cs" />
+    <Compile Include="Configuration\WorkerConfiguration.cs" />
+    <Compile Include="QueueCreationContainer.cs" />
+    <Compile Include="Exceptions\InterceptorException.cs" />
+    <Compile Include="Exceptions\PoisonMessageException.cs" />
+    <Compile Include="Exceptions\SerializationException.cs" />
+    <Compile Include="Factory\CreateConnectionFactory.cs" />
+    <Compile Include="Factory\HeartBeatThreadPoolFactory.cs" />
+    <Compile Include="Factory\HeartBeatWorkerFactory.cs" />
+    <Compile Include="Factory\MessageProcessingFactory.cs" />
+    <Compile Include="Factory\RetryInformationFactory.cs" />
+    <Compile Include="Factory\SentMessageFactory.cs" />
+    <Compile Include="Factory\MessageContextDataFactory.cs" />
+    <Compile Include="Factory\MessageContextFactory.cs" />
+    <Compile Include="Factory\MessageFactory.cs" />
+    <Compile Include="Factory\QueueDelayFactory.cs" />
+    <Compile Include="Factory\QueueWaitFactory.cs" />
+    <Compile Include="Factory\ReceivedMessageFactory.cs" />
+    <Compile Include="Factory\RetryDelayFactory.cs" />
+    <Compile Include="Factory\RPCContextFactory.cs" />
+    <Compile Include="Factory\RPCTimeoutFactory.cs" />
+    <Compile Include="Factory\WaitForEventOrCancelFactory.cs" />
+    <Compile Include="Factory\WorkerHeartBeatNotificationFactory.cs" />
+    <Compile Include="ICustomHeaders.cs" />
+    <Compile Include="IHeaders.cs" />
+    <Compile Include="IHeartBeatConfiguration.cs" />
+    <Compile Include="IHeartBeatThreadPoolConfiguration.cs" />
+    <Compile Include="IHeartBeatThreadPoolFactory.cs" />
+    <Compile Include="IIsDisposed.cs" />
+    <Compile Include="IMessageExpirationConfiguration.cs" />
+    <Compile Include="IMessageHandlerRegistrationAsync.cs" />
+    <Compile Include="IMonitor.cs" />
+    <Compile Include="IMonitorTimespan.cs" />
+    <Compile Include="INoOperation.cs" />
+    <Compile Include="IPrimaryWorker.cs" />
+    <Compile Include="IQueueMonitor.cs" />
+    <Compile Include="IReadonly.cs" />
+    <Compile Include="IReceivedMessageInternal.cs" />
+    <Compile Include="IRegisterMessages.cs" />
+    <Compile Include="IRegisterMessagesAsync.cs" />
+    <Compile Include="IRetryDelay.cs" />
+    <Compile Include="IRetryDelayFactory.cs" />
+    <Compile Include="IRetryInformation.cs" />
+    <Compile Include="IRetryInformationFactory.cs" />
+    <Compile Include="IRPCContext.cs" />
+    <Compile Include="IRPCContextFactory.cs" />
+    <Compile Include="IRPCTimeout.cs" />
+    <Compile Include="IRPCTimeoutFactory.cs" />
+    <Compile Include="ISentMessage.cs" />
+    <Compile Include="ISentMessageFactory.cs" />
+    <Compile Include="ISetReadonly.cs" />
+    <Compile Include="IStandardHeaders.cs" />
+    <Compile Include="ITaskSchedulerConfiguration.cs" />
+    <Compile Include="IWaitForEventOrCancelFactory.cs" />
+    <Compile Include="IWaitForEventOrCancelThreadPool.cs" />
+    <Compile Include="IWaitForEventOrCancelWorker.cs" />
+    <Compile Include="IWorkerConfiguration.cs" />
+    <Compile Include="IWorkerHeartBeatNotificationFactory.cs" />
+    <Compile Include="Messages\CustomHeaders.cs" />
+    <Compile Include="Messages\MessageHandlerRegistrationAsync.cs" />
+    <Compile Include="Messages\ReceivedMessageInternal.cs" />
+    <Compile Include="Messages\RegisterMessages.cs" />
+    <Compile Include="Messages\RegisterMessagesAsync.cs" />
+    <Compile Include="Messages\RPCTimeout.cs" />
+    <Compile Include="Messages\StandardHeaders.cs" />
+    <Compile Include="Queue\BaseMonitor.cs" />
+    <Compile Include="Queue\HeartBeatWorkerNoOp.cs" />
+    <Compile Include="Queue\MessageProcessingRpcReceive.cs" />
+    <Compile Include="Queue\MessageProcessingRpcSend.cs" />
+    <Compile Include="Queue\MultiWorkerBase.cs" />
+    <Compile Include="Queue\PrimaryWorker.cs" />
+    <Compile Include="Queue\QueueMonitor.cs" />
+    <Compile Include="Queue\QueueWaitNoOp.cs" />
+    <Compile Include="Queue\WaitForEventOrCancelWorker.cs" />
+    <Compile Include="Queue\WorkerHeartBeatNotification.cs" />
+    <Compile Include="Queue\WorkerHeartBeatNotificationNoOp.cs" />
+    <Compile Include="Queue\WorkerWaitForEventOrCancel.cs" />
+    <Compile Include="SchedulerContainer.cs" />
+    <Compile Include="TaskScheduling\SchedulerTaskFactory.cs" />
+    <Compile Include="TaskScheduling\StateInformation.cs" />
+    <Compile Include="TaskScheduling\ThreadPoolConfiguration.cs" />
+    <Compile Include="TaskScheduling\WaitForEventOrCancelThreadPool.cs" />
+    <Compile Include="Factory\ResponseIDFactory.cs" />
+    <Compile Include="Factory\WorkerNameFactory.cs" />
+    <Compile Include="Factory\WorkerNotificationFactory.cs" />
+    <Compile Include="IAbortWorkerThread.cs" />
+    <Compile Include="IClearExpiredMessagesMonitor.cs" />
+    <Compile Include="IClearExpiredMessagesRPCMonitor.cs" />
+    <Compile Include="ICreateConnectionFactory.cs" />
+    <Compile Include="IGenerateReceivedMessage.cs" />
+    <Compile Include="IMessage.cs" />
+    <Compile Include="IMessageContextData.cs" />
+    <Compile Include="IMessageContextDataFactory.cs" />
+    <Compile Include="IMessageFactory.cs" />
+    <Compile Include="IMessageHandlerAsync.cs" />
+    <Compile Include="IMessageHandlerRegistration.cs" />
+    <Compile Include="IReceivedMessage.cs" />
+    <Compile Include="IReceivedMessageFactory.cs" />
+    <Compile Include="IReceivePoisonMessage.cs" />
+    <Compile Include="ITaskFactory.cs" />
+    <Compile Include="IWorkerCollection.cs" />
+    <Compile Include="IWorkerWaitForEventOrCancel.cs" />
+    <Compile Include="Logging\ILogFactory.cs" />
+    <Compile Include="Logging\LogFactory.cs" />
+    <Compile Include="Messages\GenerateReceivedMessage.cs" />
+    <Compile Include="Messages\MessageContextData.cs" />
+    <Compile Include="Messages\MessageHandlerAsync.cs" />
+    <Compile Include="Messages\MessageHandlerRegistration.cs" />
+    <Compile Include="Messages\RPCContext.cs" />
+    <Compile Include="Queue\ClearExpiredMessagesMonitorNoOp.cs" />
+    <Compile Include="Queue\ClearExpiredMessagesRPCMonitor.cs" />
+    <Compile Include="Queue\ClearExpiredMessagesRPCMonitorNoOp.cs" />
+    <Compile Include="Queue\HeartBeatMonitorNoOp.cs" />
+    <Compile Include="Queue\ProducerQueueRPC.cs" />
+    <Compile Include="Queue\WorkerCollection.cs" />
+    <Compile Include="IConsumerQueueAsync.cs" />
+    <Compile Include="ICorrelationID.cs" />
+    <Compile Include="ICorrelationIDFactory.cs" />
+    <Compile Include="IHeartBeatMonitor.cs" />
+    <Compile Include="IHeartBeatStatus.cs" />
+    <Compile Include="IHeartBeatThreadPool.cs" />
+    <Compile Include="IHeartBeatWorker.cs" />
+    <Compile Include="IHeartBeatWorkerFactory.cs" />
+    <Compile Include="IInternalSerializer.cs" />
+    <Compile Include="IMessageContextFactory.cs" />
+    <Compile Include="IMessageHandler.cs" />
+    <Compile Include="IMessageID.cs" />
+    <Compile Include="Interceptors\SharedMemoryStream.cs" />
+    <Compile Include="IoC\CreateContainer.cs" />
+    <Compile Include="IProducerQueueRPC.cs" />
+    <Compile Include="IQueueCancelWork.cs" />
+    <Compile Include="IQueueDelay.cs" />
+    <Compile Include="IQueueDelayFactory.cs" />
+    <Compile Include="IQueueWait.cs" />
+    <Compile Include="IQueueWaitFactory.cs" />
+    <Compile Include="IReceiveMessagesFactory.cs" />
+    <Compile Include="IResponseID.cs" />
+    <Compile Include="IResponseIDFactory.cs" />
+    <Compile Include="IScheduler.cs" />
+    <Compile Include="ITaskScheduler.cs" />
+    <Compile Include="IThreadPool.cs" />
+    <Compile Include="IWaitForEventOrCancel.cs" />
+    <Compile Include="ICancelWork.cs" />
+    <Compile Include="IWorkerBase.cs" />
+    <Compile Include="IWorkerFactory.cs" />
+    <Compile Include="IWorkerHeartBeatNotification.cs" />
+    <Compile Include="IWorkerNameFactory.cs" />
+    <Compile Include="IWorkerNotification.cs" />
+    <Compile Include="IWorkerNotificationFactory.cs" />
+    <Compile Include="IWorkGroup.cs" />
+    <Compile Include="Logging\ColoredConsoleLogProvider.cs" />
+    <Compile Include="Logging\NullLoggerProvider.cs" />
+    <Compile Include="Messages\AdditionalMessageData.cs" />
+    <Compile Include="Messages\AdditionalMetaData.cs" />
+    <Compile Include="Exceptions\CommitException.cs" />
+    <Compile Include="Exceptions\DotNetWorkQueueException.cs" />
+    <Compile Include="Exceptions\MessageException.cs" />
+    <Compile Include="Exceptions\ReceiveMessageException.cs" />
+    <Compile Include="IoC\ComponentRegistration.cs" />
+    <Compile Include="Configuration\QueueConfigurationReceive.cs" />
+    <Compile Include="Configuration\QueueConfigurationRPC.cs" />
+    <Compile Include="Configuration\QueueConfigurationSend.cs" />
+    <Compile Include="Configuration\QueueDelay.cs" />
+    <Compile Include="Configuration\QueueConsumerConfiguration.cs" />
+    <Compile Include="Configuration\QueueProducerConfiguration.cs" />
+    <Compile Include="Configuration\QueueRPCConfiguration.cs" />
+    <Compile Include="Configuration\RetryDelay.cs" />
+    <Compile Include="Configuration\TransportConfigurationReceive.cs" />
+    <Compile Include="Configuration\TransportConfigurationSend.cs" />
+    <Compile Include="Messages\MessageHandler.cs" />
+    <Compile Include="Messages\ResponseID.cs" />
+    <Compile Include="QueueContainer.cs" />
+    <Compile Include="IAdditionalMessageData.cs" />
+    <Compile Include="IAdditionalMetaData.cs" />
+    <Compile Include="IConnectionInformation.cs" />
+    <Compile Include="IMessageInterceptor.cs" />
+    <Compile Include="IMessageInterceptorRegistrar.cs" />
+    <Compile Include="Interceptors\GZipMessageInterceptor.cs" />
+    <Compile Include="Interceptors\Interception.cs" />
+    <Compile Include="Interceptors\TripleDesMessageInterceptor.cs" />
+    <Compile Include="IoC\ContainerWrapper.cs" />
+    <Compile Include="IContainer.cs" />
+    <Compile Include="IProducerQueue.cs" />
+    <Compile Include="IConsumerQueue.cs" />
+    <Compile Include="IReceiveMessages.cs" />
+    <Compile Include="IReceiveMessagesError.cs" />
+    <Compile Include="IResetHeartBeat.cs" />
+    <Compile Include="IRPCQueue.cs" />
+    <Compile Include="ISendHeartBeat.cs" />
+    <Compile Include="ISendMessages.cs" />
+    <Compile Include="ASerializer.cs" />
+    <Compile Include="ISetting.cs" />
+    <Compile Include="IMessageContext.cs" />
+    <Compile Include="Messages\Headers.cs" />
+    <Compile Include="Messages\Message.cs" />
+    <Compile Include="Messages\ReceivedMessage.cs" />
+    <Compile Include="Messages\SentMessage.cs" />
+    <Compile Include="netfx\System\Guard.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IQueueCreation.cs" />
+    <Compile Include="Queue\AbortWorkerThread.cs" />
+    <Compile Include="Queue\BaseQueue.cs" />
+    <Compile Include="Queue\ClearExpiredMessagesMonitor.cs" />
+    <Compile Include="Queue\CommitMessage.cs" />
+    <Compile Include="Queue\ConsumerQueueAsync.cs" />
+    <Compile Include="Queue\HeartBeatMonitor.cs" />
+    <Compile Include="Queue\HeartBeatStatus.cs" />
+    <Compile Include="Queue\HeartBeatThreadPool.cs" />
+    <Compile Include="Queue\HeartBeatWorker.cs" />
+    <Compile Include="IWorker.cs" />
+    <Compile Include="Queue\MessageExceptionHandler.cs" />
+    <Compile Include="Queue\MessageProcessing.cs" />
+    <Compile Include="Queue\MessageProcessingAsync.cs" />
+    <Compile Include="Queue\ProcessMessage.cs" />
+    <Compile Include="Queue\ProcessMessageAsync.cs" />
+    <Compile Include="Queue\StopWorkers.cs" />
+    <Compile Include="Queue\WaitForEventOrCancel.cs" />
+    <Compile Include="Queue\QueueWait.cs" />
+    <Compile Include="Queue\ConsumerQueue.cs" />
+    <Compile Include="Queue\ProducerQueue.cs" />
+    <Compile Include="Queue\RPCQueue.cs" />
+    <Compile Include="Queue\WaitForDelegate.cs" />
+    <Compile Include="Queue\WaitForThreadToFinish.cs" />
+    <Compile Include="Queue\WaitOnAsyncTask.cs" />
+    <Compile Include="Queue\Worker.cs" />
+    <Compile Include="Factory\WorkerFactory.cs" />
+    <Compile Include="Queue\QueueCancelWork.cs" />
+    <Compile Include="Queue\WorkerBase.cs" />
+    <Compile Include="Queue\WorkerTerminate.cs" />
+    <Compile Include="Serialization\JsonSerializer.cs" />
+    <Compile Include="Messages\Setting.cs" />
+    <Compile Include="Messages\MessageContext.cs" />
+    <Compile Include="IClearExpiredMessages.cs" />
+    <Compile Include="Serialization\JsonSerializerInternal.cs" />
+    <Compile Include="TaskScheduling\Scheduler.cs" />
+    <Compile Include="TaskScheduling\TaskScheduler.cs" />
+    <Compile Include="TaskScheduling\ThreadPool.cs" />
+    <Compile Include="TaskScheduling\WorkGroup.cs" />
+    <Compile Include="Queue\WorkerNotifications.cs" />
+    <Compile Include="TaskScheduling\WorkGroupNoOp.cs" />
+    <Compile Include="TaskScheduling\WorkGroupWithItem.cs" />
+    <Compile Include="Time\BaseTime.cs" />
+    <Compile Include="Time\LocalMachineTime.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DotNetWorkQueue.licenseheader" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Target Name="AfterBuild">
+    <!-- Main Queue DLL -->
+    <ItemGroup>
+      <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.dll" />
+      <MergeAssemblies Include="$(OutputPath)\Newtonsoft.Json.dll" />
+      <MergeAssemblies Include="$(OutputPath)\SimpleInjector.dll" />
+      <MergeAssemblies Include="$(OutputPath)\SmartThreadPool.dll" />
+      <MergeAssemblies Include="$(OutputPath)\Microsoft.IO.RecyclableMemoryStream.dll" />
+    </ItemGroup>
+    <PropertyGroup>
+      <OutputAssembly>$(SolutionDir)\..\MergedBuild\DotNetWorkQueue.dll</OutputAssembly>
+      <Merger Condition="('$(OS)' == 'Windows_NT')">"$(SolutionDir)\packages\ilmerge.2.14.1208\Tools\ILMerge.exe"</Merger>
+    </PropertyGroup>
+    <Message Text="MERGING: @(MergeAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
+    <Exec Command="$(Merger) /internalize /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
+    <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
+  </Target>
+</Project>

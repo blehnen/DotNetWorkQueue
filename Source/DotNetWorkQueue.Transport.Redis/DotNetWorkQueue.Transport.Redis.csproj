@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1F7A46A0-D823-4D83-A99F-5C2C7E7DDE3D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DotNetWorkQueue.Transport.Redis</RootNamespace>
+    <AssemblyName>DotNetWorkQueue.Transport.Redis</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Debug\DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Release\DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="GuerrillaNtp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GuerrillaNtp.1.0.0.0\lib\net45\GuerrillaNtp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.1.0.0\lib\net45\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MsgPack, Version=0.6.0.0, Culture=neutral, PublicKeyToken=a2625990d5dc0167, processorArchitecture=MSIL">
+      <HintPath>..\packages\MsgPack.Cli.0.6.2\lib\net45\MsgPack.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="StackExchange.Redis, Version=1.0.316.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\StackExchange.Redis.1.0.481\lib\net45\StackExchange.Redis.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\SharedAssemblyInfo.cs">
+      <Link>SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="Basic\CommandHandler\BatchMessageShared.cs" />
+    <Compile Include="Basic\CommandHandler\ClearExpiredMessagesCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\CommitMessageCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\DeleteMessageCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\MoveDelayedRecordsCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\ResetHeartBeatCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SaveMetaDataCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SendHeartBeatCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SendMessageCommandBatchHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SendMessageCommandBatchHandlerAsync.cs" />
+    <Compile Include="Basic\CommandHandler\SendMessageCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
+    <Compile Include="Basic\Command\ClearExpiredMessagesCommand.cs" />
+    <Compile Include="Basic\Command\CommitMessageCommand.cs" />
+    <Compile Include="Basic\Command\DeleteMessageCommand.cs" />
+    <Compile Include="Basic\Command\MoveDelayedRecordsCommand.cs" />
+    <Compile Include="Basic\Command\MoveRecordToErrorQueueCommand.cs" />
+    <Compile Include="Basic\Command\ResetHeartBeatCommand.cs" />
+    <Compile Include="Basic\Command\RollbackMessageCommand.cs" />
+    <Compile Include="Basic\Command\SaveMetaDataCommand.cs" />
+    <Compile Include="Basic\Command\SendHeartBeatCommand.cs" />
+    <Compile Include="Basic\Command\SendMessageCommand.cs" />
+    <Compile Include="Basic\Command\SendMessageCommandBatch.cs" />
+    <Compile Include="Basic\Factory\GetTimeFactory.cs" />
+    <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
+    <Compile Include="Basic\Logging\Decorator\DelayedProcessingActionDecorator.cs" />
+    <Compile Include="Basic\Logging\Decorator\ReceiveMessageQueryDecorator.cs" />
+    <Compile Include="Basic\Lua\CommitLua.cs" />
+    <Compile Include="Basic\Metrics\Decorator\IDelayedProcessingActionDecorator.cs" />
+    <Compile Include="Basic\Metrics\Decorator\ReceiveMessageQueryDecorator.cs" />
+    <Compile Include="Basic\QueryHandler\GetErrorCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetPendingCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetPendingDelayedCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetWorkingCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
+    <Compile Include="Basic\Query\GetErrorCountQuery.cs" />
+    <Compile Include="Basic\Query\GetPendingCountQuery.cs" />
+    <Compile Include="Basic\Query\GetPendingDelayedCountQuery.cs" />
+    <Compile Include="Basic\Query\GetWorkingCountQuery.cs" />
+    <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
+    <Compile Include="Basic\RedisDelayedProcessingMonitor.cs" />
+    <Compile Include="Basic\Factory\GetMessageIdFactory.cs" />
+    <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
+    <Compile Include="Basic\Factory\RedisQueueWorkSubFactory.cs" />
+    <Compile Include="Basic\Factory\RedisQueueCorrelationIdFactory.cs" />
+    <Compile Include="Basic\Factory\UnixTimeFactory.cs" />
+    <Compile Include="Basic\Lua\BaseLua.cs" />
+    <Compile Include="Basic\Lua\ClearExpiredMessagesLua.cs" />
+    <Compile Include="Basic\Lua\DeleteLua.cs" />
+    <Compile Include="Basic\Lua\DequeueLua.cs" />
+    <Compile Include="Basic\Lua\DequeueRpcLua.cs" />
+    <Compile Include="Basic\Lua\EnqueueLua.cs" />
+    <Compile Include="Basic\Lua\EnqueueBatchLua.cs" />
+    <Compile Include="Basic\Lua\EnqueueDelayedLua.cs" />
+    <Compile Include="Basic\Lua\EnqueueDelayedAndExpirationLua.cs" />
+    <Compile Include="Basic\Lua\EnqueueExpirationLua.cs" />
+    <Compile Include="Basic\Lua\ErrorLua.cs" />
+    <Compile Include="Basic\Lua\LuaScripts.cs" />
+    <Compile Include="Basic\Lua\MoveDelayedToPendingLua.cs" />
+    <Compile Include="Basic\Lua\ResetHeartbeatLua.cs" />
+    <Compile Include="Basic\Lua\RollbackLua.cs" />
+    <Compile Include="Basic\Lua\RollbackDelayLua.cs" />
+    <Compile Include="Basic\Lua\SendHeartbeatLua.cs" />
+    <Compile Include="Basic\Lua\TimeLua.cs" />
+    <Compile Include="Basic\MessageID\GetRedisIncrId.cs" />
+    <Compile Include="Basic\MessageID\GetUUIDMessageID.cs" />
+    <Compile Include="Basic\Message\CommitMessage.cs" />
+    <Compile Include="Basic\Message\HandleMessage.cs" />
+    <Compile Include="Basic\Message\RollbackMessage.cs" />
+    <Compile Include="Basic\QueryHandler\GetMetaDataQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
+    <Compile Include="Basic\Query\GetMetaDataQuery.cs" />
+    <Compile Include="Basic\Query\ReceiveMessageQuery.cs" />
+    <Compile Include="Basic\RedisErrorTracking.cs" />
+    <Compile Include="Basic\RedisMessage.cs" />
+    <Compile Include="Basic\RedisMetaData.cs" />
+    <Compile Include="Basic\RedisNames.cs" />
+    <Compile Include="Basic\RedisQueueClearExpiredMessages.cs" />
+    <Compile Include="Basic\RedisQueueCorrelationId.cs" />
+    <Compile Include="Basic\RedisQueueCreation.cs" />
+    <Compile Include="Basic\RedisQueueID.cs" />
+    <Compile Include="Basic\RedisQueueInit.cs" />
+    <Compile Include="Basic\RedisQueueMonitor.cs" />
+    <Compile Include="Basic\RedisQueueReceiveMessages.cs" />
+    <Compile Include="Basic\RedisQueueReceiveMessagesError.cs" />
+    <Compile Include="Basic\RedisQueueReceivePoisonMessage.cs" />
+    <Compile Include="Basic\RedisQueueResetHeartBeat.cs" />
+    <Compile Include="Basic\RedisQueueSend.cs" />
+    <Compile Include="Basic\RedisQueueSendHeartBeat.cs" />
+    <Compile Include="Basic\RedisQueueStatusProvider.cs" />
+    <Compile Include="Basic\RedisQueueTransportOptions.cs" />
+    <Compile Include="Basic\RedisQueueWorkSub.cs" />
+    <Compile Include="Basic\RedisHeaders.cs" />
+    <Compile Include="Basic\RedisQueueDelay.cs" />
+    <Compile Include="Basic\RedisQueueRpcConnection.cs" />
+    <Compile Include="Basic\RedisQueueWorkSubRpc.cs" />
+    <Compile Include="Basic\RedisSimpleBatchSize.cs" />
+    <Compile Include="Basic\Time\BaseUnixTime.cs" />
+    <Compile Include="Basic\Time\LocalMachineUnixTime.cs" />
+    <Compile Include="Basic\Time\SntpUnixTime.cs" />
+    <Compile Include="Basic\Time\RedisServerUnixTime.cs" />
+    <Compile Include="Basic\Time\SntpTimeConfiguration.cs" />
+    <Compile Include="ConfigurationExtensions.cs" />
+    <Compile Include="Helpers.cs" />
+    <Compile Include="ICommandHandler.cs" />
+    <Compile Include="IDelayedProcessingAction.cs" />
+    <Compile Include="IDelayedProcessingMonitor.cs" />
+    <Compile Include="IGetMessageID.cs" />
+    <Compile Include="IGetMessageIdFactory.cs" />
+    <Compile Include="IQuery.cs" />
+    <Compile Include="IQueryHandler.cs" />
+    <Compile Include="IRedisConnection.cs" />
+    <Compile Include="IRedisQueueWorkSub.cs" />
+    <Compile Include="IRedisQueueWorkSubFactory.cs" />
+    <Compile Include="ISendBatchSize.cs" />
+    <Compile Include="IUnixTime.cs" />
+    <Compile Include="IUnixTimeFactory.cs" />
+    <Compile Include="netfx\System\Guard.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RedisConnection.cs" />
+    <Compile Include="RedisConnectionInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj">
+      <Project>{26e740da-e63d-497a-bf5b-fbbf28c8846f}</Project>
+      <Name>DotNetWorkQueue</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
+      <Link>DotNetWorkQueue.licenseheader</Link>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Target Name="AfterBuild">
+    <!-- Redis transport -->
+    <ItemGroup>
+      <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.Transport.Redis.dll" />
+      <MergeAssemblies Include="$(OutputPath)\GuerrillaNtp.dll" />
+      <MergeAssemblies Include="$(OutputPath)\Microsoft.IO.RecyclableMemoryStream.dll" />
+      <!-- <MergeAssemblies Include="$(OutputPath)\MsgPack.dll" /> -->
+      <MergeAssemblies Include="$(OutputPath)\StackExchange.Redis.dll" />
+    </ItemGroup>
+    <PropertyGroup>
+      <OutputAssembly>$(SolutionDir)\..\MergedBuild\DotNetWorkQueue.Transport.Redis.dll</OutputAssembly>
+      <Merger Condition="('$(OS)' == 'Windows_NT')">"$(SolutionDir)\packages\ilmerge.2.14.1208\Tools\ILMerge.exe"</Merger>
+    </PropertyGroup>
+    <Message Text="MERGING: @(MergeAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
+    <Exec Command="$(Merger) /internalize /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
+    <Copy SourceFiles="$(OutputPath)\MsgPack.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="false" />
+    <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.Redis.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
+  </Target>
+</Project>

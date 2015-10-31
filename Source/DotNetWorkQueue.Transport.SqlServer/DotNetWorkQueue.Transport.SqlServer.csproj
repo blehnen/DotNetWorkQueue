@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4E0C6F9D-0B43-4989-BE8B-93174A42636A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DotNetWorkQueue.Transport.SqlServer</RootNamespace>
+    <AssemblyName>DotNetWorkQueue.Transport.SqlServer</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Debug\DotNetWorkQueue.Transport.SqlServer.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Release\DotNetWorkQueue.Transport.SqlServer.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\SharedAssemblyInfo.cs">
+      <Link>SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="Basic\CommandHandler\CreateQueueTablesAndSaveConfigurationCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\DeleteMessageCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\DeleteQueueTablesCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\DeleteStatusTableStatusCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\DeleteTransactionalMessageCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\MessageExpiration.cs" />
+    <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\ResetHeartBeatCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SendHeartBeatCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SendMessage.cs" />
+    <Compile Include="Basic\CommandHandler\SendMessageCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
+    <Compile Include="Basic\CommandHandler\SetErrorCountCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SetStatusTableStatusCommandHandler.cs" />
+    <Compile Include="Basic\Command\CreateQueueTablesAndSaveConfigurationCommand.cs" />
+    <Compile Include="Basic\Command\DeleteMessageCommand.cs" />
+    <Compile Include="Basic\Command\DeleteQueueTablesCommand.cs" />
+    <Compile Include="Basic\Command\DeleteStatusTableStatusCommand.cs" />
+    <Compile Include="Basic\Command\DeleteTransactionalMessageCommand.cs" />
+    <Compile Include="Basic\Command\MoveRecordToErrorQueueCommand.cs" />
+    <Compile Include="Basic\Command\ResetHeartBeatCommand.cs" />
+    <Compile Include="Basic\Command\RollbackMessageCommand.cs" />
+    <Compile Include="Basic\Command\SendHeartBeatCommand.cs" />
+    <Compile Include="Basic\Command\SendMessageCommand.cs" />
+    <Compile Include="Basic\Command\SetErrorCountCommand.cs" />
+    <Compile Include="Basic\Command\SetStatusTableStatusCommand.cs" />
+    <Compile Include="Basic\Connection.cs" />
+    <Compile Include="Basic\Factory\ConnectionFactory.cs" />
+    <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
+    <Compile Include="Basic\Factory\SQLServerMessageQueueCorrelationIDFactory.cs" />
+    <Compile Include="Basic\Factory\SQLServerMessageQueueTransportOptionsFactory.cs" />
+    <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
+    <Compile Include="Basic\IConnectionFactory.cs" />
+    <Compile Include="Basic\ISQLServerMessageQueueTransportOptionsFactory.cs" />
+    <Compile Include="Basic\Message\CommitMessage.cs" />
+    <Compile Include="Basic\Message\HandleMessage.cs" />
+    <Compile Include="Basic\Message\ReceiveMessage.cs" />
+    <Compile Include="Basic\Message\RollbackMessage.cs" />
+    <Compile Include="Basic\QueryHandler\FindExpiredRecordsToDeleteQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\FindRecordsToResetByHeartBeatQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetColumnNamesFromTableQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetErrorCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetErrorRecordExistsQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetErrorRetryCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetPendingCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetPendingDelayedCountHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetPendingExcludeDelayCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetQueueOptionsQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetTableExistsQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetUTCDateQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetWorkingCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
+    <Compile Include="Basic\Query\FindExpiredMessagesToDeleteQuery.cs" />
+    <Compile Include="Basic\Query\FindMessagesToResetByHeartBeatQuery.cs" />
+    <Compile Include="Basic\Query\GetColumnNamesFromTableQuery.cs" />
+    <Compile Include="Basic\Query\GetErrorCountQuery.cs" />
+    <Compile Include="Basic\Query\GetErrorRecordExistsQuery.cs" />
+    <Compile Include="Basic\Query\GetErrorRetryCountQuery.cs" />
+    <Compile Include="Basic\Query\GetPendingCountQuery.cs" />
+    <Compile Include="Basic\Query\GetPendingDelayedCountQuery.cs" />
+    <Compile Include="Basic\Query\GetPendingExcludeDelayCountQuery.cs" />
+    <Compile Include="Basic\Query\GetQueueOptionsQuery.cs" />
+    <Compile Include="Basic\Query\GetTableExistsQuery.cs" />
+    <Compile Include="Basic\Query\GetUTCDateQuery.cs" />
+    <Compile Include="Basic\Query\GetWorkingCountQuery.cs" />
+    <Compile Include="Basic\Query\MessageToReset.cs" />
+    <Compile Include="Basic\Query\ReceiveMessageQuery.cs" />
+    <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
+    <Compile Include="Basic\QueueStatus.cs" />
+    <Compile Include="Basic\SQLHeaders.cs" />
+    <Compile Include="Basic\SQLQueueDelay.cs" />
+    <Compile Include="Basic\SqlServerCommandStringCache.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueClearExpiredMessages.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueCorrelationID.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueCreation.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueID.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueInit.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueReceive.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueReceiveErrorMessage.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueResetHeartBeat.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueSchema.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueSend.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueSendHeartBeat.cs" />
+    <Compile Include="Basic\SqlServerMessageQueueStatusQueries.cs" />
+    <Compile Include="Basic\SQLServerMessageQueueTransportOptions.cs" />
+    <Compile Include="Basic\SqlServerQueueReceivePoisonMessage.cs" />
+    <Compile Include="Basic\SqlServerQueueStatusProvider.cs" />
+    <Compile Include="Basic\SqlServerRpcConnection.cs" />
+    <Compile Include="Basic\TableNameHelper.cs" />
+    <Compile Include="Basic\Time\SqlServerTime.cs" />
+    <Compile Include="ConfigurationExtensions.cs" />
+    <Compile Include="Decorator\RetryCommandHandlerDecorator.cs" />
+    <Compile Include="Decorator\RetryCommandHandlerOutputDecorator.cs" />
+    <Compile Include="Decorator\RetryCommandHandlerOutputDecoratorAsync.cs" />
+    <Compile Include="Decorator\RetryConstants.cs" />
+    <Compile Include="Decorator\ThreadSafeRandom.cs" />
+    <Compile Include="Decorator\RetryableSqlErrors.cs" />
+    <Compile Include="Decorator\RetryQueryHandlerDecorator.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="ICommandHandler.cs" />
+    <Compile Include="IQuery.cs" />
+    <Compile Include="IQueryHandler.cs" />
+    <Compile Include="netfx\System\Guard.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Schema\Column.cs" />
+    <Compile Include="Schema\ColumnList.cs" />
+    <Compile Include="Schema\Columns.cs" />
+    <Compile Include="Schema\Constraint.cs" />
+    <Compile Include="Schema\ConstraintList.cs" />
+    <Compile Include="Schema\Default.cs" />
+    <Compile Include="Schema\Identity.cs" />
+    <Compile Include="Schema\Table.cs" />
+    <Compile Include="Schema\TableInfo.cs" />
+    <Compile Include="SQLConnectionInformation.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj">
+      <Project>{26e740da-e63d-497a-bf5b-fbbf28c8846f}</Project>
+      <Name>DotNetWorkQueue</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
+      <Link>DotNetWorkQueue.licenseheader</Link>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Target Name="AfterBuild">
+    <!-- sql transport -->
+    <ItemGroup>
+      <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.Transport.SqlServer.dll" />
+    </ItemGroup>
+    <PropertyGroup>
+      <OutputAssembly>$(SolutionDir)\..\MergedBuild\DotNetWorkQueue.Transport.SqlServer.dll</OutputAssembly>
+      <Merger Condition="('$(OS)' == 'Windows_NT')">"$(SolutionDir)\packages\ilmerge.2.14.1208\Tools\ILMerge.exe"</Merger>
+    </PropertyGroup>
+    <Message Text="MERGING: @(MergeAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
+    <Exec Command="$(Merger) /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
+    <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.SqlServer.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
+  </Target>
+</Project>

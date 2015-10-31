@@ -1,0 +1,87 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{511E83C7-FB52-4958-9553-5DAA34CDC845}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue", "DotNetWorkQueue\DotNetWorkQueue.csproj", "{26E740DA-E63D-497A-BF5B-FBBF28C8846F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.IntegrationTests.Shared", "DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj", "{3C5A2726-36C2-41FA-8840-91D2FD74F872}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Metrics.Net", "DotNetWorkQueue.Metrics.Net\DotNetWorkQueue.Metrics.Net.csproj", "{EFFE0556-89ED-4C70-B527-27D89D132E34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Metrics.Net.Tests", "DotNetWorkQueue.Metrics.Net.Tests\DotNetWorkQueue.Metrics.Net.Tests.csproj", "{7E8623AD-2850-410E-A258-285D0072D64B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Tests", "DotNetWorkQueue.Tests\DotNetWorkQueue.Tests.csproj", "{AC39352F-4B30-4D33-AC24-25829F3EFE4C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.Redis", "DotNetWorkQueue.Transport.Redis\DotNetWorkQueue.Transport.Redis.csproj", "{1F7A46A0-D823-4D83-A99F-5C2C7E7DDE3D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.Redis.IntegrationTests", "DotNetWorkQueue.Transport.Redis.IntegrationTests\DotNetWorkQueue.Transport.Redis.IntegrationTests.csproj", "{5AA687C0-83A6-493B-BAA2-483D582CC2F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.Redis.Tests", "DotNetWorkQueue.Transport.Redis.Tests\DotNetWorkQueue.Transport.Redis.Tests.csproj", "{CD9C8B77-50E1-4A3A-A0EB-6C5B60ED5498}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SqlServer", "DotNetWorkQueue.Transport.SqlServer\DotNetWorkQueue.Transport.SqlServer.csproj", "{4E0C6F9D-0B43-4989-BE8B-93174A42636A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SqlServer.IntegrationTests", "DotNetWorkQueue.Transport.SqlServer.IntegrationTests\DotNetWorkQueue.Transport.SqlServer.IntegrationTests.csproj", "{01D29A3B-41BF-4C89-A539-77CA8622B0E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SqlServer.Tests", "DotNetWorkQueue.Transport.SqlServer.Tests\DotNetWorkQueue.Transport.SqlServer.Tests.csproj", "{C3916361-00CC-4360-A507-2A7A4CBE7019}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{26E740DA-E63D-497A-BF5B-FBBF28C8846F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26E740DA-E63D-497A-BF5B-FBBF28C8846F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26E740DA-E63D-497A-BF5B-FBBF28C8846F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26E740DA-E63D-497A-BF5B-FBBF28C8846F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C5A2726-36C2-41FA-8840-91D2FD74F872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C5A2726-36C2-41FA-8840-91D2FD74F872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C5A2726-36C2-41FA-8840-91D2FD74F872}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C5A2726-36C2-41FA-8840-91D2FD74F872}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFFE0556-89ED-4C70-B527-27D89D132E34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFFE0556-89ED-4C70-B527-27D89D132E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFFE0556-89ED-4C70-B527-27D89D132E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFFE0556-89ED-4C70-B527-27D89D132E34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E8623AD-2850-410E-A258-285D0072D64B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E8623AD-2850-410E-A258-285D0072D64B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E8623AD-2850-410E-A258-285D0072D64B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E8623AD-2850-410E-A258-285D0072D64B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC39352F-4B30-4D33-AC24-25829F3EFE4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC39352F-4B30-4D33-AC24-25829F3EFE4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC39352F-4B30-4D33-AC24-25829F3EFE4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC39352F-4B30-4D33-AC24-25829F3EFE4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F7A46A0-D823-4D83-A99F-5C2C7E7DDE3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F7A46A0-D823-4D83-A99F-5C2C7E7DDE3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F7A46A0-D823-4D83-A99F-5C2C7E7DDE3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F7A46A0-D823-4D83-A99F-5C2C7E7DDE3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AA687C0-83A6-493B-BAA2-483D582CC2F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AA687C0-83A6-493B-BAA2-483D582CC2F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AA687C0-83A6-493B-BAA2-483D582CC2F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AA687C0-83A6-493B-BAA2-483D582CC2F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD9C8B77-50E1-4A3A-A0EB-6C5B60ED5498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD9C8B77-50E1-4A3A-A0EB-6C5B60ED5498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD9C8B77-50E1-4A3A-A0EB-6C5B60ED5498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD9C8B77-50E1-4A3A-A0EB-6C5B60ED5498}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E0C6F9D-0B43-4989-BE8B-93174A42636A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E0C6F9D-0B43-4989-BE8B-93174A42636A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E0C6F9D-0B43-4989-BE8B-93174A42636A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E0C6F9D-0B43-4989-BE8B-93174A42636A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01D29A3B-41BF-4C89-A539-77CA8622B0E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01D29A3B-41BF-4C89-A539-77CA8622B0E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01D29A3B-41BF-4C89-A539-77CA8622B0E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01D29A3B-41BF-4C89-A539-77CA8622B0E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3916361-00CC-4360-A507-2A7A4CBE7019}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3916361-00CC-4360-A507-2A7A4CBE7019}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3916361-00CC-4360-A507-2A7A4CBE7019}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3916361-00CC-4360-A507-2A7A4CBE7019}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
