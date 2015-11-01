@@ -3,28 +3,38 @@ DotNetWorkQueue.Examples
 
 Sql Server
 	[**Producer**]
+	
 		Send Messages via SQL server transport
 	[**Consumer**]
+	
 		Process messages via SQL server transport
 	[**ConsumerAsync**]
+	
 		Process messages via SQL server transport using shared task scheduler
 	[**RPCProducer**]
+	
 		Send a message via SQL server transport and receive a response
 	[**RPCConsumer**]
+	
 		Process a messge via SQL server transport and send a response
 
 Redis
 	[**Producer**]
+	
 		Send Messages via Redis transport
 	[**Consumer**]
+	
 		Process messages via Redis transport
 	[**ConsumerAsync**]
+	
 		Process messages via Redis transport using shared task scheduler
 	[**RPCProducer**]
+	
 		Send a message via Redis transport and receive a response
 	[**RPCConsumer**]
+	
 		Process a messge via Redis transport and send a response
-
+		
 License
 --------
 Copyright (c) 2015 Brian Lehnen
@@ -58,20 +68,21 @@ This library uses multiple 3rd party libaries, listed below.
 
 NOTE: Changes have been made to both libaries; they no longer exactly match the versions available on the web sites.
 
-ConsoleCommandLibrary (http://www.codeproject.com/Articles/816301/Csharp-Building-a-Useful-Extensible-NET-Console-Ap)
+ConsoleCommandLibrary 
+(http://www.codeproject.com/Articles/816301/Csharp-Building-a-Useful-Extensible-NET-Console-Ap)
 
 Modifications:
 
-1) Allow using instances instead of static libaries
-2) Support async commands
-3) Support command result actions - enum used, so actions are limited to hard coded list
-4) Support params collection for string and timespan
-5) Support nullable timespan as param
-6) List default value for optional params
-7) Add help/example syntax
-8) Added macro support (capture/cancel/save/run)
+- Allow using instances instead of static libaries
+- Support async commands
+- Support command result actions - enum used, so actions are limited to hard coded list
+- Support params collection for string and timespan
+- Support nullable timespan as param
+- List default value for optional params
+- Add help/example syntax
+- Added macro support (capture/cancel/save/run)
 
 ShellControl (http://www.codeproject.com/Articles/9621/ShellControl-A-console-emulation-control)
 
-1) Changed code from dot net 1.1 to 4.0. 
-2) TAB scrolls through list of commmands.
+- Changed code from dot net 1.1 to 4.0. 
+- TAB scrolls through list of commmands.
