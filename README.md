@@ -171,6 +171,7 @@ StackExchange.Redis (https://github.com/StackExchange/StackExchange.Redis)
 *This module cannot be merged via ILMerge - causes serialization failures
 
 [**DotNetWorkQueue.Transport.SqlServer**]
+
 None
 
 [**DotNetWorkQueue.Metrics.Net**]

@@ -1,11 +1,77 @@
 DotNetWorkQueue.Examples
 =========
 
-TODO - license
+Sql Server
+	[**Producer**]
+		Send Messages via SQL server transport
+	[**Consumer**]
+		Process messages via SQL server transport
+	[**ConsumerAsync**]
+		Process messages via SQL server transport using shared task scheduler
+	[**RPCProducer**]
+		Send a message via SQL server transport and receive a response
+	[**RPCConsumer**]
+		Process a messge via SQL server transport and send a response
+
+Redis
+	[**Producer**]
+		Send Messages via Redis transport
+	[**Consumer**]
+		Process messages via Redis transport
+	[**ConsumerAsync**]
+		Process messages via Redis transport using shared task scheduler
+	[**RPCProducer**]
+		Send a message via Redis transport and receive a response
+	[**RPCConsumer**]
+		Process a messge via Redis transport and send a response
+
+License
+--------
+Copyright (c) 2015 Brian Lehnen
+
+All rights reserved.
+ 
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 3rd party Libraries
 --------
 
 This library uses multiple 3rd party libaries, listed below.
 
-TODO
+NOTE: Changes have been made to both libaries; they no longer exactly match the versions available on the web sites.
+
+ConsoleCommandLibrary (http://www.codeproject.com/Articles/816301/Csharp-Building-a-Useful-Extensible-NET-Console-Ap)
+
+Modifications:
+
+1) Allow using instances instead of static libaries
+2) Support async commands
+3) Support command result actions - enum used, so actions are limited to hard coded list
+4) Support params collection for string and timespan
+5) Support nullable timespan as param
+6) List default value for optional params
+7) Add help/example syntax
+8) Added macro support (capture/cancel/save/run)
+
+ShellControl (http://www.codeproject.com/Articles/9621/ShellControl-A-console-emulation-control)
+
+1) Changed code from dot net 1.1 to 4.0. 
+2) TAB scrolls through list of commmands.
