@@ -5,7 +5,7 @@ DotNetWorkQueue
 
 A producer / consumer library for dot net applications. Available transports are SQL server and Redis.
 
-See the wiki for more indepth documention (https://github.com/blehnen/DotNetWorkQueue/wiki)
+See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for more indepth documention
 
 Installation
 -------------
