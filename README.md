@@ -25,7 +25,7 @@ public class SimpleMessage
 
 [**Producer - Sql server**]
 
-```csharp		
+```csharp
 //Create the queue if it doesn't exist
 var queueName = "testing";
 var connectionString = "Server=V-SQL;Application Name=SQLProducer;Database=TestR;Trusted_Connection=True;";
@@ -60,7 +60,7 @@ using (var queueContainer = new QueueContainer<RedisQueueInit>())
 		queue.Send(new SimpleMessage.SimpleMessage{Message = "hello world"});
 	}
 }
-```		
+```
 
 [**Consumer - Sql server**]
 
@@ -79,7 +79,7 @@ private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNoti
 {
 	notifications.Log.Debug($"Processing Message {message.Body.Message}");
 }
-		
+
 ```
 
 [**Consumer - Redis**]
@@ -100,8 +100,8 @@ private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNoti
 }
 
 ```
-	
-[**More examples**] (https://github.com/blehnen/DotNetWorkQueue/tree/master/Source/Examples)
+
+[**More examples**](https://github.com/blehnen/DotNetWorkQueue/tree/master/Source/Examples)
 ------
 
 Building the source
@@ -123,7 +123,7 @@ ILMerge is used to merge dependanices into a final assembly. These merged assemb
 
 License
 --------
-Copyright © 2015 Brian Lehnen
+Copyright ï¿½ 2015 Brian Lehnen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -145,28 +145,28 @@ This library uses multiple 3rd party libaries, listed below.
 
 [**DotNetWorkQueue**]
 
-ILMerge (http://research.microsoft.com/en-us/people/mbarnett/ILMerge.aspx)
+* [ILMerge ](http://research.microsoft.com/en-us/people/mbarnett/ILMerge.aspx)
 
-LibLog (https://github.com/damianh/LibLog)
+* [LibLog ](https://github.com/damianh/LibLog)
 
-NetFX-Guard (http://netfx.codeplex.com/)
+* [NetFX-Guard ](http://netfx.codeplex.com/)
 
-SimpleInjector (https://simpleinjector.org/index.html)
+* [SimpleInjector ](https://simpleinjector.org/index.html)
 
-Microsoft.IO.RecyclableMemoryStream (https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream)
+* [Microsoft.IO.RecyclableMemoryStream ](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream)
 
-NetwtonSoft.JSON (http://www.newtonsoft.com/json)
+* [NetwtonSoft.JSON ](http://www.newtonsoft.com/json)
 
-SmartThreadPool (https://github.com/amibar/SmartThreadPool)
+* [SmartThreadPool ](https://github.com/amibar/SmartThreadPool)
 
 
 [**DotNetWorkQueue.Transport.Redis**]
 
-GuerrillaNTP (https://bitbucket.org/robertvazan/guerrillantp)
+* [GuerrillaNTP ](https://bitbucket.org/robertvazan/guerrillantp)
 
-MsgPack-CLI* (https://github.com/msgpack/msgpack-cli)
+* [MsgPack-CLI* ](https://github.com/msgpack/msgpack-cli)
 
-StackExchange.Redis (https://github.com/StackExchange/StackExchange.Redis)
+* [StackExchange.Redis ](https://github.com/StackExchange/StackExchange.Redis)
 
 *This module cannot be merged via ILMerge - causes serialization failures
 
@@ -176,21 +176,21 @@ None
 
 [**DotNetWorkQueue.Metrics.Net**]
 
-Metrics.net (https://github.com/etishor/Metrics.NET)
+* [Metrics.net ](https://github.com/etishor/Metrics.NET)
 
 [**Unit / Integration Tests**]
 
-AutoFixture (https://github.com/AutoFixture/AutoFixture)
+* [AutoFixture ](https://github.com/AutoFixture/AutoFixture)
 
-CompareNetObjects (http://comparenetobjects.codeplex.com/)
+* [CompareNetObjects ](http://comparenetobjects.codeplex.com/)
 
-FluentAssertions (http://www.fluentassertions.com/)
+* [FluentAssertions ](http://www.fluentassertions.com/)
 
-nsubstitute (http://nsubstitute.github.io/)
+* [nsubstitute ](http://nsubstitute.github.io/)
 
-ObjectFiler (http://objectfiller.net/)
+* [ObjectFiller ](http://objectfiller.net/)
 
-Xunit (https://github.com/xunit/xunit)
+* [Xunit ](https://github.com/xunit/xunit)
 
 ##### Developed with:
 

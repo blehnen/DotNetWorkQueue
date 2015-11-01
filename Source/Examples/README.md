@@ -14,13 +14,13 @@ DotNetWorkQueue.Examples
 - ConsumerAsync - Process messages via Redis transport using shared task scheduler
 - RPCProducer - Send a message via Redis transport and receive a response
 - RPCConsumer - Process a messge via Redis transport and send a response
-		
+
 License
 --------
 Copyright (c) 2015 Brian Lehnen
 
 All rights reserved.
- 
+
 MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -48,8 +48,7 @@ This library uses multiple 3rd party libaries, listed below.
 
 NOTE: Changes have been made to both libaries; they no longer exactly match the versions available on the web sites.
 
-ConsoleCommandLibrary 
-(http://www.codeproject.com/Articles/816301/Csharp-Building-a-Useful-Extensible-NET-Console-Ap)
+* [ConsoleCommandLibrary ](http://www.codeproject.com/Articles/816301/Csharp-Building-a-Useful-Extensible-NET-Console-Ap)
 
 Modifications:
 
@@ -62,7 +61,9 @@ Modifications:
 - Add help/example syntax
 - Added macro support (capture/cancel/save/run)
 
-ShellControl (http://www.codeproject.com/Articles/9621/ShellControl-A-console-emulation-control)
+* [ShellControl ](http://www.codeproject.com/Articles/9621/ShellControl-A-console-emulation-control)
 
-- Changed code from dot net 1.1 to 4.0. 
+Modifications:
+
+- Changed code from dot net 1.1 to 4.0.
 - TAB scrolls through list of commmands.
