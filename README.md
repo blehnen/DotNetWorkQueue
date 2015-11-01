@@ -192,3 +192,9 @@ ObjectFiler (http://objectfiller.net/)
 
 Xunit (https://github.com/xunit/xunit)
 
+##### Developed with:
+
+[![Resharper](http://neventstore.org/images/logo_resharper_small.gif)](http://www.jetbrains.com/resharper/)
+[![dotCover](http://neventstore.org/images/logo_dotcover_small.gif)](http://www.jetbrains.com/dotcover/)
+[![dotTrace](http://neventstore.org/images/logo_dottrace_small.gif)](http://www.jetbrains.com/dottrace/)
+
