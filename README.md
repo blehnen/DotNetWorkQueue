@@ -10,7 +10,17 @@ See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for more indepth
 Installation
 -------------
 
-TODO - not yet published to nuget.
+Base
+* NuGet package [DotNetWorkQueue](https://www.nuget.org/packages/DotNetWorkQueue/).
+
+Transports
+
+* NuGet package [DotNetWorkQueue.Transports.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/).
+* NuGet package [DotNetWorkQueue.Transports.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/).
+
+Metrics
+
+* NuGet package [DotNetWorkQueue.Metrics.Net](https://www.nuget.org/packages/DotNetWorkQueue.Metrics.Net/).
 
 Usage
 ------
