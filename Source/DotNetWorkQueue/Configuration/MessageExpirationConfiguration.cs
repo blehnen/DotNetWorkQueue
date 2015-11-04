@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public bool Enabled
         {
-            get { return _enabled; }
+            get { return _enabled && Supported; }
             set
             {
                 FailIfReadOnly();

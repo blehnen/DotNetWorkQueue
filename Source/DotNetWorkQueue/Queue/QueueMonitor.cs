@@ -33,20 +33,31 @@ namespace DotNetWorkQueue.Queue
         private readonly List<IMonitor> _monitors;
         private readonly IClearExpiredMessagesMonitor _clearMessagesFactory;
         private readonly IHeartBeatMonitor _heartBeatFactory;
+        private readonly IHeartBeatConfiguration _heartBeatConfiguration;
+        private readonly IMessageExpirationConfiguration _expirationConfiguration;
         private int _disposeCount;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueMonitor"/> class.
+        /// Initializes a new instance of the <see cref="QueueMonitor" /> class.
         /// </summary>
         /// <param name="clearMessagesFactory">The clear messages factory.</param>
         /// <param name="heartBeatFactory">The heart beat factory.</param>
+        /// <param name="heartBeatConfiguration">The heart beat configuration.</param>
+        /// <param name="expirationConfiguration">The expiration configuration.</param>
         public QueueMonitor(IClearExpiredMessagesMonitor clearMessagesFactory,
-            IHeartBeatMonitor heartBeatFactory)
+            IHeartBeatMonitor heartBeatFactory,
+            IHeartBeatConfiguration heartBeatConfiguration,
+            IMessageExpirationConfiguration expirationConfiguration)
         {
             Guard.NotNull(() => clearMessagesFactory, clearMessagesFactory);
             Guard.NotNull(() => heartBeatFactory, heartBeatFactory);
+            Guard.NotNull(() => heartBeatConfiguration, heartBeatConfiguration);
+            Guard.NotNull(() => expirationConfiguration, expirationConfiguration);
+
+            _heartBeatConfiguration = heartBeatConfiguration;
             _heartBeatFactory = heartBeatFactory;
             _clearMessagesFactory = clearMessagesFactory;
+            _expirationConfiguration = expirationConfiguration;
             _monitors = new List<IMonitor>(2);
         }
         /// <summary>
@@ -61,9 +72,18 @@ namespace DotNetWorkQueue.Queue
                 throw new DotNetWorkQueueException("Start must only be called 1 time");    
             }
 
-            _monitors.Add(_heartBeatFactory);
-            _monitors.Add(_clearMessagesFactory);
-            _monitors.AsParallel().ForAll(w => w.Start());
+            if (_heartBeatConfiguration.Enabled)
+            {
+                _monitors.Add(_heartBeatFactory);
+            }
+            if (_expirationConfiguration.Enabled)
+            {
+                _monitors.Add(_clearMessagesFactory);
+            }
+            if (_monitors.Count > 0)
+            {
+                _monitors.AsParallel().ForAll(w => w.Start());
+            }
         }
 
         /// <summary>
