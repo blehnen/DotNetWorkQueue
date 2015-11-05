@@ -18,8 +18,10 @@
 // ---------------------------------------------------------------------
 
 using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Queue;
+using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
@@ -102,6 +104,19 @@ namespace DotNetWorkQueue.Tests.Queue
         private IQueueMonitor Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+
+            var heartBeat = fixture.Create<IHeartBeatConfiguration>();
+            heartBeat.Enabled.Returns(true);
+            var message = fixture.Create<IMessageExpirationConfiguration>();
+            message.Enabled.Returns(true);
+
+            fixture.Inject(heartBeat);
+            fixture.Inject(message);
+
+            var transport = fixture.Create<TransportConfigurationReceive>();
+            transport.HeartBeatSupported = true;
+            transport.MessageExpirationSupported = true;
+            fixture.Inject(transport);
             return fixture.Create<QueueMonitor>();
         }
     }

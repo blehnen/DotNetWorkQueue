@@ -19,6 +19,7 @@
 
 using System;
 using DotNetWorkQueue.Configuration;
+using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Ploeh.AutoFixture.Xunit2;
@@ -89,6 +90,9 @@ namespace DotNetWorkQueue.Tests.Configuration
         private MessageExpirationConfiguration GetConfiguration()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var transport = fixture.Create<TransportConfigurationReceive>();
+            transport.MessageExpirationSupported = true;
+            fixture.Inject(transport);
             return fixture.Create<MessageExpirationConfiguration>();
         }
     }
