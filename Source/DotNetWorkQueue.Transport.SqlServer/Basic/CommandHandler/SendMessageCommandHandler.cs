@@ -32,8 +32,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
     internal class SendMessageCommandHandler : ICommandHandlerWithOutput<SendMessageCommand, long>
     {
         private readonly TableNameHelper _tableNameHelper;
-        private readonly ASerializer _serializer;
-        private readonly IInternalSerializer _internalSerializer;
+        private readonly ICompositeSerialization _serializer;
         private bool? _messageExpirationEnabled;
         private readonly IHeaders _headers;
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
@@ -49,14 +48,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="headers">The headers.</param>
         /// <param name="commandCache">The command cache.</param>
         /// <param name="configurationSend">The configuration send.</param>
-        /// <param name="internalSerializer">The internal serializer.</param>
         public SendMessageCommandHandler(TableNameHelper tableNameHelper, 
-            ASerializer serializer,
+            ICompositeSerialization serializer,
             ISqlServerMessageQueueTransportOptionsFactory optionsFactory, 
             IHeaders headers,
             SqlServerCommandStringCache commandCache, 
-            TransportConfigurationSend configurationSend, 
-            IInternalSerializer internalSerializer)
+            TransportConfigurationSend configurationSend)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => serializer, serializer);
@@ -64,7 +61,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             Guard.NotNull(() => headers, headers);
             Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => configurationSend, configurationSend);
-            Guard.NotNull(() => internalSerializer, internalSerializer);
 
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;
@@ -72,7 +68,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             _headers = headers;
             _commandCache = commandCache;
             _configurationSend = configurationSend;
-            _internalSerializer = internalSerializer;
         }
 
         /// <summary>
@@ -98,7 +93,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                         command.Transaction = trans;
                         command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.InsertMessageBody);
                         var serialization =
-                            _serializer.MessageToBytes(new MessageBody {Body = commandSend.MessageToSend.Body});
+                            _serializer.Serializer.MessageToBytes(new MessageBody {Body = commandSend.MessageToSend.Body});
 
                         command.Parameters.Add("@body", SqlDbType.VarBinary, -1);
                         command.Parameters["@body"].Value = serialization.Output;
@@ -108,7 +103,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
                         command.Parameters.Add("@headers", SqlDbType.VarBinary, -1);
                         command.Parameters["@headers"].Value =
-                            _internalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
+                            _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
 
                         var id = Convert.ToInt64(command.ExecuteScalar());
                         if (id > 0)

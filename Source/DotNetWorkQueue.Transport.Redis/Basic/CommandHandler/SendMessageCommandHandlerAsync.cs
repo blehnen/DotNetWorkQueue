@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandlerAsync : ICommandHandlerWithOutput<SendMessageCommand, Task<string>>
     {
-        private readonly ASerializer _serializer;
+        private readonly ICompositeSerialization _serializer;
         private readonly IHeaders _headers;
         private readonly EnqueueLua _enqueueLua;
         private readonly EnqueueDelayedLua _enqueueDelayedLua;
@@ -39,7 +39,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         private readonly EnqueueDelayedAndExpirationLua _enqueueDelayedAndExpirationLua;
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly IGetMessageIdFactory _messageIdFactory;
-        private readonly IInternalSerializer _internalSerializer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandler" /> class.
@@ -52,17 +51,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="enqueueDelayedAndExpirationLua">The enqueue delayed and expiration.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="messageIdFactory">The message identifier factory.</param>
-        /// <param name="internalSerializer">The internal serializer.</param>
         public SendMessageCommandHandlerAsync(
-            ASerializer serializer,
+            ICompositeSerialization serializer,
             IHeaders headers,
             EnqueueLua enqueueLua,
             EnqueueDelayedLua enqueueDelayedLua,
             EnqueueExpirationLua enqueueExpirationLua,
             EnqueueDelayedAndExpirationLua enqueueDelayedAndExpirationLua,
             IUnixTimeFactory unixTimeFactory,
-            IGetMessageIdFactory messageIdFactory, 
-            IInternalSerializer internalSerializer)
+            IGetMessageIdFactory messageIdFactory)
         {
             Guard.NotNull(() => serializer, serializer);
             Guard.NotNull(() => headers, headers);
@@ -72,13 +69,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             Guard.NotNull(() => enqueueDelayedAndExpirationLua, enqueueDelayedAndExpirationLua);
             Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
             Guard.NotNull(() => messageIdFactory, messageIdFactory);
-            Guard.NotNull(() => internalSerializer, internalSerializer);
 
             _serializer = serializer;
             _headers = headers;
             _enqueueLua = enqueueLua;
             _messageIdFactory = messageIdFactory;
-            _internalSerializer = internalSerializer;
 
             _enqueueDelayedLua = enqueueDelayedLua;
             _enqueueDelayedAndExpirationLua = enqueueDelayedAndExpirationLua;
@@ -168,11 +163,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
                 rpc = true;
             }
             var meta = new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds());
-            var serialized = _serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
+            var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
             var result = await _enqueueLua.ExecuteAsync(messageId,
-                serialized.Output, _internalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _internalSerializer.ConvertToBytes(meta), rpc).ConfigureAwait(false);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), rpc).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -198,11 +193,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
                 messageId = id;
             }
             var meta = new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds());
-            var serialized = _serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
+            var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
             var result = await _enqueueDelayedLua.ExecuteAsync(messageId,
-                serialized.Output, _internalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _internalSerializer.ConvertToBytes(meta), delayTime).ConfigureAwait(false);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), delayTime).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -231,11 +226,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             }
             var meta = new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds());
 
-            var serialized = _serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
+            var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
             var result = await _enqueueDelayedAndExpirationLua.ExecuteAsync(messageId,
-                serialized.Output, _internalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _internalSerializer.ConvertToBytes(meta), delayTime,
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), delayTime,
                 expireTime).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result))
@@ -264,11 +259,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
                 rpc = true;
             }
             var meta = new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds());
-            var serialized = _serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
+            var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
             var result = await _enqueueExpirationLua.ExecuteAsync(messageId,
-                serialized.Output, _internalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _internalSerializer.ConvertToBytes(meta), expireTime, rpc).ConfigureAwait(false);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), expireTime, rpc).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result))
             {
