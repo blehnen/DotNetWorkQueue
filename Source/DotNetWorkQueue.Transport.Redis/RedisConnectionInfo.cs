@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <remarks>Connection strings that are in an invalid format will cause an exception</remarks>
         private void SetConnection(string value)
         {
-            //validate that the passed in string parses as a SQL server connection string
+            //validate that the passed in string parses as a redis connection string
             var options = ConfigurationOptions.Parse(value);
             base.ConnectionString = options.ToString();
             _server = string.Join(",", options.EndPoints.Select(endpoint => endpoint.ToString()).ToList());
