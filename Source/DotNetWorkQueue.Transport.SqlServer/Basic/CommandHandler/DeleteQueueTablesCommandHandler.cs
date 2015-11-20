@@ -26,7 +26,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
     internal class DeleteQueueTablesCommandHandler : ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult>
     {
         private readonly IConnectionInformation _connectionInformation;
-        private readonly IQueryHandler<GetTableExistsQuery, bool> _tableExists;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -34,18 +33,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// </summary>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
-        /// <param name="tableExists">The table exists.</param>
         public DeleteQueueTablesCommandHandler(IConnectionInformation connectionInformation, 
-            TableNameHelper tableNameHelper, 
-            IQueryHandler<GetTableExistsQuery, bool> tableExists)
+            TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableExists, tableExists);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
 
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;
-            _tableExists = tableExists;
         }
 
         /// <summary>
@@ -64,10 +59,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                     {
                         commandSql.Transaction = trans;
                         //delete the tables
-                        foreach (var table in _tableNameHelper.Tables.Where(table => _tableExists.Handle(new GetTableExistsQuery(_connectionInformation.ConnectionString,
-                            table))))
+                        foreach (var table in _tableNameHelper.Tables)
                         {
-                            commandSql.CommandText = $"drop table {table}";
+                            commandSql.CommandText =
+                                $"IF OBJECT_ID('dbo.{table}', 'U') IS NOT NULL DROP TABLE dbo.{table};";
                             commandSql.ExecuteNonQuery();
                         }
 
