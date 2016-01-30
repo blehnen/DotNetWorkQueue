@@ -257,11 +257,11 @@ namespace SqlServerProducer.Commands
         {
             CreateModuleIfNeeded(queueName);
 
-                if (!_queueCreators[queueName].QueueExists) return new ConsoleExecuteResult("Queue does not exist");
-                var result = _queueCreators[queueName].RemoveQueue();
-                return !result.Success
-                    ? new ConsoleExecuteResult($"Failed to remove queue. Result is {result.Status}")
-                    : new ConsoleExecuteResult($"Removed queue; result is {result.Status}");
+            if (!_queueCreators[queueName].QueueExists) return new ConsoleExecuteResult("Queue does not exist");
+            var result = _queueCreators[queueName].RemoveQueue();
+            return !result.Success
+                ? new ConsoleExecuteResult($"Failed to remove queue. Result is {result.Status}")
+                : new ConsoleExecuteResult($"Removed queue; result is {result.Status}");
         }
 
         /// <summary>
