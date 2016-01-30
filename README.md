@@ -6,7 +6,6 @@ DotNetWorkQueue
 A producer / consumer library for dot net applications. Available transports are SQL server and Redis.
 
 See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for more indepth documention
-
 Installation
 -------------
 
@@ -165,7 +164,7 @@ This library uses multiple 3rd party libaries, listed below.
 
 * [Microsoft.IO.RecyclableMemoryStream ](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream)
 
-* [NetwtonSoft.JSON ](http://www.newtonsoft.com/json)
+* [Newtonsoft.Json ](http://www.newtonsoft.com/json)
 
 * [SmartThreadPool ](https://github.com/amibar/SmartThreadPool)
 
