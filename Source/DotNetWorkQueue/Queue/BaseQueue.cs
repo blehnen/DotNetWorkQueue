@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
         protected void LogSystemException(object sender, WorkerErrorEventArgs e)
         {
-            Log.ErrorException("Unhandled system exception {0}", e.Error);
+            Log.ErrorException("Unhandled system exception", e.Error);
         }
         /// <summary>
         /// Logs the user exception.
@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
         protected void LogUserException(object sender, WorkerErrorEventArgs e)
         {
-            Log.WarnException("User exception {0}", e.Error);
+            Log.WarnException("User exception", e.Error);
         }
         /// <summary>
         /// Gets or sets a value indicating whether work can proceed.

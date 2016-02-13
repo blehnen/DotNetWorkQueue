@@ -86,25 +86,28 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         private void RunMonitor()
         {
-            try
+            if (!_stopping)
             {
-                Running = true;
-                CancelToken = new CancellationTokenSource();
-                _monitorAction(CancelToken.Token);
-            }
-            catch (Exception error)
-            {
-                _log.ErrorException("An exception has occured in the monitor delegate", error);
-            }
-            finally
-            {
-                CancelTokenDestroy();
-                Running = false;
-            }
+                try
+                {
+                    Running = true;
+                    CancelToken = new CancellationTokenSource();
+                    _monitorAction(CancelToken.Token);
+                }
+                catch (Exception error)
+                {
+                    _log.ErrorException("An exception has occured in the monitor delegate", error);
+                }
+                finally
+                {
+                    CancelTokenDestroy();
+                    Running = false;
+                }
 
-            if (!_stopping && _timer != null && _monitorTimeSpan != null)
-            {
-                _timer.Change(_monitorTimeSpan.MonitorTime, Timeout.InfiniteTimeSpan);
+                if (!_stopping && _timer != null && _monitorTimeSpan != null)
+                {
+                    _timer.Change(_monitorTimeSpan.MonitorTime, Timeout.InfiniteTimeSpan);
+                }
             }
         }
 

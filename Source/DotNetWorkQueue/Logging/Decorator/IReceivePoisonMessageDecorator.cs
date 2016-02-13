@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Logging.Decorator
         {
             if (context.MessageId != null && context.MessageId.HasValue)
             {
-                var messageId = context.MessageId.Id.ToString();
+                var messageId = context.MessageId.Id.Value.ToString();
                 _handler.Handle(context, exception);
                 _log.ErrorException(
                     "Message with ID {0} has failed after de-queue, but before finishing loading. This message is considered a poison message, and has been moved to the error queue",
