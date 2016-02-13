@@ -1,4 +1,4 @@
-﻿//===============================================================================
+//===============================================================================
 // LibLog
 //
 // https://github.com/damianh/LibLog
@@ -31,25 +31,17 @@
 // Define LIBLOG_PUBLIC to enable ability to GET a logger (LogProvider.For<>() etc) from outside this library. NOTE:
 // this can have unintended consequences of consumers of your library using your library to resolve a logger. If the
 // reason is because you want to open this functionality to other projects within your solution,
-// consider [InternalVisibleTo] instead.
+// consider [InternalsVisibleTo] instead.
 // 
 // Define LIBLOG_PROVIDERS_ONLY if your library provides its own logging API and you just want to use the
 // LibLog providers internally to provide built in support for popular logging frameworks.
 
-#region Using
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text.RegularExpressions;
-
-#endregion
-
 #pragma warning disable 1591
+
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage("Microsoft.Design", "CA1020:AvoidNamespacesWithFewTypes", Scope = "namespace", Target = "DotNetWorkQueue.Logging")]
+[assembly: SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Scope = "member", Target = "DotNetWorkQueue.Logging.Logger.#Invoke(DotNetWorkQueue.Logging.LogLevel,System.Func`1<System.String>,System.Exception,System.Object[])")]
 
 // If you copied this file manually, you need to change all "YourRootNameSpace" so not to clash with other libraries
 // that use LibLog
@@ -59,21 +51,20 @@ namespace DotNetWorkQueue.LibLog
 namespace DotNetWorkQueue.Logging
 #endif
 {
-    #region Using
-
-    #if LIBLOG_PROVIDERS_ONLY
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+#if LIBLOG_PROVIDERS_ONLY
     using DotNetWorkQueue.LibLog.LogProviders;
 #else
-    using LogProviders;
+    using DotNetWorkQueue.Logging.LogProviders;
 #endif
+    using System;
 #if !LIBLOG_PROVIDERS_ONLY
     using System.Diagnostics;
 #if !LIBLOG_PORTABLE
     using System.Runtime.CompilerServices;
 #endif
 #endif
-
-    #endregion
 
 #if LIBLOG_PROVIDERS_ONLY
     internal
@@ -129,14 +120,13 @@ namespace DotNetWorkQueue.Logging
         Fatal
     }
 
-    [ExcludeFromCodeCoverageAttribute]
 #if !LIBLOG_PROVIDERS_ONLY
 #if LIBLOG_PUBLIC
     public
 #else
     internal
 #endif
-    static class LogExtensions
+    static partial class LogExtensions
     {
         public static bool IsDebugEnabled(this ILog logger)
         {
@@ -424,7 +414,6 @@ namespace DotNetWorkQueue.Logging
     /// <summary>
     /// Provides a mechanism to create instances of <see cref="ILog" /> objects.
     /// </summary>
-    [ExcludeFromCodeCoverageAttribute]
 #if LIBLOG_PROVIDERS_ONLY
     internal
 #else
@@ -443,6 +432,7 @@ namespace DotNetWorkQueue.Logging
         private static dynamic s_currentLogProvider;
         private static Action<ILogProvider> s_onCurrentLogProviderSet;
 
+        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static LogProvider()
         {
             IsDisabled = false;
@@ -550,7 +540,7 @@ namespace DotNetWorkQueue.Logging
 #endif
         static ILog GetLogger(string name)
         {
-            var logProvider = CurrentLogProvider ?? ResolveLogProvider();
+            ILogProvider logProvider = CurrentLogProvider ?? ResolveLogProvider();
             return logProvider == null 
                 ? NoOpLogger.Instance
                 : (ILog)new LoggerExecutionWrapper(logProvider.GetLogger(name), () => IsDisabled);
@@ -561,6 +551,7 @@ namespace DotNetWorkQueue.Logging
         /// </summary>
         /// <param name="message">A message.</param>
         /// <returns>An <see cref="IDisposable"/> that closes context when disposed.</returns>
+        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "SetCurrentLogProvider")]
 #if LIBLOG_PUBLIC
         public
 #else
@@ -568,11 +559,9 @@ namespace DotNetWorkQueue.Logging
 #endif
         static IDisposable OpenNestedContext(string message)
         {
-            if(CurrentLogProvider == null)
-            {
-                throw new InvalidOperationException(NullLogProvider);
-            }
-            return CurrentLogProvider.OpenNestedContext(message);
+            return CurrentLogProvider == null 
+                ? new DisposableAction(() => {}) 
+                : CurrentLogProvider.OpenNestedContext(message);
         }
 
         /// <summary>
@@ -581,6 +570,7 @@ namespace DotNetWorkQueue.Logging
         /// <param name="key">A key.</param>
         /// <param name="value">A value.</param>
         /// <returns>An <see cref="IDisposable"/> that closes context when disposed.</returns>
+        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "SetCurrentLogProvider")]
 #if LIBLOG_PUBLIC
         public
 #else
@@ -588,11 +578,9 @@ namespace DotNetWorkQueue.Logging
 #endif
         static IDisposable OpenMappedContext(string key, string value)
         {
-            if (CurrentLogProvider == null)
-            {
-                throw new InvalidOperationException(NullLogProvider);
-            }
-            return CurrentLogProvider.OpenMappedContext(key, value);
+            return CurrentLogProvider == null 
+                ? new DisposableAction(() => { }) 
+                : CurrentLogProvider.OpenMappedContext(key, value);
         }
 #endif
 
@@ -622,7 +610,7 @@ namespace DotNetWorkQueue.Logging
             new Tuple<IsLoggerAvailable, CreateLogProvider>(NLogLogProvider.IsLoggerAvailable, () => new NLogLogProvider()),
             new Tuple<IsLoggerAvailable, CreateLogProvider>(Log4NetLogProvider.IsLoggerAvailable, () => new Log4NetLogProvider()),
             new Tuple<IsLoggerAvailable, CreateLogProvider>(EntLibLogProvider.IsLoggerAvailable, () => new EntLibLogProvider()),
-            new Tuple<IsLoggerAvailable, CreateLogProvider>(LoupeLogProvider.IsLoggerAvailable, () => new LoupeLogProvider())
+            new Tuple<IsLoggerAvailable, CreateLogProvider>(LoupeLogProvider.IsLoggerAvailable, () => new LoupeLogProvider()),
         };
 
 #if !LIBLOG_PROVIDERS_ONLY
@@ -635,6 +623,8 @@ namespace DotNetWorkQueue.Logging
         }
 #endif
 
+        [SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "System.Console.WriteLine(System.String,System.Object,System.Object)")]
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal static ILogProvider ResolveLogProvider()
         {
             try
@@ -662,7 +652,6 @@ namespace DotNetWorkQueue.Logging
         }
 
 #if !LIBLOG_PROVIDERS_ONLY
-        [ExcludeFromCodeCoverageAttribute]
         internal class NoOpLogger : ILog
         {
             internal static readonly NoOpLogger Instance = new NoOpLogger();
@@ -676,7 +665,6 @@ namespace DotNetWorkQueue.Logging
     }
 
 #if !LIBLOG_PROVIDERS_ONLY
-    [ExcludeFromCodeCoverageAttribute]
     internal class LoggerExecutionWrapper : ILog
     {
         private readonly Logger _logger;
@@ -694,6 +682,7 @@ namespace DotNetWorkQueue.Logging
             get { return _logger; }
         }
 
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public bool Log(LogLevel logLevel, Func<string> messageFunc, Exception exception = null, params object[] formatParameters)
         {
             if (_getIsDisabled())
@@ -738,17 +727,21 @@ namespace DotNetWorkQueue.LibLog.LogProviders
 namespace DotNetWorkQueue.Logging.LogProviders
 #endif
 {
-    #region Using
-
-    #if !LIBLOG_PORTABLE
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+#if !LIBLOG_PORTABLE
     using System.Diagnostics;
 #endif
+    using System.Globalization;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Reflection;
 #if !LIBLOG_PORTABLE
+    using System.Text;
 #endif
+    using System.Text.RegularExpressions;
 
-    #endregion
-
-    [ExcludeFromCodeCoverageAttribute]
     internal abstract class LogProviderBase : ILogProvider
     {
         protected delegate IDisposable OpenNdc(string message);
@@ -789,12 +782,13 @@ namespace DotNetWorkQueue.Logging.LogProviders
         }
     }
 
-    [ExcludeFromCodeCoverageAttribute]
     internal class NLogLogProvider : LogProviderBase
     {
         private readonly Func<string, object> _getLoggerByNameDelegate;
         private static bool s_providerIsAvailableOverride = true;
 
+        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "LogManager")]
+        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "NLog")]
         public NLogLogProvider()
         {
             if (!IsLoggerAvailable())
@@ -822,29 +816,29 @@ namespace DotNetWorkQueue.Logging.LogProviders
 
         protected override OpenNdc GetOpenNdcMethod()
         {
-            var ndcContextType = Type.GetType("NLog.NestedDiagnosticsContext, NLog");
+            Type ndcContextType = Type.GetType("NLog.NestedDiagnosticsContext, NLog");
             MethodInfo pushMethod = ndcContextType.GetMethodPortable("Push", typeof(string));
-            var messageParam = Expression.Parameter(typeof(string), "message");
-            var pushMethodCall = Expression.Call(null, pushMethod, messageParam);
+            ParameterExpression messageParam = Expression.Parameter(typeof(string), "message");
+            MethodCallExpression pushMethodCall = Expression.Call(null, pushMethod, messageParam);
             return Expression.Lambda<OpenNdc>(pushMethodCall, messageParam).Compile();
         }
 
         protected override OpenMdc GetOpenMdcMethod()
         {
-            var mdcContextType = Type.GetType("NLog.MappedDiagnosticsContext, NLog");
+            Type mdcContextType = Type.GetType("NLog.MappedDiagnosticsContext, NLog");
 
             MethodInfo setMethod = mdcContextType.GetMethodPortable("Set", typeof(string), typeof(string));
             MethodInfo removeMethod = mdcContextType.GetMethodPortable("Remove", typeof(string));
-            var keyParam = Expression.Parameter(typeof(string), "key");
-            var valueParam = Expression.Parameter(typeof(string), "value");
+            ParameterExpression keyParam = Expression.Parameter(typeof(string), "key");
+            ParameterExpression valueParam = Expression.Parameter(typeof(string), "value");
 
-            var setMethodCall = Expression.Call(null, setMethod, keyParam, valueParam);
-            var removeMethodCall = Expression.Call(null, removeMethod, keyParam);
+            MethodCallExpression setMethodCall = Expression.Call(null, setMethod, keyParam, valueParam);
+            MethodCallExpression removeMethodCall = Expression.Call(null, removeMethod, keyParam);
 
-            var set = Expression
+            Action<string, string> set = Expression
                 .Lambda<Action<string, string>>(setMethodCall, keyParam, valueParam)
                 .Compile();
-            var remove = Expression
+            Action<string> remove = Expression
                 .Lambda<Action<string>>(removeMethodCall, keyParam)
                 .Compile();
 
@@ -862,10 +856,10 @@ namespace DotNetWorkQueue.Logging.LogProviders
 
         private static Func<string, object> GetGetLoggerMethodCall()
         {
-            var logManagerType = GetLogManagerType();
+            Type logManagerType = GetLogManagerType();
             MethodInfo method = logManagerType.GetMethodPortable("GetLogger", typeof(string));
-            var nameParam = Expression.Parameter(typeof(string), "name");
-            var methodCall = Expression.Call(null, method, nameParam);
+            ParameterExpression nameParam = Expression.Parameter(typeof(string), "name");
+            MethodCallExpression methodCall = Expression.Call(null, method, nameParam);
             return Expression.Lambda<Func<string, object>>(methodCall, nameParam).Compile();
         }
 
@@ -878,6 +872,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
                 _logger = logger;
             }
 
+            [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
             public bool Log(LogLevel logLevel, Func<string> messageFunc, Exception exception, params object[] formatParameters)
             {
                 if (messageFunc == null)
@@ -938,6 +933,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
                 return false;
             }
 
+            [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
             private bool LogException(LogLevel logLevel, Func<string> messageFunc, Exception exception)
             {
                 switch (logLevel)
@@ -1009,12 +1005,12 @@ namespace DotNetWorkQueue.Logging.LogProviders
         }
     }
 
-    [ExcludeFromCodeCoverageAttribute]
     internal class Log4NetLogProvider : LogProviderBase
     {
         private readonly Func<string, object> _getLoggerByNameDelegate;
         private static bool s_providerIsAvailableOverride = true;
 
+        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "LogManager")]
         public Log4NetLogProvider()
         {
             if (!IsLoggerAvailable())
@@ -1042,29 +1038,57 @@ namespace DotNetWorkQueue.Logging.LogProviders
 
         protected override OpenNdc GetOpenNdcMethod()
         {
-            var ndcContextType = Type.GetType("log4net.NDC, log4net");
-            MethodInfo pushMethod = ndcContextType.GetMethodPortable("Push", typeof(string));
-            var messageParam = Expression.Parameter(typeof(string), "message");
-            var pushMethodCall = Expression.Call(null, pushMethod, messageParam);
-            return Expression.Lambda<OpenNdc>(pushMethodCall, messageParam).Compile();
+            Type logicalThreadContextType = Type.GetType("log4net.LogicalThreadContext, log4net");
+            PropertyInfo stacksProperty = logicalThreadContextType.GetPropertyPortable("Stacks");
+            Type logicalThreadContextStacksType = stacksProperty.PropertyType;
+            PropertyInfo stacksIndexerProperty = logicalThreadContextStacksType.GetPropertyPortable("Item");
+            Type stackType = stacksIndexerProperty.PropertyType;
+            MethodInfo pushMethod = stackType.GetMethodPortable("Push");
+
+            ParameterExpression messageParameter =
+                Expression.Parameter(typeof(string), "message");
+
+            // message => LogicalThreadContext.Stacks.Item["NDC"].Push(message);
+            MethodCallExpression callPushBody =
+                Expression.Call(
+                    Expression.Property(Expression.Property(null, stacksProperty),
+                                        stacksIndexerProperty,
+                                        Expression.Constant("NDC")),
+                    pushMethod,
+                    messageParameter);
+
+            OpenNdc result =
+                Expression.Lambda<OpenNdc>(callPushBody, messageParameter)
+                          .Compile();
+
+            return result;
         }
 
         protected override OpenMdc GetOpenMdcMethod()
         {
-            var mdcContextType = Type.GetType("log4net.MDC, log4net");
+            Type logicalThreadContextType = Type.GetType("log4net.LogicalThreadContext, log4net");
+            PropertyInfo propertiesProperty = logicalThreadContextType.GetPropertyPortable("Properties");
+            Type logicalThreadContextPropertiesType = propertiesProperty.PropertyType;
+            PropertyInfo propertiesIndexerProperty = logicalThreadContextPropertiesType.GetPropertyPortable("Item");
 
-            MethodInfo setMethod = mdcContextType.GetMethodPortable("Set", typeof(string), typeof(string));
-            MethodInfo removeMethod = mdcContextType.GetMethodPortable("Remove", typeof(string));
-            var keyParam = Expression.Parameter(typeof(string), "key");
-            var valueParam = Expression.Parameter(typeof(string), "value");
+            MethodInfo removeMethod = logicalThreadContextPropertiesType.GetMethodPortable("Remove");
 
-            var setMethodCall = Expression.Call(null, setMethod, keyParam, valueParam);
-            var removeMethodCall = Expression.Call(null, removeMethod, keyParam);
+            ParameterExpression keyParam = Expression.Parameter(typeof(string), "key");
+            ParameterExpression valueParam = Expression.Parameter(typeof(string), "value");
 
-            var set = Expression
-                .Lambda<Action<string, string>>(setMethodCall, keyParam, valueParam)
+            MemberExpression propertiesExpression = Expression.Property(null, propertiesProperty);
+
+            // (key, value) => LogicalThreadContext.Properties.Item[key] = value;
+            BinaryExpression setProperties = Expression.Assign(Expression.Property(propertiesExpression, propertiesIndexerProperty, keyParam), valueParam);
+
+            // key => LogicalThreadContext.Properties.Remove(key);
+            MethodCallExpression removeMethodCall = Expression.Call(propertiesExpression, removeMethod, keyParam);
+
+            Action<string, string> set = Expression
+                .Lambda<Action<string, string>>(setProperties, keyParam, valueParam)
                 .Compile();
-            var remove = Expression
+
+            Action<string> remove = Expression
                 .Lambda<Action<string>>(removeMethodCall, keyParam)
                 .Compile();
 
@@ -1082,14 +1106,13 @@ namespace DotNetWorkQueue.Logging.LogProviders
 
         private static Func<string, object> GetGetLoggerMethodCall()
         {
-            var logManagerType = GetLogManagerType();
+            Type logManagerType = GetLogManagerType();
             MethodInfo method = logManagerType.GetMethodPortable("GetLogger", typeof(string));
-            var nameParam = Expression.Parameter(typeof(string), "name");
-            var methodCall = Expression.Call(null, method, nameParam);
+            ParameterExpression nameParam = Expression.Parameter(typeof(string), "name");
+            MethodCallExpression methodCall = Expression.Call(null, method, nameParam);
             return Expression.Lambda<Func<string, object>>(methodCall, nameParam).Compile();
         }
 
-        [ExcludeFromCodeCoverageAttribute]
         internal class Log4NetLogger
         {
             private readonly dynamic _logger;
@@ -1104,6 +1127,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
             private readonly Func<object, object, bool> _isEnabledForDelegate;
             private readonly Action<object, Type, object, string, Exception> _logDelegate;
 
+            [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ILogger")]
             internal Log4NetLogger(dynamic logger)
             {
                 _logger = logger.Logger;
@@ -1128,13 +1152,13 @@ namespace DotNetWorkQueue.Logging.LogProviders
                     throw new InvalidOperationException("Type log4net.Core.ILogger, was not found.");
                 }
                 MethodInfo isEnabledMethodInfo = loggerType.GetMethodPortable("IsEnabledFor", logEventLevelType);
-                var instanceParam = Expression.Parameter(typeof(object));
-                var instanceCast = Expression.Convert(instanceParam, loggerType);
-                var callerStackBoundaryDeclaringTypeParam = Expression.Parameter(typeof(Type));
-                var levelParam = Expression.Parameter(typeof(object));
-                var messageParam = Expression.Parameter(typeof(string));
-                var levelCast = Expression.Convert(levelParam, logEventLevelType);
-                var isEnabledMethodCall = Expression.Call(instanceCast, isEnabledMethodInfo, levelCast);
+                ParameterExpression instanceParam = Expression.Parameter(typeof(object));
+                UnaryExpression instanceCast = Expression.Convert(instanceParam, loggerType);
+                ParameterExpression callerStackBoundaryDeclaringTypeParam = Expression.Parameter(typeof(Type));
+                ParameterExpression levelParam = Expression.Parameter(typeof(object));
+                ParameterExpression messageParam = Expression.Parameter(typeof(string));
+                UnaryExpression levelCast = Expression.Convert(levelParam, logEventLevelType);
+                MethodCallExpression isEnabledMethodCall = Expression.Call(instanceCast, isEnabledMethodInfo, levelCast);
                 _isEnabledForDelegate = Expression.Lambda<Func<object, object, bool>>(isEnabledMethodCall, instanceParam, levelParam).Compile();
 
                 // Action<object, object, string, Exception> Log =
@@ -1144,7 +1168,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
                     logEventLevelType,
                     typeof(string),
                     typeof(Exception));
-                var exceptionParam = Expression.Parameter(typeof(Exception));
+                ParameterExpression exceptionParam = Expression.Parameter(typeof(Exception));
                 var writeMethodExp = Expression.Call(
                     instanceCast,
                     writeExceptionMethodInfo,
@@ -1181,8 +1205,8 @@ namespace DotNetWorkQueue.Logging.LogProviders
                     lock (CallerStackBoundaryTypeSync)
                     {
 #if !LIBLOG_PORTABLE
-                        var stack = new StackTrace();
-                        var thisType = GetType();
+                        StackTrace stack = new StackTrace();
+                        Type thisType = GetType();
                         s_callerStackBoundaryType = Type.GetType("LoggerExecutionWrapper");
                         for (var i = 1; i < stack.FrameCount; i++)
                         {
@@ -1203,7 +1227,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
                 return true;
             }
 
-            private bool IsInTypeHierarchy(Type currentType, Type checkType)
+            private static bool IsInTypeHierarchy(Type currentType, Type checkType)
             {
                 while (currentType != null && currentType != typeof(object))
                 {
@@ -1244,7 +1268,6 @@ namespace DotNetWorkQueue.Logging.LogProviders
         }
     }
 
-    [ExcludeFromCodeCoverageAttribute]
     internal class EntLibLogProvider : LogProviderBase
     {
         private const string TypeTemplate = "Microsoft.Practices.EnterpriseLibrary.Logging.{0}, Microsoft.Practices.EnterpriseLibrary.Logging";
@@ -1255,10 +1278,11 @@ namespace DotNetWorkQueue.Logging.LogProviders
         private static readonly Action<string, string, int> WriteLogEntry;
         private static readonly Func<string, int, bool> ShouldLogEntry;
 
+        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static EntLibLogProvider()
         {
-            LogEntryType = Type.GetType(string.Format(TypeTemplate, "LogEntry"));
-            LoggerType = Type.GetType(string.Format(TypeTemplate, "Logger"));
+            LogEntryType = Type.GetType(string.Format(CultureInfo.InvariantCulture, TypeTemplate, "LogEntry"));
+            LoggerType = Type.GetType(string.Format(CultureInfo.InvariantCulture, TypeTemplate, "Logger"));
             TraceEventTypeType = TraceEventTypeValues.Type;
             if (LogEntryType == null
                  || TraceEventTypeType == null
@@ -1270,6 +1294,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
             ShouldLogEntry = GetShouldLogEntry();
         }
 
+        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "EnterpriseLibrary")]
         public EntLibLogProvider()
         {
             if (!IsLoggerAvailable())
@@ -1303,7 +1328,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
             var messageParameter = Expression.Parameter(typeof(string), "message");
             var severityParameter = Expression.Parameter(typeof(int), "severity");
 
-            var memberInit = GetWriteLogExpression(
+            MemberInitExpression memberInit = GetWriteLogExpression(
                 messageParameter,
                 Expression.Convert(severityParameter, TraceEventTypeType),
                 logNameParameter);
@@ -1325,7 +1350,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
             var logNameParameter = Expression.Parameter(typeof(string), "logName");
             var severityParameter = Expression.Parameter(typeof(int), "severity");
 
-            var memberInit = GetWriteLogExpression(
+            MemberInitExpression memberInit = GetWriteLogExpression(
                 Expression.Constant("***dummy***"),
                 Expression.Convert(severityParameter, TraceEventTypeType),
                 logNameParameter);
@@ -1344,7 +1369,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
             Expression severityParameter, ParameterExpression logNameParameter)
         {
             var entryType = LogEntryType;
-            var memberInit = Expression.MemberInit(Expression.New(entryType), 
+            MemberInitExpression memberInit = Expression.MemberInit(Expression.New(entryType), 
                 Expression.Bind(entryType.GetPropertyPortable("Message"), message),
                 Expression.Bind(entryType.GetPropertyPortable("Severity"), severityParameter),
                 Expression.Bind(
@@ -1359,7 +1384,6 @@ namespace DotNetWorkQueue.Logging.LogProviders
             return memberInit;
         }
 
-        [ExcludeFromCodeCoverageAttribute]
         internal class EntLibLogger
         {
             private readonly string _loggerName;
@@ -1418,12 +1442,12 @@ namespace DotNetWorkQueue.Logging.LogProviders
         }
     }
 
-    [ExcludeFromCodeCoverageAttribute]
     internal class SerilogLogProvider : LogProviderBase
     {
         private readonly Func<string, object> _getLoggerByNameDelegate;
         private static bool s_providerIsAvailableOverride = true;
 
+        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "Serilog")]
         public SerilogLogProvider()
         {
             if (!IsLoggerAvailable())
@@ -1461,16 +1485,16 @@ namespace DotNetWorkQueue.Logging.LogProviders
 
         private static Func<string, string, IDisposable> GetPushProperty()
         {
-            var ndcContextType = Type.GetType("Serilog.Context.LogContext, Serilog.FullNetFx");
+            Type ndcContextType = Type.GetType("Serilog.Context.LogContext, Serilog.FullNetFx");
             MethodInfo pushPropertyMethod = ndcContextType.GetMethodPortable(
                 "PushProperty", 
                 typeof(string),
                 typeof(object),
                 typeof(bool));
-            var nameParam = Expression.Parameter(typeof(string), "name");
-            var valueParam = Expression.Parameter(typeof(object), "value");
-            var destructureObjectParam = Expression.Parameter(typeof(bool), "destructureObjects");
-            var pushPropertyMethodCall = Expression
+            ParameterExpression nameParam = Expression.Parameter(typeof(string), "name");
+            ParameterExpression valueParam = Expression.Parameter(typeof(object), "value");
+            ParameterExpression destructureObjectParam = Expression.Parameter(typeof(bool), "destructureObjects");
+            MethodCallExpression pushPropertyMethodCall = Expression
                 .Call(null, pushPropertyMethod, nameParam, valueParam, destructureObjectParam);
             var pushProperty = Expression
                 .Lambda<Func<string, object, bool, IDisposable>>(
@@ -1490,12 +1514,12 @@ namespace DotNetWorkQueue.Logging.LogProviders
 
         private static Func<string, object> GetForContextMethodCall()
         {
-            var logManagerType = GetLogManagerType();
+            Type logManagerType = GetLogManagerType();
             MethodInfo method = logManagerType.GetMethodPortable("ForContext", typeof(string), typeof(object), typeof(bool));
-            var propertyNameParam = Expression.Parameter(typeof(string), "propertyName");
-            var valueParam = Expression.Parameter(typeof(object), "value");
-            var destructureObjectsParam = Expression.Parameter(typeof(bool), "destructureObjects");
-            var methodCall = Expression.Call(null, method, new Expression[]
+            ParameterExpression propertyNameParam = Expression.Parameter(typeof(string), "propertyName");
+            ParameterExpression valueParam = Expression.Parameter(typeof(object), "value");
+            ParameterExpression destructureObjectsParam = Expression.Parameter(typeof(bool), "destructureObjects");
+            MethodCallExpression methodCall = Expression.Call(null, method, new Expression[]
             {
                 propertyNameParam, 
                 valueParam,
@@ -1524,6 +1548,10 @@ namespace DotNetWorkQueue.Logging.LogProviders
             private static readonly Action<object, object, Exception, string, object[]> WriteException;
 
             [SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
+            [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
+            [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ILogger")]
+            [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "LogEventLevel")]
+            [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "Serilog")]
             static SerilogLogger()
             {
                 var logEventLevelType = Type.GetType("Serilog.Events.LogEventLevel, Serilog");
@@ -1545,19 +1573,19 @@ namespace DotNetWorkQueue.Logging.LogProviders
                     throw new InvalidOperationException("Type Serilog.ILogger was not found.");
                 }
                 MethodInfo isEnabledMethodInfo = loggerType.GetMethodPortable("IsEnabled", logEventLevelType);
-                var instanceParam = Expression.Parameter(typeof(object));
-                var instanceCast = Expression.Convert(instanceParam, loggerType);
-                var levelParam = Expression.Parameter(typeof(object));
-                var levelCast = Expression.Convert(levelParam, logEventLevelType);
-                var isEnabledMethodCall = Expression.Call(instanceCast, isEnabledMethodInfo, levelCast);
+                ParameterExpression instanceParam = Expression.Parameter(typeof(object));
+                UnaryExpression instanceCast = Expression.Convert(instanceParam, loggerType);
+                ParameterExpression levelParam = Expression.Parameter(typeof(object));
+                UnaryExpression levelCast = Expression.Convert(levelParam, logEventLevelType);
+                MethodCallExpression isEnabledMethodCall = Expression.Call(instanceCast, isEnabledMethodInfo, levelCast);
                 IsEnabled = Expression.Lambda<Func<object, object, bool>>(isEnabledMethodCall, instanceParam, levelParam).Compile();
 
                 // Action<object, object, string> Write =
                 // (logger, level, message, params) => { ((SeriLog.ILoggerILogger)logger).Write(level, message, params); }
                 MethodInfo writeMethodInfo = loggerType.GetMethodPortable("Write", logEventLevelType, typeof(string), typeof(object[]));
-                var messageParam = Expression.Parameter(typeof(string));
-                var propertyValuesParam = Expression.Parameter(typeof(object[]));
-                var writeMethodExp = Expression.Call(
+                ParameterExpression messageParam = Expression.Parameter(typeof(string));
+                ParameterExpression propertyValuesParam = Expression.Parameter(typeof(object[]));
+                MethodCallExpression writeMethodExp = Expression.Call(
                     instanceCast,
                     writeMethodInfo,
                     levelCast,
@@ -1578,7 +1606,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
                     typeof(Exception),
                     typeof(string),
                     typeof(object[]));
-                var exceptionParam = Expression.Parameter(typeof(Exception));
+                ParameterExpression exceptionParam = Expression.Parameter(typeof(Exception));
                 writeMethodExp = Expression.Call(
                     instanceCast,
                     writeExceptionMethodInfo,
@@ -1711,7 +1739,6 @@ namespace DotNetWorkQueue.Logging.LogProviders
         }
     }
 
-    [ExcludeFromCodeCoverageAttribute]
     internal class LoupeLogProvider : LogProviderBase
     {
         /// <summary>
@@ -1773,9 +1800,9 @@ namespace DotNetWorkQueue.Logging.LogProviders
 
         private static WriteDelegate GetLogWriteDelegate()
         {
-            var logManagerType = GetLogManagerType();
-            var logMessageSeverityType = Type.GetType("Gibraltar.Agent.LogMessageSeverity, Gibraltar.Agent");
-            var logWriteModeType = Type.GetType("Gibraltar.Agent.LogWriteMode, Gibraltar.Agent");
+            Type logManagerType = GetLogManagerType();
+            Type logMessageSeverityType = Type.GetType("Gibraltar.Agent.LogMessageSeverity, Gibraltar.Agent");
+            Type logWriteModeType = Type.GetType("Gibraltar.Agent.LogWriteMode, Gibraltar.Agent");
 
             MethodInfo method = logManagerType.GetMethodPortable(
                 "Write",
@@ -1821,7 +1848,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
                 return true;
             }
 
-            private int ToLogMessageSeverity(LogLevel logLevel)
+            private static int ToLogMessageSeverity(LogLevel logLevel)
             {
                 switch (logLevel)
                 {
@@ -1844,7 +1871,6 @@ namespace DotNetWorkQueue.Logging.LogProviders
         }
     }
 
-    [ExcludeFromCodeCoverageAttribute]
     internal static class TraceEventTypeValues
     {
         internal static readonly Type Type;
@@ -1854,6 +1880,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
         internal static readonly int Error;
         internal static readonly int Critical;
 
+        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static TraceEventTypeValues()
         {
             var assembly = typeof(Uri).GetAssemblyPortable(); // This is to get to the System.dll assembly in a PCL compatible way.
@@ -1871,7 +1898,6 @@ namespace DotNetWorkQueue.Logging.LogProviders
         }
     }
 
-    [ExcludeFromCodeCoverageAttribute]
     internal static class LogMessageFormatter
     {
         private static readonly Regex Pattern = new Regex(@"\{@?\w{1,}\}");
@@ -1895,8 +1921,8 @@ namespace DotNetWorkQueue.Logging.LogProviders
 
             return () =>
             {
-                var targetMessage = messageBuilder();
-                var argumentIndex = 0;
+                string targetMessage = messageBuilder();
+                int argumentIndex = 0;
                 foreach (Match match in Pattern.Matches(targetMessage))
                 {
                     int notUsed;
@@ -1919,7 +1945,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
 
         private static string ReplaceFirst(string text, string search, string replace)
         {
-            var pos = text.IndexOf(search, StringComparison.Ordinal);
+            int pos = text.IndexOf(search, StringComparison.Ordinal);
             if (pos < 0)
             {
                 return text;
@@ -1928,13 +1954,12 @@ namespace DotNetWorkQueue.Logging.LogProviders
         }
     }
 
-    [ExcludeFromCodeCoverageAttribute]
     internal static class TypeExtensions
     {
         internal static MethodInfo GetMethodPortable(this Type type, string name)
         {
 #if LIBLOG_PORTABLE
-            return type.GetRuntimeMethod(name, new Type[]{});
+            return type.GetRuntimeMethods().SingleOrDefault(m => m.Name == name);
 #else
             return type.GetMethod(name);
 #endif
@@ -2005,7 +2030,6 @@ namespace DotNetWorkQueue.Logging.LogProviders
         }
     }
 
-    [ExcludeFromCodeCoverageAttribute]
     internal class DisposableAction : IDisposable
     {
         private readonly Action _onDispose;
