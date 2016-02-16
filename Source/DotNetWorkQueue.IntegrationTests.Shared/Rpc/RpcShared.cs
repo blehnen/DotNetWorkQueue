@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,13 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Metrics.Net;
 using Xunit;
@@ -41,7 +41,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
         private QueueContainer<TTransportInit> _creator;
 
         public void Run(string queueNameReceive, string queueNameSend, string connectionStringReceive, string connectionStringSend, ILogProvider logProviderReceive, ILogProvider logProviderSend,
-            int runtime, int messageCount, int workerCount, int timeOut, bool async, TTConnectionSettings rpcConnection)
+            int runtime, int messageCount, int workerCount, int timeOut, bool async, TTConnectionSettings rpcConnection,
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
         {
             using(_creator = new QueueContainer<TTransportInit>())
             {
@@ -52,7 +53,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                 var task1 = Task.Factory.StartNew(() =>
                     RunRpcReceive(queueNameSend, connectionStringSend, logProviderSend,
                         runtime, processedCount, messageCount,
-                        waitForFinish, workerCount, timeOut));
+                        waitForFinish, workerCount, timeOut, heartBeatTime, heartBeatMonitorTime));
 
                 RunRpcSend(logProviderSend, messageCount, async, rpcConnection);
 
@@ -113,7 +114,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                     var message = queue.Send(job, TimeSpan.FromSeconds(30));
                     if (message == null)
                     {
-                        throw new Exception("The response timed out");
+                        throw new DotNetWorkQueueException("The response timed out");
                     }
                     if (message.Body == null)
                     { //RPC call failed
@@ -122,19 +123,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                             message.GetHeader(queue.Configuration.HeaderNames.StandardHeaders.RpcConsumerException);
                         if (error != null)
                         {
-                            throw new Exception("The consumer encountered an error trying to process our request");
+                            throw new DotNetWorkQueueException("The consumer encountered an error trying to process our request");
                         }
-                        throw new Exception("A null reply was received, but no error information was found. Examine the log to see if additional information can be found");
+                        throw new DotNetWorkQueueException("A null reply was received, but no error information was found. Examine the log to see if additional information can be found");
                     }
                 }
                 catch (TimeoutException)
                 {
-                    throw new Exception("The request has timed out");
+                    throw new DotNetWorkQueueException("The request has timed out");
                 }
             });
         }
 
-        private async static void SendMultipleMessagesAsync(IRpcQueue<TTResponse, TTMessage> queue, int number)
+        private static async void SendMultipleMessagesAsync(IRpcQueue<TTResponse, TTMessage> queue, int number)
         {
             //send a bunch of messages
             var numberOfJobs = number;
@@ -147,7 +148,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                     var message = await queue.SendAsync(job, TimeSpan.FromSeconds(30)).ConfigureAwait(false);
                     if (message == null)
                     {
-                        throw new Exception("The response timed out");
+                        throw new DotNetWorkQueueException("The response timed out");
                     }
                     if (message.Body == null)
                     { //RPC call failed
@@ -156,14 +157,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                             message.GetHeader(queue.Configuration.HeaderNames.StandardHeaders.RpcConsumerException);
                         if (error != null)
                         {
-                            throw new Exception("The consumer encountered an error trying to process our request");
+                            throw new DotNetWorkQueueException("The consumer encountered an error trying to process our request");
                         }
-                        throw new Exception("A null reply was received, but no error information was found. Examine the log to see if additional information can be found");
+                        throw new DotNetWorkQueueException("A null reply was received, but no error information was found. Examine the log to see if additional information can be found");
                     }
                 }
                 catch (TimeoutException)
                 {
-                    throw new Exception("The request has timed out");
+                    throw new DotNetWorkQueueException("The request has timed out");
                 }
             });
         }
@@ -171,7 +172,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
         private void RunRpcReceive(string queueName, string connectionString,
             ILogProvider logProvider,
             int runTime, IncrementWrapper processedCount, int messageCount, ManualResetEventSlim waitForFinish,
-            int workerCount, int timeOut)
+            int workerCount, int timeOut,
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
         {
 
                 using (var metrics = new Metrics.Net.Metrics(queueName))
@@ -181,7 +183,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                         var queue =
                             creator.CreateConsumer(queueName, connectionString))
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount);
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Clear();
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Add(TimeSpan.FromMilliseconds(100));
                         queue.Configuration.Worker.SingleWorkerWhenNoWorkFound = false;
@@ -189,11 +191,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                         waitForFinish.Reset();
 
                         //start looking for work
-                        queue.Start<TTMessage>(((message, notifications) =>
+                        queue.Start<TTMessage>((message, notifications) =>
                         {
                             HandleFakeMessages(message, notifications, runTime, processedCount, messageCount,
                                 waitForFinish);
-                        }));
+                        });
 
                         waitForFinish.Wait(timeOut*1000);
                     }
@@ -215,7 +217,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
             var connection = message.GetHeader(notifications.HeaderNames.StandardHeaders.RpcConnectionInfo);
             if (connection == null)
             {
-                throw new Exception("response connection was not set");
+                throw new DotNetWorkQueueException("response connection was not set");
             }
 
             if (!_queues.ContainsKey(connection))

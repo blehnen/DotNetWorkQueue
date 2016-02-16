@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Exceptions;
@@ -128,7 +127,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                         long messageExpiration;
                         if (result[3].TryParse(out messageExpiration))
                         {
-                            if ((messageExpiration - unixTimestamp) < 0)
+                            if (messageExpiration - unixTimestamp < 0)
                             {
                                 //message has expired
                                 _deleteMessage.Handle(new DeleteMessageCommand(new RedisQueueId(messageId)));

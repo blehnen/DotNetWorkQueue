@@ -2,7 +2,6 @@
 // Copyright (c) 2005 S. Senthil Kumar
 // http://www.codeproject.com/Articles/9621/ShellControl-A-console-emulation-control
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;

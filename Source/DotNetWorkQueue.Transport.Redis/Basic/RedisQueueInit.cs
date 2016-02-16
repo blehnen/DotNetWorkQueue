@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +29,8 @@ using DotNetWorkQueue.Transport.Redis.Basic.MessageID;
 using DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Redis.Basic.Time;
+using DotNetWorkQueue.Queue;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
@@ -57,6 +58,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<DelayedProcessingConfiguration>(LifeStyles.Singleton);
             container.Register<ICorrelationIdFactory, RedisQueueCorrelationIdFactory>(
                 LifeStyles.Singleton);
+
+            container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
 
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
             container.Register<IGetTimeFactory, GetRedisTimeFactory>(LifeStyles.Singleton);

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using DotNetWorkQueue.Logging;
@@ -37,11 +37,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             int readerCount,
             int queueSize,
             int runTime,
-            int messageCount)
+            int messageCount,
+            TimeSpan heartBeatTime, 
+            TimeSpan heartBeatMonitorTime)
             where TTransportInit : ITransportInit, new()
         {
             var processedCount = new IncrementWrapper();
-            var haveIProcessedYouBefore = new ConcurrentDictionary<string, string>();
+            var haveIProcessedYouBefore = new ConcurrentDictionary<string, int>();
 
             using (var metrics = new Metrics.Net.Metrics(queueName))
             {
@@ -69,17 +71,17 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                     .CreateConsumerQueueScheduler(
                                         queueName, connectionString, taskFactory))
                         {
-                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount);
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime, heartBeatMonitorTime);
 
                             var waitForFinish = new ManualResetEventSlim(false);
                             waitForFinish.Reset();
 
                             //start looking for work
-                            queue.Start<TMessage>(((message, notifications) =>
+                            queue.Start<TMessage>((message, notifications) =>
                             {
                                 MessageHandlingShared.HandleFakeMessagesRollback(message, runTime, processedCount,
                                     messageCount, waitForFinish, haveIProcessedYouBefore);
-                            }));
+                            });
 
                             waitForFinish.Wait(timeOut*1000);
                         }

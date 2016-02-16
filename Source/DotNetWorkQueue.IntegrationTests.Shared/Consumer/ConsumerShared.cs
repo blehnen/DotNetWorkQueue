@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
+using System;
 using System.Threading;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Metrics.Net;
@@ -30,7 +30,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
             ILogProvider logProvider,
             int runTime, int messageCount,
-            int workerCount, int timeOut)
+            int workerCount, int timeOut,
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -49,15 +50,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                         creator.CreateConsumer(queueName,
                             connectionString))
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount);
+                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
                     var waitForFinish = new ManualResetEventSlim(false);
                     waitForFinish.Reset();
                     //start looking for work
-                    queue.Start<TMessage>(((message, notifications) =>
+                    queue.Start<TMessage>((message, notifications) =>
                     {
                         MessageHandlingShared.HandleFakeMessages(runTime, processedCount, messageCount,
                             waitForFinish);
-                    }));
+                    });
 
                     waitForFinish.Wait(timeOut*1000);
                 }

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
@@ -40,7 +39,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             {
                 case InterceptorAdding.ConfigurationOnly:
                     return new QueueContainer<TTransportInit>(serviceRegister => serviceRegister.Register(() => metrics,
-                       LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration((Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")),
+                       LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                            Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton));
                 case InterceptorAdding.Yes:
                     return new QueueContainer<TTransportInit>(serviceRegister => serviceRegister.Register(() => metrics,
@@ -48,7 +47,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                         {
                             typeof (GZipMessageInterceptor), //gzip compression
                             typeof (TripleDesMessageInterceptor) //encryption
-                        }).Register(() => new TripleDesMessageInterceptorConfiguration((Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")),
+                        }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                             Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton));
                 default:
                     return new QueueContainer<TTransportInit>(serviceRegister => serviceRegister.Register(() => metrics,
@@ -65,7 +64,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 case InterceptorAdding.ConfigurationOnly:
                     return new QueueContainer<TTransportInit>(
                   serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
-                     LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration((Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")),
+                     LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                            Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton));
                 case InterceptorAdding.Yes:
                     return new QueueContainer<TTransportInit>(
@@ -74,7 +73,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                        {
                             typeof (GZipMessageInterceptor), //gzip compression
                             typeof (TripleDesMessageInterceptor) //encryption
-                      }).Register(() => new TripleDesMessageInterceptorConfiguration((Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")),
+                      }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                             Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton));
                 default:
                     return new QueueContainer<TTransportInit>(
@@ -93,7 +92,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     return new QueueContainer<TTransportInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
                   .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton).Register(() => metrics,
-                     LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration((Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")),
+                     LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                           Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton));
                 case InterceptorAdding.Yes:
                     return new QueueContainer<TTransportInit>(
@@ -103,7 +102,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                         {
                             typeof (GZipMessageInterceptor), //gzip compression
                             typeof (TripleDesMessageInterceptor) //encryption
-                        }).Register(() => new TripleDesMessageInterceptorConfiguration((Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")),
+                        }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                             Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton));
                 default:
                     return new QueueContainer<TTransportInit>(
@@ -120,10 +119,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 times);
         }
 
-        public static void SetupDefaultConsumerQueue(QueueConsumerConfiguration configuration, int workerCount)
+        public static void SetupDefaultConsumerQueue(QueueConsumerConfiguration configuration, int workerCount, TimeSpan heatbeatTime, TimeSpan heartbeatMonitorTime)
         {
-            configuration.HeartBeat.Time = TimeSpan.FromSeconds(10);
-            configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(12);
+            configuration.HeartBeat.Time = heatbeatTime;
+            configuration.HeartBeat.MonitorTime = heartbeatMonitorTime;
             configuration.HeartBeat.ThreadPoolConfiguration.ThreadIdleTimeout = TimeSpan.FromSeconds(5);
             configuration.Worker.WorkerCount = workerCount;
             configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);

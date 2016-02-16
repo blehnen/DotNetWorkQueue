@@ -2,7 +2,6 @@
 // Copyright (c) 2005 S. Senthil Kumar
 // http://www.codeproject.com/Articles/9621/ShellControl-A-console-emulation-control
 // ---------------------------------------------------------------------
-
 using System.Windows.Forms;
 namespace ShellControlV2
 {
@@ -248,7 +247,7 @@ namespace ShellControlV2
         {
             var currentLine = GetCurrentLine();
             var currentCaretPosition = SelectionStart;
-            return (currentCaretPosition - TextLength + currentLine.Length);
+            return currentCaretPosition - TextLength + currentLine.Length;
         }
 
         private bool IsCaretAtWritablePosition()
@@ -270,7 +269,7 @@ namespace ShellControlV2
 
         private bool IsTerminatorKey(char keyChar)
         {
-            return (keyChar) == 13;
+            return keyChar == 13;
         }
 
         // Substitute for buggy AppendText()

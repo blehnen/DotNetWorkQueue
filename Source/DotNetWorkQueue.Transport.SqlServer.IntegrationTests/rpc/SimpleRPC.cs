@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,10 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Rpc;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
+using System;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.rpc
 {
@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.rpc
         {
             var queueNameSend = GenerateQueueName.Create();
             var queueNameReceive = GenerateQueueName.Create();
-            var logProviderSend = LoggerShared.Create(queueNameSend);
-            var logProviderReceive = LoggerShared.Create(queueNameReceive);
+            var logProviderSend = LoggerShared.Create(queueNameSend, GetType().Name);
+            var logProviderReceive = LoggerShared.Create(queueNameReceive, GetType().Name);
 
             using (var queueCreatorReceive =
                 new QueueCreationContainer<SqlServerMessageQueueInit>(
@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.rpc
                                     ConnectionInfo.ConnectionString, logProviderReceive, logProviderSend,
                                     runtime, messageCount, workerCount, timeOut, async,
                                     new SqlServerRpcConnection(ConnectionInfo.ConnectionString, queueNameSend,
-                                        ConnectionInfo.ConnectionString, queueNameReceive));
+                                        ConnectionInfo.ConnectionString, queueNameReceive), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
 
                                 new VerifyQueueRecordCount(queueNameSend, oCreation.Options).Verify(0, false, false);
                                 new VerifyQueueRecordCount(queueNameReceive, oCreationReceive.Options).Verify(0, false,

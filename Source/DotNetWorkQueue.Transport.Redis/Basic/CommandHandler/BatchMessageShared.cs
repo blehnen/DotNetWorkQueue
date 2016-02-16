@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -69,9 +68,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
                 if (m.MessageData.GetExpiration().HasValue && m.MessageData.GetExpiration().Value != TimeSpan.Zero)
                 {
                     var unixTime = unixTimeFactory.Create();
-                    // ReSharper disable once PossibleInvalidOperationException
-                    var timespan = m.MessageData.GetExpiration().Value;
-                    unixTimeStampExpiration = unixTime.GetAddDifferenceMilliseconds(timespan);
+                    var timeSpan = m.MessageData.GetExpiration();
+                    if (timeSpan != null)
+                    {
+                        var timespan = timeSpan.Value;
+                        unixTimeStampExpiration = unixTime.GetAddDifferenceMilliseconds(timespan);
+                    }
                 }
 
                 var serialized = serializer.Serializer.MessageToBytes(new MessageBody { Body = m.Message.Body });

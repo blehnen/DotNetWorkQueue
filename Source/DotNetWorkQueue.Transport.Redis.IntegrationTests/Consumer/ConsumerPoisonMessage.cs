@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,11 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.Redis.Basic;
+using System;
 using Xunit;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 {
@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
         public void Run(int messageCount, int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName);
+            var logProvider = LoggerShared.Create(queueName, GetType().Name);
             using (
                 var queueCreator =
                     new QueueCreationContainer<RedisQueueInit>(
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 
                     consumer.RunConsumer<RedisQueueInit>(queueName, ConnectionInfo.ConnectionString, false,
                         workerCount,
-                        logProvider, timeOut, messageCount);
+                        logProvider, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
 
                     ValidateErrorCounts(queueName, messageCount);
                     new VerifyQueueRecordCount(queueName).Verify(messageCount, true);

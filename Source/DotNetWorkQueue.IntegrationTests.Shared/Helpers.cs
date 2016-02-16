@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Text;
 using Newtonsoft.Json;
@@ -43,11 +42,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         public byte[] ConvertMessageToBytes<T>(T message) where T : class
         {
-            return Encoding.UTF8.GetBytes((JsonConvert.SerializeObject(message, _serializerSettings)));
+            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, _serializerSettings));
         }
 
         public T ConvertBytesToMessage<T>(byte[] bytes) where T : class
         {
+            // ReSharper disable once UnthrowableException
             throw new AccessViolationException("Permission denied");
         }
     }

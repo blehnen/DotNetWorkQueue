@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Globalization;
 using System.IO;
@@ -27,19 +26,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 {
     public static class LoggerShared
     {
-        public static ILogProvider Create(string queueName)
+        public static ILogProvider Create(string queueName, string initText)
         {
-            return Create(queueName, LogLevel.Error);
+            return Create(queueName, LogLevel.Error, initText);
         }
 
-        public static ILogProvider Create(string queueName, LogLevel logLevel)
+        public static ILogProvider Create(string queueName, LogLevel logLevel, string initText)
         {
             if(!Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\"))
                 Directory.CreateDirectory(AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\");
 
             return
                 new TextFileLogProvider(
-                    AppDomain.CurrentDomain.BaseDirectory + $"\\Logs\\{queueName}.txt", logLevel);
+                    AppDomain.CurrentDomain.BaseDirectory + $"\\Logs\\{queueName}.txt", logLevel, initText);
         }
 
         public static void ShouldHaveErrors(string queueName)
@@ -82,15 +81,23 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     }
     public class TextFileLogProvider : ILogProvider
     {
-        private static readonly object Locker = new object();
+        //private const bool _logEverything = false;
+        private readonly object _locker = new object();
 
         private readonly string _fileName;
+        private readonly string _fileNameOther;
         private readonly LogLevel _logLevel;
 
-        public TextFileLogProvider(string fileName, LogLevel logLevel)
+        public TextFileLogProvider(string fileName, LogLevel logLevel, string initText)
         {
             _fileName = fileName;
+            _fileNameOther = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "Other.txt";
             _logLevel = logLevel;
+
+            //if (_logEverything)
+            //{
+            //    FileWriteLineOther($"{DateTime.UtcNow} | {LogLevel.Trace} | Init | {initText}");
+            //}
         }
         /// <summary>
         /// Gets the specified named logger.
@@ -130,27 +137,40 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             try
             {
-                if (logLevel >= _logLevel)
+
+                if (formatParameters == null || formatParameters.Length == 0)
                 {
-                    if (formatParameters == null || formatParameters.Length == 0)
+                    var message = messageFunc();
+                    if (exception != null)
                     {
-                        var message = messageFunc();
-                        if (exception != null)
-                        {
-                            message = message + "|" + exception;
-                        }
+                        message = message + "|" + exception;
+                    }
+                    if (logLevel >= _logLevel)
+                    {
                         FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
                     }
-                    else
-                    {
-                        var message = string.Format(CultureInfo.InvariantCulture, messageFunc(), formatParameters);
-                        if (exception != null)
-                        {
-                            message = message + "|" + exception;
-                        }
-                        FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
-                    }
+                    //else if(_logEverything)
+                    //{
+                    //    FileWriteLineOther($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
+                    //}
                 }
+                else
+                {
+                    var message = string.Format(CultureInfo.InvariantCulture, messageFunc(), formatParameters);
+                    if (exception != null)
+                    {
+                        message = message + "|" + exception;
+                    }
+                    if (logLevel >= _logLevel)
+                    {
+                        FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
+                    }
+                    //else if (_logEverything)
+                    //{
+                    //    FileWriteLineOther($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
+                    //}
+                }
+
             }
             catch (Exception e)
             {
@@ -161,9 +181,17 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         private void FileWriteLine(string message)
         {
-            lock (Locker)
+            lock (_locker)
             {
                 File.AppendAllText(_fileName, message + Environment.NewLine + Environment.NewLine);
+            }
+        }
+
+        private void FileWriteLineOther(string message)
+        {
+            lock (_locker)
+            {
+                File.AppendAllText(_fileNameOther, message + Environment.NewLine + Environment.NewLine);
             }
         }
 

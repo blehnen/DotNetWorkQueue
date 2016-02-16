@@ -82,6 +82,7 @@
     <Compile Include="Configuration\TransportInitSend.cs" />
     <Compile Include="Factory\ContainerFactory.cs" />
     <Compile Include="IContainerFactory.cs" />
+    <Compile Include="ICreationScope.cs" />
     <Compile Include="Logging\NoSpecifiedLogProvider.cs" />
     <Compile Include="QueueStatusContainer.cs" />
     <Compile Include="Factory\GetTimeFactory.cs" />
@@ -153,6 +154,7 @@
     <Compile Include="QueueStatus\QueueStatusProviderNoOp.cs" />
     <Compile Include="QueueStatus\SystemEntry.cs" />
     <Compile Include="Queue\AddStandardMessageHeaders.cs" />
+    <Compile Include="Queue\CreationScopeNoOp.cs" />
     <Compile Include="Queue\GenerateMessageHeaders.cs" />
     <Compile Include="Queue\MessageErrorEventArgs.cs" />
     <Compile Include="Queue\MessageProcessingMode.cs" />

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -53,6 +52,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             {
                 waitForFinish.Set();
             }
+            // ReSharper disable once UnthrowableException
             throw new IndexOutOfRangeException("The index is out of range");
         }
         public static void HandleFakeMessagesRollback<TMessage>(IReceivedMessage<TMessage> message,
@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             IncrementWrapper processedCount,
             long messageCount,
             ManualResetEventSlim waitForFinish,
-            ConcurrentDictionary<string, string> haveIProcessedYouBefore)
+            ConcurrentDictionary<string, int> haveIProcessedYouBefore)
                 where TMessage : class
         {
             var key = message.CorrelationId.Id.Value.ToString();
@@ -70,13 +70,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     Thread.Sleep(runTime * 1000);
 
                 Interlocked.Increment(ref processedCount.ProcessedCount);
+                haveIProcessedYouBefore[key] = haveIProcessedYouBefore[key] + 1;
                 if (Interlocked.Read(ref processedCount.ProcessedCount) == messageCount)
                 {
                     waitForFinish.Set();
                 }
                 return;
             }
-            haveIProcessedYouBefore.TryAdd(key, key);
+            haveIProcessedYouBefore.TryAdd(key, 0);
             throw new OperationCanceledException("I don't feel like processing this message");
         }
     }

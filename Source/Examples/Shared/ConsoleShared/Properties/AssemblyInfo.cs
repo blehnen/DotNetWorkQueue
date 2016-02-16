@@ -2,7 +2,6 @@
 // Copyright (c) 2014 John Atten
 // http://www.codeproject.com/Articles/816301/Csharp-Building-a-Useful-Extensible-NET-Console-Ap
 // ---------------------------------------------------------------------
-
 using System.Reflection;
 
 // General Information about an assembly is controlled through the following 

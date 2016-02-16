@@ -2,7 +2,6 @@
 // Copyright (c) 2005 S. Senthil Kumar
 // http://www.codeproject.com/Articles/9621/ShellControl-A-console-emulation-control
 // ---------------------------------------------------------------------
-
 using System.Reflection;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information

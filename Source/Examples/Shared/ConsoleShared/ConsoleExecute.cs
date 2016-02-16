@@ -2,7 +2,6 @@
 // Copyright (c) 2014 John Atten
 // http://www.codeproject.com/Articles/816301/Csharp-Building-a-Useful-Extensible-NET-Console-Ap
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -255,11 +254,12 @@ namespace ConsoleShared
                     try
                     {
                         // Coming from the Console, all of our arguments are passed in as 
-                        // strings. Coerce to the type to match the method paramter:
+                        // strings. Coerce to the type to match the method parameter:
                         var value = ConsoleParseArgument.CoerceArgument(typeRequired, command.Arguments.ElementAt(i));
                         methodParameterValueList.RemoveAt(i);
                         methodParameterValueList.Insert(i, value);
                     }
+                        // ReSharper disable once UncatchableException
                     catch (ArgumentException ex)
                     {
                         var argumentName = methodParam.Name;

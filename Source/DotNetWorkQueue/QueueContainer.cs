@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Concurrent;
 using DotNetWorkQueue.Configuration;
@@ -182,7 +181,7 @@ namespace DotNetWorkQueue
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
             _containers.Add(schedulerCreator);
-            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null, true);
+            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null);
         }
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -196,7 +195,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => queue, queue);
             Guard.NotNullOrEmpty(() => connection, connection);
 
-            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null, false);
+            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null);
         }
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -211,7 +210,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => queue, queue);
             Guard.NotNullOrEmpty(() => connection, connection);
 
-            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, workGroup, false);
+            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, workGroup);
         }
 
         /// <summary>
@@ -221,10 +220,9 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="factory">The factory.</param>
         /// <param name="workGroup">The work group.</param>
-        /// <param name="registerFactoryForDispose">if set to <c>true</c> [register factory for dispose].</param>
         /// <returns></returns>
         private IConsumerQueueScheduler CreateConsumerQueueSchedulerInternal(string queue,
-            string connection, ITaskFactory factory, IWorkGroup workGroup, bool registerFactoryForDispose)
+            string connection, ITaskFactory factory, IWorkGroup workGroup)
         {
             Guard.NotNullOrEmpty(() => queue, queue);
             Guard.NotNullOrEmpty(() => connection, connection);

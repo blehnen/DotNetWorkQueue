@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,9 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -195,6 +193,7 @@ namespace DotNetWorkQueue.Tests.IoC
                 
             }
 
+            // ReSharper disable once UnassignedGetOnlyAutoProperty
             public override RoomForNewTaskResult RoomForNewTask { get; }
             public override RoomForNewTaskResult RoomForNewWorkGroupTask(IWorkGroup @group)
             {
@@ -216,7 +215,9 @@ namespace DotNetWorkQueue.Tests.IoC
                
             }
 
+            // ReSharper disable once UnassignedGetOnlyAutoProperty
             public override ITaskSchedulerConfiguration Configuration { get; }
+            // ReSharper disable once UnassignedGetOnlyAutoProperty
             public override IWaitForEventOrCancelThreadPool WaitForFreeThread { get; }
 
             public override int Subscribe()
@@ -229,12 +230,14 @@ namespace DotNetWorkQueue.Tests.IoC
                 
             }
 
+            // ReSharper disable once UnassignedGetOnlyAutoProperty
             public override bool Started { get; }
             protected override void Dispose(bool disposing)
             {
                
             }
 
+            // ReSharper disable once UnassignedGetOnlyAutoProperty
             public override bool IsDisposed { get; }
         }
         internal class ReceivePoisonMessageNoOp : IReceivePoisonMessage

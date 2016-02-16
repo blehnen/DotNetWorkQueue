@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -220,6 +219,19 @@ namespace DotNetWorkQueue.IoC
             params Assembly[] assemblies)
         {
             _container.Register(openGenericServiceType, assemblies, GetLifeStyle(lifeStyle));
+            return this;
+        }
+
+        /// <summary>
+        /// Registers a singleton that will not be scoped and disposed of with the container.
+        /// </summary>
+        /// <typeparam name="TConcrete">The type of the concrete.</typeparam>
+        /// <param name="instance">The instance.</param>
+        /// <returns></returns>
+        public IContainer RegisterNonScopedSingleton<TConcrete>(TConcrete instance)
+            where TConcrete : class
+        {
+            _container.RegisterSingleton(instance);
             return this;
         }
 

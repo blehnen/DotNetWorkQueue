@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -29,7 +28,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly RedisNames _redisNames;
         private readonly IRedisConnection _redisConnection;
-
         private int _disposeCount;
 
         #region Constructor
@@ -40,17 +38,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="connectionInfo">The connection information.</param>
         /// <param name="redisConnection">The redis connection.</param>
         /// <param name="redisNames">The redis names.</param>
+        /// <param name="creationScope">The creation scope.</param>
         public RedisQueueCreation(IConnectionInformation connectionInfo,
             IRedisConnection redisConnection,
-            RedisNames redisNames)
+            RedisNames redisNames,
+            ICreationScope creationScope)
         {
             Guard.NotNull(() => connectionInfo, connectionInfo);
             Guard.NotNull(() => redisConnection, redisConnection);
             Guard.NotNull(() => redisNames, redisNames);
+            Guard.NotNull(() => creationScope, creationScope);
 
             _redisConnection = redisConnection;
             _redisNames = redisNames;
             ConnectionInfo = connectionInfo;
+            Scope = creationScope;
         }
 
         #endregion
@@ -85,6 +87,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                        db.HashLength(_redisNames.Headers) > 0;
             }
         }
+
+        /// <summary>
+        /// Gets a disposable creation scrope
+        /// </summary>
+        /// <value>
+        /// The scope.
+        /// </value>
+        /// <remarks>This is used to prevent queues from going out of scope before you have finished working with them. Generally
+        /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.</remarks>
+        public ICreationScope Scope { get; }
 
         /// <summary>
         /// Creates the queue if needed.

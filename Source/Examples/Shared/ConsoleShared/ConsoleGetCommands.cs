@@ -2,7 +2,6 @@
 // Copyright (c) 2014 John Atten
 // http://www.codeproject.com/Articles/816301/Csharp-Building-a-Useful-Extensible-NET-Console-Ap
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,7 +75,7 @@ namespace ConsoleShared
         {
             var attributeType = typeof(AsyncStateMachineAttribute);
             var attribute = (AsyncStateMachineAttribute)method.GetCustomAttribute(attributeType);
-            return (attribute != null);
+            return attribute != null;
         }
     }
 }

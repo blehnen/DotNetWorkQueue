@@ -1,5 +1,5 @@
 ﻿// ---------------------------------------------------------------------
-// Copyright (c) 2015 Brian Lehnen
+// Copyright (c) 2016 Brian Lehnen
 // 
 // All rights reserved.
 // 
@@ -250,7 +250,7 @@ namespace ConsoleSharedCommands.Commands
             }
 
             //start looking for work
-            Queues[queueName].Start<SimpleMessage>((HandleMessages));
+            Queues[queueName].Start<SimpleMessage>(HandleMessages);
 
             return new ConsoleExecuteResult($"{queueName} started");
         }

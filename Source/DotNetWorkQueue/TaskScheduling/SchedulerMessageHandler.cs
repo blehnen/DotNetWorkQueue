@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -81,7 +80,7 @@ namespace DotNetWorkQueue.TaskScheduling
                     if (task.IsFaulted && task.Exception?.InnerException is OperationCanceledException)
                     {
                         //bubble the cancel exception; the queue will rollback the message if possible
-                        throw task.Exception.InnerException;
+                        throw new OperationCanceledException("user canceled", task.Exception.InnerException); //explicitly throw this
                     }
 
                     if (task.IsFaulted && task.Exception != null)
@@ -154,8 +153,7 @@ namespace DotNetWorkQueue.TaskScheduling
                 notifications.WorkerStopping.Tokens.Find(m => m.IsCancellationRequested).ThrowIfCancellationRequested();
             }
 
-            if (notifications.TransportSupportsRollback &&
-                (notifications.HeartBeat != null && notifications.HeartBeat.ExceptionHasOccured.IsCancellationRequested))
+            if (notifications.TransportSupportsRollback && notifications.HeartBeat != null && notifications.HeartBeat.ExceptionHasOccured.IsCancellationRequested)
             {
                 _log.Warn(
                     "The heartbeat worker has failed - aborting our work since another thread may pick up this item");

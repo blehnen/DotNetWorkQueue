@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 namespace DotNetWorkQueue.Metrics.Decorator
 {
     internal class QueueCreationDecorator: IQueueCreation
@@ -56,6 +55,16 @@ namespace DotNetWorkQueue.Metrics.Decorator
         ///   <c>true</c> if [queue exists]; otherwise, <c>false</c>.
         /// </value>
         public bool QueueExists => _handler.QueueExists;
+
+        /// <summary>
+        /// Gets a disposable creation scrope
+        /// </summary>
+        /// <value>
+        /// The scope.
+        /// </value>
+        /// <remarks>This is used to prevent queues from going out of scope before you have finished working with them. Generally
+        /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.</remarks>
+        public ICreationScope Scope => _handler.Scope;
 
         /// <summary>
         /// Tries to create the queue.

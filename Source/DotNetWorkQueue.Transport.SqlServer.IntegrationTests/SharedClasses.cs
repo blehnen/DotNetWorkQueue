@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015 Brian Lehnen
+//Copyright © 2016 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
@@ -24,12 +23,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
 {
     public static class Helpers
     {
-        public static void Verify(string queueName, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
+        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
         {
             new VerifyQueueData(queueName, queueProducerConfiguration.Options()).Verify(messageCount);
         }
 
-        public static void NoVerification(string queueName, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
+        public static void NoVerification(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
         {
             
         }
