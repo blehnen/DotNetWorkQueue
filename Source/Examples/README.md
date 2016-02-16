@@ -15,9 +15,16 @@ DotNetWorkQueue.Examples
 - RPCProducer - Send a message via Redis transport and receive a response
 - RPCConsumer - Process a messge via Redis transport and send a response
 
+[**SQLite**]
+- Producer - Send Messages via SQLite transport
+- Consumer - Process messages via SQLite transport
+- ConsumerAsync - Process messages via SQLite transport using shared task scheduler
+- RPCProducer - Send a message via SQLite transport and receive a response
+- RPCConsumer - Process a messge via SQLite transport and send a response
+
 License
 --------
-Copyright (c) 2015 Brian Lehnen
+Copyright (c) 2016 Brian Lehnen
 
 All rights reserved.
 

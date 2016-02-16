@@ -3,7 +3,7 @@ DotNetWorkQueue
 
 [![License LGPLv2.1](https://img.shields.io/badge/license-LGPLv2.1-green.svg)](http://www.gnu.org/licenses/lgpl-2.1.html)
 
-A producer / consumer library for dot net applications. Available transports are SQL server and Redis.
+A producer / consumer library for dot net applications. Available transports are SQL server, SQLite and Redis
 
 See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for more indepth documention
 Installation
@@ -16,6 +16,7 @@ Transports
 
 * NuGet package [DotNetWorkQueue.Transports.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/).
 * NuGet package [DotNetWorkQueue.Transports.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/).
+* NuGet package - Not yet released on NuGet
 
 Metrics
 
@@ -58,6 +59,32 @@ using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
 }
 ```
 
+[**Producer - SQLite**]
+
+```csharp
+//Create the queue if it doesn't exist
+var queueName = "testing";
+var connectionString = @"Data Source=c:\queue.db;Version=3;";
+using (var createQueueContainer = new QueueCreationContainer<SqLiteMessageQueueInit>())
+{
+	using (var createQueue = createQueueContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueName, connectionString))
+    {
+    	if (!createQueue.QueueExists)
+        {
+        	createQueue.CreateQueue();
+        }
+    }
+ }
+
+using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>())
+{
+	using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
+    {
+    	queue.Send(new SimpleMessage { Message = "Hello World" });
+    }
+}
+```
+
 [**Producer - Redis**]
 ```csharp
 var queueName = "example";
@@ -80,6 +107,26 @@ using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
     {
 		queue.Start<SimpleMessage>(HandleMessages);
 		Console.WriteLine("Processing messages - press any key to stop");
+        Console.ReadKey((true));
+    }
+}
+
+private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
+{
+	notifications.Log.Debug($"Processing Message {message.Body.Message}");
+}
+
+```
+
+[**Consumer - SQLite**]
+
+```csharp
+using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>())
+{
+	using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
+    {
+    	queue.Start<SimpleMessage>(HandleMessages);
+        Console.WriteLine("Processing messages - press any key to stop");
         Console.ReadKey((true));
     }
 }
@@ -132,7 +179,7 @@ ILMerge is used to merge dependanices into a final assembly. These merged assemb
 
 License
 --------
-Copyright � 2015 Brian Lehnen
+Copyright � 2016 Brian Lehnen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -182,6 +229,10 @@ This library uses multiple 3rd party libaries, listed below.
 [**DotNetWorkQueue.Transport.SqlServer**]
 
 None
+
+[**DotNetWorkQueue.Transport.SQLite**]
+
+* [SQLite ](https://www.sqlite.org/)
 
 [**DotNetWorkQueue.Metrics.Net**]
 
