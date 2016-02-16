@@ -16,7 +16,7 @@ Transports
 
 * NuGet package [DotNetWorkQueue.Transports.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/).
 * NuGet package [DotNetWorkQueue.Transports.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/).
-* NuGet package - Not yet released on NuGet
+* NuGet package - DotNetWorkQueue.Transports.SQLite - Not yet released on NuGet
 
 Metrics
 
