@@ -38,6 +38,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
         /// <value>
         /// The message reset.
         /// </value>
-        public MessageToReset MessageReset { get; set; }
+        public MessageToReset MessageReset { get; }
     }
 }

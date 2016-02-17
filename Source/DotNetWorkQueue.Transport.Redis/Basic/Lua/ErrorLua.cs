@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         /// <param name="messageId">The message identifier.</param>
         /// <returns></returns>
-        public object GetParameters(string messageId)
+        private object GetParameters(string messageId)
         {
             return new
             {

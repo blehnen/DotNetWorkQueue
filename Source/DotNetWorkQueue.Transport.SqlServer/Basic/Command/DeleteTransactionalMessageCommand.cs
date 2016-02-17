@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
         /// <value>
         /// The queue identifier.
         /// </value>
-        public long QueueId { get; set; }
+        public long QueueId { get; }
 
         /// <summary>
         /// Gets the message context.
@@ -48,6 +48,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
         /// <value>
         /// The message context.
         /// </value>
-        public IMessageContext MessageContext { get; private set; }
+        public IMessageContext MessageContext { get; }
     }
 }

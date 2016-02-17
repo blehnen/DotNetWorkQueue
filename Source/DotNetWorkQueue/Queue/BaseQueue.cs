@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         /// The log.
         /// </value>
-        protected ILog Log { get; set; }
+        protected ILog Log { get; }
         /// <summary>
         /// Logs the system exception.
         /// </summary>

@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The connection information.
         /// </value>
-        public IConnectionInformation ConnectionInfo { get; set; }
+        public IConnectionInformation ConnectionInfo { get; }
         #endregion
 
         /// <summary>

@@ -37,6 +37,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Command
         /// <value>
         /// The queue identifier.
         /// </value>
-        public long QueueId { get; set; }
+        public long QueueId { get; }
     }
 }
