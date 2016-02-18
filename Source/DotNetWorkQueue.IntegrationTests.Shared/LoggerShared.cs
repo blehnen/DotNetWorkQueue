@@ -41,6 +41,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     AppDomain.CurrentDomain.BaseDirectory + $"\\Logs\\{queueName}.txt", logLevel, initText);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         public static void ShouldHaveErrors(string queueName)
         {
             if (File.Exists(AppDomain.CurrentDomain.BaseDirectory +
@@ -62,6 +63,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 Assert.False(true, $"No error file was found; errors should have occured for queue {queueName}");
             }
         }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         public static void CheckForErrors(string queueName)
         {
             if (File.Exists(AppDomain.CurrentDomain.BaseDirectory +

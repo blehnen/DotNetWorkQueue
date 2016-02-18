@@ -22,6 +22,7 @@ using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
     public class VerifyQueueData: IDisposable
     {
         private readonly QueueProducerConfiguration _configuration;
@@ -80,12 +81,14 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             Assert.Equal(messageCount, records);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public void Dispose()
         {
             _connection.Dispose();
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
     public class VerifyQueueRecordCount : IDisposable
     {
         private readonly RedisNames _redisNames;
@@ -123,11 +126,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             Assert.Equal(recordCount, records);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public void Dispose()
         {
             _connection.Dispose();
         }
     }
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
     public class VerifyErrorCounts : IDisposable
     {
         private readonly RedisNames _redisNames;
@@ -151,6 +156,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             Assert.Equal(messageCount, records);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public void Dispose()
         {
             _connection.Dispose();

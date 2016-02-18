@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <summary>
     /// Allows deleting redis queues; creation is a no-op, as redis queues do not need to be pre-created.
     /// </summary>
-    public class RedisQueueCreation : IQueueCreation
+    public sealed class RedisQueueCreation : IQueueCreation
     {
         private readonly RedisNames _redisNames;
         private readonly IRedisConnection _redisConnection;
@@ -119,20 +119,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         #region IDisposable, IsDisposed
-
-        /// <summary>
-        /// Throws an exception if this instance has been disposed.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <exception cref="System.ObjectDisposedException"></exception>
-        protected void ThrowIfDisposed([CallerMemberName] string name = "")
-        {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
-            {
-                throw new ObjectDisposedException(name);
-            }
-        }
-
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>

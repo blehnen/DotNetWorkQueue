@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Linq;
 using DotNetWorkQueue.Exceptions;
 using StackExchange.Redis;
@@ -69,7 +71,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         {
             get
             {
-                if (_loadedLuaScript == null) throw new DotNetWorkQueueException("Script has not been loaded");
+                if (_loadedLuaScript == null) throw new InvalidOperationException("Script has not been loaded");
                 return _loadedLuaScript;
             }
             private set { _loadedLuaScript = value; }

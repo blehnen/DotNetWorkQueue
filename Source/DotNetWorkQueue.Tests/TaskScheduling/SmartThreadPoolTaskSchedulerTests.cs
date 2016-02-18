@@ -40,6 +40,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Disposed_Instance_Sets_IsDisposed()
         {
@@ -110,6 +111,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void RoomForNew_Task_Disposed_Returns_False()
         {
@@ -145,6 +147,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void RoomForNewWorkgroup_Task_Disposed_Returns_False()
         {

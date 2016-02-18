@@ -34,6 +34,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             Assert.True(disposable.WasDisposed);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Create_DisposeTwiceIsOk()
         {

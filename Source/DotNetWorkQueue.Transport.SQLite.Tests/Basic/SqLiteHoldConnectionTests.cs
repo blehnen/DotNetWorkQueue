@@ -31,6 +31,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 
         private const string GoodConnectionInMemory = "FullUri=file:test.db3?mode=memory&cache=shared;Version=3;";
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Create_Default()
         {

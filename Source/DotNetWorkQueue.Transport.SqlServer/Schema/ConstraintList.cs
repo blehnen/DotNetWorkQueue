@@ -24,6 +24,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
     /// <summary>
     /// A collection of <seealso cref="Constraint"/>
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable", Justification = "Not supported by children")]
     public class ConstraintList : Dictionary<string, Constraint>
     {
         /// <summary>

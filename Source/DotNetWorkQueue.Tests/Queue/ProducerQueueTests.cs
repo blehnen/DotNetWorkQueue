@@ -45,6 +45,7 @@ namespace DotNetWorkQueue.Tests.Queue
             Assert.Equal(test.IsDisposed, true);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Call_Dispose_Multiple_Times_Ok()
         {

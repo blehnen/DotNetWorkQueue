@@ -80,6 +80,7 @@ namespace DotNetWorkQueue.Tests.Queue
             Assert.Equal(false, test.StartedPublic);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Dispose_Can_Be_Called_Multiple_Times()
         {

@@ -74,6 +74,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         }
 
         // ReSharper disable once UnusedParameter.Local
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyCount(long messageCount)
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))
@@ -92,6 +93,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyPriority()
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))
@@ -112,6 +114,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyDelayedProcessing()
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))
@@ -132,6 +135,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyMessageExpiration()
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))
@@ -151,6 +155,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyStatus()
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))
@@ -170,6 +175,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyStatusTable()
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))
@@ -213,6 +219,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         }
 
         // ReSharper disable once UnusedParameter.Local
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query Ok")]
         private void AllTablesRecordCount(int recordCount, bool ignoreMeta, bool ignoreErrorTracking)
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))
@@ -287,6 +294,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             _tableNameHelper = new TableNameHelper(_connection);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         public void Verify(long messageCount, int errorCount)
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))

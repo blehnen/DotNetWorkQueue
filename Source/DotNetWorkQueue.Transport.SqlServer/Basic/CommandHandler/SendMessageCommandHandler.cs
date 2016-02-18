@@ -75,6 +75,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="commandSend">The command.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to insert record - the ID of the new record returned by SQL server was 0</exception>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities")]
         public long Handle(SendMessageCommand commandSend)
         {
             if (!_messageExpirationEnabled.HasValue)

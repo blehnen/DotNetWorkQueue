@@ -84,6 +84,7 @@ namespace DotNetWorkQueue.Tests.Messages
             test.RaiseRollback();
             test.ShouldRaise(value);
         }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Cleanup_Fires_Only_Once()
         {
@@ -190,8 +191,10 @@ namespace DotNetWorkQueue.Tests.Messages
             });
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public class HeaderData : IDisposable
         {
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
             public void Dispose()
             {
                 

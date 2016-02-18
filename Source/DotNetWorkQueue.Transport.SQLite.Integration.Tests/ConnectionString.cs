@@ -20,6 +20,7 @@ using System;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
     public class IntegrationConnectionInfo: IDisposable
     {
         private readonly string _fileName;
@@ -45,6 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             private set;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public void Dispose()
         {
             if (!string.IsNullOrWhiteSpace(_fileName))

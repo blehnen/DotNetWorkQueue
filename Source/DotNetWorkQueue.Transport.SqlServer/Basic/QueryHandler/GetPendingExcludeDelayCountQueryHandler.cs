@@ -45,6 +45,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         public long Handle(GetPendingExcludeDelayCountQuery query)
         {
             using (var connection = new SqlConnection(_connectionInformation.ConnectionString))

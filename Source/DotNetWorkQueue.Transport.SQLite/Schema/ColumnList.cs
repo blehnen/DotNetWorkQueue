@@ -24,6 +24,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
     /// <summary>
     /// A collection of <seealso cref="Column"/>
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable", Justification = "Not supported by children")]
     public class ColumnList: Dictionary<string, Column>
     {
         /// <summary>
