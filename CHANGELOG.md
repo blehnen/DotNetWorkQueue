@@ -1,4 +1,4 @@
-###0.1.3 ????-??-??
+###0.1.3 2016-02-18
 * Fix formatting issue with poison message exception
 * Fix formatting issue with user/system exception
 * Don't run monitor delegates if the queue is shutting down
