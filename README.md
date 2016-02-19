@@ -10,17 +10,17 @@ Installation
 -------------
 
 Base
-* NuGet package [DotNetWorkQueue](https://www.nuget.org/packages/DotNetWorkQueue/).
+* NuGet package [DotNetWorkQueue](https://www.nuget.org/packages/DotNetWorkQueue/)
 
 Transports
 
-* NuGet package [DotNetWorkQueue.Transports.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/).
-* NuGet package [DotNetWorkQueue.Transports.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/).
-* NuGet package - DotNetWorkQueue.Transports.SQLite - Not yet released on NuGet
+* NuGet package [DotNetWorkQueue.Transports.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/)
+* NuGet package [DotNetWorkQueue.Transports.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/)
+* NuGet package [DotNetWorkQueue.Transports.SQLite](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/)
 
 Metrics
 
-* NuGet package [DotNetWorkQueue.Metrics.Net](https://www.nuget.org/packages/DotNetWorkQueue.Metrics.Net/).
+* NuGet package [DotNetWorkQueue.Metrics.Net](https://www.nuget.org/packages/DotNetWorkQueue.Metrics.Net/)
 
 Usage
 ------
