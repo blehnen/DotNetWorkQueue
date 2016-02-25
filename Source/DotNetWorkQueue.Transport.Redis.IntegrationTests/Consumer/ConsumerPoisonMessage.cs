@@ -28,13 +28,17 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1),
-        InlineData(10, 30, 5),
-        InlineData(50, 40, 20)]
-        public void Run(int messageCount, int timeOut, int workerCount)
+        [InlineData(1, 20, 1, ConnectionInfoTypes.Linux),
+        InlineData(10, 30, 5, ConnectionInfoTypes.Linux),
+        InlineData(50, 40, 20, ConnectionInfoTypes.Linux),
+            InlineData(1, 20, 1, ConnectionInfoTypes.Windows),
+        InlineData(10, 30, 5, ConnectionInfoTypes.Windows),
+        InlineData(50, 40, 20, ConnectionInfoTypes.Windows)]
+        public void Run(int messageCount, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (
                 var queueCreator =
                     new QueueCreationContainer<RedisQueueInit>(
@@ -45,18 +49,18 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     //create data
                     var producer = new ProducerShared();
                     producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                         Helpers.Verify, false);
 
                     //process data
                     var consumer = new ConsumerPoisonMessageShared<FakeMessage>();
 
-                    consumer.RunConsumer<RedisQueueInit>(queueName, ConnectionInfo.ConnectionString, false,
+                    consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         workerCount,
                         logProvider, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
 
-                    ValidateErrorCounts(queueName, messageCount);
-                    new VerifyQueueRecordCount(queueName).Verify(messageCount, true);
+                    ValidateErrorCounts(queueName, connectionString, messageCount);
+                    new VerifyQueueRecordCount(queueName, connectionString).Verify(messageCount, true);
 
                 }
                 finally
@@ -65,7 +69,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                                connectionString)
                         )
                     {
                         oCreation.RemoveQueue();
@@ -74,12 +78,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                 }
             }
         }
-        private void ValidateErrorCounts(string queueName, long messageCount)
+        private void ValidateErrorCounts(string queueName, string connectionString, long messageCount)
         {
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            new VerifyErrorCounts(queueName).Verify(messageCount, 0);
+            new VerifyErrorCounts(queueName, connectionString).Verify(messageCount, 0);
         }
     }
 }

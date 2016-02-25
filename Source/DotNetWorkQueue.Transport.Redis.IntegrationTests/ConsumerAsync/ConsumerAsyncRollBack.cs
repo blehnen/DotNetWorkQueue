@@ -28,13 +28,17 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncRollBack
     {
         [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5),
-         InlineData(50, 5, 200, 5, 1, 3),
-         InlineData(10, 5, 180, 7, 1, 1)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize)
+        [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux),
+         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Linux),
+         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Linux),
+            InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Windows),
+         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Windows),
+         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Windows)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (
                 var queueCreator =
                     new QueueCreationContainer<RedisQueueInit>(
@@ -45,16 +49,16 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     //create data
                     var producer = new ProducerShared();
                     producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                         Helpers.Verify, false);
 
                     //process data
                     var consumer = new ConsumerAsyncRollBackShared<FakeMessage>();
-                    consumer.RunConsumer<RedisQueueInit>(queueName, ConnectionInfo.ConnectionString, false,
+                    consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         workerCount, logProvider,
                         timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
                     LoggerShared.CheckForErrors(queueName);
-                    new VerifyQueueRecordCount(queueName).Verify(0, false);
+                    new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
 
                 }
                 finally
@@ -62,7 +66,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                                connectionString)
                         )
                     {
                         oCreation.RemoveQueue();

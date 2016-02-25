@@ -108,15 +108,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                     //load up the message from the DB
                     long id = 0;
                     var correlationId = Guid.Empty;
+                    byte[] headerPayload = null;
+                    byte[] messagePayload = null;
                     try
                     {
                         id = (long)reader["queueid"];
                         correlationId = (Guid)reader["CorrelationID"];
-                        var headers = _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>((byte[])reader["Headers"]);
+                        headerPayload = (byte[])reader["Headers"];
+                        messagePayload = (byte[])reader["body"];
 
+                        var headers = _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerPayload);
                         var messageGraph = (MessageInterceptorsGraph)headers[_headers.StandardHeaders.MessageInterceptorGraph.Name];
-
-                        var message = _serialization.Serializer.BytesToMessage<MessageBody>((byte[]) reader["body"], messageGraph).Body;
+                        var message = _serialization.Serializer.BytesToMessage<MessageBody>(messagePayload, messageGraph).Body;
                         var newMessage = _messageFactory.Create(message, headers);
 
                         return _receivedMessageFactory.Create(newMessage,
@@ -127,7 +130,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                     {
                         //at this point, the record has been de-queued, but it can't be processed.
                         throw new PoisonMessageException(
-                            "An error has occured trying to re-assemble a message de-queued from the SQL server", error, new SqlServerMessageQueueId(id), new SqlServerMessageQueueCorrelationId(correlationId));
+                            "An error has occured trying to re-assemble a message de-queued from the SQL server", error, new SqlServerMessageQueueId(id), new SqlServerMessageQueueCorrelationId(correlationId), messagePayload, headerPayload);
 
                     }
                 }

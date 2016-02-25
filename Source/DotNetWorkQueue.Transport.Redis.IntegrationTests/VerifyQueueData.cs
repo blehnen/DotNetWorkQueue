@@ -29,12 +29,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         private readonly RedisNames _redisNames;
         private readonly RedisConnection _connection;
 
-        public VerifyQueueData(string queueName, QueueProducerConfiguration configuration)
+        public VerifyQueueData(string queueName, QueueProducerConfiguration configuration, string connectionString)
         {
             _configuration = configuration;
             var connection = new BaseConnectionInformation()
             {
-                ConnectionString = ConnectionInfo.ConnectionString,
+                ConnectionString = connectionString,
                 QueueName = queueName
             };
             _redisNames = new RedisNames(connection);
@@ -94,11 +94,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         private readonly RedisNames _redisNames;
         private readonly RedisConnection _connection;
 
-        public VerifyQueueRecordCount(string queueName)
+        public VerifyQueueRecordCount(string queueName, string connectionString)
         {
             var connection = new BaseConnectionInformation()
             {
-                ConnectionString = ConnectionInfo.ConnectionString,
+                ConnectionString = connectionString,
                 QueueName = queueName
             };
             _redisNames = new RedisNames(connection);
@@ -138,11 +138,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         private readonly RedisNames _redisNames;
         private readonly RedisConnection _connection;
 
-        public VerifyErrorCounts(string queueName)
+        public VerifyErrorCounts(string queueName, string connectionString)
         {
             var connection = new BaseConnectionInformation()
             {
-                ConnectionString = ConnectionInfo.ConnectionString,
+                ConnectionString = connectionString,
                 QueueName = queueName
             };
             _redisNames = new RedisNames(connection);

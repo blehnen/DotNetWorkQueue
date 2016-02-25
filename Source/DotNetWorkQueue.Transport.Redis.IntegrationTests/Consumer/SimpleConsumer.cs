@@ -28,14 +28,19 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class SimpleConsumer
     {
         [Theory]
-        [InlineData(1000, 0, 240, 5),
-        InlineData(50, 5, 200, 10),
-        InlineData(10, 5, 180, 7),
-        InlineData(3000, 0, 240, 25)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
+        [InlineData(1000, 0, 240, 5, ConnectionInfoTypes.Linux),
+        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux),
+        InlineData(10, 5, 180, 7, ConnectionInfoTypes.Linux),
+        InlineData(3000, 0, 240, 25, ConnectionInfoTypes.Linux),
+            InlineData(1000, 0, 240, 5, ConnectionInfoTypes.Windows),
+        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Windows),
+        InlineData(10, 5, 180, 7, ConnectionInfoTypes.Windows),
+        InlineData(3000, 0, 240, 25, ConnectionInfoTypes.Windows)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (
                 var queueCreator =
                     new QueueCreationContainer<RedisQueueInit>(
@@ -45,22 +50,22 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                 {
                     var producer = new ProducerShared();
                     producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                         Helpers.Verify, false);
 
                     var consumer = new ConsumerShared<FakeMessage>();
-                    consumer.RunConsumer<RedisQueueInit>(queueName, ConnectionInfo.ConnectionString, false, logProvider,
+                    consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false, logProvider,
                         runtime, messageCount,
                         workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
 
-                    new VerifyQueueRecordCount(queueName).Verify(0, false);
+                    new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
                 }
                 finally
                 {
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                                connectionString)
                         )
                     {
                         oCreation.RemoveQueue();

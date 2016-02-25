@@ -29,11 +29,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerCancelWork
     {
         [Theory]
-        [InlineData(7, 5, 90, 3)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
+        [InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux),
+            InlineData(7, 5, 90, 3, ConnectionInfoTypes.Windows)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (var queueCreator =
                 new QueueCreationContainer<RedisQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
@@ -42,15 +44,15 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                 {
                     var producer = new ProducerShared();
                     producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                         Helpers.Verify, false);
 
                     var consumer = new ConsumerCancelWorkShared<RedisQueueInit, FakeMessage>();
-                    consumer.RunConsumer(queueName, ConnectionInfo.ConnectionString, false, logProvider,
+                    consumer.RunConsumer(queueName, connectionString, false, logProvider,
                         runtime, messageCount,
                         workerCount, timeOut, x => { }, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
 
-                    new VerifyQueueRecordCount(queueName).Verify(0, false);
+                    new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
 
                 }
                 finally
@@ -58,7 +60,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                                connectionString)
                         )
                     {
                         oCreation.RemoveQueue();

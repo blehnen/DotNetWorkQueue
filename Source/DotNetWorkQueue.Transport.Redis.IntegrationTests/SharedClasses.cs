@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
     {
         public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
         {
-            using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration))
+            using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration, connectionString))
             {
                 verify.Verify(messageCount);
             }

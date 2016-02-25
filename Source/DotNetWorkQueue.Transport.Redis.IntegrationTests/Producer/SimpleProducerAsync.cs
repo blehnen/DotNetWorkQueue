@@ -27,21 +27,29 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
     public class SimpleProducerAsync
     {
         [Theory]
-        [InlineData(1000, true, false),
-        InlineData(1000, false, false),
-        InlineData(10000, true, false),
-        InlineData(10000, false, false),
-        InlineData(1000, true, true),
-        InlineData(1000, false, true)]
+        [InlineData(1000, true, false, ConnectionInfoTypes.Linux),
+        InlineData(1000, false, false, ConnectionInfoTypes.Linux),
+        InlineData(10000, true, false, ConnectionInfoTypes.Linux),
+        InlineData(10000, false, false, ConnectionInfoTypes.Linux),
+        InlineData(1000, true, true, ConnectionInfoTypes.Linux),
+        InlineData(1000, false, true, ConnectionInfoTypes.Linux),
+            InlineData(1000, true, false, ConnectionInfoTypes.Windows),
+        InlineData(1000, false, false, ConnectionInfoTypes.Windows),
+        InlineData(10000, true, false, ConnectionInfoTypes.Windows),
+        InlineData(10000, false, false, ConnectionInfoTypes.Windows),
+        InlineData(1000, true, true, ConnectionInfoTypes.Windows),
+        InlineData(1000, false, true, ConnectionInfoTypes.Windows)]
         public async void Run(
            int messageCount,
            bool interceptors,
-           bool batchSending)
+           bool batchSending,
+           ConnectionInfoTypes type)
         {
 
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
             var producer = new ProducerAsyncShared();
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (
                 var queueCreator =
                     new QueueCreationContainer<RedisQueueInit>(
@@ -50,7 +58,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
                 try
                 {
                     await producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
+                       connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
                         Helpers.Verify, batchSending);
                 }
                 finally
@@ -58,7 +66,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                                connectionString)
                         )
                     {
                         oCreation.RemoveQueue();

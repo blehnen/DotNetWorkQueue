@@ -58,6 +58,23 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             Id = new Setting<Guid>(id);
         }
         /// <summary>
+        /// Initializes a new instance of the <see cref="RedisQueueCorrelationId"/> class.
+        /// </summary>
+        /// <param name="input">The serialized input.</param>
+        public RedisQueueCorrelationId(RedisQueueCorrelationIdSerialized input)
+        {
+            if(input != null)
+            {
+                _id = input.Id;
+                Id = new Setting<Guid>(input.Id);
+            }
+            else
+            {
+                _id = Guid.Empty;
+                Id = new Setting<Guid>(_id);
+            }
+        }
+        /// <summary>
         /// Gets or sets the identifier.
         /// </summary>
         /// <value>

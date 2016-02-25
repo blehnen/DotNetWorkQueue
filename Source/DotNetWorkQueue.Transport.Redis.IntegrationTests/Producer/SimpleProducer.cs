@@ -26,29 +26,43 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
     public class SimpleProducer
     {
         [Theory]
-        [InlineData(1000, true, false, false, false),
-         InlineData(1000, false, false, false, false),
-         InlineData(10000, true, false, false, false),
-         InlineData(10000, false, false, false, false),
-         InlineData(1000, true, true, false, false),
-         InlineData(1000, false, true, false, false),
-         InlineData(1000, true, false, true, false),
-         InlineData(1000, false, false, false, true),
-         InlineData(1000, true, false, true, true),
-         InlineData(1000, false, false, false, true),
-         InlineData(1000, true, true, true, false),
-         InlineData(1000, false, true, true, true)]
+        [InlineData(1000, true, false, false, false, ConnectionInfoTypes.Linux),
+         InlineData(1000, false, false, false, false, ConnectionInfoTypes.Linux),
+         InlineData(10000, true, false, false, false, ConnectionInfoTypes.Linux),
+         InlineData(10000, false, false, false, false, ConnectionInfoTypes.Linux),
+         InlineData(1000, true, true, false, false, ConnectionInfoTypes.Linux),
+         InlineData(1000, false, true, false, false, ConnectionInfoTypes.Linux),
+         InlineData(1000, true, false, true, false, ConnectionInfoTypes.Linux),
+         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Linux),
+         InlineData(1000, true, false, true, true, ConnectionInfoTypes.Linux),
+         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Linux),
+         InlineData(1000, true, true, true, false, ConnectionInfoTypes.Linux),
+         InlineData(1000, false, true, true, true, ConnectionInfoTypes.Linux),
+            InlineData(1000, true, false, false, false, ConnectionInfoTypes.Windows),
+         InlineData(1000, false, false, false, false, ConnectionInfoTypes.Windows),
+         InlineData(10000, true, false, false, false, ConnectionInfoTypes.Windows),
+         InlineData(10000, false, false, false, false, ConnectionInfoTypes.Windows),
+         InlineData(1000, true, true, false, false, ConnectionInfoTypes.Windows),
+         InlineData(1000, false, true, false, false, ConnectionInfoTypes.Windows),
+         InlineData(1000, true, false, true, false, ConnectionInfoTypes.Windows),
+         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Windows),
+         InlineData(1000, true, false, true, true, ConnectionInfoTypes.Windows),
+         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Windows),
+         InlineData(1000, true, true, true, false, ConnectionInfoTypes.Windows),
+         InlineData(1000, false, true, true, true, ConnectionInfoTypes.Windows)]
         public void Run(
             int messageCount,
             bool interceptors,
             bool batchSending,
             bool enableDelay,
-            bool enableExpiration)
+            bool enableExpiration,
+            ConnectionInfoTypes type)
         {
 
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
             var producer = new ProducerShared();
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (
                 var queueCreator =
                     new QueueCreationContainer<RedisQueueInit>(
@@ -59,25 +73,25 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
                     if (enableExpiration && enableDelay)
                     {
                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                       ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayExpiredData,
+                       connectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayExpiredData,
                        Helpers.Verify, batchSending);
                     }
                     else if (enableDelay)
                     {
                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                       ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
+                       connectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
                        Helpers.Verify, batchSending);
                     }
                     else if (enableExpiration)
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                       ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
+                       connectionString, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
                        Helpers.Verify, batchSending);
                     }
                     else
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
+                        connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
                         Helpers.Verify, batchSending);
                     }
                 }
@@ -86,7 +100,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                                connectionString)
                         )
                     {
                         oCreation.RemoveQueue();

@@ -93,6 +93,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             byte[] headers = null;
             string messageId;
             var poisonMessage = false;
+            RedisQueueCorrelationIdSerialized correlationId = null;
             try
             {
                 var unixTimestamp = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
@@ -150,17 +151,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                 throw new PoisonMessageException(
                     "An error has occured trying to re-assemble a message de-queued from the SQL server; a messageId was returned, but the LUA script returned a null message. The message payload has most likely been lost.",
                     null,
-                    new RedisQueueId(messageId), new RedisQueueCorrelationId(Guid.Empty));
+                    new RedisQueueId(messageId), new RedisQueueCorrelationId(Guid.Empty),
+                    null, null);
             }
 
             try
             {
                 var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
+                correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorelationId.Name];
                 var messageGraph =
                     (MessageInterceptorsGraph)
                         allHeaders[_redisHeaders.Headers.StandardHeaders.MessageInterceptorGraph.Name];
                 var messageData = _serializer.Serializer.BytesToMessage<MessageBody>(message, messageGraph);
-                var id = (RedisQueueCorrelationIdSerialized) allHeaders[_redisHeaders.CorelationId.Name];
 
                 var newMessage = _messageFactory.Create(messageData.Body, allHeaders);
 
@@ -169,14 +171,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                     _receivedMessageFactory.Create(
                         newMessage,
                         new RedisQueueId(messageId),
-                        new RedisQueueCorrelationId(id.Id)), false);
+                        new RedisQueueCorrelationId(correlationId.Id)), false);
             }
             catch (Exception error)
             {
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
                     "An error has occured trying to re-assemble a message de-queued from redis", error,
-                    new RedisQueueId(messageId), new RedisQueueCorrelationId(Guid.Empty));
+                    new RedisQueueId(messageId), new RedisQueueCorrelationId(correlationId),
+                    message, headers);
 
             }
         }

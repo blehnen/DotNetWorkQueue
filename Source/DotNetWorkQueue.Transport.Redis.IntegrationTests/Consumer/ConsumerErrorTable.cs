@@ -28,13 +28,17 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(1, 40, 1),
-        InlineData(100, 120, 20),
-        InlineData(10, 60, 5)]
-        public void Run(int messageCount, int timeOut, int workerCount)
+        [InlineData(1, 40, 1, ConnectionInfoTypes.Linux),
+        InlineData(100, 120, 20, ConnectionInfoTypes.Linux),
+        InlineData(10, 60, 5, ConnectionInfoTypes.Linux),
+            InlineData(1, 40, 1, ConnectionInfoTypes.Windows),
+        InlineData(100, 120, 20, ConnectionInfoTypes.Windows),
+        InlineData(10, 60, 5, ConnectionInfoTypes.Windows)]
+        public void Run(int messageCount, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (
                 var queueCreator =
                     new QueueCreationContainer<RedisQueueInit>(
@@ -45,23 +49,23 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     //create data
                     var producer = new ProducerShared();
                     producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                         Helpers.Verify, false);
 
                     //process data
                     var consumer = new ConsumerErrorShared<FakeMessage>();
-                    consumer.RunConsumer<RedisQueueInit>(queueName, ConnectionInfo.ConnectionString, false,
+                    consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         logProvider,
                         workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
-                    ValidateErrorCounts(queueName, messageCount);
-                    new VerifyQueueRecordCount(queueName).Verify(messageCount, true);
+                    ValidateErrorCounts(queueName, connectionString, messageCount);
+                    new VerifyQueueRecordCount(queueName, connectionString).Verify(messageCount, true);
                 }
                 finally
                 {
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                                connectionString)
                         )
                     {
                         oCreation.RemoveQueue();
@@ -70,9 +74,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
             }
         }
 
-        private void ValidateErrorCounts(string queueName, int messageCount)
+        private void ValidateErrorCounts(string queueName, string connectionString, int messageCount)
         {
-            new VerifyErrorCounts(queueName).Verify(messageCount, 2);
+            new VerifyErrorCounts(queueName, connectionString).Verify(messageCount, 2);
         }
     }
 }

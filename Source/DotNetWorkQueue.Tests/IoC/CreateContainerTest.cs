@@ -242,7 +242,7 @@ namespace DotNetWorkQueue.Tests.IoC
         }
         internal class ReceivePoisonMessageNoOp : IReceivePoisonMessage
         {
-            public void Handle(IMessageContext context, Exception exception)
+            public void Handle(IMessageContext context, PoisonMessageException exception)
             {
                 
             }

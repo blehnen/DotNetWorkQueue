@@ -181,7 +181,7 @@ namespace DotNetWorkQueue.Queue
             }
 
             _clearQueue.Stop();
-            base.Dispose(disposing);
+            base.Dispose(true);
         }
 
         /// <summary>

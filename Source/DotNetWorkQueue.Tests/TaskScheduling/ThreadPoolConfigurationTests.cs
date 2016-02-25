@@ -29,7 +29,6 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         public void GetSet_IdleTimeout()
         {
             var test = Create();
-            Assert.NotEqual(TimeSpan.MaxValue, test.IdleTimeout);
             test.IdleTimeout = TimeSpan.MaxValue;
             Assert.Equal(TimeSpan.MaxValue, test.IdleTimeout);
         }
@@ -37,7 +36,6 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         public void GetSet_MaxWorkerThreads()
         {
             var test = Create();
-            Assert.NotEqual(5, test.MaxWorkerThreads);
             test.MaxWorkerThreads = 5;
             Assert.Equal(5, test.MaxWorkerThreads);
         }
@@ -45,7 +43,6 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         public void GetSet_MinWorkerThreads()
         {
             var test = Create();
-            Assert.NotEqual(5, test.MinWorkerThreads);
             test.MinWorkerThreads = 5;
             Assert.Equal(5, test.MinWorkerThreads);
         }
@@ -53,7 +50,6 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         public void GetSet_WaitForTheadPoolToFinish()
         {
             var test = Create();
-            Assert.NotEqual(TimeSpan.MaxValue, test.WaitForTheadPoolToFinish);
             test.WaitForTheadPoolToFinish = TimeSpan.MaxValue;
             Assert.Equal(TimeSpan.MaxValue, test.WaitForTheadPoolToFinish);
         }

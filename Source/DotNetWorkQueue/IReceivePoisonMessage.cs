@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
+using DotNetWorkQueue.Exceptions;
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -30,6 +30,6 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>
-        void Handle(IMessageContext context, Exception exception);
+        void Handle(IMessageContext context, PoisonMessageException exception);
     }
 }

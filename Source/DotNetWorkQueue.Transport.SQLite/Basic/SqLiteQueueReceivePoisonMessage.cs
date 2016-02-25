@@ -16,8 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Exceptions;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>
-        public void Handle(IMessageContext context, Exception exception)
+        public void Handle(IMessageContext context, PoisonMessageException exception)
         {
             Guard.NotNull(() => context, context);
             Guard.NotNull(() => exception, exception);

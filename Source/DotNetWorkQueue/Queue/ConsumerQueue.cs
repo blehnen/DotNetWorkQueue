@@ -141,7 +141,7 @@ namespace DotNetWorkQueue.Queue
                 _primaryWorker.Value.SystemException -= LogSystemException;
                 _primaryWorker.Value.Dispose();
             }
-            base.Dispose(disposing);
+            base.Dispose(true);
         }
         #endregion
     }

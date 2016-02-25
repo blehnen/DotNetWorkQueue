@@ -30,12 +30,15 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5),
-        InlineData(10000, 0, 120, 5)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
+        [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux),
+        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Linux),
+            InlineData(100, 0, 20, 5, ConnectionInfoTypes.Windows),
+        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Windows)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (
                 var queueCreator =
                     new QueueCreationContainer<RedisQueueInit>(
@@ -45,25 +48,25 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                 {
                     var producer = new ProducerShared();
                     producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateExpiredData,
+                        connectionString, false, messageCount, logProvider, Helpers.GenerateExpiredData,
                         Helpers.Verify, false);
 
                     Thread.Sleep(2000);
 
                     var consumer = new ConsumerExpiredMessageShared<FakeMessage>();
-                    consumer.RunConsumer<RedisQueueInit>(queueName, ConnectionInfo.ConnectionString, false,
+                    consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         logProvider,
                         runtime, messageCount,
                         workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
 
-                    new VerifyQueueRecordCount(queueName).Verify(0, false);
+                    new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
                 }
                 finally
                 {
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                                connectionString)
                         )
                     {
                         oCreation.RemoveQueue();

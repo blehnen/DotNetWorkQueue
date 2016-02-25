@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
+using DotNetWorkQueue.Exceptions;
 namespace DotNetWorkQueue.Metrics.Decorator
 {
     internal class ReceivePoisonMessageDecorator: IReceivePoisonMessage
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>
-        public void Handle(IMessageContext context, Exception exception)
+        public void Handle(IMessageContext context, PoisonMessageException exception)
         {
             _handler.Handle(context, exception);
             _meterError.Mark();

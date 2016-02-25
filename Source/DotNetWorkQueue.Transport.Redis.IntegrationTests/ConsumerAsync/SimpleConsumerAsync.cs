@@ -30,12 +30,16 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [InlineData(500, 1, 400, 10, 5, 5, 1),
-         InlineData(50, 5, 200, 10, 1, 2, 1),
-         InlineData(10, 5, 180, 7, 1, 1, 1),
-         InlineData(500, 0, 180, 10, 5, 0, 1)]
+        [InlineData(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Linux),
+         InlineData(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Linux),
+         InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Linux),
+         InlineData(500, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Linux),
+            InlineData(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Windows),
+         InlineData(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Windows),
+         InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Windows),
+         InlineData(500, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Windows)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-            int messageType)
+            int messageType, ConnectionInfoTypes type)
         {
             if (Factory == null)
             {
@@ -44,6 +48,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (var queueCreator =
                 new QueueCreationContainer<RedisQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
@@ -54,11 +59,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     {
                         var producer = new ProducerAsyncShared();
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false).Wait(timeOut);
 
                         var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
-                        consumer.RunConsumer<RedisQueueInit>(queueName, ConnectionInfo.ConnectionString, false,
+                        consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                             logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
@@ -67,11 +72,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     {
                         var producer = new ProducerAsyncShared();
                         producer.RunTest<RedisQueueInit, FakeMessageA>(queueName,
-                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false).Wait(timeOut);
 
                         var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
-                        consumer.RunConsumer<RedisQueueInit>(queueName, ConnectionInfo.ConnectionString, false,
+                        consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                             logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
@@ -80,18 +85,18 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     {
                         var producer = new ProducerAsyncShared();
                         producer.RunTest<RedisQueueInit, FakeMessageB>(queueName,
-                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false).Wait(timeOut);
 
 
                         var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
-                        consumer.RunConsumer<RedisQueueInit>(queueName, ConnectionInfo.ConnectionString, false,
+                        consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                             logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
                     }
 
-                    new VerifyQueueRecordCount(queueName).Verify(0, false);
+                    new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
                 }
                 finally
                 {
@@ -99,7 +104,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                               connectionString)
                         )
                     {
                         oCreation.RemoveQueue();
@@ -109,10 +114,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
         }
 
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-            int messageType, ITaskFactory factory)
+            int messageType, ITaskFactory factory, ConnectionInfoTypes type)
         {
             Factory = factory;
-            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType);
+            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, type);
         }
 
 

@@ -57,15 +57,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             //load up the message from the DB
             long id = 0;
             var correlationId = Guid.Empty;
+            byte[] headerPayload = null;
+            byte[] messagePayload = null;
             try
             {
                 id = (long)reader["queueid"];
                 var cId = (string)reader["CorrelationID"];
+                headerPayload = (byte[])reader["Headers"];
+                messagePayload = (byte[])reader["body"];
+
                 correlationId = new Guid(cId);
                 var headers =
                     _serialization.InternalSerializer
                         .ConvertBytesTo<IDictionary<string, object>>(
-                            (byte[])reader["Headers"]);
+                            headerPayload);
 
                 var messageGraph =
                     (MessageInterceptorsGraph)
@@ -73,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 
                 var message =
                     _serialization.Serializer.BytesToMessage<MessageBody>(
-                        (byte[])reader["body"],
+                        messagePayload,
                         messageGraph).Body;
                 var newMessage = _messageFactory.Create(message, headers);
 
@@ -99,7 +104,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 throw new PoisonMessageException(
                     "An error has occured trying to re-assemble a message de-queued from SQLite",
                     err, new SqLiteMessageQueueId(id),
-                    new SqLiteMessageQueueCorrelationId(correlationId));
+                    new SqLiteMessageQueueCorrelationId(correlationId),
+                    messagePayload,
+                    headerPayload);
             }
         }
     }

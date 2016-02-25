@@ -28,14 +28,19 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.rpc
     public class SimpleRpc
     {
         [Theory]
-        [InlineData(10, 1, 180, 5, false),
-         InlineData(30, 0, 240, 5, false),
-         InlineData(10, 1, 180, 5, true),
-         InlineData(30, 0, 240, 5, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool async)
+        [InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux),
+         InlineData(30, 0, 240, 5, false, ConnectionInfoTypes.Linux),
+         InlineData(10, 1, 180, 5, true, ConnectionInfoTypes.Linux),
+         InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux),
+            InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Windows),
+         InlineData(30, 0, 240, 5, false, ConnectionInfoTypes.Windows),
+         InlineData(10, 1, 180, 5, true, ConnectionInfoTypes.Windows),
+         InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Windows)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool async, ConnectionInfoTypes type)
         {
             var queueNameSend = GenerateQueueName.Create();
             var logProviderSend = LoggerShared.Create(queueNameSend, GetType().Name);
+            var connectionString = new ConnectionInfo(type).ConnectionString;
             using (var queueCreatorSend =
                 new QueueCreationContainer<RedisQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProviderSend, LifeStyles.Singleton)))
@@ -45,12 +50,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.rpc
                     var rpc =
                         new RpcShared
                             <RedisQueueInit, FakeResponse, FakeMessage, RedisQueueRpcConnection>();
-                    rpc.Run(queueNameSend, queueNameSend, ConnectionInfo.ConnectionString,
-                        ConnectionInfo.ConnectionString, logProviderSend, logProviderSend,
+                    rpc.Run(queueNameSend, queueNameSend, connectionString,
+                        connectionString, logProviderSend, logProviderSend,
                         runtime, messageCount, workerCount, timeOut, async,
-                        new RedisQueueRpcConnection(ConnectionInfo.ConnectionString, queueNameSend), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                        new RedisQueueRpcConnection(connectionString, queueNameSend), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
 
-                    new VerifyQueueRecordCount(queueNameSend).Verify(0, false);
+                    new VerifyQueueRecordCount(queueNameSend, connectionString).Verify(0, false);
 
                 }
                 finally
@@ -58,7 +63,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.rpc
                     using (
                         var oCreation =
                             queueCreatorSend.GetQueueCreation<RedisQueueCreation>(queueNameSend,
-                                ConnectionInfo.ConnectionString)
+                                connectionString)
                         )
                     {
                         oCreation.RemoveQueue();

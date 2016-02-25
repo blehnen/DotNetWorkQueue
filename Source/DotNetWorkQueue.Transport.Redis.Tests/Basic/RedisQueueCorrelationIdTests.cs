@@ -47,5 +47,22 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             Assert.Equal(id, test.Id.Value);
             Assert.False(test.HasValue);
         }
+        [Fact]
+        public void Create_Default_Null_Serialized()
+        {
+            var test = new RedisQueueCorrelationId(null);
+            Assert.Equal(Guid.Empty.ToString(), test.Id.Value.ToString());
+            Assert.False(test.HasValue);
+        }
+
+        [Fact]
+        public void Create_Default_Serialized()
+        {
+            var id = Guid.NewGuid();
+            var input = new RedisQueueCorrelationIdSerialized(id);
+            var test = new RedisQueueCorrelationId(input);
+            Assert.Equal(id.ToString(), test.Id.Value.ToString());
+            Assert.True(test.HasValue);
+        }
     }
 }
