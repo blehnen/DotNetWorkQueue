@@ -113,7 +113,7 @@ using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
 
 private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
 {
-	notifications.Log.Debug($"Processing Message {message.Body.Message}");
+	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
 }
 
 ```
@@ -152,7 +152,7 @@ using (var queueContainer = new QueueContainer<RedisQueueInit>())
 
 private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
 {
-	notifications.Log.Debug($"Processing Message {message.Body.Message}");
+	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
 }
 
 ```
