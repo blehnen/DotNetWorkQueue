@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Command
     /// <summary>
     /// Deletes a specific message
     /// </summary>
-    internal class DeleteMessageCommand
+    public class DeleteMessageCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteMessageCommand" /> class.

@@ -19,7 +19,10 @@
 using System;
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
 {
-    internal class RollbackMessageCommand
+    /// <summary>
+    /// Resets a message back to waiting for processing status
+    /// </summary>
+    public class RollbackMessageCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessageCommand"/> class.

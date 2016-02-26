@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
     /// <summary>
     /// Updates the status of a record in the status table of a queue
     /// </summary>
-    internal class SetStatusTableStatusCommand
+    public class SetStatusTableStatusCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SetStatusTableStatusCommand" /> class.

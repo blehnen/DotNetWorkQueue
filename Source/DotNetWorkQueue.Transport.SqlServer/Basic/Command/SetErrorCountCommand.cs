@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
     /// <summary>
     /// Updates the error count for a queue record
     /// </summary>
-    internal class SetErrorCountCommand
+    public class SetErrorCountCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SetErrorCountCommand"/> class.

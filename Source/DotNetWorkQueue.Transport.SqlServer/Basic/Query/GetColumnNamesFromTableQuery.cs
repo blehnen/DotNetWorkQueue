@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
     /// <summary>
     /// Returns all of the column names from a table
     /// </summary>
-    internal class GetColumnNamesFromTableQuery: IQuery<List<string>>
+    public class GetColumnNamesFromTableQuery: IQuery<List<string>>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GetColumnNamesFromTableQuery"/> class.

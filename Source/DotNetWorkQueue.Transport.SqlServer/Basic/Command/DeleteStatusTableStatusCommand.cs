@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
     /// <summary>
     /// Deletes a status record from the status table of a queue
     /// </summary>
-    internal class DeleteStatusTableStatusCommand
+    public class DeleteStatusTableStatusCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SetStatusTableStatusCommand"/> class.

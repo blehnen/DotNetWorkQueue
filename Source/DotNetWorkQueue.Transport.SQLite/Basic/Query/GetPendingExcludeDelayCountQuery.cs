@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
     /// <summary>
     /// Gets the current pending count, not including any records that have a delay time in the future
     /// </summary>
-    internal class GetPendingExcludeDelayCountQuery : IQuery<long>
+    public class GetPendingExcludeDelayCountQuery : IQuery<long>
     {
     }
 }

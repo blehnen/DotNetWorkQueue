@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
     /// <summary>
     /// Number of records in the error table
     /// </summary>
-    internal class GetErrorCountQuery : IQuery<long>
+    public class GetErrorCountQuery : IQuery<long>
     {
     }
 }

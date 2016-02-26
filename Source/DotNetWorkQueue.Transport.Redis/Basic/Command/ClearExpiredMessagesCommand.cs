@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
     /// <summary>
     /// Clear expired messages command
     /// </summary>
-    internal class ClearExpiredMessagesCommand
+    public class ClearExpiredMessagesCommand
     {
     }
 }

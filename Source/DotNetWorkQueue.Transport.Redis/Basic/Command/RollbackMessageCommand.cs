@@ -19,7 +19,10 @@
 using System;
 namespace DotNetWorkQueue.Transport.Redis.Basic.Command
 {
-    internal class RollbackMessageCommand
+    /// <summary>
+    /// Returns a message back to a waiting for processing state
+    /// </summary>
+    public class RollbackMessageCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessageCommand" /> class.

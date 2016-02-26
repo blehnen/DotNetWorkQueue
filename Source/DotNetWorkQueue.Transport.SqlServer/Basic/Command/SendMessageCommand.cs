@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
     /// <summary>
     /// Sends a new message to a queue
     /// </summary>
-    internal class SendMessageCommand
+    public class SendMessageCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommand"/> class.

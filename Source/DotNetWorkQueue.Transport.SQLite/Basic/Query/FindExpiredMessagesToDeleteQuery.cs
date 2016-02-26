@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
     /// <summary>
     /// Finds messages that are expired.
     /// </summary>
-    internal class FindExpiredMessagesToDeleteQuery : IQuery<IEnumerable<long>>
+    public class FindExpiredMessagesToDeleteQuery : IQuery<IEnumerable<long>>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FindExpiredMessagesToDeleteQuery"/> class.

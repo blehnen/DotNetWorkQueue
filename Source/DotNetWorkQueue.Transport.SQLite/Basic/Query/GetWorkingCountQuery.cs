@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
     /// <summary>
     /// The number of records that are currently in a working state
     /// </summary>
-    internal class GetWorkingCountQuery : IQuery<long>
+    public class GetWorkingCountQuery : IQuery<long>
     {
     }
 }

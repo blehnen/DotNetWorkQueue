@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <summary>
     /// Tracks the exceptions that have occured in user code while processing a message
     /// </summary>
-    internal class RedisErrorTracking
+    public class RedisErrorTracking
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisErrorTracking"/> class.

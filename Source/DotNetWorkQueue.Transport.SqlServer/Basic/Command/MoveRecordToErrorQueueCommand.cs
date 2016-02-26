@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
     /// <summary>
     /// Moves a meta data record to the error table
     /// </summary>
-    internal class MoveRecordToErrorQueueCommand
+    public class MoveRecordToErrorQueueCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MoveRecordToErrorQueueCommand" /> class.

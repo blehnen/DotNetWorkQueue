@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
     /// <summary>
     /// Sends a heart beat to a queue record.
     /// </summary>
-    internal class SendHeartBeatCommand
+    public class SendHeartBeatCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SendHeartBeatCommand"/> class.

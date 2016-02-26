@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
     /// <summary>
     /// Checks to see if an error record exists for a particular message and exception type
     /// </summary>
-    internal class GetErrorRecordExistsQuery : IQuery<bool>
+    public class GetErrorRecordExistsQuery : IQuery<bool>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GetErrorRecordExistsQuery"/> class.

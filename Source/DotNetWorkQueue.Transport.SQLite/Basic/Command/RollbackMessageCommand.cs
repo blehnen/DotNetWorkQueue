@@ -20,7 +20,10 @@ using System;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Command
 {
-    internal class RollbackMessageCommand
+    /// <summary>
+    /// Resets a message back to waiting for processing
+    /// </summary>
+    public class RollbackMessageCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessageCommand"/> class.

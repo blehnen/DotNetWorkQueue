@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
     /// <summary>
     /// Returns the meta data for a record
     /// </summary>
-    internal class GetMetaDataQuery : IQuery<RedisMetaData>
+    public class GetMetaDataQuery : IQuery<RedisMetaData>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GetMetaDataQuery"/> class.

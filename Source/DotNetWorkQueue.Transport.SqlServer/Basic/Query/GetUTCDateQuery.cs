@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
     /// Returns the current date as UTC.
     /// </summary>
     /// <remarks>We need the date from SQL server, since the local machine time may not be in sync.</remarks>
-    internal class GetUtcDateQuery : IQuery<DateTime>
+    public class GetUtcDateQuery : IQuery<DateTime>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GetUtcDateQuery"/> class.

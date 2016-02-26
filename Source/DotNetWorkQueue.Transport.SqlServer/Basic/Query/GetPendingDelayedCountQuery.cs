@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
     /// <summary>
     /// How many delayed pending records are present
     /// </summary>
-    internal class GetPendingDelayedCountQuery : IQuery<long>
+    public class GetPendingDelayedCountQuery : IQuery<long>
     {
     }
 }

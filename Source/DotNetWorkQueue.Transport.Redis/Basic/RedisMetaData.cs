@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// Contains meta data about a message
     /// </summary>
     /// <remarks>This data is stored in a hash, seperate from the message itself</remarks>
-    internal class RedisMetaData
+    public class RedisMetaData
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisMetaData" /> class.

@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <summary>
     /// An id for a redis message
     /// </summary>
-    internal class RedisQueueId: IMessageId
+    public class RedisQueueId: IMessageId
     {
         private readonly string _id;
         /// <summary>

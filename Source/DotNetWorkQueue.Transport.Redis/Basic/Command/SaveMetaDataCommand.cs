@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
     /// <summary>
     /// Saves the meta data - either a new record or an update to an existing one.
     /// </summary>
-    internal class SaveMetaDataCommand
+    public class SaveMetaDataCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SaveMetaDataCommand" /> class.

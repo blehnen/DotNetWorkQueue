@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
     /// <summary>
     /// Sends a new message to a queue
     /// </summary>
-    internal class SendMessageCommandBatch
+    public class SendMessageCommandBatch
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommand" /> class.

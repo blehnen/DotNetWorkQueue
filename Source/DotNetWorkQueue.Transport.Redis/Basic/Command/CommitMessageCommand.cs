@@ -18,7 +18,10 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.Redis.Basic.Command
 {
-    internal class CommitMessageCommand
+    /// <summary>
+    /// Commits the message by removing it from redis
+    /// </summary>
+    public class CommitMessageCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitMessageCommand" /> class.

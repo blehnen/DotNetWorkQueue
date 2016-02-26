@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
     /// <summary>
     /// How many records are pending processing
     /// </summary>
-    internal class GetPendingCountQuery : IQuery<long>
+    public class GetPendingCountQuery : IQuery<long>
     {
 
     }

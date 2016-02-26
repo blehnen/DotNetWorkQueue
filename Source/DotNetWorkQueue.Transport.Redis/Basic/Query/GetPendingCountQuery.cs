@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
     /// <summary>
     /// Returns the current count of pending items
     /// </summary>
-    internal class GetPendingCountQuery : IQuery<long>
+    public class GetPendingCountQuery : IQuery<long>
     {
 
     }

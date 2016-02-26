@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
     /// <summary>
     /// Returns the current working count
     /// </summary>
-    internal class GetWorkingCountQuery : IQuery<long>
+    public class GetWorkingCountQuery : IQuery<long>
     {
     }
 }

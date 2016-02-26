@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// <summary>
     /// Queue status column values
     /// </summary>
-    internal enum QueueStatus : short
+    public enum QueueStatus : short
     {
         /// <summary>
         /// Waiting for processing

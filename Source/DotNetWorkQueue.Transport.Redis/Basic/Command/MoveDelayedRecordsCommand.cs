@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
     /// <summary>
     /// Move delayed records to the pending queue command
     /// </summary>
-    internal class MoveDelayedRecordsCommand
+    public class MoveDelayedRecordsCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MoveDelayedRecordsCommand"/> class.

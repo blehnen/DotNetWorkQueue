@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
     /// <summary>
     /// Current count of errors
     /// </summary>
-    internal class GetErrorCountQuery : IQuery<long>
+    public class GetErrorCountQuery : IQuery<long>
     {
     }
 }

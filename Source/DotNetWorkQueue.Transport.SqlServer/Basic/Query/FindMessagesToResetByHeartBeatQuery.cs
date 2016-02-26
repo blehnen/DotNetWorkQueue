@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
     /// <summary>
     /// Finds messages with hearbeats outside of the configured window
     /// </summary>
-    internal class FindMessagesToResetByHeartBeatQuery : IQuery<IEnumerable<MessageToReset>>
+    public class FindMessagesToResetByHeartBeatQuery : IQuery<IEnumerable<MessageToReset>>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FindMessagesToResetByHeartBeatQuery"/> class.

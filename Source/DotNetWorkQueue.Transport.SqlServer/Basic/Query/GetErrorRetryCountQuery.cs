@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
     /// <summary>
     /// Gets the current retry count for the message based on exception type
     /// </summary>
-    internal class GetErrorRetryCountQuery : IQuery<int>
+    public class GetErrorRetryCountQuery : IQuery<int>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GetErrorRetryCountQuery"/> class.

@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
     /// <summary>
     /// Resets the heard beat for a specific record
     /// </summary>
-    internal class ResetHeartBeatCommand
+    public class ResetHeartBeatCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ResetHeartBeatCommand"/> class.

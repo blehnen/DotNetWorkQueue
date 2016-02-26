@@ -21,7 +21,6 @@ using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using System;
-using DotNetWorkQueue.Configuration;
 using Xunit;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
