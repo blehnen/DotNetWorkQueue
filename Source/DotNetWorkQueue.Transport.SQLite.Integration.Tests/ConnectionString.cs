@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.IO;
+using System.Reflection;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 {
@@ -29,13 +31,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         {
             if (inMemory)
             {
-                //file:mymemorydb.db?mode=memory&cache=shared 
-                ConnectionString = $"FullUri=file:{System.IO.Path.GetFileName(GenerateQueueName.CreateFileName())}?mode=memory&cache=shared;Version=3;";
+                ConnectionString = $"FullUri=file:{Path.GetFileName(GenerateQueueName.CreateFileName())}?mode=memory&cache=shared;Version=3;";
             }
             else
             {
                 //setup connection string
-                string localPath = System.IO.Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+                var localPath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
                 _fileName = localPath + "\\" + GenerateQueueName.CreateFileName();
                 ConnectionString = $"Data Source={_fileName};Version=3;";
             }
