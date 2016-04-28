@@ -88,26 +88,5 @@ namespace DotNetWorkQueue.Metrics.Net
         {
             return new TimerContext(_timer.NewContext(userValue));
         }
-
-        /// <summary>
-        /// Creates a new disposable instance and records the time it takes until the instance is disposed.
-        /// The <paramref name="finalAction" /> action is called after the context has been disposed
-        /// <code>
-        /// using(timer.NewContext( t =&gt; log.Debug(t)))
-        /// {
-        /// ExecuteMethodThatNeedsMonitoring();
-        /// }
-        /// </code>
-        /// </summary>
-        /// <param name="finalAction">Action to call after the context is disposed. The action is called with the measured time.</param>
-        /// <param name="userValue">A custom user value that will be associated to the results.
-        /// Useful for tracking (for example) for which id the max or min value was recorded.</param>
-        /// <returns>
-        /// A disposable instance that will record the time passed until disposed.
-        /// </returns>
-        public ITimerContext NewContext(Action<TimeSpan> finalAction, string userValue = null)
-        {
-            return new TimerContext(_timer.NewContext(finalAction, userValue));
-        }
     }
 }

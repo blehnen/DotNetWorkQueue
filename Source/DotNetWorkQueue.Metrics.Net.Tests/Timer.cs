@@ -82,20 +82,6 @@ namespace DotNetWorkQueue.Metrics.Net.Tests
             Assert.Equal(1, dyn.Value.Rate.Count);
         }
 
-        [Theory, AutoData]
-        public void NewContext_Action(string name)
-        {
-            var metric = Metric.Timer(name, Unit.Bytes);
-            var test = Create(metric);
-            dynamic dyn = metric;
-            using (var context = test.NewContext(span => System.Threading.Thread.Sleep(100)))
-            {
-                System.Threading.Thread.Sleep(100);
-                Assert.True(context.Elapsed.TotalMilliseconds > 99, "Elapsed time was less than 99 ms");
-            }
-            Assert.Equal(1, dyn.Value.Rate.Count);
-        }
-
         private ITimer Create(global::Metrics.Timer timer)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
