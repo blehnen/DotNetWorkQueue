@@ -114,7 +114,7 @@ namespace DotNetWorkQueue.Tests.IoC
         {
             public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
             {
-                container.Register<IConnectionInformation, BaseConnectionInformation>(LifeStyles.Singleton);
+                container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queue, connection), LifeStyles.Singleton);
                 container.Register<ISendMessages, SendMessagesNoOp>(LifeStyles.Singleton);
                 container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTimeNoOp>(LifeStyles.Singleton);
 
