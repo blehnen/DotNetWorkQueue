@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.QueueStatus;
+using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Ploeh.AutoFixture.Xunit2;
@@ -31,6 +32,8 @@ namespace DotNetWorkQueue.Tests.QueueStatus
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var conn = fixture.Create<IConnectionInformation>();
+            conn.QueueName.Returns(name);
+            conn.ConnectionString.Returns(connection);
             fixture.Inject(conn);
             var test = fixture.Create<QueueStatusProviderNoOp>();
             Assert.NotNull(test.Current);

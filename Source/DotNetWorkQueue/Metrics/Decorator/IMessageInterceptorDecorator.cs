@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Globalization;
 
 namespace DotNetWorkQueue.Metrics.Decorator
@@ -74,7 +76,9 @@ namespace DotNetWorkQueue.Metrics.Decorator
                     _metricHistogramOptOut.Update(input.Length, input.Length.ToString(CultureInfo.InvariantCulture));
                     return temp;
                 }
-                var delta = input.Length - temp.Output.Length;
+
+                //metrics.net no longer accepts negative values - which makes sense...  Ensure that the delta is always positive
+                var delta = Math.Abs(input.Length - temp.Output.Length);
                 _metricHistogramDelta.Update(delta, delta.ToString(CultureInfo.InvariantCulture));
                 _metricHistogram.Update(input.Length, input.Length.ToString(CultureInfo.InvariantCulture));
                 return temp;
