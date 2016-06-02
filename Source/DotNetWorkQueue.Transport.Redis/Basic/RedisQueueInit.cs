@@ -43,12 +43,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
-        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType)
+        /// <param name="connection">The connection.</param>
+        /// <param name="queue">The queue.</param>
+        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
         {
             Guard.NotNull(() => container, container);
 
             //**all
-            container.Register<IConnectionInformation, RedisConnectionInfo>(LifeStyles.Singleton);
+            container.Register<IConnectionInformation>(() => new RedisConnectionInfo(queue, connection), LifeStyles.Singleton);
             container.Register<IQueueStatusProvider, RedisQueueStatusProvider>(LifeStyles.Singleton);
 
             container.Register<IQueueCreation, RedisQueueCreation>(LifeStyles.Singleton);

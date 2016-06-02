@@ -40,7 +40,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
-        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType)
+        /// <param name="connection">The connection.</param>
+        /// <param name="queue">The queue.</param>
+        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
         {
             Guard.NotNull(() => container, container);
 
@@ -60,7 +62,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
             container.Register<SqlServerCommandStringCache>(LifeStyles.Singleton);
 
-            container.Register<IConnectionInformation, SqlConnectionInformation>(LifeStyles.Singleton);
+            container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queue, connection), LifeStyles.Singleton);
             container.Register<ICorrelationIdFactory, SqlServerMessageQueueCorrelationIdFactory>(
                 LifeStyles.Singleton);
 

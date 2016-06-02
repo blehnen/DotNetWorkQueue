@@ -35,11 +35,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         public VerifyQueueData(string queueName, SqlServerMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqlConnectionInformation
-            {
-                ConnectionString = ConnectionInfo.ConnectionString,
-                QueueName = queueName
-            };
+            _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
             _tableNameHelper = new TableNameHelper(_connection);
         }
         public void Verify(long expectedMessageCount)
@@ -204,11 +200,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         public VerifyQueueRecordCount(string queueName, SqlServerMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqlConnectionInformation
-            {
-                ConnectionString = ConnectionInfo.ConnectionString,
-                QueueName = queueName
-            };
+            _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
             _tableNameHelper = new TableNameHelper(_connection);
         }
 
@@ -285,11 +277,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
 
         public VerifyErrorCounts(string queueName)
         {
-            _connection = new SqlConnectionInformation
-            {
-                ConnectionString = ConnectionInfo.ConnectionString,
-                QueueName = queueName
-            };
+            _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
             _tableNameHelper = new TableNameHelper(_connection);
         }
 

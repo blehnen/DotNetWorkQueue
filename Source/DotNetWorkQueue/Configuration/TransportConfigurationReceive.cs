@@ -188,7 +188,6 @@ namespace DotNetWorkQueue.Configuration
             {
                 _isReadonly = value;
 
-                ConnectionInfo.SetReadOnly();
                 QueueDelayBehavior.SetReadOnly();
                 FatalExceptionDelayBehavior.SetReadOnly();
                 RetryDelayBehavior.SetReadOnly();

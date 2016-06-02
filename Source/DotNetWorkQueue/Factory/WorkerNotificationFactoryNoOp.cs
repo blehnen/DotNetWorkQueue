@@ -16,28 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.QueueStatus;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.AutoNSubstitute;
-using Ploeh.AutoFixture.Xunit2;
-using Xunit;
-
-namespace DotNetWorkQueue.Tests.QueueStatus
+using DotNetWorkQueue.Queue;
+namespace DotNetWorkQueue.Factory
 {
-    public class QueueStatusProviderNoOpTests
+    internal class WorkerNotificationFactoryNoOp : IWorkerNotificationFactory
     {
-        [Theory, AutoData]
-        public void Create_Default(string name, string connection, string path)
+        public IWorkerNotification Create()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var conn = fixture.Create<IConnectionInformation>();
-            fixture.Inject(conn);
-            var test = fixture.Create<QueueStatusProviderNoOp>();
-            Assert.NotNull(test.Current);
-            Assert.Null(test.Error);
-            Assert.Equal(name, test.Name);
-            Assert.Null(test.HandlePath(path));
-            Assert.Equal(string.Empty, test.Server);
+            return new WorkerNotificationNoOp();
         }
     }
 }

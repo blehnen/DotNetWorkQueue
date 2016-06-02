@@ -60,10 +60,8 @@ namespace DotNetWorkQueue.Configuration
             protected set
             {
                 _isReadonly = value;
-                ConnectionInfo.SetReadOnly();
             }
         }
-
 
         /// <summary>
         /// Throws an exception if the readonly flag is true.

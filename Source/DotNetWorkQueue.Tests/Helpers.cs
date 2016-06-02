@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Tests
     {
         public override IConnectionInformation GetConnection(ConnectionTypes connectionType)
         {
-            return new BaseConnectionInformation();
+            return new BaseConnectionInformation(string.Empty, String.Empty);
         }
     }
     public class FakeAMessageData : IAdditionalMessageData

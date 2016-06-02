@@ -37,7 +37,6 @@ namespace DotNetWorkQueue.Tests.Configuration
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            configuration.ConnectionInfo.Received(1).SetReadOnly();
             configuration.FatalExceptionDelayBehavior.Received(1).SetReadOnly();
             configuration.QueueDelayBehavior.Received(1).SetReadOnly();
             configuration.RetryDelayBehavior.Received(1).SetReadOnly();

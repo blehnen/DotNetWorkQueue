@@ -36,7 +36,6 @@ namespace DotNetWorkQueue.Tests.Configuration
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            configuration.ConnectionInfo.Received(1).SetReadOnly();
         }
         private TransportConfigurationSend GetConfiguration()
         {

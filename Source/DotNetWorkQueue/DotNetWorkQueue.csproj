@@ -81,6 +81,7 @@
     <Compile Include="Configuration\TransportInitReceive.cs" />
     <Compile Include="Configuration\TransportInitSend.cs" />
     <Compile Include="Factory\ContainerFactory.cs" />
+    <Compile Include="Factory\WorkerNotificationFactoryNoOp.cs" />
     <Compile Include="IContainerFactory.cs" />
     <Compile Include="ICreationScope.cs" />
     <Compile Include="Logging\NoSpecifiedLogProvider.cs" />
@@ -162,6 +163,7 @@
     <Compile Include="Queue\RollbackMessage.cs" />
     <Compile Include="Queue\StopThread.cs" />
     <Compile Include="Queue\WorkerErrorEventArgs.cs" />
+    <Compile Include="Queue\WorkerNotificationNoOp.cs" />
     <Compile Include="Serialization\CompositeSerialization.cs" />
     <Compile Include="Serialization\MessageBody.cs" />
     <Compile Include="Serialization\RootSerializer.cs" />
@@ -173,7 +175,6 @@
     <Compile Include="Exceptions\InterceptorException.cs" />
     <Compile Include="Exceptions\PoisonMessageException.cs" />
     <Compile Include="Exceptions\SerializationException.cs" />
-    <Compile Include="Factory\CreateConnectionFactory.cs" />
     <Compile Include="Factory\HeartBeatThreadPoolFactory.cs" />
     <Compile Include="Factory\HeartBeatWorkerFactory.cs" />
     <Compile Include="Factory\MessageProcessingFactory.cs" />
@@ -255,7 +256,6 @@
     <Compile Include="IAbortWorkerThread.cs" />
     <Compile Include="IClearExpiredMessagesMonitor.cs" />
     <Compile Include="IClearExpiredMessagesRPCMonitor.cs" />
-    <Compile Include="ICreateConnectionFactory.cs" />
     <Compile Include="IGenerateReceivedMessage.cs" />
     <Compile Include="IMessage.cs" />
     <Compile Include="IMessageContextData.cs" />

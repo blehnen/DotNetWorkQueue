@@ -30,36 +30,13 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisConnectionInfo"/> class.
         /// </summary>
-        public RedisConnectionInfo()
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RedisConnectionInfo"/> class.
-        /// </summary>
         /// <param name="queueName">Name of the queue.</param>
         /// <param name="connectionString">The connection string.</param>
-        protected RedisConnectionInfo(string queueName, string connectionString): base(queueName, connectionString)
+        public RedisConnectionInfo(string queueName, string connectionString): base(queueName, connectionString)
         {
-            SetConnection(connectionString);
+            ValidateConnection(connectionString);
         }
         #endregion
-
-        /// <summary>
-        /// Gets or sets the connection string.
-        /// </summary>
-        /// <value>
-        /// The connection string.
-        /// </value>
-        public override string ConnectionString
-        {
-            get { return base.ConnectionString; }
-            set
-            {
-                FailIfReadOnly();
-                SetConnection(value);
-            }
-        }
 
         #region IClone
         /// <summary>
@@ -83,15 +60,14 @@ namespace DotNetWorkQueue.Transport.Redis
         public override string Server => _server;
 
         /// <summary>
-        /// Sets the connection string, based on the input value.
+        /// Validates the connection string and determines the value of the server property
         /// </summary>
         /// <param name="value">The value.</param>
         /// <remarks>Connection strings that are in an invalid format will cause an exception</remarks>
-        private void SetConnection(string value)
+        private void ValidateConnection(string value)
         {
             //validate that the passed in string parses as a redis connection string
             var options = ConfigurationOptions.Parse(value);
-            base.ConnectionString = options.ToString();
             _server = string.Join(",", options.EndPoints.Select(endpoint => endpoint.ToString()).ToList());
         }
     }

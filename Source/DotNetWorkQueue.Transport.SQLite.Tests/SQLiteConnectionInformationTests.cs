@@ -31,50 +31,32 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         [Fact]
         public void GetSet_Connection()
         {
-            var test = new SqliteConnectionInformation { ConnectionString = GoodConnection};
+            var test = new SqliteConnectionInformation(string.Empty, GoodConnection);
             Assert.NotNull(test);
         }
         [Fact]
         public void Get_Server()
         {
-            var test = new SqliteConnectionInformation { ConnectionString = GoodConnection };
+            var test = new SqliteConnectionInformation(string.Empty, GoodConnection);
             Assert.Equal(@"c:\temp\test.db", test.Server);
         }
         [Fact]
         public void GetSet_Connection_Bad_Exception()
         {
-            var test = new SqliteConnectionInformation();
             Assert.Throws<ArgumentException>(
             delegate
             {
-                test.ConnectionString = BadConnection;
+                var test = new SqliteConnectionInformation(string.Empty, BadConnection);
             });
         }
         [Fact]
         public void Test_Clone()
         {
-            var test = new SqliteConnectionInformation
-            {
-                QueueName = "blah",
-                ConnectionString = GoodConnection
-            };
-            test.SetReadOnly();
-            var clone = (SqliteConnectionInformation)test.Clone();
+            var test = new SqliteConnectionInformation("blah", GoodConnection);
+            var clone = test.Clone();
 
             Assert.Equal(test.ConnectionString, clone.ConnectionString);
             Assert.Equal(test.QueueName, clone.QueueName);
-            Assert.NotEqual(test.IsReadOnly, clone.IsReadOnly);
-        }
-        [Fact]
-        public void GetSet_Connection_Readonly()
-        {
-            var test = new SqliteConnectionInformation { ConnectionString = GoodConnection};
-            test.SetReadOnly();
-            Assert.Throws<InvalidOperationException>(
-             delegate
-             {
-                 test.ConnectionString = "blah2";
-             });
         }
     }
 }

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Serialization;
 
@@ -32,10 +33,14 @@ namespace DotNetWorkQueue.QueueStatus
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
-        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType)
+        /// <param name="connection">The connection.</param>
+        /// <param name="queue">The queue.</param>
+        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
         {
-            container.Register<IConnectionInformation, BaseConnectionInformation>(LifeStyles.Singleton);
+            container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queue, connection),
+                LifeStyles.Singleton);
             container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
+            container.Register<IWorkerNotificationFactory, WorkerNotificationFactoryNoOp>(LifeStyles.Singleton);
         }
     }
 }

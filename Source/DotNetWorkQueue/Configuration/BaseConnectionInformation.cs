@@ -24,25 +24,20 @@ namespace DotNetWorkQueue.Configuration
     /// </summary>
     public class BaseConnectionInformation : IConnectionInformation
     {
-        private string _connectionString;
-        private string _queueName;
-        private int _hashCode;
+        private readonly string _connectionString;
+        private readonly string _queueName;
+        private readonly int _hashCode;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BaseConnectionInformation"/> class.
-        /// </summary>
-        public BaseConnectionInformation()
-        {
-        }
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseConnectionInformation"/> class.
         /// </summary>
         /// <param name="queueName">Name of the queue.</param>
         /// <param name="connectionString">The connection string.</param>
-        protected BaseConnectionInformation(string queueName, string connectionString)
+        public BaseConnectionInformation(string queueName, string connectionString)
         {
             _queueName = queueName;
             _connectionString = connectionString;
+            _hashCode = CalculateHashCode();
         }
 
         #region Public Properties
@@ -52,35 +47,16 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The connection string.
         /// </value>
-        public virtual string ConnectionString
-        {
-            get
-            {
-                return _connectionString;
-            }
-            set
-            {
-                FailIfReadOnly();
-                _connectionString = value;
-                _hashCode = CalculateHashCode();
-            }
-        }
+        public virtual string ConnectionString => _connectionString;
+
         /// <summary>
         /// Gets or sets the name of the queue.
         /// </summary>
         /// <value>
         /// The name of the queue.
         /// </value>
-        public virtual string QueueName
-        {
-            get { return _queueName; }
-            set
-            {
-                FailIfReadOnly();
-                _queueName = value;
-                _hashCode = CalculateHashCode();
-            }
-        }
+        public virtual string QueueName => _queueName;
+
         /// <summary>
         /// Gets the server.
         /// </summary>
@@ -106,10 +82,10 @@ namespace DotNetWorkQueue.Configuration
         #endregion
 
         /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// Returns a <see cref="string" /> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
+        /// A <see cref="string" /> that represents this instance.
         /// </returns>
         public override string ToString()
         {
@@ -141,17 +117,7 @@ namespace DotNetWorkQueue.Configuration
         /// </returns>
         public override int GetHashCode()
         {
-            // ReSharper disable once NonReadonlyMemberInGetHashCode
             return _hashCode;
-        }
-
-        /// <summary>
-        /// Throws an exception if the readonly flag is true.
-        /// </summary>
-        /// <exception cref="System.Data.ReadOnlyException"></exception>
-        protected void FailIfReadOnly()
-        {
-            if (IsReadOnly) throw new InvalidOperationException();
         }
 
         /// <summary>
@@ -161,21 +127,6 @@ namespace DotNetWorkQueue.Configuration
         protected int CalculateHashCode()
         {
             return string.Concat(_connectionString, _queueName).GetHashCode();
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether this instance is read only.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is read only; otherwise, <c>false</c>.
-        /// </value>
-        public bool IsReadOnly { get; private set; }
-        /// <summary>
-        /// Marks this instance as imutable
-        /// </summary>
-        public void SetReadOnly()
-        {
-            IsReadOnly = true;
         }
     }
 }

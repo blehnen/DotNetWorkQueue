@@ -57,18 +57,6 @@ namespace DotNetWorkQueue.Tests.Queue
         }
 
         [Fact]
-        public void Disposed_Instance_Get_Configuration_Exception()
-        {
-            var test = CreateQueue();
-            test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
-                delegate
-                {
-                    test.Configuration.TransportConfiguration.ConnectionInfo.QueueName = "shouldnotwork";
-                });
-        }
-
-        [Fact]
         public void Get_ReadOnlyConfiguration_Set_After_First_Message()
         {
             var test = CreateQueue();

@@ -62,9 +62,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             {
                 case ConnectionTypes.NotSpecified:
                 case ConnectionTypes.Send:
-                    return new SqlConnectionInformation {ConnectionString = _sendConnection, QueueName = _sendQueue};
+                    return new SqlConnectionInformation(_sendQueue, _sendConnection);
                 case ConnectionTypes.Receive:
-                    return new SqlConnectionInformation { ConnectionString = _receiveConnection, QueueName = _receiveQueue };
+                    return new SqlConnectionInformation(_receiveQueue, _receiveConnection);
             }
             throw new DotNetWorkQueueException($"unhandled type {connectionType}");
         }

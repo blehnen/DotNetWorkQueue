@@ -36,11 +36,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         public VerifyQueueData(string queueName, string connectionString, SqLiteMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqliteConnectionInformation
-            {
-                ConnectionString = connectionString,
-                QueueName = queueName
-            };
+            _connection = new SqliteConnectionInformation(queueName, connectionString);
             _tableNameHelper = new TableNameHelper(_connection);
         }
         public void Verify(long expectedMessageCount)
@@ -205,11 +201,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         public VerifyQueueRecordCount(string queueName, string connectionString, SqLiteMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqliteConnectionInformation
-            {
-                ConnectionString = connectionString,
-                QueueName = queueName
-            };
+            _connection = new SqliteConnectionInformation(queueName, connectionString);
             _tableNameHelper = new TableNameHelper(_connection);
         }
 
@@ -286,11 +278,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 
         public VerifyErrorCounts(string queueName, string connectionString)
         {
-            _connection = new SqliteConnectionInformation
-            {
-                ConnectionString = connectionString,
-                QueueName = queueName
-            };
+            _connection = new SqliteConnectionInformation(queueName, connectionString);
             _tableNameHelper = new TableNameHelper(_connection);
         }
 

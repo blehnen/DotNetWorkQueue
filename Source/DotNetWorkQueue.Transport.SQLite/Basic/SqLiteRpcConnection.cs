@@ -62,9 +62,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 case ConnectionTypes.NotSpecified:
                 case ConnectionTypes.Send:
-                    return new SqliteConnectionInformation {ConnectionString = _sendConnection, QueueName = _sendQueue};
+                    return new SqliteConnectionInformation(_sendQueue, _sendConnection);
                 case ConnectionTypes.Receive:
-                    return new SqliteConnectionInformation { ConnectionString = _receiveConnection, QueueName = _receiveQueue };
+                    return new SqliteConnectionInformation(_receiveQueue, _receiveConnection);
             }
             throw new DotNetWorkQueueException($"unhandled type {connectionType}");
         }

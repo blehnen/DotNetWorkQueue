@@ -27,66 +27,23 @@ namespace DotNetWorkQueue.Tests.Configuration
         [Theory, AutoData]
         public void GetSet_Connection(string expected)
         {
-            var test = new BaseConnectionInformation {ConnectionString = expected};
+            var test = new BaseConnectionInformation(string.Empty, expected);
             Assert.Equal(expected, test.ConnectionString);
         }
         [Theory, AutoData]
         public void GetSet_Queue(string expected)
         {
-            var test = new BaseConnectionInformation {QueueName = expected };
+            var test = new BaseConnectionInformation(expected, string.Empty);
             Assert.Equal(expected, test.QueueName);
         }
         [Theory, AutoData]
         public void Test_Clone(string queue, string connection)
         {
-            var test = new BaseConnectionInformation
-            {
-                QueueName = queue,
-                ConnectionString = connection
-            };
-            test.SetReadOnly();
+            var test = new BaseConnectionInformation(queue, connection);
             var clone = (BaseConnectionInformation)test.Clone();
 
             Assert.Equal(test.ConnectionString, clone.ConnectionString);
             Assert.Equal(test.QueueName, clone.QueueName);
-            Assert.NotEqual(test.IsReadOnly, clone.IsReadOnly);
-        }
-        [Fact]
-        public void Readonly()
-        {
-            var test = new BaseConnectionInformation();
-            test.SetReadOnly();
-            Assert.True(test.IsReadOnly);
-        }
-        [Fact]
-        public void Test_DefaultNotReadOnly()
-        {
-            var test = new BaseConnectionInformation();
-            Assert.False(test.IsReadOnly);
-        }
-        [Theory, AutoData]
-        public void GetSet_Connection_Readonly(string expected, string fails)
-        {
-            var test = new BaseConnectionInformation {ConnectionString = expected };
-            Assert.Equal(expected, test.ConnectionString);
-            test.SetReadOnly();
-            Assert.Throws<InvalidOperationException>(
-             delegate
-             {
-                 test.ConnectionString = fails;
-             });
-        }
-        [Theory, AutoData]
-        public void GetSet_Queue_Readonly(string expected, string fails)
-        {
-            var test = new BaseConnectionInformation {QueueName = expected};
-            Assert.Equal(expected, test.QueueName);
-            test.SetReadOnly();
-            Assert.Throws<InvalidOperationException>(
-             delegate
-             {
-                 test.QueueName = fails;
-             });
         }
     }
 }

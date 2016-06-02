@@ -52,9 +52,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 case ConnectionTypes.NotSpecified:
                 case ConnectionTypes.Send:
-                    return new BaseConnectionInformation { ConnectionString = _connection, QueueName = _queue };
+                    return new BaseConnectionInformation(_queue, _connection);
                 case ConnectionTypes.Receive:
-                    return new BaseConnectionInformation { ConnectionString = _connection, QueueName = string.Concat(_queue, "Response") };
+                    return new BaseConnectionInformation(string.Concat(_queue, "Response"), _connection);
                 default:
                     throw new DotNetWorkQueueException($"unhandled type {connectionType}");
             }

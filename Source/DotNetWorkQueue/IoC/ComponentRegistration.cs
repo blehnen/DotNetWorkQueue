@@ -87,8 +87,6 @@ namespace DotNetWorkQueue.IoC
                 container.Register<IMessageFactory, MessageFactory>(LifeStyles.Singleton);
                 container.Register<IMessageContextDataFactory, MessageContextDataFactory>(LifeStyles.Singleton);
 
-                container.Register<ICreateConnectionFactory, CreateConnectionFactory>(LifeStyles.Singleton);
-
                 container.Register<IQueueCancelWork, QueueCancelWork>(LifeStyles.Singleton);
                 container.Register<ASerializer, RootSerializer>(LifeStyles.Singleton);
                 container.Register<ISerializer, JsonSerializer>(LifeStyles.Singleton);

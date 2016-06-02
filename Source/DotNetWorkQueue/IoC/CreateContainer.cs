@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.IoC
                 container.Options.AllowOverridingRegistrations = true;
 
                 //register transport specific objects
-                register.RegisterImplementations(containerWrapper, type);
+                register.RegisterImplementations(containerWrapper, type, connection, queue);
 
                 //register our internal overrides from outside this container
                 registerServiceInternal(containerWrapper);
@@ -92,12 +92,8 @@ namespace DotNetWorkQueue.IoC
                 //allow specific warnings to be disabled
                 register.SuppressWarningsIfNeeded(containerWrapper, type);
 
-                //create the connection
-                if (!string.IsNullOrWhiteSpace(queue) && !string.IsNullOrWhiteSpace(connection))
-                {
-                    ComponentRegistration.SuppressWarningsIfNeeded(containerWrapper, type);
-                    CreateConnection.Create(containerWrapper, queue, connection);
-                }
+                //supress IoC warnings that we are explictly handling
+                ComponentRegistration.SuppressWarningsIfNeeded(containerWrapper, type);
 
                 //set the log provider, if one was provided
                 //if no explicit log provider was set, we will use liblog defaults
@@ -159,24 +155,6 @@ namespace DotNetWorkQueue.IoC
             }
             throw new DotNetWorkQueueException(
                 "A transport init module should inherit from ITransportInitSend, ITransportInitReceive or ITransportInitDuplex");
-        }
-
-        /// <summary>
-        /// Creates a new singleton connection registration
-        /// </summary>
-        internal static class CreateConnection
-        {
-            /// <summary>
-            /// Creates a connection information object for receiving messages.
-            /// </summary>
-            /// <param name="rootContainer">The root container.</param>
-            /// <param name="queue">The queue.</param>
-            /// <param name="connection">The connection.</param>
-            public static void Create(IContainer rootContainer, string queue, string connection)
-            {
-                var createScope = rootContainer.GetInstance<ICreateConnectionFactory>();
-                createScope.Register(queue, connection);
-            }
         }
     }
 }

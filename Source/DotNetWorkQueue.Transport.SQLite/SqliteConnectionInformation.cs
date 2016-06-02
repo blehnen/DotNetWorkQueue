@@ -32,37 +32,15 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// <summary>
         /// Initializes a new instance of the <see cref="SqliteConnectionInformation"/> class.
         /// </summary>
-        public SqliteConnectionInformation()
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqliteConnectionInformation"/> class.
-        /// </summary>
         /// <param name="queueName">Name of the queue.</param>
         /// <param name="connectionString">The connection string.</param>
-        protected SqliteConnectionInformation(string queueName, string connectionString): base(queueName, connectionString)
+        public SqliteConnectionInformation(string queueName, string connectionString): base(queueName, connectionString)
         {
-            SetConnection(connectionString);
+            ValidateConnection(connectionString);
         }
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// Gets or sets the connection string.
-        /// </summary>
-        /// <value>
-        /// The connection string.
-        /// </value>
-        public override string ConnectionString
-        {
-            get { return base.ConnectionString; }
-            set
-            {
-                FailIfReadOnly();
-                SetConnection(value);
-            }
-        }
 
         /// <summary>
         /// Gets the server.
@@ -88,15 +66,14 @@ namespace DotNetWorkQueue.Transport.SQLite
         #endregion
 
         /// <summary>
-        /// Sets the connection string, based on the input value.
+        /// Validates the connection string and determines the value of the server property
         /// </summary>
         /// <param name="value">The value.</param>
         /// <remarks>Connection strings that are in an invalid format will cause an exception</remarks>
-        private void SetConnection(string value)
+        private void ValidateConnection(string value)
         {
             //validate that the passed in string parses as a SQLite server connection string
             var builder = new SQLiteConnectionStringBuilder(value); //will fail here if not valid
-            base.ConnectionString = builder.ToString();
             _server = builder.DataSource;
         }
     }

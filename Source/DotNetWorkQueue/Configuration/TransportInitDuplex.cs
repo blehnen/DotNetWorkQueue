@@ -30,7 +30,9 @@ namespace DotNetWorkQueue.Configuration
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
-        public abstract void RegisterImplementations(IContainer container, RegistrationTypes registrationType);
+        /// <param name="connection">The connection.</param>
+        /// <param name="queue">The queue.</param>
+        public abstract void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue);
         /// <summary>
         /// Allows a transport to suppress specific warnings for specific types if neeed.
         /// </summary>

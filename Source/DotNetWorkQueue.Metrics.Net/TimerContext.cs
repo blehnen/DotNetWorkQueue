@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Metrics.Net
     /// </summary>
     internal class TimerContext: ITimerContext
     {
-        private readonly global::Metrics.TimerContext _timerContext;
+        private global::Metrics.TimerContext _timerContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TimerContext"/> class.

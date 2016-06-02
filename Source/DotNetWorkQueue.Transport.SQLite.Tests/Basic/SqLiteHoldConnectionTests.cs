@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var connection = fixture.Create<IConnectionInformation>();
             connection.QueueName.Returns("TestQueue");
-            connection.ConnectionString = connectionString;
+            connection.ConnectionString.Returns(connectionString);
             return connection;
         }
     }

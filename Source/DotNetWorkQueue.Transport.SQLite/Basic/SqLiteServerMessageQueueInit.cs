@@ -39,7 +39,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
-        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType)
+        /// <param name="connection">The connection.</param>
+        /// <param name="queue">The queue.</param>
+        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
         {
             Guard.NotNull(() => container, container);
 
@@ -59,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             container.Register<SqLiteCommandStringCache>(LifeStyles.Singleton);
 
-            container.Register<IConnectionInformation, SqliteConnectionInformation>(LifeStyles.Singleton);
+            container.Register<IConnectionInformation>(() => new SqliteConnectionInformation(queue, connection), LifeStyles.Singleton);
             container.Register<ICorrelationIdFactory, SqLiteMessageQueueCorrelationIdFactory>(
                 LifeStyles.Singleton);
 

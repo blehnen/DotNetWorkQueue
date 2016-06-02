@@ -23,8 +23,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Tests.Queue;
 using NSubstitute;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;
@@ -77,7 +79,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
         internal class NoOpSendTransport : TransportInitSend
         {
-            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType)
+            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
             {
                 container.Register<ISendMessages, SendMessagesNoOp>(LifeStyles.Singleton);
                 container.Register(() => Substitute.For<IConnectionInformation>(), LifeStyles.Singleton);
@@ -90,7 +92,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
         internal class NoOpReceiveTransport : TransportInitReceive
         {
-            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType)
+            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
             {
                 container.Register(() => Substitute.For<IConnectionInformation>(),
                     LifeStyles.Singleton);
@@ -103,12 +105,14 @@ namespace DotNetWorkQueue.Tests.IoC
                    () => Substitute.For<IReceiveMessagesError>(), LifeStyles.Singleton);
 
                 container.Register<IInternalSerializer, InternalSerializerNoOp>(LifeStyles.Singleton);
-            }
+
+                container.Register<IWorkerNotificationFactory, WorkerNotificationFactoryNoOp>(LifeStyles.Singleton);
+;            }
         }
 
         internal class NoOpDuplexTransport : TransportInitDuplex
         {
-            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType)
+            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
             {
                 container.Register<IConnectionInformation, BaseConnectionInformation>(LifeStyles.Singleton);
                 container.Register<ISendMessages, SendMessagesNoOp>(LifeStyles.Singleton);
@@ -130,7 +134,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
         internal class NoOpBadTransport : ITransportInit
         {
-            public void RegisterImplementations(IContainer container, RegistrationTypes registrationType)
+            public void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
             {
           
             }

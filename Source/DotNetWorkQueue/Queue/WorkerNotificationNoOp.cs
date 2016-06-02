@@ -16,19 +16,34 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue
+using DotNetWorkQueue.Logging;
+namespace DotNetWorkQueue.Queue
 {
-    /// <summary>
-    /// A factory for creating new <see cref="IConnectionInformation"/>
-    /// </summary>
-    public interface ICreateConnectionFactory
+    internal class WorkerNotificationNoOp : IWorkerNotification
     {
-        /// <summary>
-        /// Registers a <see cref="IConnectionInformation" /> object
-        /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
-        /// <remarks>A queue will have a single copy of <see cref="IConnectionInformation" /></remarks>
-        void Register(string queue, string connection);
+        public IHeaders HeaderNames => null;
+
+        public IWorkerHeartBeatNotification HeartBeat
+        {
+            get { return null; }
+            set
+            {
+                
+            }
+        }
+
+        public ILog Log => null;
+
+        public IMetrics Metrics => null;
+
+        public bool TransportSupportsRollback => false;
+
+        public ICancelWork WorkerStopping
+        {
+            get { return null; }
+            set
+            {
+            }
+        }
     }
 }

@@ -54,14 +54,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             {
                 try
                 {
-                    System.IO.File.Delete(_fileName);
+                    File.Delete(_fileName);
                 }
                 catch
                 {
                     System.Threading.Thread.Sleep(3000);
                     try
                     {
-                        System.IO.File.Delete(_fileName);
+                        File.Delete(_fileName);
                     }
                     catch
                     {

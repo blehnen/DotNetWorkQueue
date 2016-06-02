@@ -23,22 +23,22 @@ namespace DotNetWorkQueue
     /// Defines a connection to a queue
     /// </summary>
     /// <remarks>Implementations should correctly implement <see cref="Equals"/> and <see cref="GetHashCode"/></remarks>
-    public interface IConnectionInformation : IReadonly, ISetReadonly
+    public interface IConnectionInformation
     {
         /// <summary>
-        /// Gets or sets the name of the queue.
+        /// Gets the name of the queue.
         /// </summary>
         /// <value>
         /// The name of the queue.
         /// </value>
-        string QueueName { get; set; }
+        string QueueName { get; }
         /// <summary>
-        /// Gets or sets the connection string.
+        /// Gets the connection string.
         /// </summary>
         /// <value>
         /// The connection string.
         /// </value>
-        string ConnectionString { get; set; }
+        string ConnectionString { get; }
 
         /// <summary>
         /// Gets the server.
@@ -50,19 +50,19 @@ namespace DotNetWorkQueue
         string Server { get; }
 
         /// <summary>
-        /// Returns a <see cref="String" /> that represents this instance.
+        /// Returns a <see cref="string" /> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="String" /> that represents this instance.
+        /// A <see cref="string" /> that represents this instance.
         /// </returns>
         string ToString();
 
         /// <summary>
-        /// Determines whether the specified <see cref="Object" />, is equal to this instance.
+        /// Determines whether the specified <see cref="object" />, is equal to this instance.
         /// </summary>
-        /// <param name="obj">The <see cref="Object" /> to compare with this instance.</param>
+        /// <param name="obj">The <see cref="object" /> to compare with this instance.</param>
         /// <returns>
-        ///   <c>true</c> if the specified <see cref="Object" /> is equal to this instance; otherwise, <c>false</c>.
+        ///   <c>true</c> if the specified <see cref="object" /> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         bool Equals(object obj);
 
