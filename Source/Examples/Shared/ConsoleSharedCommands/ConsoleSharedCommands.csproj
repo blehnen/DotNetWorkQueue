@@ -39,8 +39,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\MergedBuild\DotNetWorkQueue.Metrics.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Metrics, Version=0.2.16.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Metrics.NET.0.2.16\lib\net45\Metrics.dll</HintPath>
+    <Reference Include="Metrics, Version=0.3.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Metrics.NET.0.3.7\lib\net45\Metrics.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Serilog, Version=1.5.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
