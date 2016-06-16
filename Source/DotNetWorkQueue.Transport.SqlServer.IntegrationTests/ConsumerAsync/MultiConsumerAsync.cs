@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync Tests")]
+    [Collection("SqlServer")]
     public class MultiConsumerAsync
     {
         [Theory]

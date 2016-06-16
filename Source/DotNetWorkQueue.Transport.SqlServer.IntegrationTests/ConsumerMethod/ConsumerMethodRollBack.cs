@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerMethod
 {
-    [Collection("Consumer Tests")]
+    [Collection("SqlServer")]
     public class ConsumerMethodRollBack
     {
 
@@ -92,6 +92,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerMethod
                             workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
+                        GenerateMethod.ClearRollback(id);
                     }
                 }
                 finally

@@ -23,7 +23,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
 {
-    [Collection("RedisProducerTests")]
+    [Collection("Redis")]
     public class SimpleProducerAsync
     {
         [Theory]

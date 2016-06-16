@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerMethodAsync
 {
-    [Collection("Redis Consumer Tests")]
+    [Collection("Redis")]
     public class ConsumerMethodAsyncRollBack
     {
         [Theory]
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerMethodAsync
                         timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
                     LoggerShared.CheckForErrors(queueName);
                     new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
-
+                    GenerateMethod.ClearRollback(id);
                 }
                 finally
                 {

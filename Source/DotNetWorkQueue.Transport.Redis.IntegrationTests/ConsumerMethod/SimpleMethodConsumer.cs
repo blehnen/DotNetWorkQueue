@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerMethod
 {
-    [Collection("Redis Consumer Tests")]
+    [Collection("Redis")]
     public class SimpleMethodConsumer
     {
         [Theory]

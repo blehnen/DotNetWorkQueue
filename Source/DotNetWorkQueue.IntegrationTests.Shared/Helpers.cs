@@ -26,41 +26,55 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     public static class MethodIncrementWrapper
     {
         private static readonly ConcurrentDictionary<Guid, IncrementWrapper> Counters;
-        private static readonly ConcurrentDictionary<Guid, bool> RollBacks;
+        private static readonly ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, bool>> RollBacks;
         static MethodIncrementWrapper()
         {
             Counters = new ConcurrentDictionary<Guid, IncrementWrapper>();
-            RollBacks = new ConcurrentDictionary<Guid, bool>();
+            RollBacks = new ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, bool>>();
         }
 
-        public static void SetRollback(Guid id)
+        public static void Clear(Guid queueId)
         {
-            RollBacks.TryAdd(id, true);
+            ConcurrentDictionary<Guid, bool> temp;
+            RollBacks.TryRemove(queueId, out temp);
+            temp?.Clear();
+
+            IncrementWrapper temp2;
+            Counters.TryRemove(queueId, out temp2);
+        }
+        public static void SetRollback(Guid queueId, Guid id)
+        {
+            if (!RollBacks.ContainsKey(queueId))
+            {
+                RollBacks.TryAdd(queueId, new ConcurrentDictionary<Guid, bool>());
+            }
+            RollBacks[queueId].TryAdd(id, true);
         }
 
-        public static bool HasRollBack(Guid id)
+        public static bool HasRollBack(Guid queueId, Guid id)
         {
-            if (RollBacks.ContainsKey(id))
-                return RollBacks[id];
-
+            if (RollBacks.ContainsKey(queueId) && RollBacks[queueId].ContainsKey(id))
+            {
+                return RollBacks[queueId][id];
+            }
             return false;
         }
-        public static long Count(Guid id)
+        public static long Count(Guid queueId)
         {
-            if (Counters.ContainsKey(id))
+            if (Counters.ContainsKey(queueId))
             {
-                return Counters[id].ProcessedCount;
+                return Counters[queueId].ProcessedCount;
             }
             return 0;
         }
-        public static void IncreaseCounter(Guid id)
+        public static void IncreaseCounter(Guid queueId)
         {
-            if (!Counters.ContainsKey(id))
+            if (!Counters.ContainsKey(queueId))
             {
-                Counters.TryAdd(id, new IncrementWrapper());
+                Counters.TryAdd(queueId, new IncrementWrapper());
             }
 
-            var processor = Counters[id];
+            var processor = Counters[queueId];
             Interlocked.Increment(ref processor.ProcessedCount);
         }
     }

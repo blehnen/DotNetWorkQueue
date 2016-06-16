@@ -98,6 +98,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerMethod
                                 TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
+                            GenerateMethod.ClearRollback(id);
                         }
                     }
                     finally

@@ -24,7 +24,7 @@ using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
-    [Collection("Redis Consumer Tests")]
+    [Collection("Redis")]
     public class ConsumerAsyncErrorTable
     {
         [Theory]

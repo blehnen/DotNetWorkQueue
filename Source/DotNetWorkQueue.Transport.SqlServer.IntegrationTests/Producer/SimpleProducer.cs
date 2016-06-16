@@ -23,7 +23,7 @@ using DotNetWorkQueue.Transport.SqlServer.Schema;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
 {
-    [Collection("Producer")]
+    [Collection("SqlServer")]
     public class SimpleProducer
     {
         [Theory]

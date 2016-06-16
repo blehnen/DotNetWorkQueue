@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
 {
-    [Collection("Consumer Tests")]
+    [Collection("SqlServer")]
     public class SimpleConsumer
     {
         [Theory]

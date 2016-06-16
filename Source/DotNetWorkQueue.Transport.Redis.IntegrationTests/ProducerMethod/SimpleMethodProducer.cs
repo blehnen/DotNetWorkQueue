@@ -24,7 +24,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ProducerMethod
 {
-    [Collection("RedisProducerTests")]
+    [Collection("Redis")]
     public class SimpleMethodProducer
     {
         [Theory]

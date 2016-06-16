@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerMethodAsync
 {
-    [Collection("ConsumerAsync Tests")]
+    [Collection("SqlServer")]
     public class ConsumerMethodAsyncRollBack
     {
         [Theory]
@@ -92,6 +92,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerMethodAsy
                             timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
                         LoggerShared.CheckForErrors(queueName);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
+                        GenerateMethod.ClearRollback(id);
                     }
                 }
                 finally

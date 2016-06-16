@@ -22,7 +22,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerMethodAsync
 {
-    [Collection("Redis Consumer Tests")]
+    [Collection("Redis")]
     public class MultiConsumerMethodAsync
     {
         [Theory]

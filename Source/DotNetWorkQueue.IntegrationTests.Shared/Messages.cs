@@ -140,23 +140,40 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             return new LinqExpressionToRun(method, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared.dll" }, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared" });
         }
+
+        public static void ClearCancel(Guid id)
+        {
+            CancelTesting.Clear(id);
+        }
+        public static void ClearStandard(Guid id)
+        {
+            StandardTesting.Clear(id);
+        }
+        public static void ClearRollback(Guid id)
+        {
+            RollBackTesting.Clear(id);
+        }
     }
 
     public static class StandardTesting
     {
-        public static void Run(Guid id, int runTime)
+        public static void Clear(Guid queueId)
         {
-            if (runTime > 0)
-                Thread.Sleep(runTime * 1000);
-
-            MethodIncrementWrapper.IncreaseCounter(id);
+            MethodIncrementWrapper.Clear(queueId);
         }
-        public static object RunRpc(Guid id, int runTime)
+        public static void Run(Guid queueId, int runTime)
         {
             if (runTime > 0)
                 Thread.Sleep(runTime * 1000);
 
-            MethodIncrementWrapper.IncreaseCounter(id);
+            MethodIncrementWrapper.IncreaseCounter(queueId);
+        }
+        public static object RunRpc(Guid queueId, int runTime)
+        {
+            if (runTime > 0)
+                Thread.Sleep(runTime * 1000);
+
+            MethodIncrementWrapper.IncreaseCounter(queueId);
 
             var rc = new FakeResponse {ResponseMessage = "int test"};
             return rc;
@@ -174,22 +191,26 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
     public static class CancelTesting
     {
-        public static void Run<TMessage>(IReceivedMessage<TMessage> message, IWorkerNotification notification, Guid id, int runTime)
+        public static void Clear(Guid queueId)
+        {
+            MethodIncrementWrapper.Clear(queueId);
+        }
+        public static void Run<TMessage>(IReceivedMessage<TMessage> message, IWorkerNotification notification, Guid queueId, int runTime)
             where TMessage : class
         {
-            if (MethodIncrementWrapper.HasRollBack((Guid)message.CorrelationId.Id.Value))
+            if (MethodIncrementWrapper.HasRollBack(queueId, (Guid)message.CorrelationId.Id.Value))
             {
                 var counter = runTime / 3;
                 for (int i = 0; i < counter; i++)
                 {
                     if (notification.WorkerStopping.StopWorkToken.IsCancellationRequested || notification.WorkerStopping.CancelWorkToken.IsCancellationRequested)
                     {
-                        MethodIncrementWrapper.IncreaseCounter(id);
+                        MethodIncrementWrapper.IncreaseCounter(queueId);
                         return;
                     }
                     Thread.Sleep(1000);
                 }
-                MethodIncrementWrapper.IncreaseCounter(id);
+                MethodIncrementWrapper.IncreaseCounter(queueId);
             }
             else
             {
@@ -198,26 +219,30 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 {
                     Thread.Sleep(1000);
                 }
-                MethodIncrementWrapper.SetRollback((Guid)message.CorrelationId.Id.Value);
+                MethodIncrementWrapper.SetRollback(queueId, (Guid)message.CorrelationId.Id.Value);
                 throw new OperationCanceledException("I don't feel like processing this message");
             }
         }
     }
     public static class RollBackTesting
     {
-        public static void Run<TMessage>(IReceivedMessage<TMessage> message, Guid id, int runTime)
+        public static void Clear(Guid queueId)
+        {
+            MethodIncrementWrapper.Clear(queueId);
+        }
+        public static void Run<TMessage>(IReceivedMessage<TMessage> message, Guid queueId, int runTime)
             where TMessage: class
         {
-            if (MethodIncrementWrapper.HasRollBack((Guid)message.CorrelationId.Id.Value))
+            if (MethodIncrementWrapper.HasRollBack(queueId, (Guid)message.CorrelationId.Id.Value))
             {
                 if (runTime > 0)
                     Thread.Sleep(runTime * 1000);
 
-                MethodIncrementWrapper.IncreaseCounter(id);
+                MethodIncrementWrapper.IncreaseCounter(queueId);
             }
             else
             {
-                MethodIncrementWrapper.SetRollback((Guid)message.CorrelationId.Id.Value);
+                MethodIncrementWrapper.SetRollback(queueId, (Guid)message.CorrelationId.Id.Value);
                 throw new OperationCanceledException("I don't feel like processing this message");
             }
         }

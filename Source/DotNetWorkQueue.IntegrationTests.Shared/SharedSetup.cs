@@ -134,6 +134,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
     public class MethodMessageProcessingCancel : IMessageMethodHandling
     {
+        private readonly Guid _queueId;
+        public MethodMessageProcessingCancel(Guid queueId)
+        {
+            _queueId = queueId;
+        }
         public void Dispose()
         {
             
@@ -142,7 +147,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         public void HandleExecution(IReceivedMessage<MessageExpression> receivedMessage,
             IWorkerNotification notification)
         {
-            MethodIncrementWrapper.SetRollback((Guid)receivedMessage.CorrelationId.Id.Value);
+            MethodIncrementWrapper.SetRollback(_queueId, (Guid)receivedMessage.CorrelationId.Id.Value);
             throw new OperationCanceledException("I don't feel like processing this message");
         }
 

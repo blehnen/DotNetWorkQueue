@@ -85,10 +85,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerMethod
                             consumer.RunConsumer(queueName, connectionInfo.ConnectionString, false, logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut,
-                                serviceRegister => serviceRegister.Register<IMessageMethodHandling, MethodMessageProcessingCancel>(LifeStyles.Singleton), 
+                                serviceRegister => serviceRegister.Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton), 
                                 TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
+                            GenerateMethod.ClearCancel(id);
                         }
                     }
                     finally

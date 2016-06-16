@@ -20,12 +20,13 @@ using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerMethod
 {
-    [Collection("Consumer Tests")]
+    [Collection("SqlServer")]
     public class ConsumerMethodCancelWork
     {
         [Theory]
@@ -76,9 +77,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerMethod
                         var consumer = new ConsumerMethodCancelWorkShared<SqlServerMessageQueueInit>();
                         consumer.RunConsumer(queueName, ConnectionInfo.ConnectionString, false, logProvider,
                             runtime, messageCount,
-                            workerCount, timeOut, serviceRegister => serviceRegister.Register<IMessageMethodHandling, MethodMessageProcessingCancel>(LifeStyles.Singleton), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
+                            workerCount, timeOut, serviceRegister => serviceRegister.Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
+                        GenerateMethod.ClearCancel(id);
                     }
                 }
                 finally

@@ -24,7 +24,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.RpcMethod
 {
-    [Collection("RPC")]
+    [Collection("SqlServer")]
     public class SimpleMethodRpc
     {
         [Theory]

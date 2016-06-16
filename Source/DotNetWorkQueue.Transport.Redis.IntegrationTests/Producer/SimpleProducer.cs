@@ -22,7 +22,7 @@ using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
 {
-    [Collection("RedisProducerTests")]
+    [Collection("Redis")]
     public class SimpleProducer
     {
         [Theory]

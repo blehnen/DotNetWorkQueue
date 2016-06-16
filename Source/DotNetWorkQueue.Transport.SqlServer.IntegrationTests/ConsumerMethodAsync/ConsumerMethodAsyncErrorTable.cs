@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerMethodAsync
 {
-    [Collection("ConsumerAsync Tests")]
+    [Collection("SqlServer")]
     public class ConsumerMethodAsyncErrorTable
     {
         [Theory]

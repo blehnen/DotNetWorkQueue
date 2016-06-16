@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ProducerMethod
 {
-    [Collection("Producer")]
+    [Collection("SqlServer")]
     public class SimpleProducerMethodBatch
     {
         [Theory]

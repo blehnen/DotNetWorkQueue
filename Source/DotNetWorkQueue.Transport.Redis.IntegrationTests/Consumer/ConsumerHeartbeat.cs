@@ -24,7 +24,7 @@ using System;
 using Xunit;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 {
-    [Collection("Redis Consumer Tests")]
+    [Collection("Redis")]
     public class ConsumerHeartbeat
     {
         [Theory]

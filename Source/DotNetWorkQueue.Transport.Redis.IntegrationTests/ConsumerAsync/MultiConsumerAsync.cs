@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 using Xunit;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
-    [Collection("Redis Consumer Tests")]
+    [Collection("Redis")]
     public class MultiConsumerAsync
     {
         [Theory]

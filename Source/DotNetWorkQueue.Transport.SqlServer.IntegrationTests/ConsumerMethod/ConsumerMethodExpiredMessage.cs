@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerMethod
 {
-    [Collection("Consumer Tests")]
+    [Collection("SqlServer")]
     public class ConsumerMethodExpiredMessage
     {
         [Theory]

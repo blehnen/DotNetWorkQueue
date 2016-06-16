@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerMethod
 {
-    [Collection("Redis Consumer Tests")]
+    [Collection("Redis")]
     public class ConsumerMethodCancelWork
     {
         [Theory]
@@ -63,10 +63,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerMethod
                     var consumer = new ConsumerMethodCancelWorkShared<RedisQueueInit>();
                     consumer.RunConsumer(queueName, connectionString, false, logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, serviceRegister => serviceRegister.Register<IMessageMethodHandling, MethodMessageProcessingCancel>(LifeStyles.Singleton), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
+                        workerCount, timeOut, serviceRegister => serviceRegister.Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
 
                     new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
-
+                    GenerateMethod.ClearCancel(id);
                 }
                 finally
                 {

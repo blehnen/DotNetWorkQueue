@@ -23,7 +23,7 @@ using System;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.rpc
 {
-    [Collection("RPC")]
+    [Collection("SqlServer")]
     public class SimpleRpc
     {
         [Theory]

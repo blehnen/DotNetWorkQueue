@@ -24,7 +24,7 @@ using System;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync Tests")]
+    [Collection("SqlServer")]
     public class ConsumerAsyncRollBack
     {
         [Theory]

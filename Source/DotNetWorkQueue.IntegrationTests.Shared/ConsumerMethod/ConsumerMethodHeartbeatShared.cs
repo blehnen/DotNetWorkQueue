@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             if (addInterceptors)
             {
                 queue.RunConsumer(queueName, connectionString, true, logProvider, runTime, messageCount, workerCount, timeOut,
-                    serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton).Register<IMessageMethodHandling, MethodMessageProcessingCancel>(LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
+                    serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton).Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
                         {
                             typeof (GZipMessageInterceptor), //gzip compression
                             typeof (TripleDesMessageInterceptor) //encryption
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             else
             {
                 queue.RunConsumer(queueName, connectionString, false, logProvider, runTime, messageCount, workerCount, timeOut,
-                    serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton).Register<IMessageMethodHandling, MethodMessageProcessingCancel>(LifeStyles.Singleton),
+                    serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton).Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton),
                     heartBeatTime, heartBeatMonitorTime, id);
             }
         }

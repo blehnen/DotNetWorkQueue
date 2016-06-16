@@ -24,7 +24,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.RpcMethod
 {
-    [Collection("RedisProducerTests")]
+    [Collection("Redis")]
     public class SimpleMethodRpc
     {
         [Theory]

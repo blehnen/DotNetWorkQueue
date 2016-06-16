@@ -25,7 +25,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerMethod
 {
-    [Collection("Redis Consumer Tests")]
+    [Collection("Redis")]
     public class ConsumerMethodHeartbeat
     {
         [Theory]
@@ -68,6 +68,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerMethod
                         workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
 
                     new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
+                    GenerateMethod.ClearCancel(id);
                 }
                 finally
                 {
