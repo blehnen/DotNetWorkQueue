@@ -20,7 +20,7 @@ using System;
 namespace DotNetWorkQueue.Exceptions
 {
     /// <summary>
-    /// An error has occured when trying to serialize or de-serialize a message
+    /// An error has occurred when trying to serialize or de-serialize a message
     /// </summary>
     [Serializable]
     public class SerializationException : DotNetWorkQueueException

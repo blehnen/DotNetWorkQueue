@@ -17,22 +17,14 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Configuration;
 namespace DotNetWorkQueue
 {
     /// <summary>
     /// Defines a queue that can process messages.
     /// </summary>
-    public interface IConsumerQueue : IDisposable, IIsDisposed
+    /// <seealso cref="DotNetWorkQueue.IConsumerBaseQueue" />
+    public interface IConsumerQueue : IConsumerBaseQueue
     {
-        /// <summary>
-        /// Gets the configuration.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
-        QueueConsumerConfiguration Configuration { get; }
-
         /// <summary>
         /// Starts the queue.
         /// </summary>

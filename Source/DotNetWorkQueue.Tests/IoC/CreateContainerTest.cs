@@ -26,7 +26,6 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Messages;
-using DotNetWorkQueue.Tests.Queue;
 using NSubstitute;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;
@@ -92,7 +91,8 @@ namespace DotNetWorkQueue.Tests.IoC
 
         internal class NoOpReceiveTransport : TransportInitReceive
         {
-            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
+            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
+                string connection, string queue)
             {
                 container.Register(() => Substitute.For<IConnectionInformation>(),
                     LifeStyles.Singleton);
@@ -102,12 +102,12 @@ namespace DotNetWorkQueue.Tests.IoC
                 container.Register(
                     () => Substitute.For<IReceiveMessagesFactory>(), LifeStyles.Singleton);
                 container.Register(
-                   () => Substitute.For<IReceiveMessagesError>(), LifeStyles.Singleton);
+                    () => Substitute.For<IReceiveMessagesError>(), LifeStyles.Singleton);
 
                 container.Register<IInternalSerializer, InternalSerializerNoOp>(LifeStyles.Singleton);
 
                 container.Register<IWorkerNotificationFactory, WorkerNotificationFactoryNoOp>(LifeStyles.Singleton);
-;            }
+            }
         }
 
         internal class NoOpDuplexTransport : TransportInitDuplex
@@ -199,7 +199,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
             // ReSharper disable once UnassignedGetOnlyAutoProperty
             public override RoomForNewTaskResult RoomForNewTask { get; }
-            public override RoomForNewTaskResult RoomForNewWorkGroupTask(IWorkGroup @group)
+            public override RoomForNewTaskResult RoomForNewWorkGroupTask(IWorkGroup group)
             {
                 return RoomForNewTaskResult.No;
             }

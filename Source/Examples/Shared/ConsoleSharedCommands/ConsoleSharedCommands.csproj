@@ -39,6 +39,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\MergedBuild\DotNetWorkQueue.Metrics.Net.dll</HintPath>
     </Reference>
+    <Reference Include="JpLabs.DynamicCode">
+      <HintPath>..\..\..\..\Lib\JpLabs.DynamicCode.dll</HintPath>
+    </Reference>
     <Reference Include="Metrics, Version=0.3.7.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Metrics.NET.0.3.7\lib\net45\Metrics.dll</HintPath>
       <Private>True</Private>
@@ -68,6 +71,7 @@
     <Compile Include="Commands\SharedCommands.cs" />
     <Compile Include="Commands\ConsumeMessage.cs" />
     <Compile Include="Commands\ConsumeMessageAsync.cs" />
+    <Compile Include="Commands\SharedSendCommands.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

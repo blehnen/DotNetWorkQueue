@@ -69,7 +69,8 @@ namespace RedisConsumerAsync.Commands
             int resetHeartBeatBatchLimit = 50,
             TimeSpan? delayedProcessingMonitorTime = null)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             Queues[queueName].Configuration.Options().ClearExpiredMessagesBatchLimit = clearExpiredMessagesBatchLimit;
             if (delayedProcessingMonitorTime.HasValue)
             {
@@ -85,7 +86,8 @@ namespace RedisConsumerAsync.Commands
             string server = "pool.ntp.org",
             TimeSpan? timeout = null)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             Queues[queueName].Configuration.Options().SntpTimeConfiguration.Port = port;
             Queues[queueName].Configuration.Options().SntpTimeConfiguration.Server = server;
             if (timeout.HasValue)
@@ -97,7 +99,8 @@ namespace RedisConsumerAsync.Commands
 
         public ConsoleExecuteResult SetTimeClientOptions(string queueName, int value)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             if (Enum.IsDefined(typeof(TimeLocations), value))
             {
                 var type = (TimeLocations) value;
@@ -109,7 +112,8 @@ namespace RedisConsumerAsync.Commands
 
         public ConsoleExecuteResult SetMessageIdOptions(string queueName, int value)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             if (Enum.IsDefined(typeof (MessageIdLocations), value))
             {
                 var type = (MessageIdLocations) value;

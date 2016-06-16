@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Queue
     /// Sends a mesage to an RPC queue
     /// </summary>
     /// <typeparam name="TSendMessage">The type of the send message.</typeparam>
-    public class MessageProcessingRpcSend<TSendMessage>
+    public class MessageProcessingRpcSend<TSendMessage>: IMessageProcessingRpcSend<TSendMessage>
         where TSendMessage : class
     {
         private readonly IHeaders _headers;

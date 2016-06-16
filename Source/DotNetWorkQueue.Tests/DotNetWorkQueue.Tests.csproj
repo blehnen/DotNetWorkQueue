@@ -33,12 +33,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentAssertions, Version=4.6.3.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentAssertions.4.6.3\lib\net45\FluentAssertions.dll</HintPath>
+    <Reference Include="FluentAssertions, Version=4.9.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.4.9.0\lib\net45\FluentAssertions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FluentAssertions.Core, Version=4.6.3.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentAssertions.4.6.3\lib\net45\FluentAssertions.Core.dll</HintPath>
+    <Reference Include="FluentAssertions.Core, Version=4.9.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.4.9.0\lib\net45\FluentAssertions.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -49,16 +49,16 @@
       <HintPath>..\packages\NSubstitute.1.10.0.0\lib\net45\NSubstitute.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Ploeh.AutoFixture, Version=3.47.1.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoFixture.3.47.1\lib\net40\Ploeh.AutoFixture.dll</HintPath>
+    <Reference Include="Ploeh.AutoFixture, Version=3.47.5.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoFixture.3.47.5\lib\net40\Ploeh.AutoFixture.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Ploeh.AutoFixture.AutoNSubstitute, Version=3.47.1.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoFixture.AutoNSubstitute.3.47.1\lib\net40\Ploeh.AutoFixture.AutoNSubstitute.dll</HintPath>
+    <Reference Include="Ploeh.AutoFixture.AutoNSubstitute, Version=3.47.5.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoFixture.AutoNSubstitute.3.47.5\lib\net40\Ploeh.AutoFixture.AutoNSubstitute.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Ploeh.AutoFixture.Xunit2, Version=3.47.1.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoFixture.Xunit2.3.47.1\lib\net45\Ploeh.AutoFixture.Xunit2.dll</HintPath>
+    <Reference Include="Ploeh.AutoFixture.Xunit2, Version=3.47.5.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoFixture.Xunit2.3.47.5\lib\net45\Ploeh.AutoFixture.Xunit2.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SimpleInjector, Version=3.1.5.0, Culture=neutral, PublicKeyToken=984cb50dea722e99, processorArchitecture=MSIL">
@@ -161,6 +161,7 @@
     <Compile Include="Messages\MessageHandlerRegistrationAsyncTests.cs" />
     <Compile Include="Messages\MessageHandlerRegistrationTests.cs" />
     <Compile Include="Messages\MessageHandlerTests.cs" />
+    <Compile Include="Messages\MessageMethodHandlingTests.cs" />
     <Compile Include="QueueCreationResultTests.cs" />
     <Compile Include="QueueCreatorTests.cs" />
     <Compile Include="QueueRemoveResultTests.cs" />
@@ -171,6 +172,7 @@
     <Compile Include="QueueStatus\QueueStatusProviderNoOpTests.cs" />
     <Compile Include="QueueStatus\QueueStatusTests.cs" />
     <Compile Include="QueueStatus\SystemEntryTests.cs" />
+    <Compile Include="Queue\ConsumerMethodQueueTests.cs" />
     <Compile Include="Queue\MessageErrorEventArgsTests.cs" />
     <Compile Include="Queue\MessageProcessingRpcReceiveTests.cs" />
     <Compile Include="Messages\MessageTests.cs" />
@@ -205,12 +207,14 @@
     <Compile Include="Queue\MessageProcessingAsyncTests.cs" />
     <Compile Include="Queue\MessageProcessingRpcSendTests.cs" />
     <Compile Include="Queue\MessageProcessingTests.cs" />
+    <Compile Include="Queue\ProducerMethodQueueTests.cs" />
     <Compile Include="Queue\ProducerQueueRpcTests.cs" />
     <Compile Include="Queue\ProducerQueueTests.cs" />
     <Compile Include="Queue\QueueCancelWorkTests.cs" />
     <Compile Include="Queue\QueueMonitorTests.cs" />
     <Compile Include="Queue\QueueWaitNoOpTests.cs" />
     <Compile Include="Queue\QueueWaitTests.cs" />
+    <Compile Include="Queue\RpcMethodQueueTests.cs" />
     <Compile Include="Queue\RpcQueueTests.cs" />
     <Compile Include="Queue\StopWorkerTests.cs" />
     <Compile Include="Queue\WaitForDelegateTests.cs" />
@@ -225,10 +229,12 @@
     <Compile Include="Queue\WorkerTests.cs" />
     <Compile Include="Queue\WorkerWaitForEventOrCancelTests.cs" />
     <Compile Include="SchedulerCreatorTests.cs" />
+    <Compile Include="Serialization\JsonExpressionSerializerTests.cs" />
     <Compile Include="Serialization\JsonSerializerInternalTests.cs" />
     <Compile Include="Serialization\JsonSerializerTests.cs" />
     <Compile Include="TaskScheduling\MessageHandlerTests.cs" />
     <Compile Include="TaskScheduling\SchedulerInitTests.cs" />
+    <Compile Include="TaskScheduling\SchedulerMethodTests.cs" />
     <Compile Include="TaskScheduling\SchedulerTaskFactoryTests.cs" />
     <Compile Include="TaskScheduling\SchedulerTests.cs" />
     <Compile Include="TaskScheduling\SmartThreadPoolTaskSchedulerTests.cs" />

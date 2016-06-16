@@ -17,10 +17,53 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Concurrent;
 using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
+    public static class MethodIncrementWrapper
+    {
+        private static readonly ConcurrentDictionary<Guid, IncrementWrapper> Counters;
+        private static readonly ConcurrentDictionary<Guid, bool> RollBacks;
+        static MethodIncrementWrapper()
+        {
+            Counters = new ConcurrentDictionary<Guid, IncrementWrapper>();
+            RollBacks = new ConcurrentDictionary<Guid, bool>();
+        }
+
+        public static void SetRollback(Guid id)
+        {
+            RollBacks.TryAdd(id, true);
+        }
+
+        public static bool HasRollBack(Guid id)
+        {
+            if (RollBacks.ContainsKey(id))
+                return RollBacks[id];
+
+            return false;
+        }
+        public static long Count(Guid id)
+        {
+            if (Counters.ContainsKey(id))
+            {
+                return Counters[id].ProcessedCount;
+            }
+            return 0;
+        }
+        public static void IncreaseCounter(Guid id)
+        {
+            if (!Counters.ContainsKey(id))
+            {
+                Counters.TryAdd(id, new IncrementWrapper());
+            }
+
+            var processor = Counters[id];
+            Interlocked.Increment(ref processor.ProcessedCount);
+        }
+    }
     /// <summary>
     /// Allows easier re-usage of a byref counter
     /// </summary>

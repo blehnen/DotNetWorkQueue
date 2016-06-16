@@ -18,8 +18,12 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Linq;
+using System.Runtime.Caching;
+using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
+using DotNetWorkQueue.LinqCompile;
+using DotNetWorkQueue.LinqCompile.Decorator;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Logging.Decorator;
 using DotNetWorkQueue.Messages;
@@ -78,6 +82,10 @@ namespace DotNetWorkQueue.IoC
             {
                 RegisterSharedDefaults(container);
 
+                //object cache
+                container.Register<ObjectCache>(() => MemoryCache.Default, LifeStyles.Singleton);
+                container.RegisterDecorator<ILinqCompiler, LinqCompileCacheDecorator>(LifeStyles.Singleton);
+
                 //created outside of the queue as part of setup, this must be a singleton.
                 //all queues created from the setup class share the same message interceptors
                 container.Register<IMessageInterceptorRegistrar, Interceptors.MessageInterceptors>(LifeStyles.Singleton);
@@ -90,7 +98,9 @@ namespace DotNetWorkQueue.IoC
                 container.Register<IQueueCancelWork, QueueCancelWork>(LifeStyles.Singleton);
                 container.Register<ASerializer, RootSerializer>(LifeStyles.Singleton);
                 container.Register<ISerializer, JsonSerializer>(LifeStyles.Singleton);
+                container.Register<IExpressionSerializer, JsonExpressionSerializer>(LifeStyles.Singleton);
                 container.Register<IQueueDelayFactory, QueueDelayFactory>(LifeStyles.Singleton);
+                container.Register<ILinqCompiler, LinqCompiler>(LifeStyles.Singleton);
 
                 container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
                 container.Register<ICompositeSerialization, CompositeSerialization>(LifeStyles.Singleton);
@@ -102,6 +112,7 @@ namespace DotNetWorkQueue.IoC
                 //because of it's usage in 'standard' modules, this must always be added, even if RPC is not enabled.
                 //otherwise, the IoC container can't create the producer queue.
                 container.Register<IRpcTimeoutFactory, RpcTimeoutFactory>(LifeStyles.Singleton);
+                container.Register<IMessageMethodHandling, MessageMethodHandling>(LifeStyles.Singleton);
 
                 container.Register<IRegisterMessagesAsync, RegisterMessagesAsync>(LifeStyles.Singleton);
                 container.Register<IRegisterMessages, RegisterMessages>(LifeStyles.Singleton);
@@ -123,6 +134,7 @@ namespace DotNetWorkQueue.IoC
                 container.Register<TransportConfigurationSend>(LifeStyles.Singleton);
                 container.Register<GenerateMessageHeaders>(LifeStyles.Singleton);
                 container.Register<AddStandardMessageHeaders>(LifeStyles.Singleton);
+                container.Register<IProducerMethodQueue, ProducerMethodQueue>(LifeStyles.Singleton);
             }
 
             //implementations for Receiving messages
@@ -130,8 +142,10 @@ namespace DotNetWorkQueue.IoC
             {
                 container.Register<TransportConfigurationReceive>(LifeStyles.Singleton);
                 container.Register<IConsumerQueue, ConsumerQueue>(LifeStyles.Singleton);
+                container.Register<IConsumerMethodQueue, ConsumerMethodQueue>(LifeStyles.Singleton);
                 container.Register<IConsumerQueueAsync, ConsumerQueueAsync>(LifeStyles.Singleton);
                 container.Register<IConsumerQueueScheduler, Scheduler>(LifeStyles.Singleton);
+                container.Register<IConsumerMethodQueueScheduler, SchedulerMethod>(LifeStyles.Singleton);
 
                 container.Register<QueueConsumerConfiguration>(LifeStyles.Singleton);
 
@@ -224,6 +238,8 @@ namespace DotNetWorkQueue.IoC
             if ((registrationType & RegistrationTypes.Receive) == RegistrationTypes.Receive &&
             ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send))
             {
+                container.Register<IRpcMethodQueue, RpcMethodQueue>(LifeStyles.Singleton);
+
                 container.Register<IClearExpiredMessagesRpcMonitor, ClearExpiredMessagesRpcMonitor>
                     (LifeStyles.Singleton);
 
@@ -306,6 +322,8 @@ namespace DotNetWorkQueue.IoC
         /// <param name="registrationType">Type of the registration.</param>
         public static void RegisterFallbacks(IContainer container, RegistrationTypes registrationType)
         {
+            container.RegisterConditional(typeof(ICachePolicy<>), typeof(CachePolicy<>), LifeStyles.Singleton);
+
             if ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
             {
                 container.RegisterConditional(typeof (IProducerQueue<>), typeof (ProducerQueue<>),
@@ -317,9 +335,10 @@ namespace DotNetWorkQueue.IoC
             {
                 container.RegisterConditional(typeof(IProducerQueueRpc<>), typeof(ProducerQueueRpc<>), LifeStyles.Singleton);
                 container.RegisterConditional(typeof(IRpcQueue<,>), typeof(RpcQueue<,>), LifeStyles.Singleton);
+ 
 
-                container.RegisterConditional(typeof(MessageProcessingRpcSend<>), typeof(MessageProcessingRpcSend<>), LifeStyles.Singleton);
-                container.RegisterConditional(typeof(MessageProcessingRpcReceive<>), typeof(MessageProcessingRpcReceive<>), LifeStyles.Singleton);
+                container.RegisterConditional(typeof(IMessageProcessingRpcSend<>), typeof(MessageProcessingRpcSend<>), LifeStyles.Singleton);
+                container.RegisterConditional(typeof(IMessageProcessingRpcReceive<>), typeof(MessageProcessingRpcReceive<>), LifeStyles.Singleton);
             }
         }
 

@@ -20,7 +20,9 @@ using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
+using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
@@ -172,13 +174,48 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture.Inject(new MessageProcessingRpcReceiveTests().Create());
+
+            var receive = fixture.Create<IMessageProcessingRpcSend<FakeMessage>>();
+            receive
+                .Handle(null, null, TimeSpan.MaxValue)
+                .ReturnsForAnyArgs(new SentMessage(new MessageId(), new CorrelationId()));
+            receive
+               .Handle(null, TimeSpan.MaxValue)
+               .ReturnsForAnyArgs(new SentMessage(new MessageId(), new CorrelationId()));
+            fixture.Inject(receive);
+
             return new RpcQueue<FakeMessage, FakeMessage>(fixture.Create<QueueRpcConfiguration>(),
                 fixture.Create<QueueConsumerConfiguration>(),
                 fixture.Create<IClearExpiredMessagesRpcMonitor>(),
                 fixture.Create<ILogFactory>(),
                 fixture.Create<MessageProcessingRpcReceive<FakeMessage>>(),
-                fixture.Create<MessageProcessingRpcSend<FakeMessage>>(),
+                receive,
                 fixture.Create<IQueueWaitFactory>());
+        }
+
+        public class MessageId : IMessageId
+        {
+            public bool HasValue => true;
+
+            public ISetting Id => new Setting<int>(1);
+        }
+
+        public class CorrelationId : ICorrelationId
+        {
+            public bool HasValue => true;
+
+            public ISetting Id
+            {
+                get
+                {
+                    return new Setting<Guid>(Guid.NewGuid());
+                }
+
+                set
+                {
+                   
+                }
+            }
         }
     }
 }

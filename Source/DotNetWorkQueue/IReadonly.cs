@@ -19,7 +19,7 @@
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Defines a <see cref="IsReadOnly"/> property for objects that are or can become imutable
+    /// Defines a <see cref="IsReadOnly"/> property for objects that are or can become immutable
     /// </summary>
     public interface IReadonly
     {

@@ -18,22 +18,13 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
 namespace DotNetWorkQueue
 {
     /// <summary>
     /// Defines a queue that can process messages in an async fashion.
     /// </summary>
-    public interface IConsumerQueueAsync : IDisposable, IIsDisposed
+    public interface IConsumerQueueAsync : IConsumerBaseQueue
     {
-        /// <summary>
-        /// Gets the configuration.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
-        QueueConsumerConfiguration Configuration { get; }
-
         /// <summary>
         /// Starts the queue.
         /// </summary>

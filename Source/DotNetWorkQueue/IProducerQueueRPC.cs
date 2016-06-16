@@ -18,24 +18,15 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
 namespace DotNetWorkQueue
 {
     /// <summary>
     /// Defines a queue that sends a message to an RPC queue.
     /// </summary>
     /// <typeparam name="TMessage">Type of message</typeparam>
-    public interface IProducerQueueRpc<in TMessage> : IDisposable, IIsDisposed
+    public interface IProducerQueueRpc<in TMessage> : IProducerBaseQueue
         where TMessage: class
     {
-        /// <summary>
-        /// Gets the configuration.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
-        QueueProducerConfiguration Configuration { get; }
-
         /// <summary>
         /// Sends the specified message.
         /// </summary>

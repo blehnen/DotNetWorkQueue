@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Queue
     /// Receives a response from an RPC request.
     /// </summary>
     /// <typeparam name="TReceivedMessage">The type of the received message.</typeparam>
-    public class MessageProcessingRpcReceive<TReceivedMessage>
+    public class MessageProcessingRpcReceive<TReceivedMessage>: IMessageProcessingRpcReceive<TReceivedMessage>
          where TReceivedMessage : class
     {
         private readonly IMessageContextFactory _messageContextFactory;

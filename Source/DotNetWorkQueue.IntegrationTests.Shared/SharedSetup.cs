@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
@@ -131,10 +132,32 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
     }
 
+    public class MethodMessageProcessingCancel : IMessageMethodHandling
+    {
+        public void Dispose()
+        {
+            
+        }
+
+        public void HandleExecution(IReceivedMessage<MessageExpression> receivedMessage,
+            IWorkerNotification notification)
+        {
+            MethodIncrementWrapper.SetRollback((Guid)receivedMessage.CorrelationId.Id.Value);
+            throw new OperationCanceledException("I don't feel like processing this message");
+        }
+
+        public bool IsDisposed => false;
+    }
     public enum InterceptorAdding
     {
         Yes,
         ConfigurationOnly,
         No
+    }
+
+    public enum LinqMethodTypes
+    {
+        Compiled,
+        Dynamic
     }
 }

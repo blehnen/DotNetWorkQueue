@@ -24,6 +24,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
 {
+    [Collection("Producer")]
     public class SimpleProducerAsync
     {
         [Theory]

@@ -16,10 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 namespace DotNetWorkQueue
 {
@@ -27,17 +25,9 @@ namespace DotNetWorkQueue
     /// Defines a queue that can send messages
     /// </summary>
     /// <typeparam name="TMessage">The message Type</typeparam>
-    public interface IProducerQueue<TMessage>: IDisposable, IIsDisposed
+    public interface IProducerQueue<TMessage> : IProducerBaseQueue
         where TMessage: class
     {
-        /// <summary>
-        /// The configuration settings for the queue.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
-        QueueProducerConfiguration Configuration { get; }
-
         /// <summary>
         /// Sends the specified message. Additional message meta data is optional.
         /// </summary>

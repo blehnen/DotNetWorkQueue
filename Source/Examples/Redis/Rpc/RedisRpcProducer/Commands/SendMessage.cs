@@ -43,12 +43,12 @@ namespace RedisRpcProducer.Commands
     public class SendMessage : SharedCommands
     {
         private readonly Lazy<QueueContainer<RedisQueueInit>> _queueContainer;
-        private readonly Dictionary<string, IRpcQueue<SimpleResponse, SimpleMessage>> _queues;
+        private readonly Dictionary<string, IRpcBaseQueue> _queues;
 
         public SendMessage()
         {
             _queueContainer = new Lazy<QueueContainer<RedisQueueInit>>(CreateContainer);
-            _queues = new Dictionary<string, IRpcQueue<SimpleResponse, SimpleMessage>>();
+            _queues = new Dictionary<string, IRpcBaseQueue>();
         }
 
         public override ConsoleExecuteResult Info => new ConsoleExecuteResult(ConsoleFormatting.FixedLength("SendMessage", "Sends messages to a queue"));
@@ -127,6 +127,12 @@ namespace RedisRpcProducer.Commands
             base.Dispose(disposing);
         }
 
+        protected override ConsoleExecuteResult ValidateQueue(string queueName)
+        {
+            if (!_queues.ContainsKey(queueName)) return new ConsoleExecuteResult($"{queueName} was not found. Call CreateQueue to create the queue first");
+            return null;
+        }
+
         public ConsoleExecuteResult Send(string queueName,
            int itemCount,
            TimeSpan? rpcTimeout = null,
@@ -134,7 +140,8 @@ namespace RedisRpcProducer.Commands
            TimeSpan? delay = null,
            TimeSpan? expiration = null)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
 
             if (!_queues[queueName].Started)
             {
@@ -153,7 +160,7 @@ namespace RedisRpcProducer.Commands
             {
                 try
                 {
-                    var response = _queues[queueName].Send(message.Message, timeout, message.MessageData);
+                    var response = ((IRpcQueue<SimpleResponse, SimpleMessage>)_queues[queueName]).Send(message.Message, timeout, message.MessageData);
                     if (response.Body == null)
                     {
                         //RPC call failed
@@ -194,7 +201,8 @@ namespace RedisRpcProducer.Commands
            TimeSpan? delay = null,
            TimeSpan? expiration = null)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
 
             if (!_queues[queueName].Started)
             {
@@ -213,7 +221,7 @@ namespace RedisRpcProducer.Commands
             {
                 try
                 {
-                    var response = await _queues[queueName].SendAsync(message.Message, timeout, message.MessageData);
+                    var response = await ((IRpcQueue<SimpleResponse, SimpleMessage>)_queues[queueName]).SendAsync(message.Message, timeout, message.MessageData);
                     if (response.Body == null)
                     {
                         //RPC call failed
@@ -288,14 +296,34 @@ namespace RedisRpcProducer.Commands
             return messages;
         }
 
-        private void CreateModuleIfNeeded(string queueName)
+        public ConsoleExecuteResult CreateQueue(string queueName, int type)
+        {
+            if (Enum.IsDefined(typeof(ConsumerQueueTypes), type))
+            {
+                CreateModuleIfNeeded(queueName, (ConsumerQueueTypes)type);
+                return new ConsoleExecuteResult($"{queueName} has been created");
+            }
+            return new ConsoleExecuteResult($"Invalid queue type {type}. Valid values are 0=POCO,1=Linq Expression");
+        }
+
+        private void CreateModuleIfNeeded(string queueName, ConsumerQueueTypes type)
         {
             if (_queues.ContainsKey(queueName)) return;
             var connection = ConfigurationManager.AppSettings["Connection"];
-            _queues.Add(queueName,
-                _queueContainer.Value.CreateRpc<SimpleResponse, SimpleMessage, RedisQueueRpcConnection>(
-                    new RedisQueueRpcConnection(connection, queueName)));
 
+            switch (type)
+            {
+                case ConsumerQueueTypes.Poco:
+                    _queues.Add(queueName,
+                        _queueContainer.Value.CreateRpc<SimpleResponse, SimpleMessage, RedisQueueRpcConnection>(
+                            new RedisQueueRpcConnection(connection, queueName)));
+                    break;
+                case ConsumerQueueTypes.Method:
+                    _queues.Add(queueName,
+                        _queueContainer.Value.CreateMethodRpc(
+                            new RedisQueueRpcConnection(connection, queueName)));
+                    break;
+            }
             QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<RedisQueueInit>(queueName, connection));
         }
     }

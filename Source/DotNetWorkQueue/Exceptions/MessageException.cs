@@ -22,7 +22,7 @@ using System.Security.Permissions;
 namespace DotNetWorkQueue.Exceptions
 {
     /// <summary>
-    /// An error has occured while processing a message in user code
+    /// An error has occurred while processing a message in user code
     /// </summary>
     /// <remarks>This exception is generated when user message handling code throws an unhandled exception</remarks>
     [Serializable]

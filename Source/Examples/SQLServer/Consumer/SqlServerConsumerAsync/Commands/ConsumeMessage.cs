@@ -31,5 +31,6 @@ namespace SqlServerConsumerAsync.Commands
     public class ConsumeMessage : ConsumeMessageAsync<SqlServerMessageQueueInit>
     {
         public override ConsoleExecuteResult Info => new ConsoleExecuteResult(ConsoleFormatting.FixedLength("ConsumeMessage", "Processes messages in a queue"));
+
     }
 }

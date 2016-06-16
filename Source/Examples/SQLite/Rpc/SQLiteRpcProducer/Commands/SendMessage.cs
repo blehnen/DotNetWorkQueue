@@ -44,12 +44,12 @@ namespace SQLiteRpcProducer.Commands
     public class SendMessage : SharedCommands
     {
         private readonly Lazy<QueueContainer<SqLiteMessageQueueInit>> _queueContainer;
-        private readonly Dictionary<string, IRpcQueue<SimpleResponse, SimpleMessage>> _queues;
+        private readonly Dictionary<string, IRpcBaseQueue> _queues;
 
         public SendMessage()
         {
             _queueContainer = new Lazy<QueueContainer<SqLiteMessageQueueInit>>(CreateContainer);
-            _queues = new Dictionary<string, IRpcQueue<SimpleResponse, SimpleMessage>>();
+            _queues = new Dictionary<string, IRpcBaseQueue>();
         }
 
         public override ConsoleExecuteResult Info => new ConsoleExecuteResult(ConsoleFormatting.FixedLength("SendMessage", "Sends messages to a queue and receives a response"));
@@ -115,6 +115,12 @@ namespace SQLiteRpcProducer.Commands
             return base.Example(command);
         }
 
+        protected override ConsoleExecuteResult ValidateQueue(string queueName)
+        {
+            if (!_queues.ContainsKey(queueName)) return new ConsoleExecuteResult($"{queueName} was not found. Call CreateQueue to create the queue first");
+            return null;
+        }
+
         protected override void Dispose(bool disposing)
         {
             foreach (var queue in _queues.Values)
@@ -138,7 +144,8 @@ namespace SQLiteRpcProducer.Commands
            TimeSpan? expiration = null,
            ushort? priority = null)
         {
-            CreateModuleIfNeeded(queueReceive, queueNameSend);
+            var valid = ValidateQueue(queueReceive);
+            if (valid != null) return valid;
 
             if (!_queues[queueReceive].Started)
             {
@@ -157,7 +164,7 @@ namespace SQLiteRpcProducer.Commands
             {
                 try
                 {
-                    var response = _queues[queueReceive].Send(message.Message, timeout, message.MessageData);
+                    var response = ((IRpcQueue<SimpleResponse, SimpleMessage>)_queues[queueReceive]).Send(message.Message, timeout, message.MessageData);
                     if (response.Body == null)
                     {
                         //RPC call failed
@@ -200,7 +207,8 @@ namespace SQLiteRpcProducer.Commands
            TimeSpan? expiration = null,
            ushort? priority = null)
         {
-            CreateModuleIfNeeded(queueReceive, queueNameSend);
+            var valid = ValidateQueue(queueReceive);
+            if (valid != null) return valid;
 
             if (!_queues[queueReceive].Started)
             {
@@ -219,7 +227,7 @@ namespace SQLiteRpcProducer.Commands
             {
                 try
                 {
-                    var response = await _queues[queueReceive].SendAsync(message.Message, timeout, message.MessageData);
+                    var response = await ((IRpcQueue<SimpleResponse, SimpleMessage>)_queues[queueReceive]).SendAsync(message.Message, timeout, message.MessageData);
                     if (response.Body == null)
                     {
                         //RPC call failed
@@ -299,14 +307,34 @@ namespace SQLiteRpcProducer.Commands
             return messages;
         }
 
-        private void CreateModuleIfNeeded(string queueNameReceive, string queueNameResponse)
+        public ConsoleExecuteResult CreateQueue(string queueNameReceive, string queueNameSend, int type)
+        {
+            if (Enum.IsDefined(typeof(ConsumerQueueTypes), type))
+            {
+                CreateModuleIfNeeded(queueNameReceive, queueNameSend, (ConsumerQueueTypes)type);
+                return new ConsoleExecuteResult($"{queueNameReceive} has been created");
+            }
+            return new ConsoleExecuteResult($"Invalid queue type {type}. Valid values are 0=POCO,1=Linq Expression");
+        }
+
+        private void CreateModuleIfNeeded(string queueNameReceive, string queueNameResponse, ConsumerQueueTypes type)
         {
             if (!_queues.ContainsKey(queueNameReceive))
             {
                 var connection = ConfigurationManager.AppSettings["Connection"];
-                _queues.Add(queueNameReceive,
-                    _queueContainer.Value.CreateRpc<SimpleResponse, SimpleMessage, SqLiteRpcConnection>(
-                        new SqLiteRpcConnection(connection, queueNameReceive, connection, queueNameResponse)));
+                switch (type)
+                {
+                    case ConsumerQueueTypes.Poco:
+                        _queues.Add(queueNameReceive,
+                          _queueContainer.Value.CreateRpc<SimpleResponse, SimpleMessage, SqLiteRpcConnection>(
+                              new SqLiteRpcConnection(connection, queueNameReceive, connection, queueNameResponse)));
+                        break;
+                    case ConsumerQueueTypes.Method:
+                        _queues.Add(queueNameReceive,
+                          _queueContainer.Value.CreateMethodRpc(
+                              new SqLiteRpcConnection(connection, queueNameReceive, connection, queueNameResponse)));
+                        break;
+                }
 
                 QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<SqLiteMessageQueueInit>(queueNameReceive, connection));
                 QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<SqLiteMessageQueueInit>(queueNameResponse, connection));

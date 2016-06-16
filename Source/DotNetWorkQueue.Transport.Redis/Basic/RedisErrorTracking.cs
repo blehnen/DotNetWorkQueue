@@ -20,7 +20,7 @@ using System.Collections.Generic;
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
-    /// Tracks the exceptions that have occured in user code while processing a message
+    /// Tracks the exceptions that have occurred in user code while processing a message
     /// </summary>
     public class RedisErrorTracking
     {

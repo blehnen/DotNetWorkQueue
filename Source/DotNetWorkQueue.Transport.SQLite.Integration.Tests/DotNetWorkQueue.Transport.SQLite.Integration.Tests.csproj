@@ -72,6 +72,18 @@
     <Compile Include="ConsumerAsync\ConsumerAsyncRollBack.cs" />
     <Compile Include="ConsumerAsync\MultiConsumerAsync.cs" />
     <Compile Include="ConsumerAsync\SimpleConsumerAsync.cs" />
+    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncErrorTable.cs" />
+    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncPoisonMessage.cs" />
+    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncRollBack.cs" />
+    <Compile Include="ConsumerMethodAsync\MultiMethodConsumerAsync.cs" />
+    <Compile Include="ConsumerMethodAsync\SimpleMethodConsumerAsync.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodCancelWork.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodErrorTable.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodExpiredMessage.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodHeartbeat.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodPoisonMessage.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodRollBack.cs" />
+    <Compile Include="ConsumerMethod\SimpleMethodConsumer.cs" />
     <Compile Include="Consumer\ConsumerCancelWork.cs" />
     <Compile Include="Consumer\ConsumerErrorTable.cs" />
     <Compile Include="Consumer\ConsumerExpiredMessage.cs" />
@@ -80,12 +92,18 @@
     <Compile Include="Consumer\ConsumerRollBack.cs" />
     <Compile Include="Consumer\SimpleConsumer.cs" />
     <Compile Include="GenerateQueueName.cs" />
+    <Compile Include="ProducerMethod\MultiMethodProducer.cs" />
+    <Compile Include="ProducerMethod\SimpleMethodProducer.cs" />
+    <Compile Include="ProducerMethod\SimpleMethodProducerAsync.cs" />
+    <Compile Include="ProducerMethod\SimpleMethodProducerAsyncBatch.cs" />
+    <Compile Include="ProducerMethod\SimpleMethodProducerBatch.cs" />
     <Compile Include="Producer\MultiProducer.cs" />
     <Compile Include="Producer\SimpleProducer.cs" />
     <Compile Include="Producer\SimpleProducerAsync.cs" />
     <Compile Include="Producer\SimpleProducerAsyncBatch.cs" />
     <Compile Include="Producer\SimpleProducerBatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RpcMethod\SimpleMethodRpc.cs" />
     <Compile Include="rpc\SimpleRPC.cs" />
     <Compile Include="SharedClasses.cs" />
     <Compile Include="VerifyQueueData.cs" />
@@ -108,11 +126,13 @@
     <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
       <Link>DotNetWorkQueue.licenseheader</Link>
     </None>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

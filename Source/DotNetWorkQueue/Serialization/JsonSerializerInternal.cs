@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Text;
+using JsonNet.PrivateSettersContractResolvers;
 using Newtonsoft.Json;
 namespace DotNetWorkQueue.Serialization
 {
@@ -56,7 +57,8 @@ namespace DotNetWorkQueue.Serialization
             Guard.NotNull(() => bytes, bytes);
             var serializerSettings = new JsonSerializerSettings
             {
-                TypeNameHandling = TypeNameHandling.Auto
+                TypeNameHandling = TypeNameHandling.Auto,
+                ContractResolver = new PrivateSetterContractResolver(),
             };
             return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes), serializerSettings);
         }

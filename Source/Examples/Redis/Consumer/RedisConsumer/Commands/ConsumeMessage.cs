@@ -68,7 +68,9 @@ namespace RedisConsumer.Commands
             int resetHeartBeatBatchLimit = 50,
             TimeSpan? delayedProcessingMonitorTime = null)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
+
             Queues[queueName].Configuration.Options().ClearExpiredMessagesBatchLimit = clearExpiredMessagesBatchLimit;
             if (delayedProcessingMonitorTime.HasValue)
             {
@@ -84,7 +86,9 @@ namespace RedisConsumer.Commands
             string server = "pool.ntp.org",
             TimeSpan? timeout = null)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
+
             Queues[queueName].Configuration.Options().SntpTimeConfiguration.Port = port;
             Queues[queueName].Configuration.Options().SntpTimeConfiguration.Server = server;
             if (timeout.HasValue)
@@ -96,7 +100,9 @@ namespace RedisConsumer.Commands
 
         public ConsoleExecuteResult SetTimeClientOptions(string queueName, int value)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
+
             var type = (TimeLocations)value;
             Queues[queueName].Configuration.Options().TimeServer = type;
             return new ConsoleExecuteResult($"Set time client to {type}");
@@ -104,7 +110,9 @@ namespace RedisConsumer.Commands
 
         public ConsoleExecuteResult SetMessageIdOptions(string queueName, int value)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
+
             var type = (MessageIdLocations)value;
             Queues[queueName].Configuration.Options().MessageIdLocation = type;
             return new ConsoleExecuteResult($"Set time client to {type}");

@@ -17,23 +17,14 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Configuration;
 namespace DotNetWorkQueue
 {
     /// <summary>
     /// A task scheduler queue that runs on top of a <see cref="IConsumerQueueAsync"/> instance.
     /// </summary>
     /// <remarks>Use this queue to manage the tasks for you. Use <see cref="IConsumerQueueAsync"/> if you want to manage the tasks yourself.</remarks>
-    public interface IConsumerQueueScheduler : IDisposable, IIsDisposed
+    public interface IConsumerQueueScheduler : IConsumerBaseQueue
     {
-        /// <summary>
-        /// Gets the configuration.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
-        QueueConsumerConfiguration Configuration { get; }
-
         /// <summary>
         /// Starts the queue
         /// </summary>

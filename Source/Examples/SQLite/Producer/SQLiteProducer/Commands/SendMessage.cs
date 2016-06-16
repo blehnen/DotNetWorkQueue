@@ -41,18 +41,20 @@ using ExampleMessage;
 
 namespace SQLiteProducer.Commands
 {
-    public class SendMessage: SharedCommands
+    public class SendMessage: SharedSendCommands
     {
         private readonly Lazy<QueueContainer<SqLiteMessageQueueInit>> _queueContainer;
-        private readonly Dictionary<string, IProducerQueue<SimpleMessage>> _queues;
+        private readonly Dictionary<string, IProducerBaseQueue> _queues;
 
         private readonly object _asyncStringBuilderLock = new object();
 
         public SendMessage()
         {
             _queueContainer = new Lazy<QueueContainer<SqLiteMessageQueueInit>>(CreateContainer);
-            _queues = new Dictionary<string, IProducerQueue<SimpleMessage>>();
+            _queues = new Dictionary<string, IProducerBaseQueue>();
         }
+
+        protected override Dictionary<string, IProducerBaseQueue> Queues => _queues;
 
         public override ConsoleExecuteResult Info => new ConsoleExecuteResult(ConsoleFormatting.FixedLength("SendMessage", "Sends messages to a queue"));
 
@@ -116,6 +118,12 @@ namespace SQLiteProducer.Commands
             return base.Example(command);
         }
 
+        protected override ConsoleExecuteResult ValidateQueue(string queueName)
+        {
+            if (!_queues.ContainsKey(queueName)) return new ConsoleExecuteResult($"{queueName} was not found. Call CreateQueue to create the queue first");
+            return null;
+        }
+
         public ConsoleExecuteResult Send(string queueName,
             int itemCount,
             int runtime = 100,
@@ -124,12 +132,13 @@ namespace SQLiteProducer.Commands
             TimeSpan? expiration = null,
             ushort? priority = null)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             var returnMessage = new StringBuilder();
             var messages = GenerateMessages(CreateMessages(itemCount, runtime).ToList(), delay, expiration, priority);
             if (batched)
             {
-                var result = _queues[queueName].Send(messages);
+                var result = ((IProducerQueue<SimpleMessage>)_queues[queueName]).Send(messages);
                 if (result.HasErrors)
                 {
                     foreach (var error in result.Where(error => error.HasError))
@@ -142,7 +151,7 @@ namespace SQLiteProducer.Commands
             {
                 foreach (var message in messages)
                 {
-                    var result = _queues[queueName].Send(message.Message, message.MessageData);
+                    var result = ((IProducerQueue<SimpleMessage>)_queues[queueName]).Send(message.Message, message.MessageData);
                     if (result.HasError)
                     {
                         returnMessage.AppendLine(result.SendingException.ToString());
@@ -166,12 +175,13 @@ namespace SQLiteProducer.Commands
             TimeSpan? expiration = null,
             ushort? priority = null)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             var returnMessage = new StringBuilder();
             var messages = GenerateMessages(CreateMessages(itemCount, runtime).ToList(), delay, expiration, priority);
             if (batched)
             {
-                var result = await _queues[queueName].SendAsync(messages).ConfigureAwait(false);
+                var result = await ((IProducerQueue<SimpleMessage>)_queues[queueName]).SendAsync(messages).ConfigureAwait(false);
                 if (result.HasErrors)
                 {
                     foreach (var error in result.Where(error => error.HasError))
@@ -187,7 +197,7 @@ namespace SQLiteProducer.Commands
             {
                 foreach (var message in messages)
                 {
-                    var result = await _queues[queueName].SendAsync(message.Message, message.MessageData).ConfigureAwait(false);
+                    var result = await ((IProducerQueue<SimpleMessage>)_queues[queueName]).SendAsync(message.Message, message.MessageData).ConfigureAwait(false);
                     if (!result.HasError) continue;
                     lock (_asyncStringBuilderLock)
                     {
@@ -266,14 +276,33 @@ namespace SQLiteProducer.Commands
             return messages;
         }
 
-        private void CreateModuleIfNeeded(string queueName)
+        public ConsoleExecuteResult CreateQueue(string queueName, int type)
+        {
+            if (Enum.IsDefined(typeof(ConsumerQueueTypes), type))
+            {
+                CreateModuleIfNeeded(queueName, (ConsumerQueueTypes)type);
+                return new ConsoleExecuteResult($"{queueName} has been created");
+            }
+            return new ConsoleExecuteResult($"Invalid queue type {type}. Valid values are 0=POCO,1=Linq Expression");
+        }
+
+        private void CreateModuleIfNeeded(string queueName, ConsumerQueueTypes type)
         {
             if (!_queues.ContainsKey(queueName))
             {
-                _queues.Add(queueName,
-                    _queueContainer.Value.CreateProducer<SimpleMessage>(queueName,
-                        ConfigurationManager.AppSettings["Connection"]));
-
+                switch (type)
+                {
+                    case ConsumerQueueTypes.Poco:
+                        _queues.Add(queueName,
+                            _queueContainer.Value.CreateProducer<SimpleMessage>(queueName,
+                                ConfigurationManager.AppSettings["Connection"]));
+                        break;
+                    case ConsumerQueueTypes.Method:
+                        _queues.Add(queueName,
+                          _queueContainer.Value.CreateMethodProducer(queueName,
+                              ConfigurationManager.AppSettings["Connection"]));
+                        break;
+                }
                 QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<SqLiteMessageQueueInit>(queueName, ConfigurationManager.AppSettings["Connection"]));
             }
         }

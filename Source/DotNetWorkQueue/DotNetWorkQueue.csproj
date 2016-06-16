@@ -35,6 +35,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Aq.ExpressionJsonSerializer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer.dll</HintPath>
+    </Reference>
+    <Reference Include="JpLabs.DynamicCode">
+      <HintPath>..\..\Lib\JpLabs.DynamicCode.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.1.0.0\lib\net45\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
@@ -53,6 +60,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
@@ -67,6 +75,7 @@
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="ATaskScheduler.cs" />
+    <Compile Include="Cache\CachePolicy.cs" />
     <Compile Include="Configuration\AdditionalConfiguration.cs" />
     <Compile Include="Configuration\BaseConnectionInformation.cs" />
     <Compile Include="Configuration\BaseRpcConnection.cs" />
@@ -80,11 +89,32 @@
     <Compile Include="Configuration\TransportInitDuplex.cs" />
     <Compile Include="Configuration\TransportInitReceive.cs" />
     <Compile Include="Configuration\TransportInitSend.cs" />
+    <Compile Include="Exceptions\CompileException.cs" />
     <Compile Include="Factory\ContainerFactory.cs" />
     <Compile Include="Factory\WorkerNotificationFactoryNoOp.cs" />
+    <Compile Include="ICachePolicy.cs" />
+    <Compile Include="IConsumerBaseQueue.cs" />
+    <Compile Include="IConsumerMethodQueue.cs" />
+    <Compile Include="IConsumerMethodQueueScheduler.cs" />
     <Compile Include="IContainerFactory.cs" />
     <Compile Include="ICreationScope.cs" />
+    <Compile Include="IExpressionSerializer.cs" />
+    <Compile Include="IMessageMethodHandling.cs" />
+    <Compile Include="IMessageProcessingRpcReceive.cs" />
+    <Compile Include="IMessageProcessingRpcSend.cs" />
+    <Compile Include="ILinqCompiler.cs" />
+    <Compile Include="IProducerBaseQueue.cs" />
+    <Compile Include="IProducerMethodQueue.cs" />
+    <Compile Include="IQueue.cs" />
+    <Compile Include="IQueueContainer.cs" />
+    <Compile Include="IRpcBaseQueue.cs" />
+    <Compile Include="IRpcMethodQueue.cs" />
+    <Compile Include="LinqCompile\Decorator\LinqCompileCacheDecorator.cs" />
+    <Compile Include="LinqCompile\LinqCompiler.cs" />
     <Compile Include="Logging\NoSpecifiedLogProvider.cs" />
+    <Compile Include="Messages\MessageExpression.cs" />
+    <Compile Include="Messages\MessageMethodHandling.cs" />
+    <Compile Include="Messages\LinqExpressionToRun.cs" />
     <Compile Include="QueueStatusContainer.cs" />
     <Compile Include="Factory\GetTimeFactory.cs" />
     <Compile Include="Factory\GetTimeFactoryNoOp.cs" />
@@ -155,17 +185,22 @@
     <Compile Include="QueueStatus\QueueStatusProviderNoOp.cs" />
     <Compile Include="QueueStatus\SystemEntry.cs" />
     <Compile Include="Queue\AddStandardMessageHeaders.cs" />
+    <Compile Include="Queue\ConsumerMethodQueue.cs" />
     <Compile Include="Queue\CreationScopeNoOp.cs" />
     <Compile Include="Queue\GenerateMessageHeaders.cs" />
     <Compile Include="Queue\MessageErrorEventArgs.cs" />
     <Compile Include="Queue\MessageProcessingMode.cs" />
+    <Compile Include="Queue\ProducerMethodQueue.cs" />
     <Compile Include="Queue\QueueContext.cs" />
     <Compile Include="Queue\RollbackMessage.cs" />
+    <Compile Include="Queue\RpcMethodQueue.cs" />
     <Compile Include="Queue\StopThread.cs" />
     <Compile Include="Queue\WorkerErrorEventArgs.cs" />
     <Compile Include="Queue\WorkerNotificationNoOp.cs" />
     <Compile Include="Serialization\CompositeSerialization.cs" />
+    <Compile Include="Serialization\JsonExpressionSerializer.cs" />
     <Compile Include="Serialization\MessageBody.cs" />
+    <Compile Include="Serialization\PrivateSettersContractResolvers.cs" />
     <Compile Include="Serialization\RootSerializer.cs" />
     <Compile Include="TaskScheduling\SchedulerMessageHandler.cs" />
     <Compile Include="TaskScheduling\SchedulerInit.cs" />
@@ -246,6 +281,7 @@
     <Compile Include="Queue\WorkerHeartBeatNotificationNoOp.cs" />
     <Compile Include="Queue\WorkerWaitForEventOrCancel.cs" />
     <Compile Include="SchedulerContainer.cs" />
+    <Compile Include="TaskScheduling\SchedulerMethod.cs" />
     <Compile Include="TaskScheduling\SchedulerTaskFactory.cs" />
     <Compile Include="TaskScheduling\StateInformation.cs" />
     <Compile Include="TaskScheduling\ThreadPoolConfiguration.cs" />
@@ -305,7 +341,7 @@
     <Compile Include="IReceiveMessagesFactory.cs" />
     <Compile Include="IResponseID.cs" />
     <Compile Include="IResponseIDFactory.cs" />
-    <Compile Include="IScheduler.cs" />
+    <Compile Include="IConsumerQueueScheduler.cs" />
     <Compile Include="ITaskScheduler.cs" />
     <Compile Include="IThreadPool.cs" />
     <Compile Include="IWaitForEventOrCancel.cs" />
@@ -412,6 +448,7 @@
     <Compile Include="Time\LocalMachineTime.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="DotNetWorkQueue.licenseheader" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -435,6 +472,8 @@
       <MergeAssemblies Include="$(OutputPath)\Newtonsoft.Json.dll" />
       <MergeAssemblies Include="$(OutputPath)\SimpleInjector.dll" />
       <MergeAssemblies Include="$(OutputPath)\SmartThreadPool.dll" />
+      <MergeAssemblies Include="$(OutputPath)\Aq.ExpressionJsonSerializer.dll" />
+      <MergeAssemblies Include="$(OutputPath)\JpLabs.DynamicCode.dll" />
       <MergeAssemblies Include="$(OutputPath)\Microsoft.IO.RecyclableMemoryStream.dll" />
     </ItemGroup>
     <PropertyGroup>

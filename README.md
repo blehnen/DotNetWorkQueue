@@ -3,7 +3,7 @@ DotNetWorkQueue
 
 [![License LGPLv2.1](https://img.shields.io/badge/license-LGPLv2.1-green.svg)](http://www.gnu.org/licenses/lgpl-2.1.html)
 
-A producer / consumer library for dot net applications. Available transports are SQL server, SQLite and Redis
+A producer / distributed consumer library for dot net applications. Available transports are SQL server, SQLite and Redis
 
 See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for more indepth documention
 Installation
@@ -22,7 +22,7 @@ Metrics
 
 * NuGet package [DotNetWorkQueue.Metrics.Net](https://www.nuget.org/packages/DotNetWorkQueue.Metrics.Net/)
 
-Usage
+Usage - POCO
 ------
 
 [**Message**]
@@ -156,6 +156,151 @@ private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNoti
 }
 
 ```
+Usage - Linq Expression
+------
+
+You can choose to send Linq expressions to be executed instead. This has some advantages, as the consumers are generic; they no longer need to be message specific. The below examples are not transport specifc and assume that any queue creation steps have already been performed.  However, that means it's possible to queue up work that doesn't actually compile.
+
+[**Shared Classes**]
+Note that the producer needs references to shared resources when using standard Linq statements. However, if you are using dyanmic linq statements (expressed as a string), the producer does not need any references to the types being executed.
+
+```csharp
+
+Assembly: ProducerMethodTestingClasses.dll
+NameSpace: ProducerMethodTestingClasses
+
+public class TestCompile
+{
+	public void RunMe(IReceivedMessage<MessageExpression> message, IWorkerNotification workNotification)
+    {
+    	Console.WriteLine(message.MessageId.Id.Value);
+    }
+}
+
+public class TestClass
+{
+	public void RunMe(IWorkerNotification workNotification, string input1, int input2, SomeInput moreInput)
+	{
+		var sb = new StringBuilder();
+		sb.Append(input1);
+        sb.Append(" ");
+		sb.Append(input2);
+        sb.Append(" ");
+		sb.AppendLine(moreInput.Message);
+		Console.Write(sb.ToString());
+	}
+}
+
+public class SomeInput
+{
+	public SomeInput()
+    {
+    }
+
+    public SomeInput(string message)
+    {
+    	Message = message;
+    }
+
+	public string Message { get; set; }
+	public override string ToString()
+    {
+   	 	return Message;
+    }
+}
+```
+
+[**Producer**]
+NOTE - if passing in the message or worker notifications as arguments to dynamic linq, you must cast them. The internal compiler treats those as objects. You can see this syntax in the examples below. That's not nessasry if using standard Linq expressions.
+
+```csharp
+Message
+(IReceivedMessage<MessageExpression>)
+
+WorkerNotification
+(IWorkerNotification)
+```
+
+```csharp
+using (var queueContainer = new QueueContainer<AnyTransport>())
+{
+	using (var queue = queueContainer.CreateMethodProducer(queueName, connectionString))
+     {
+		//send a standard linq expression
+        queue.Send((message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
+
+		//send another standard linq expression
+		queue.Send((message, workerNotification) => new TestClass().RunMe(
+              workerNotification,
+              "a string",
+              2,
+              new SomeInput(DateTime.UtcNow.ToString())));
+
+       //send a dynamic expression. The consumer will attempt to compile and run this.
+       //The producer will perform no checks on this expression.
+       //note that you must indicate which additional assemblies and name spaces
+       //are needed to compile your expression or dependent classes.
+       queue.Send(new LinqExpressionToRun(
+        "(message, workerNotification) => new TestClass().RunMe((IWorkerNotification)workerNotification, \"dynamic\", 2, new SomeInput(DateTime.UtcNow.ToString()))",
+          new List<string> { "ProducerMethodTestingClasses.dll" }, //additional references
+          new List<string> { "ProducerMethodTestingClasses" })); //additional using statements
+
+       //send another dynamic expression
+       queue.Send(new LinqExpressionToRun(
+        "(message, workerNotification) => new TestCompile().RunMe((IReceivedMessage<MessageExpression>)message, (IWorkerNotification)workerNotification)",
+          new List<string> { "ProducerMethodTestingClasses.dll" },
+          new List<string> { "ProducerMethodTestingClasses" }));
+	}
+}
+
+```
+
+If you are passing value types, you will need to parse them. Here is an example.
+The Guid and the int are both inside string literials and parsed via the built in dot.net methods.
+
+```csharp
+var id = Guid.NewGuid();
+var runTime = 200;
+$"(message, workerNotification) => StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))"
+```
+
+This will produce a linq expression that can be compiled and executed by the consumer, assuming that it can resolve all of the types.
+
+
+[**Consumer**]
+The consumer is generic; it can process any linq expression. However, it must be able to resolve all types that the linq expression uses. You may need to wire up an assembly resolver if your DLL's cannot be located.
+
+https://msdn.microsoft.com/en-us/library/system.appdomain.assemblyresolve(v=vs.110).aspx
+
+```csharp
+//NOTE - assumed that scheduler factory has already been created
+using (var queueContainer = new QueueContainer<AnyTransport>())
+{
+	using (var queue = queueContainer.CreateConsumerMethodQueueScheduler(queueName,
+       connectionString, factory))
+    {
+        queue.Start();
+        Console.WriteLine("Processing messages - press any key to stop");
+        Console.ReadKey(true);
+     }
+}
+```
+
+The above queue will process all Linq statements sent to the specified connection / queue.
+
+[**Considerations**]
+
+No sandboxing or checking for risky commands is performed. For instance, the below statement will cause your consumer host to exit.
+
+```csharp
+"(message, workerNotification) => Environment.Exit(0)"
+```
+
+If you decide to allow configuration files to define dyanmic Linq statements (or if you cannot trust the producer), you should consider running the consumer in an application domain sandbox. Otherwise, the only thing stopping a command like the following from executing would be O/S user permissions.
+
+```csharp
+"(message, workerNotification) => System.IO.Directory.Delete(@"C:\Windows\, true)"
+```
 
 [**More examples**](https://github.com/blehnen/DotNetWorkQueue/tree/master/Source/Examples)
 ------
@@ -214,6 +359,15 @@ This library uses multiple 3rd party libaries, listed below.
 * [Newtonsoft.Json ](http://www.newtonsoft.com/json)
 
 * [SmartThreadPool ](https://github.com/amibar/SmartThreadPool)
+
+* [JpLabs.DynamicCode ](http://jp-labs.blogspot.com/2008/11/dynamic-lambda-expressions-using.html)
+
+* [JsonNet.PrivateSetterContractResolvers ](https://github.com/danielwertheim/jsonnet-privatesetterscontractresolvers)
+
+* [Expression-JSON-Serializer ](https://github.com/aquilae/expression-json-serializer)*
+
+*A fork of this module was created and thread saftey changes made. This is the version that is being used. It can be found here [Expression-JSON-Serializer ](https://github.com/blehnen/expression-json-serializer)
+
 
 
 [**DotNetWorkQueue.Transport.Redis**]

@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
         InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux),
         InlineData(10, 5, 180, 7, ConnectionInfoTypes.Linux),
         InlineData(3000, 0, 240, 25, ConnectionInfoTypes.Linux),
-            InlineData(1000, 0, 240, 5, ConnectionInfoTypes.Windows),
+        InlineData(1000, 0, 240, 5, ConnectionInfoTypes.Windows),
         InlineData(50, 5, 200, 10, ConnectionInfoTypes.Windows),
         InlineData(10, 5, 180, 7, ConnectionInfoTypes.Windows),
         InlineData(3000, 0, 240, 25, ConnectionInfoTypes.Windows)]

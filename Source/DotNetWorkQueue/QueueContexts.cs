@@ -70,6 +70,22 @@ namespace DotNetWorkQueue
         /// <summary>
         /// The queue status module
         /// </summary>
-        QueueStatus = 11
+        QueueStatus = 11,
+        /// <summary>
+        /// The producer method queue
+        /// </summary>
+        ProducerMethodQueue = 12,
+        /// <summary>
+        /// The consumer method queue
+        /// </summary>
+        ConsumerMethodQueue = 13,
+        /// <summary>
+        /// The queue/scheduler for an async consumer queue; will process method messages
+        /// </summary>
+        ConsumerMethodQueueScheduler = 14,
+        /// <summary>
+        /// The RPC method queue. Functions are executed in the queue, and the function return value is sent back.
+        /// </summary>
+        RpcMethodQueue = 15
     }
 }

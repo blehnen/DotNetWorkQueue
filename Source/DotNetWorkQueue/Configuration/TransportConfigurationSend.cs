@@ -24,8 +24,6 @@ namespace DotNetWorkQueue.Configuration
     /// </summary>
     public class TransportConfigurationSend : IReadonly, ISetReadonly
     {
-        private bool _isReadonly;
-
         #region Constructor
         /// <summary>
         /// Initializes a new instance of the <see cref="TransportConfigurationSend" /> class.
@@ -54,17 +52,10 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// <c>true</c> if this instance is read only; otherwise, <c>false</c>.
         /// </value>
-        public virtual bool IsReadOnly
-        {
-            get { return _isReadonly; }
-            protected set
-            {
-                _isReadonly = value;
-            }
-        }
+        public virtual bool IsReadOnly { get; protected set; }
 
         /// <summary>
-        /// Throws an exception if the readonly flag is true.
+        /// Throws an exception if the read-only flag is true.
         /// </summary>
         /// <exception cref="System.Data.ReadOnlyException"></exception>
         protected void FailIfReadOnly()
@@ -73,7 +64,7 @@ namespace DotNetWorkQueue.Configuration
         }
 
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         public void SetReadOnly()
         {

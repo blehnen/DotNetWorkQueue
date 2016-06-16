@@ -18,7 +18,10 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Tynamix.ObjectFiller;
+using System.Threading;
+using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
@@ -66,6 +69,157 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             var pFiller = new Filler<TMessage>();
             return pFiller.Create();
+        }
+    }
+
+    public static class GenerateMethod
+    {
+        public static Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> CreateCompiled(Guid id, int runTime)
+        {
+            return (message, workerNotification) => StandardTesting.Run(id, runTime);
+        }
+
+        public static Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> CreateRollBackCompiled(Guid id, int runTime)
+        {
+            return (message, workerNotification) => RollBackTesting.Run(message, id, runTime);
+        }
+
+        public static Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> CreateNoOpCompiled(Guid id, int runTime)
+        {
+            return (message, workerNotification) => StandardTesting.NoOp();
+        }
+
+        public static Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> CreateCancelCompiled(Guid id, int runTime)
+        {
+            return (message, workerNotification) => CancelTesting.Run(message, workerNotification, id, runTime);
+        }
+
+        public static Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> CreateErrorCompiled(Guid id, int runTime)
+        {
+            return (message, workerNotification) => StandardTesting.Error();
+        }
+
+        public static Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> CreateRpcCompiled(
+            Guid id, int runTime)
+        {
+            return (message, workerNotification) => StandardTesting.RunRpc(id, runTime);
+        }
+
+        public static LinqExpressionToRun CreateDynamic(Guid id, int runTime)
+        {
+            return CreateDefaultLinq($"(message, workerNotification) => StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
+        }
+
+        public static LinqExpressionToRun CreateRollBackDynamic(Guid id, int runTime)
+        {
+            return CreateDefaultLinq($"(message, workerNotification) => RollBackTesting.Run((IReceivedMessage<MessageExpression>)message, new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
+        }
+
+        public static LinqExpressionToRun CreateNoOpDynamic(Guid id, int runTime)
+        {
+            return CreateDefaultLinq("(message, workerNotification) => StandardTesting.NoOp()");
+        }
+
+        public static LinqExpressionToRun CreateCancelDynamic(Guid id, int runTime)
+        {
+            return
+                CreateDefaultLinq($"(message, workerNotification) => CancelTesting.Run((IReceivedMessage<MessageExpression>)message, (IWorkerNotification)workerNotification, new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
+        }
+
+        public static LinqExpressionToRun CreateErrorDynamic(Guid id, int runTime)
+        {
+            return CreateDefaultLinq("(message, workerNotification) => StandardTesting.Error()");
+        }
+
+        public static LinqExpressionToRun CreateRpcDynamic(Guid id, int runTime)
+        {
+            return CreateDefaultLinq($"(message, workerNotification) => StandardTesting.RunRpc(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
+        }
+
+        private static LinqExpressionToRun CreateDefaultLinq(string method)
+        {
+            return new LinqExpressionToRun(method, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared.dll" }, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared" });
+        }
+    }
+
+    public static class StandardTesting
+    {
+        public static void Run(Guid id, int runTime)
+        {
+            if (runTime > 0)
+                Thread.Sleep(runTime * 1000);
+
+            MethodIncrementWrapper.IncreaseCounter(id);
+        }
+        public static object RunRpc(Guid id, int runTime)
+        {
+            if (runTime > 0)
+                Thread.Sleep(runTime * 1000);
+
+            MethodIncrementWrapper.IncreaseCounter(id);
+
+            var rc = new FakeResponse {ResponseMessage = "int test"};
+            return rc;
+        }
+        public static void NoOp()
+        {
+
+        }
+
+        public static void Error()
+        {
+            throw new IndexOutOfRangeException("The index is out of range");
+        }
+    }
+
+    public static class CancelTesting
+    {
+        public static void Run<TMessage>(IReceivedMessage<TMessage> message, IWorkerNotification notification, Guid id, int runTime)
+            where TMessage : class
+        {
+            if (MethodIncrementWrapper.HasRollBack((Guid)message.CorrelationId.Id.Value))
+            {
+                var counter = runTime / 3;
+                for (int i = 0; i < counter; i++)
+                {
+                    if (notification.WorkerStopping.StopWorkToken.IsCancellationRequested || notification.WorkerStopping.CancelWorkToken.IsCancellationRequested)
+                    {
+                        MethodIncrementWrapper.IncreaseCounter(id);
+                        return;
+                    }
+                    Thread.Sleep(1000);
+                }
+                MethodIncrementWrapper.IncreaseCounter(id);
+            }
+            else
+            {
+                var counter = runTime/2;
+                for (int i = 0; i < counter; i++)
+                {
+                    Thread.Sleep(1000);
+                }
+                MethodIncrementWrapper.SetRollback((Guid)message.CorrelationId.Id.Value);
+                throw new OperationCanceledException("I don't feel like processing this message");
+            }
+        }
+    }
+    public static class RollBackTesting
+    {
+        public static void Run<TMessage>(IReceivedMessage<TMessage> message, Guid id, int runTime)
+            where TMessage: class
+        {
+            if (MethodIncrementWrapper.HasRollBack((Guid)message.CorrelationId.Id.Value))
+            {
+                if (runTime > 0)
+                    Thread.Sleep(runTime * 1000);
+
+                MethodIncrementWrapper.IncreaseCounter(id);
+            }
+            else
+            {
+                MethodIncrementWrapper.SetRollback((Guid)message.CorrelationId.Id.Value);
+                throw new OperationCanceledException("I don't feel like processing this message");
+            }
         }
     }
 }

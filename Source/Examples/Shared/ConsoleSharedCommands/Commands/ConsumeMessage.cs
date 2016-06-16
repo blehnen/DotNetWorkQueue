@@ -41,12 +41,12 @@ namespace ConsoleSharedCommands.Commands
         where TTransportInit: class, ITransportInit, new()
     {
         private readonly Lazy<QueueContainer<TTransportInit>> _queueContainer;
-        protected readonly Dictionary<string, IConsumerQueue> Queues;
+        protected readonly Dictionary<string, IConsumerBaseQueue> Queues;
 
         protected SharedConsumeMessage()
         {
             _queueContainer = new Lazy<QueueContainer<TTransportInit>>(CreateContainer);
-            Queues = new Dictionary<string, IConsumerQueue>();
+            Queues = new Dictionary<string, IConsumerBaseQueue>();
         }
 
         public override ConsoleExecuteResult Example(string command)
@@ -70,6 +70,8 @@ namespace ConsoleSharedCommands.Commands
                     return new ConsoleExecuteResult("StartQueue examplequeue");
                 case "StopQueue":
                     return new ConsoleExecuteResult("StopQueue examplequeue");
+                case "CreateQueue":
+                    return new ConsoleExecuteResult("CreateQueue examplequeue 0");
             }
             return base.Example(command);
         }
@@ -90,6 +92,8 @@ namespace ConsoleSharedCommands.Commands
         {
             var help = new StringBuilder();
             help.AppendLine(base.Help().Message);
+            help.AppendLine(ConsoleFormatting.FixedLength("CreateQueue queueName queueType",
+               "Creates the initial queue in memory. 0=POCO, 1=Linq Expression"));
             help.AppendLine(ConsoleFormatting.FixedLength("EnableSerilog",
                 "Uses serilog for logging to console; note that this example only works when the worker library is compiled in release mode; this is an example limitation, not a library limitation"));
             help.AppendLine(ConsoleFormatting.FixedLength("SetWorkerConfiguration queueName",
@@ -112,9 +116,21 @@ namespace ConsoleSharedCommands.Commands
             return new ConsoleExecuteResult(help.ToString());
         }
 
+        public ConsoleExecuteResult CreateQueue(string queueName, int type)
+        {
+            if (Enum.IsDefined(typeof(ConsumerQueueTypes), type))
+            {
+                CreateModuleIfNeeded(queueName, (ConsumerQueueTypes) type);
+                return new ConsoleExecuteResult($"{queueName} has been created");
+            }
+            return new ConsoleExecuteResult($"Invalid queue type {type}. Valid values are 0=POCO,1=Linq Expression");
+        }
+
         public ConsoleExecuteResult SetFatalExceptionDelayBehavior(string queueName, params TimeSpan[] timespans)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if(valid != null) return valid;
+
             Queues[queueName].Configuration.TransportConfiguration.FatalExceptionDelayBehavior.Clear();
             Queues[queueName].Configuration.TransportConfiguration.FatalExceptionDelayBehavior.Add(timespans.ToList());
             return new ConsoleExecuteResult("fatal exception delays have been set");
@@ -122,7 +138,8 @@ namespace ConsoleSharedCommands.Commands
 
         public ConsoleExecuteResult SetQueueDelayBehavior(string queueName, params TimeSpan[] timespans)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             Queues[queueName].Configuration.TransportConfiguration.QueueDelayBehavior.Clear();
             Queues[queueName].Configuration.TransportConfiguration.QueueDelayBehavior.Add(timespans.ToList());
             return new ConsoleExecuteResult("queue delays have been set");
@@ -130,7 +147,8 @@ namespace ConsoleSharedCommands.Commands
 
         public ConsoleExecuteResult SetQueueRetryBehavior(string queueName, string exceptionType, params TimeSpan[] timespans)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             Queues[queueName].Configuration.TransportConfiguration.RetryDelayBehavior.Add(Type.GetType(exceptionType, true), timespans.ToList());
             return new ConsoleExecuteResult("queue delays have been set");
         }
@@ -143,7 +161,8 @@ namespace ConsoleSharedCommands.Commands
             TimeSpan? timeToWaitForWorkersToCancel = null
             )
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             Queues[queueName].Configuration.Worker.WorkerCount = workerCount;
             Queues[queueName].Configuration.Worker.SingleWorkerWhenNoWorkFound = singleWorkerWhenNoWorkFound;
             Queues[queueName].Configuration.Worker.AbortWorkerThreadsWhenStopping = abortWorkerThreadsWhenStopping;
@@ -170,7 +189,8 @@ namespace ConsoleSharedCommands.Commands
             TimeSpan? threadIdle = null
             )
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             Queues[queueName].Configuration.HeartBeat.Interval = interval;
             if (deadTime.HasValue)
             {
@@ -194,7 +214,8 @@ namespace ConsoleSharedCommands.Commands
             bool enabled = true,
             TimeSpan? monitorTime = null)
         {
-            CreateModuleIfNeeded(queueName);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
             Queues[queueName].Configuration.MessageExpiration.Enabled = enabled;
             if (monitorTime.HasValue)
             {
@@ -213,9 +234,24 @@ namespace ConsoleSharedCommands.Commands
 
         public ConsoleExecuteResult StartQueue(string queueName)
         {
-            CreateModuleIfNeeded(queueName);
-            Queues[queueName].Start<SimpleMessage>(HandleMessages);
+            var valid = ValidateQueue(queueName);
+            if (valid != null) return valid;
+
+            var queue = Queues[queueName];
+
+            var consumerQueue = queue as IConsumerQueue;
+            consumerQueue?.Start<SimpleMessage>(HandleMessages);
+
+            var consumerMethodQueue = queue as IConsumerMethodQueue;
+            consumerMethodQueue?.Start();
+
             return new ConsoleExecuteResult($"{queueName} started");
+        }
+
+        protected override ConsoleExecuteResult ValidateQueue(string queueName)
+        {
+            if (!Queues.ContainsKey(queueName)) return new ConsoleExecuteResult($"{queueName} was not found. Call CreateQueue to create the queue first");
+            return null;
         }
 
         protected override void Dispose(bool disposing)
@@ -251,13 +287,23 @@ namespace ConsoleSharedCommands.Commands
             }
         }
 
-        protected void CreateModuleIfNeeded(string queueName)
+        protected void CreateModuleIfNeeded(string queueName, ConsumerQueueTypes type)
         {
             if (Queues.ContainsKey(queueName)) return;
 
-            Queues.Add(queueName,
-                _queueContainer.Value.CreateConsumer(queueName,
-                    ConfigurationManager.AppSettings["Connection"]));
+            switch (type)
+            {
+                case ConsumerQueueTypes.Poco:
+                    Queues.Add(queueName,
+                       _queueContainer.Value.CreateConsumer(queueName,
+                           ConfigurationManager.AppSettings["Connection"]));
+                    break;
+                case ConsumerQueueTypes.Method:
+                    Queues.Add(queueName,
+                      _queueContainer.Value.CreateMethodConsumer(queueName,
+                          ConfigurationManager.AppSettings["Connection"]));
+                    break;
+            }
 
             QueueStatus?.AddStatusProvider(
                 QueueStatusContainer.Value.CreateStatusProvider<TTransportInit>(queueName,

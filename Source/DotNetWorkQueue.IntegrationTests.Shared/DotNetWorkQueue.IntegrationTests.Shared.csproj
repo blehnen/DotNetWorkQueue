@@ -33,12 +33,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentAssertions, Version=4.6.3.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentAssertions.4.6.3\lib\net45\FluentAssertions.dll</HintPath>
+    <Reference Include="FluentAssertions, Version=4.9.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.4.9.0\lib\net45\FluentAssertions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FluentAssertions.Core, Version=4.6.3.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentAssertions.4.6.3\lib\net45\FluentAssertions.Core.dll</HintPath>
+    <Reference Include="FluentAssertions.Core, Version=4.9.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.4.9.0\lib\net45\FluentAssertions.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Metrics, Version=0.3.7.0, Culture=neutral, processorArchitecture=MSIL">
@@ -90,6 +90,17 @@
     <Compile Include="ConsumerAsync\ConsumerAsyncPoisonMessageShared.cs" />
     <Compile Include="ConsumerAsync\ConsumerAsyncRollBackShared.cs" />
     <Compile Include="ConsumerAsync\ConsumerAsyncShared.cs" />
+    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncErrorShared.cs" />
+    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncPoisonMessageShared.cs" />
+    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncRollBackShared.cs" />
+    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncShared.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodCancelWorkShared.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodErrorShared.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodExpiredMessageShared.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodHeartbeatShared.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodPoisonMessageShared.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodRollBackShared.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodShared.cs" />
     <Compile Include="Consumer\ConsumerErrorShared.cs" />
     <Compile Include="Consumer\ConsumerExpiredMessageShared.cs" />
     <Compile Include="Consumer\ConsumerHeartbeatShared.cs" />
@@ -101,9 +112,12 @@
     <Compile Include="LoggerShared.cs" />
     <Compile Include="MessageHandlingShared.cs" />
     <Compile Include="Messages.cs" />
+    <Compile Include="ProducerMethod\ProducerMethodAsyncShared.cs" />
+    <Compile Include="ProducerMethod\ProducerMethodShared.cs" />
     <Compile Include="Producer\ProducerAsyncShared.cs" />
     <Compile Include="Producer\ProducerShared.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RpcMethod\RpcMethodShared.cs" />
     <Compile Include="Rpc\RpcShared.cs" />
     <Compile Include="SharedSetup.cs" />
     <Compile Include="VerifyMetrics.cs" />
@@ -122,6 +136,7 @@
     <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
       <Link>DotNetWorkQueue.licenseheader</Link>
     </None>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -49,7 +49,6 @@ namespace ConsoleSharedCommands.Commands
         }
 
         public abstract ConsoleExecuteResult Info { get; }
-
         public virtual ConsoleExecuteResult Example(string command)
         {
             switch (command)
@@ -79,6 +78,8 @@ namespace ConsoleSharedCommands.Commands
             help.AppendLine("");
             return new ConsoleExecuteResult(help.ToString());
         }
+
+        protected abstract ConsoleExecuteResult ValidateQueue(string queueName);
 
         public ConsoleExecuteResult EnableGzip()
         {
@@ -152,5 +153,11 @@ namespace ConsoleSharedCommands.Commands
                 QueueStatusContainer.Value.Dispose();
             }
         }
+    }
+
+    public enum ConsumerQueueTypes
+    {
+        Poco,
+        Method
     }
 }

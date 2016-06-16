@@ -21,6 +21,7 @@ using System.Collections.Concurrent;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.QueueStatus;
 using DotNetWorkQueue.TaskScheduling;
 namespace DotNetWorkQueue
@@ -30,8 +31,7 @@ namespace DotNetWorkQueue
     /// The root container for consumers and producers
     /// </summary>
     /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
-    public class QueueContainer<TTransportInit>: IDisposable
-        where TTransportInit : ITransportInit, new()
+    public class QueueContainer<TTransportInit>: IQueueContainer where TTransportInit : ITransportInit, new()
     {
         // ReSharper disable once StaticMemberInGenericType
         private static Func<ICreateContainer<TTransportInit>> _createContainerInternal = () => new CreateContainer<TTransportInit>();
@@ -146,6 +146,23 @@ namespace DotNetWorkQueue
         }
 
         /// <summary>
+        /// Creates the method consumer queue.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <returns></returns>
+        public IConsumerMethodQueue CreateMethodConsumer(string queue, string connection)
+        {
+            Guard.NotNullOrEmpty(() => queue, queue);
+            Guard.NotNullOrEmpty(() => connection, connection);
+
+            var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queue,
+                connection, _transportInit, ConnectionTypes.Receive, x => { });
+            _containers.Add(container);
+            return container.GetInstance<IConsumerMethodQueue>();
+        }
+
+        /// <summary>
         /// Creates an async consumer queue
         /// </summary>
         /// <param name="queue">The queue.</param>
@@ -162,7 +179,6 @@ namespace DotNetWorkQueue
             _containers.Add(container);
             return container.GetInstance<IConsumerQueueAsync>();
         }
-
         #endregion
 
         #region Scheduler Queue
@@ -183,6 +199,25 @@ namespace DotNetWorkQueue
             _containers.Add(schedulerCreator);
             return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null);
         }
+
+        /// <summary>
+        /// Creates an async consumer queue that uses a task scheduler. The default task factory will be used.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <returns></returns>
+        public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(string queue, string connection)
+        {
+            Guard.NotNullOrEmpty(() => queue, queue);
+            Guard.NotNullOrEmpty(() => connection, connection);
+
+            var schedulerCreator = new SchedulerContainer(_registerService);
+            var factory = schedulerCreator.CreateTaskFactory();
+            factory.Scheduler.Start();
+            _containers.Add(schedulerCreator);
+            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, null);
+        }
+
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
         /// </summary>
@@ -196,6 +231,35 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => connection, connection);
 
             return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null);
+        }
+        /// <summary>
+        /// Creates an async consumer queue that uses a task scheduler
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <param name="factory">The task factory.</param>
+        /// <returns></returns>
+        public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(string queue, string connection, ITaskFactory factory)
+        {
+            Guard.NotNullOrEmpty(() => queue, queue);
+            Guard.NotNullOrEmpty(() => connection, connection);
+
+            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, null);
+        }
+        /// <summary>
+        /// Creates an async consumer queue that uses a task scheduler
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <param name="factory">The task factory.</param>
+        /// <param name="workGroup">The work group.</param>
+        /// <returns></returns>
+        public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(string queue, string connection, ITaskFactory factory, IWorkGroup workGroup)
+        {
+            Guard.NotNullOrEmpty(() => queue, queue);
+            Guard.NotNullOrEmpty(() => connection, connection);
+
+            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, workGroup);
         }
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -244,6 +308,38 @@ namespace DotNetWorkQueue
             _containers.Add(container);
             return container.GetInstance<IConsumerQueueScheduler>();
         }
+
+        /// <summary>
+        /// Creates the consumer method queue scheduler.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <param name="factory">The factory.</param>
+        /// <param name="workGroup">The work group.</param>
+        /// <returns></returns>
+        private IConsumerMethodQueueScheduler CreateConsumerMethodQueueSchedulerInternal(string queue,
+            string connection, ITaskFactory factory, IWorkGroup workGroup)
+        {
+            Guard.NotNullOrEmpty(() => queue, queue);
+            Guard.NotNullOrEmpty(() => connection, connection);
+
+            IContainer container;
+            //NOTE - we exclude the scheduler from the above scope no matter what, as either the user owns it or the factory does - this queue does not.
+            if (workGroup == null)
+            {
+                container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                    serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton).
+                    Register(() => factory.Scheduler, LifeStyles.Singleton));
+            }
+            else
+            {
+                container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                     serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register(() => workGroup, LifeStyles.Singleton).
+                    Register(() => factory.Scheduler, LifeStyles.Singleton));
+            }
+            _containers.Add(container);
+            return container.GetInstance<IConsumerMethodQueueScheduler>();
+        }
         #endregion
 
         #region Producer queue
@@ -268,17 +364,35 @@ namespace DotNetWorkQueue
             return container.GetInstance<IProducerQueue<TMessage>>();
         }
 
+        /// <summary>
+        /// Creates a producer queue for executing linq expressions.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <returns></returns>
+        public IProducerMethodQueue CreateMethodProducer(
+            string queue, string connection)
+        {
+            Guard.NotNullOrEmpty(() => queue, queue);
+            Guard.NotNullOrEmpty(() => connection, connection);
+
+            var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
+                connection, _transportInit, ConnectionTypes.Send, x => { });
+            _containers.Add(container);
+            return container.GetInstance<IProducerMethodQueue>();
+        }
+
         #endregion
 
         #region RPC Queue
 
         /// <summary>
-        /// Creates the an RPC queue.
+        /// Creates an RPC queue.
         /// </summary>
         /// <typeparam name="TMessageReceive">The type of the received message.</typeparam>
         /// <typeparam name="TMessageSend">The type of the sent message.</typeparam>
         /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
-        /// <param name="connectonSettings">The connecton settings.</param>
+        /// <param name="connectonSettings">The connection settings.</param>
         /// <returns></returns>
         public IRpcQueue<TMessageReceive, TMessageSend> CreateRpc
             <TMessageReceive, TMessageSend, TTConnectionSettings>(TTConnectionSettings connectonSettings)
@@ -303,6 +417,30 @@ namespace DotNetWorkQueue
                     .GetInstance<IRpcQueue<TMessageReceive, TMessageSend>>();
         }
 
+        /// <summary>
+        /// Creates an RPC queue.
+        /// </summary>
+        /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
+        /// <param name="connectonSettings">The connection settings.</param>
+        /// <returns></returns>
+        public IRpcMethodQueue CreateMethodRpc
+            <TTConnectionSettings>(TTConnectionSettings connectonSettings)
+            where TTConnectionSettings : BaseRpcConnection
+        {
+            //create a base RPC queue for usage by the method RPC queue
+            var rpc = CreateRpc<object, MessageExpression, TTConnectionSettings>(connectonSettings);
+            var connectionReceive = connectonSettings.GetConnection(ConnectionTypes.Receive);
+            var container = _createContainerInternal().Create(QueueContexts.RpcMethodQueue, _registerService,
+                connectionReceive.QueueName, connectionReceive.ConnectionString, _transportInit, ConnectionTypes.Receive,
+                serviceRegister =>
+                    serviceRegister.Register(
+                        () => rpc, LifeStyles.Singleton).Register(
+                        () => connectonSettings, LifeStyles.Singleton));
+            _containers.Add(container);
+            return
+                container
+                    .GetInstance<IRpcMethodQueue>();
+        }
 
         /// <summary>
         /// Creates an RPC queue that can send responses

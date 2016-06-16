@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -26,32 +25,10 @@ namespace DotNetWorkQueue
     /// </summary>
     /// <typeparam name="TReceivedMessage">The message type of the response</typeparam>
     /// <typeparam name="TSendMessage">The type of the message to send</typeparam>
-    public interface IRpcQueue<TReceivedMessage, in TSendMessage> : IDisposable, IIsDisposed
+    public interface IRpcQueue<TReceivedMessage, in TSendMessage> : IRpcBaseQueue
         where TReceivedMessage : class
         where TSendMessage : class
     {
-        /// <summary>
-        /// Starts the queue.
-        /// </summary>
-        /// <remarks>This must be called after setting any configuration options, and before sending any messages.</remarks>
-        void Start();
-
-        /// <summary>
-        /// The queue configuration
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
-        QueueRpcConfiguration Configuration { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether this <see cref="IRpcQueue{TReceivedMessage, TSendMessage}"/> is started.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if started; otherwise, <c>false</c>.
-        /// </value>
-        bool Started { get; }
-
         /// <summary>
         /// Sends the specified message.
         /// </summary>

@@ -35,8 +35,8 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly QueueConsumerConfiguration _configurationReceive;
         private readonly QueueRpcConfiguration _configurationRpc;
-        private readonly MessageProcessingRpcReceive<TReceivedMessage> _messageProcessingRpcReceive;
-        private readonly MessageProcessingRpcSend<TSendMessage> _messageProcessingRpcSend;
+        private readonly IMessageProcessingRpcReceive<TReceivedMessage> _messageProcessingRpcReceive;
+        private readonly IMessageProcessingRpcSend<TSendMessage> _messageProcessingRpcSend;
         private readonly IQueueWaitFactory _queueWaitFactory;
 
         private readonly IClearExpiredMessagesRpcMonitor _clearQueue;
@@ -61,8 +61,8 @@ namespace DotNetWorkQueue.Queue
             QueueConsumerConfiguration configurationReceive,
             IClearExpiredMessagesRpcMonitor clearMessages,
             ILogFactory log,
-            MessageProcessingRpcReceive<TReceivedMessage> messageProcessingRpcReceive,
-            MessageProcessingRpcSend<TSendMessage> messageProcessingRpcSend,
+            IMessageProcessingRpcReceive<TReceivedMessage> messageProcessingRpcReceive,
+            IMessageProcessingRpcSend<TSendMessage> messageProcessingRpcSend,
             IQueueWaitFactory queueWaitFactory)
             : base(log)
         {
@@ -131,9 +131,13 @@ namespace DotNetWorkQueue.Queue
 
             //send the request
             var sm = data == null ? _messageProcessingRpcSend.Handle(message, timeout) : _messageProcessingRpcSend.Handle(message, data, timeout);
-
-            //look for the response
-            return _messageProcessingRpcReceive.Handle(sm.MessageId, timeout, _queueWait);
+            if (sm.MessageId != null && sm.MessageId.HasValue)
+            {
+                //look for the response
+                return _messageProcessingRpcReceive.Handle(sm.MessageId, timeout, _queueWait);
+            }
+            throw new DotNetWorkQueueException(
+                "A null messageID was returned; this generally indicates a setup problem. Verify your queue types");
         }
         /// <summary>
         /// Sends a message, and awaits a response

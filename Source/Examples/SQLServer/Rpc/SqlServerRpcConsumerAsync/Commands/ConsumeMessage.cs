@@ -31,5 +31,10 @@ namespace SqlServerRpcConsumerAsync.Commands
     public class ConsumeMessage : ConsumeMessageAsync<SqlServerMessageQueueInit>
     {
         public override ConsoleExecuteResult Info => new ConsoleExecuteResult(ConsoleFormatting.FixedLength("ConsumeMessage", "Processes messages in a queue"));
+        protected override ConsoleExecuteResult ValidateQueue(string queueName)
+        {
+            if (!Queues.ContainsKey(queueName)) return new ConsoleExecuteResult($"{queueName} was not found. Call CreateQueue to create the queue first");
+            return null;
+        }
     }
 }

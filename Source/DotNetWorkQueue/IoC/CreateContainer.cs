@@ -73,6 +73,10 @@ namespace DotNetWorkQueue.IoC
                     ComponentRegistration.RegisterDefaultsForScheduler(containerWrapper);
                 }
 
+                //allow creating internal queues
+                containerWrapper.Register<IQueueContainer>(() => new QueueContainer<T>(),
+                    LifeStyles.Singleton);
+
                 // Enable overriding
                 container.Options.AllowOverridingRegistrations = true;
 
@@ -92,7 +96,7 @@ namespace DotNetWorkQueue.IoC
                 //allow specific warnings to be disabled
                 register.SuppressWarningsIfNeeded(containerWrapper, type);
 
-                //supress IoC warnings that we are explictly handling
+                //suppress IoC warnings that we are explicitly handling
                 ComponentRegistration.SuppressWarningsIfNeeded(containerWrapper, type);
 
                 //set the log provider, if one was provided
