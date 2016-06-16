@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
             {
                 try
                 {
-                    var message = queue.Send(job, TimeSpan.FromSeconds(30));
+                    var message = queue.Send(job, TimeSpan.FromSeconds(60));
                     if (message == null)
                     {
                         throw new DotNetWorkQueueException("The response timed out");
@@ -145,7 +145,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
             {
                 try
                 {
-                    var message = await queue.SendAsync(job, TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+                    var message = await queue.SendAsync(job, TimeSpan.FromSeconds(60)).ConfigureAwait(false);
                     if (message == null)
                     {
                         throw new DotNetWorkQueueException("The response timed out");
