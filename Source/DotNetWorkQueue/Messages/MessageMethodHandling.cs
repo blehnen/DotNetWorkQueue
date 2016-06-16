@@ -93,7 +93,20 @@ namespace DotNetWorkQueue.Messages
                         _linqCompiler.CompileAction(
                             _compositeSerialization.InternalSerializer.ConvertBytesTo<LinqExpressionToRun>(
                                 receivedMessage.Body.SerializedExpression));
-                    HandleAction(targetMethod, receivedMessage, workerNotification);
+
+                    try
+                    {
+                        HandleAction(targetMethod, receivedMessage, workerNotification);
+                    }
+                    catch (Exception error) //throw the real exception if needed
+                    {
+                        if (error.Message == "Exception has been thrown by the target of an invocation." &&
+                            error.InnerException != null)
+                        {
+                            throw error.InnerException;
+                        }
+                        throw;
+                    }
 
                     break;
                 case MessageExpressionPayloads.FunctionText:
@@ -101,7 +114,21 @@ namespace DotNetWorkQueue.Messages
                         _linqCompiler.CompileFunction(
                             _compositeSerialization.InternalSerializer.ConvertBytesTo<LinqExpressionToRun>(
                                 receivedMessage.Body.SerializedExpression));
-                    HandleFunction(targetFunction, receivedMessage, workerNotification);
+
+                    try
+                    {
+                        HandleFunction(targetFunction, receivedMessage, workerNotification);
+                    }
+                    catch (Exception error) //throw the real exception if needed
+                    {
+                        if (error.Message == "Exception has been thrown by the target of an invocation." &&
+                            error.InnerException != null)
+                        {
+                            throw error.InnerException;
+                        }
+                        throw;
+                    }
+
                     break;
                 default:
                     throw new DotNetWorkQueueException($"The method type of {receivedMessage.Body.PayLoad} is not implemented");
