@@ -40,15 +40,18 @@ namespace DotNetWorkQueue.LinqCompile
         {
             Guard.NotNull(() => linqExpression, linqExpression);
             Guard.NotNullOrEmpty(() => linqExpression.Linq, linqExpression.Linq);
-            var compiler = CreateCompiler(linqExpression);
-            try
+            using (var compiler = CreateCompiler(linqExpression))
             {
-                var data = compiler.ParseLambdaExpr<Action<object, object>>(linqExpression.Linq).Compile();
-                return data;
-            }
-            catch (Exception error)
-            {
-                throw new CompileException($"Failed to compile linq expression {linqExpression.Linq}", error, linqExpression.Linq);
+                try
+                {
+                    var data = compiler.ParseLambdaExpr<Action<object, object>>(linqExpression.Linq).Compile();
+                    return data;
+                }
+                catch (Exception error)
+                {
+                    throw new CompileException($"Failed to compile linq expression {linqExpression.Linq}", error,
+                        linqExpression.Linq);
+                }
             }
         }
 
@@ -61,15 +64,18 @@ namespace DotNetWorkQueue.LinqCompile
         {
             Guard.NotNull(() => linqExpression, linqExpression);
             Guard.NotNullOrEmpty(() => linqExpression.Linq, linqExpression.Linq);
-            var compiler = CreateCompiler(linqExpression);
-            try
+            using (var compiler = CreateCompiler(linqExpression))
             {
-                var data = compiler.ParseLambdaExpr<Func<object, object, object>>(linqExpression.Linq).Compile();
-                return data;
-            }
-            catch (Exception error)
-            {
-                throw new CompileException($"Failed to compile linq expression [{linqExpression.Linq}]", error, linqExpression.Linq);
+                try
+                {
+                    var data = compiler.ParseLambdaExpr<Func<object, object, object>>(linqExpression.Linq).Compile();
+                    return data;
+                }
+                catch (Exception error)
+                {
+                    throw new CompileException($"Failed to compile linq expression [{linqExpression.Linq}]", error,
+                        linqExpression.Linq);
+                }
             }
         }
 
