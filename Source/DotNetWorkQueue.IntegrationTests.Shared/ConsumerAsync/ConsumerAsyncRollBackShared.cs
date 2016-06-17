@@ -91,6 +91,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                     VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 1, 0);
                 }
             }
+            haveIProcessedYouBefore.Clear();
         }
     }
 }

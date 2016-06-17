@@ -36,6 +36,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SQLite.Tests", "DotNetWorkQueue.Transport.SQLite.Tests\DotNetWorkQueue.Transport.SQLite.Tests.csproj", "{4EE22A64-AC28-488F-A840-D8B9A9720F94}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests", "DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests\DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj", "{310C6EC3-DF9D-4BD8-B5D5-F90DA5D6E338}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests", "DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests\DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj", "{42445E2C-6F0A-4E2D-B784-77870EBAE975}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests", "DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests\DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj", "{965C9CB4-403F-4B66-BBFD-1901905BC2BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,6 +104,18 @@ Global
 		{4EE22A64-AC28-488F-A840-D8B9A9720F94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EE22A64-AC28-488F-A840-D8B9A9720F94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4EE22A64-AC28-488F-A840-D8B9A9720F94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{310C6EC3-DF9D-4BD8-B5D5-F90DA5D6E338}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{310C6EC3-DF9D-4BD8-B5D5-F90DA5D6E338}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{310C6EC3-DF9D-4BD8-B5D5-F90DA5D6E338}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{310C6EC3-DF9D-4BD8-B5D5-F90DA5D6E338}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42445E2C-6F0A-4E2D-B784-77870EBAE975}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42445E2C-6F0A-4E2D-B784-77870EBAE975}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42445E2C-6F0A-4E2D-B784-77870EBAE975}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42445E2C-6F0A-4E2D-B784-77870EBAE975}.Release|Any CPU.Build.0 = Release|Any CPU
+		{965C9CB4-403F-4B66-BBFD-1901905BC2BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{965C9CB4-403F-4B66-BBFD-1901905BC2BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{965C9CB4-403F-4B66-BBFD-1901905BC2BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{965C9CB4-403F-4B66-BBFD-1901905BC2BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
