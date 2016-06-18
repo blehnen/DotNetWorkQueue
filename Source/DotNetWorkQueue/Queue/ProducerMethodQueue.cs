@@ -173,7 +173,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public async Task<IQueueOutputMessage> SendAsync(LinqExpressionToRun linqExpression, IAdditionalMessageData data = null)
         {
-            var message = new MessageExpression(MessageExpressionPayloads.Action, _compositeSerialization.InternalSerializer.ConvertToBytes(linqExpression));
+            var message = new MessageExpression(MessageExpressionPayloads.ActionText, _compositeSerialization.InternalSerializer.ConvertToBytes(linqExpression));
             return await _queue.SendAsync(message, data).ConfigureAwait(false);
         }
 
@@ -185,7 +185,7 @@ namespace DotNetWorkQueue.Queue
         public async Task<IQueueOutputMessages> SendAsync(List<LinqExpressionToRun> methods)
         {
             var messages = new List<MessageExpression>(methods.Count);
-            messages.AddRange(methods.Select(method => new MessageExpression(MessageExpressionPayloads.Action, _compositeSerialization.InternalSerializer.ConvertToBytes(method))));
+            messages.AddRange(methods.Select(method => new MessageExpression(MessageExpressionPayloads.ActionText, _compositeSerialization.InternalSerializer.ConvertToBytes(method))));
             return await _queue.SendAsync(messages).ConfigureAwait(false);
         }
 
@@ -199,7 +199,7 @@ namespace DotNetWorkQueue.Queue
             var messages = new List<QueueMessage<MessageExpression, IAdditionalMessageData>>(methods.Count);
             foreach (var method in methods)
             {
-                var message = new MessageExpression(MessageExpressionPayloads.Action, _compositeSerialization.InternalSerializer.ConvertToBytes(method));
+                var message = new MessageExpression(MessageExpressionPayloads.ActionText, _compositeSerialization.InternalSerializer.ConvertToBytes(method));
                 messages.Add(new QueueMessage<MessageExpression, IAdditionalMessageData>(message, method.MessageData));
             }
             return await _queue.SendAsync(messages).ConfigureAwait(false);
