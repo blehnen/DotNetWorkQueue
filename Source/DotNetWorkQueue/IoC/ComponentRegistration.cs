@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.IoC
                 RegisterSharedDefaults(container);
 
                 //object cache
-                container.Register<ObjectCache>(() => MemoryCache.Default, LifeStyles.Singleton);
+                container.Register<ObjectCache>(() => new MemoryCache("DotNetWorkQueueCache"), LifeStyles.Singleton);
                 container.RegisterDecorator<ILinqCompiler, LinqCompileCacheDecorator>(LifeStyles.Singleton);
 
                 //created outside of the queue as part of setup, this must be a singleton.
