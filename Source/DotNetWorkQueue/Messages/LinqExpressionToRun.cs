@@ -43,18 +43,18 @@ namespace DotNetWorkQueue.Messages
         /// <param name="linq">The linq.</param>
         /// <param name="references">The references. Add any DLL references needed by your code here</param>
         /// <param name="usings">The using statements. Add any using statements needed by your code here</param>
+        /// <param name="unique">if set to <c>true</c> this expression contains data that makes it likely to unique. The compiler may choose to not cache the output if this flag is true.</param>
         /// <example>
-        /// 
         /// The compiler needs to know about all of your references and any using statements that are required.
-        /// 
         /// new LinqExpressionToRun(
-        ///     "(message, workerNotification) => new TestClass().RunMe((IWorkerNotification)workerNotification, \"dynamic\", 2, new SomeInput(DateTime.UtcNow.ToString()))",
-        ///                        new List{string} {"ProducerMethodTestingClasses.dll"}, //additional references
-        ///                        new List{string} {"ProducerMethodTestingClasses.TestClasses"})); //additional using statements
+        /// "(message, workerNotification) =&gt; new TestClass().RunMe((IWorkerNotification)workerNotification, \"dynamic\", 2, new SomeInput(DateTime.UtcNow.ToString()))",
+        /// new List{string} {"ProducerMethodTestingClasses.dll"}, //additional references
+        /// new List{string} {"ProducerMethodTestingClasses.TestClasses"})); //additional using statements
         /// </example>
-        public LinqExpressionToRun(string linq, IReadOnlyList<string> references = null, IReadOnlyList<string> usings = null): this()
+        public LinqExpressionToRun(string linq, IReadOnlyList<string> references = null, IReadOnlyList<string> usings = null, bool unique = false) : this()
         {
             Linq = linq;
+            Unique = unique;
             if(references != null)
                 References = references;
             if(usings != null)
@@ -87,6 +87,13 @@ namespace DotNetWorkQueue.Messages
         /// </value>
         public IReadOnlyList<string> Usings { get;  }
 
+        /// <summary>
+        /// If true, this expression contains data that makes it likely to unique. The compiler may choose to not cache the output if this flag is true.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if unique; otherwise, <c>false</c>.
+        /// </value>
+        public bool Unique { get; }
         /// <summary>
         /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
         /// </summary>
@@ -129,6 +136,7 @@ namespace DotNetWorkQueue.Messages
             {
                 var hash = (int)2166136261;
                 hash = (hash * 16777619) ^ Linq.GetHashCode();
+                hash = (hash*16777619) ^ Unique.GetHashCode();
                 hash = References.Aggregate(hash, (current, field) => (current*16777619) ^ field.GetHashCode());
                 return Usings.Aggregate(hash, (current, field) => (current*16777619) ^ field.GetHashCode());
             }

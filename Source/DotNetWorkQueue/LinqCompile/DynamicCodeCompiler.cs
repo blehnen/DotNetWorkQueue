@@ -17,26 +17,33 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Exceptions;
+using System.Linq;
+using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using JpLabs.DynamicCode;
+
 namespace DotNetWorkQueue.LinqCompile
 {
     /// <summary>
-    /// Compiles Linq strings into actions and functions
+    /// A wrapper for <see cref="Compiler"/> that allows for caching of application domain instances
     /// </summary>
-    /// <seealso cref="ILinqCompiler" />
-    internal class LinqCompiler : ILinqCompiler
+    /// <seealso cref="DotNetWorkQueue.IPooledObject" />
+    /// <seealso cref="System.IDisposable" />
+    /// <remarks>This class is not thread safe - the caller must ensure that only one thread acts on an single instance.</remarks>
+    internal class DynamicCodeCompiler: IPooledObject, IDisposable
     {
-        private readonly IObjectPool<DynamicCodeCompiler> _objectPool;
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LinqCompiler" /> class.
-        /// </summary>
-        /// <param name="objectPool">The object pool.</param>
-        public LinqCompiler(IObjectPool<DynamicCodeCompiler> objectPool)
-        {
-            _objectPool = objectPool;
-        }
+        private static readonly string[] DefaultReferences = { "System.dll", "System.Core.dll", "DotNetWorkQueue.dll" };
+        private static readonly string[] DefaultUsings = { "System", "System.Collections.Generic", "System.Linq", "System.Linq.Expressions", "DotNetWorkQueue", "DotNetWorkQueue.Messages" };
+        private readonly Compiler _compiler;
+        private readonly ILog _log;
 
+        private const int MaxAssemblyCount = 10;
+
+        public DynamicCodeCompiler(ILogFactory log)
+        {
+            _compiler = new Compiler();
+            _log = log.Create();
+        }
         /// <summary>
         /// Compiles the input linqExpression into a Linq expression tree
         /// </summary>
@@ -44,24 +51,10 @@ namespace DotNetWorkQueue.LinqCompile
         /// <returns></returns>
         public Action<object, object> CompileAction(LinqExpressionToRun linqExpression)
         {
-            Guard.NotNull(() => linqExpression, linqExpression);
-            Guard.NotNullOrEmpty(() => linqExpression.Linq, linqExpression.Linq);
-            var compiler = _objectPool.GetObject();
-            try
-            {
-                return compiler.CompileAction(linqExpression);
-            }
-            catch (Exception error)
-            {
-                throw new CompileException($"Failed to compile linq expression {linqExpression.Linq}", error,
-                    linqExpression.Linq);
-            }
-            finally
-            {
-                _objectPool.ReturnObject(compiler);
-            }
+            _compiler.References = DefaultReferences.Union(linqExpression.References).ToArray();
+            _compiler.Usings = DefaultUsings.Union(linqExpression.Usings).ToArray();
+            return _compiler.ParseLambdaExpr<Action<object, object>>(linqExpression.Linq).Compile();
         }
-
         /// <summary>
         /// Compiles the input linqExpression into a Linq expression tree
         /// </summary>
@@ -69,26 +62,26 @@ namespace DotNetWorkQueue.LinqCompile
         /// <returns></returns>
         public Func<object, object, object> CompileFunction(LinqExpressionToRun linqExpression)
         {
-            Guard.NotNull(() => linqExpression, linqExpression);
-            Guard.NotNullOrEmpty(() => linqExpression.Linq, linqExpression.Linq);
-            var compiler = _objectPool.GetObject();
-            try
-            {
-                return compiler.CompileFunction(linqExpression);
-            }
-            catch (Exception error)
-            {
-                throw new CompileException($"Failed to compile linq expression [{linqExpression.Linq}]", error,
-                    linqExpression.Linq);
-            }
-            finally
-            {
-                _objectPool.ReturnObject(compiler);
-            }
+            _compiler.References = DefaultReferences.Union(linqExpression.References).ToArray();
+            _compiler.Usings = DefaultUsings.Union(linqExpression.Usings).ToArray();
+            return _compiler.ParseLambdaExpr<Func<object, object, object>>(linqExpression.Linq).Compile();
+        }
+
+        /// <summary>
+        /// Resets the state of the instance before re-adding it to the pool
+        /// </summary>
+        /// <remarks>
+        /// There is no guarantee that this method is called for instances not being added to the pool
+        /// </remarks>
+        public void ResetState()
+        {
+            if (_compiler.DynamicAssembliesCount < MaxAssemblyCount) return;
+            _log.Log(LogLevel.Debug, () => $"Max dynamic assembly count {MaxAssemblyCount} reached; Recycling AppDomain");
+            _compiler.RecycleAppDomain();
         }
 
         #region IDisposable Support
-        private bool _disposedValue;
+        private bool _disposedValue; // To detect redundant calls
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
@@ -99,7 +92,7 @@ namespace DotNetWorkQueue.LinqCompile
             {
                 if (disposing)
                 {
-                    _objectPool.Dispose();
+                   _compiler.Dispose();
                 }
                 _disposedValue = true;
             }

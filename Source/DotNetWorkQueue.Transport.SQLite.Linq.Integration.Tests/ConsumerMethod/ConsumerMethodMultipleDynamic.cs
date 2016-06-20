@@ -26,32 +26,15 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("SQLite")]
-    public class SimpleMethodConsumer
+    public class ConsumerMethodMultipleDynamic
     {
         [Theory]
-        [InlineData(1000, 0, 240, 5, true, LinqMethodTypes.Dynamic),
-        InlineData(50, 5, 200, 10, true, LinqMethodTypes.Dynamic),
-        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Dynamic),
-        InlineData(2000, 0, 240, 10, true, LinqMethodTypes.Dynamic),
-        InlineData(1000, 0, 240, 5, false, LinqMethodTypes.Dynamic),
-        InlineData(50, 5, 200, 10, false, LinqMethodTypes.Dynamic),
-        InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic),
-        InlineData(2000, 0, 240, 10, false, LinqMethodTypes.Dynamic),
-        InlineData(10, 45, 280, 5, false, LinqMethodTypes.Dynamic),
-        InlineData(10, 45, 280, 5, false, LinqMethodTypes.Dynamic),
-            InlineData(1000, 0, 240, 5, true, LinqMethodTypes.Compiled),
-        InlineData(50, 5, 200, 10, true, LinqMethodTypes.Compiled),
-        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled),
-        InlineData(2000, 0, 240, 10, true, LinqMethodTypes.Compiled),
-        InlineData(1000, 0, 240, 5, false, LinqMethodTypes.Compiled),
-        InlineData(50, 5, 200, 10, false, LinqMethodTypes.Compiled),
-        InlineData(10, 15, 180, 7, false, LinqMethodTypes.Compiled),
-        InlineData(2000, 0, 240, 10, false, LinqMethodTypes.Compiled),
-        InlineData(10, 45, 280, 5, false, LinqMethodTypes.Compiled),
-        InlineData(10, 45, 280, 5, false, LinqMethodTypes.Compiled)]
-        public void Run(int messageCount, int runtime, 
-            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+        [InlineData(1000, 0, 240, 5, true),
+         InlineData(2000, 0, 240, 10, true),
+         InlineData(1000, 0, 240, 5, false),
+         InlineData(2000, 0, 240, 10, false)]
+        public void Run(int messageCount, int runtime,
+            int timeOut, int workerCount, bool inMemoryDb)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -78,20 +61,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             var result = oCreation.CreateQueue();
                             Assert.True(result.Success, result.ErrorMessage);
 
-                            var producer = new ProducerMethodShared();
+                            var producer = new ProducerMethodMultipleDynamicShared();
                             var id = Guid.NewGuid();
-                            if (linqMethodTypes == LinqMethodTypes.Compiled)
-                            {
-                                producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
-                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime);
-                            }
-                            else
-                            {
-                                producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
-                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime);
-                            }
+                            producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
+                                connectionInfo.ConnectionString, false, messageCount, logProvider,
+                                Helpers.GenerateData,
+                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime);
 
                             var consumer = new ConsumerMethodShared();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
@@ -101,7 +76,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 workerCount, timeOut,
                                 TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
 
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
+                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options)
+                                .Verify(0, false, false);
                         }
                     }
                     finally

@@ -159,7 +159,11 @@ private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNoti
 Usage - Linq Expression
 ------
 
-You can choose to send Linq expressions to be executed instead. This has some advantages, as the consumers are generic; they no longer need to be message specific. The below examples are not transport specifc and assume that any queue creation steps have already been performed.  However, that means it's possible to queue up work that doesn't actually compile.
+You can choose to send Linq expressions to be executed instead. This has some advantages, as the producers and consumers are generic; they no longer need to be message specific. The below examples are not transport specifc and assume that any queue creation steps have already been performed.
+
+NOTE: It's possbile for a producer to queue up work that a consumer cannot process. In order for a consumer to execute the Linq statement, all types must be resolvable. For dynamic statements, it's also possible to queue up work that doesn't compile due to syntax errors. That won't be discovered until the consumer dequeues the work.
+
+####Example#####
 
 [**Shared Classes**]
 Note that the producer needs references to shared resources when using standard Linq statements. However, if you are using dyanmic linq statements (expressed as a string), the producer does not need any references to the types being executed.

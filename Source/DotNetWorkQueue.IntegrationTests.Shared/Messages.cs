@@ -105,6 +105,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             return (message, workerNotification) => StandardTesting.RunRpc(id, runTime);
         }
 
+        public static LinqExpressionToRun CreateMultipleDynamic(Guid id, int counter, int runTime)
+        {
+            return CreateDefaultLinq($"(message, workerNotification) => StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"), int.Parse(\"{counter}\"))", true);
+        }
         public static LinqExpressionToRun CreateDynamic(Guid id, int runTime)
         {
             return CreateDefaultLinq($"(message, workerNotification) => StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
@@ -136,9 +140,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             return CreateDefaultLinq($"(message, workerNotification) => StandardTesting.RunRpc(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
         }
 
-        private static LinqExpressionToRun CreateDefaultLinq(string method)
+        private static LinqExpressionToRun CreateDefaultLinq(string method, bool unquie = false)
         {
-            return new LinqExpressionToRun(method, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared.dll" }, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared" });
+            return new LinqExpressionToRun(method, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared.dll" }, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared" }, unquie);
         }
 
         public static void ClearCancel(Guid id)
@@ -162,6 +166,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             MethodIncrementWrapper.Clear(queueId);
         }
         public static void Run(Guid queueId, int runTime)
+        {
+            if (runTime > 0)
+                Thread.Sleep(runTime * 1000);
+
+            MethodIncrementWrapper.IncreaseCounter(queueId);
+        }
+        public static void Run(Guid queueId, int runTime, int counter)
         {
             if (runTime > 0)
                 Thread.Sleep(runTime * 1000);

@@ -16,9 +16,18 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Reflection;
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests")]
-[assembly: AssemblyProduct("DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests")]
+namespace DotNetWorkQueue
+{
+    /// <summary>
+    /// Objects placed in <seealso cref="IObjectPool{T}"/> must inherit from this interface.
+    /// </summary>
+    /// <remarks>Allows pooled objects to reset state if needed</remarks>
+    public interface IPooledObject
+    {
+        /// <summary>
+        /// Resets the state of the instance before re-adding it to the pool
+        /// </summary>
+        /// <remarks>There is no guarantee that this method is called for instances not being added to the pool</remarks>
+        void ResetState();
+    }
+}

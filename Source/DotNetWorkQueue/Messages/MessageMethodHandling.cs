@@ -285,6 +285,7 @@ namespace DotNetWorkQueue.Messages
                 queue.Dispose();
             }
             _rpcQueues.Clear();
+            _linqCompiler.Dispose();
         }
 
         /// <summary>

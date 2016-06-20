@@ -49,8 +49,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                             connectionString))
                 {
                     SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-                    var waitForFinish = new ManualResetEventSlim(false);
-                    waitForFinish.Reset();
                     queue.Start();
                     var counter = 0;
                     while (counter < timeOut)

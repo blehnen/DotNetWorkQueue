@@ -76,6 +76,7 @@
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="ATaskScheduler.cs" />
     <Compile Include="Cache\CachePolicy.cs" />
+    <Compile Include="Cache\ObjectPool.cs" />
     <Compile Include="Configuration\AdditionalConfiguration.cs" />
     <Compile Include="Configuration\BaseConnectionInformation.cs" />
     <Compile Include="Configuration\BaseRpcConnection.cs" />
@@ -103,6 +104,8 @@
     <Compile Include="IMessageProcessingRpcReceive.cs" />
     <Compile Include="IMessageProcessingRpcSend.cs" />
     <Compile Include="ILinqCompiler.cs" />
+    <Compile Include="IObjectPool.cs" />
+    <Compile Include="IPooledObject.cs" />
     <Compile Include="IProducerBaseQueue.cs" />
     <Compile Include="IProducerMethodQueue.cs" />
     <Compile Include="IQueue.cs" />
@@ -110,6 +113,7 @@
     <Compile Include="IRpcBaseQueue.cs" />
     <Compile Include="IRpcMethodQueue.cs" />
     <Compile Include="LinqCompile\Decorator\LinqCompileCacheDecorator.cs" />
+    <Compile Include="LinqCompile\DynamicCodeCompiler.cs" />
     <Compile Include="LinqCompile\LinqCompiler.cs" />
     <Compile Include="Logging\NoSpecifiedLogProvider.cs" />
     <Compile Include="Messages\MessageExpression.cs" />

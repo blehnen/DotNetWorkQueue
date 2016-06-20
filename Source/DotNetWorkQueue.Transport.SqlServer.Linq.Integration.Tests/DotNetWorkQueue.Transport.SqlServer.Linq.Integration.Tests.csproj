@@ -80,6 +80,7 @@
     <Compile Include="ConsumerMethod\ConsumerMethodErrorTable.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodExpiredMessage.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodHeartbeat.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodMultipleDynamic.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodPoisonMessage.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodRollBack.cs" />
     <Compile Include="ConsumerMethod\SimpleMethodConsumer.cs" />

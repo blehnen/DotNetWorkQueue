@@ -27,47 +27,37 @@ using Xunit;
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
 {
     [Collection("Redis")]
-    public class ConsumerMethodCancelWork
+    public class ConsumerMethodMultipleDynamic
     {
         [Theory]
-        [InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(7, 5, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-            InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(7, 5, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
-        public void Run(int messageCount, int runtime, 
-            int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
+        [InlineData(1000, 0, 140, 5, ConnectionInfoTypes.Linux),
+        InlineData(1000, 0, 240, 25, ConnectionInfoTypes.Linux),
+        InlineData(1000, 0, 140, 5, ConnectionInfoTypes.Windows),
+        InlineData(1000, 0, 240, 25, ConnectionInfoTypes.Windows)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (var queueCreator =
-                new QueueCreationContainer<RedisQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            using (
+                var queueCreator =
+                    new QueueCreationContainer<RedisQueueInit>(
+                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
                 try
                 {
                     var id = Guid.NewGuid();
-                    var producer = new ProducerMethodShared();
-                    if (linqMethodTypes == LinqMethodTypes.Compiled)
-                    {
-                        producer.RunTestCompiled<RedisQueueInit>(queueName,
-                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime);
-                    }
-                    else
-                    {
-                        producer.RunTestDynamic<RedisQueueInit>(queueName,
-                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateCancelDynamic, runtime);
-                    }
+                    var producer = new ProducerMethodMultipleDynamicShared();
+                    producer.RunTestDynamic<RedisQueueInit>(queueName,
+                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime);
 
-                    var consumer = new ConsumerMethodCancelWorkShared<RedisQueueInit>();
-                    consumer.RunConsumer(queueName, connectionString, false, logProvider,
+                    var consumer = new ConsumerMethodShared();
+                    consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false, logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, serviceRegister => serviceRegister.Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
+                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
 
                     new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
-                    GenerateMethod.ClearCancel(id);
                 }
                 finally
                 {

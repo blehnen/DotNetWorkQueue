@@ -17,27 +17,34 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Messages;
-
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Compiles a string into a Linq expression tree
+    /// A basic pooling strategy for objects, based on the MSDN example: https://msdn.microsoft.com/en-us/library/ff458671(v=vs.110).aspx
     /// </summary>
-    public interface ILinqCompiler: IDisposable
+    /// <typeparam name="T"></typeparam>
+    public interface IObjectPool<T>: IDisposable where T : IPooledObject
     {
         /// <summary>
-        /// Compiles the input linqExpression into a Linq expression tree
+        /// A factory for creating new objects for the pool.
         /// </summary>
-        /// <param name="linqExpression">The linqExpression.</param>
-        /// <returns></returns>
-        Action<object, object> CompileAction(LinqExpressionToRun linqExpression);
+        Func<T> Factory { get; }
 
         /// <summary>
-        /// Compiles the input linqExpression into a Linq expression tree
+        /// Defines the maximum pool size
         /// </summary>
-        /// <param name="linqExpression">The linqExpression.</param>
-        /// <returns></returns>
-        Func<object, object, object> CompileFunction(LinqExpressionToRun linqExpression);
+        int MaximumPoolSize { get; }
+
+        /// <summary>
+        /// Returns an object from the pool, or a new object if the pool is full.
+        /// </summary>
+        /// <returns>A monitored object from the pool.</returns>
+        T GetObject();
+
+        /// <summary>
+        /// Returns the object to the pool, if the pool is not over the <seealso cref="MaximumPoolSize"/>
+        /// </summary>
+        /// <param name="value">The value.</param>
+        void ReturnObject(T value);
     }
 }

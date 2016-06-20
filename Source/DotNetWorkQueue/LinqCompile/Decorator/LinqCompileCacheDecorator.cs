@@ -61,6 +61,11 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
         /// <returns></returns>
         public Action<object, object> CompileAction(LinqExpressionToRun linqExpression)
         {
+            if (linqExpression.Unique) //don't bother caching
+            {
+                return _handler.CompileAction(linqExpression);
+            }
+
             var key = GenerateKey(linqExpression);
             var result = (Action<object, object>)_cache[key];
 
@@ -81,6 +86,11 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
         /// <returns></returns>
         public Func<object, object, object> CompileFunction(LinqExpressionToRun linqExpression)
         {
+            if (linqExpression.Unique) //don't bother caching
+            {
+                return _handler.CompileFunction(linqExpression);
+            }
+
             var key = GenerateKey(linqExpression);
             var result = (Func<object, object, object>)_cache[key];
 
@@ -115,6 +125,14 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
                 builder.Append("|");
             }
             return builder.ToString();
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+           _handler.Dispose();
         }
     }
 }

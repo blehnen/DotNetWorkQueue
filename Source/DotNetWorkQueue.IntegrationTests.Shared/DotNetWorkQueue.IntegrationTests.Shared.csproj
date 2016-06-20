@@ -113,6 +113,7 @@
     <Compile Include="MessageHandlingShared.cs" />
     <Compile Include="Messages.cs" />
     <Compile Include="ProducerMethod\ProducerMethodAsyncShared.cs" />
+    <Compile Include="ProducerMethod\ProducerMethodMultipleDynamicShared.cs" />
     <Compile Include="ProducerMethod\ProducerMethodShared.cs" />
     <Compile Include="Producer\ProducerAsyncShared.cs" />
     <Compile Include="Producer\ProducerShared.cs" />

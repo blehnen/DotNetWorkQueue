@@ -90,6 +90,7 @@
     <Compile Include="ConsumerMethod\ConsumerMethodHeartbeat.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodPoisonMessage.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodRollBack.cs" />
+    <Compile Include="ConsumerMethod\ConsumerMethodMultipleDynamic.cs" />
     <Compile Include="ConsumerMethod\SimpleMethodConsumer.cs" />
     <Compile Include="ProducerMethod\SimpleMethodProducer.cs" />
     <Compile Include="ProducerMethod\SimpleMethodProducerAsync.cs" />

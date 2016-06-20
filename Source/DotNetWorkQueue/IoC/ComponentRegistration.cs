@@ -86,6 +86,9 @@ namespace DotNetWorkQueue.IoC
                 container.Register<ObjectCache>(() => new MemoryCache("DotNetWorkQueueCache"), LifeStyles.Singleton);
                 container.RegisterDecorator<ILinqCompiler, LinqCompileCacheDecorator>(LifeStyles.Singleton);
 
+                //object pool for linq 
+                container.Register<IObjectPool<DynamicCodeCompiler>>(() => new ObjectPool<DynamicCodeCompiler>(20, () => new DynamicCodeCompiler(container.GetInstance<ILogFactory>())), LifeStyles.Singleton);
+
                 //created outside of the queue as part of setup, this must be a singleton.
                 //all queues created from the setup class share the same message interceptors
                 container.Register<IMessageInterceptorRegistrar, Interceptors.MessageInterceptors>(LifeStyles.Singleton);
