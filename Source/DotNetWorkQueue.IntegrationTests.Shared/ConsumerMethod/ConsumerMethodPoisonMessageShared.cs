@@ -44,27 +44,32 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, true);
                 using (
-                    var queue =
-                        creator.CreateMethodConsumer(queueName,
-                            connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics,
+                        true))
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-
-                    var waitForFinish = new ManualResetEventSlim(false);
-                    waitForFinish.Reset();
-                    queue.Start();
-                    for (var i = 0; i < timeOut; i++)
+                    using (
+                        var queue =
+                            creator.CreateMethodConsumer(queueName,
+                                connectionString))
                     {
-                        if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+
+                        var waitForFinish = new ManualResetEventSlim(false);
+                        waitForFinish.Reset();
+                        queue.Start();
+                        for (var i = 0; i < timeOut; i++)
                         {
-                            break;
+                            if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                            {
+                                break;
+                            }
+                            Thread.Sleep(1000);
                         }
-                        Thread.Sleep(1000);
                     }
+                    VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
-                VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
             }
         }
     }

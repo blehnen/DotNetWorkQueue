@@ -48,46 +48,50 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics,
-                    true);
-                using (var schedulerCreator = new SchedulerContainer())
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics,
+                        true))
                 {
-                    using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                    using (var schedulerCreator = new SchedulerContainer())
                     {
-                        taskScheduler.Configuration.MaximumThreads = workerCount;
-                        taskScheduler.Configuration.MaxQueueSize = queueSize;
-
-                        taskScheduler.Start();
-                        var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
-
-                        using (
-                            var queue =
-                                creator
-                                    .CreateConsumerQueueScheduler(
-                                        queueName, connectionString, taskFactory))
+                        using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
                         {
-                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime, heartBeatMonitorTime);
+                            taskScheduler.Configuration.MaximumThreads = workerCount;
+                            taskScheduler.Configuration.MaxQueueSize = queueSize;
 
-                            //start looking for work
-                            queue.Start<TMessage>((message, notifications) =>
-                            {
-                                MessageHandlingShared.HandleFakeMessageNoOp();
-                            });
+                            taskScheduler.Start();
+                            var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
 
-                            for (var i = 0; i < timeOut; i++)
+                            using (
+                                var queue =
+                                    creator
+                                        .CreateConsumerQueueScheduler(
+                                            queueName, connectionString, taskFactory))
                             {
-                                if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
+                                    heartBeatMonitorTime);
+
+                                //start looking for work
+                                queue.Start<TMessage>((message, notifications) =>
                                 {
-                                    break;
-                                }
-                                Thread.Sleep(1000);
-                            }
+                                    MessageHandlingShared.HandleFakeMessageNoOp();
+                                });
 
-                            //wait for last error to be saved if needed.
-                            Thread.Sleep(3000);
+                                for (var i = 0; i < timeOut; i++)
+                                {
+                                    if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                                    {
+                                        break;
+                                    }
+                                    Thread.Sleep(1000);
+                                }
+
+                                //wait for last error to be saved if needed.
+                                Thread.Sleep(3000);
+                            }
                         }
+                        VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                     }
-                    VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
             }
         }

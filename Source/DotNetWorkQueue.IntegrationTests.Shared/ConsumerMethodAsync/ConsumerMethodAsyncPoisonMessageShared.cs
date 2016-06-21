@@ -47,40 +47,44 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics,
-                    true);
-                using (var schedulerCreator = new SchedulerContainer())
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics,
+                        true))
                 {
-                    using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                    using (var schedulerCreator = new SchedulerContainer())
                     {
-                        taskScheduler.Configuration.MaximumThreads = workerCount;
-                        taskScheduler.Configuration.MaxQueueSize = queueSize;
-
-                        taskScheduler.Start();
-                        var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
-
-                        using (
-                            var queue =
-                                creator
-                                    .CreateConsumerMethodQueueScheduler(
-                                        queueName, connectionString, taskFactory))
+                        using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
                         {
-                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime, heartBeatMonitorTime);
-                            queue.Start();
-                            for (var i = 0; i < timeOut; i++)
-                            {
-                                if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) == messageCount)
-                                {
-                                    break;
-                                }
-                                Thread.Sleep(1000);
-                            }
+                            taskScheduler.Configuration.MaximumThreads = workerCount;
+                            taskScheduler.Configuration.MaxQueueSize = queueSize;
 
-                            //wait for last error to be saved if needed.
-                            Thread.Sleep(3000);
+                            taskScheduler.Start();
+                            var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
+
+                            using (
+                                var queue =
+                                    creator
+                                        .CreateConsumerMethodQueueScheduler(
+                                            queueName, connectionString, taskFactory))
+                            {
+                                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
+                                    heartBeatMonitorTime);
+                                queue.Start();
+                                for (var i = 0; i < timeOut; i++)
+                                {
+                                    if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                                    {
+                                        break;
+                                    }
+                                    Thread.Sleep(1000);
+                                }
+
+                                //wait for last error to be saved if needed.
+                                Thread.Sleep(3000);
+                            }
                         }
+                        VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                     }
-                    VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
             }
         }

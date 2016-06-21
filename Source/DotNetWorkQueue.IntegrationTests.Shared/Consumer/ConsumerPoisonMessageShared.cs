@@ -45,33 +45,38 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, true);
                 using (
-                    var queue =
-                        creator.CreateConsumer(queueName,
-                            connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics,
+                        true))
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-
-                    var waitForFinish = new ManualResetEventSlim(false);
-                    waitForFinish.Reset();
-
-                    //start looking for work
-                    queue.Start<TMessage>((message, notifications) =>
+                    using (
+                        var queue =
+                            creator.CreateConsumer(queueName,
+                                connectionString))
                     {
-                        MessageHandlingShared.HandleFakeMessageNoOp();
-                    });
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
 
-                    for (var i = 0; i < timeOut; i++)
-                    {
-                        if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                        var waitForFinish = new ManualResetEventSlim(false);
+                        waitForFinish.Reset();
+
+                        //start looking for work
+                        queue.Start<TMessage>((message, notifications) =>
                         {
-                            break;
+                            MessageHandlingShared.HandleFakeMessageNoOp();
+                        });
+
+                        for (var i = 0; i < timeOut; i++)
+                        {
+                            if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                            {
+                                break;
+                            }
+                            Thread.Sleep(1000);
                         }
-                        Thread.Sleep(1000);
                     }
+                    VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
-                VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
             }
         }
     }
