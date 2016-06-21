@@ -42,32 +42,37 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                 }
 
                 var processedCount = new IncrementWrapper();
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
-
                 using (
-                    var queue =
-                        creator.CreateConsumer(queueName,
-                            connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-                    SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
-                    var waitForFinish = new ManualResetEventSlim(false);
-                    waitForFinish.Reset();
-
-                    //start looking for work
-                    queue.Start<TMessage>((message, notifications) =>
+                    using (
+                        var queue =
+                            creator.CreateConsumer(queueName,
+                                connectionString))
                     {
-                        MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish, messageCount);
-                    });
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
-                    waitForFinish.Wait(timeOut*1000);
+                        var waitForFinish = new ManualResetEventSlim(false);
+                        waitForFinish.Reset();
 
-                    //wait 3 more seconds before starting to shutdown
-                    Thread.Sleep(3000); 
+                        //start looking for work
+                        queue.Start<TMessage>((message, notifications) =>
+                        {
+                            MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish, messageCount);
+                        });
+
+                        waitForFinish.Wait(timeOut*1000);
+
+                        //wait 3 more seconds before starting to shutdown
+                        Thread.Sleep(3000);
+                    }
+
+                    VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
                 }
-
-                VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
             }
         }
     }

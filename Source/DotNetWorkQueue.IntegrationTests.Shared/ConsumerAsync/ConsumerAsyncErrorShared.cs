@@ -43,48 +43,53 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 }
 
                 var processedCount = new IncrementWrapper();
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
-
-                using (var schedulerCreator =
-                    new SchedulerContainer(
-                        // ReSharper disable once AccessToDisposedClosure
-                        serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton)))
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
 
-                    using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                    using (var schedulerCreator =
+                        new SchedulerContainer(
+                            // ReSharper disable once AccessToDisposedClosure
+                            serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton)))
                     {
-                        taskScheduler.Configuration.MaximumThreads = workerCount;
-                        taskScheduler.Configuration.MaxQueueSize = queueSize;
 
-                        taskScheduler.Start();
-                        var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
-
-                        using (
-                            var queue =
-                                creator
-                                    .CreateConsumerQueueScheduler(
-                                        queueName, connectionString, taskFactory))
+                        using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
                         {
-                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime, heartBeatMonitorTime);
-                            SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+                            taskScheduler.Configuration.MaximumThreads = workerCount;
+                            taskScheduler.Configuration.MaxQueueSize = queueSize;
 
-                            var waitForFinish = new ManualResetEventSlim(false);
-                            waitForFinish.Reset();
+                            taskScheduler.Start();
+                            var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
 
-                            //start looking for work
-                            queue.Start<TMessage>((message, notifications) =>
+                            using (
+                                var queue =
+                                    creator
+                                        .CreateConsumerQueueScheduler(
+                                            queueName, connectionString, taskFactory))
                             {
-                                MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
-                                    messageCount);
-                            });
+                                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
+                                    heartBeatMonitorTime);
+                                SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
-                            waitForFinish.Wait(timeOut*1000);
+                                var waitForFinish = new ManualResetEventSlim(false);
+                                waitForFinish.Reset();
 
-                            //wait for last error to be saved if needed.
-                            Thread.Sleep(3000);
+                                //start looking for work
+                                queue.Start<TMessage>((message, notifications) =>
+                                {
+                                    MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
+                                        messageCount);
+                                });
+
+                                waitForFinish.Wait(timeOut*1000);
+
+                                //wait for last error to be saved if needed.
+                                Thread.Sleep(3000);
+                            }
                         }
+                        VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
                     }
-                    VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
                 }
             }
         }

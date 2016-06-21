@@ -42,30 +42,35 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 {
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
                 using (
-                    var queue =
-                        creator.CreateMethodConsumer(queueName,
-                            connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-                    queue.Configuration.MessageExpiration.Enabled = true;
-                    queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(8);
-                    queue.Start();
-                    for (var i = 0; i < timeOut; i++)
+                    using (
+                        var queue =
+                            creator.CreateMethodConsumer(queueName,
+                                connectionString))
                     {
-                        if(VerifyMetrics.GetExpiredMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        queue.Configuration.MessageExpiration.Enabled = true;
+                        queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(8);
+                        queue.Start();
+                        for (var i = 0; i < timeOut; i++)
                         {
-                            break;
+                            if (VerifyMetrics.GetExpiredMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                            {
+                                break;
+                            }
+                            Thread.Sleep(1000);
                         }
-                        Thread.Sleep(1000);
                     }
-                }
 
-                Assert.Equal(0, MethodIncrementWrapper.Count(id));
-                VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), 0);
-                VerifyMetrics.VerifyExpiredMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                LoggerShared.CheckForErrors(queueName);
+                    Assert.Equal(0, MethodIncrementWrapper.Count(id));
+                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), 0);
+                    VerifyMetrics.VerifyExpiredMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    LoggerShared.CheckForErrors(queueName);
+                }
             }
         }
     }

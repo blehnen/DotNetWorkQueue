@@ -53,45 +53,50 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
-
-                using (var schedulerCreator = new SchedulerContainer())
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+
+                    using (var schedulerCreator = new SchedulerContainer())
                     {
-                        taskScheduler.Configuration.MaximumThreads = workerCount;
-                        taskScheduler.Configuration.MaxQueueSize = queueSize;
-
-                        taskScheduler.Start();
-                        var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
-
-                        using (
-                            var queue =
-                                creator
-                                    .CreateConsumerQueueScheduler(
-                                        queueName, connectionString, taskFactory))
+                        using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
                         {
-                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime, heartBeatMonitorTime);
+                            taskScheduler.Configuration.MaximumThreads = workerCount;
+                            taskScheduler.Configuration.MaxQueueSize = queueSize;
 
-                            var waitForFinish = new ManualResetEventSlim(false);
-                            waitForFinish.Reset();
+                            taskScheduler.Start();
+                            var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
 
-                            //start looking for work
-                            queue.Start<TMessage>((message, notifications) =>
+                            using (
+                                var queue =
+                                    creator
+                                        .CreateConsumerQueueScheduler(
+                                            queueName, connectionString, taskFactory))
                             {
-                                MessageHandlingShared.HandleFakeMessagesRollback(message, runTime, processedCount,
-                                    messageCount, waitForFinish, haveIProcessedYouBefore);
-                            });
+                                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
+                                    heartBeatMonitorTime);
 
-                            waitForFinish.Wait(timeOut*1000);
+                                var waitForFinish = new ManualResetEventSlim(false);
+                                waitForFinish.Reset();
+
+                                //start looking for work
+                                queue.Start<TMessage>((message, notifications) =>
+                                {
+                                    MessageHandlingShared.HandleFakeMessagesRollback(message, runTime, processedCount,
+                                        messageCount, waitForFinish, haveIProcessedYouBefore);
+                                });
+
+                                waitForFinish.Wait(timeOut*1000);
+                            }
                         }
+                        Assert.Equal(messageCount, processedCount.ProcessedCount);
+                        VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                        VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 1, 0);
                     }
-                    Assert.Equal(messageCount, processedCount.ProcessedCount);
-                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                    VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 1, 0);
                 }
+                haveIProcessedYouBefore.Clear();
             }
-            haveIProcessedYouBefore.Clear();
         }
     }
 }

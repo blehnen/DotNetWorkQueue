@@ -52,31 +52,36 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
-
                 using (
-                    var queue =
-                        creator
-                            .CreateConsumerQueueScheduler(
-                                queueName, connectionString, Factory))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime, heartBeatMonitorTime);
-                    var waitForFinish = new ManualResetEventSlim(false);
-                    waitForFinish.Reset();
 
-                    //start looking for work
-                    queue.Start<TMessage>((message, notifications) =>
+                    using (
+                        var queue =
+                            creator
+                                .CreateConsumerQueueScheduler(
+                                    queueName, connectionString, Factory))
                     {
-                        MessageHandlingShared.HandleFakeMessages(runTime, processedCount, messageCount,
-                            waitForFinish);
-                    });
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        var waitForFinish = new ManualResetEventSlim(false);
+                        waitForFinish.Reset();
 
-                    waitForFinish.Wait(timeOut*1000);
+                        //start looking for work
+                        queue.Start<TMessage>((message, notifications) =>
+                        {
+                            MessageHandlingShared.HandleFakeMessages(runTime, processedCount, messageCount,
+                                waitForFinish);
+                        });
+
+                        waitForFinish.Wait(timeOut*1000);
+                    }
+
+                    Assert.Equal(messageCount, processedCount.ProcessedCount);
+                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    LoggerShared.CheckForErrors(queueName);
                 }
-
-                Assert.Equal(messageCount, processedCount.ProcessedCount);
-                VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                LoggerShared.CheckForErrors(queueName);
             }
         }
     }

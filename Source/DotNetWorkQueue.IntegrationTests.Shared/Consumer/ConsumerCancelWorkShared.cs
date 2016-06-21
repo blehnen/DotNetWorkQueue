@@ -77,34 +77,38 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                 {
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly; 
                 }
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
-
                 using (
-                    var queue =
-                        creator.CreateConsumer(queueName,
-                            connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-                    var waitForFinish = new ManualResetEventSlim(false);
-                    waitForFinish.Reset();
-                    //start looking for work
-                    queue.Start<TMessage>((message, notifications) =>
+
+                    using (
+                        var queue =
+                            creator.CreateConsumer(queueName,
+                                connectionString))
                     {
-                        MessageHandlingShared.HandleFakeMessages(runTime, processedCount, messageCount,
-                            waitForFinish);
-                    });
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        var waitForFinish = new ManualResetEventSlim(false);
+                        waitForFinish.Reset();
+                        //start looking for work
+                        queue.Start<TMessage>((message, notifications) =>
+                        {
+                            MessageHandlingShared.HandleFakeMessages(runTime, processedCount, messageCount,
+                                waitForFinish);
+                        });
 
-                    var time = runTime*1000/2;
-                    waitForFinish.Wait(time);
+                        var time = runTime*1000/2;
+                        waitForFinish.Wait(time);
 
-                    queueBad.Dispose();
+                        queueBad.Dispose();
 
-                    waitForFinish.Wait(timeOut*1000 - time);
+                        waitForFinish.Wait(timeOut*1000 - time);
+                    }
+                    Assert.Equal(messageCount, processedCount.ProcessedCount);
+                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    LoggerShared.CheckForErrors(queueName);
                 }
-
-                Assert.Equal(messageCount, processedCount.ProcessedCount);
-                VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                LoggerShared.CheckForErrors(queueName);
             }
         }
 

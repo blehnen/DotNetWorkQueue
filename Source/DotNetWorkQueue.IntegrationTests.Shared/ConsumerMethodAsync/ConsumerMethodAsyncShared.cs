@@ -51,31 +51,36 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
-
                 using (
-                    var queue =
-                        creator
-                            .CreateConsumerMethodQueueScheduler(
-                                queueName, connectionString, Factory))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime, heartBeatMonitorTime);
-                    queue.Start();
-                    var counter = 0;
-                    while (counter < timeOut)
-                    {
-                        if (MethodIncrementWrapper.Count(id) >= messageCount)
-                        {
-                            break;
-                        }
-                        Thread.Sleep(1000);
-                        counter++;
-                    }
-                }
 
-                Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
-                VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                LoggerShared.CheckForErrors(queueName);
+                    using (
+                        var queue =
+                            creator
+                                .CreateConsumerMethodQueueScheduler(
+                                    queueName, connectionString, Factory))
+                    {
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        queue.Start();
+                        var counter = 0;
+                        while (counter < timeOut)
+                        {
+                            if (MethodIncrementWrapper.Count(id) >= messageCount)
+                            {
+                                break;
+                            }
+                            Thread.Sleep(1000);
+                            counter++;
+                        }
+                    }
+
+                    Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
+                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    LoggerShared.CheckForErrors(queueName);
+                }
             }
         }
     }

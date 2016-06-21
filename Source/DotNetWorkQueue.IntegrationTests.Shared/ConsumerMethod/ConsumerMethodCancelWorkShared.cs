@@ -73,40 +73,45 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 {
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly; 
                 }
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
-
                 using (
-                    var queue =
-                        creator.CreateMethodConsumer(queueName,
-                            connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-                    queue.Start();
 
-                    var time = runTime*1000/2;
-                    Thread.Sleep(time);
-                    queueBad.Dispose();
-
-                    var counter = 0;
-                    var counterLess = timeOut/2;
-                    while (counter < counterLess)
+                    using (
+                        var queue =
+                            creator.CreateMethodConsumer(queueName,
+                                connectionString))
                     {
-                        if (MethodIncrementWrapper.Count(id) >= messageCount)
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        queue.Start();
+
+                        var time = runTime*1000/2;
+                        Thread.Sleep(time);
+                        queueBad.Dispose();
+
+                        var counter = 0;
+                        var counterLess = timeOut/2;
+                        while (counter < counterLess)
                         {
-                            break;
+                            if (MethodIncrementWrapper.Count(id) >= messageCount)
+                            {
+                                break;
+                            }
+                            Thread.Sleep(1000);
+                            counter++;
                         }
-                        Thread.Sleep(1000);
-                        counter++;
+
+                        //wait for commits in transport...
+                        Thread.Sleep(3000);
                     }
 
-                    //wait for commits in transport...
-                    Thread.Sleep(3000);
+                    var count = MethodIncrementWrapper.Count(id);
+                    Assert.Equal(messageCount, count);
+                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    LoggerShared.CheckForErrors(queueName);
                 }
-
-                var count = MethodIncrementWrapper.Count(id);
-                Assert.Equal(messageCount, count);
-                VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                LoggerShared.CheckForErrors(queueName);
             }
         }
 

@@ -63,17 +63,22 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                 {
                     addInterceptorProducer = InterceptorAdding.Yes;
                 }
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics);
-                //create the queue
-                using (var queue =
-                    creator
-                        .CreateProducer
-                        <TMessage>(queueName, connectionString))
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics)
+                    )
                 {
-                    RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch);
+                    //create the queue
+                    using (var queue =
+                        creator
+                            .CreateProducer
+                            <TMessage>(queueName, connectionString))
+                    {
+                        RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch);
+                    }
+
+                    if (validateMetricCounts)
+                        VerifyMetrics.VerifyProducedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
-                if(validateMetricCounts)
-                    VerifyMetrics.VerifyProducedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
             }
         }
 

@@ -262,31 +262,35 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
 
             using (var metrics = new Metrics.Net.Metrics(queueName))
             {
-                var creator = SharedSetup.CreateCreator<TTransportInit>(InterceptorAdding.Yes, logProvider, metrics);
                 using (
-                    var queue =
-                        creator.CreateMethodConsumer(queueName, connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(InterceptorAdding.Yes, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                        heartBeatMonitorTime);
-                    queue.Configuration.TransportConfiguration.QueueDelayBehavior.Clear();
-                    queue.Configuration.TransportConfiguration.QueueDelayBehavior.Add(TimeSpan.FromMilliseconds(100));
-                    queue.Configuration.Worker.SingleWorkerWhenNoWorkFound = false;
-                    queue.Start();
-                    var counter = 0;
-                    while (counter < timeOut)
+                    using (
+                        var queue =
+                            creator.CreateMethodConsumer(queueName, connectionString))
                     {
-                        if (MethodIncrementWrapper.Count(id) >= messageCount)
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        queue.Configuration.TransportConfiguration.QueueDelayBehavior.Clear();
+                        queue.Configuration.TransportConfiguration.QueueDelayBehavior.Add(TimeSpan.FromMilliseconds(100));
+                        queue.Configuration.Worker.SingleWorkerWhenNoWorkFound = false;
+                        queue.Start();
+                        var counter = 0;
+                        while (counter < timeOut)
                         {
-                            break;
+                            if (MethodIncrementWrapper.Count(id) >= messageCount)
+                            {
+                                break;
+                            }
+                            Thread.Sleep(1000);
+                            counter++;
                         }
-                        Thread.Sleep(1000);
-                        counter++;
                     }
-                }
 
-                Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
-                VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
+                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                }
             }
         }
     }

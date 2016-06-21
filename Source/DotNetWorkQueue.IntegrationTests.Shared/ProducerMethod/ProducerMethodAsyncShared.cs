@@ -48,15 +48,21 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 {
                     addInterceptorProducer = InterceptorAdding.Yes;
                 }
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics);
-                //create the queue
-                using (var queue =
-                    creator
-                        .CreateMethodProducer(queueName, connectionString))
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics)
+                    )
                 {
-                    await RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch, runTime, id, linqMethodTypes);
+                    //create the queue
+                    using (var queue =
+                        creator
+                            .CreateMethodProducer(queueName, connectionString))
+                    {
+                        await
+                            RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch, runTime, id,
+                                linqMethodTypes);
+                    }
+                    VerifyMetrics.VerifyProducedAsyncCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
-                VerifyMetrics.VerifyProducedAsyncCount(queueName, metrics.GetCurrentMetrics(), messageCount);
             }
         }
 

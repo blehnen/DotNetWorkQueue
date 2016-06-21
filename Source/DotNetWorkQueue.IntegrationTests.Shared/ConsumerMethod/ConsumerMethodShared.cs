@@ -42,29 +42,34 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
                 using (
-                    var queue =
-                        creator.CreateMethodConsumer(queueName,
-                            connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-                    queue.Start();
-                    var counter = 0;
-                    while (counter < timeOut)
+                    using (
+                        var queue =
+                            creator.CreateMethodConsumer(queueName,
+                                connectionString))
                     {
-                        if (MethodIncrementWrapper.Count(id) >= messageCount)
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        queue.Start();
+                        var counter = 0;
+                        while (counter < timeOut)
                         {
-                            break;
+                            if (MethodIncrementWrapper.Count(id) >= messageCount)
+                            {
+                                break;
+                            }
+                            Thread.Sleep(1000);
+                            counter++;
                         }
-                        Thread.Sleep(1000);
-                        counter++;
                     }
-                }
 
-                Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
-                VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                LoggerShared.CheckForErrors(queueName);
+                    Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
+                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    LoggerShared.CheckForErrors(queueName);
+                }
             }
         }
     }

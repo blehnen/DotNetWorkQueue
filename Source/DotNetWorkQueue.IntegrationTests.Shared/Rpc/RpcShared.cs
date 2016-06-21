@@ -176,14 +176,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
         {
 
-                using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Net.Metrics(queueName))
+            {
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(InterceptorAdding.Yes, logProvider, metrics)
+                    )
                 {
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(InterceptorAdding.Yes, logProvider, metrics);
                     using (
                         var queue =
                             creator.CreateConsumer(queueName, connectionString))
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Clear();
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Add(TimeSpan.FromMilliseconds(100));
                         queue.Configuration.Worker.SingleWorkerWhenNoWorkFound = false;
@@ -203,7 +207,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                     Assert.Equal(messageCount, processedCount.ProcessedCount);
                     VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
-    
+            }
         }
 
         private void HandleFakeMessages(IReceivedMessage<TTMessage> message, IWorkerNotification notifications, int runTime,

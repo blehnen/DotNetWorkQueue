@@ -51,31 +51,36 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 
                 var processedCount = new IncrementWrapper();
                 var haveIProcessedYouBefore = new ConcurrentDictionary<string, int>();
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
                 using (
-                    var queue =
-                        creator.CreateConsumer(queueName,
-                            connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-                    var waitForFinish = new ManualResetEventSlim(false);
-                    waitForFinish.Reset();
-
-                    //start looking for work
-                    queue.Start<TMessage>((message, notifications) =>
+                    using (
+                        var queue =
+                            creator.CreateConsumer(queueName,
+                                connectionString))
                     {
-                        MessageHandlingShared.HandleFakeMessagesRollback(message, runTime, processedCount,
-                            messageCount,
-                            waitForFinish, haveIProcessedYouBefore);
-                    });
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        var waitForFinish = new ManualResetEventSlim(false);
+                        waitForFinish.Reset();
 
-                    waitForFinish.Wait(timeOut*1000);
+                        //start looking for work
+                        queue.Start<TMessage>((message, notifications) =>
+                        {
+                            MessageHandlingShared.HandleFakeMessagesRollback(message, runTime, processedCount,
+                                messageCount,
+                                waitForFinish, haveIProcessedYouBefore);
+                        });
+
+                        waitForFinish.Wait(timeOut*1000);
+                    }
+                    Assert.Equal(messageCount, processedCount.ProcessedCount);
+                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 1, 0);
+                    LoggerShared.CheckForErrors(queueName);
+                    haveIProcessedYouBefore.Clear();
                 }
-                Assert.Equal(messageCount, processedCount.ProcessedCount);
-                VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 1, 0);
-                LoggerShared.CheckForErrors(queueName);
-                haveIProcessedYouBefore.Clear();
             }
         }
     }

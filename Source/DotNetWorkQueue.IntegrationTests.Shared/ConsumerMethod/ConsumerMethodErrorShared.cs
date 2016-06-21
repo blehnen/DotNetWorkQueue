@@ -40,34 +40,39 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics);
-
                 using (
-                    var queue =
-                        creator.CreateMethodConsumer(queueName,
-                            connectionString))
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    )
                 {
-                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime, heartBeatMonitorTime);
-                    SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
-                    queue.Start();
-
-                    var counter = 0;
-                    while (counter < timeOut)
+                    using (
+                        var queue =
+                            creator.CreateMethodConsumer(queueName,
+                                connectionString))
                     {
-                        if (MethodIncrementWrapper.Count(id) >= messageCount * 3)
+                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                            heartBeatMonitorTime);
+                        SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+
+                        queue.Start();
+
+                        var counter = 0;
+                        while (counter < timeOut)
                         {
-                            break;
+                            if (MethodIncrementWrapper.Count(id) >= messageCount*3)
+                            {
+                                break;
+                            }
+                            Thread.Sleep(1000);
+                            counter++;
                         }
-                        Thread.Sleep(1000);
-                        counter++;
+
+                        //wait 3 more seconds before starting to shutdown
+                        Thread.Sleep(3000);
                     }
 
-                    //wait 3 more seconds before starting to shutdown
-                    Thread.Sleep(3000); 
+                    VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
                 }
-
-                VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
             }
         }
     }
