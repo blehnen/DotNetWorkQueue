@@ -32,22 +32,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [InlineData(500, 1, 400, 10, 5, 5, false, 1, LinqMethodTypes.Dynamic),
-         InlineData(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Dynamic),
+        [InlineData(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Dynamic),
          InlineData(10, 5, 180, 7, 1, 1, false, 1, LinqMethodTypes.Dynamic),
-         InlineData(500, 1, 400, 10, 5, 5, true, 1, LinqMethodTypes.Dynamic),
          InlineData(50, 5, 200, 10, 1, 1, true, 1, LinqMethodTypes.Dynamic),
          InlineData(10, 5, 180, 7, 1, 2, true, 1, LinqMethodTypes.Dynamic),
-         InlineData(500, 0, 180, 10, 5, 0, false, 1, LinqMethodTypes.Dynamic),
-         InlineData(500, 0, 180, 10, 5, 0, true, 1, LinqMethodTypes.Dynamic),
-            InlineData(500, 1, 400, 10, 5, 5, false, 1, LinqMethodTypes.Compiled),
          InlineData(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Compiled),
          InlineData(10, 5, 180, 7, 1, 1, false, 1, LinqMethodTypes.Compiled),
-         InlineData(500, 1, 400, 10, 5, 5, true, 1, LinqMethodTypes.Compiled),
          InlineData(50, 5, 200, 10, 1, 1, true, 1, LinqMethodTypes.Compiled),
-         InlineData(10, 5, 180, 7, 1, 2, true, 1, LinqMethodTypes.Compiled),
-         InlineData(500, 0, 180, 10, 5, 0, false, 1, LinqMethodTypes.Compiled),
-         InlineData(500, 0, 180, 10, 5, 0, true, 1, LinqMethodTypes.Compiled)]
+         InlineData(10, 5, 180, 7, 1, 2, true, 1, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType, LinqMethodTypes linqMethodTypes)
         {

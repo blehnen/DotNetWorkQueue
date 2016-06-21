@@ -31,18 +31,10 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
          InlineData(35, 5, 200, 10, 1, 2, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
          InlineData(10, 8, 180, 7, 1, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
          InlineData(100, 0, 180, 10, 5, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(250, 1, 400, 10, 5, 5, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(35, 5, 200, 10, 1, 2, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(10, 8, 180, 7, 1, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(100, 0, 180, 10, 5, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
             InlineData(250, 1, 400, 10, 5, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(35, 5, 200, 10, 1, 2, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(10, 8, 180, 7, 1, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, 0, 180, 10, 5, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(250, 1, 400, 10, 5, 5, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(35, 5, 200, 10, 1, 2, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(10, 8, 180, 7, 1, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(100, 0, 180, 10, 5, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
+         InlineData(100, 0, 180, 10, 5, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
         public void Run(int messageCount, int runtime, int timeOut, 
             int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {

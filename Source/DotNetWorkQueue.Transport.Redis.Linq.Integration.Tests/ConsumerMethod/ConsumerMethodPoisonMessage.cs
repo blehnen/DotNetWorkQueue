@@ -34,14 +34,10 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
         InlineData(10, 30, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(50, 40, 20, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(1, 20, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-        InlineData(10, 30, 5, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-        InlineData(50, 40, 20, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
             InlineData(1, 20, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
         InlineData(10, 30, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
         InlineData(50, 40, 20, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-        InlineData(1, 20, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-        InlineData(10, 30, 5, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-        InlineData(50, 40, 20, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+        InlineData(1, 20, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, 
             int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {

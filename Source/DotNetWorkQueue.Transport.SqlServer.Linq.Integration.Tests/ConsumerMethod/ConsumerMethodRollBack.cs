@@ -31,16 +31,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     {
 
         [Theory]
-        [InlineData(500, 0, 240, 5, false, LinqMethodTypes.Compiled),
-        InlineData(50, 5, 200, 10, false, LinqMethodTypes.Compiled),
+        [InlineData(50, 5, 200, 10, false, LinqMethodTypes.Compiled),
         InlineData(10, 15, 180, 7, false, LinqMethodTypes.Compiled),
-        InlineData(500, 0, 240, 5, true, LinqMethodTypes.Compiled),
         InlineData(50, 5, 200, 10, true, LinqMethodTypes.Compiled),
         InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled),
-            InlineData(500, 0, 240, 5, false, LinqMethodTypes.Dynamic),
         InlineData(50, 5, 200, 10, false, LinqMethodTypes.Dynamic),
         InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic),
-        InlineData(500, 0, 240, 5, true, LinqMethodTypes.Dynamic),
         InlineData(50, 5, 200, 10, true, LinqMethodTypes.Dynamic),
         InlineData(10, 15, 180, 7, true, LinqMethodTypes.Dynamic)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)

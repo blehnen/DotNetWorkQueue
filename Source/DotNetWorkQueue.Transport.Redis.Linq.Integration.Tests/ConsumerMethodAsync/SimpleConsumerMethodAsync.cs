@@ -32,22 +32,22 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [InlineData(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+        [InlineData(100, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
          InlineData(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
          InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(500, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-            InlineData(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(100, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+            InlineData(100, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
          InlineData(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
          InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(500, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-            InlineData(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+            InlineData(100, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(500, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-            InlineData(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(100, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+            InlineData(100, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
          InlineData(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
          InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(500, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
+         InlineData(100, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
