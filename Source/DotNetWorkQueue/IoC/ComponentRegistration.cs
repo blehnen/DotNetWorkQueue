@@ -319,7 +319,7 @@ namespace DotNetWorkQueue.IoC
         }
 
         /// <summary>
-        /// Registers the fallbacks for generic types
+        /// Registers the fall backs for generic types
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>

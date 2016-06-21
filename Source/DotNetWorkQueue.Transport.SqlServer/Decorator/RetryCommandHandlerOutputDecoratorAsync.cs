@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
                     throw;
 
                 var wait = _threadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait);
-                _log.WarnException($"An error has occured; we will try to re-run the transaction in {wait} ms", sqlEx);
+                _log.WarnException($"An error has occurred; we will try to re-run the transaction in {wait} ms", sqlEx);
                 Thread.Sleep(wait);
 
                 return await HandleWithCountDown(command, count - 1);

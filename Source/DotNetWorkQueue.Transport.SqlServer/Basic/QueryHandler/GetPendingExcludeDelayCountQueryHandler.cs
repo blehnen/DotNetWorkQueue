@@ -22,7 +22,7 @@ using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 {
     /// <summary>
-    /// Number of pending records, with the delayed records exlcuded
+    /// Number of pending records, with the delayed records excluded
     /// </summary>
     internal class GetPendingExcludeDelayCountQueryHandler : IQueryHandler<GetPendingExcludeDelayCountQuery, long>
     {

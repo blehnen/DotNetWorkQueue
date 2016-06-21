@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Queue
 
             var alCancel = workers.Where(worker => worker.Running).ToList();
 
-            //attemp to cancel workers if any are still running
+            //attempt to cancel workers if any are still running
             if (alCancel.Count > 0)
             {
                 _cancelWorkSource.CancellationTokenSource.Cancel();
@@ -113,7 +113,7 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (Exception e)
                 {
-                    _log.ErrorException("An error has occured while disposing of a worker", e, null);
+                    _log.ErrorException("An error has occurred while disposing of a worker", e, null);
                 }
             }
         }
@@ -141,7 +141,7 @@ namespace DotNetWorkQueue.Queue
                 worker.AttemptToTerminate();
             }
 
-            //attemp to cancel workers if any are still running
+            //attempt to cancel workers if any are still running
             if (worker.Running)
             {
                 _cancelWorkSource.CancellationTokenSource.Cancel();

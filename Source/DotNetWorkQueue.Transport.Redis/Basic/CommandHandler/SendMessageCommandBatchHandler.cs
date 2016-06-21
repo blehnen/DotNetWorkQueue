@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         }
 
         /// <summary>
-        /// Sends the mesages.
+        /// Sends the messages.
         /// </summary>
         /// <param name="messages">The messages.</param>
         /// <param name="meta">The meta.</param>

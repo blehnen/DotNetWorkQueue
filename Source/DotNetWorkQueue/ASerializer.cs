@@ -62,7 +62,7 @@ namespace DotNetWorkQueue
             }
             catch (Exception error)
             {
-                throw new InterceptorException("An error has occured while intercepting message serialization", error);
+                throw new InterceptorException("An error has occurred while intercepting message serialization", error);
             }
         }
         /// <summary>
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue
         /// <param name="bytes">The bytes.</param>
         /// <param name="graph">The message interception graph.</param>
         /// <returns></returns>
-        /// <exception cref="InterceptorException">An error has occured while intercepting message de-serialization</exception>
+        /// <exception cref="InterceptorException">An error has occurred while intercepting message de-serialization</exception>
         /// <exception cref="SerializationException">
         /// An error has occurred when de-serializing a message
         /// </exception>
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue
                 }
                 catch (Exception error)
                 {
-                    throw new InterceptorException("An error has occured while intercepting message de-serialization", error);
+                    throw new InterceptorException("An error has occurred while intercepting message de-serialization", error);
                 }
                 try
                 {

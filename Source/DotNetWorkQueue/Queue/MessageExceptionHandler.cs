@@ -48,8 +48,8 @@ namespace DotNetWorkQueue.Queue
         /// <param name="message">The message.</param>
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>
-        /// <exception cref="DotNetWorkQueueException">An error has occured in the error handling code</exception>
-        /// <exception cref="MessageException">An unhandled exception has occured while processing a message</exception>
+        /// <exception cref="DotNetWorkQueueException">An error has occurred in the error handling code</exception>
+        /// <exception cref="MessageException">An unhanded exception has occurred while processing a message</exception>
         public void Handle(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
             try
@@ -60,12 +60,12 @@ namespace DotNetWorkQueue.Queue
             catch (Exception errorHandlingError)
             {
                 _log.ErrorException(
-                    "An error has occured while trying to move message {0} to the error queue", exception,
+                    "An error has occurred while trying to move message {0} to the error queue", exception,
                     message.MesssageId);
-                throw new DotNetWorkQueueException("An error has occured in the error handling code",
+                throw new DotNetWorkQueueException("An error has occurred in the error handling code",
                     errorHandlingError);
             }
-            throw new MessageException("An unhandled exception has occured while processing a message",
+            throw new MessageException("An unhanded exception has occurred while processing a message",
                 exception, message.MesssageId, message.CorrelationId);
         }
     }

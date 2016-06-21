@@ -24,7 +24,7 @@ using DotNetWorkQueue.Exceptions;
 namespace DotNetWorkQueue.TaskScheduling
 {
     /// <summary>
-    /// Handles passing messages from an async consumer queue to a taskfactory for execution
+    /// Handles passing messages from an async consumer queue to a task factory for execution
     /// </summary>
     public class Scheduler : IConsumerQueueScheduler
     {
@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.TaskScheduling
             _schedulerMessageHandler = schedulerMessageHandler;
             _taskFactory = new Lazy<ITaskFactory>(factory.Create);
 
-            //if the workgroup is not set, we are going to just treat it as null
+            //if the work group is not set, we are going to just treat it as null
             if (!string.IsNullOrEmpty(workGroup?.Name))
             {
                 WorkGroup = workGroup;
@@ -114,13 +114,13 @@ namespace DotNetWorkQueue.TaskScheduling
             }
         }
         /// <summary>
-        /// The workgroup used to limit concurrency.
+        /// The work group used to limit concurrency.
         /// </summary>
         /// <value>
         /// The work group.
         /// </value>
         /// <remarks>
-        /// Not required; may be null. A null instance would mean there are no concurrency requiriments
+        /// Not required; may be null. A null instance would mean there are no concurrency requirements
         /// </remarks>
         public IWorkGroup WorkGroup { get; }
 

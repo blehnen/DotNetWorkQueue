@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// </summary>
     internal class SqlServerMessageQueueReceiveErrorMessage : IReceiveMessagesError
     {
-        #region Memeber Level Variables
+        #region Member Level Variables
         private readonly ILog _log;
         private readonly QueueConsumerConfiguration _configuration;
         private readonly IQueryHandler<GetErrorRetryCountQuery, int> _queryErrorRetryCount;

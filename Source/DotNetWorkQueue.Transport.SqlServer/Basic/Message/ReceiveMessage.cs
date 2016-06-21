@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="connection">The connection.</param>
-        /// <param name="noMessageFoundActon">The no message found acton.</param>
+        /// <param name="noMessageFoundActon">The no message found action.</param>
         /// <returns>
         /// A message if one is found; null otherwise
         /// </returns>
@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="connection">The connection.</param>
-        /// <param name="noMessageFoundActon">The no message found acton.</param>
+        /// <param name="noMessageFoundActon">The no message found action.</param>
         /// <returns>
         /// A message if one is found; null otherwise
         /// </returns>

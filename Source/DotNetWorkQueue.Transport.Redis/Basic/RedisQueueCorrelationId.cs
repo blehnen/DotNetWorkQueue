@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     }
 
     /// <summary>
-    /// A correltation id for redis
+    /// A correlation id for redis
     /// </summary>
     public class RedisQueueCorrelationId: ICorrelationId
     {

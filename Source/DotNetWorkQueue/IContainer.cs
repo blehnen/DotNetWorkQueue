@@ -132,7 +132,7 @@ namespace DotNetWorkQueue
         IContainer Register(Type serviceType, Func<object> instanceCreator, LifeStyles lifestyle);
 
         /// <summary>
-        /// Registers the implementation type as a fallback if no other registration has been made
+        /// Registers the implementation type as a fall back if no other registration has been made
         /// </summary>
         /// <param name="serviceType">Type of the service.</param>
         /// <param name="implementationType">Type of the implementation.</param>

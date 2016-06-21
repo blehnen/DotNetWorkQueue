@@ -25,7 +25,7 @@ namespace DotNetWorkQueue
     public interface ISetReadonly
     {
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         void SetReadOnly();
     }

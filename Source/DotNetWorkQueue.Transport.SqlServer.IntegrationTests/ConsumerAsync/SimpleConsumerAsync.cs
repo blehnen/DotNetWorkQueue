@@ -41,9 +41,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType)
         {
+            SchedulerContainer schedulerContainer = null;
             if (Factory == null)
             {
-                Factory = CreateFactory(workerCount, queueSize);
+                Factory = CreateFactory(workerCount, queueSize, out schedulerContainer);
             }
 
             var queueName = GenerateQueueName.Create();
@@ -75,7 +76,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             var producer = new ProducerAsyncShared();
                             producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false).Wait(timeOut);
+                                Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
@@ -88,7 +89,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             var producer = new ProducerAsyncShared();
                             producer.RunTest<SqlServerMessageQueueInit, FakeMessageA>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false).Wait(timeOut);
+                                Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
@@ -101,7 +102,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             var producer = new ProducerAsyncShared();
                             producer.RunTest<SqlServerMessageQueueInit, FakeMessageB>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false).Wait(timeOut);
+                                Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
@@ -115,6 +116,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                 }
                 finally
                 {
+                    schedulerContainer?.Dispose();
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
@@ -135,9 +137,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
         }
 
 
-        public static ITaskFactory CreateFactory(int maxThreads, int maxQueueSize)
+        public static ITaskFactory CreateFactory(int maxThreads, int maxQueueSize, out SchedulerContainer schedulerCreator)
         {
-            var schedulerCreator = new SchedulerContainer();
+            schedulerCreator = new SchedulerContainer();
             var taskScheduler = schedulerCreator.CreateTaskScheduler();
 
             taskScheduler.Configuration.MaximumThreads = maxThreads;

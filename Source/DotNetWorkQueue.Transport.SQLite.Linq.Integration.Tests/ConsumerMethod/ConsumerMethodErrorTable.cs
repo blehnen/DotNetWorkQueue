@@ -19,7 +19,9 @@
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
+using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Xunit;
@@ -30,13 +32,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [Theory]
-        [InlineData(1, 10, 1, false),
-         InlineData(100, 60, 10, false),
-         InlineData(10, 40, 5, false),
-         InlineData(1, 10, 1, true),
-         InlineData(100, 60, 10, true),
-         InlineData(10, 40, 5, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb)
+        [InlineData(1, 10, 1, false, LinqMethodTypes.Dynamic),
+         InlineData(10, 40, 5, false, LinqMethodTypes.Dynamic),
+         InlineData(1, 10, 1, true, LinqMethodTypes.Dynamic),
+         InlineData(10, 40, 5, true, LinqMethodTypes.Dynamic),
+            InlineData(1, 10, 1, false, LinqMethodTypes.Compiled),
+         InlineData(10, 40, 5, false, LinqMethodTypes.Compiled),
+         InlineData(1, 10, 1, true, LinqMethodTypes.Compiled),
+         InlineData(10, 40, 5, true, LinqMethodTypes.Compiled)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -64,17 +68,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             Assert.True(result.Success, result.ErrorMessage);
 
                             //create data
-                            var producer = new ProducerShared();
-                            producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
-                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false);
+                            var producer = new ProducerMethodShared();
+                            var id = Guid.NewGuid();
+                            if (linqMethodTypes == LinqMethodTypes.Compiled)
+                            {
+                                producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
+                               connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                               Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0);
+                            }
+                            else
+                            {
+                                producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
+                                  connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                                  Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0);
+
+                            }
 
                             //process data
-                            var consumer = new ConsumerErrorShared<FakeMessage>();
+                            var consumer = new ConsumerMethodErrorShared();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
-                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35));
+                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, false);
                         }

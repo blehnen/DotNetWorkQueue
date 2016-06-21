@@ -22,7 +22,7 @@ namespace DotNetWorkQueue
     /// <summary>
     /// Gets the first possible delivery time for a message
     /// </summary>
-    /// <remarks>This is used to track how long a message sat in a queue before being de-queued. Note that retries do not increase the intitial enqueue time.</remarks>
+    /// <remarks>This is used to track how long a message sat in a queue before being de-queued. Note that retries do not increase the initial enqueue time.</remarks>
     public interface IGetFirstMessageDeliveryTime
     {
         /// <summary>

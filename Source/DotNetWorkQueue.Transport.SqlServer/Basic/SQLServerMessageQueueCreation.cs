@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public IConnectionInformation ConnectionInfo { get; }
 
         /// <summary>
-        /// Gets a disposable creation scrope
+        /// Gets a disposable creation scope
         /// </summary>
         /// <value>
         /// The scope.

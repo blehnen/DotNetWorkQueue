@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="log">The log.</param>
         /// <param name="messageProcessing">The message processing.</param>
         /// <param name="workerTerminate">The worker terminate.</param>
-        /// <param name="stopThead">The stop thead.</param>
+        /// <param name="stopThead">The stop thread.</param>
         public Worker(
             IWorkerNameFactory nameFactory,
             IWorkerWaitForEventOrCancel pauseEvent,

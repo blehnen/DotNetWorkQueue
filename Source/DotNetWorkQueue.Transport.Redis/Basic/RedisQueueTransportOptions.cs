@@ -158,7 +158,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public bool IsReadOnly { get; protected set; }
 
         /// <summary>
-        /// Throws an exception if the readonly flag is true.
+        /// Throws an exception if the read only flag is true.
         /// </summary>
         /// <exception cref="System.Data.ReadOnlyException"></exception>
         protected void FailIfReadOnly()
@@ -167,7 +167,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         public void SetReadOnly()
         {
@@ -217,7 +217,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public bool IsReadOnly { get; protected set; }
 
         /// <summary>
-        /// Throws an exception if the readonly flag is true.
+        /// Throws an exception if the read only flag is true.
         /// </summary>
         /// <exception cref="System.Data.ReadOnlyException"></exception>
         protected void FailIfReadOnly()
@@ -226,7 +226,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         public void SetReadOnly()
         {
@@ -258,7 +258,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <summary>
         /// A custom time client will be used.
         /// </summary>
-        /// <remarks>Inject an implemention of <see cref="IUnixTime"/> into the container. The implementation may inherit from <see cref="BaseUnixTime"/> </remarks>
+        /// <remarks>Inject an implementation of <see cref="IUnixTime"/> into the container. The implementation may inherit from <see cref="BaseUnixTime"/> </remarks>
         Custom = 999
     }
 
@@ -278,7 +278,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <summary>
         /// A custom message id provider will be used.
         /// </summary>
-        /// <remarks>Inject an implemention of <see cref="IGetMessageId"/> into the container</remarks>
+        /// <remarks>Inject an implementation of <see cref="IGetMessageId"/> into the container</remarks>
         Custom = 999
     }
 }

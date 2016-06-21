@@ -41,9 +41,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ConnectionInfoTypes type)
         {
+            SchedulerContainer schedulerContainer = null;
             if (Factory == null)
             {
-                Factory = CreateFactory(workerCount, queueSize);
+                Factory = CreateFactory(workerCount, queueSize, out schedulerContainer);
             }
 
             var queueName = GenerateQueueName.Create();
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         var producer = new ProducerAsyncShared();
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false).Wait(timeOut);
+                            Helpers.Verify, false).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
@@ -73,7 +74,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         var producer = new ProducerAsyncShared();
                         producer.RunTest<RedisQueueInit, FakeMessageA>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false).Wait(timeOut);
+                            Helpers.Verify, false).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
@@ -86,7 +87,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         var producer = new ProducerAsyncShared();
                         producer.RunTest<RedisQueueInit, FakeMessageB>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false).Wait(timeOut);
+                            Helpers.Verify, false).Wait(timeOut * 1000 / 2);
 
 
                         var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
@@ -103,7 +104,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                 }
                 finally
                 {
-
+                    schedulerContainer?.Dispose();
                     using (
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
@@ -124,9 +125,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
         }
 
 
-        public static ITaskFactory CreateFactory(int maxThreads, int maxQueueSize)
+        public static ITaskFactory CreateFactory(int maxThreads, int maxQueueSize, out SchedulerContainer schedulerCreator)
         {
-            var schedulerCreator = new SchedulerContainer();
+            schedulerCreator = new SchedulerContainer();
             var taskScheduler = schedulerCreator.CreateTaskScheduler();
 
             taskScheduler.Configuration.MaximumThreads = maxThreads;

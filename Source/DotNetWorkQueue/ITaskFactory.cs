@@ -69,7 +69,7 @@ namespace DotNetWorkQueue
     }
 
     /// <summary>
-    /// An extention method for determining if <see cref="TryStartNewResult"/> returned a success code
+    /// An extension method for determining if <see cref="TryStartNewResult"/> returned a success code
     /// </summary>
     public static class TryStartNewResultExtensions
     {

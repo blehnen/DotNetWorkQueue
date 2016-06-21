@@ -30,14 +30,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, true, LinqMethodTypes.Dynamic),
-         InlineData(10, 30, 5, true, LinqMethodTypes.Dynamic),
-         InlineData(1, 20, 1, false, LinqMethodTypes.Dynamic),
+        [InlineData(1, 20, 1, false, LinqMethodTypes.Dynamic),
          InlineData(10, 30, 5, false, LinqMethodTypes.Dynamic),
             InlineData(1, 20, 1, true, LinqMethodTypes.Compiled),
-         InlineData(10, 30, 5, true, LinqMethodTypes.Compiled),
-         InlineData(1, 20, 1, false, LinqMethodTypes.Compiled),
-         InlineData(10, 30, 5, false, LinqMethodTypes.Compiled)]
+         InlineData(10, 30, 5, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, 
             int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
         {

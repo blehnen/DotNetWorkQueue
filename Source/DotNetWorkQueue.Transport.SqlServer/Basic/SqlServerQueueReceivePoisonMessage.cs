@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             _commandMoveRecord = commandMoveRecord;
         }
         /// <summary>
-        /// Invoked when we have dequeued a message, but a failure occured during re-assembly.
+        /// Invoked when we have dequeued a message, but a failure occurred during re-assembly.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>

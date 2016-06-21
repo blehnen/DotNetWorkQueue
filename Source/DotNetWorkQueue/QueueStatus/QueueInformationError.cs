@@ -39,10 +39,10 @@ namespace DotNetWorkQueue.QueueStatus
             _error = error;
         }
         /// <summary>
-        /// Gets or sets the curent date time.
+        /// Gets or sets the current date time.
         /// </summary>
         /// <value>
-        /// The curent date time.
+        /// The current date time.
         /// </value>
         public DateTime CurentDateTime => DateTime.MinValue;
         /// <summary>

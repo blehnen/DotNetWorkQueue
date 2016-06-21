@@ -33,10 +33,10 @@ namespace DotNetWorkQueue.Queue
         /// </value>
         public IHeartBeatStatus Status { get; set; }
         /// <summary>
-        /// This token will be tripped if an exception occuring trying to update the heartbeat.
+        /// This token will be tripped if an exception occurring trying to update the heartbeat.
         /// </summary>
         /// <value>
-        /// The exception has occured.
+        /// The exception has occurred.
         /// </value>
         public CancellationToken ExceptionHasOccured { get; set; }
         /// <summary>

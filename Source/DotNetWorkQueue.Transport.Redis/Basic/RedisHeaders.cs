@@ -58,10 +58,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             private set; 
         }
         /// <summary>
-        /// Gets the corelation identifier.
+        /// Gets the correlation identifier.
         /// </summary>
         /// <value>
-        /// The corelation identifier.
+        /// The correlation identifier.
         /// </value>
         public IMessageContextData<RedisQueueCorrelationIdSerialized> CorelationId { get; private set; } 
     }

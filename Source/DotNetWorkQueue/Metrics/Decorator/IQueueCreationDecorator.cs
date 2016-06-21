@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
         public bool QueueExists => _handler.QueueExists;
 
         /// <summary>
-        /// Gets a disposable creation scrope
+        /// Gets a disposable creation scope
         /// </summary>
         /// <value>
         /// The scope.

@@ -22,7 +22,7 @@ using DotNetWorkQueue.Messages;
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>
-    /// Sends a mesage to an RPC queue
+    /// Sends a message to an RPC queue
     /// </summary>
     /// <typeparam name="TSendMessage">The type of the send message.</typeparam>
     public class MessageProcessingRpcSend<TSendMessage>: IMessageProcessingRpcSend<TSendMessage>

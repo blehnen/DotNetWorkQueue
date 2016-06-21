@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The additional configuration.
         /// </value>
-        /// <remarks>It's expected that extention methods will be used to access this in a type safe manner</remarks>
+        /// <remarks>It's expected that extension methods will be used to access this in a type safe manner</remarks>
         public IConfiguration AdditionalConfiguration { get; private set; }
 
         /// <summary>

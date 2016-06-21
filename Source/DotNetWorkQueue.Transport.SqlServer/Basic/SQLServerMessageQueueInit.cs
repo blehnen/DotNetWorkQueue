@@ -173,7 +173,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         }
 
         /// <summary>
-        /// Gets the default fatal exception delay timespans
+        /// Gets the default fatal exception delay time spans
         /// </summary>
         /// <returns></returns>
         private IEnumerable<TimeSpan> ExceptionDelay()
@@ -195,7 +195,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         }
 
         /// <summary>
-        /// Gets the default queue delay timespans
+        /// Gets the default queue delay time spans
         /// </summary>
         /// <returns></returns>
         private IEnumerable<TimeSpan> DefaultQueueDelay()

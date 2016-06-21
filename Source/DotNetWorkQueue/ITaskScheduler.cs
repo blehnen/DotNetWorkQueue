@@ -26,7 +26,7 @@ namespace DotNetWorkQueue
     public interface ITaskScheduler: IDisposable, IIsDisposed
     {
         /// <summary>
-        /// If true, the task scheduler has room for another non workgroup task.
+        /// If true, the task scheduler has room for another non work group task.
         /// </summary>
         /// <remarks>This could mean that a thread is free, or that an in memory queue has room.</remarks>
         /// <value>
@@ -34,7 +34,7 @@ namespace DotNetWorkQueue
         /// </value>
         RoomForNewTaskResult RoomForNewTask { get; }
         /// <summary>
-        /// If true, the task scheduler has room for the specified workgroup task
+        /// If true, the task scheduler has room for the specified work group task
         /// </summary>
         /// <param name="group">The group.</param>
         /// <returns><see cref="RoomForNewTaskResult"/></returns>

@@ -21,7 +21,7 @@ using DotNetWorkQueue.Exceptions;
 namespace DotNetWorkQueue.Configuration
 {
     /// <summary>
-    /// The hearbeat configuration settings
+    /// The heartbeat configuration settings
     /// <remarks>
     /// The queue can 'ping' a record that is being processed and keep it alive. This allows for automatic recovery of records in which the processor
     /// has died and records are stuck in a processing state.
@@ -121,7 +121,7 @@ namespace DotNetWorkQueue.Configuration
         /// 
         /// How often the heart beat is updated. Should be at least 2; defaults to 4.
         /// 
-        /// Say the heart beat time is 600 seconds. If the interval is 4, the hearbeat will be updated about every 150 seconds or so.
+        /// Say the heart beat time is 600 seconds. If the interval is 4, the heartbeat will be updated about every 150 seconds or so.
         /// 
         /// Higher values are safer, but increase writes to the transport. Lower values are risky - if the system is having trouble updating the heartbeat
         /// It's possible for multiple workers to get the same record. A value of 2 really means that the heartbeat may only make 1 attempt to be set before getting reset
@@ -151,7 +151,7 @@ namespace DotNetWorkQueue.Configuration
         public bool IsReadOnly { get; protected set; }
 
         /// <summary>
-        /// Throws an exception if the readonly flag is true.
+        /// Throws an exception if the read-only flag is true.
         /// </summary>
         /// <exception cref="System.Data.ReadOnlyException"></exception>
         protected void FailIfReadOnly()
@@ -160,7 +160,7 @@ namespace DotNetWorkQueue.Configuration
         }
 
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         public void SetReadOnly()
         {

@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        /// <exception cref="PoisonMessageException">An error has occured trying to re-assemble a message de-queued from the SQL server</exception>
+        /// <exception cref="PoisonMessageException">An error has occurred trying to re-assemble a message de-queued from the SQL server</exception>
         /// <exception cref="SqlServerMessageQueueId"></exception>
         /// <exception cref="SqlServerMessageQueueCorrelationId"></exception>
         public async Task<IReceivedMessageInternal> Handle(ReceiveMessageQueryAsync query)
@@ -132,7 +132,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                     {
                         //at this point, the record has been de-queued, but it can't be processed.
                         throw new PoisonMessageException(
-                            "An error has occured trying to re-assemble a message de-queued from the SQL server", error, 
+                            "An error has occurred trying to re-assemble a message de-queued from the SQL server", error, 
                             new SqlServerMessageQueueId(id), new SqlServerMessageQueueCorrelationId(correlationId),
                             messagePayload, headerPayload);
 

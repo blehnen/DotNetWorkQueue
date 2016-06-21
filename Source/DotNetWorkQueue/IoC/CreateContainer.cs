@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.IoC
                 //register caller overrides
                 registerService(containerWrapper);
 
-                //register conditional fallbacks
+                //register conditional fall backs
                 container.Options.AllowOverridingRegistrations = false;
                 ComponentRegistration.RegisterFallbacks(containerWrapper, type);
 
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.IoC
                 ComponentRegistration.SuppressWarningsIfNeeded(containerWrapper, type);
 
                 //set the log provider, if one was provided
-                //if no explicit log provider was set, we will use liblog defaults
+                //if no explicit log provider was set, we will use lib log defaults
                 var logProvider = container.GetInstance<ILogProvider>();
                 if (!(logProvider is NoSpecifiedLogProvider))
                 {

@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                         return table.getn(uuids)";
         }
         /// <summary>
-        /// Resets the hearbeat for records outside of the window.
+        /// Resets the heartbeat for records outside of the window.
         /// </summary>
         /// <param name="unixTime">The unix time.</param>
         /// <param name="count">The count.</param>

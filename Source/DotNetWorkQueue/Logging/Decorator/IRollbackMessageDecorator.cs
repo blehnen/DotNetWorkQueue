@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             }
             catch (Exception e)
             {
-                _log.ErrorException("An error has occured while trying to rollback a message", e, null);
+                _log.ErrorException("An error has occurred while trying to rollback a message", e, null);
                 return false;
             }
         }

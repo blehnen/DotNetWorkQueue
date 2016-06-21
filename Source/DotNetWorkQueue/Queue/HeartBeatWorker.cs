@@ -274,7 +274,7 @@ namespace DotNetWorkQueue.Queue
                 if (_logger.IsErrorEnabled())
                 {
                     _logger.ErrorException(
-                        "An error has occured while updating the heartbeat field for a record that is being processed",
+                        "An error has occurred while updating the heartbeat field for a record that is being processed",
                         error);
                 }
                 _context.WorkerNotification.HeartBeat.SetError(error);

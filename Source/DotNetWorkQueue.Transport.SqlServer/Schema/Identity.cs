@@ -19,7 +19,7 @@
 namespace DotNetWorkQueue.Transport.SqlServer.Schema
 {
     /// <summary>
-    /// Represents an indentity property of a column
+    /// Represents an identity property of a column
     /// </summary>
 	public class Identity
     {

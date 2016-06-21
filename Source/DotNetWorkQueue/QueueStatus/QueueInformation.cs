@@ -64,10 +64,10 @@ namespace DotNetWorkQueue.QueueStatus
         public string Server { get; }
 
         /// <summary>
-        /// Gets the curent date time
+        /// Gets the current date time
         /// </summary>
         /// <value>
-        /// The curent date time.
+        /// The current date time.
         /// </value>
         /// <remarks>
         /// This is what the current time value is for the queue itself

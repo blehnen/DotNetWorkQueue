@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        /// <exception cref="PoisonMessageException">An error has occured trying to re-assemble a message de-queued from the transport</exception>
+        /// <exception cref="PoisonMessageException">An error has occurred trying to re-assemble a message de-queued from the transport</exception>
         public RedisMessage Handle(ReceiveMessageQuery query)
         {
             byte[] message = null;
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             {
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
-                    "An error has occured trying to re-assemble a message de-queued from Redis; a messageId was returned, but the LUA script returned a null message. The message payload has most likely been lost.", null,
+                    "An error has occurred trying to re-assemble a message de-queued from Redis; a messageId was returned, but the LUA script returned a null message. The message payload has most likely been lost.", null,
                     new RedisQueueId(messageId), new RedisQueueCorrelationId(Guid.Empty),
                     null, null);
             }
@@ -172,7 +172,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             {
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
-                    "An error has occured trying to re-assemble a message de-queued from redis", error,
+                    "An error has occurred trying to re-assemble a message de-queued from redis", error,
                     new RedisQueueId(messageId), new RedisQueueCorrelationId(correlationId),
                     message, headers);
 

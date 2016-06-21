@@ -54,7 +54,7 @@ namespace DotNetWorkQueue
         QueueRemoveResult RemoveQueue();
 
         /// <summary>
-        /// Gets a disposable creation scrope
+        /// Gets a disposable creation scope
         /// </summary>
         /// <value>
         /// The scope.
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue
     {
         /// <summary>
         /// Default status
-        /// <remarks>Getting this status would indicate a logic error, as this code should never be returend in standard operations</remarks>
+        /// <remarks>Getting this status would indicate a logic error, as this code should never be returned in standard operations</remarks>
         /// </summary>
         None = 0,
         /// <summary>
@@ -91,7 +91,7 @@ namespace DotNetWorkQueue
         /// <remarks>
         /// This is returned when the queue does not exist at the start of call, but exists when in the process of creating the queue.
         /// This may indicate a threading or race condition in your code - i.e. multiple producer queues are running and they are all trying to create 
-        /// the queue. This return code does not mean that a fatal error has occured.
+        /// the queue. This return code does not mean that a fatal error has occurred.
         /// </remarks>
         AttemptedToCreateAlreadyExists = 3,
         /// <summary>
@@ -113,7 +113,7 @@ namespace DotNetWorkQueue
     {
         /// <summary>
         /// Default status
-        /// <remarks>Getting this status would indicate a logic error, as this code should never be returend in standard operations</remarks>
+        /// <remarks>Getting this status would indicate a logic error, as this code should never be returned in standard operations</remarks>
         /// </summary>
         None = 0,
         /// <summary>

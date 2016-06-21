@@ -20,7 +20,7 @@ using System.Collections.Generic;
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
-    /// Contains the redis hash/key/etc names for a given queuename
+    /// Contains the redis hash/key/etc names for a given queue name
     /// </summary>
     public class RedisNames
     {

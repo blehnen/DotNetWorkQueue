@@ -99,7 +99,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// If true, a transaction will be held until the message is finished processing.
         /// </summary>
         /// <value>
-        /// <c>true</c> if [enable hold transaction until message commited]; otherwise, <c>false</c>.
+        /// <c>true</c> if [enable hold transaction until message committed]; otherwise, <c>false</c>.
         /// </value>
         public bool EnableHoldTransactionUntilMessageCommited
         {
@@ -251,7 +251,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public bool IsReadOnly { get; protected set; }
 
         /// <summary>
-        /// Throws an exception if the readonly flag is true.
+        /// Throws an exception if the read only flag is true.
         /// </summary>
         /// <exception cref="System.Data.ReadOnlyException"></exception>
         protected void FailIfReadOnly()
@@ -260,7 +260,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         }
 
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         public void SetReadOnly()
         {

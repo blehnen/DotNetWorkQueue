@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>
     /// The correlation ID for the SQL server queue
-    /// <remarks>A GUID is used, since this needs to be different accross queues</remarks>
+    /// <remarks>A GUID is used, since this needs to be different across queues</remarks>
     /// </summary>
     public class SqlServerMessageQueueCorrelationId: ICorrelationId
     {

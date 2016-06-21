@@ -20,7 +20,7 @@ using System;
 namespace DotNetWorkQueue.Exceptions
 {
     /// <summary>
-    /// A error has occured while trying to commit a message
+    /// A error has occurred while trying to commit a message
     /// </summary>
     /// <remarks>
     /// This means that the message was processed, but now the transport does not know this.

@@ -140,7 +140,7 @@ namespace DotNetWorkQueue.Configuration
         public bool IsReadOnly { get; protected set; }
 
         /// <summary>
-        /// Throws an exception if the readonly flag is true.
+        /// Throws an exception if the read only flag is true.
         /// </summary>
         /// <exception cref="System.Data.ReadOnlyException"></exception>
         protected void FailIfReadOnly()
@@ -149,7 +149,7 @@ namespace DotNetWorkQueue.Configuration
         }
 
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         public void SetReadOnly()
         {

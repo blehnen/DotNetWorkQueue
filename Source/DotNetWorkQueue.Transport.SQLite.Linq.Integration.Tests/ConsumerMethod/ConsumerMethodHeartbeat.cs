@@ -32,12 +32,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
         [Theory]
         [InlineData(7, 15, 90, 3, true, LinqMethodTypes.Dynamic),
         InlineData(7, 15, 90, 3, false, LinqMethodTypes.Dynamic),
-        InlineData(7, 45, 180, 3, true, LinqMethodTypes.Dynamic),
-        InlineData(7, 45, 180, 3, false, LinqMethodTypes.Dynamic),
             InlineData(7, 15, 90, 3, true, LinqMethodTypes.Compiled),
-        InlineData(7, 15, 90, 3, false, LinqMethodTypes.Compiled),
-        InlineData(7, 45, 180, 3, true, LinqMethodTypes.Compiled),
-        InlineData(7, 45, 180, 3, false, LinqMethodTypes.Compiled)]
+        InlineData(7, 15, 90, 3, false, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
         {

@@ -21,13 +21,13 @@ using DotNetWorkQueue.IoC;
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// This allows a transport to inject its dependancies into the root container.
+    /// This allows a transport to inject its dependencies into the root container.
     /// </summary>
     /// <remarks>Do not use this interface directly. Instead, use <see cref="ITransportInitSend"/>, <see cref="ITransportInitReceive"/> or <see cref="ITransportInitDuplex"/></remarks>
     public interface ITransportInit
     {
         /// <summary>
-        /// Allows a transport to register its dependancies in the IoC container.
+        /// Allows a transport to register its dependencies in the IoC container.
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>

@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     public class RedisQueueInit: TransportInitDuplex
     {
         /// <summary>
-        /// Allows a transport to register its dependancies in the IoC container.
+        /// Allows a transport to register its dependencies in the IoC container.
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
@@ -185,11 +185,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
             SetupHeartBeat(container);
             SetupMessageExpiration(container);
-            SetupScripts(container);
+
+            //only compile scripts if the container is not in verification mode
+            if (!container.IsVerifying)
+            {
+                SetupScripts(container);
+            }
         }
 
         /// <summary>
-        /// Gets the default fatal exception delay timespans
+        /// Gets the default fatal exception delay time spans
         /// </summary>
         /// <returns></returns>
         private IEnumerable<TimeSpan> ExceptionDelay()
@@ -211,7 +216,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <summary>
-        /// Gets the default queue delay timespans
+        /// Gets the default queue delay time spans
         /// </summary>
         /// <returns></returns>
         private IEnumerable<TimeSpan> DefaultQueueDelay()

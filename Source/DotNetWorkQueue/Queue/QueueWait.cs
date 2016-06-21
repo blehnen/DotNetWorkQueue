@@ -34,10 +34,10 @@ namespace DotNetWorkQueue.Queue
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueWait"/> class.
         /// </summary>
-        /// <param name="backoffTimes">The backoff times.</param>
+        /// <param name="backoffTimes">The back off times.</param>
         /// <param name="tokenWorkerCanceled">The cancel token.</param>
         /// <exception cref="System.ArgumentException">
-        /// Backoff helper must be initialized with at least one time span!;backoffTimes
+        /// Back off helper must be initialized with at least one time span!;backoffTimes
         /// or
         /// backoffTimes
         /// </exception>
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Queue
             var timeSpans = backoffTimes.ToArray();
             Guard.NotNull(() => timeSpans, timeSpans);
             if(timeSpans.Length == 0)
-               throw new ArgumentException("Backoff helper must be initialized with at least one time span");
+               throw new ArgumentException("Back off helper must be initialized with at least one time span");
 
             _backoffTimes = timeSpans;
             _tokenWorkerCanceled = tokenWorkerCanceled;

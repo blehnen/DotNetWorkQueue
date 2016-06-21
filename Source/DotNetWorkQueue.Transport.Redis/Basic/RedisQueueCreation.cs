@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <summary>
-        /// Gets a disposable creation scrope
+        /// Gets a disposable creation scope
         /// </summary>
         /// <value>
         /// The scope.

@@ -197,7 +197,7 @@ namespace DotNetWorkQueue
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
             _containers.Add(schedulerCreator);
-            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null);
+            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null, true);
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace DotNetWorkQueue
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
             _containers.Add(schedulerCreator);
-            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, null);
+            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, null, true);
         }
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => queue, queue);
             Guard.NotNullOrEmpty(() => connection, connection);
 
-            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null);
+            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null, false);
         }
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -244,7 +244,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => queue, queue);
             Guard.NotNullOrEmpty(() => connection, connection);
 
-            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, null);
+            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, null, false);
         }
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -259,7 +259,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => queue, queue);
             Guard.NotNullOrEmpty(() => connection, connection);
 
-            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, workGroup);
+            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, workGroup, false);
         }
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -274,7 +274,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => queue, queue);
             Guard.NotNullOrEmpty(() => connection, connection);
 
-            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, workGroup);
+            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, workGroup, false);
         }
 
         /// <summary>
@@ -284,26 +284,44 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="factory">The factory.</param>
         /// <param name="workGroup">The work group.</param>
+        /// <param name="internalFactory">if set to <c>true</c> [internal factory].</param>
         /// <returns></returns>
         private IConsumerQueueScheduler CreateConsumerQueueSchedulerInternal(string queue,
-            string connection, ITaskFactory factory, IWorkGroup workGroup)
+            string connection, ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
         {
             Guard.NotNullOrEmpty(() => queue, queue);
             Guard.NotNullOrEmpty(() => connection, connection);
 
             IContainer container;
-            //NOTE - we exclude the scheduler from the above scope no matter what, as either the user owns it or the factory does - this queue does not.
-            if (workGroup == null)
+            if (internalFactory) //we own the factory
             {
-                container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
-                    serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton).
-                    Register(() => factory.Scheduler, LifeStyles.Singleton));
+                if (workGroup == null)
+                {
+                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                        serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton).
+                        Register(() => factory.Scheduler, LifeStyles.Singleton));
+                }
+                else
+                {
+                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                         serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register(() => workGroup, LifeStyles.Singleton).
+                        Register(() => factory.Scheduler, LifeStyles.Singleton));
+                }
             }
-            else
+            else //someone else owns the factory
             {
-                container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
-                     serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register(() => workGroup, LifeStyles.Singleton).
-                    Register(() => factory.Scheduler, LifeStyles.Singleton));
+                if (workGroup == null)
+                {
+                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                        serviceRegister => serviceRegister.RegisterNonScopedSingleton(factory).Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton).
+                        RegisterNonScopedSingleton(factory.Scheduler));
+                }
+                else
+                {
+                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                         serviceRegister => serviceRegister.RegisterNonScopedSingleton(factory).Register(() => workGroup, LifeStyles.Singleton).
+                        RegisterNonScopedSingleton(factory.Scheduler));
+                }
             }
             _containers.Add(container);
             return container.GetInstance<IConsumerQueueScheduler>();
@@ -316,26 +334,60 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="factory">The factory.</param>
         /// <param name="workGroup">The work group.</param>
+        /// <param name="internalFactory">if set to <c>true</c> [internal factory].</param>
         /// <returns></returns>
         private IConsumerMethodQueueScheduler CreateConsumerMethodQueueSchedulerInternal(string queue,
-            string connection, ITaskFactory factory, IWorkGroup workGroup)
+            string connection, ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
         {
             Guard.NotNullOrEmpty(() => queue, queue);
             Guard.NotNullOrEmpty(() => connection, connection);
 
             IContainer container;
-            //NOTE - we exclude the scheduler from the above scope no matter what, as either the user owns it or the factory does - this queue does not.
-            if (workGroup == null)
+            if (internalFactory) //we own factory
             {
-                container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
-                    serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton).
-                    Register(() => factory.Scheduler, LifeStyles.Singleton));
+                if (workGroup == null)
+                {
+                    container = _createContainerInternal()
+                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection,
+                            _transportInit, ConnectionTypes.Receive,
+                            serviceRegister =>
+                                serviceRegister.Register(() => factory, LifeStyles.Singleton)
+                                    .Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton)
+                                    .Register(() => factory.Scheduler, LifeStyles.Singleton));
+                }
+                else
+                {
+                    container = _createContainerInternal()
+                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection,
+                            _transportInit, ConnectionTypes.Receive,
+                            serviceRegister =>
+                                serviceRegister.Register(() => factory, LifeStyles.Singleton)
+                                    .Register(() => workGroup, LifeStyles.Singleton)
+                                    .Register(() => factory.Scheduler, LifeStyles.Singleton));
+                }
             }
-            else
+            else  //someone else owns factory
             {
-                container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
-                     serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register(() => workGroup, LifeStyles.Singleton).
-                    Register(() => factory.Scheduler, LifeStyles.Singleton));
+                if (workGroup == null)
+                {
+                    container = _createContainerInternal()
+                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection,
+                            _transportInit, ConnectionTypes.Receive,
+                            serviceRegister =>
+                                serviceRegister.RegisterNonScopedSingleton(factory)
+                                    .Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton)
+                                    .RegisterNonScopedSingleton(factory.Scheduler));
+                }
+                else
+                {
+                    container = _createContainerInternal()
+                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection,
+                            _transportInit, ConnectionTypes.Receive,
+                            serviceRegister =>
+                                serviceRegister.RegisterNonScopedSingleton(factory)
+                                    .Register(() => workGroup, LifeStyles.Singleton)
+                                    .RegisterNonScopedSingleton(factory.Scheduler));
+                }
             }
             _containers.Add(container);
             return container.GetInstance<IConsumerMethodQueueScheduler>();

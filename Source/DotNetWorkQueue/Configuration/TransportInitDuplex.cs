@@ -20,13 +20,13 @@ using DotNetWorkQueue.IoC;
 namespace DotNetWorkQueue.Configuration
 {
     /// <summary>
-    /// This class allows a transport to inject its dependancies into the root container.
+    /// This class allows a transport to inject its dependencies into the root container.
     /// </summary>
     /// <remarks>This represents a duplex transport that can both send and receive.</remarks>
     public abstract class TransportInitDuplex : ITransportInitDuplex
     {
         /// <summary>
-        /// Allows a transport to register its dependancies in the IoC container.
+        /// Allows a transport to register its dependencies in the IoC container.
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="queue">The queue.</param>
         public abstract void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue);
         /// <summary>
-        /// Allows a transport to suppress specific warnings for specific types if neeed.
+        /// Allows a transport to suppress specific warnings for specific types if need.
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>

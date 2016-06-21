@@ -53,7 +53,7 @@ namespace DotNetWorkQueue
         /// Initializes a new instance of the <see cref="MessageInterceptorResult"/> class.
         /// </summary>
         /// <param name="output">The output.</param>
-        /// <param name="addToGraph">if set to <c>true</c> [the interceptor has injected intself].</param>
+        /// <param name="addToGraph">if set to <c>true</c> [the interceptor has injected itself].</param>
         /// <param name="interceptorType">Type of the interceptor.</param>
         public MessageInterceptorResult(byte[] output, bool addToGraph, Type interceptorType)
         {

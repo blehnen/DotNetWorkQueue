@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
         protected void LogSystemException(object sender, WorkerErrorEventArgs e)
         {
-            Log.ErrorException("Unhandled system exception", e.Error);
+            Log.ErrorException("Unhanded system exception", e.Error);
         }
         /// <summary>
         /// Logs the user exception.

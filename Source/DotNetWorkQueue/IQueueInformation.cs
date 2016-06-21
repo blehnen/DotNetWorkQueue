@@ -28,10 +28,10 @@ namespace DotNetWorkQueue
     public interface IQueueInformation
     {
         /// <summary>
-        /// Gets the curent date time
+        /// Gets the current date time
         /// </summary>
         /// <value>
-        /// The curent date time.
+        /// The current date time.
         /// </value>
         /// <remarks>This is what the queue considers to be the current date/time</remarks>
         DateTime CurentDateTime { get; }

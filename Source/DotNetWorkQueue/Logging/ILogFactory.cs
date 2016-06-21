@@ -19,12 +19,12 @@
 namespace DotNetWorkQueue.Logging
 {
     /// <summary>
-    /// Creates a new isntance of <see cref="ILog"/>
+    /// Creates a new instance of <see cref="ILog"/>
     /// </summary>
     public interface ILogFactory
     {
         /// <summary>
-        /// Creates a new isntance of <see cref="ILog"/>
+        /// Creates a new instance of <see cref="ILog"/>
         /// </summary>
         /// <returns></returns>
         ILog Create();

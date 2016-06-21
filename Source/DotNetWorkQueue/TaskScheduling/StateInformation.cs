@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <summary>
         /// Initializes a new instance of the <see cref="StateInformation"/> class.
         /// </summary>
-        /// <param name="group">The workgroup; Can be null</param>
+        /// <param name="group">The work group; Can be null</param>
         public StateInformation(IWorkGroup group)
         {
             Group = group;

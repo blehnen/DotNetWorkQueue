@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <summary>
     /// Contains meta data about a message
     /// </summary>
-    /// <remarks>This data is stored in a hash, seperate from the message itself</remarks>
+    /// <remarks>This data is stored in a hash, separate from the message itself</remarks>
     public class RedisMetaData
     {
         /// <summary>
@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <value>
         /// The queue date time.
         /// </value>
-        /// <remarks>Unix timestamp (MS) of when this record was enqueued</remarks>
+        /// <remarks>Unix timestamps (MS) of when this record was enqueued</remarks>
         public long QueueDateTime { get; private set; }
         /// <summary>
         /// Gets the error tracking.

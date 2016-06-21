@@ -19,7 +19,7 @@
 namespace DotNetWorkQueue.TaskScheduling
 {
     /// <summary>
-    /// A NoOp workgroup
+    /// A NoOp work group
     /// </summary>
     public class WorkGroupNoOp: IWorkGroup
     {

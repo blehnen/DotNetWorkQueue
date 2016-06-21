@@ -23,7 +23,7 @@ using StackExchange.Redis;
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
-    /// Allows a caller to wait and block until a pub/sub call has occured
+    /// Allows a caller to wait and block until a pub/sub call has occurred
     /// </summary>
     public class RedisQueueWorkSub : IRedisQueueWorkSub
     {

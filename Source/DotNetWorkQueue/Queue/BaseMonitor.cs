@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (Exception error)
                 {
-                    _log.ErrorException("An exception has occured in the monitor delegate", error);
+                    _log.ErrorException("An exception has occurred in the monitor delegate", error);
                 }
                 finally
                 {
@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Queue
         }
 
         /// <summary>
-        /// Destorys the cancel token
+        /// Destroys the cancel token
         /// </summary>
         private void CancelTokenDestroy()
         {

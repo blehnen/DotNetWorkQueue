@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// </summary>
         Processing = 1,
         /// <summary>
-        /// An error has occured
+        /// An error has occurred
         /// </summary>
         Error = 2
     }

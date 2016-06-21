@@ -173,9 +173,9 @@ namespace DotNetWorkQueue.Queue
                     _receivePoisonMessage.Handle(context, exception);
                 }
                 catch (ReceiveMessageException e)
-                //an exception occured trying to get the message from the transport
+                //an exception occurred trying to get the message from the transport
                 {
-                    _log.ErrorException("An error has occured while receiving a message from the transport", e,
+                    _log.ErrorException("An error has occurred while receiving a message from the transport", e,
                         null);
                     _seriousExceptionProcessBackOffHelper.Value.Wait();
                 }
@@ -212,7 +212,7 @@ namespace DotNetWorkQueue.Queue
                 return;
             }
 
-            //reset the backoff counter - we have a message to process, so the wait times are now reset
+            //reset the back off counter - we have a message to process, so the wait times are now reset
             _noMessageToProcessBackoffHelper.Value.Reset();
             //we are no longer idle
             if (_idle)

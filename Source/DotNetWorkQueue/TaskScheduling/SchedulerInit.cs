@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.TaskScheduling
     public class SchedulerInit: TransportInitReceive
     {
         /// <summary>
-        /// Allows a transport to register its dependancies in the IoC container.
+        /// Allows a transport to register its dependencies in the IoC container.
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>

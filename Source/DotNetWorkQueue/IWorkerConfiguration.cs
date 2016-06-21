@@ -30,6 +30,11 @@ namespace DotNetWorkQueue
         /// <value>
         /// The worker count.
         /// </value>
+        /// <remarks>
+        /// This controls how many worker threads are used.
+        /// For Sync queues: This is the number of processing threads. Each processing thread dequeues it's own work.
+        /// For Async queues: This is the number of dequeue threads. A dequeue thread passes work to a <seealso cref="ITaskFactory"/> for processing.
+        /// </remarks>
         int WorkerCount { get; set; }
 
         /// <summary>
@@ -37,7 +42,7 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <remarks>
         /// If thread aborting is disabled, this setting has no affect; we will wait forever for threads to finish working
-        /// Otherwise, the thread will be aborted once this timelimit is reached.
+        /// Otherwise, the thread will be aborted once this time limit is reached.
         /// </remarks>
         /// <value>
         /// The time to wait for workers to cancel.
@@ -64,7 +69,7 @@ namespace DotNetWorkQueue
 
         /// <summary>
         /// If true, a single worker will be used to look for work when the queue is empty or no valid records are found to process.
-        /// When work is located, the other workers will be worken up.
+        /// When work is located, the other workers will be woken up.
         /// </summary>
         /// <remarks>It's possible for non-polling transports to ignore this setting; the idea is to limit the workers to a single poll if polling is used</remarks>
         /// <value>

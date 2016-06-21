@@ -20,7 +20,7 @@ using Amib.Threading;
 namespace DotNetWorkQueue.TaskScheduling
 {
     /// <summary>
-    /// Stores the workgroup along with the smart thread pool workitems group
+    /// Stores the work group along with the smart thread pool work items group
     /// </summary>
     internal class WorkGroupWithItem
     {

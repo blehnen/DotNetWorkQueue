@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         /// <summary>
         /// The unix epoch
         /// </summary>
-        /// <remarks>Use this to turn a UTC date into a unix timestamp</remarks>
+        /// <remarks>Use this to turn a UTC date into a unix time stamp</remarks>
         protected static readonly DateTime UnixEpoch =
              new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 

@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Queue
                 return false;
             }
 
-            //abort the thead... :(
+            //abort the thread... :(
             workerThread.Abort();
             
             return true;

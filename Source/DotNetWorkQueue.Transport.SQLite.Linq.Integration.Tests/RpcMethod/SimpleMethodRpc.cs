@@ -31,28 +31,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.RpcMethod
         [Theory]
         [InlineData(50, 1, 200, 3, false, true, LinqMethodTypes.Dynamic),
          InlineData(10, 1, 180, 3, false, true, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 3, false, true, LinqMethodTypes.Dynamic),
-         InlineData(50, 1, 200, 3, true, true, LinqMethodTypes.Dynamic),
-         InlineData(10, 1, 180, 3, true, true, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 3, true, true, LinqMethodTypes.Dynamic),
-         InlineData(50, 1, 200, 3, false, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 1, 180, 3, false, false, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 3, false, false, LinqMethodTypes.Dynamic),
-         InlineData(50, 1, 200, 3, true, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 1, 180, 3, true, false, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 3, true, false, LinqMethodTypes.Dynamic),
             InlineData(50, 1, 200, 3, false, true, LinqMethodTypes.Compiled),
-         InlineData(10, 1, 180, 3, false, true, LinqMethodTypes.Compiled),
-         InlineData(30, 0, 240, 3, false, true, LinqMethodTypes.Compiled),
-         InlineData(50, 1, 200, 3, true, true, LinqMethodTypes.Compiled),
-         InlineData(10, 1, 180, 3, true, true, LinqMethodTypes.Compiled),
-         InlineData(30, 0, 240, 3, true, true, LinqMethodTypes.Compiled),
-         InlineData(50, 1, 200, 3, false, false, LinqMethodTypes.Compiled),
-         InlineData(10, 1, 180, 3, false, false, LinqMethodTypes.Compiled),
-         InlineData(30, 0, 240, 3, false, false, LinqMethodTypes.Compiled),
-         InlineData(50, 1, 200, 3, true, false, LinqMethodTypes.Compiled),
-         InlineData(10, 1, 180, 3, true, false, LinqMethodTypes.Compiled),
-         InlineData(30, 0, 240, 3, true, false, LinqMethodTypes.Compiled)]
+         InlineData(10, 1, 180, 3, false, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, 
             int workerCount, bool async, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
         {

@@ -20,7 +20,7 @@ using System;
 namespace DotNetWorkQueue.Exceptions
 {
     /// <summary>
-    /// An error has occured while trying to receive a message from a transport
+    /// An error has occurred while trying to receive a message from a transport
     /// </summary>
     /// <remarks>
     /// An exception was thrown while trying to get a message from the transport.

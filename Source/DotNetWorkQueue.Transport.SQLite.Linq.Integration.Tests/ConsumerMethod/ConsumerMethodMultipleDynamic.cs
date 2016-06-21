@@ -30,9 +30,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     {
         [Theory]
         [InlineData(1000, 0, 240, 5, true),
-         InlineData(2000, 0, 240, 10, true),
+         InlineData(1000, 0, 240, 10, true),
          InlineData(1000, 0, 240, 5, false),
-         InlineData(2000, 0, 240, 10, false)]
+         InlineData(1000, 0, 240, 10, false)]
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, bool inMemoryDb)
         {

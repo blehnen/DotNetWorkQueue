@@ -32,20 +32,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
         [Theory]
         [InlineData(100, 1, 400, 5, 5, 5, true, LinqMethodTypes.Dynamic),
          InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Dynamic),
-         InlineData(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Dynamic),
-         InlineData(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Dynamic),
-         InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 5, 180, 7, 1, 1, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 45, 260, 5, 1, 2, true, LinqMethodTypes.Dynamic),
-         InlineData(10, 45, 260, 5, 1, 2, false, LinqMethodTypes.Dynamic),
             InlineData(100, 1, 400, 5, 5, 5, true, LinqMethodTypes.Compiled),
-         InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled),
-         InlineData(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Compiled),
-         InlineData(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Compiled),
-         InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Compiled),
-         InlineData(10, 5, 180, 7, 1, 1, false, LinqMethodTypes.Compiled),
-         InlineData(10, 45, 260, 5, 1, 2, true, LinqMethodTypes.Compiled),
-         InlineData(10, 45, 260, 5, 1, 2, false, LinqMethodTypes.Compiled)]
+         InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled),]
         public void Run(int messageCount, int runtime, int timeOut, 
             int workerCount, int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
         {

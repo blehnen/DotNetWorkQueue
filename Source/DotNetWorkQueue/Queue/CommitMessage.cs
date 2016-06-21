@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>
-        /// <exception cref="CommitException">An error has occured Committing a processed message</exception>
+        /// <exception cref="CommitException">An error has occurred Committing a processed message</exception>
         public bool Commit(IMessageContext context)
         {
             Guard.NotNull(() => context, context);
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Queue
             catch (Exception commitException)
             {
                 throw new CommitException(
-                    "An error has occured committing a processed message",
+                    "An error has occurred committing a processed message",
                     commitException);
             }
         }

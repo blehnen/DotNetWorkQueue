@@ -51,6 +51,11 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The worker count.
         /// </value>
+        /// <remarks>
+        /// This controls how many worker threads are used.
+        /// For Sync queues: This is the number of processing threads. Each processing thread dequeues it's own work.
+        /// For Async queues: This is the number of dequeue threads. A dequeue thread passes work to a <seealso cref="ITaskFactory"/> for processing.
+        /// </remarks>
         public int WorkerCount
         {
             get { return _workerCount; }
@@ -65,7 +70,7 @@ namespace DotNetWorkQueue.Configuration
         /// </summary>
         /// <remarks>
         /// If thread aborting is disabled, this setting has no affect; we will wait forever for threads to finish working
-        /// Otherwise, the thread will be aborted once this timelimit is reached.
+        /// Otherwise, the thread will be aborted once this time limit is reached.
         /// </remarks>
         /// <value>
         /// The time to wait for workers to cancel.
@@ -115,7 +120,7 @@ namespace DotNetWorkQueue.Configuration
 
         /// <summary>
         /// If true, a single worker will be used to look for work when the queue is empty or no valid records are found to process.
-        /// When work is located, the other workers will be worken up.
+        /// When work is located, the other workers will be woken up.
         /// </summary>
         /// <value>
         /// <c>true</c> if a single worker should be used when idle; otherwise, <c>false</c>.
@@ -139,7 +144,7 @@ namespace DotNetWorkQueue.Configuration
         public bool IsReadOnly { get; protected set; }
 
         /// <summary>
-        /// Throws an exception if the readonly flag is true.
+        /// Throws an exception if the read only flag is true.
         /// </summary>
         /// <exception cref="System.Data.ReadOnlyException"></exception>
         protected void FailIfReadOnly()
@@ -148,7 +153,7 @@ namespace DotNetWorkQueue.Configuration
         }
 
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         public void SetReadOnly()
         {

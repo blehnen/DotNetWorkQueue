@@ -162,7 +162,7 @@ namespace DotNetWorkQueue.TaskScheduling
         #endregion
 
         /// <summary>
-        /// Tries to add a new workgroup to the collection
+        /// Tries to add a new work group to the collection
         /// </summary>
         /// <remarks>Will gracefully handle another thread adding the group</remarks>
         /// <param name="group">The group.</param>

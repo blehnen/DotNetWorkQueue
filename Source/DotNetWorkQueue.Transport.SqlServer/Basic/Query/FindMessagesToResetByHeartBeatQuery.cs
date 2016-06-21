@@ -21,7 +21,7 @@ using System.Threading;
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
 {
     /// <summary>
-    /// Finds messages with hearbeats outside of the configured window
+    /// Finds messages with heartbeats outside of the configured window
     /// </summary>
     public class FindMessagesToResetByHeartBeatQuery : IQuery<IEnumerable<MessageToReset>>
     {

@@ -20,7 +20,7 @@ using System;
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// The time span for a monitor proceess
+    /// The time span for a monitor process
     /// </summary>
     public interface IMonitorTimespan
     {

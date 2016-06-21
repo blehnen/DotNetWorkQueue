@@ -21,7 +21,7 @@ using System.Collections.Generic;
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Contains timespans, used to delay query of the transport when no messages are found to process
+    /// Contains time spans, used to delay query of the transport when no messages are found to process
     /// </summary>
     public interface IQueueDelay : IEnumerable<TimeSpan>, IReadonly, ISetReadonly
     {

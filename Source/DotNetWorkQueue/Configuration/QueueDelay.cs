@@ -22,7 +22,7 @@ using System.Collections.Generic;
 namespace DotNetWorkQueue.Configuration
 {
     /// <summary>
-    /// Defines the worker thread delay behavior when no records are found to process, or if a serious transport exception has occured.
+    /// Defines the worker thread delay behavior when no records are found to process, or if a serious transport exception has occurred.
     /// </summary>
     public class QueueDelay : IQueueDelay
     {
@@ -103,7 +103,7 @@ namespace DotNetWorkQueue.Configuration
         public bool IsReadOnly { get; protected set; }
 
         /// <summary>
-        /// Throws an exception if the readonly flag is true.
+        /// Throws an exception if the read only flag is true.
         /// </summary>
         /// <exception cref="System.Data.ReadOnlyException"></exception>
         protected void FailIfReadOnly()
@@ -112,7 +112,7 @@ namespace DotNetWorkQueue.Configuration
         }
 
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         public void SetReadOnly()
         {

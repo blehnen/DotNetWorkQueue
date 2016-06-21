@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="waitForFreeThread">The wait for free thread.</param>
-        /// <param name="metrics">the metics factory</param>
+        /// <param name="metrics">the metrics factory</param>
         public SmartThreadPoolTaskScheduler(ITaskSchedulerConfiguration configuration, 
             IWaitForEventOrCancelThreadPool waitForFreeThread,
             IMetrics metrics)
@@ -145,7 +145,7 @@ namespace DotNetWorkQueue.TaskScheduling
         }
 
         /// <summary>
-        /// If true, the task scheduler has room for the specified workgroup task
+        /// If true, the task scheduler has room for the specified work group task
         /// </summary>
         /// <param name="group">The group.</param>
         /// <returns></returns>
@@ -255,7 +255,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// </returns>
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
-            //workgroup tasks cannot be executed on the current thread
+            //work group tasks cannot be executed on the current thread
             if (task.AsyncState is StateInformation)
             {
                 return false;
@@ -285,7 +285,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="concurrencyLevel">The concurrency level.</param>
-        /// <param name="maxQueueSize">Maximum size of the queue. Workgroups have a queue that is seperate per queue, and is not shared with non workgroup items</param>
+        /// <param name="maxQueueSize">Maximum size of the queue. Work groups have a queue that is separate per queue, and is not shared with non work group items</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Start must be called on the scheduler before adding work groups</exception>
         public override IWorkGroup AddWorkGroup(string name, int concurrencyLevel, int maxQueueSize)
@@ -303,7 +303,7 @@ namespace DotNetWorkQueue.TaskScheduling
                 PostExecuteWorkItemCallback = PostExecuteWorkItemCallback
             };
             var groupWithItem = new WorkGroupWithItem(group, _smartThreadPool.CreateWorkItemsGroup(concurrencyLevel, startInfo), _metrics.Counter(
-                $"workgroup {name}", Units.Items));
+                $"work group {name}", Units.Items));
             _groups.TryAdd(group, groupWithItem);
             return groupWithItem.GroupInfo;
         }
@@ -335,7 +335,7 @@ namespace DotNetWorkQueue.TaskScheduling
         {
             var possibleState = wir.GetResult();
             var information = possibleState as StateInformation;
-            if (information != null) //if not null, this is a workgroup
+            if (information != null) //if not null, this is a work group
             {
                 var state = information;
                 Interlocked.Decrement(ref _groups[state.Group].CurrentWorkItems);

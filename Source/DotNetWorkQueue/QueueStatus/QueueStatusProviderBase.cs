@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.QueueStatus
         public IQueueInformation Current => BuildStatus();
 
         /// <summary>
-        /// Gets the last error that occured, if any.
+        /// Gets the last error that occurred, if any.
         /// </summary>
         /// <value>
         /// The error.

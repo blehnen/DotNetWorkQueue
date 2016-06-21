@@ -20,7 +20,7 @@ using System;
 namespace DotNetWorkQueue.Messages
 {
     /// <summary>
-    /// Contains system standard header accesors
+    /// Contains system standard header accessors
     /// </summary>
     public class StandardHeaders : IStandardHeaders
     {
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Messages
         public IMessageContextData<Exception> RpcConsumerException { get; }
         /// <summary>
         /// The timeout period will be attached to the headers when an RPC queue sends a message
-        /// <remarks>The consuming code can re-use the timeout, or use it's own value. The timeout period when sending a respone simply lets the clean up thread know when its safe to delete the record if it was not processed.</remarks>
+        /// <remarks>The consuming code can re-use the timeout, or use it's own value. The timeout period when sending a response simply lets the clean up thread know when its safe to delete the record if it was not processed.</remarks>
         /// <example>
         /// TimeSpan timeOut = TimeSpan.Parse((string)message.Headers[Headers.RPCTimeout], System.Globalization.CultureInfo.InvariantCulture);
         /// </example>

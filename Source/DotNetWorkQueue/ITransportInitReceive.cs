@@ -19,7 +19,7 @@
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// This allows a transport to inject its dependancies into the root container for reciving messages
+    /// This allows a transport to inject its dependencies into the root container for receiving messages
     /// </summary>
     public interface ITransportInitReceive : ITransportInit
     {

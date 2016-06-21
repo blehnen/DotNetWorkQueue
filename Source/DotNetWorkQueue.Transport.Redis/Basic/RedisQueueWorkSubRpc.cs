@@ -24,7 +24,7 @@ using StackExchange.Redis;
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
-    /// Allows a caller to wait and block until a pub/sub call has occured for a specific message id
+    /// Allows a caller to wait and block until a pub/sub call has occurred for a specific message id
     /// </summary>
     public class RedisQueueWorkSubRpc : IRedisQueueWorkSub
     {
