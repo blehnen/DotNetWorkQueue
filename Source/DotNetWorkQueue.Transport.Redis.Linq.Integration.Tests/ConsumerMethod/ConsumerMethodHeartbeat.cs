@@ -68,8 +68,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                         runtime, messageCount,
                         workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
 
-                    new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
-                    GenerateMethod.ClearCancel(id);
+                    using (var count = new VerifyQueueRecordCount(queueName, connectionString))
+                    {
+                        count.Verify(0, false);
+                    }
+                        GenerateMethod.ClearCancel(id);
                 }
                 finally
                 {

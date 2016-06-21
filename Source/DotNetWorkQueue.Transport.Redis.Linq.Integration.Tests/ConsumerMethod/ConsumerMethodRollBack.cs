@@ -74,8 +74,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
 
-                    new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
-                    GenerateMethod.ClearRollback(id);
+                    using (var count = new VerifyQueueRecordCount(queueName, connectionString))
+                    {
+                        count.Verify(0, false);
+                    }
+                        GenerateMethod.ClearRollback(id);
                 }
                 finally
                 {

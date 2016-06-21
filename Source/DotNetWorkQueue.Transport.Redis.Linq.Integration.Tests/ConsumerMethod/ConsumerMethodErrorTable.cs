@@ -73,7 +73,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                         logProvider,
                         workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
                     ValidateErrorCounts(queueName, connectionString, messageCount);
-                    new VerifyQueueRecordCount(queueName, connectionString).Verify(messageCount, true);
+                    using (
+                        var count = new VerifyQueueRecordCount(queueName, connectionString))
+                    {
+                        count.Verify(messageCount, true);
+                    }
                 }
                 finally
                 {

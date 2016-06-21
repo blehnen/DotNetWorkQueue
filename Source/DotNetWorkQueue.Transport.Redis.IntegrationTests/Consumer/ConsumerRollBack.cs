@@ -59,7 +59,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
 
-                    new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
+                    using (var count = new VerifyQueueRecordCount(queueName, connectionString))
+                    {
+                        count.Verify(0, false);
+                    }
 
                 }
                 finally

@@ -58,8 +58,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         workerCount, logProvider,
                         timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
                     LoggerShared.CheckForErrors(queueName);
-                    new VerifyQueueRecordCount(queueName, connectionString).Verify(0, false);
-
+                    using (var count = new VerifyQueueRecordCount(queueName, connectionString))
+                    {
+                        count.Verify(0, false);
+                    }
                 }
                 finally
                 {
