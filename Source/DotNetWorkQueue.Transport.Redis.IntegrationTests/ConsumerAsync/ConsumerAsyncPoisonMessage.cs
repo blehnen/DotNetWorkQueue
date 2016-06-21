@@ -83,7 +83,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            new VerifyErrorCounts(queueName, connectionString).Verify(messageCount, 0);
+            using (var error = new VerifyErrorCounts(queueName, connectionString))
+            {
+                error.Verify(messageCount, 0);
+            }
         }
     }
 }

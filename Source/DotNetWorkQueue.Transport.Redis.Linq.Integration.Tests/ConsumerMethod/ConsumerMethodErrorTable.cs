@@ -95,7 +95,10 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
 
         private void ValidateErrorCounts(string queueName, string connectionString, int messageCount)
         {
-            new VerifyErrorCounts(queueName, connectionString).Verify(messageCount, 2);
+            using (var error = new VerifyErrorCounts(queueName, connectionString))
+            {
+                error.Verify(messageCount, 2);
+            }
         }
     }
 }
