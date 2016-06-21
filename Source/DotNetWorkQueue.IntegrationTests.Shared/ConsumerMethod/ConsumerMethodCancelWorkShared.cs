@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
         private TimeSpan _heartBeatTime;
         private TimeSpan _heartBeatMonitorTime;
         private IConsumerMethodQueue _queue;
+        private QueueContainer<TTransportInit> _badQueueContainer;
         private Action<IContainer> _badQueueAdditions;
 
         public void RunConsumer(string queueName, string connectionString, bool addInterceptors,
@@ -90,6 +91,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                         var time = runTime*1000/2;
                         Thread.Sleep(time);
                         queueBad.Dispose();
+                        _badQueueContainer.Dispose();
 
                         var counter = 0;
                         var counterLess = timeOut/2;
@@ -117,10 +119,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
         private IConsumerMethodQueue CreateConsumerInternalThread()
         {
-            var creator = SharedSetup.CreateCreator<TTransportInit>(_badQueueAdditions);
+            _badQueueContainer = SharedSetup.CreateCreator<TTransportInit>(_badQueueAdditions);
 
             var queue =
-                creator.CreateMethodConsumer(_queueName,
+                _badQueueContainer.CreateMethodConsumer(_queueName,
                     _connectionString);
  
                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime, _heartBeatMonitorTime);
