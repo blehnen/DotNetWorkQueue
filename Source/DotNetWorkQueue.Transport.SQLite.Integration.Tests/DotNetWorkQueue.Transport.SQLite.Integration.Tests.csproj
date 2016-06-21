@@ -70,7 +70,6 @@
     <Compile Include="ConsumerAsync\ConsumerAsyncErrorTable.cs" />
     <Compile Include="ConsumerAsync\ConsumerAsyncPoisonMessage.cs" />
     <Compile Include="ConsumerAsync\ConsumerAsyncRollBack.cs" />
-    <Compile Include="ConsumerAsync\MultiConsumerAsync.cs" />
     <Compile Include="ConsumerAsync\SimpleConsumerAsync.cs" />
     <Compile Include="Consumer\ConsumerCancelWork.cs" />
     <Compile Include="Consumer\ConsumerErrorTable.cs" />

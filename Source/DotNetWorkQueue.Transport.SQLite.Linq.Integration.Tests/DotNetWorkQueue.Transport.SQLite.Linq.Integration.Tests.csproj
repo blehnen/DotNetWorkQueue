@@ -80,7 +80,6 @@
     <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncErrorTable.cs" />
     <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncPoisonMessage.cs" />
     <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncRollBack.cs" />
-    <Compile Include="ConsumerMethodAsync\MultiMethodConsumerAsync.cs" />
     <Compile Include="ConsumerMethodAsync\SimpleMethodConsumerAsync.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodCancelWork.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodErrorTable.cs" />
