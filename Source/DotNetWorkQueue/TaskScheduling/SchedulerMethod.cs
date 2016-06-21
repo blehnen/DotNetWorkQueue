@@ -85,6 +85,7 @@ namespace DotNetWorkQueue.TaskScheduling
                 if (disposing)
                 {
                     _queue.Dispose();
+                    _messageMethodHandling.Dispose();
                 }
                 _disposedValue = true;
             }
