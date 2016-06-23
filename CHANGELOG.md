@@ -1,3 +1,9 @@
+###0.1.5.0 ????-??-??
+* Add re-occurring job scheduler
+
+###0.1.4.2 ????-??-??
+* Add metrics for linq serialzation, compiling and execution
+
 ###0.1.4 2016-06-22
 * Minor refactor to poison message handling to allow for easier overriding of behavior
 * Added redis hosted on Windows Integration tests. All test are passing. Tested using version 3.0.501 - https://github.com/MSOpenTech/redis
