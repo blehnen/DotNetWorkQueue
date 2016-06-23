@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Cache
         /// <summary>
         /// A factory for creating new objects for the pool.
         /// </summary>
-        public Func<T> Factory { get; private set; }
+        public Func<T> Factory { get; }
 
         /// <summary>
         /// Defines the maximum pool size

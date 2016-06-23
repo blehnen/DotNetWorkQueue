@@ -84,8 +84,7 @@ namespace DotNetWorkQueue.IoC
 
                 //object cache
                 container.Register<ObjectCache>(() => new MemoryCache("DotNetWorkQueueCache"), LifeStyles.Singleton);
-                container.RegisterDecorator<ILinqCompiler, LinqCompileCacheDecorator>(LifeStyles.Singleton);
-
+               
                 //object pool for linq 
                 container.Register<IObjectPool<DynamicCodeCompiler>>(() => new ObjectPool<DynamicCodeCompiler>(20, () => new DynamicCodeCompiler(container.GetInstance<ILogFactory>())), LifeStyles.Singleton);
 
@@ -286,6 +285,9 @@ namespace DotNetWorkQueue.IoC
 
             RegisterMetricDecorators(container);
             RegisterLoggerDecorators(container);
+
+            //register the linq cache decorator
+            container.RegisterDecorator<ILinqCompiler, LinqCompileCacheDecorator>(LifeStyles.Singleton);
         }
         /// <summary>
         /// Suppress warnings for specific cases.
@@ -378,6 +380,9 @@ namespace DotNetWorkQueue.IoC
             container.RegisterDecorator<ICommitMessage, CommitMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IRollbackMessage, RollbackMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IClearExpiredMessages, ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IExpressionSerializer, ExpressionSerializerDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageMethodHandling, MessageMethodHandlingDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<ILinqCompiler, LinqCompilerDecorator>(LifeStyles.Singleton);
 
             //while this is registered as transient, it ends up being a singleton because the interceptor host is a singleton
             container.RegisterDecorator<IMessageInterceptor, MessageInterceptorDecorator>(LifeStyles.Transient);

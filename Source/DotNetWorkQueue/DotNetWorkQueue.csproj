@@ -119,6 +119,9 @@
     <Compile Include="Messages\MessageExpression.cs" />
     <Compile Include="Messages\MessageMethodHandling.cs" />
     <Compile Include="Messages\LinqExpressionToRun.cs" />
+    <Compile Include="Metrics\Decorator\IExpressionSerializerDecorator.cs" />
+    <Compile Include="Metrics\Decorator\ILinqCompilerDecorator.cs" />
+    <Compile Include="Metrics\Decorator\IMessageMethodHandlingDecorator.cs" />
     <Compile Include="QueueStatusContainer.cs" />
     <Compile Include="Factory\GetTimeFactory.cs" />
     <Compile Include="Factory\GetTimeFactoryNoOp.cs" />

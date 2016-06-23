@@ -19,7 +19,6 @@
 using System;
 using System.Runtime.Caching;
 using System.Text;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.LinqCompile.Decorator
@@ -32,26 +31,44 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
     {
         private readonly ILinqCompiler _handler;
         private readonly ObjectCache _cache;
-        private readonly ILog _log;
         private readonly CacheItemPolicy _itemPolicy;
+
+        private readonly ICounter _counterActionCacheHit;
+        private readonly ICounter _counterActionCacheMiss;
+        private readonly ICounter _counterActionCacheUnique;
+
+        private readonly ICounter _counterFunctionCacheHit;
+        private readonly ICounter _counterFunctionCacheMiss;
+        private readonly ICounter _counterFunctionCacheUnique;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LinqCompileCacheDecorator" /> class.
         /// </summary>
         /// <param name="handler">The handler.</param>
         /// <param name="cache">The cache.</param>
-        /// <param name="log">The log.</param>
         /// <param name="cachePolicy">The cache policy.</param>
+        /// <param name="metrics">The metrics.</param>
+        /// <param name="connectionInformation">The connection information.</param>
         public LinqCompileCacheDecorator(
             ILinqCompiler handler,
             ObjectCache cache,
-            ILogFactory log,
-            ICachePolicy<ILinqCompiler> cachePolicy)
+            ICachePolicy<ILinqCompiler> cachePolicy,
+            IMetrics metrics,
+             IConnectionInformation connectionInformation)
         {
             _handler = handler;
             _cache = cache;
-            _log = log.Create();
             _itemPolicy = new CacheItemPolicy {SlidingExpiration = cachePolicy.SlidingExpiration};
+            var name = handler.GetType().Name;
+
+            _counterActionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheHitCounter", Units.Items);
+            _counterActionCacheMiss = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheMissCounter", Units.Items);
+            _counterActionCacheUnique = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionUniqueFlaggedCounter", Units.Items);
+
+            _counterFunctionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionCacheHiCountert", Units.Items);
+            _counterFunctionCacheMiss = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionCacheMissCounter", Units.Items);
+            _counterFunctionCacheUnique = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionUniqueFlaggedCounter", Units.Items);
+
         }
 
         /// <summary>
@@ -63,18 +80,25 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
         {
             if (linqExpression.Unique) //don't bother caching
             {
+                _counterActionCacheUnique.Increment();
                 return _handler.CompileAction(linqExpression);
             }
 
             var key = GenerateKey(linqExpression);
             var result = (Action<object, object>)_cache[key];
 
-            if (result != null) return result;
+            if (result != null)
+            {
+                _counterActionCacheHit.Increment(key);
+                return result;
+            }
 
-            _log.Log(LogLevel.Debug, () => $"No cache entry for key [{key}]");
             result = _handler.CompileAction(linqExpression);
             if (!_cache.Contains(key))
+            {
+                _counterActionCacheMiss.Increment(key);
                 _cache.Add(key, result, _itemPolicy);
+            }
 
             return result;
         }
@@ -88,19 +112,25 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
         {
             if (linqExpression.Unique) //don't bother caching
             {
+                _counterFunctionCacheUnique.Increment();
                 return _handler.CompileFunction(linqExpression);
             }
 
             var key = GenerateKey(linqExpression);
             var result = (Func<object, object, object>)_cache[key];
 
-            if (result != null) return result;
-
-            _log.Log(LogLevel.Debug, () => $"No cache entry for key [{key}]");
+            if (result != null)
+            {
+                _counterFunctionCacheHit.Increment(key);
+                return result;
+            }
 
             result = _handler.CompileFunction(linqExpression);
             if (!_cache.Contains(key))
+            {
+                _counterFunctionCacheMiss.Increment(key);
                 _cache.Add(key, result, _itemPolicy);
+            }
 
             return result;
         }
