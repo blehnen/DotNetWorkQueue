@@ -394,7 +394,7 @@ None
 
 [**DotNetWorkQueue.Metrics.Net**]
 
-* [Metrics.net ](https://github.com/etishor/Metrics.NET)
+* [Metrics.net ](https://github.com/Recognos/Metrics.NET)
 
 [**Unit / Integration Tests**]
 
