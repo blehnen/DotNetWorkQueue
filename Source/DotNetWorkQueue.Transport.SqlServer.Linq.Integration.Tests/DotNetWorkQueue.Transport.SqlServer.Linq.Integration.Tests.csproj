@@ -109,6 +109,7 @@
     <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
       <Link>DotNetWorkQueue.licenseheader</Link>
     </None>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
