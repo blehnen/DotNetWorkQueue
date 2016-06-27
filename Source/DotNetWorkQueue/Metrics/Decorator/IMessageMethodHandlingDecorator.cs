@@ -28,8 +28,10 @@ namespace DotNetWorkQueue.Metrics.Decorator
     internal class MessageMethodHandlingDecorator: IMessageMethodHandling
     {
         private readonly IMessageMethodHandling _handler;
-        private readonly ITimer _runMethodCodeTimer;
-        private readonly ITimer _runFunctionCodeTimer;
+        private readonly ITimer _runMethodCompiledCodeTimer;
+        private readonly ITimer _runFunctionCompiledCodeTimer;
+        private readonly ITimer _runMethodDynamicCodeTimer;
+        private readonly ITimer _runFunctionDynamicCodeTimer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageMethodHandlingDecorator" /> class.
@@ -42,8 +44,10 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = handler.GetType().Name;
-            _runMethodCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleMethodTimer", Units.Calls);
-            _runFunctionCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleFunctionTimer", Units.Calls);
+            _runMethodCompiledCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleCompiledMethodTimer", Units.Calls);
+            _runFunctionCompiledCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleCompiledFunctionTimer", Units.Calls);
+            _runMethodDynamicCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleDynamicMethodTimer", Units.Calls);
+            _runFunctionDynamicCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleDynamicFunctionTimer", Units.Calls);
             _handler = handler;
         }
 
@@ -68,15 +72,25 @@ namespace DotNetWorkQueue.Metrics.Decorator
             switch (receivedMessage.Body.PayLoad)
             {
                 case MessageExpressionPayloads.Action:
+                    using (_runMethodCompiledCodeTimer.NewContext())
+                    {
+                        _handler.HandleExecution(receivedMessage, workerNotification);
+                    }
+                    break;
                 case MessageExpressionPayloads.ActionText:
-                    using (_runMethodCodeTimer.NewContext())
+                    using (_runMethodDynamicCodeTimer.NewContext())
                     {
                         _handler.HandleExecution(receivedMessage, workerNotification);
                     }
                     break;
                 case MessageExpressionPayloads.Function:
+                    using (_runFunctionCompiledCodeTimer.NewContext())
+                    {
+                        _handler.HandleExecution(receivedMessage, workerNotification);
+                    }
+                    break;
                 case MessageExpressionPayloads.FunctionText:
-                    using (_runFunctionCodeTimer.NewContext())
+                    using (_runFunctionDynamicCodeTimer.NewContext())
                     {
                         _handler.HandleExecution(receivedMessage, workerNotification);
                     }
