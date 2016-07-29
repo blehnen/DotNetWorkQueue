@@ -87,8 +87,18 @@ namespace DotNetWorkQueue.TaskScheduling
             ThrowIfDisposed();
             Guard.NotNull(() => functionToRun, functionToRun);
 
+            if(_taskFactory.Value.Scheduler == null)
+            {
+                throw new DotNetWorkQueueException("A scheduler must be created before starting the queue");
+            }
+
+            if (!_taskFactory.Value.Scheduler.Started)
+            {
+                throw new DotNetWorkQueueException("The scheduler must be started before starting the queue");
+            }
+
             //let the scheduler know it has another client
-            if (_taskFactory?.Value.Scheduler != null && !_schedulerId.HasValue)
+            if (!_schedulerId.HasValue)
             {
                 _schedulerId = _taskFactory.Value.Scheduler.Subscribe();
             }
