@@ -21,6 +21,7 @@ using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.TaskScheduling;
+using DotNetWorkQueue.Tests.IoC;
 using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
@@ -102,6 +103,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             fixture.Inject(cancelWork);
             fixture.Inject(workerConfiguration);
 
+
             cancelWork.CancellationTokenSource.Returns(new CancellationTokenSource());
             cancelWork.StopTokenSource.Returns(new CancellationTokenSource());
 
@@ -112,8 +114,20 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             var fixture2 = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture2.Inject(queue);
 
+            ITaskFactoryFactory factoryFactory = fixture2.Create<ITaskFactoryFactory>();
+            fixture2.Inject(factoryFactory);
+
             IConsumerQueueScheduler scheulder = fixture2.Create<Scheduler>();
             fixture2.Inject(scheulder);
+
+            ATaskScheduler schedule = new CreateContainerTest.TaskSchedulerNoOp();
+            schedule.Start();
+            fixture2.Inject(schedule);
+            var taskFactory = fixture2.Create<ITaskFactory>();
+            taskFactory.Scheduler.Returns(schedule);
+            fixture2.Inject(taskFactory);
+
+            factoryFactory.Create().Returns(taskFactory);
 
             if (workgroup != null)
                 fixture2.Inject(workgroup);

@@ -124,6 +124,15 @@ namespace DotNetWorkQueue.Tests.IoC
                 container.Register(
                     () => Substitute.For<IReceiveMessagesFactory>(), LifeStyles.Singleton);
 
+                container.Register(
+                    () => Substitute.For<IJobSchedulerLastKnownEvent>(), LifeStyles.Singleton);
+
+                container.Register(
+                   () => Substitute.For<ISendJobToQueue>(), LifeStyles.Singleton);
+
+                container.Register(
+                  () => Substitute.For<IJobTableCreation>(), LifeStyles.Singleton);
+
                 container.Register<ATaskScheduler, TaskSchedulerNoOp>(LifeStyles.Singleton);
                 container.Register<IClearExpiredMessages, ClearExpiredMessagesNoOp>(LifeStyles.Singleton);
                 container.Register<ISendHeartBeat, SendHeartBeatNoOp>(LifeStyles.Singleton);
@@ -236,7 +245,8 @@ namespace DotNetWorkQueue.Tests.IoC
             }
 
             // ReSharper disable once UnassignedGetOnlyAutoProperty
-            public override bool Started { get; }
+            public override bool Started => true;
+
             protected override void Dispose(bool disposing)
             {
                
