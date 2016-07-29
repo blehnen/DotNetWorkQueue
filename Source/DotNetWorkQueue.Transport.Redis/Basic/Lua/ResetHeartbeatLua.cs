@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public ResetHeartbeatLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
-            Script =  @"local signal = tonumber(@signalID)
+            Script = @"local signal = tonumber(@signalID)
                         local uuids = redis.call('zrangebyscore', @workingkey, 0, @heartbeattime, 'LIMIT', 0, @limit)
                         if #uuids == 0 then
 	                        return 0
@@ -36,6 +36,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                         for k, v in pairs(uuids) do                             
 	                        redis.call('zrem',  @workingkey, v)
 	                        redis.call('rpush', @pendingkey, v) 
+                            redis.call('hset', @StatusKey, v, '0') 
 	                        if signal == 1 then
 		                        redis.call('publish', @channel, v) 
 	                        end
@@ -78,6 +79,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 channel = RedisNames.Notification,
                 limit = count,
                 signalID = Convert.ToInt32(rpc),
+                StatusKey = (RedisKey)RedisNames.Status,
             };
         }
     }

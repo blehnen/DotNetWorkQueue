@@ -172,6 +172,21 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 _commandCache.Add(SqlServerCommandStringTypes.GetPendingDelayCount,
                     $"Select count(queueid) from {_tableNameHelper.MetaDataName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatus.Waiting)} AND (QueueProcessTime > getutcdate()) ");
 
+                _commandCache.Add(SqlServerCommandStringTypes.GetJobLastKnownEvent,
+                    $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
+
+                _commandCache.Add(SqlServerCommandStringTypes.SetJobLastKnownEvent,
+                    $"MERGE {_tableNameHelper.JobTableName} USING(VALUES(@JobName, @JobEventTime, @JobScheduledTime)) AS updateJob(JobName, JobEventTime, JobScheduledTime) ON {_tableNameHelper.JobTableName}.JobName = updateJob.JobName WHEN MATCHED THEN UPDATE SET JobEventTime = updateJob.JobEventTime, JobScheduledTime = updateJob.JobScheduledTime WHEN NOT MATCHED THEN INSERT(JobName, JobEventTime, JobScheduledTime) VALUES(JobName, JobEventTime, JobScheduledTime); ");
+
+                _commandCache.Add(SqlServerCommandStringTypes.DoesJobExist,
+                    $"Select Status from {_tableNameHelper.StatusName} where JobName = @JobName");
+
+                _commandCache.Add(SqlServerCommandStringTypes.GetJobId,
+                   $"Select QueueID from {_tableNameHelper.StatusName} where JobName = @JobName");
+
+                _commandCache.Add(SqlServerCommandStringTypes.GetJobLastScheduleTime,
+                   $"Select JobScheduledTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
+
                 //always set this last
                 _complete = true;
             }
@@ -274,6 +289,26 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <summary>
         /// Gets the number of records that are pending, but are scheduled for a future time
         /// </summary>
-        GetPendingDelayCount
+        GetPendingDelayCount,
+        /// <summary>
+        /// Gets the last known event time for a job
+        /// </summary>
+        GetJobLastKnownEvent,
+        /// <summary>
+        /// Sets the last known event time for a job
+        /// </summary>
+        SetJobLastKnownEvent,
+        /// <summary>
+        /// Determines if a job (via job name) already is queued
+        /// </summary>
+        DoesJobExist,
+        /// <summary>
+        /// Gets job identifier (via job name)
+        /// </summary>
+        GetJobId,
+        /// <summary>
+        /// The get job last schedule time from the last time the job was queued
+        /// </summary>
+        GetJobLastScheduleTime
     }
 }

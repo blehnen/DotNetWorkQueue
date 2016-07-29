@@ -29,5 +29,21 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <returns></returns>
         DateTime GetCurrentUtcDate();
+
+        /// <summary>
+        /// Gets the get current calculated offset.
+        /// </summary>
+        /// <value>
+        /// The get current offset.
+        /// </value>
+        TimeSpan GetCurrentOffset { get; }
+
+        /// <summary>
+        /// Gets the name of the time provider
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        string Name { get; }
     }
 }

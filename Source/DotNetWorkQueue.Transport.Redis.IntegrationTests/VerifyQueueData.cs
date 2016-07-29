@@ -36,9 +36,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             _redisNames = new RedisNames(connection);
             _connection = new RedisConnection(connection);
         }
-        public void Verify(long expectedMessageCount)
+        public void Verify(long expectedMessageCount, int expectedStatus)
         {
             VerifyCount(expectedMessageCount);
+            VerifyStatus(expectedMessageCount, expectedStatus);
 
             // ReSharper disable once PossibleInvalidOperationException
             if(_configuration.GetMessageDelay().HasValue && _configuration.GetMessageDelay().Value)
@@ -59,6 +60,19 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             var db = _connection.Connection.GetDatabase();
             var records = db.HashLength(_redisNames.Values);
             Assert.Equal(messageCount, records);
+        }
+
+        private void VerifyStatus(long messageCount, int expectedStatus)
+        {
+            var db = _connection.Connection.GetDatabase();
+            var records = db.HashLength(_redisNames.Status);
+            Assert.Equal(messageCount, records);
+
+            var hashes = db.HashGetAll(_redisNames.Status);
+            foreach (var hash in hashes)
+            {
+                Assert.Equal(expectedStatus.ToString(), hash.Value.ToString());
+            }
         }
 
         // ReSharper disable once UnusedParameter.Local
@@ -97,13 +111,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             _connection = new RedisConnection(connection);
         }
 
-        public void Verify(int recordCount, bool ignoreErrorTracking)
+        public void Verify(int recordCount, bool ignoreErrorTracking, int expectedStatus)
         {
-            AllTablesRecordCount(recordCount, ignoreErrorTracking);
+            AllTablesRecordCount(recordCount, ignoreErrorTracking, expectedStatus);
         }
 
         // ReSharper disable once UnusedParameter.Local
-        private void AllTablesRecordCount(int recordCount, bool ignoreErrorTracking)
+        private void AllTablesRecordCount(int recordCount, bool ignoreErrorTracking, int expectedStatus)
         {
             long records;
             var db = _connection.Connection.GetDatabase();
@@ -116,6 +130,21 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 
             records = db.HashLength(_redisNames.Values);
             Assert.Equal(recordCount, records);
+
+            VerifyStatus(recordCount, expectedStatus);
+        }
+
+        private void VerifyStatus(long messageCount, int expectedStatus)
+        {
+            var db = _connection.Connection.GetDatabase();
+            var records = db.HashLength(_redisNames.Status);
+            Assert.Equal(messageCount, records);
+
+            var hashes = db.HashGetAll(_redisNames.Status);
+            foreach (var hash in hashes)
+            {
+                Assert.Equal(expectedStatus.ToString(), hash.Value.ToString());
+            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]

@@ -101,16 +101,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
             {
                 text.AppendLine();
             }
-            //add anything that is not an index
-			foreach (var c in Constraints.Where(c => c.Type != ContraintType.Index))
+            //add primary keys
+			foreach (var c in Constraints.Where(c => c.Type == ContraintType.PrimaryKey))
 			{
 			    text.AppendLine("   ," + c.Script());
 			}
 			text.AppendLine(");");
 			text.AppendLine();
 
-            //add indexes
-            foreach (var c in Constraints.Where(c => c.Type == ContraintType.Index))
+            //add indexes and constraints
+            foreach (var c in Constraints.Where(c => c.Type != ContraintType.PrimaryKey))
             {
                 text.AppendLine(c.Script());
             }

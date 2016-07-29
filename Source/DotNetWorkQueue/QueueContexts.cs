@@ -86,6 +86,18 @@ namespace DotNetWorkQueue
         /// <summary>
         /// The RPC method queue. Functions are executed in the queue, and the function return value is sent back.
         /// </summary>
-        RpcMethodQueue = 15
+        RpcMethodQueue = 15,
+        /// <summary>
+        /// The job queue creator
+        /// </summary>
+        JobQueueCreator = 16,
+        /// <summary>
+        /// The job scheduler. Used to schedule re-occurring tasks
+        /// </summary>
+        JobScheduler = 17,
+        /// <summary>
+        /// Returns time from
+        /// </summary>
+        Time = 18
     }
 }

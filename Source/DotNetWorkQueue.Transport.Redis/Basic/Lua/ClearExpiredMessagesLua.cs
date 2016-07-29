@@ -37,10 +37,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                             if(inPending == 1) then                                             
 	                            redis.call('hdel', @valueskey, v) 
                                 redis.call('hdel', @headerskey, v) 
+                                redis.call('hdel', @Statuskey, v) 
 	                            redis.call('hdel', @metakey, v) 
 	                            redis.call('LREM', @errorkey, -1, v) 
 	                            redis.call('zrem', @delaykey, v) 
 	                            redis.call('zrem', @expirekey, v) 
+
+                                 local jobName = redis.call('hget', @JobIDKey, v) 
+                                 if (jobName) then
+                                    redis.call('hdel', @JobIDKey, v) 
+                                    redis.call('hdel', @JobKey, jobName) 
+                                 end
                             else 
                                 inProgress = inProgress + 1
                             end
@@ -80,6 +87,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 errorkey = (RedisKey)RedisNames.Error,
                 delaykey = (RedisKey)RedisNames.Delayed,
                 expirekey = (RedisKey)RedisNames.Expiration,
+                JobKey = (RedisKey)RedisNames.JobNames,
+                JobIDKey = (RedisKey)RedisNames.JobIDNames,
+                Statuskey = (RedisKey)RedisNames.Status,
                 limit = count,
             };
         }

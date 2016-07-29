@@ -19,6 +19,7 @@
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.JobScheduler;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
 using SimpleInjector;
@@ -49,11 +50,20 @@ namespace DotNetWorkQueue.IoC
         /// <param name="register">The transport init module.</param>
         /// <param name="connectionType">Type of the connection.</param>
         /// <param name="registerServiceInternal">The internal registrations.</param>
+        /// <param name="setOptions">The options.</param>
+        /// <param name="registrations">The registrations for job queue creation.</param>
         /// <returns>
         /// a new container
         /// </returns>
-        public IContainer Create(QueueContexts queueType, Action<IContainer> registerService,
-            string queue, string connection, T register, ConnectionTypes connectionType, Action<IContainer> registerServiceInternal)
+        public IContainer Create(QueueContexts queueType, 
+            Action<IContainer> registerService,
+            string queue, 
+            string connection,
+            T register, 
+            ConnectionTypes connectionType, 
+            Action<IContainer> registerServiceInternal,
+            Action<IContainer> setOptions = null,
+            JobQueueContainerRegistrations registrations = null)
         {
             lock (ContainerLocker.Locker) //thread safe issue with registration of decorators; should not be needed, but have found no other solution
             {
@@ -61,6 +71,14 @@ namespace DotNetWorkQueue.IoC
                 var containerWrapper = new ContainerWrapper(container);
 
                 containerWrapper.Register(() => new QueueContext(queueType), LifeStyles.Singleton);
+                if (registrations != null)
+                {
+                    containerWrapper.Register(() => registrations, LifeStyles.Singleton);
+                }
+                else
+                {
+                    containerWrapper.Register(() => new JobQueueContainerRegistrations(null, null), LifeStyles.Singleton);
+                }
 
                 var type = GetRegistrationType(register);
 
@@ -70,7 +88,14 @@ namespace DotNetWorkQueue.IoC
                 }
                 else
                 {
-                    ComponentRegistration.RegisterDefaultsForScheduler(containerWrapper);
+                    if (queueType == QueueContexts.JobScheduler)
+                    {
+                        ComponentRegistration.RegisterDefaultsForJobScheduler(containerWrapper);
+                    }
+                    else
+                    {
+                        ComponentRegistration.RegisterDefaultsForScheduler(containerWrapper);
+                    }
                 }
 
                 //allow creating internal queues
@@ -115,6 +140,9 @@ namespace DotNetWorkQueue.IoC
                 //allow the transport to set defaults if needed
                 register.SetDefaultsIfNeeded(containerWrapper, type, connectionType);
 
+                //allow user override or setting of additional options
+                setOptions?.Invoke(containerWrapper);
+
                 return containerWrapper;
             }
         }
@@ -126,12 +154,14 @@ namespace DotNetWorkQueue.IoC
         /// <param name="registerService">The user defined service overrides.</param>
         /// <param name="register">The transport init module.</param>
         /// <param name="registerServiceInternal">The internal registrations.</param>
+        /// <param name="setOptions">The options.</param>
+        /// <param name="registrations">The registrations for job queue creation.</param>
         /// <returns>
         /// a new container
         /// </returns>
-        public IContainer Create(QueueContexts queueType, Action<IContainer> registerService, T register, Action<IContainer> registerServiceInternal)
+        public IContainer Create(QueueContexts queueType, Action<IContainer> registerService, T register, Action<IContainer> registerServiceInternal, Action<IContainer> setOptions = null, JobQueueContainerRegistrations registrations = null)
         {
-            return Create(queueType, registerService, string.Empty, string.Empty, register, ConnectionTypes.NotSpecified, registerServiceInternal);
+            return Create(queueType, registerService, string.Empty, string.Empty, register, ConnectionTypes.NotSpecified, registerServiceInternal, setOptions, registrations);
         }
 
         /// <summary>

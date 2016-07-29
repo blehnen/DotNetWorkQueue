@@ -86,6 +86,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 messageToSend.SetHeader(_headers.CorelationId, new RedisQueueCorrelationIdSerialized((Guid)data.CorrelationId.Id.Value));
 
                 var messageId = _sendMessage.Handle(new SendMessageCommand(messageToSend, data));
+                if (messageId == "JobAlreadyExists")
+                {
+                    return new QueueOutputMessage(_sentMessageFactory.Create(null, data.CorrelationId), new DotNetWorkQueueException("Failed to enqueue a record. The job already exists"));
+                }
                 return new QueueOutputMessage(_sentMessageFactory.Create(new RedisQueueId(messageId), data.CorrelationId));
             }
             catch (Exception exception)
@@ -124,6 +128,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 //correlationID must be stored as a message header
                 messageToSend.SetHeader(_headers.CorelationId, new RedisQueueCorrelationIdSerialized((Guid)data.CorrelationId.Id.Value));
                 var messageId = await _sendMessageAsync.Handle(new SendMessageCommand(messageToSend, data)).ConfigureAwait(false);
+                if (messageId == "JobAlreadyExists")
+                {
+                    return new QueueOutputMessage(_sentMessageFactory.Create(null, data.CorrelationId), new DotNetWorkQueueException("Failed to enqueue a record. The job already exists"));
+                }
                 return new QueueOutputMessage(_sentMessageFactory.Create(new RedisQueueId(messageId), data.CorrelationId));
             }
             catch (Exception exception)

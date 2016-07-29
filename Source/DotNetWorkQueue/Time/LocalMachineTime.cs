@@ -34,6 +34,14 @@ namespace DotNetWorkQueue.Time
         }
 
         /// <summary>
+        /// Gets the name of the time provider
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public override string Name => "Local";
+
+        /// <summary>
         /// Gets the time as a UTC date
         /// </summary>
         /// <returns></returns>

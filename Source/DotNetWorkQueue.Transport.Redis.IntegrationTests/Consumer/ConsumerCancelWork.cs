@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {
-                        count.Verify(0, false);
+                        count.Verify(0, false, -1);
                     }
 
                 }

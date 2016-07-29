@@ -35,6 +35,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                     local expireScore = redis.call('zscore', @expirekey, @uuid)
                     redis.call('zadd', @workingkey, @timestamp, @uuid) 
                     local message = redis.call('hget', @valueskey, @uuid) 
+                    redis.call('hset', @StatusKey, @uuid, '1') 
                     local headers = redis.call('hget', @headerskey, @uuid)
                     return {@uuid, message, headers, expireScore}";
         }
@@ -83,6 +84,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 headerskey = (RedisKey)RedisNames.Headers,
                 valueskey = (RedisKey)RedisNames.Values,
                 expirekey = (RedisKey)RedisNames.Expiration,
+                StatusKey = (RedisKey)RedisNames.Status,
                 uuid = messageid
             };
         }

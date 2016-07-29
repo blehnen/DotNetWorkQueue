@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic.Factory;
 using DotNetWorkQueue.Transport.SQLite.Basic.Message;
 using CommitMessage = DotNetWorkQueue.Transport.SQLite.Basic.Message.CommitMessage;
@@ -52,6 +53,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<IQueueCreation, SqLiteMessageQueueCreation>(LifeStyles.Singleton);
             container.Register<SqLiteMessageQueueStatusQueries>(LifeStyles.Singleton);
             container.Register<IQueueStatusProvider, SqLiteQueueStatusProvider>(LifeStyles.Singleton);
+            container.Register<IJobSchedulerLastKnownEvent, SqliteJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
+            container.Register<ISendJobToQueue, SqliteSendToJobQueue>(LifeStyles.Singleton);
+            container.Register<IJobTableCreation, SqliteJobTableCreation>(LifeStyles.Singleton);
+            container.Register<SqliteJobSchema>(LifeStyles.Singleton);
 
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
             container

@@ -71,6 +71,17 @@ namespace DotNetWorkQueue.IoC
         /// Registers the defaults implementations.
         /// </summary>
         /// <param name="container">The container.</param>
+        public static void RegisterDefaultsForJobScheduler(IContainer container)
+        {
+            Guard.NotNull(() => container, container);
+            RegisterSharedDefaults(container);
+            container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
+        }
+
+        /// <summary>
+        /// Registers the defaults implementations.
+        /// </summary>
+        /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
         public static void RegisterDefaults(IContainer container, 
             RegistrationTypes registrationType)
@@ -137,6 +148,7 @@ namespace DotNetWorkQueue.IoC
                 container.Register<GenerateMessageHeaders>(LifeStyles.Singleton);
                 container.Register<AddStandardMessageHeaders>(LifeStyles.Singleton);
                 container.Register<IProducerMethodQueue, ProducerMethodQueue>(LifeStyles.Singleton);
+                container.Register<IProducerMethodJobQueue, ProducerMethodJobQueue>(LifeStyles.Singleton);
             }
 
             //implementations for Receiving messages

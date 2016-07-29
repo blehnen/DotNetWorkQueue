@@ -83,6 +83,8 @@
     <Compile Include="ConsumerMethod\ConsumerMethodPoisonMessage.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodRollBack.cs" />
     <Compile Include="ConsumerMethod\SimpleMethodConsumer.cs" />
+    <Compile Include="JobScheduler\JobSchedulerMultipleTests.cs" />
+    <Compile Include="JobScheduler\JobSchedulerTests.cs" />
     <Compile Include="ProducerMethod\MultiProducerMethod.cs" />
     <Compile Include="ProducerMethod\SimpleProducerMethod.cs" />
     <Compile Include="ProducerMethod\SimpleProducerMethodAsync.cs" />
@@ -109,6 +111,7 @@
     <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
       <Link>DotNetWorkQueue.licenseheader</Link>
     </None>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

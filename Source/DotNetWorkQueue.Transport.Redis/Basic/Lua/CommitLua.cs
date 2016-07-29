@@ -36,6 +36,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      redis.call('hdel', @metakey, @uuid) 
                      redis.call('LREM', @errorkey, -1, @uuid) 
                      redis.call('zrem', @expirekey, @uuid) 
+                     redis.call('hdel', @StatusKey, @uuid) 
+
+                     local jobName = redis.call('hget', @JobIDKey, @uuid) 
+                     if (jobName) then
+                        redis.call('hdel', @JobIDKey, @uuid) 
+                        redis.call('hdel', @JobKey, jobName) 
+                     end
+                    
                      return 1";
         }
         /// <summary>
@@ -63,7 +71,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 headerskey = (RedisKey)RedisNames.Headers,
                 metakey = (RedisKey)RedisNames.MetaData,
                 errorkey = (RedisKey)RedisNames.Error,
-                expirekey = (RedisKey)RedisNames.Expiration
+                expirekey = (RedisKey)RedisNames.Expiration,
+                JobKey = (RedisKey)RedisNames.JobNames,
+                JobIDKey = (RedisKey)RedisNames.JobIDNames,
+                StatusKey = (RedisKey)RedisNames.Status,
             };
         }
     }

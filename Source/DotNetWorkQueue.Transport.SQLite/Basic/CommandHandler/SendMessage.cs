@@ -19,6 +19,7 @@
 using System;
 using System.Data;
 using System.Data.SQLite;
+using System.Linq;
 using System.Text;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -118,7 +119,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="data">The data.</param>
         private static void AddUserColumnsParams(SQLiteCommand command, IAdditionalMessageData data)
         {
-            foreach (var metadata in data.AdditionalMetaData)
+            var list = data.AdditionalMetaData.Where(x => !x.Name.StartsWith("@"));
+            foreach (var metadata in list)
             {
                 command.Parameters.AddWithValue("@" + metadata.Name, metadata.Value);
             }
@@ -147,14 +149,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private static void AddUserColumns(StringBuilder command, IAdditionalMessageData data)
         {
             var i = 0;
-            foreach (var metadata in data.AdditionalMetaData)
+            var list = data.AdditionalMetaData.Where(x => !x.Name.StartsWith("@")).ToList();
+            foreach (var metadata in list)
             {
                 if (i == 0)
                 {
                     command.Append(",");
                 }
                 command.Append(metadata.Name);
-                if (i < data.AdditionalMetaData.Count - 1)
+                if (i < list.Count - 1)
                 {
                     command.Append(",");
                 }
@@ -194,14 +197,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private static void AddUserColumnsValues(StringBuilder command, IAdditionalMessageData data)
         {
             var i = 0;
-            foreach (var metadata in data.AdditionalMetaData)
+            var list = data.AdditionalMetaData.Where(x => !x.Name.StartsWith("@")).ToList();
+            foreach (var metadata in list)
             {
                 if (i == 0)
                 {
                     command.Append(",");
                 }
                 command.Append("@" + metadata.Name);
-                if (i < data.AdditionalMetaData.Count - 1)
+                if (i < list.Count - 1)
                 {
                     command.Append(",");
                 }

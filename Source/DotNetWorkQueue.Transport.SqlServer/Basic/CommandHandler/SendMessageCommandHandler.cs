@@ -23,6 +23,8 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
+using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 {
     /// <summary>
@@ -37,6 +39,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly TransportConfigurationSend _configurationSend;
+        private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
+        private readonly IQueryHandler<DoesJobExistQuery, QueueStatus> _jobExistsHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandler" /> class.
@@ -47,12 +51,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="headers">The headers.</param>
         /// <param name="commandCache">The command cache.</param>
         /// <param name="configurationSend">The configuration send.</param>
+        /// <param name="sendJobStatus">The send job status.</param>
+        /// <param name="jobExistsHandler">The job exists handler.</param>
         public SendMessageCommandHandler(TableNameHelper tableNameHelper, 
             ICompositeSerialization serializer,
             ISqlServerMessageQueueTransportOptionsFactory optionsFactory, 
             IHeaders headers,
             SqlServerCommandStringCache commandCache, 
-            TransportConfigurationSend configurationSend)
+            TransportConfigurationSend configurationSend, 
+            ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus, 
+            IQueryHandler<DoesJobExistQuery, QueueStatus> jobExistsHandler)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => serializer, serializer);
@@ -60,6 +68,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             Guard.NotNull(() => headers, headers);
             Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => configurationSend, configurationSend);
+            Guard.NotNull(() => sendJobStatus, sendJobStatus);
+            Guard.NotNull(() => jobExistsHandler, jobExistsHandler);
 
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;
@@ -67,6 +77,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             _headers = headers;
             _commandCache = commandCache;
             _configurationSend = configurationSend;
+            _sendJobStatus = sendJobStatus;
+            _jobExistsHandler = jobExistsHandler;
         }
 
         /// <summary>
@@ -83,51 +95,79 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 _messageExpirationEnabled = _options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend;
             }
 
+            var jobName = GetJobName(commandSend);
+            var scheduledTime = DateTimeOffset.MinValue;
+            var eventTime = DateTimeOffset.MinValue;
+            if (!string.IsNullOrWhiteSpace(jobName))
+            {
+                scheduledTime = GetJobTime("@JobScheduledTime", commandSend);
+                eventTime = GetJobTime("@JobEventTime", commandSend);
+            }
+
             using (var connection = new SqlConnection(_configurationSend.ConnectionInfo.ConnectionString))
             {
                 connection.Open();
                 using (var trans = connection.BeginTransaction())
                 {
-                    using (var command = connection.CreateCommand())
+                    if (_jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
+                        QueueStatus.NotQueued)
                     {
-                        command.Transaction = trans;
-                        command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.InsertMessageBody);
-                        var serialization =
-                            _serializer.Serializer.MessageToBytes(new MessageBody {Body = commandSend.MessageToSend.Body});
-
-                        command.Parameters.Add("@body", SqlDbType.VarBinary, -1);
-                        command.Parameters["@body"].Value = serialization.Output;
-
-                        commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph,
-                            serialization.Graph);
-
-                        command.Parameters.Add("@headers", SqlDbType.VarBinary, -1);
-                        command.Parameters["@headers"].Value =
-                            _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
-
-                        var id = Convert.ToInt64(command.ExecuteScalar());
-                        if (id > 0)
+                        using (var command = connection.CreateCommand())
                         {
-                            var expiration = TimeSpan.Zero;
-                            if (_messageExpirationEnabled.Value)
-                            {
-                                expiration = MessageExpiration.GetExpiration(commandSend, _headers);
-                            }
+                            command.Transaction = trans;
+                            command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.InsertMessageBody);
+                            var serialization =
+                                _serializer.Serializer.MessageToBytes(new MessageBody
+                                {
+                                    Body = commandSend.MessageToSend.Body
+                                });
 
-                            CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration, connection, id,
-                                commandSend.MessageToSend, commandSend.MessageData, trans);
-                            if (_options.Value.EnableStatusTable)
+                            command.Parameters.Add("@body", SqlDbType.VarBinary, -1);
+                            command.Parameters["@body"].Value = serialization.Output;
+
+                            commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph,
+                                serialization.Graph);
+
+                            command.Parameters.Add("@headers", SqlDbType.VarBinary, -1);
+                            command.Parameters["@headers"].Value =
+                                _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
+
+                            var id = Convert.ToInt64(command.ExecuteScalar());
+                            if (id > 0)
                             {
-                                CreateStatusRecord(connection, id, commandSend.MessageToSend, commandSend.MessageData, trans);
+                                var expiration = TimeSpan.Zero;
+                                if (_messageExpirationEnabled.Value)
+                                {
+                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers);
+                                }
+
+                                CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration, connection, id,
+                                    commandSend.MessageToSend, commandSend.MessageData, trans);
+                                if (_options.Value.EnableStatusTable)
+                                {
+                                    CreateStatusRecord(connection, id, commandSend.MessageToSend,
+                                        commandSend.MessageData, trans);
+                                }
+
+                                if (!string.IsNullOrWhiteSpace(jobName))
+                                {
+                                    _sendJobStatus.Handle(new SetJobLastKnownEventCommand(jobName, eventTime,
+                                        scheduledTime, connection, trans));
+                                }
                             }
+                            else
+                            {
+                                throw new DotNetWorkQueueException(
+                                    "Failed to insert record - the ID of the new record returned by SQL server was 0");
+                            }
+                            trans.Commit();
+                            return id;
                         }
-                        else
-                        {
-                            throw new DotNetWorkQueueException(
-                                "Failed to insert record - the ID of the new record returned by SQL server was 0");
-                        }
-                        trans.Commit();
-                        return id;
+                    }
+                    else
+                    {
+                        throw new DotNetWorkQueueException(
+                            "Failed to insert record - the job has already been queued or processed");
                     }
                 }
             }
@@ -175,5 +215,28 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             }
         }
         #endregion
+
+        private string GetJobName(SendMessageCommand commandSend)
+        {
+            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
+            {
+                if (meta.Name == "JobName" && meta.Value is string)
+                {
+                    return (string)meta.Value;
+                }
+            }
+            return string.Empty;
+        }
+        private DateTimeOffset GetJobTime(string field, SendMessageCommand commandSend)
+        {
+            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
+            {
+                if (meta.Name == field && meta.Value is DateTimeOffset)
+                {
+                    return (DateTimeOffset)meta.Value;
+                }
+            }
+            return DateTimeOffset.MinValue;
+        }
     }
 }

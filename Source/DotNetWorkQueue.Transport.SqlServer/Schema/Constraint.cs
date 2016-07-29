@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
+using DotNetWorkQueue.Exceptions;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Schema
 {
     /// <summary>
@@ -168,6 +170,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
             {
                 case ContraintType.PrimaryKey:
                     return "PRIMARY KEY";
+                case ContraintType.Constraint:
+                    if (Unique)
+                    {
+                        return "Unique";
+                    }
+                    throw new DotNetWorkQueueException("Only unique constraints are supported; set the unique flag to true. For primary keys, use the primary key type instead. For indexes, specify an index type instead.");
                 default:
                     return type.ToString().ToUpperInvariant();
             }

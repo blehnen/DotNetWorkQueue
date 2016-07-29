@@ -85,10 +85,26 @@ namespace DotNetWorkQueue.Time
                 var localTime = DateTime.UtcNow;
                 Offset = time - localTime;
                 ServerOffsetObtained = localTime;
-                Log.DebugFormat("server difference is {0} MS", Offset.TotalMilliseconds);
+                Log.DebugFormat("[{0}] server difference is {1} MS", Name, Offset.TotalMilliseconds);
             }
             return DateTime.UtcNow.Add(Offset);
         }
+
+        /// <summary>
+        /// Gets the name of the time provider
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public abstract string Name { get; }
+
+        /// <summary>
+        /// Gets the get current calculated offset.
+        /// </summary>
+        /// <value>
+        /// The get current offset.
+        /// </value>
+        public TimeSpan GetCurrentOffset => Offset;
 
         /// <summary>
         /// Returns true if the cached time offset has expired

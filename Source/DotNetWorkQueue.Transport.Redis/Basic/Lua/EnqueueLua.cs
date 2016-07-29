@@ -26,12 +26,26 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
     /// </summary>
     internal class EnqueueLua: BaseLua
     {
+        private const string DateTimeFormat = "MM/dd/yyyy hh:mm:ss.fff tt";
+        private const string DateTimeScheduler = "MM/dd/yyyy hh:mm:ss tt";
+
         public EnqueueLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
             Script = @"local signal = tonumber(@signalID)
                        local id = @field
                     
+                    if @JobName ~= '' then
+                        local jobExists = redis.call('hget', @JobKey, @JobName) 
+                        if(jobExists) then
+                            return 'JobAlreadyExists'
+                        end
+                        local alreadyScheduledAndRan = redis.call('hget', @JobEventKey, @JobNameScheduled)
+                        if (alreadyScheduledAndRan == @ScheduledTime) then
+                            return 'JobAlreadyExists'
+                        end
+                    end
+
                      if id == '' then
                         id = redis.call('INCR', @IDKey)
                      end
@@ -40,6 +54,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      redis.call('hset', @headerskey, id, @headers) 
                      redis.call('lpush', @pendingkey, id) 
                      redis.call('hset', @metakey, id, @metavalue) 
+                     redis.call('hset', @StatusKey, id, '0')
+                     if @JobName ~= '' then
+                        redis.call('hset', @JobKey, @JobName, id)
+                        redis.call('hset', @JobIDKey, id, @JobName)
+
+                        redis.call('hset', @JobEventKey, @JobName, @EventTime)
+                        redis.call('hset', @JobEventKey, @JobNameScheduled, @ScheduledTime)
+                     end
                      if signal == 1 then
                         redis.call('publish', @channel, id) 
                      else
@@ -55,14 +77,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="headers">The headers.</param>
         /// <param name="metaData">The meta data.</param>
         /// <param name="rpc">if set to <c>true</c> [RPC].</param>
+        /// <param name="jobName">Name of the job.</param>
+        /// <param name="scheduledTime">The scheduled time.</param>
+        /// <param name="eventTime">The event time.</param>
         /// <returns></returns>
-        public string Execute(string messageId, byte[] message, byte[] headers, byte[] metaData, bool rpc)
+        public string Execute(string messageId, byte[] message, byte[] headers, byte[] metaData, bool rpc, string jobName,
+             DateTimeOffset scheduledTime, DateTimeOffset eventTime)
         {
             if (Connection.IsDisposed)
                 return null;
 
             var db = Connection.Connection.GetDatabase();
-            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, rpc));
+            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, rpc, jobName, scheduledTime, eventTime));
         }
         /// <summary>
         /// Executes the specified message identifier.
@@ -72,11 +98,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="headers">The headers.</param>
         /// <param name="metaData">The meta data.</param>
         /// <param name="rpc">if set to <c>true</c> [RPC].</param>
+        /// <param name="jobName">Name of the job.</param>
+        /// <param name="scheduledTime">The scheduled time.</param>
+        /// <param name="eventTime">The event time.</param>
         /// <returns></returns>
-        public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, bool rpc)
+        public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, bool rpc, string jobName,
+             DateTimeOffset scheduledTime, DateTimeOffset eventTime)
         {
             var db = Connection.Connection.GetDatabase();
-            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, rpc)).ConfigureAwait(false);
+            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, rpc, jobName, scheduledTime, eventTime)).ConfigureAwait(false);
         }
         /// <summary>
         /// Gets the parameters.
@@ -86,8 +116,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="headers">The headers.</param>
         /// <param name="metaData">The meta data.</param>
         /// <param name="rpc">if set to <c>true</c> [RPC].</param>
+        /// <param name="jobName">Name of the job.</param>
+        /// <param name="scheduledTime">The scheduled time.</param>
+        /// <param name="eventTime">The event time.</param>
         /// <returns></returns>
-        private object GetParameters(string messageId, byte[] message, byte[] headers, byte[] metaData, bool rpc)
+        private object GetParameters(string messageId, byte[] message, byte[] headers, byte[] metaData, bool rpc, string jobName,
+            DateTimeOffset scheduledTime, DateTimeOffset eventTime)
         {
             return new
             {
@@ -102,6 +136,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 metavalue = (RedisValue)metaData,
                 signalID = Convert.ToInt32(rpc),
                 IDKey = (RedisKey)RedisNames.Id,
+                JobKey = (RedisKey)RedisNames.JobNames,
+                JobIDKey = (RedisKey)RedisNames.JobIDNames,
+                JobName = jobName,
+                StatusKey = (RedisKey)RedisNames.Status,
+                JobEventKey = (RedisKey)RedisNames.JobEvent,
+                JobNameScheduled = string.Concat(jobName, "|scheduled"),
+                ScheduledTime = scheduledTime.ToString(DateTimeScheduler, System.Globalization.CultureInfo.InvariantCulture),
+                EventTime = eventTime.ToString(DateTimeFormat, System.Globalization.CultureInfo.InvariantCulture)
             };
         }
     }

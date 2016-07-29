@@ -41,7 +41,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                     local message = redis.call('hget', @valueskey, uuid) 
                     local headers = redis.call('hget', @headerskey, uuid)
                     if(message) then
-                        redis.call('zadd', @workingkey, @timestamp, uuid) 
+                        redis.call('zadd', @workingkey, @timestamp, uuid)
+                        redis.call('hset', @StatusKey, uuid, '1') 
                         return {uuid, message, headers, expireScore} 
                     else
                         return {uuid, '', '', ''}
@@ -89,7 +90,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 timestamp = unixTime,
                 valueskey = (RedisKey)RedisNames.Values,
                 headerskey = (RedisKey)RedisNames.Headers,
-                expirekey = (RedisKey)RedisNames.Expiration
+                expirekey = (RedisKey)RedisNames.Expiration,
+                StatusKey = (RedisKey)RedisNames.Status,
             };
         }
     }

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Linq;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
@@ -155,8 +156,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
+            var jobName = GetJobName(commandSend);
+            var scheduledTime = DateTimeOffset.MinValue;
+            var eventTime = DateTimeOffset.MinValue;
+            if (!string.IsNullOrWhiteSpace(jobName))
+            {
+                scheduledTime = GetJobTime("JobScheduledTime", commandSend);
+                eventTime = GetJobTime("JobEventTime", commandSend);
+            }
+
             var result = _enqueueLua.Execute(messageId,
-                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), rpc);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), 
+                _serializer.InternalSerializer.ConvertToBytes(meta), rpc, jobName, scheduledTime, eventTime);
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -261,6 +272,29 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             }
             messageId = result;
             return messageId;
+        }
+
+        private string GetJobName(SendMessageCommand commandSend)
+        {
+            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
+            {
+                if (meta.Name == "JobName" && meta.Value is string)
+                {
+                    return (string)meta.Value;
+                }
+            }
+            return string.Empty;
+        }
+        private DateTimeOffset GetJobTime(string field, SendMessageCommand commandSend)
+        {
+            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
+            {
+                if (meta.Name == field && meta.Value is DateTimeOffset)
+                {
+                    return (DateTimeOffset)meta.Value;
+                }
+            }
+            return DateTimeOffset.MinValue;
         }
     }
 }

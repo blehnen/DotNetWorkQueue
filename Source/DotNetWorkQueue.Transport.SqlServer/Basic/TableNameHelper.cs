@@ -26,6 +26,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     {
         private readonly IConnectionInformation _connectionInformation;
         private const string NameNotSet = "Error-Name-Not-Set";
+        private const string JobsTableName = "DNWQJobs";
 
         #region Constructor
         /// <summary>
@@ -111,6 +112,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// The name of the meta data errors.
         /// </value>
         public string MetaDataErrorsName => !string.IsNullOrEmpty(QueueName) ? string.Concat(QueueName, "MetaDataErrors") : NameNotSet;
+
+        /// <summary>
+        /// Gets the name of the job table.
+        /// </summary>
+        /// <value>
+        /// The name of the job table.
+        /// </value>
+        public string JobTableName => JobsTableName;
 
         #endregion
     }

@@ -29,6 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         {
             Script = @"redis.call('zrem', @workingkey, @uuid) 
                        redis.call('zadd', @delaykey, @timestamp, @uuid) 
+                       redis.call('hset', @StatusKey, @uuid, '0') 
                        return 1";
         }
         /// <summary>
@@ -55,7 +56,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 workingkey = (RedisKey)RedisNames.Working,
                 uuid = messageId,
                 delaykey = (RedisKey)RedisNames.Delayed,
-                timestamp = unixTime
+                timestamp = unixTime,
+                StatusKey = (RedisKey)RedisNames.Status,
             };
         }
     }

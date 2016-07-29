@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.RpcMethod
 
                     using (var count = new VerifyQueueRecordCount(queueNameSend, connectionString))
                     {
-                        count.Verify(0, false);
+                        count.Verify(0, false, -1);
                     }
                 }
                 finally

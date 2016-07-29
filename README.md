@@ -370,6 +370,10 @@ This library uses multiple 3rd party libaries, listed below.
 
 * [Expression-JSON-Serializer ](https://github.com/aquilae/expression-json-serializer)*
 
+* [Schtick](https://github.com/schyntax/cs-schtick)
+
+* [Schyntax ](https://github.com/schyntax/cs-schyntax)
+
 *A fork of this module was created and thread saftey changes made. This is the version that is being used. It can be found here [Expression-JSON-Serializer ](https://github.com/blehnen/expression-json-serializer)
 
 

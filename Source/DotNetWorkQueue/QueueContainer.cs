@@ -36,6 +36,7 @@ namespace DotNetWorkQueue
         // ReSharper disable once StaticMemberInGenericType
         private static Func<ICreateContainer<TTransportInit>> _createContainerInternal = () => new CreateContainer<TTransportInit>();
         private readonly Action<IContainer> _registerService;
+        private readonly Action<IContainer> _setOptions;
         private readonly TTransportInit _transportInit;
 
         private readonly ConcurrentBag<IDisposable> _containers; 
@@ -62,14 +63,15 @@ namespace DotNetWorkQueue
         /// Initializes a new instance of the <see cref="QueueContainer{TTransportInit}" /> class.
         /// </summary>
         /// <param name="registerService">The register service.</param>
-        public QueueContainer(Action<IContainer> registerService)
+        /// <param name="setOptions">The options.</param>
+        public QueueContainer(Action<IContainer> registerService, Action<IContainer> setOptions = null)
         {
             _containers = new ConcurrentBag<IDisposable>();
             _registerService = registerService;
+            _setOptions = setOptions;
             _transportInit = new TTransportInit();
         }
         #endregion
-
 
         #region Dispose
         /// <summary>
@@ -116,7 +118,7 @@ namespace DotNetWorkQueue
                 //disable the time client and the system information module, as they may provide incorrect information when the status provider is not created by the queue itself
                 var container = _createContainerInternal().Create(QueueContexts.QueueStatus, _registerService, queue,
                     connection, _transportInit, ConnectionTypes.Status, serviceRegister =>
-                    serviceRegister.Register<IGetTimeFactory, GetTimeFactoryNoOp>(LifeStyles.Singleton));
+                    serviceRegister.Register<IGetTimeFactory, GetTimeFactoryNoOp>(LifeStyles.Singleton), _setOptions);
                 _containers.Add(container);
                 return container.GetInstance<IQueueStatusProvider>();
             }
@@ -140,7 +142,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => connection, connection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Receive, x => { });
+                connection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             _containers.Add(container);
             return container.GetInstance<IConsumerQueue>();
         }
@@ -157,7 +159,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => connection, connection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Receive, x => { });
+                connection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             _containers.Add(container);
             return container.GetInstance<IConsumerMethodQueue>();
         }
@@ -175,7 +177,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => connection, connection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueueAsync, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Receive, x => { });
+                connection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             _containers.Add(container);
             return container.GetInstance<IConsumerQueueAsync>();
         }
@@ -299,13 +301,13 @@ namespace DotNetWorkQueue
                 {
                     container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
                         serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton).
-                        Register(() => factory.Scheduler, LifeStyles.Singleton));
+                        Register(() => factory.Scheduler, LifeStyles.Singleton), _setOptions);
                 }
                 else
                 {
                     container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
                          serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register(() => workGroup, LifeStyles.Singleton).
-                        Register(() => factory.Scheduler, LifeStyles.Singleton));
+                        Register(() => factory.Scheduler, LifeStyles.Singleton), _setOptions);
                 }
             }
             else //someone else owns the factory
@@ -314,13 +316,13 @@ namespace DotNetWorkQueue
                 {
                     container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
                         serviceRegister => serviceRegister.RegisterNonScopedSingleton(factory).Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton).
-                        RegisterNonScopedSingleton(factory.Scheduler));
+                        RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
                 else
                 {
                     container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
                          serviceRegister => serviceRegister.RegisterNonScopedSingleton(factory).Register(() => workGroup, LifeStyles.Singleton).
-                        RegisterNonScopedSingleton(factory.Scheduler));
+                        RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
             }
             _containers.Add(container);
@@ -353,7 +355,7 @@ namespace DotNetWorkQueue
                             serviceRegister =>
                                 serviceRegister.Register(() => factory, LifeStyles.Singleton)
                                     .Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton)
-                                    .Register(() => factory.Scheduler, LifeStyles.Singleton));
+                                    .Register(() => factory.Scheduler, LifeStyles.Singleton), _setOptions);
                 }
                 else
                 {
@@ -363,7 +365,7 @@ namespace DotNetWorkQueue
                             serviceRegister =>
                                 serviceRegister.Register(() => factory, LifeStyles.Singleton)
                                     .Register(() => workGroup, LifeStyles.Singleton)
-                                    .Register(() => factory.Scheduler, LifeStyles.Singleton));
+                                    .Register(() => factory.Scheduler, LifeStyles.Singleton), _setOptions);
                 }
             }
             else  //someone else owns factory
@@ -376,7 +378,7 @@ namespace DotNetWorkQueue
                             serviceRegister =>
                                 serviceRegister.RegisterNonScopedSingleton(factory)
                                     .Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton)
-                                    .RegisterNonScopedSingleton(factory.Scheduler));
+                                    .RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
                 else
                 {
@@ -386,7 +388,7 @@ namespace DotNetWorkQueue
                             serviceRegister =>
                                 serviceRegister.RegisterNonScopedSingleton(factory)
                                     .Register(() => workGroup, LifeStyles.Singleton)
-                                    .RegisterNonScopedSingleton(factory.Scheduler));
+                                    .RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
             }
             _containers.Add(container);
@@ -411,7 +413,7 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => connection, connection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Send, x => { });
+                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             _containers.Add(container);
             return container.GetInstance<IProducerQueue<TMessage>>();
         }
@@ -429,9 +431,27 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => connection, connection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Send, x => { });
+                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             _containers.Add(container);
             return container.GetInstance<IProducerMethodQueue>();
+        }
+
+        /// <summary>
+        /// Creates a producer queue for executing linq expressions.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <returns></returns>
+        public IProducerMethodJobQueue CreateMethodJobProducer(
+            string queue, string connection)
+        {
+            Guard.NotNullOrEmpty(() => queue, queue);
+            Guard.NotNullOrEmpty(() => connection, connection);
+
+            var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
+                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
+            _containers.Add(container);
+            return container.GetInstance<IProducerMethodJobQueue>();
         }
 
         #endregion
@@ -462,7 +482,7 @@ namespace DotNetWorkQueue
                 serviceRegister =>
                     serviceRegister.Register(
                         () => producer, LifeStyles.Singleton).Register(
-                        () => connectonSettings, LifeStyles.Singleton));
+                        () => connectonSettings, LifeStyles.Singleton), _setOptions);
             _containers.Add(container);
             return
                 container
@@ -487,7 +507,7 @@ namespace DotNetWorkQueue
                 serviceRegister =>
                     serviceRegister.Register(
                         () => rpc, LifeStyles.Singleton).Register(
-                        () => connectonSettings, LifeStyles.Singleton));
+                        () => connectonSettings, LifeStyles.Singleton), _setOptions);
             _containers.Add(container);
             return
                 container
@@ -509,12 +529,38 @@ namespace DotNetWorkQueue
             Guard.NotNullOrEmpty(() => connection, connection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueueRpc, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Send, x => { });
+                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             _containers.Add(container);
             return container.GetInstance<IProducerQueueRpc<TMessage>>();
         }
 
-        #endregion   
+        #endregion
+
+        /// <summary>
+        /// Creates a re-occurring job scheduler.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <returns></returns>
+        public IJobSchedulerLastKnownEvent CreateJobSchedulerLastKnownEvent(string queue, string connection)
+        {
+            var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
+                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
+            _containers.Add(container);
+            return container.GetInstance<IJobSchedulerLastKnownEvent>();
+        }
+
+        /// <summary>
+        /// Creates a class that returns the current date/time
+        /// </summary>
+        /// <returns></returns>
+        public IGetTimeFactory CreateTimeSync(string connection)
+        {
+            var container = _createContainerInternal().Create(QueueContexts.Time, _registerService, "TIME",
+               connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
+            var factory = container.GetInstance<IGetTimeFactory>();
+            return factory;
+        }
     }
     #endregion 
 }

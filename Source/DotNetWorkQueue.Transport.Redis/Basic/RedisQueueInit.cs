@@ -52,6 +52,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             //**all
             container.Register<IConnectionInformation>(() => new RedisConnectionInfo(queue, connection), LifeStyles.Singleton);
             container.Register<IQueueStatusProvider, RedisQueueStatusProvider>(LifeStyles.Singleton);
+            container.Register<IJobSchedulerLastKnownEvent, RedisJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
+            container.Register<ISendJobToQueue, RedisSendJobToQueue>(LifeStyles.Singleton);
+
+            container.Register<IJobTableCreation, RedisJobTableCreationNoOp>(LifeStyles.Singleton);
 
             container.Register<IQueueCreation, RedisQueueCreation>(LifeStyles.Singleton);
             container.Register<IRedisConnection, RedisConnection>(LifeStyles.Singleton);
@@ -139,6 +143,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<TimeLua>(LifeStyles.Singleton);
             container.Register<EnqueueBatchLua>(LifeStyles.Singleton);
             container.Register<CommitLua>(LifeStyles.Singleton);
+            container.Register<DoesJobExistLua>(LifeStyles.Singleton);
 
             var types = target.GetTypes().Where(x => x.IsSubclassOf(typeof(BaseLua)));
             container.RegisterCollection<BaseLua>(types);

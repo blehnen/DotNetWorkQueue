@@ -19,6 +19,10 @@
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Transport.Redis.Basic;
+using DotNetWorkQueue.Transport.Redis.Basic.Lua;
+using StackExchange.Redis;
+using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
@@ -28,8 +32,31 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         {
             using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration, connectionString))
             {
-                verify.Verify(messageCount);
+                verify.Verify(messageCount, 0);
             }
+        }
+
+        public static void Verify(string queueName, string connectionString, long messageCount)
+        {
+            var connectionInfo = new BaseConnectionInformation(queueName, connectionString);
+            var redisNames = new RedisNames(connectionInfo);
+            using (var connection = new RedisConnection(connectionInfo))
+            {
+                var db = connection.Connection.GetDatabase();
+                var records = db.HashLength(redisNames.Values);
+                Assert.Equal(messageCount, records);
+            }
+        }
+
+        public static void SetError(string queueName, string connectionString)
+        {
+            var connectionInfo = new BaseConnectionInformation(queueName, connectionString);
+            var conn = new RedisConnection(connectionInfo);
+            var redisNames = new RedisNames(connectionInfo);
+            var db = conn.Connection.GetDatabase();
+            var id = db.HashGet(redisNames.JobNames, "job1");
+            db.HashSet(redisNames.Status, id,
+               "2");
         }
 
         public static void NoVerification(string queueName, QueueProducerConfiguration queueProducerConfiguration, long messageCount)

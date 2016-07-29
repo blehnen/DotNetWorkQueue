@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.JobScheduler;
 
 namespace DotNetWorkQueue
 {
@@ -38,9 +39,11 @@ namespace DotNetWorkQueue
         /// <param name="register">The transport registration module.</param>
         /// <param name="connectionType">Type of the connection.</param>
         /// <param name="registerServiceInternal">The internal service overrides</param>
+        /// <param name="setOptions">The options. Can be null</param>
+        /// <param name="registrations">The registrations for job queue creation. Can be null</param>
         /// <returns></returns>
         IContainer Create(QueueContexts queueType, Action<IContainer> registerService, string queue, string connection, T register,
-            ConnectionTypes connectionType, Action<IContainer> registerServiceInternal);
+            ConnectionTypes connectionType, Action<IContainer> registerServiceInternal, Action<IContainer> setOptions, JobQueueContainerRegistrations registrations = null);
 
         /// <summary>
         /// Creates the IoC container
@@ -49,8 +52,10 @@ namespace DotNetWorkQueue
         /// <param name="registerService">The user defined service overrides.</param>
         /// <param name="register">The transport registration module.</param>
         /// <param name="registerServiceInternal">The internal service overrides.</param>
+        /// <param name="setOptions">The options. Can be null</param>
+        /// <param name="registrations">The registrations for job queue creation. Can be null</param>
         /// <returns></returns>
         IContainer Create(QueueContexts queueType, Action<IContainer> registerService, T register,
-            Action<IContainer> registerServiceInternal);
+            Action<IContainer> registerServiceInternal, Action<IContainer> setOptions, JobQueueContainerRegistrations registrations = null);
     }
 }

@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     LoggerShared.CheckForErrors(queueName);
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {
-                        count.Verify(0, false);
+                        count.Verify(0, false, -1);
                     }
                         GenerateMethod.ClearRollback(id);
                 }

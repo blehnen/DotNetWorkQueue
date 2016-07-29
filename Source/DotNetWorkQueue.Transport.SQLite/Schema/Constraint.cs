@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
+using DotNetWorkQueue.Exceptions;
+
 namespace DotNetWorkQueue.Transport.SQLite.Schema
 {
     /// <summary>
@@ -115,11 +117,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <returns></returns>
         public string Script()
         {
-            return Type != ContraintType.Index 
-                ? 
-                $"PRIMARY KEY ({string.Join("], [", Columns.ToArray())})" 
-                : 
-                $"CREATE {UniqueText} INDEX {Name}{Table.Name} ON {Table.Name} ({string.Join(", ", Columns.ToArray())});";
+            switch (Type)
+            {
+                case ContraintType.Constraint:
+                case ContraintType.Index:
+                    return $"CREATE {UniqueText} INDEX {Name}{Table.Name} ON {Table.Name} ({string.Join(", ", Columns.ToArray())});";
+                case ContraintType.PrimaryKey:
+                    return $"PRIMARY KEY ({string.Join("], [", Columns.ToArray())})";
+            }
+            throw new DotNetWorkQueueException($"Unhandled type of {Type}");
         }
 
         #endregion

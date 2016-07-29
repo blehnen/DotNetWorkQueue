@@ -63,6 +63,7 @@ namespace DotNetWorkQueue
         /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.</remarks>
         ICreationScope Scope { get; }
     }
+
     /// <summary>
     /// The status of the queue creation process
     /// </summary>
@@ -73,6 +74,7 @@ namespace DotNetWorkQueue
         /// <remarks>Getting this status would indicate a logic error, as this code should never be returned in standard operations</remarks>
         /// </summary>
         None = 0,
+
         /// <summary>
         /// The queue already exists; it was not created.
         /// <remarks>
@@ -81,10 +83,12 @@ namespace DotNetWorkQueue
         /// </remarks>
         /// </summary>
         AlreadyExists = 1,
+
         /// <summary>
         /// The queue has been created
         /// </summary>
         Success = 2,
+
         /// <summary>
         /// Attempted to create the queue, but it already exists
         /// </summary>
@@ -94,11 +98,13 @@ namespace DotNetWorkQueue
         /// the queue. This return code does not mean that a fatal error has occurred.
         /// </remarks>
         AttemptedToCreateAlreadyExists = 3,
+
         /// <summary>
         /// The queue configuration is invalid
         /// <remarks>Conflicting configuration settings have been set. See the error message for more detail.</remarks>
         /// </summary>
         ConfigurationError = 4,
+
         /// <summary>
         /// The transport does not need the queue to be pre-created
         /// </summary>

@@ -31,6 +31,7 @@ namespace DotNetWorkQueue
         private static Func<ICreateContainer<SchedulerInit>> _createContainerInternal = () => new CreateContainer<SchedulerInit>();
 
         private readonly Action<IContainer> _registerService;
+        private readonly Action<IContainer> _setOptions;
         private readonly SchedulerInit _transportInit;
         private readonly ConcurrentBag<IDisposable> _containers;
 
@@ -57,10 +58,12 @@ namespace DotNetWorkQueue
         /// Initializes a new instance of the <see cref=" SchedulerContainer" /> class.
         /// </summary>
         /// <param name="registerService">The register service.</param>
-        public SchedulerContainer(Action<IContainer> registerService)
+        /// <param name="setOptions">The options.</param>
+        public SchedulerContainer(Action<IContainer> registerService, Action<IContainer> setOptions = null)
         {
             _containers = new ConcurrentBag<IDisposable>();
             _registerService = registerService;
+            _setOptions = setOptions;
             _transportInit = new SchedulerInit();
         }
 
@@ -105,7 +108,7 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public ATaskScheduler CreateTaskScheduler()
         {
-            var container = _createContainerInternal().Create(QueueContexts.TaskScheduler, _registerService, _transportInit, x => { });
+            var container = _createContainerInternal().Create(QueueContexts.TaskScheduler, _registerService, _transportInit, x => { }, _setOptions);
             _containers.Add(container);
             return container.GetInstance<ATaskScheduler>();
         }
@@ -116,7 +119,7 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public ITaskFactory CreateTaskFactory()
         {
-            var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit,  x => { });
+            var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit,  x => { }, _setOptions);
             _containers.Add(container);
             return CreateTaskFactoryInternal(container.GetInstance<ATaskScheduler>());
         }
@@ -139,7 +142,7 @@ namespace DotNetWorkQueue
         private ITaskFactory CreateTaskFactoryInternal(ATaskScheduler scheduler)
         {
             var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit,
-                serviceRegister => serviceRegister.Register(() => scheduler, LifeStyles.Singleton));
+                serviceRegister => serviceRegister.Register(() => scheduler, LifeStyles.Singleton), _setOptions);
             _containers.Add(container);
             return container.GetInstance<ITaskFactory>();
         }

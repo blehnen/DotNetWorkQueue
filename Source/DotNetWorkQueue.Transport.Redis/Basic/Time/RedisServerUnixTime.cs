@@ -48,6 +48,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         }
 
         /// <summary>
+        /// Gets the name of the time provider
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public override string Name => "Redis";
+
+        /// <summary>
         /// Gets the time from the redis server as needed.
         /// </summary>
         /// <returns></returns>

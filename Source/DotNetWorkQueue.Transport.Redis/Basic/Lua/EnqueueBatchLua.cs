@@ -87,6 +87,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 	                        redis.call('hset', @key, id, message) 
 	                        redis.call('hset', @metakey, id, metadata) 
                             redis.call('hset', @headerskey, id, headers) 
+                            redis.call('hset', @StatusKey, id, '0') 
 
 	                        if timestamp > 0 then
 		                        redis.call('zadd', @delaykey, timestamp, id) 
@@ -160,6 +161,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                     IDKey = (RedisKey) RedisNames.Id,
                     delaykey = (RedisKey)RedisNames.Delayed,
                     expirekey = (RedisKey)RedisNames.Expiration,
+                    StatusKey = (RedisKey)RedisNames.Status,
                 };
                 return rc;
             }

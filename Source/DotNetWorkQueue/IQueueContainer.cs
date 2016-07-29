@@ -134,6 +134,15 @@ namespace DotNetWorkQueue
             string queue, string connection);
 
         /// <summary>
+        /// Creates a producer queue for executing linq expressions
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <returns></returns>
+        IProducerMethodJobQueue CreateMethodJobProducer(
+            string queue, string connection);
+
+        /// <summary>
         /// Creates an RPC queue.
         /// </summary>
         /// <typeparam name="TMessageReceive">The type of the received message.</typeparam>
@@ -167,5 +176,13 @@ namespace DotNetWorkQueue
         IProducerQueueRpc<TMessage> CreateProducerRpc
             <TMessage>(string queue, string connection)
             where TMessage : class;
+
+        /// <summary>
+        /// Creates the job scheduler last known event.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <returns></returns>
+        IJobSchedulerLastKnownEvent CreateJobSchedulerLastKnownEvent(string queue, string connection);
     }
 }

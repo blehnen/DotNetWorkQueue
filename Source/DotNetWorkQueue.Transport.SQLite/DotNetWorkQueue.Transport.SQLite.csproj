@@ -38,8 +38,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.SQLite, Version=1.0.101.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.SQLite.Core.1.0.101.0\lib\net45\System.Data.SQLite.dll</HintPath>
+    <Reference Include="System.Data.SQLite, Version=1.0.102.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SQLite.Core.1.0.102.0\lib\net45\System.Data.SQLite.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
@@ -53,15 +53,22 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Basic\CommandHandler\CreateJobTablesCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\CreateQueueTablesAndSaveConfigurationCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteQueueTablesCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteStatusTableStatusCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\MessageExpiration.cs" />
     <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
+    <Compile Include="Basic\Command\CreateJobTablesCommand.cs" />
+    <Compile Include="Basic\Command\SetJobLastKnownEventCommand.cs" />
     <Compile Include="Basic\CreationScope.cs" />
     <Compile Include="Basic\Factory\SQLiteTransactionFactory.cs" />
     <Compile Include="Basic\QueryHandler\BuildDequeueCommand.cs" />
+    <Compile Include="Basic\QueryHandler\DoesJobExistQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetJobIdQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetJobLastKnownEventQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\MessageDeQueue.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessage.cs" />
     <Compile Include="Basic\CommandHandler\ResetHeartBeatCommandHandler.cs" />
@@ -107,12 +114,15 @@
     <Compile Include="Basic\QueryHandler\GetWorkingCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
+    <Compile Include="Basic\Query\DoesJobExistQuery.cs" />
     <Compile Include="Basic\Query\FindExpiredMessagesToDeleteQuery.cs" />
     <Compile Include="Basic\Query\FindMessagesToResetByHeartBeatQuery.cs" />
     <Compile Include="Basic\Query\GetColumnNamesFromTableQuery.cs" />
     <Compile Include="Basic\Query\GetErrorCountQuery.cs" />
     <Compile Include="Basic\Query\GetErrorRecordExistsQuery.cs" />
     <Compile Include="Basic\Query\GetErrorRetryCountQuery.cs" />
+    <Compile Include="Basic\Query\GetJobIDQuery.cs" />
+    <Compile Include="Basic\Query\GetJobLastKnownEventQuery.cs" />
     <Compile Include="Basic\Query\GetPendingCountQuery.cs" />
     <Compile Include="Basic\Query\GetPendingDelayedCountQuery.cs" />
     <Compile Include="Basic\Query\GetPendingExcludeDelayCountQuery.cs" />
@@ -124,6 +134,10 @@
     <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
     <Compile Include="Basic\QueueStatus.cs" />
     <Compile Include="Basic\SQLHeaders.cs" />
+    <Compile Include="Basic\SqliteJobQueueCreation.cs" />
+    <Compile Include="Basic\SqliteJobSchedulerLastKnownEvent.cs" />
+    <Compile Include="Basic\SqliteJobTableCreation.cs" />
+    <Compile Include="Basic\SqliteSendToJobQueue.cs" />
     <Compile Include="Basic\SQLiteTransaction.cs" />
     <Compile Include="Basic\SQLQueueDelay.cs" />
     <Compile Include="Basic\SqLiteCommandStringCache.cs" />
@@ -144,6 +158,7 @@
     <Compile Include="Basic\SqLiteQueueReceivePoisonMessage.cs" />
     <Compile Include="Basic\SqLiteQueueStatusProvider.cs" />
     <Compile Include="Basic\SqLiteRpcConnection.cs" />
+    <Compile Include="Basic\SqliteJobSchema.cs" />
     <Compile Include="Basic\TableNameHelper.cs" />
     <Compile Include="ConfigurationExtensions.cs" />
     <Compile Include="Basic\DatabaseExists.cs" />
@@ -197,11 +212,11 @@
     <Exec Command="$(Merger) /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
     <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.SQLite.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
   </Target>
-  <Import Project="..\packages\System.Data.SQLite.Core.1.0.101.0\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.101.0\build\net45\System.Data.SQLite.Core.targets')" />
+  <Import Project="..\packages\System.Data.SQLite.Core.1.0.102.0\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.102.0\build\net45\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.101.0\build\net45\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.101.0\build\net45\System.Data.SQLite.Core.targets'))" />
+    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.102.0\build\net45\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.102.0\build\net45\System.Data.SQLite.Core.targets'))" />
   </Target>
 </Project>

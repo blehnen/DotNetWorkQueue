@@ -46,6 +46,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      redis.call('lpush', @pendingkey, id) 
                      redis.call('zadd', @expirekey, @timestampexpire, id) 
                      redis.call('hset', @metakey, id, @metavalue) 
+                     redis.call('hset', @StatusKey, id, '0') 
                       if signal == 1 then
                         redis.call('publish', @channel, id) 
                      else
@@ -114,6 +115,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 timestampexpire = expireTime,
                 signalID = Convert.ToInt32(rpc),
                 IDKey = (RedisKey)RedisNames.Id,
+                StatusKey = (RedisKey)RedisNames.Status,
             };
         }
     }

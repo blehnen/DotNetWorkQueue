@@ -36,6 +36,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
             BaseTimeConfiguration configuration): base(log, configuration)
         {
         }
+
+        /// <summary>
+        /// Gets the name of the time provider
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public override string Name => "Local";
+
         /// <summary>
         /// Gets the time as a long unix format; precision must be milliseconds
         /// </summary>

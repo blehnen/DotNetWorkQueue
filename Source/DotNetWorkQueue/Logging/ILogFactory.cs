@@ -28,5 +28,11 @@ namespace DotNetWorkQueue.Logging
         /// </summary>
         /// <returns></returns>
         ILog Create();
+        /// <summary>
+        /// Creates a new instance of <see cref="ILog" />
+        /// </summary>
+        /// <param name="name">The name to use for the log message.</param>
+        /// <returns></returns>
+        ILog Create(string name);
     }
 }

@@ -48,6 +48,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Time
         }
 
         /// <summary>
+        /// Gets the name of the time provider
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public override string Name => "SQL";
+
+        /// <summary>
         /// Gets the time.
         /// </summary>
         /// <returns></returns>

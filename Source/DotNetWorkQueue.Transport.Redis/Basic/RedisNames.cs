@@ -71,6 +71,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <summary>
+        /// Gets the status.
+        /// </summary>
+        /// <value>
+        /// The status.
+        /// </value>
+        public string Status
+        {
+            get
+            {
+                BuildListIfNeeded();
+                return _names["Status"];
+            }
+        }
+
+        /// <summary>
         /// Gets the working queue name
         /// </summary>
         /// <value>
@@ -82,6 +97,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 BuildListIfNeeded();
                 return _names["Working"];
+            }
+        }
+
+        /// <summary>
+        /// Gets the job event.
+        /// </summary>
+        /// <value>
+        /// The job event.
+        /// </value>
+        public string JobEvent
+        {
+            get
+            {
+                BuildListIfNeeded();
+                return _names["JobEvent"];
             }
         }
 
@@ -130,6 +160,35 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             }
         }
 
+        /// <summary>
+        /// Gets the job names.
+        /// </summary>
+        /// <value>
+        /// The job names.
+        /// </value>
+        public string JobNames
+        {
+            get
+            {
+                BuildListIfNeeded();
+                return _names["JobNames"];
+            }
+        }
+
+        /// <summary>
+        /// Gets the job identifier names.
+        /// </summary>
+        /// <value>
+        /// The job identifier names.
+        /// </value>
+        public string JobIDNames
+        {
+            get
+            {
+                BuildListIfNeeded();
+                return _names["JobIDNames"];
+            }
+        }
         /// <summary>
         /// Gets the delayed queue name
         /// </summary>
@@ -210,6 +269,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 yield return Working;
                 yield return Error;
                 yield return Headers;
+                yield return JobNames;
+                yield return JobIDNames;
+                yield return Status;
             }
         } 
 
@@ -218,7 +280,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         private void BuildListIfNeeded()
         {
-            if (_names.Count == 10) return; //don't return unless all names are loaded
+            if (_names.Count == 14) return; //don't return unless all names are loaded
             lock (_names)
             {
                 if (_names.Count != 0) return;
@@ -232,6 +294,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 _names.Add("Expiration", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Expiration"));
                 _names.Add("Id", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Id"));
                 _names.Add("Headers", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Headers"));
+                _names.Add("JobNames", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}JobNames"));
+                _names.Add("JobIDNames", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}JobIDNames"));
+                _names.Add("Status", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Status"));
+                _names.Add("JobEvent", string.Concat(QueuePrefix, "}JobEvent"));  //NOTE - not part of a queue
             }
         }
     }

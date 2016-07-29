@@ -36,6 +36,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             Script = @"local signal = tonumber(@signalID)
                      redis.call('zrem', @workingkey, @uuid) 
                      redis.call('rpush', @pendingkey, @uuid) 
+                     redis.call('hset', @StatusKey, @uuid, '0') 
                      if signal == 1 then
                        redis.call('publish', @channel, @uuid) 
                      else
@@ -68,7 +69,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 uuid = messageId,
                 pendingkey = (RedisKey)RedisNames.Pending,
                 channel = RedisNames.Notification,
-                signalID = Convert.ToInt32(rpc)
+                signalID = Convert.ToInt32(rpc),
+                StatusKey = (RedisKey)RedisNames.Status,
             };
         }
     }

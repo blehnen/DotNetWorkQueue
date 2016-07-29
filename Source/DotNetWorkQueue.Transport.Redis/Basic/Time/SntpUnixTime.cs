@@ -42,6 +42,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         }
 
         /// <summary>
+        /// Gets the name of the time provider
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public override string Name => "SNTP";
+
+        /// <summary>
         /// Gets the time from the server as needed, based on cache expiration
         /// </summary>
         /// <returns></returns>

@@ -46,12 +46,16 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.1.0.0\lib\net45\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SimpleInjector, Version=3.1.5.0, Culture=neutral, PublicKeyToken=984cb50dea722e99, processorArchitecture=MSIL">
-      <HintPath>..\packages\SimpleInjector.3.1.5\lib\net45\SimpleInjector.dll</HintPath>
+    <Reference Include="Schyntax, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\Schyntax.dll</HintPath>
+    </Reference>
+    <Reference Include="SimpleInjector, Version=3.2.0.0, Culture=neutral, PublicKeyToken=984cb50dea722e99, processorArchitecture=MSIL">
+      <HintPath>..\packages\SimpleInjector.3.2.0\lib\net45\SimpleInjector.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SmartThreadPool, Version=2.2.3.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
@@ -91,6 +95,7 @@
     <Compile Include="Configuration\TransportInitReceive.cs" />
     <Compile Include="Configuration\TransportInitSend.cs" />
     <Compile Include="Exceptions\CompileException.cs" />
+    <Compile Include="Exceptions\JobSchedulerException.cs" />
     <Compile Include="Factory\ContainerFactory.cs" />
     <Compile Include="Factory\WorkerNotificationFactoryNoOp.cs" />
     <Compile Include="ICachePolicy.cs" />
@@ -100,6 +105,16 @@
     <Compile Include="IContainerFactory.cs" />
     <Compile Include="ICreationScope.cs" />
     <Compile Include="IExpressionSerializer.cs" />
+    <Compile Include="IJobQueueCreation.cs" />
+    <Compile Include="IJobQueueOutputMessage.cs" />
+    <Compile Include="IJobSchedulerLastKnownEvent.cs" />
+    <Compile Include="IJobTableCreation.cs" />
+    <Compile Include="IProducerMethodJobQueue.cs" />
+    <Compile Include="ISendJobToQueue.cs" />
+    <Compile Include="JobScheduler\JobQueueContainerRegistrations.cs" />
+    <Compile Include="IJobQueues.cs" />
+    <Compile Include="IJobSchedule.cs" />
+    <Compile Include="IJobScheduler.cs" />
     <Compile Include="IMessageMethodHandling.cs" />
     <Compile Include="IMessageProcessingRpcReceive.cs" />
     <Compile Include="IMessageProcessingRpcSend.cs" />
@@ -112,10 +127,20 @@
     <Compile Include="IQueueContainer.cs" />
     <Compile Include="IRpcBaseQueue.cs" />
     <Compile Include="IRpcMethodQueue.cs" />
+    <Compile Include="IScheduledJob.cs" />
+    <Compile Include="JobSchedulerContainer.cs" />
+    <Compile Include="JobScheduler\JobQueue.cs" />
+    <Compile Include="JobScheduler\JobSchedule.cs" />
+    <Compile Include="JobScheduler\JobScheduler.cs" />
+    <Compile Include="JobScheduler\JobSchedulerInit.cs" />
+    <Compile Include="JobScheduler\PendingEvent.cs" />
+    <Compile Include="JobScheduler\PendingEventHeap.cs" />
+    <Compile Include="JobScheduler\ScheduledJob.cs" />
     <Compile Include="LinqCompile\Decorator\LinqCompileCacheDecorator.cs" />
     <Compile Include="LinqCompile\DynamicCodeCompiler.cs" />
     <Compile Include="LinqCompile\LinqCompiler.cs" />
     <Compile Include="Logging\NoSpecifiedLogProvider.cs" />
+    <Compile Include="Messages\JobQueueOutputMessage.cs" />
     <Compile Include="Messages\MessageExpression.cs" />
     <Compile Include="Messages\MessageMethodHandling.cs" />
     <Compile Include="Messages\LinqExpressionToRun.cs" />
@@ -197,6 +222,7 @@
     <Compile Include="Queue\GenerateMessageHeaders.cs" />
     <Compile Include="Queue\MessageErrorEventArgs.cs" />
     <Compile Include="Queue\MessageProcessingMode.cs" />
+    <Compile Include="Queue\ProducerMethodJobQueue.cs" />
     <Compile Include="Queue\ProducerMethodQueue.cs" />
     <Compile Include="Queue\QueueContext.cs" />
     <Compile Include="Queue\RollbackMessage.cs" />
@@ -482,6 +508,7 @@
       <MergeAssemblies Include="$(OutputPath)\Aq.ExpressionJsonSerializer.dll" />
       <MergeAssemblies Include="$(OutputPath)\JpLabs.DynamicCode.dll" />
       <MergeAssemblies Include="$(OutputPath)\Microsoft.IO.RecyclableMemoryStream.dll" />
+      <MergeAssemblies Include="$(OutputPath)\Schyntax.dll" />
     </ItemGroup>
     <PropertyGroup>
       <OutputAssembly>$(SolutionDir)\..\MergedBuild\DotNetWorkQueue.dll</OutputAssembly>

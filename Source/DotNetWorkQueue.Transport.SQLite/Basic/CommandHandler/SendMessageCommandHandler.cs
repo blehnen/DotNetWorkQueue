@@ -23,6 +23,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Transport.SQLite.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 {
@@ -40,6 +41,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private readonly TransportConfigurationSend _configurationSend;
         private readonly IGetTime _getTime;
         private readonly ISqLiteTransactionFactory _transactionFactory;
+        private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
+        private readonly IQueryHandler<DoesJobExistQuery, QueueStatus> _jobExistsHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandler" /> class.
@@ -52,14 +55,18 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="configurationSend">The configuration send.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
         /// <param name="transactionFactory">The transaction factory.</param>
-        public SendMessageCommandHandler(TableNameHelper tableNameHelper, 
+        /// <param name="sendJobStatus">The send job status.</param>
+        /// <param name="jobExistsHandler">The job exists handler.</param>
+        public SendMessageCommandHandler(TableNameHelper tableNameHelper,
             ICompositeSerialization serializer,
-            ISqLiteMessageQueueTransportOptionsFactory optionsFactory, 
+            ISqLiteMessageQueueTransportOptionsFactory optionsFactory,
             IHeaders headers,
-            SqLiteCommandStringCache commandCache, 
+            SqLiteCommandStringCache commandCache,
             TransportConfigurationSend configurationSend,
             IGetTimeFactory getTimeFactory,
-            ISqLiteTransactionFactory transactionFactory)
+            ISqLiteTransactionFactory transactionFactory,
+            ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus,
+            IQueryHandler<DoesJobExistQuery, QueueStatus> jobExistsHandler)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => serializer, serializer);
@@ -68,6 +75,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => configurationSend, configurationSend);
             Guard.NotNull(() => getTimeFactory, getTimeFactory);
+            Guard.NotNull(() => sendJobStatus, sendJobStatus);
+            Guard.NotNull(() => jobExistsHandler, jobExistsHandler);
 
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;
@@ -77,6 +86,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             _configurationSend = configurationSend;
             _getTime = getTimeFactory.Create();
             _transactionFactory = transactionFactory;
+            _sendJobStatus = sendJobStatus;
+            _jobExistsHandler = jobExistsHandler;
         }
 
         /// <summary>
@@ -109,6 +120,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                     expiration = MessageExpiration.GetExpiration(commandSend, _headers);
                 }
 
+                var jobName = GetJobName(commandSend);
+                var scheduledTime = DateTimeOffset.MinValue;
+                var eventTime = DateTimeOffset.MinValue;
+                if (!string.IsNullOrWhiteSpace(jobName))
+                {
+                    scheduledTime = GetJobTime("@JobScheduledTime", commandSend);
+                    eventTime = GetJobTime("@JobEventTime", commandSend);
+                }
+
                 SQLiteCommand commandStatus = null;
                 using (var command = GetMainCommand(commandSend, connection))
                 {
@@ -127,25 +147,41 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                         {
                             try
                             {
-                                command.Transaction = trans;
-                                id = Convert.ToInt64(command.ExecuteScalar());
-                                if (id > 0)
+                                if (_jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
+                                    QueueStatus.NotQueued)
                                 {
-                                    commandMeta.Transaction = trans;
-                                    commandMeta.Parameters.Add("@QueueID", DbType.Int64, 8).Value = id;
-                                    commandMeta.ExecuteNonQuery();
-                                    if (commandStatus != null)
+                                    command.Transaction = trans;
+                                    id = Convert.ToInt64(command.ExecuteScalar());
+                                    if (id > 0)
                                     {
-                                        commandStatus.Transaction = trans;
-                                        commandStatus.Parameters.Add("@QueueID", DbType.Int64, 8).Value = id;
-                                        commandStatus.ExecuteNonQuery();
+                                        commandMeta.Transaction = trans;
+                                        commandMeta.Parameters.Add("@QueueID", DbType.Int64, 8).Value = id;
+                                        commandMeta.ExecuteNonQuery();
+                                        if (commandStatus != null)
+                                        {
+                                            commandStatus.Transaction = trans;
+                                            commandStatus.Parameters.Add("@QueueID", DbType.Int64, 8).Value = id;
+                                            commandStatus.ExecuteNonQuery();
+                                        }
+
+                                        if (!string.IsNullOrWhiteSpace(jobName))
+                                        {
+                                            _sendJobStatus.Handle(new SetJobLastKnownEventCommand(jobName, eventTime,
+                                                scheduledTime, connection, trans));
+                                        }
+
+                                        trans.Commit();
                                     }
-                                    trans.Commit();
+                                    else
+                                    {
+                                        throw new DotNetWorkQueueException(
+                                            "Failed to insert record - the ID of the new record returned by SQLite was 0");
+                                    }
                                 }
                                 else
                                 {
                                     throw new DotNetWorkQueueException(
-                                        "Failed to insert record - the ID of the new record returned by SQLite was 0");
+                                            "Failed to insert record - the job has already been queued or processed");
                                 }
                             }
                             finally
@@ -214,6 +250,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             return command;
         }
 
-        #endregion
+        private string GetJobName(SendMessageCommand commandSend)
+        {
+            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
+            {
+                if (meta.Name == "JobName" && meta.Value is string)
+                {
+                    return (string)meta.Value;
+                }
+            }
+            return string.Empty;
+        }
+        private DateTimeOffset GetJobTime(string field, SendMessageCommand commandSend)
+        {
+            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
+            {
+                if (meta.Name == field && meta.Value is DateTimeOffset)
+                {
+                    return (DateTimeOffset)meta.Value;
+                }
+            }
+            return DateTimeOffset.MinValue;
+        }
     }
+    #endregion
 }

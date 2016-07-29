@@ -30,6 +30,7 @@ namespace DotNetWorkQueue
         private static Func<ICreateContainer<QueueStatusInit>> _createContainerInternal = () => new CreateContainer<QueueStatusInit>();
 
         private readonly Action<IContainer> _registerService;
+        private readonly Action<IContainer> _setOptions;
         private readonly QueueStatusInit _transportInit;
         private readonly ConcurrentBag<IDisposable> _containers;
 
@@ -57,10 +58,12 @@ namespace DotNetWorkQueue
         /// Initializes a new instance of the <see cref="QueueStatusContainer" /> class.
         /// </summary>
         /// <param name="registerService">The register service.</param>
-        public QueueStatusContainer(Action<IContainer> registerService)
+        /// <param name="setOptions">The options.</param>
+        public QueueStatusContainer(Action<IContainer> registerService,  Action<IContainer> setOptions = null)
         {
             _containers = new ConcurrentBag<IDisposable>();
             _registerService = registerService;
+            _setOptions = setOptions;
             _transportInit = new QueueStatusInit();
         }
 
@@ -105,7 +108,7 @@ namespace DotNetWorkQueue
         {
             //when creating a status module outside of the queue itself, use a noop system information module
             var container = _createContainerInternal().Create(QueueContexts.QueueStatus ,_registerService, _transportInit,
-                x => { });
+                x => { }, _setOptions);
 
             _containers.Add(container);
             return container.GetInstance<IQueueStatus>();

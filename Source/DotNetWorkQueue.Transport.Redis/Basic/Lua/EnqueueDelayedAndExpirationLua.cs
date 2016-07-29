@@ -44,6 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      redis.call('zadd', @delaykey, @timestamp, id) 
                      redis.call('zadd', @expirekey, @timestampexpire, id) 
                      redis.call('hset', @metakey, id, @metavalue) 
+                     redis.call('hset', @StatusKey, id, '0') 
                      return id";
         }
         /// <summary>
@@ -107,6 +108,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 timestamp = delayTime,
                 timestampexpire = expireTime,
                 IDKey = (RedisKey)RedisNames.Id,
+                StatusKey = (RedisKey)RedisNames.Status,
             };
         }
     }

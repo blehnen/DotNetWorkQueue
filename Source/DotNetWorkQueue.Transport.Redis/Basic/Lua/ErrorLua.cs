@@ -33,7 +33,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             : base(connection, redisNames)
         {
             Script = @"redis.call('zrem', @workingkey, @uuid) 
-                     redis.call('lpush', @errorkey, @uuid) ";
+                     redis.call('lpush', @errorkey, @uuid) 
+                     redis.call('hset', @StatusKey, @uuid, '2') ";
         }
         /// <summary>
         /// Executes the specified message identifier.
@@ -56,7 +57,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             {
                 workingkey = (RedisKey)RedisNames.Working,
                 uuid = messageId,
-                errorkey = (RedisKey)RedisNames.Error
+                errorkey = (RedisKey)RedisNames.Error,
+                StatusKey = (RedisKey)RedisNames.Status,
             };
         }
     }

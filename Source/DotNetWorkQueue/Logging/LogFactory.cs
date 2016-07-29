@@ -42,5 +42,14 @@ namespace DotNetWorkQueue.Logging
         {
             return LogProvider.GetLogger(_connectionInformation.QueueName);
         }
+        /// <summary>
+        /// Creates a new instance of <see cref="ILog" />
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+        public ILog Create(string name)
+        {
+            return LogProvider.GetLogger(name);
+        }
     }
 }

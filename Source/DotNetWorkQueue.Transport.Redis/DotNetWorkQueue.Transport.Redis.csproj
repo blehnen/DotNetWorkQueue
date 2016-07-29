@@ -42,8 +42,8 @@
       <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.1.0.0\lib\net45\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="MsgPack, Version=0.6.0.0, Culture=neutral, PublicKeyToken=a2625990d5dc0167, processorArchitecture=MSIL">
-      <HintPath>..\packages\MsgPack.Cli.0.6.8\lib\net45\MsgPack.dll</HintPath>
+    <Reference Include="MsgPack, Version=0.7.0.0, Culture=neutral, PublicKeyToken=a2625990d5dc0167, processorArchitecture=MSIL">
+      <HintPath>..\packages\MsgPack.Cli.0.7.1\lib\net45\MsgPack.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="StackExchange.Redis, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -92,18 +92,24 @@
     <Compile Include="Basic\Logging\Decorator\DelayedProcessingActionDecorator.cs" />
     <Compile Include="Basic\Logging\Decorator\ReceiveMessageQueryDecorator.cs" />
     <Compile Include="Basic\Lua\CommitLua.cs" />
+    <Compile Include="Basic\Lua\DoesJobExistLua.cs" />
     <Compile Include="Basic\Metrics\Decorator\IDelayedProcessingActionDecorator.cs" />
     <Compile Include="Basic\Metrics\Decorator\ReceiveMessageQueryDecorator.cs" />
+    <Compile Include="Basic\QueryHandler\DoesJobExistQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetErrorCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetJobIdQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetPendingCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetPendingDelayedCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetWorkingCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
+    <Compile Include="Basic\Query\DoesJobExistQuery.cs" />
     <Compile Include="Basic\Query\GetErrorCountQuery.cs" />
+    <Compile Include="Basic\Query\GetJobIDQuery.cs" />
     <Compile Include="Basic\Query\GetPendingCountQuery.cs" />
     <Compile Include="Basic\Query\GetPendingDelayedCountQuery.cs" />
     <Compile Include="Basic\Query\GetWorkingCountQuery.cs" />
     <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
+    <Compile Include="Basic\QueueStatus.cs" />
     <Compile Include="Basic\RedisDelayedProcessingMonitor.cs" />
     <Compile Include="Basic\Factory\GetMessageIdFactory.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
@@ -138,6 +144,9 @@
     <Compile Include="Basic\Query\GetMetaDataQuery.cs" />
     <Compile Include="Basic\Query\ReceiveMessageQuery.cs" />
     <Compile Include="Basic\RedisErrorTracking.cs" />
+    <Compile Include="Basic\RedisJobQueueCreation.cs" />
+    <Compile Include="Basic\RedisJobSchedulerLastKnownEvent.cs" />
+    <Compile Include="Basic\RedisJobTableCreationNoOp.cs" />
     <Compile Include="Basic\RedisMessage.cs" />
     <Compile Include="Basic\RedisMetaData.cs" />
     <Compile Include="Basic\RedisNames.cs" />
@@ -160,6 +169,7 @@
     <Compile Include="Basic\RedisQueueDelay.cs" />
     <Compile Include="Basic\RedisQueueRpcConnection.cs" />
     <Compile Include="Basic\RedisQueueWorkSubRpc.cs" />
+    <Compile Include="Basic\RedisSendJobToQueue.cs" />
     <Compile Include="Basic\RedisSimpleBatchSize.cs" />
     <Compile Include="Basic\Time\BaseUnixTime.cs" />
     <Compile Include="Basic\Time\LocalMachineUnixTime.cs" />

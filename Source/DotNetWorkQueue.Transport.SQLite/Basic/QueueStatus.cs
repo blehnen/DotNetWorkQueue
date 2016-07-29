@@ -24,6 +24,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     public enum QueueStatus : short
     {
         /// <summary>
+        /// This item is not queued
+        /// </summary>
+        NotQueued = -1,
+        /// <summary>
         /// Waiting for processing
         /// </summary>
         Waiting = 0,

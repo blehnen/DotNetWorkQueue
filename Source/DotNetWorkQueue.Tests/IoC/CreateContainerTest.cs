@@ -26,6 +26,7 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Queue;
 using NSubstitute;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;

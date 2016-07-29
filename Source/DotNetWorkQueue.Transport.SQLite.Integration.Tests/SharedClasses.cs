@@ -17,8 +17,11 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Transport.SQLite.Basic;
+using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 {
@@ -27,6 +30,41 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
         {
             new VerifyQueueData(queueName, connectionString, queueProducerConfiguration.Options()).Verify(messageCount);
+        }
+
+        public static void Verify(string queueName, string connectionString, long messageCount)
+        {
+            var connection = new SqliteConnectionInformation(queueName, connectionString);
+            var helper = new TableNameHelper(connection);
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                using (var command = conn.CreateCommand())
+                {
+                    command.CommandText = $"select count(*) from {helper.MetaDataName}";
+                    using (var reader = command.ExecuteReader())
+                    {
+                        Assert.True(reader.Read());
+                        var records = reader.GetInt32(0);
+                        Assert.Equal(messageCount, records);
+                    }
+                }
+            }
+        }
+
+        public static void SetError(string queueName, string connectionString)
+        {
+            var connection = new SqliteConnectionInformation(queueName, connectionString);
+            var helper = new TableNameHelper(connection);
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                using (var command = conn.CreateCommand())
+                {
+                    command.CommandText = $"update {helper.StatusName} set status = 2";
+                    command.ExecuteNonQuery();
+                }
+            }
         }
 
         public static void NoVerification(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)

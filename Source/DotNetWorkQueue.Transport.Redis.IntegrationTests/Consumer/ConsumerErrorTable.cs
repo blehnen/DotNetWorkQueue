@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     using (
                         var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {
-                        count.Verify(messageCount, true);
+                        count.Verify(messageCount, true, 2);
                     }
                 }
                 finally

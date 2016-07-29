@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 namespace DotNetWorkQueue
@@ -35,7 +36,7 @@ namespace DotNetWorkQueue
         /// <param name="queue">Ghe queue.</param>
         void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue);
         /// <summary>
-        /// Allows a transport to suppress specific warnings for specific types if neeed.
+        /// Allows a transport to suppress specific warnings for specific types if needed.
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>

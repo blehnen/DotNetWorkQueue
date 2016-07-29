@@ -152,10 +152,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     "SELECT 1 FROM sqlite_master WHERE type='table' AND name=@Table;");
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetPendingExcludeDelayCount,
-                     $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatus.Waiting)} AND (QueueProcessTime < @CurrentDateTime)");
+                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatus.Waiting)} AND (QueueProcessTime < @CurrentDateTime)");
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetPendingCount,
-                     $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatus.Waiting)} ");
+                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatus.Waiting)} ");
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetWorkingCount,
                     $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatus.Processing)} ");
@@ -165,6 +165,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetPendingDelayCount,
                     $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatus.Waiting)} AND (QueueProcessTime > @CurrentDateTime) ");
+
+                _commandCache.Add(SqLiteCommandStringTypes.GetJobLastKnownEvent,
+                    $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
+
+                _commandCache.Add(SqLiteCommandStringTypes.SetJobLastKnownEvent,
+                    $"UPDATE {_tableNameHelper.JobTableName} SET JobEventTime = @JobEventTime, JobScheduledTime = @JobScheduledTime WHERE JobName=@JobName; INSERT OR IGNORE INTO {_tableNameHelper.JobTableName}(JobName, JobEventTime, JobScheduledTime) VALUES(@JobName, @JobEventTime, @JobScheduledTime);");
+
+                _commandCache.Add(SqLiteCommandStringTypes.GetJobLastScheduleTime,
+                    $"Select JobScheduledTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
+
+                _commandCache.Add(SqLiteCommandStringTypes.DoesJobExist,
+                    $"Select Status from {_tableNameHelper.StatusName} where JobName = @JobName");
+
+                _commandCache.Add(SqLiteCommandStringTypes.GetJobId,
+                    $"Select QueueID from {_tableNameHelper.StatusName} where JobName = @JobName");
 
                 //always set this last
                 _complete = true;
@@ -290,6 +305,26 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <summary>
         /// Gets the number of records that are pending, but are scheduled for a future time
         /// </summary>
-        GetPendingDelayCount
+        GetPendingDelayCount,
+        /// <summary>
+        /// Gets the last known event time for a job
+        /// </summary>
+        GetJobLastKnownEvent,
+        /// <summary>
+        /// Sets the last known event time for a job
+        /// </summary>
+        SetJobLastKnownEvent,
+        /// <summary>
+        /// Determines if a job (via job name) already is queued
+        /// </summary>
+        DoesJobExist,
+        /// <summary>
+        /// Gets job identifier (via job name)
+        /// </summary>
+        GetJobId,
+        /// <summary>
+        /// The get job last schedule time from the last time the job was queued
+        /// </summary>
+        GetJobLastScheduleTime
     }
 }
