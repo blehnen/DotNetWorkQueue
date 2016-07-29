@@ -29,7 +29,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("JobScheduler")]
+    [Collection("SqlServer")]
     public class JobSchedulerTests
     {
         [Theory]
@@ -42,35 +42,39 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
             bool dynamic)
         {
             var queueName = GenerateQueueName.Create();
-            try
+            using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>(x => {
+            }))
             {
-                var tests = new JobSchedulerTestsShared();
-                if (!dynamic)
+                try
                 {
-                    tests.RunEnqueueTestCompiled<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueName,
-                        ConnectionInfo.ConnectionString, interceptors,
-                        Helpers.Verify, Helpers.SetError);
-                }
-                else
-                {
-                    tests.RunEnqueueTestDynamic<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueName,
-                       ConnectionInfo.ConnectionString, interceptors,
-                       Helpers.Verify, Helpers.SetError);
-                }
-            }
-            finally
-            {
-
-                using (var queueCreator =
-                    new QueueCreationContainer<SqlServerMessageQueueInit>())
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
-                        )
+                    var tests = new JobSchedulerTestsShared();
+                    if (!dynamic)
                     {
-                        oCreation.RemoveQueue();
+                        tests.RunEnqueueTestCompiled<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueName,
+                            ConnectionInfo.ConnectionString, interceptors,
+                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString));
+                    }
+                    else
+                    {
+                        tests.RunEnqueueTestDynamic<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueName,
+                            ConnectionInfo.ConnectionString, interceptors,
+                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString));
+                    }
+                }
+                finally
+                {
+
+                    using (var queueCreator =
+                        new QueueCreationContainer<SqlServerMessageQueueInit>())
+                    {
+                        using (
+                            var oCreation =
+                                queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
+                                    ConnectionInfo.ConnectionString)
+                            )
+                        {
+                            oCreation.RemoveQueue();
+                        }
                     }
                 }
             }

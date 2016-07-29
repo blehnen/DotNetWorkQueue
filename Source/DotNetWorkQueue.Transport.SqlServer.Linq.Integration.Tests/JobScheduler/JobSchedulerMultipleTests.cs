@@ -23,7 +23,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("JobSchedulerMulti")]
+    [Collection("SqlServer")]
     public class JobSchedulerMultipleTests
     {
         [Theory]
@@ -34,25 +34,29 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
             int producerCount)
         {
             var queueName = GenerateQueueName.Create();
-            try
+            using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>(x => {
+            }))
             {
-                var tests = new JobSchedulerTestsShared();
-                tests.RunTestMultipleProducers<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueName,
-                       ConnectionInfo.ConnectionString, interceptors, producerCount);
-            }
-            finally
-            {
-
-                using (var queueCreator =
-                    new QueueCreationContainer<SqlServerMessageQueueInit>())
+                try
                 {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
-                        )
+                    var tests = new JobSchedulerTestsShared();
+                    tests.RunTestMultipleProducers<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueName,
+                        ConnectionInfo.ConnectionString, interceptors, producerCount, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString));
+                }
+                finally
+                {
+
+                    using (var queueCreator =
+                        new QueueCreationContainer<SqlServerMessageQueueInit>())
                     {
-                        oCreation.RemoveQueue();
+                        using (
+                            var oCreation =
+                                queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
+                                    ConnectionInfo.ConnectionString)
+                            )
+                        {
+                            oCreation.RemoveQueue();
+                        }
                     }
                 }
             }

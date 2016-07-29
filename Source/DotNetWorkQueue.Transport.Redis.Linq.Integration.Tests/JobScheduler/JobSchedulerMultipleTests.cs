@@ -28,7 +28,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("JobSchedulerMulti")]
+    [Collection("Redis")]
     public class JobSchedulerMultipleTests
     {
         [Theory]
@@ -43,25 +43,29 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            try
+            using (var queueContainer = new QueueContainer<RedisQueueInit>(x => {
+            }))
             {
-                var tests = new JobSchedulerTestsShared();
-                tests.RunTestMultipleProducers<RedisQueueInit, RedisJobQueueCreation>(queueName,
-                    connectionString, interceptors, producerCount);
-            }
-            finally
-            {
-
-                using (var queueCreator =
-                    new QueueCreationContainer<RedisQueueInit>())
+                try
                 {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                connectionString)
-                        )
+                    var tests = new JobSchedulerTestsShared();
+                    tests.RunTestMultipleProducers<RedisQueueInit, RedisJobQueueCreation>(queueName,
+                        connectionString, interceptors, producerCount, queueContainer.CreateTimeSync(connectionString));
+                }
+                finally
+                {
+
+                    using (var queueCreator =
+                        new QueueCreationContainer<RedisQueueInit>())
                     {
-                        oCreation.RemoveQueue();
+                        using (
+                            var oCreation =
+                                queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
+                                    connectionString)
+                            )
+                        {
+                            oCreation.RemoveQueue();
+                        }
                     }
                 }
             }

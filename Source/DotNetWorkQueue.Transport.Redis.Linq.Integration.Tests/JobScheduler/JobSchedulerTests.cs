@@ -24,7 +24,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("JobScheduler")]
+    [Collection("Redis")]
     public class JobSchedulerTests
     {
         [Theory]
@@ -45,35 +45,38 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
 
             var queueName = GenerateQueueName.Create();
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            try
+            using (var queueContainer = new QueueContainer<RedisQueueInit>(x => { }))
             {
-                var tests = new JobSchedulerTestsShared();
-                if (!dynamic)
+                try
                 {
-                    tests.RunEnqueueTestCompiled<RedisQueueInit, RedisJobQueueCreation>(queueName,
-                        connectionString, interceptors,
-                        Helpers.Verify, Helpers.SetError);
-                }
-                else
-                {
-                    tests.RunEnqueueTestDynamic<RedisQueueInit, RedisJobQueueCreation>(queueName,
-                        connectionString, interceptors,
-                        Helpers.Verify, Helpers.SetError);
-                }
-            }
-            finally
-            {
-
-                using (var queueCreator =
-                    new QueueCreationContainer<RedisQueueInit>())
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                connectionString)
-                        )
+                    var tests = new JobSchedulerTestsShared();
+                    if (!dynamic)
                     {
-                        oCreation.RemoveQueue();
+                        tests.RunEnqueueTestCompiled<RedisQueueInit, RedisJobQueueCreation>(queueName,
+                            connectionString, interceptors,
+                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString));
+                    }
+                    else
+                    {
+                        tests.RunEnqueueTestDynamic<RedisQueueInit, RedisJobQueueCreation>(queueName,
+                            connectionString, interceptors,
+                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString));
+                    }
+                }
+                finally
+                {
+
+                    using (var queueCreator =
+                        new QueueCreationContainer<RedisQueueInit>())
+                    {
+                        using (
+                            var oCreation =
+                                queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
+                                    connectionString)
+                            )
+                        {
+                            oCreation.RemoveQueue();
+                        }
                     }
                 }
             }

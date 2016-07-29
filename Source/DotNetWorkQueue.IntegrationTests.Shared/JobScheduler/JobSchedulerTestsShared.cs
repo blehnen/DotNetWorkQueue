@@ -34,15 +34,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
         private bool _queueStarted;
         private readonly object _queueStartLocker = new object();
+        private IGetTimeFactory _timeFactory;
 
         public void RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(string queueName,
             string connectionString,
             bool addInterceptors,
             Action<string, string, long> verify,
-            Action<string, string> setErrorFlag)
+            Action<string, string> setErrorFlag,
+            IGetTimeFactory timeFactory)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
+            _timeFactory = timeFactory;
             RunEnqueueTest<TTransportInit>(queueName, connectionString, addInterceptors, verify,
                 setErrorFlag,
                 (x, name) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueName, connectionString,
@@ -51,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                 (x, name, time) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueName, connectionString,
                     "min(*)",
-                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), config => { }, true, time)
+                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), config => { }, true, time), timeFactory
 
                 );
         }
@@ -60,10 +63,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             string connectionString,
             bool addInterceptors,
             Action<string, string, long> verify,
-            Action<string, string> setErrorFlag)
+            Action<string, string> setErrorFlag,
+            IGetTimeFactory timeFactory)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
+            _timeFactory = timeFactory;
             using (var jobQueueCreation =
                 new JobQueueCreationContainer<TTransportInit>())
             {
@@ -84,7 +89,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                 "min(*)",
                                 new LinqExpressionToRun(
                                     "(message, workerNotification) => Console.WriteLine(DateTime.Now.Ticks)"), null, true,
-                                time)
+                                time), timeFactory
                         );
                 }
             }
@@ -94,7 +99,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             void RunTestMultipleProducers<TTransportInit, TJobQueueCreator>(string queueName,
                 string connectionString,
                 bool addInterceptors,
-                long producerCount)
+                long producerCount,
+                IGetTimeFactory timeFactory)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
@@ -119,7 +125,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                         using (var queue = queueContainer.CreateMethodConsumer(queueName, connectionString))
                         {
                             queue.Configuration.Worker.WorkerCount = 4;
-                            WaitForRollover();
+                            WaitForRollover(timeFactory);
 
                             System.Threading.Thread.Sleep(7000);
 
@@ -146,7 +152,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                                 (message, workerNotification) =>
                                                     System.Console.Write(""));
 
-                                            WaitForRollover();
+                                            WaitForRollover(timeFactory);
                                             StartConsumer(queue);
                                             WaitForEnQueue();
                                         }
@@ -182,10 +188,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Action<string, string, long> verify,
             Action<string, string> setErrorFlag,
             Func<IJobScheduler, string, IScheduledJob> enqueue,
-            Func<IJobScheduler, string, TimeSpan, IScheduledJob> enqueueWindow)
+            Func<IJobScheduler, string, TimeSpan, IScheduledJob> enqueueWindow,
+            IGetTimeFactory timeFactory)
             where TTransportInit : ITransportInit, new()
         {
-            using (var jobContainer = new JobSchedulerContainer())
+            using (var jobContainer = new JobSchedulerContainer(RegisterService))
             {
                 using (var scheduler = CreateScheduler(jobContainer, addInterceptors))
                 {
@@ -197,7 +204,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     scheduler.OnJobNonFatalFailureQueue += (job, message) => nonFatal++;
                     scheduler.Start();
 
-                    WaitForRollover();
+                    WaitForRollover(timeFactory);
 
                     var job1 = enqueue(scheduler, Job1);
                     var job2 = enqueue(scheduler, Job2); //job2 won't be referenced again, but ensures that we have multiple records in the queue for the first test
@@ -212,7 +219,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     job2.StopSchedule();
                     scheduler.RemoveJob(Job2);
 
-                    WaitForRollover();
+                    WaitForRollover(timeFactory);
 
                     WaitForEnQueue();
 
@@ -224,7 +231,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                     enqueued = 0;
                     nonFatal = 0;
-                    WaitForRollover();
+                    WaitForRollover(timeFactory);
 
                     WaitForEnQueue();
 
@@ -234,7 +241,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     setErrorFlag(queueName, connectionString);
                     enqueued = 0;
                     nonFatal = 0;
-                    WaitForRollover();
+                    WaitForRollover(timeFactory);
                     WaitForEnQueue();
                     ValidateEnqueue(queueName, connectionString, verify, enqueued, errors, nonFatal, 1);
 
@@ -245,23 +252,28 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     nonFatal = 0;
                     job1.StopSchedule();
                     scheduler.RemoveJob(Job1);
-                    WaitForRollover();
+                    WaitForRollover(timeFactory);
                     WaitForEnQueue(); //nothing will be queued, make sure we are past fire time
-                    enqueueWindow(scheduler, Job1, TimeSpan.FromSeconds(20)); //should be fired right away, since we are inside the window
+                    enqueueWindow(scheduler, Job1, TimeSpan.FromSeconds(40)); //should be fired right away, since we are inside the window
                     System.Threading.Thread.Sleep(5000);
                     ValidateEnqueue(queueName, connectionString, verify, enqueued, errors, nonFatal, 1);
                 }
             }
         }
-    
+
+        private void RegisterService(IContainer container)
+        {
+            container.Register(() => _timeFactory, LifeStyles.Singleton);
+        }
 
         private void WaitForEnQueue()
         {
             System.Threading.Thread.Sleep(10000);
         }
-        private void WaitForRollover()
+        private void WaitForRollover(IGetTimeFactory timeFactory)
         {
-            while (DateTime.Now.Second != 55)
+            var getTime = timeFactory.Create();
+            while (getTime.GetCurrentUtcDate().Second != 55)
             {
                 System.Threading.Thread.Sleep(100);
             }
