@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                             var data = reader.GetDateTimeOffset(0);
                             if (data == query.ScheduledTime)
                             {
-                                return QueueStatus.Processing; //TODO - should be 'processed'
+                                return QueueStatus.Processed;
                             }
                         }
                     }

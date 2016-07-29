@@ -36,8 +36,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         Processing = 1,
         /// <summary>
-        /// An error has occured
+        /// An error has occurred
         /// </summary>
-        Error = 2
+        Error = 2,
+        /// <summary>
+        /// The item has already been processed and will not be re-queued.
+        /// </summary>
+        /// <remarks>This status applies to the job queue</remarks>
+        Processed = 3
     }
 }

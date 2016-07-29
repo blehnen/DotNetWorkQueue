@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                                 System.Globalization.CultureInfo.InvariantCulture);
                             if (scheduleTime == query.ScheduledTime)
                             {
-                                return QueueStatus.Processing; //TODO - should be 'processed'
+                                return QueueStatus.Processed;
                             }
                         }
                     }
