@@ -23,7 +23,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("JobSchedulerMulti")]
+    [Collection("SQLite")]
     public class JobSchedulerMultipleTests
     {
         [Theory]
@@ -39,25 +39,29 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();
-                try
+                using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(x => {
+                }))
                 {
-                    var tests = new JobSchedulerTestsShared();
-                    tests.RunTestMultipleProducers<SqLiteMessageQueueInit, SqliteJobQueueCreation>(queueName,
-                       connectionInfo.ConnectionString, interceptors, producerCount);
-                }
-                finally
-                {
-
-                    using (var queueCreator =
-                        new QueueCreationContainer<SqLiteMessageQueueInit>())
+                    try
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
-                            )
+                        var tests = new JobSchedulerTestsShared();
+                        tests.RunTestMultipleProducers<SqLiteMessageQueueInit, SqliteJobQueueCreation>(queueName,
+                            connectionInfo.ConnectionString, interceptors, producerCount, queueContainer.CreateTimeSync(connectionInfo.ConnectionString));
+                    }
+                    finally
+                    {
+
+                        using (var queueCreator =
+                            new QueueCreationContainer<SqLiteMessageQueueInit>())
                         {
-                            oCreation.RemoveQueue();
+                            using (
+                                var oCreation =
+                                    queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
+                                        connectionInfo.ConnectionString)
+                                )
+                            {
+                                oCreation.RemoveQueue();
+                            }
                         }
                     }
                 }
