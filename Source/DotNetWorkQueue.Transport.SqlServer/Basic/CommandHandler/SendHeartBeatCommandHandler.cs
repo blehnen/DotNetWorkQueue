@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                     commandSql.Parameters.Add("@QueueID", SqlDbType.BigInt);
                     commandSql.Parameters["@QueueID"].Value = command.QueueId;
                     commandSql.Parameters.Add("@status", SqlDbType.Int);
-                    commandSql.Parameters["@status"].Value = Convert.ToInt16(QueueStatus.Processing);
+                    commandSql.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Processing);
                     using (var reader = commandSql.ExecuteReader())
                     {
                         if (reader.RecordsAffected != 1) return null; //return null if the record was not updated.

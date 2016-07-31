@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                     command.Parameters.Add("@Time", SqlDbType.BigInt);
                     command.Parameters["@Time"].Value = _configuration.HeartBeat.Time.TotalSeconds;
                     command.Parameters.Add("@Status", SqlDbType.Int);
-                    command.Parameters["@Status"].Value = Convert.ToInt16(QueueStatus.Processing);
+                    command.Parameters["@Status"].Value = Convert.ToInt16(QueueStatuses.Processing);
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())

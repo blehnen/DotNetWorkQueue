@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                     commandSql.Parameters.Add("@QueueID", DbType.Int64);
                     commandSql.Parameters["@QueueID"].Value = command.QueueId;
                     commandSql.Parameters.Add("@status", DbType.Int32);
-                    commandSql.Parameters["@status"].Value = Convert.ToInt16(QueueStatus.Processing);
+                    commandSql.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Processing);
 
                     commandSql.Parameters.Add("@date", DbType.Int64);
                     var date = _getTime.GetCurrentUtcDate();

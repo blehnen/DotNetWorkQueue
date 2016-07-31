@@ -16,28 +16,32 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.Transport.SqlServer.Basic
+namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Queue status column values
+    /// Defines the current status of an item
     /// </summary>
-    public enum QueueStatus : short
+    public enum QueueStatuses : short
     {
         /// <summary>
         /// This item is not queued
         /// </summary>
+        /// <remarks>Item could not be found in the transport</remarks>
         NotQueued = -1,
         /// <summary>
         /// Waiting for processing
         /// </summary>
+        /// <remarks>Already queue, but waiting for processing</remarks>
         Waiting = 0,
         /// <summary>
         /// Currently being processed
         /// </summary>
+        /// <remarks>In the queue and in the middle of being processed</remarks>
         Processing = 1,
         /// <summary>
         /// An error has occurred
         /// </summary>
+        /// <remarks>An exception occurred during processing</remarks>
         Error = 2,
         /// <summary>
         /// The item has already been processed and will not be re-queued.

@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
     /// <summary>
     /// 
     /// </summary>
-    public class DoesJobExistQuery: IQuery<QueueStatus>
+    public class DoesJobExistQuery: IQuery<QueueStatuses>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DoesJobExistQuery" /> class.

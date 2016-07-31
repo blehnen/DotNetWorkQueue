@@ -171,6 +171,7 @@
     <Compile Include="Messages\QueueOutputMessages.cs" />
     <Compile Include="Metrics\Decorator\IMessageInterceptorDecorator.cs" />
     <Compile Include="QueueContexts.cs" />
+    <Compile Include="QueueStatuses.cs" />
     <Compile Include="QueueStatus\QueueInformation.cs" />
     <Compile Include="QueueStatus\QueueInformationError.cs" />
     <Compile Include="QueueStatus\QueueStatus.cs" />

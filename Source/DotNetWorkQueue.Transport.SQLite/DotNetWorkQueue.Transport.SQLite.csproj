@@ -132,7 +132,6 @@
     <Compile Include="Basic\Query\MessageToReset.cs" />
     <Compile Include="Basic\Query\ReceiveMessageQuery.cs" />
     <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
-    <Compile Include="Basic\QueueStatus.cs" />
     <Compile Include="Basic\SQLHeaders.cs" />
     <Compile Include="Basic\SqliteJobQueueCreation.cs" />
     <Compile Include="Basic\SqliteJobSchedulerLastKnownEvent.cs" />

@@ -109,7 +109,6 @@
     <Compile Include="Basic\Query\GetPendingDelayedCountQuery.cs" />
     <Compile Include="Basic\Query\GetWorkingCountQuery.cs" />
     <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
-    <Compile Include="Basic\QueueStatus.cs" />
     <Compile Include="Basic\RedisDelayedProcessingMonitor.cs" />
     <Compile Include="Basic\Factory\GetMessageIdFactory.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />

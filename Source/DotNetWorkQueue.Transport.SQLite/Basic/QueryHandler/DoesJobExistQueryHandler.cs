@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
     /// <summary>
     /// 
     /// </summary>
-    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatus>
+    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatuses>
     {
         private readonly SqLiteCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -62,11 +62,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public QueueStatus Handle(DoesJobExistQuery query)
+        public QueueStatuses Handle(DoesJobExistQuery query)
         {
             if (!DatabaseExists.Exists(_connectionInformation.ConnectionString))
             {
-                return QueueStatus.NotQueued;
+                return QueueStatuses.NotQueued;
             }
 
             if (query.Connection != null)
@@ -85,9 +85,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 
         }
 
-        private QueueStatus RunQuery(DoesJobExistQuery query, SQLiteConnection connection, SQLiteTransaction transaction)
+        private QueueStatuses RunQuery(DoesJobExistQuery query, SQLiteConnection connection, SQLiteTransaction transaction)
         {
-            var returnStatus = QueueStatus.NotQueued;
+            var returnStatus = QueueStatuses.NotQueued;
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.DoesJobExist);
@@ -99,11 +99,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 {
                     if (reader.Read())
                     {
-                        returnStatus = (QueueStatus) reader.GetInt32(0);
+                        returnStatus = (QueueStatuses) reader.GetInt32(0);
                     }
                 }
 
-                if (returnStatus == QueueStatus.NotQueued &&
+                if (returnStatus == QueueStatuses.NotQueued &&
                     _tableExists.Handle(new GetTableExistsQuery(_connectionInformation.ConnectionString,
                         _tableNameHelper.JobTableName)))
                 {
@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                                 System.Globalization.CultureInfo.InvariantCulture);
                             if (scheduleTime == query.ScheduledTime)
                             {
-                                return QueueStatus.Processed;
+                                return QueueStatuses.Processed;
                             }
                         }
                     }

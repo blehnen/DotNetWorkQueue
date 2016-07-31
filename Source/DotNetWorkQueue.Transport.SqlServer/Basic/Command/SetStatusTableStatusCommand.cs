@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
         /// </summary>
         /// <param name="queueId">The queue identifier.</param>
         /// <param name="status">The status.</param>
-        public SetStatusTableStatusCommand(long queueId, QueueStatus status)
+        public SetStatusTableStatusCommand(long queueId, QueueStatuses status)
         {
             QueueId = queueId;
             Status = status;
@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
         /// <value>
         /// The status.
         /// </value>
-        public QueueStatus Status { get; private set; }
+        public QueueStatuses Status { get; private set; }
         /// <summary>
         /// Gets the queue identifier.
         /// </summary>

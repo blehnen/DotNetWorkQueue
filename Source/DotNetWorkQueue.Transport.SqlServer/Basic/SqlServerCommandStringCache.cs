@@ -158,19 +158,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                    "select getutcdate()");
 
                 _commandCache.Add(SqlServerCommandStringTypes.GetPendingExcludeDelayCount,
-                     $"Select count(queueid) from {_tableNameHelper.MetaDataName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatus.Waiting)} AND (QueueProcessTime < getutcdate())");
+                     $"Select count(queueid) from {_tableNameHelper.MetaDataName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime < getutcdate())");
 
                 _commandCache.Add(SqlServerCommandStringTypes.GetPendingCount,
-                     $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatus.Waiting)} ");
+                     $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Waiting)} ");
 
                 _commandCache.Add(SqlServerCommandStringTypes.GetWorkingCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatus.Processing)} ");
+                    $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Processing)} ");
 
                 _commandCache.Add(SqlServerCommandStringTypes.GetErrorCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatus.Error)} ");
+                    $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Error)} ");
 
                 _commandCache.Add(SqlServerCommandStringTypes.GetPendingDelayCount,
-                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatus.Waiting)} AND (QueueProcessTime > getutcdate()) ");
+                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime > getutcdate()) ");
 
                 _commandCache.Add(SqlServerCommandStringTypes.GetJobLastKnownEvent,
                     $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");

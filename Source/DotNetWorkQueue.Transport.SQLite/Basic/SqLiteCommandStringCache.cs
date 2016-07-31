@@ -152,19 +152,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     "SELECT 1 FROM sqlite_master WHERE type='table' AND name=@Table;");
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetPendingExcludeDelayCount,
-                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatus.Waiting)} AND (QueueProcessTime < @CurrentDateTime)");
+                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime < @CurrentDateTime)");
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetPendingCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatus.Waiting)} ");
+                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} ");
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetWorkingCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatus.Processing)} ");
+                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Processing)} ");
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetErrorCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatus.Error)} ");
+                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Error)} ");
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetPendingDelayCount,
-                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatus.Waiting)} AND (QueueProcessTime > @CurrentDateTime) ");
+                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime > @CurrentDateTime) ");
 
                 _commandCache.Add(SqLiteCommandStringTypes.GetJobLastKnownEvent,
                     $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");

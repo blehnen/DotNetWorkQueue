@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private readonly IGetTime _getTime;
         private readonly ISqLiteTransactionFactory _transactionFactory;
         private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
-        private readonly IQueryHandler<DoesJobExistQuery, QueueStatus> _jobExistsHandler;
+        private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _jobExistsHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandler" /> class.
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             IGetTimeFactory getTimeFactory,
             ISqLiteTransactionFactory transactionFactory,
             ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus,
-            IQueryHandler<DoesJobExistQuery, QueueStatus> jobExistsHandler)
+            IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => serializer, serializer);
@@ -148,7 +148,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             try
                             {
                                 if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
-                                    QueueStatus.NotQueued)
+                                    QueueStatuses.NotQueued)
                                 {
                                     command.Transaction = trans;
                                     id = Convert.ToInt64(command.ExecuteScalar());

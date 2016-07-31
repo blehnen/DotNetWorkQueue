@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                     var selectTime = _getTime.GetCurrentUtcDate().AddSeconds(_configuration.HeartBeat.Time.TotalSeconds * -1);
                     command.Parameters["@time"].Value = selectTime.Ticks;
                     command.Parameters.Add("@Status", DbType.Int32);
-                    command.Parameters["@Status"].Value = Convert.ToInt16(QueueStatus.Processing);
+                    command.Parameters["@Status"].Value = Convert.ToInt16(QueueStatuses.Processing);
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())

@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
     /// <summary>
     /// 
     /// </summary>
-    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatus>
+    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatuses>
     {
         private readonly DoesJobExistLua _lua;
 
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public QueueStatus Handle(DoesJobExistQuery query)
+        public QueueStatuses Handle(DoesJobExistQuery query)
         {
             return _lua.Execute(query.JobName, query.ScheduledTime);
         }

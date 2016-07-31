@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         {
             var sqlCommand = _options.Value.EnableStatus 
                 ? 
-                $"select queueid from {_tableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where status = {Convert.ToInt16(QueueStatus.Waiting)} and GETUTCDate() > ExpirationTime" 
+                $"select queueid from {_tableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where status = {Convert.ToInt16(QueueStatuses.Waiting)} and GETUTCDate() > ExpirationTime" 
                 : 
                 $"select queueid from {_tableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where GETUTCDate() > ExpirationTime";
 

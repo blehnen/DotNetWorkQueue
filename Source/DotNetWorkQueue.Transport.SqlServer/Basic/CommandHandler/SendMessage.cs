@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
             //add standard values that are always present
             builder.Append("VALUES (");
-            builder.Append($"@QueueID, {Convert.ToInt32(QueueStatus.Waiting)}, @CorrelationID");
+            builder.Append($"@QueueID, {Convert.ToInt32(QueueStatuses.Waiting)}, @CorrelationID");
 
             //add configurable column value - user
             AddUserColumnsValues(builder, data);

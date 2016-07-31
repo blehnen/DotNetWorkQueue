@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
 
             if (_configuration.Options().EnableStatusTable)
             {
-                _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand((long)context.MessageId.Id.Value, QueueStatus.Waiting));
+                _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand((long)context.MessageId.Id.Value, QueueStatuses.Waiting));
             }
             connection.SqlTransaction.Rollback();
         }

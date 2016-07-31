@@ -57,12 +57,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             //calculate where clause...
             if (options.EnableStatus && options.EnableDelayedProcessing)
             {
-                sb.Append($" WHERE {metaTableName}.Status = {Convert.ToInt16(QueueStatus.Waiting)} ");
+                sb.Append($" WHERE {metaTableName}.Status = {Convert.ToInt16(QueueStatuses.Waiting)} ");
                 sb.AppendLine("and QueueProcessTime < @CurrentDateTime ");
             }
             else if (options.EnableStatus)
             {
-                sb.Append($" WHERE {metaTableName}.Status = {Convert.ToInt16(QueueStatus.Waiting)} ");
+                sb.Append($" WHERE {metaTableName}.Status = {Convert.ToInt16(QueueStatuses.Waiting)} ");
             }
             else if (options.EnableDelayedProcessing)
             {
@@ -153,7 +153,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             if (options.EnableStatus)
             { //update
 
-                status.Append($"update {metaTableName} set status = {Convert.ToInt16(QueueStatus.Processing)} ");
+                status.Append($"update {metaTableName} set status = {Convert.ToInt16(QueueStatuses.Processing)} ");
                 if (options.EnableHeartBeat)
                 {
                     status.AppendLine($", HeartBeat = (select {tempName}.CurrentDateTime from {tempName} LIMIT 1) ");
@@ -172,7 +172,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 
             if (options.EnableStatusTable)
             {
-                additionalCommands.Add($" update {statusTableName} set status = {Convert.ToInt16(QueueStatus.Processing)} where {statusTableName}.QueueID = (select {tempName}.QueueID from {tempName} LIMIT 1);");
+                additionalCommands.Add($" update {statusTableName} set status = {Convert.ToInt16(QueueStatuses.Processing)} where {statusTableName}.QueueID = (select {tempName}.QueueID from {tempName} LIMIT 1);");
             }
 
             //will drop when the connection closes

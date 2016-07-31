@@ -76,8 +76,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                         sqLiteCommand.Parameters.Add("@Status", DbType.Int32);
                         sqLiteCommand.Parameters.Add("@HeartBeat", DbType.DateTime2);
                         sqLiteCommand.Parameters["@QueueID"].Value = command.MessageReset.QueueId;
-                        sqLiteCommand.Parameters["@Status"].Value = Convert.ToInt16(QueueStatus.Waiting);
-                        sqLiteCommand.Parameters["@SourceStatus"].Value = Convert.ToInt16(QueueStatus.Processing);
+                        sqLiteCommand.Parameters["@Status"].Value = Convert.ToInt16(QueueStatuses.Waiting);
+                        sqLiteCommand.Parameters["@SourceStatus"].Value = Convert.ToInt16(QueueStatuses.Processing);
                         sqLiteCommand.Parameters["@HeartBeat"].Value = command.MessageReset.HeartBeat.Ticks;
                         var result = sqLiteCommand.ExecuteNonQuery();
                         if (result > 0)

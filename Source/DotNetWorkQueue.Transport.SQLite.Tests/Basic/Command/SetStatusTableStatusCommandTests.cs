@@ -26,9 +26,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.Command
         public void Create_Default()
         {
             const int id = 19334;
-            var test = new SetStatusTableStatusCommand(id, SQLite.Basic.QueueStatus.Processing);
+            var test = new SetStatusTableStatusCommand(id, QueueStatuses.Processing);
             Assert.Equal(id, test.QueueId);
-            Assert.Equal(SQLite.Basic.QueueStatus.Processing, test.Status);
+            Assert.Equal(QueueStatuses.Processing, test.Status);
         }
     }
 }

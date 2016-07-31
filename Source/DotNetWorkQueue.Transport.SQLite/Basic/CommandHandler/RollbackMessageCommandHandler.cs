@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             command.Parameters.Add("@QueueID", DbType.Int64);
                             command.Parameters["@QueueID"].Value = rollbackcommand.QueueId;
                             command.Parameters.Add("@status", DbType.Int32);
-                            command.Parameters["@status"].Value = Convert.ToInt16(QueueStatus.Waiting);
+                            command.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Waiting);
                             command.CommandText =
                                 _commandCache.GetCommand(SqLiteCommandStringTypes.UpdateStatusRecord);
                             command.ExecuteNonQuery();
@@ -197,7 +197,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 {
                     sb.Append(", ");
                 }
-                sb.AppendFormat(" status = {0} ", Convert.ToInt16(QueueStatus.Waiting));
+                sb.AppendFormat(" status = {0} ", Convert.ToInt16(QueueStatuses.Waiting));
             }
             sb.Append(" where queueid = @queueid");
             if (includeHeartBeatDate)

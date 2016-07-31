@@ -137,7 +137,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             commandSqlUpdateStatusRecord.Parameters.Add("@Status", DbType.Int32);
                             commandSqlUpdateStatusRecord.Parameters["@QueueID"].Value = command.QueueId;
                             commandSqlUpdateStatusRecord.Parameters["@Status"].Value =
-                                Convert.ToInt16(QueueStatus.Error);
+                                Convert.ToInt16(QueueStatuses.Error);
                             commandSqlUpdateStatusRecord.ExecuteNonQuery();
                         }
                     }

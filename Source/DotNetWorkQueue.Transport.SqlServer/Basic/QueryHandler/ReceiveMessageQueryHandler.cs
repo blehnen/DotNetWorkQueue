@@ -183,12 +183,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             //calculate where clause...
             if (_options.Value.EnableStatus && _options.Value.EnableDelayedProcessing)
             {
-                sb.AppendFormat(" WHERE [Status] = {0} ", Convert.ToInt16(QueueStatus.Waiting));
+                sb.AppendFormat(" WHERE [Status] = {0} ", Convert.ToInt16(QueueStatuses.Waiting));
                 sb.AppendLine("and QueueProcessTime < getutcdate() ");
             }
             else if (_options.Value.EnableStatus)
             {
-                sb.AppendFormat("WHERE [Status] = {0}  ", Convert.ToInt16(QueueStatus.Waiting));
+                sb.AppendFormat("WHERE [Status] = {0}  ", Convert.ToInt16(QueueStatuses.Waiting));
             }
             else if (_options.Value.EnableDelayedProcessing)
             {
@@ -252,7 +252,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             if (_options.Value.EnableStatus && !_options.Value.EnableHoldTransactionUntilMessageCommited)
             { //update
 
-                sb.AppendFormat("update cte set status = {0} ", Convert.ToInt16(QueueStatus.Processing));
+                sb.AppendFormat("update cte set status = {0} ", Convert.ToInt16(QueueStatuses.Processing));
                 if (_options.Value.EnableHeartBeat)
                 {
                     sb.AppendLine(", HeartBeat = GetUTCDate() ");
@@ -281,7 +281,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             //if we are holding transactions, we can't update the status table as part of this query - has to be done after de-queue instead
             if (_options.Value.EnableStatusTable && !_options.Value.EnableHoldTransactionUntilMessageCommited)
             {
-                sb.AppendFormat("update {0} set status = {1} where {0}.QueueID = (select q.queueid from @Queue1 q)", statusTableName, Convert.ToInt16(QueueStatus.Processing));
+                sb.AppendFormat("update {0} set status = {1} where {0}.QueueID = (select q.queueid from @Queue1 q)", statusTableName, Convert.ToInt16(QueueStatuses.Processing));
             }
 
             return _commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, sb.ToString());

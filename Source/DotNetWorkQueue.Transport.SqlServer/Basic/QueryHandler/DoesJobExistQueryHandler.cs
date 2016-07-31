@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
     /// <summary>
     /// 
     /// </summary>
-    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatus>
+    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatuses>
     {
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public QueueStatus Handle(DoesJobExistQuery query)
+        public QueueStatuses Handle(DoesJobExistQuery query)
         {
             if (query.Connection != null)
             {
@@ -80,9 +80,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             }
         }
 
-        private QueueStatus RunQuery(DoesJobExistQuery query, SqlConnection connection, SqlTransaction transaction)
+        private QueueStatuses RunQuery(DoesJobExistQuery query, SqlConnection connection, SqlTransaction transaction)
         {
-            var returnStatus = QueueStatus.NotQueued;
+            var returnStatus = QueueStatuses.NotQueued;
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.DoesJobExist);
@@ -94,11 +94,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 {
                     if (reader.Read())
                     {
-                        returnStatus = (QueueStatus)reader.GetInt32(0);
+                        returnStatus = (QueueStatuses)reader.GetInt32(0);
                     }
                 }
 
-                if (returnStatus == QueueStatus.NotQueued &&
+                if (returnStatus == QueueStatuses.NotQueued &&
                     _tableExists.Handle(new GetTableExistsQuery(_connectionInformation.ConnectionString,
                         _tableNameHelper.JobTableName)))
                 {
@@ -112,7 +112,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                             var data = reader.GetDateTimeOffset(0);
                             if (data == query.ScheduledTime)
                             {
-                                return QueueStatus.Processed;
+                                return QueueStatuses.Processed;
                             }
                         }
                     }

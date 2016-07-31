@@ -62,8 +62,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                     sqlCommand.Parameters.Add("@Status", SqlDbType.Int);
                     sqlCommand.Parameters.Add("@HeartBeat", SqlDbType.DateTime);
                     sqlCommand.Parameters["@QueueID"].Value = command.MessageReset.QueueId;
-                    sqlCommand.Parameters["@Status"].Value = Convert.ToInt16(QueueStatus.Waiting);
-                    sqlCommand.Parameters["@SourceStatus"].Value = Convert.ToInt16(QueueStatus.Processing);
+                    sqlCommand.Parameters["@Status"].Value = Convert.ToInt16(QueueStatuses.Waiting);
+                    sqlCommand.Parameters["@SourceStatus"].Value = Convert.ToInt16(QueueStatuses.Processing);
                     sqlCommand.Parameters["@HeartBeat"].Value = command.MessageReset.HeartBeat;
                     return sqlCommand.ExecuteNonQuery();
                 }

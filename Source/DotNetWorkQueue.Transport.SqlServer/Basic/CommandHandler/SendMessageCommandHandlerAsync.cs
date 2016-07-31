@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly TransportConfigurationSend _configurationSend;
         private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
-        private readonly IQueryHandler<DoesJobExistQuery, QueueStatus> _jobExistsHandler;
+        private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _jobExistsHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandler" /> class.
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             SqlServerCommandStringCache commandCache, 
             TransportConfigurationSend configurationSend, 
             ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus, 
-            IQueryHandler<DoesJobExistQuery, QueueStatus> jobExistsHandler)
+            IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => serializer, serializer);
@@ -110,7 +110,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 using (var trans = connection.BeginTransaction())
                 {
                     if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
-                        QueueStatus.NotQueued)
+                        QueueStatuses.NotQueued)
                     {
                         using (var command = connection.CreateCommand())
                         {

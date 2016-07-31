@@ -60,13 +60,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <returns></returns>
-        public QueueStatus Execute(string jobName, DateTimeOffset scheduledTime)
+        public QueueStatuses Execute(string jobName, DateTimeOffset scheduledTime)
         {
             if (Connection.IsDisposed)
-                return QueueStatus.NotQueued;
+                return QueueStatuses.NotQueued;
 
             var db = Connection.Connection.GetDatabase();
-            return (QueueStatus)(int)db.ScriptEvaluate(LoadedLuaScript, GetParameters(jobName, scheduledTime));
+            return (QueueStatuses)(int)db.ScriptEvaluate(LoadedLuaScript, GetParameters(jobName, scheduledTime));
         }
 
         /// <summary>

@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     public class RedisSendJobToQueue : ISendJobToQueue
     {
         private readonly IProducerMethodQueue _queue;
-        private readonly IQueryHandler<DoesJobExistQuery, QueueStatus> _doesJobExist;
+        private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _doesJobExist;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, bool> _deleteMessageCommand;
         private readonly IQueryHandler<GetJobIdQuery, string> _getJobId;
         private readonly IGetTimeFactory _getTimeFactory;
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="deleteMessageCommand">The delete message command.</param>
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
-        public RedisSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatus> doesJobExist,
+        public RedisSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatuses> doesJobExist,
             ICommandHandlerWithOutput<DeleteMessageCommand, bool> deleteMessageCommand,
             IQueryHandler<GetJobIdQuery, string> getJobId, IGetTimeFactory getTimeFactory)
         {
@@ -89,13 +89,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             var status = _doesJobExist.Handle(new DoesJobExistQuery(job.Name, scheduledTime));
             switch (status)
             {
-                case QueueStatus.Processing:
+                case QueueStatuses.Processing:
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedProcessing);
-                case QueueStatus.Waiting:
+                case QueueStatuses.Waiting:
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedWaiting);
-                case QueueStatus.Processed:
+                case QueueStatuses.Processed:
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyProcessed);
-                case QueueStatus.Error:
+                case QueueStatuses.Error:
                     //delete existing record - will re-queue and re-run
                     _deleteMessageCommand.Handle(new DeleteMessageCommand(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(job.Name)))));
                     break;
@@ -115,13 +115,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             var status = _doesJobExist.Handle(new DoesJobExistQuery(job.Name, scheduledTime));
             switch (status)
             {
-                case QueueStatus.Processing:
+                case QueueStatuses.Processing:
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedProcessing);
-                case QueueStatus.Waiting:
+                case QueueStatuses.Waiting:
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedWaiting);
-                case QueueStatus.Processed:
+                case QueueStatuses.Processed:
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyProcessed);
-                case QueueStatus.Error:
+                case QueueStatuses.Error:
                     //delete existing record
                     _deleteMessageCommand.Handle(new DeleteMessageCommand(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(job.Name)))));
                     break;
@@ -137,11 +137,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     var status = _doesJobExist.Handle(new DoesJobExistQuery(job.Name, scheduledTime));
                     switch (status)
                     {
-                        case QueueStatus.Processing:
+                        case QueueStatuses.Processing:
                             return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedProcessing);
-                        case QueueStatus.Waiting:
+                        case QueueStatuses.Waiting:
                             return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedWaiting);
-                        case QueueStatus.Processed:
+                        case QueueStatuses.Processed:
                             return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyProcessed);
                         default:
                             return new JobQueueOutputMessage(result, JobQueuedStatus.Failed);

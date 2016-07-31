@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             var results = new List<long>();
             var sqLiteCommand = _options.Value.EnableStatus 
                 ? 
-                $"select queueid from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt16(QueueStatus.Waiting)} and @CurrentDateTime > ExpirationTime" 
+                $"select queueid from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt16(QueueStatuses.Waiting)} and @CurrentDateTime > ExpirationTime" 
                 : 
                 $"select queueid from {_tableNameHelper.MetaDataName} where @CurrentDateTime > ExpirationTime";
 

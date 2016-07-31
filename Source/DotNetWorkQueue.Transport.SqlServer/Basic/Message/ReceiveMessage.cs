@@ -116,7 +116,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             {
                 _setStatusCommandHandler.Handle(
                     new SetStatusTableStatusCommand(
-                        (long) receivedTransportMessage.MesssageId.Id.Value, QueueStatus.Processing));
+                        (long) receivedTransportMessage.MesssageId.Id.Value, QueueStatuses.Processing));
             }
             return receivedTransportMessage;
         }
@@ -175,7 +175,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             {
                 _setStatusCommandHandler.Handle(
                     new SetStatusTableStatusCommand(
-                        (long)receivedTransportMessage.MesssageId.Id.Value, QueueStatus.Processing));
+                        (long)receivedTransportMessage.MesssageId.Id.Value, QueueStatuses.Processing));
             }
             return receivedTransportMessage;
         }
