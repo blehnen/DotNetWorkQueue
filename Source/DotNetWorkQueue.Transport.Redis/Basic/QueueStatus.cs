@@ -38,6 +38,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <summary>
         /// An error has occurred
         /// </summary>
-        Error = 2
+        Error = 2,
+        /// <summary>
+        /// The item has already been processed and will not be re-queued.
+        /// </summary>
+        /// <remarks>This status applies to the job queue</remarks>
+        Processed = 3
     }
 }

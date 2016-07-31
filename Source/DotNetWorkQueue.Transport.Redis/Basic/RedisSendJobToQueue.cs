@@ -93,6 +93,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedProcessing);
                 case QueueStatus.Waiting:
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedWaiting);
+                case QueueStatus.Processed:
+                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyProcessed);
                 case QueueStatus.Error:
                     //delete existing record - will re-queue and re-run
                     _deleteMessageCommand.Handle(new DeleteMessageCommand(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(job.Name)))));
@@ -117,6 +119,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedProcessing);
                 case QueueStatus.Waiting:
                     return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedWaiting);
+                case QueueStatus.Processed:
+                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyProcessed);
                 case QueueStatus.Error:
                     //delete existing record
                     _deleteMessageCommand.Handle(new DeleteMessageCommand(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(job.Name)))));
@@ -137,6 +141,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                             return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedProcessing);
                         case QueueStatus.Waiting:
                             return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedWaiting);
+                        case QueueStatus.Processed:
+                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyProcessed);
                         default:
                             return new JobQueueOutputMessage(result, JobQueuedStatus.Failed);
                     }

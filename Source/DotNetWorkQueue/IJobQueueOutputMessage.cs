@@ -63,6 +63,10 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Job was added; the job already existed but had an error status
         /// </summary>
-        RequeuedDueToErrorStatus = 5
+        RequeuedDueToErrorStatus = 5,
+        /// <summary>
+        /// The job has already been processed for the indicated schedule time; it will not be re-added.
+        /// </summary>
+        AlreadyProcessed = 6
     }
 }

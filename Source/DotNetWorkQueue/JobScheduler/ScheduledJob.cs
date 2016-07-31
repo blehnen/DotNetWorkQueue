@@ -204,7 +204,8 @@ namespace DotNetWorkQueue.JobScheduler
                             _queue.Logger.Log(LogLevel.Debug, () => $"job {this} has been queued");
                         }
                         else if (result.Status == JobQueuedStatus.AlreadyQueuedWaiting ||
-                                 result.Status == JobQueuedStatus.AlreadyQueuedProcessing)
+                                 result.Status == JobQueuedStatus.AlreadyQueuedProcessing ||
+                                 result.Status == JobQueuedStatus.AlreadyProcessed)
                         {
                             _queue.Logger.Log(LogLevel.Warn, () => $"Failed to enqueue job {this}, the status is {result.Status}");
                             RaiseNonFatalFailtureEnQueue(result);

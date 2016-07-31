@@ -43,14 +43,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      if(jobExists) then
                         local alreadyScheduledAndRan = redis.call('hget', @JobEventKey, @JobNameScheduled)
                         if (alreadyScheduledAndRan == @ScheduledTime) then
-                            return 1
+                            return 3
                         else
                             return redis.call('hget', @StatusKey, jobExists)
                         end
                      end
                      local alreadyScheduledAndRan = redis.call('hget', @JobEventKey, @JobNameScheduled)
                      if (alreadyScheduledAndRan == @ScheduledTime) then
-                         return 1
+                         return 3
                      end
                      return -1";
         }
