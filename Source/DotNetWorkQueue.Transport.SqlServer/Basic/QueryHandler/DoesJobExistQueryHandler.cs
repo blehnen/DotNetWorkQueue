@@ -66,26 +66,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// <returns></returns>
         public QueueStatus Handle(DoesJobExistQuery query)
         {
+            if (query.Connection != null)
+            {
+                return RunQuery(query, query.Connection, query.Transaction);
+            }
             using (var connection = new SqlConnection(_connectionInformation.ConnectionString))
             {
                 connection.Open();
-                using (var command = connection.CreateCommand())
+                using (var transaction = connection.BeginTransaction())
                 {
-                    command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.DoesJobExist);
-
-                    command.Parameters.Add("@JobName", SqlDbType.VarChar, 255);
-                    command.Parameters["@JobName"].Value = query.JobName;
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            return (QueueStatus) reader.GetInt32(0);
-                        }
-                    }
+                    return RunQuery(query, connection, transaction);
                 }
             }
-            return QueueStatus.NotQueued;
         }
 
         private QueueStatus RunQuery(DoesJobExistQuery query, SqlConnection connection, SqlTransaction transaction)

@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 connection.Open();
                 using (var trans = connection.BeginTransaction())
                 {
-                    if (_jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
+                    if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
                         QueueStatus.NotQueued)
                     {
                         using (var command = connection.CreateCommand())

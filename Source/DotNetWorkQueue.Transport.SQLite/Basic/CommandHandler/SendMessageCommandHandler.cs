@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                         {
                             try
                             {
-                                if (_jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
+                                if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
                                     QueueStatus.NotQueued)
                                 {
                                     command.Transaction = trans;
