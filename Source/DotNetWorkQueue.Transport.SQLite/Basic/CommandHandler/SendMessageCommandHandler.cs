@@ -21,7 +21,6 @@ using System.Data;
 using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.SQLite.Basic.Command;
 using DotNetWorkQueue.Transport.SQLite.Basic.Query;
 
@@ -43,6 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private readonly ISqLiteTransactionFactory _transactionFactory;
         private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
         private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _jobExistsHandler;
+        private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandler" /> class.
@@ -57,6 +57,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="transactionFactory">The transaction factory.</param>
         /// <param name="sendJobStatus">The send job status.</param>
         /// <param name="jobExistsHandler">The job exists handler.</param>
+        /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         public SendMessageCommandHandler(TableNameHelper tableNameHelper,
             ICompositeSerialization serializer,
             ISqLiteMessageQueueTransportOptionsFactory optionsFactory,
@@ -66,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             IGetTimeFactory getTimeFactory,
             ISqLiteTransactionFactory transactionFactory,
             ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus,
-            IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler)
+            IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler, IJobSchedulerMetaData jobSchedulerMetaData)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => serializer, serializer);
@@ -88,6 +89,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             _transactionFactory = transactionFactory;
             _sendJobStatus = sendJobStatus;
             _jobExistsHandler = jobExistsHandler;
+            _jobSchedulerMetaData = jobSchedulerMetaData;
         }
 
         /// <summary>
@@ -120,22 +122,22 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                     expiration = MessageExpiration.GetExpiration(commandSend, _headers);
                 }
 
-                var jobName = GetJobName(commandSend);
+                var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
                 var scheduledTime = DateTimeOffset.MinValue;
                 var eventTime = DateTimeOffset.MinValue;
                 if (!string.IsNullOrWhiteSpace(jobName))
                 {
-                    scheduledTime = GetJobTime("@JobScheduledTime", commandSend);
-                    eventTime = GetJobTime("@JobEventTime", commandSend);
+                    scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
+                    eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
                 }
 
                 SQLiteCommand commandStatus = null;
-                using (var command = GetMainCommand(commandSend, connection))
+                using (var command = SendMessage.GetMainCommand(commandSend, connection, _commandCache, _headers, _serializer))
                 {
                     long id;
-                    using (var commandMeta = CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration,
-                        connection,
-                        commandSend.MessageToSend, commandSend.MessageData))
+                    using (var commandMeta = SendMessage.CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration,
+                        connection, commandSend.MessageToSend, commandSend.MessageData, _tableNameHelper, _headers,
+                        _options.Value, _getTime))
                     {
                         if (_options.Value.EnableStatusTable)
                         {
@@ -195,26 +197,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        private SQLiteCommand GetMainCommand(SendMessageCommand commandSend, SQLiteConnection connection)
-        {
-            var command = connection.CreateCommand();
-            command.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.InsertMessageBody);
-            var serialization =
-                _serializer.Serializer.MessageToBytes(new MessageBody {Body = commandSend.MessageToSend.Body});
-
-            command.Parameters.Add("@body", DbType.Binary, -1);
-            command.Parameters["@body"].Value = serialization.Output;
-
-            commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph,
-                serialization.Graph);
-
-            command.Parameters.Add("@headers", DbType.Binary, -1);
-            command.Parameters["@headers"].Value =
-                _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
-            return command;
-        }
-
         /// <summary>
         /// Creates the status record.
         /// </summary>
@@ -229,49 +211,5 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             SendMessage.BuildStatusCommand(command, _tableNameHelper, _headers, data, message, 0, _options.Value, _getTime.GetCurrentUtcDate());
             return command;
         }
-
-        #region Insert Meta data record
-
-        /// <summary>
-        /// Creates the meta data record.
-        /// </summary>
-        /// <param name="delay">The delay.</param>
-        /// <param name="expiration">The expiration.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="message">The message.</param>
-        /// <param name="data">The data.</param>
-        /// <returns></returns>
-        private SQLiteCommand CreateMetaDataRecord(TimeSpan? delay, TimeSpan expiration, SQLiteConnection connection,
-            IMessage message, IAdditionalMessageData data)
-        {
-            var command = new SQLiteCommand(connection);
-            SendMessage.BuildMetaCommand(command, _tableNameHelper, _headers,
-                data, message, 0, _options.Value, delay, expiration, _getTime.GetCurrentUtcDate());
-            return command;
-        }
-
-        private string GetJobName(SendMessageCommand commandSend)
-        {
-            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
-            {
-                if (meta.Name == "JobName" && meta.Value is string)
-                {
-                    return (string)meta.Value;
-                }
-            }
-            return string.Empty;
-        }
-        private DateTimeOffset GetJobTime(string field, SendMessageCommand commandSend)
-        {
-            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
-            {
-                if (meta.Name == field && meta.Value is DateTimeOffset)
-                {
-                    return (DateTimeOffset)meta.Value;
-                }
-            }
-            return DateTimeOffset.MinValue;
-        }
     }
-    #endregion
 }

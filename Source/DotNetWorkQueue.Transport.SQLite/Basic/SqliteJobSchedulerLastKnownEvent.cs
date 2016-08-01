@@ -17,11 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
 using DotNetWorkQueue.Transport.SQLite.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic

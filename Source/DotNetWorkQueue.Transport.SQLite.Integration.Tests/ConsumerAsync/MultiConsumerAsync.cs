@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
          InlineData(100, 0, 180, 10, 5, 0, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, bool inMemoryDb)
         {
-            SchedulerContainer schedulerContainer = null;
+            SchedulerContainer schedulerContainer;
             var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out schedulerContainer);
             using (schedulerContainer)
             {

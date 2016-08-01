@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 delaykey = (RedisKey)RedisNames.Delayed,
                 expirekey = (RedisKey)RedisNames.Expiration,
                 JobKey = (RedisKey)RedisNames.JobNames,
-                JobIDKey = (RedisKey)RedisNames.JobIDNames,
+                JobIDKey = (RedisKey)RedisNames.JobIdNames,
                 StatusKey = (RedisKey)RedisNames.Status,
             };
         }

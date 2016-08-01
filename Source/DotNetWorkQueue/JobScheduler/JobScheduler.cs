@@ -21,7 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
@@ -94,7 +93,7 @@ namespace DotNetWorkQueue.JobScheduler
             log.Log(LogLevel.Info, () => $"Scheduler time is {_getTime.Create().GetCurrentUtcDate()}");
             log.Log(LogLevel.Info, () => $"Local time is {DateTime.UtcNow}");
 
-            Task.Run((Func<Task>)Poll);
+            Task.Run(Poll);
         }
         /// <summary>
         /// Adds a scheduled task to this instance of the scheduler

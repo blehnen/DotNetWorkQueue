@@ -19,13 +19,49 @@
 using System;
 using System.Data;
 using System.Data.SQLite;
-using System.Linq;
 using System.Text;
+using DotNetWorkQueue.Serialization;
+using DotNetWorkQueue.Transport.SQLite.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 {
     internal static class SendMessage
     {
+        internal static SQLiteCommand CreateMetaDataRecord(TimeSpan? delay, TimeSpan expiration, SQLiteConnection connection,
+            IMessage message, IAdditionalMessageData data, TableNameHelper tableNameHelper, 
+            IHeaders headers, SqLiteMessageQueueTransportOptions options, IGetTime getTime)
+        {
+            var command = new SQLiteCommand(connection);
+            BuildMetaCommand(command, tableNameHelper, headers,
+                data, message, 0, options, delay, expiration, getTime.GetCurrentUtcDate());
+            return command;
+        }
+
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
+        internal static SQLiteCommand GetMainCommand(SendMessageCommand commandSend, 
+            SQLiteConnection connection,
+            SqLiteCommandStringCache commandCache,
+            IHeaders headers,
+            ICompositeSerialization serializer)
+        {
+            var command = connection.CreateCommand();
+            command.CommandText = commandCache.GetCommand(SqLiteCommandStringTypes.InsertMessageBody);
+            var serialization =
+                serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
+
+            command.Parameters.Add("@body", DbType.Binary, -1);
+            command.Parameters["@body"].Value = serialization.Output;
+
+            commandSend.MessageToSend.SetHeader(headers.StandardHeaders.MessageInterceptorGraph,
+                serialization.Graph);
+
+            command.Parameters.Add("@headers", DbType.Binary, -1);
+            command.Parameters["@headers"].Value =
+                serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
+            return command;
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         internal static void BuildStatusCommand(SQLiteCommand command,
             TableNameHelper tableNameHelper,
@@ -119,8 +155,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="data">The data.</param>
         private static void AddUserColumnsParams(SQLiteCommand command, IAdditionalMessageData data)
         {
-            var list = data.AdditionalMetaData.Where(x => !x.Name.StartsWith("@"));
-            foreach (var metadata in list)
+            foreach (var metadata in data.AdditionalMetaData)
             {
                 command.Parameters.AddWithValue("@" + metadata.Name, metadata.Value);
             }
@@ -149,15 +184,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private static void AddUserColumns(StringBuilder command, IAdditionalMessageData data)
         {
             var i = 0;
-            var list = data.AdditionalMetaData.Where(x => !x.Name.StartsWith("@")).ToList();
-            foreach (var metadata in list)
+            foreach (var metadata in data.AdditionalMetaData)
             {
                 if (i == 0)
                 {
                     command.Append(",");
                 }
                 command.Append(metadata.Name);
-                if (i < list.Count - 1)
+                if (i < data.AdditionalMetaData.Count - 1)
                 {
                     command.Append(",");
                 }
@@ -197,15 +231,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private static void AddUserColumnsValues(StringBuilder command, IAdditionalMessageData data)
         {
             var i = 0;
-            var list = data.AdditionalMetaData.Where(x => !x.Name.StartsWith("@")).ToList();
-            foreach (var metadata in list)
+            foreach (var metadata in data.AdditionalMetaData)
             {
                 if (i == 0)
                 {
                     command.Append(",");
                 }
                 command.Append("@" + metadata.Name);
-                if (i < list.Count - 1)
+                if (i < data.AdditionalMetaData.Count - 1)
                 {
                     command.Append(",");
                 }

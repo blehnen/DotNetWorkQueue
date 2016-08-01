@@ -19,8 +19,6 @@
 using System;
 using System.Globalization;
 using DotNetWorkQueue.Exceptions;
-using StackExchange.Redis;
-
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
@@ -31,7 +29,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
-        private readonly IGetTimeFactory _getTimeFactory;
         private const string DateTimeFormat = "MM/dd/yyyy hh:mm:ss.fff tt";
 
         /// <summary>
@@ -39,19 +36,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="redisNames">The redis names.</param>
-        /// <param name="getTimeFactory">The get time factory.</param>
         public RedisJobSchedulerLastKnownEvent(
             IRedisConnection connection,
-            RedisNames redisNames,
-            IGetTimeFactory getTimeFactory)
+            RedisNames redisNames)
         {
             Guard.NotNull(() => connection, connection);
             Guard.NotNull(() => redisNames, redisNames);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
 
             _connection = connection;
             _redisNames = redisNames;
-            _getTimeFactory = getTimeFactory;
         }
 
         /// <summary>
@@ -67,11 +60,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 try
                 {
-                    return DateTimeOffset.ParseExact(time, DateTimeFormat, System.Globalization.CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+                    return DateTimeOffset.ParseExact(time, DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
                 }
                 catch (Exception e)
                 {
-                  throw new DotNetWorkQueueException($"input {time} is not a valid date/time in {DateTimeFormat} format", e);
+                    throw new DotNetWorkQueueException($"input {time} is not a valid date/time in {DateTimeFormat} format", e);
                 }
             }
             return default(DateTimeOffset);

@@ -17,12 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler

@@ -19,7 +19,6 @@
 using System;
 using System.Data;
 using System.Data.SQLite;
-using System.Threading;
 using DotNetWorkQueue.Transport.SQLite.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler

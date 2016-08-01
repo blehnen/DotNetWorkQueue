@@ -16,51 +16,41 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// A output message for a job queue request
+    /// Creates meta data needed by transports for scheduled jobs
     /// </summary>
-    /// <seealso cref="DotNetWorkQueue.IQueueOutputMessage" />
-    public interface IJobQueueOutputMessage: IQueueOutputMessage
+    public interface IJobSchedulerMetaData
     {
         /// <summary>
-        /// Gets the status.
+        /// Sets the specified meta data on the messageData context
         /// </summary>
-        /// <value>
-        /// The status.
-        /// </value>
-        JobQueuedStatus Status { get; }
-    }
+        /// <param name="jobName">Name of the job.</param>
+        /// <param name="scheduledTime">The scheduled time.</param>
+        /// <param name="eventTime">The event time.</param>
+        /// <param name="messageData">The message data.</param>
+        void Set(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
+            IAdditionalMessageData messageData);
 
-    /// <summary>
-    /// The status of the job queue request
-    /// </summary>
-    public enum JobQueuedStatus
-    {
         /// <summary>
-        /// Job was added
+        /// Gets the scheduled time.
         /// </summary>
-        Success = 0,
+        /// <param name="messageData">The message data.</param>
+        /// <returns></returns>
+        DateTimeOffset GetScheduledTime(IAdditionalMessageData messageData);
         /// <summary>
-        /// Job was already queued and is waiting for processing
+        /// Gets the event time.
         /// </summary>
-        AlreadyQueuedWaiting = 1,
+        /// <param name="messageData">The message data.</param>
+        /// <returns></returns>
+        DateTimeOffset GetEventTime(IAdditionalMessageData messageData);
         /// <summary>
-        /// The job already exists and is currently processing
+        /// Gets the name of the job.
         /// </summary>
-        AlreadyQueuedProcessing = 2,
-        /// <summary>
-        /// The job was not added
-        /// </summary>
-        Failed = 3,
-        /// <summary>
-        /// Job was added; the job already existed but had an error status
-        /// </summary>
-        RequeuedDueToErrorStatus = 5,
-        /// <summary>
-        /// The job has already been processed for the indicated schedule time; it will not be re-added.
-        /// </summary>
-        AlreadyProcessed = 6
+        /// <param name="messageData">The message data.</param>
+        /// <returns></returns>
+        string GetJobName(IAdditionalMessageData messageData);
     }
 }

@@ -18,9 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;

@@ -81,18 +81,17 @@ namespace DotNetWorkQueue
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
-            lock (_containers)
+
+            while (!_containers.IsEmpty)
             {
-                while (!_containers.IsEmpty)
+                IDisposable item;
+                if (_containers.TryTake(out item))
                 {
-                    IDisposable item;
-                    if (_containers.TryTake(out item))
-                    {
-                        item?.Dispose();
-                    }
+                    item?.Dispose();
                 }
             }
         }
+
         #endregion
 
         /// <summary>

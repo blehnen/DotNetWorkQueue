@@ -17,12 +17,8 @@
 //COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 //IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 //CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
@@ -31,11 +27,15 @@ using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.JobScheduler
 {
+    /// <summary>
+    /// Represents a job that has been scheduled.
+    /// </summary>
+    /// <seealso cref="IScheduledJob" />
     internal class ScheduledJob: IScheduledJob
     {
         private readonly object _scheduleLock = new object();
-        private int _runId = 0;
-        private int _execLocked = 0;
+        private int _runId;
+        private int _execLocked;
         private readonly JobScheduler _scheduler;
         private readonly IProducerMethodJobQueue _queue;
 
@@ -199,7 +199,6 @@ namespace DotNetWorkQueue.JobScheduler
                         var result = _expressionToRun != null ? await _queue.SendAsync(this, eventTime, _expressionToRun).ConfigureAwait(false) : await _queue.SendAsync(this, eventTime, _actionToRun).ConfigureAwait(false);
                         if (result.Status == JobQueuedStatus.Success || result.Status == JobQueuedStatus.RequeuedDueToErrorStatus)
                         {
-                            //_queue.LastKnownEvent.Set(Name, PrevEvent);
                             RaiseEnQueue(result);
                             _queue.Logger.Log(LogLevel.Debug, () => $"job {this} has been queued");
                         }

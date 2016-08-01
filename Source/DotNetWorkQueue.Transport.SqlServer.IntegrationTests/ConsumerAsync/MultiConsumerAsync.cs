@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions)
         {
-            SchedulerContainer schedulerContainer = null;
+            SchedulerContainer schedulerContainer;
             var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out schedulerContainer);
             using (schedulerContainer)
             {

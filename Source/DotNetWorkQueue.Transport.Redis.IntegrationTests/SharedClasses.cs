@@ -20,8 +20,6 @@ using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using DotNetWorkQueue.Transport.Redis.Basic.Lua;
-using StackExchange.Redis;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests

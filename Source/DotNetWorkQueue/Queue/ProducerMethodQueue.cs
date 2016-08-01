@@ -34,7 +34,6 @@ namespace DotNetWorkQueue.Queue
         private readonly IProducerQueue<MessageExpression> _queue;
         private readonly IExpressionSerializer _serializer;
         private readonly ICompositeSerialization _compositeSerialization;
-        private readonly IJobSchedulerLastKnownEvent _jobSchedulerLastKnownEvent;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProducerMethodQueue" /> class.
@@ -42,21 +41,17 @@ namespace DotNetWorkQueue.Queue
         /// <param name="queue">The queue.</param>
         /// <param name="serializer">The serializer.</param>
         /// <param name="compositeSerialization">The composite serialization.</param>
-        /// <param name="jobSchedulerLastKnownEvent">The job scheduler last known event.</param>
         public ProducerMethodQueue(IProducerQueue<MessageExpression> queue,
             IExpressionSerializer serializer, 
-            ICompositeSerialization compositeSerialization,
-            IJobSchedulerLastKnownEvent jobSchedulerLastKnownEvent)
+            ICompositeSerialization compositeSerialization)
         {
             Guard.NotNull(() => queue, queue);
             Guard.NotNull(() => serializer, serializer);
             Guard.NotNull(() => compositeSerialization, compositeSerialization);
-            Guard.NotNull(() => jobSchedulerLastKnownEvent, jobSchedulerLastKnownEvent);
 
             _queue = queue;
             _serializer = serializer;
             _compositeSerialization = compositeSerialization;
-            _jobSchedulerLastKnownEvent = jobSchedulerLastKnownEvent;
         }
 
         /// <summary>

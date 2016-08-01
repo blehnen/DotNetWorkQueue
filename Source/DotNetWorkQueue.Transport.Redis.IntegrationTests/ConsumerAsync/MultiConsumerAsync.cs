@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
          InlineData(100, 0, 180, 10, 5, 0, ConnectionInfoTypes.Windows)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
         {
-            SchedulerContainer schedulerContainer = null;
+            SchedulerContainer schedulerContainer;
             var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out schedulerContainer);
             using (schedulerContainer)
             {

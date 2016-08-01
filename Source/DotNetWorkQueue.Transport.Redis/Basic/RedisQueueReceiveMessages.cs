@@ -131,6 +131,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             }
         }
 
+        /// <summary>
+        /// Returns a message to process.
+        /// </summary>
+        /// <param name="context">The message context.</param>
+        /// <returns>
+        /// A message to process or null if there are no messages to process
+        /// </returns>
         public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
         {
             context.Commit += ContextOnCommit;

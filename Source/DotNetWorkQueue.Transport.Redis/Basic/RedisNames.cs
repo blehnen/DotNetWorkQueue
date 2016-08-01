@@ -181,7 +181,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <value>
         /// The job identifier names.
         /// </value>
-        public string JobIDNames
+        public string JobIdNames
         {
             get
             {
@@ -270,7 +270,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 yield return Error;
                 yield return Headers;
                 yield return JobNames;
-                yield return JobIDNames;
+                yield return JobIdNames;
                 yield return Status;
             }
         } 

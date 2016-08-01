@@ -136,7 +136,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 }
             }
         }
-
         /// <summary>
         /// Setups the SQL for rollbacks
         /// </summary>

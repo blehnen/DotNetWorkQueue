@@ -108,6 +108,7 @@
     <Compile Include="IJobQueueCreation.cs" />
     <Compile Include="IJobQueueOutputMessage.cs" />
     <Compile Include="IJobSchedulerLastKnownEvent.cs" />
+    <Compile Include="IJobSchedulerMetaDataCreation.cs" />
     <Compile Include="IJobTableCreation.cs" />
     <Compile Include="IProducerMethodJobQueue.cs" />
     <Compile Include="ISendJobToQueue.cs" />
@@ -133,6 +134,7 @@
     <Compile Include="JobScheduler\JobSchedule.cs" />
     <Compile Include="JobScheduler\JobScheduler.cs" />
     <Compile Include="JobScheduler\JobSchedulerInit.cs" />
+    <Compile Include="JobScheduler\JobSchedulerMetaData.cs" />
     <Compile Include="JobScheduler\PendingEvent.cs" />
     <Compile Include="JobScheduler\PendingEventHeap.cs" />
     <Compile Include="JobScheduler\ScheduledJob.cs" />

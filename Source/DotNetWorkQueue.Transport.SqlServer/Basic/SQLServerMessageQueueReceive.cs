@@ -153,6 +153,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             }
         }
 
+        /// <summary>
+        /// Returns a message to process.
+        /// </summary>
+        /// <param name="context">The message context.</param>
+        /// <returns>
+        /// A message to process or null if there are no messages to process
+        /// </returns>
+        /// <exception cref="ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
         public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
         {
             if (_configuration.Options().EnableHoldTransactionUntilMessageCommited)

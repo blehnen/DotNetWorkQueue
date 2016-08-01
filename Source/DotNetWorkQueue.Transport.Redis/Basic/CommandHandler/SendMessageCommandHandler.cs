@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Linq;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
@@ -37,6 +36,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         private readonly EnqueueDelayedAndExpirationLua _enqueueDelayedAndExpirationLua;
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly IGetMessageIdFactory _messageIdFactory;
+        private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandler" /> class.
@@ -49,6 +49,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="enqueueDelayedAndExpirationLua">The enqueue delayed and expiration.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="messageIdFactory">The message identifier factory.</param>
+        /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         public SendMessageCommandHandler(
             ICompositeSerialization serializer,
             IHeaders headers,
@@ -57,7 +58,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             EnqueueExpirationLua enqueueExpirationLua,
             EnqueueDelayedAndExpirationLua enqueueDelayedAndExpirationLua,
             IUnixTimeFactory unixTimeFactory,
-            IGetMessageIdFactory messageIdFactory)
+            IGetMessageIdFactory messageIdFactory, 
+            IJobSchedulerMetaData jobSchedulerMetaData)
         {
             Guard.NotNull(() => serializer, serializer);
             Guard.NotNull(() => headers, headers);
@@ -67,11 +69,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             Guard.NotNull(() => enqueueDelayedAndExpirationLua, enqueueDelayedAndExpirationLua);
             Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
             Guard.NotNull(() => messageIdFactory, messageIdFactory);
+            Guard.NotNull(() => jobSchedulerMetaData, jobSchedulerMetaData);
 
             _serializer = serializer;
             _headers = headers;
             _enqueueLua = enqueueLua;
             _messageIdFactory = messageIdFactory;
+            _jobSchedulerMetaData = jobSchedulerMetaData;
 
             _enqueueDelayedLua = enqueueDelayedLua;
             _enqueueDelayedAndExpirationLua = enqueueDelayedAndExpirationLua;
@@ -156,13 +160,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
-            var jobName = GetJobName(commandSend);
+            var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
             var eventTime = DateTimeOffset.MinValue;
             if (!string.IsNullOrWhiteSpace(jobName))
             {
-                scheduledTime = GetJobTime("JobScheduledTime", commandSend);
-                eventTime = GetJobTime("JobEventTime", commandSend);
+                scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
+                eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
             }
 
             var result = _enqueueLua.Execute(messageId,
@@ -272,29 +276,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             }
             messageId = result;
             return messageId;
-        }
-
-        private string GetJobName(SendMessageCommand commandSend)
-        {
-            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
-            {
-                if (meta.Name == "JobName" && meta.Value is string)
-                {
-                    return (string)meta.Value;
-                }
-            }
-            return string.Empty;
-        }
-        private DateTimeOffset GetJobTime(string field, SendMessageCommand commandSend)
-        {
-            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
-            {
-                if (meta.Name == field && meta.Value is DateTimeOffset)
-                {
-                    return (DateTimeOffset)meta.Value;
-                }
-            }
-            return DateTimeOffset.MinValue;
         }
     }
 }

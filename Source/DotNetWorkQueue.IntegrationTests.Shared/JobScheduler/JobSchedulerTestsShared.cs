@@ -17,8 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Interceptors;
@@ -127,7 +125,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                             queue.Configuration.Worker.WorkerCount = 4;
                             WaitForRollover(timeFactory);
 
-                            System.Threading.Thread.Sleep(7000);
+                            Thread.Sleep(7000);
 
                             Parallel.For(0, producerCount, (i, loopState) =>
                             {
@@ -144,13 +142,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                             scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job1, queueName,
                                                 connectionString,
                                                 "min(*)",
-                                                (message, workerNotification) => System.Console.Write(""));
+                                                (message, workerNotification) => Console.Write(""));
 
                                             scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job2, queueName,
                                                 connectionString,
                                                 "min(*)",
                                                 (message, workerNotification) =>
-                                                    System.Console.Write(""));
+                                                    Console.Write(""));
 
                                             WaitForRollover(timeFactory);
                                             StartConsumer(queue);
@@ -255,7 +253,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     WaitForRollover(timeFactory);
                     WaitForEnQueue(); //nothing will be queued, make sure we are past fire time
                     enqueueWindow(scheduler, Job1, TimeSpan.FromSeconds(40)); //should be fired right away, since we are inside the window
-                    System.Threading.Thread.Sleep(5000);
+                    Thread.Sleep(5000);
                     ValidateEnqueue(queueName, connectionString, verify, enqueued, errors, nonFatal, 1);
                 }
             }
@@ -268,14 +266,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
         private void WaitForEnQueue()
         {
-            System.Threading.Thread.Sleep(10000);
+            Thread.Sleep(10000);
         }
         private void WaitForRollover(IGetTimeFactory timeFactory)
         {
             var getTime = timeFactory.Create();
             while (getTime.GetCurrentUtcDate().Second != 55)
             {
-                System.Threading.Thread.Sleep(100);
+                Thread.Sleep(100);
             }
         }
         private void ValidateEnqueue(string queueName, string connectionString, Action<string, string, long> verify,
@@ -311,7 +309,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     {
                         queue.Configuration.Worker.WorkerCount = 1;
                         queue.Start();
-                        System.Threading.Thread.Sleep(7500);
+                        Thread.Sleep(7500);
                     }
                 }
             }

@@ -17,10 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
@@ -34,7 +31,6 @@ namespace DotNetWorkQueue.Queue
     /// <seealso cref="DotNetWorkQueue.IProducerMethodJobQueue" />
     public class ProducerMethodJobQueue : IProducerMethodJobQueue
     {
-        private readonly IJobSchedulerLastKnownEvent _jobSchedulerLastKnownEvent;
         private readonly ISendJobToQueue _sendJobToQueue;
 
         /// <summary>
@@ -54,7 +50,7 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(() => logFactory, logFactory);
             Guard.NotNull(() => createJobQueue, createJobQueue);
 
-            _jobSchedulerLastKnownEvent = jobSchedulerLastKnownEvent;
+            LastKnownEvent = jobSchedulerLastKnownEvent;
             _sendJobToQueue = sendJobToQueue;
             Logger = logFactory.Create();
 
@@ -66,7 +62,7 @@ namespace DotNetWorkQueue.Queue
         /// <summary>
         /// Gets the last known event.
         /// </summary>
-        public IJobSchedulerLastKnownEvent LastKnownEvent => _jobSchedulerLastKnownEvent;
+        public IJobSchedulerLastKnownEvent LastKnownEvent { get; }
 
         /// <summary>
         /// Gets the queue specific logger.

@@ -22,6 +22,7 @@ using System.Runtime.Caching;
 using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
+using DotNetWorkQueue.JobScheduler;
 using DotNetWorkQueue.LinqCompile;
 using DotNetWorkQueue.LinqCompile.Decorator;
 using DotNetWorkQueue.Logging;
@@ -107,6 +108,8 @@ namespace DotNetWorkQueue.IoC
 
                 container.Register<IMessageFactory, MessageFactory>(LifeStyles.Singleton);
                 container.Register<IMessageContextDataFactory, MessageContextDataFactory>(LifeStyles.Singleton);
+
+                container.Register<IJobSchedulerMetaData, JobSchedulerMetaData>(LifeStyles.Singleton);
 
                 container.Register<IQueueCancelWork, QueueCancelWork>(LifeStyles.Singleton);
                 container.Register<ASerializer, RootSerializer>(LifeStyles.Singleton);

@@ -17,11 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
@@ -41,6 +37,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, bool> _deleteMessageCommand;
         private readonly IQueryHandler<GetJobIdQuery, string> _getJobId;
         private readonly IGetTimeFactory _getTimeFactory;
+        private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisSendJobToQueue" /> class.
@@ -50,15 +47,19 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="deleteMessageCommand">The delete message command.</param>
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
+        /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         public RedisSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatuses> doesJobExist,
             ICommandHandlerWithOutput<DeleteMessageCommand, bool> deleteMessageCommand,
-            IQueryHandler<GetJobIdQuery, string> getJobId, IGetTimeFactory getTimeFactory)
+            IQueryHandler<GetJobIdQuery, string> getJobId, 
+            IGetTimeFactory getTimeFactory, 
+            IJobSchedulerMetaData jobSchedulerMetaData)
         {
             _queue = queue;
             _doesJobExist = doesJobExist;
             _deleteMessageCommand = deleteMessageCommand;
             _getJobId = getJobId;
             _getTimeFactory = getTimeFactory;
+            _jobSchedulerMetaData = jobSchedulerMetaData;
         }
 
         /// <summary>
@@ -100,7 +101,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     _deleteMessageCommand.Handle(new DeleteMessageCommand(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(job.Name)))));
                     break;
             }
-            return ProcessResult(job, scheduledTime, await _queue.SendAsync(actionToRun, CreateAdditionalData(job, scheduledTime)).ConfigureAwait(false));
+            var messageData = new AdditionalMessageData();
+            _jobSchedulerMetaData.Set(job.Name, scheduledTime,
+                new DateTimeOffset(_getTimeFactory.Create().GetCurrentUtcDate()), messageData);
+            return ProcessResult(job, scheduledTime, await _queue.SendAsync(actionToRun, messageData).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -126,7 +130,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     _deleteMessageCommand.Handle(new DeleteMessageCommand(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(job.Name)))));
                     break;
             }
-            return ProcessResult(job, scheduledTime, await _queue.SendAsync(expressionToRun, CreateAdditionalData(job, scheduledTime)).ConfigureAwait(false));
+            var messageData = new AdditionalMessageData();
+            _jobSchedulerMetaData.Set(job.Name, scheduledTime,
+                new DateTimeOffset(_getTimeFactory.Create().GetCurrentUtcDate()), messageData);
+            return ProcessResult(job, scheduledTime, await _queue.SendAsync(expressionToRun, messageData).ConfigureAwait(false));
         }
         private IJobQueueOutputMessage ProcessResult(IScheduledJob job, DateTimeOffset scheduledTime, IQueueOutputMessage result)
         {
@@ -152,21 +159,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             return new JobQueueOutputMessage(result, JobQueuedStatus.Success);
         }
 
-        private IAdditionalMessageData CreateAdditionalData(IScheduledJob job, DateTimeOffset scheduledTime)
-        {
-            var additionalData = new AdditionalMessageData();
-            var item = new AdditionalMetaData<string>("JobName", job.Name);
-            additionalData.AdditionalMetaData.Add(item);
-
-            var item2 = new AdditionalMetaData<DateTimeOffset>("JobEventTime", new DateTimeOffset(_getTimeFactory.Create().GetCurrentUtcDate()));
-            additionalData.AdditionalMetaData.Add(item2);
-
-            var item3 = new AdditionalMetaData<DateTimeOffset>("JobScheduledTime", scheduledTime);
-            additionalData.AdditionalMetaData.Add(item3);
-
-            return additionalData;
-        }
-
         #region IDisposable Support
         private bool _disposedValue; // To detect redundant calls
 
@@ -180,7 +172,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 if (disposing)
                 {
-                    _queue.Dispose(); ;
+                    _queue.Dispose();
                 }
                 _disposedValue = true;
             }

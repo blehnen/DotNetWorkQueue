@@ -40,7 +40,7 @@ namespace DotNetWorkQueue
         /// </value>
         List<IAdditionalMetaData> AdditionalMetaData { get; }
 
-        /// <summary>
+         /// <summary>
         /// Gets the headers.
         /// </summary>
         /// <value>

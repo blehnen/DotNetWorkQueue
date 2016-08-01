@@ -80,6 +80,7 @@
     <Compile Include="Basic\Command\SetJobLastKnownEventCommand.cs" />
     <Compile Include="Basic\Command\SetStatusTableStatusCommand.cs" />
     <Compile Include="Basic\Connection.cs" />
+    <Compile Include="Basic\CreateJobMetaData.cs" />
     <Compile Include="Basic\Factory\ConnectionFactory.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
     <Compile Include="Basic\Factory\SQLServerMessageQueueCorrelationIDFactory.cs" />

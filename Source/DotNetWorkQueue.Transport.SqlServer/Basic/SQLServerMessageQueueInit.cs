@@ -55,6 +55,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IJobTableCreation, SqlServerJobTableCreation>(LifeStyles.Singleton);
             container.Register<SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, SqlServerSendJobToQueue>(LifeStyles.Singleton);
+            container.Register<CreateJobMetaData>(LifeStyles.Singleton);
 
             container.Register<IGetTime, SqlServerTime>(LifeStyles.Singleton);
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);

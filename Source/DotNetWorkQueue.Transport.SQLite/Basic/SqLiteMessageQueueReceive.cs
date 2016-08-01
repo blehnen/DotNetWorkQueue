@@ -86,28 +86,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         {
             try
             {
-                if(!LoggedMissingDb && !DatabaseExists.Exists(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString))
-                {
-                    _log.WarnFormat("Database file {0} does not exist", GetFileNameFromConnectionString.GetFileName(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString).FileName);
-                    LoggedMissingDb = true;
-                }
-
-                if (_cancelWork.Tokens.Any(m => m.IsCancellationRequested))
-                {
-                    return null;
-                }
-
-                if (_configuration.Options().QueueType == QueueTypes.RpcReceive)
-                {
-                    var rpc = context.Get(_configuration.HeaderNames.StandardHeaders.RpcContext);
-                    if (rpc.MessageId == null || !rpc.MessageId.HasValue)
-                    {
-                        return null;
-                    }
-                }
-
-                SetActionsOnContext(context);
-                return _receiveMessages.GetMessage(context);
+                return ReceiveSharedLogic(context) ? _receiveMessages.GetMessage(context) : null;
             }
             catch (PoisonMessageException exception)
             {
@@ -124,32 +103,23 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             }
         }
 
+        /// <summary>
+        /// Returns a message to process.
+        /// </summary>
+        /// <param name="context">The message context.</param>
+        /// <returns>
+        /// A message to process or null if there are no messages to process
+        /// </returns>
+        /// <exception cref="ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
         public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
         {
             try
             {
-                if (!LoggedMissingDb && !DatabaseExists.Exists(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString))
+                if (ReceiveSharedLogic(context))
                 {
-                    _log.WarnFormat("Database file {0} does not exist", GetFileNameFromConnectionString.GetFileName(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString).FileName);
-                    LoggedMissingDb = true;
+                    return await _receiveMessages.GetMessageAsync(context).ConfigureAwait(false);
                 }
-
-                if (_cancelWork.Tokens.Any(m => m.IsCancellationRequested))
-                {
-                    return null;
-                }
-
-                if (_configuration.Options().QueueType == QueueTypes.RpcReceive)
-                {
-                    var rpc = context.Get(_configuration.HeaderNames.StandardHeaders.RpcContext);
-                    if (rpc.MessageId == null || !rpc.MessageId.HasValue)
-                    {
-                        return null;
-                    }
-                }
-
-                SetActionsOnContext(context);
-                return await _receiveMessages.GetMessageAsync(context).ConfigureAwait(false);
+                return null;
             }
             catch (PoisonMessageException exception)
             {
@@ -166,6 +136,36 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             }
         }
 
+        /// <summary>
+        /// Performs prechecks on context
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns></returns>
+        private bool ReceiveSharedLogic(IMessageContext context)
+        {
+            if (!LoggedMissingDb && !DatabaseExists.Exists(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString))
+            {
+                _log.WarnFormat("Database file {0} does not exist", GetFileNameFromConnectionString.GetFileName(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString).FileName);
+                LoggedMissingDb = true;
+            }
+
+            if (_cancelWork.Tokens.Any(m => m.IsCancellationRequested))
+            {
+                return false;
+            }
+
+            if (_configuration.Options().QueueType == QueueTypes.RpcReceive)
+            {
+                var rpc = context.Get(_configuration.HeaderNames.StandardHeaders.RpcContext);
+                if (rpc.MessageId == null || !rpc.MessageId.HasValue)
+                {
+                    return false;
+                }
+            }
+
+            SetActionsOnContext(context);
+            return true;
+        }
         #endregion
 
         public static bool LoggedMissingDb
@@ -185,6 +185,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 }
             }
         }
+
         #region Private Methods   
 
         /// <summary>

@@ -137,7 +137,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 signalID = Convert.ToInt32(rpc),
                 IDKey = (RedisKey)RedisNames.Id,
                 JobKey = (RedisKey)RedisNames.JobNames,
-                JobIDKey = (RedisKey)RedisNames.JobIDNames,
+                JobIDKey = (RedisKey)RedisNames.JobIdNames,
                 JobName = jobName,
                 StatusKey = (RedisKey)RedisNames.Status,
                 JobEventKey = (RedisKey)RedisNames.JobEvent,

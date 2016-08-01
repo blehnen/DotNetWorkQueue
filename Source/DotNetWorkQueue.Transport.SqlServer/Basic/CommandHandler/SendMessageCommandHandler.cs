@@ -41,6 +41,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private readonly TransportConfigurationSend _configurationSend;
         private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
         private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _jobExistsHandler;
+        private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandler" /> class.
@@ -53,6 +54,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="configurationSend">The configuration send.</param>
         /// <param name="sendJobStatus">The send job status.</param>
         /// <param name="jobExistsHandler">The job exists handler.</param>
+        /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         public SendMessageCommandHandler(TableNameHelper tableNameHelper, 
             ICompositeSerialization serializer,
             ISqlServerMessageQueueTransportOptionsFactory optionsFactory, 
@@ -60,7 +62,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             SqlServerCommandStringCache commandCache, 
             TransportConfigurationSend configurationSend, 
             ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus, 
-            IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler)
+            IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler, 
+            IJobSchedulerMetaData jobSchedulerMetaData)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => serializer, serializer);
@@ -70,6 +73,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             Guard.NotNull(() => configurationSend, configurationSend);
             Guard.NotNull(() => sendJobStatus, sendJobStatus);
             Guard.NotNull(() => jobExistsHandler, jobExistsHandler);
+            Guard.NotNull(() => jobSchedulerMetaData, jobSchedulerMetaData);
 
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;
@@ -79,6 +83,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             _configurationSend = configurationSend;
             _sendJobStatus = sendJobStatus;
             _jobExistsHandler = jobExistsHandler;
+            _jobSchedulerMetaData = jobSchedulerMetaData;
         }
 
         /// <summary>
@@ -95,13 +100,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 _messageExpirationEnabled = _options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend;
             }
 
-            var jobName = GetJobName(commandSend);
+            var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
             var eventTime = DateTimeOffset.MinValue;
             if (!string.IsNullOrWhiteSpace(jobName))
             {
-                scheduledTime = GetJobTime("@JobScheduledTime", commandSend);
-                eventTime = GetJobTime("@JobEventTime", commandSend);
+                scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
+                eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
             }
 
             using (var connection = new SqlConnection(_configurationSend.ConnectionInfo.ConnectionString))
@@ -215,28 +220,5 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             }
         }
         #endregion
-
-        private string GetJobName(SendMessageCommand commandSend)
-        {
-            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
-            {
-                if (meta.Name == "JobName" && meta.Value is string)
-                {
-                    return (string)meta.Value;
-                }
-            }
-            return string.Empty;
-        }
-        private DateTimeOffset GetJobTime(string field, SendMessageCommand commandSend)
-        {
-            foreach (var meta in commandSend.MessageData.AdditionalMetaData)
-            {
-                if (meta.Name == field && meta.Value is DateTimeOffset)
-                {
-                    return (DateTimeOffset)meta.Value;
-                }
-            }
-            return DateTimeOffset.MinValue;
-        }
     }
 }
