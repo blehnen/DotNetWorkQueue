@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.JobScheduler
             {
                 return (string)value;
             }
-            return null;
+            return string.Empty;
         }
     }
 }
