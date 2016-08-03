@@ -339,7 +339,8 @@ using (var jobContainer = new JobSchedulerContainer(QueueCreation))
         scheduler.OnJobQueue += SchedulerOnOnJobEnQueue;
         scheduler.OnJobNonFatalFailureQueue += SchedulerOnOnJobNonFatalFailureEnQueue;
 
-        scheduler.AddUpdateJob<SqlServerMessageQueueInit, SqlServerJobQueueCreation>("test job1", 				"sampleSQL",
+        scheduler.AddUpdateJob<SqlServerMessageQueueInit, SqlServerJobQueueCreation>("test job1",
+        	"sampleSQL",
         	connectionStringSqlite,
             "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
     		(message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
@@ -350,7 +351,8 @@ using (var jobContainer = new JobSchedulerContainer(QueueCreation))
        "second(0,15,30,45)",
      	new LinqExpressionToRun("(message, workerNotification) => System.Threading.Thread.Sleep(20000)"));
 
-        scheduler.AddUpdateJob<SqLiteMessageQueueInit, SqliteJobQueueCreation>("test job3", 				"sampleSqlite",
+        scheduler.AddUpdateJob<SqLiteMessageQueueInit, SqliteJobQueueCreation>("test job3",
+        "sampleSqlite",
         connectionString,
         "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
         (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
