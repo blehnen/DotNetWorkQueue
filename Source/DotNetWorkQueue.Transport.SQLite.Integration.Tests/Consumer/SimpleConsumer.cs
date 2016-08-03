@@ -32,11 +32,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
         [InlineData(1000, 0, 240, 5, true),
         InlineData(50, 5, 200, 10, true),
         InlineData(10, 15, 180, 7, true),
-        InlineData(2000, 0, 240, 10, true),
         InlineData(1000, 0, 240, 5, false),
         InlineData(50, 5, 200, 10, false),
         InlineData(10, 15, 180, 7, false),
-        InlineData(2000, 0, 240, 10, false),
         InlineData(10, 45, 280, 5, false),
         InlineData(10, 45, 280, 5, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb)

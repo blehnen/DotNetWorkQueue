@@ -29,11 +29,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(1, 10, 1, false),
-         InlineData(100, 60, 10, false),
-         InlineData(10, 40, 5, false),
-         InlineData(1, 10, 1, true),
-         InlineData(100, 60, 10, true),
+        [InlineData(10, 40, 5, false),
          InlineData(10, 40, 5, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb)
         {

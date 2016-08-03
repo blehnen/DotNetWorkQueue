@@ -5,6 +5,12 @@ DotNetWorkQueue
 
 A producer / distributed consumer library for dot net applications. Available transports are SQL server, SQLite and Redis
 
+High level features
+
+* Queue / De-queue POCO for distributed processing
+* Queue / Process LINQ statements; compiled or dyanamic (expressed as string)
+* Re-occurring job scheduler
+
 See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for more indepth documention
 Installation
 -------------
@@ -306,6 +312,72 @@ If you decide to allow configuration files to define dyanmic Linq statements (or
 "(message, workerNotification) => System.IO.Directory.Delete(@"C:\Windows\, true)"
 ```
 
+Usage - Job Scheduler
+------
+
+Jobs may be scheduled using [Schyntax ](https://github.com/schyntax/cs-schyntax) format. The scheduler and consumers are seperate; schedulers don't process any work, they queue it for processing by a consumer.  The standard LINQ consumers are used to process work enqueued by a scheduler / schedule.
+
+Any LINQ statement that a linq producer supports can be scheduled using the scheduler.
+
+Multiple schedulers with the same scheduler may be ran if needed for redundancy. However, it's important that the clocks on the machines are in sync, or that the same time provider is injected into the schedulers and consumers. See the WIKI for more information on this.
+
+Generally speaking, you may get funny results if you are using multiple machines and the clocks are not in sync. The server based transports tend to provide solutions for this if you can't sync the clocks of the local machines; see the WIKI.
+
+See [Schyntax ](https://github.com/schyntax/schyntax) for event scheduling format.
+
+[**Scheduler**]
+
+The scheduler and container must be kept in scope until you are done scheduling work or shutting down. No work will be queued if the scheduler is disposed or falls out of scope.
+
+```csharp
+using (var jobContainer = new JobSchedulerContainer(QueueCreation))
+{
+	using (var scheduler = jobContainer.CreateJobScheduler())
+    {
+    	//events for job added, job add exception and job add failure
+        scheduler.OnJobQueueException += SchedulerOnOnJobQueueException;
+        scheduler.OnJobQueue += SchedulerOnOnJobEnQueue;
+        scheduler.OnJobNonFatalFailureQueue += SchedulerOnOnJobNonFatalFailureEnQueue;
+
+        scheduler.AddUpdateJob<SqlServerMessageQueueInit, SqlServerJobQueueCreation>("test job1", 				"sampleSQL",
+        	connectionStringSqlite,
+            "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
+    		(message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
+
+       scheduler.AddUpdateJob<RedisQueueInit, RedisJobQueueCreation>("test job2",
+       "sampleRedis",
+       "192.168.0.212",
+       "second(0,15,30,45)",
+     	new LinqExpressionToRun("(message, workerNotification) => System.Threading.Thread.Sleep(20000)"));
+
+        scheduler.AddUpdateJob<SqLiteMessageQueueInit, SqliteJobQueueCreation>("test job3", 				"sampleSqlite",
+        connectionString,
+        "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
+        (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
+
+		//start may be called before or after adding jobs
+        scheduler.Start();
+        Console.WriteLine("Running - press any key to stop");
+        Console.ReadKey(true);
+	}
+}
+
+private static void SchedulerOnOnJobNonFatalFailureEnQueue(IScheduledJob scheduledJob, IJobQueueOutputMessage jobQueueOutputMessage)
+{
+}
+
+private static void SchedulerOnOnJobEnQueue(IScheduledJob scheduledJob, IJobQueueOutputMessage jobQueueOutputMessage)
+{
+}
+
+private static void SchedulerOnOnJobQueueException(IScheduledJob scheduledJob, Exception error)
+{
+}
+
+```
+
+To consume / process scheduled jobs, a [Linq Consumer ](https://github.com/blehnen/DotNetWorkQueue/wiki/ConsumerLinq) is used
+
 [**More examples**](https://github.com/blehnen/DotNetWorkQueue/tree/master/Source/Examples)
 ------
 
@@ -375,8 +447,6 @@ This library uses multiple 3rd party libaries, listed below.
 * [Schyntax ](https://github.com/schyntax/cs-schyntax)
 
 *A fork of this module was created and thread saftey changes made. This is the version that is being used. It can be found here [Expression-JSON-Serializer ](https://github.com/blehnen/expression-json-serializer)
-
-
 
 [**DotNetWorkQueue.Transport.Redis**]
 

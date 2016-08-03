@@ -32,10 +32,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [
-         InlineData(10, 45, 260, 7, 1, 1, 1, false, LinqMethodTypes.Dynamic),
+        [InlineData(10, 45, 260, 7, 1, 1, 1, false, LinqMethodTypes.Dynamic),
          InlineData(10, 45, 260, 7, 1, 1, 1, true, LinqMethodTypes.Dynamic),
-            InlineData(500, 1, 400, 10, 5, 5, 1, true, LinqMethodTypes.Compiled),
+         InlineData(500, 1, 400, 10, 5, 5, 1, true, LinqMethodTypes.Compiled),
          InlineData(50, 5, 200, 10, 1, 2, 1, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, int readerCount, int queueSize,

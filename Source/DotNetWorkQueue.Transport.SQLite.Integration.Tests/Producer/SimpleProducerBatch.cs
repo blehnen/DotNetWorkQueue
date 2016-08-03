@@ -35,17 +35,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
          InlineData(1000, false, false, false, false, false, false, true, false, true),
          InlineData(1000, false, false, false, false, false, true, true, false, true),
          InlineData(1000, false, true, false, true, true, false, true, false, true),
-         InlineData(5000, false, true, true, true, true, true, true, false, true),
-         InlineData(5000, true, true, true, false, false, true, false, true, true),
-            InlineData(1000, true, true, true, false, false, true, false, false, false),
+         InlineData(1000, false, true, true, true, true, true, true, false, true),
+         InlineData(1000, true, true, true, false, false, true, false, true, true),
+         InlineData(1000, true, true, true, false, false, true, false, false, false),
          InlineData(1000, false, true, true, false, false, true, false, false, false),
          InlineData(1000, false, false, false, false, false, false, false, false, false),
          InlineData(1000, true, false, false, false, false, false, false, false, false),
          InlineData(1000, false, false, false, false, false, false, true, false, false),
          InlineData(1000, false, false, false, false, false, true, true, false, false),
          InlineData(1000, false, true, false, true, true, false, true, false, false),
-         InlineData(5000, false, true, true, true, true, true, true, false, false),
-         InlineData(5000, true, true, true, false, false, true, false, true, false)]
+         InlineData(1000, false, true, true, true, true, true, true, false, false),
+         InlineData(1000, true, true, true, false, false, true, false, true, false)]
         public void Run(
             int messageCount,
             bool interceptors,

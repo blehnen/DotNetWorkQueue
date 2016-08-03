@@ -31,14 +31,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [InlineData(500, 1, 400, 10, 5, 5, 1, true),
+        [InlineData(100, 1, 400, 10, 5, 5, 1, true),
          InlineData(50, 5, 200, 10, 1, 2, 1, true),
          InlineData(10, 5, 180, 7, 1, 1, 1, true),
-         InlineData(500, 0, 180, 10, 5, 0, 1, true),
-         InlineData(500, 1, 400, 10, 5, 5, 1, false),
+         InlineData(100, 0, 180, 10, 5, 0, 1, true),
+         InlineData(100, 1, 400, 10, 5, 5, 1, false),
          InlineData(50, 5, 200, 10, 1, 2, 1, false),
          InlineData(10, 5, 180, 7, 1, 1, 1, false),
-         InlineData(500, 0, 180, 10, 5, 0, 1, false),
+         InlineData(100, 0, 180, 10, 5, 0, 1, false),
          InlineData(10, 45, 260, 7, 1, 1, 1, false),
          InlineData(10, 45, 260, 7, 1, 1, 1, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,

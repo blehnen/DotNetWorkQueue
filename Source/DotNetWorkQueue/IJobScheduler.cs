@@ -34,20 +34,20 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Starts this instance.
         /// </summary>
-        /// <remarks>No jobs will be ran until start is called</remarks>
+        /// <remarks>No jobs will be scheduled until start is called</remarks>
         void Start();
 
         /// <summary>
         /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.
         /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
+        /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
         /// <typeparam name="TQueue">The type of the queue.</typeparam>
         /// <param name="jobname">The jobName.</param>
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
+        /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
         /// <returns></returns>
@@ -65,14 +65,14 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.
         /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
-        /// <param name="queueCreator">The queue creator.</param>
+        /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
+        /// <param name="queueCreator">The queue creator. Will be used to create the queue if it does not exist.</param>
         /// <param name="jobname">The jobName.</param>
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
+        /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
         /// <returns></returns>
@@ -90,14 +90,14 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.
         /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
+        /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
         /// <typeparam name="TQueue">The type of the queue.</typeparam>
         /// <param name="jobName">The jobName.</param>
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
+        /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
         /// <returns></returns>
@@ -115,14 +115,14 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.
         /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
-        /// <param name="queueCreator">The queue creator.</param>
+        /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
+        /// <param name="queueCreator">The queue creator. Will be used to create the queue if it does not exist.</param>
         /// <param name="jobName">Name of the job.</param>
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
+        /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
         /// <returns></returns>

@@ -200,6 +200,9 @@ namespace DotNetWorkQueue.JobScheduler
                     {
                         container.Dispose();
                     }
+                    _queues.Clear();
+                    _creationScopes.Clear();
+                    _containers.Clear();
                 }
                 _disposedValue = true;
             }

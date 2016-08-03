@@ -130,15 +130,6 @@ namespace DotNetWorkQueue.JobScheduler
         }
 
         /// <summary>
-        /// Gets the current offset.
-        /// </summary>
-        /// <returns></returns>
-        private DateTimeOffset GetCurrentOffset()
-        {
-            return new DateTimeOffset(_getTime.Create().GetCurrentUtcDate());
-        }
-
-        /// <summary>
         /// Adds a scheduled task to this instance of the scheduler
         /// </summary>
         /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
@@ -377,6 +368,16 @@ namespace DotNetWorkQueue.JobScheduler
 
             return job;
         }
+
+        /// <summary>
+        /// Gets the current offset.
+        /// </summary>
+        /// <returns></returns>
+        private DateTimeOffset GetCurrentOffset()
+        {
+            return new DateTimeOffset(_getTime.Create().GetCurrentUtcDate());
+        }
+
         private void JobOnOnNonFatalFailureEnQueue(IScheduledJob scheduledJob, IJobQueueOutputMessage jobQueueOutputMessage)
         {
             var ev = OnJobNonFatalFailureQueue;

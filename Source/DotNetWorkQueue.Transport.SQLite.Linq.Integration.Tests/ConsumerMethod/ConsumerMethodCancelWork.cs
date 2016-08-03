@@ -30,8 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodCancelWork
     {
         [Theory]
-        [
-        InlineData(2, 45, 90, 3, false, LinqMethodTypes.Dynamic),
+        [InlineData(2, 45, 90, 3, false, LinqMethodTypes.Dynamic),
         InlineData(2, 45, 90, 3, true, LinqMethodTypes.Dynamic),
         InlineData(2, 45, 90, 3, false, LinqMethodTypes.Compiled),
         InlineData(2, 45, 90, 3, true, LinqMethodTypes.Compiled)]
