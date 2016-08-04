@@ -21,6 +21,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Redis.Basic.Message;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>

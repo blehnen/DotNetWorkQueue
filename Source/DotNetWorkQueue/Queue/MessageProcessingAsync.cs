@@ -21,6 +21,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>

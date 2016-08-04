@@ -19,6 +19,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>

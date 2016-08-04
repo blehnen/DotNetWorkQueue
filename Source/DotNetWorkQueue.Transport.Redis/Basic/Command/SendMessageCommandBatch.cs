@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Command
 {
     /// <summary>

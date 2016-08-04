@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Validation;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;
 namespace DotNetWorkQueue.IoC

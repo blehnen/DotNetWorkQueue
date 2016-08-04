@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System.Threading;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
 {
     /// <summary>

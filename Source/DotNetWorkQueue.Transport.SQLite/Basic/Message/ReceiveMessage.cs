@@ -20,6 +20,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 {

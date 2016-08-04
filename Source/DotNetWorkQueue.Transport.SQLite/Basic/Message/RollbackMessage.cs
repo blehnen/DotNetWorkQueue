@@ -19,6 +19,7 @@
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 {

@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System.IO;
 using System.IO.Compression;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Interceptors
 {
     /// <summary>

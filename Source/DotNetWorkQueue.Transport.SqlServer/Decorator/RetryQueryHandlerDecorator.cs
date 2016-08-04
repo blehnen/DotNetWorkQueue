@@ -20,6 +20,8 @@ using System;
 using System.Data.SqlClient;
 using System.Threading;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Decorator
 {
     internal class RetryQueryHandlerDecorator<TQuery, TResult> : IQueryHandler<TQuery, TResult> where TQuery : IQuery<TResult>

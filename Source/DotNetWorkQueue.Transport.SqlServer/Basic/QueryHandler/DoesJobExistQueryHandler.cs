@@ -19,6 +19,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 {

@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.QueueStatus;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {

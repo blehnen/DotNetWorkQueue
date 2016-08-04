@@ -28,33 +28,30 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     public class CreateJobMetaData
     {
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
-        private readonly IGetTimeFactory _getTimeFactory;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateJobMetaData"/> class.
         /// </summary>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
-        /// <param name="getTimeFactory">The get time factory.</param>
-        public CreateJobMetaData(IJobSchedulerMetaData jobSchedulerMetaData, IGetTimeFactory getTimeFactory)
+        public CreateJobMetaData(IJobSchedulerMetaData jobSchedulerMetaData)
         {
             _jobSchedulerMetaData = jobSchedulerMetaData;
-            _getTimeFactory = getTimeFactory;
         }
 
         /// <summary>
         /// Creates metadata needed to add this job to the db.
         /// </summary>
-        /// <param name="job">The job.</param>
+        /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
-        /// <returns></returns>
-        public IAdditionalMessageData Create(IScheduledJob job, DateTimeOffset scheduledTime)
+        /// <param name="eventTime">The event time.</param>
+        /// <param name="messageData">The message data.</param>
+        public void Create(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
+            IAdditionalMessageData messageData)
         {
-            var additionalData = new AdditionalMessageData();
-            var item = new AdditionalMetaData<string>("JobName", job.Name);
-            additionalData.AdditionalMetaData.Add(item);
+            var item = new AdditionalMetaData<string>("JobName", jobName);
+            messageData.AdditionalMetaData.Add(item);
 
-            _jobSchedulerMetaData.Set(job.Name, scheduledTime, new DateTimeOffset(_getTimeFactory.Create().GetCurrentUtcDate()), additionalData);
-
-            return additionalData;
+            _jobSchedulerMetaData.Set(jobName, scheduledTime, eventTime, messageData);
         }
     }
 }

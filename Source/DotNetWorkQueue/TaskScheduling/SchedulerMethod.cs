@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.TaskScheduling
 {

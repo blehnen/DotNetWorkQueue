@@ -19,6 +19,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using DotNetWorkQueue.Validation;
 using StackExchange.Redis;
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {

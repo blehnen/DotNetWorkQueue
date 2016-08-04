@@ -26,6 +26,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.JobScheduler
 {

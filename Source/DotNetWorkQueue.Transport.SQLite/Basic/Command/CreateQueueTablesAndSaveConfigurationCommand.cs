@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using DotNetWorkQueue.Transport.SQLite.Schema;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Command
 {

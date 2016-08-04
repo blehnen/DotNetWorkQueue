@@ -24,6 +24,8 @@ using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.QueueStatus;
 using DotNetWorkQueue.TaskScheduling;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue
 {
     #region Creating Producer or consumer queues
@@ -31,15 +33,13 @@ namespace DotNetWorkQueue
     /// The root container for consumers and producers
     /// </summary>
     /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
-    public class QueueContainer<TTransportInit>: IQueueContainer where TTransportInit : ITransportInit, new()
+    public class QueueContainer<TTransportInit>: BaseContainer, IQueueContainer where TTransportInit : ITransportInit, new()
     {
         // ReSharper disable once StaticMemberInGenericType
         private static Func<ICreateContainer<TTransportInit>> _createContainerInternal = () => new CreateContainer<TTransportInit>();
         private readonly Action<IContainer> _registerService;
         private readonly Action<IContainer> _setOptions;
         private readonly TTransportInit _transportInit;
-
-        private readonly ConcurrentBag<IDisposable> _containers; 
 
         /// <summary>
         /// Set the container creation function. This allows you to use your own IoC container.
@@ -66,41 +66,9 @@ namespace DotNetWorkQueue
         /// <param name="setOptions">The options.</param>
         public QueueContainer(Action<IContainer> registerService, Action<IContainer> setOptions = null)
         {
-            _containers = new ConcurrentBag<IDisposable>();
             _registerService = registerService;
             _setOptions = setOptions;
             _transportInit = new TTransportInit();
-        }
-        #endregion
-
-        #region Dispose
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing) return;
-            lock (_containers)
-            {
-                while (!_containers.IsEmpty)
-                {
-                    IDisposable item;
-                    if (_containers.TryTake(out item))
-                    {
-                        item?.Dispose();
-                    }
-                }
-            }
         }
         #endregion
 
@@ -119,7 +87,7 @@ namespace DotNetWorkQueue
                 var container = _createContainerInternal().Create(QueueContexts.QueueStatus, _registerService, queue,
                     connection, _transportInit, ConnectionTypes.Status, serviceRegister =>
                     serviceRegister.Register<IGetTimeFactory, GetTimeFactoryNoOp>(LifeStyles.Singleton), _setOptions);
-                _containers.Add(container);
+                Containers.Add(container);
                 return container.GetInstance<IQueueStatusProvider>();
             }
             catch (Exception error)
@@ -143,7 +111,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueue, _registerService, queue,
                 connection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IConsumerQueue>();
         }
 
@@ -160,7 +128,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queue,
                 connection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IConsumerMethodQueue>();
         }
 
@@ -178,7 +146,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueueAsync, _registerService, queue,
                 connection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IConsumerQueueAsync>();
         }
         #endregion
@@ -198,7 +166,7 @@ namespace DotNetWorkQueue
             var schedulerCreator = new SchedulerContainer(_registerService);
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
-            _containers.Add(schedulerCreator);
+            Containers.Add(schedulerCreator);
             return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null, true);
         }
 
@@ -216,7 +184,7 @@ namespace DotNetWorkQueue
             var schedulerCreator = new SchedulerContainer(_registerService);
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
-            _containers.Add(schedulerCreator);
+            Containers.Add(schedulerCreator);
             return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, null, true);
         }
 
@@ -325,7 +293,7 @@ namespace DotNetWorkQueue
                         RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
             }
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IConsumerQueueScheduler>();
         }
 
@@ -391,7 +359,7 @@ namespace DotNetWorkQueue
                                     .RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
             }
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IConsumerMethodQueueScheduler>();
         }
         #endregion
@@ -414,7 +382,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queue,
                 connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IProducerQueue<TMessage>>();
         }
 
@@ -432,7 +400,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
                 connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IProducerMethodQueue>();
         }
 
@@ -450,7 +418,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
                 connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IProducerMethodJobQueue>();
         }
 
@@ -483,7 +451,7 @@ namespace DotNetWorkQueue
                     serviceRegister.Register(
                         () => producer, LifeStyles.Singleton).Register(
                         () => connectonSettings, LifeStyles.Singleton), _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return
                 container
                     .GetInstance<IRpcQueue<TMessageReceive, TMessageSend>>();
@@ -508,7 +476,7 @@ namespace DotNetWorkQueue
                     serviceRegister.Register(
                         () => rpc, LifeStyles.Singleton).Register(
                         () => connectonSettings, LifeStyles.Singleton), _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return
                 container
                     .GetInstance<IRpcMethodQueue>();
@@ -530,7 +498,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueueRpc, _registerService, queue,
                 connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IProducerQueueRpc<TMessage>>();
         }
 
@@ -546,7 +514,7 @@ namespace DotNetWorkQueue
         {
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
                 connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IJobSchedulerLastKnownEvent>();
         }
 

@@ -22,6 +22,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>

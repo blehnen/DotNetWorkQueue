@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Text;
 using Aq.ExpressionJsonSerializer;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Validation;
 using Newtonsoft.Json;
 
 namespace DotNetWorkQueue.Serialization

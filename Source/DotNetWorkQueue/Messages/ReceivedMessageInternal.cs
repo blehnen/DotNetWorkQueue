@@ -19,6 +19,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Messages
 {
     /// <summary>

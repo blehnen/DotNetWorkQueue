@@ -20,6 +20,8 @@ using System;
 using System.Collections.Concurrent;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue
 {
     #region Creating Queue in transport
@@ -27,12 +29,11 @@ namespace DotNetWorkQueue
     /// Creates a module for creating queues.
     /// </summary>
     /// <typeparam name="T">The type of transport to use</typeparam>
-    public class QueueCreationContainer<T> : IDisposable
+    public class QueueCreationContainer<T> : BaseContainer
         where T : ITransportInit, new()
     {
         // ReSharper disable once StaticMemberInGenericType
         private static Func<ICreateContainer<T>> _createContainerInternal = () => new CreateContainer<T>();
-        private readonly ConcurrentBag<IDisposable> _containers;
 
         #region Static IoC replacement functions
         /// <summary>
@@ -65,41 +66,9 @@ namespace DotNetWorkQueue
         /// <param name="setOptions">The options.</param>
         public QueueCreationContainer(Action<IContainer> registerService, Action<IContainer> setOptions = null)
         {
-            _containers = new ConcurrentBag<IDisposable>();
             _registerService = registerService;
             _setOptions = setOptions;
             _transportInit = new T();
-        }
-        #endregion
-
-        #region Dispose
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing) return;
-            lock (_containers)
-            {
-                while (!_containers.IsEmpty)
-                {
-                    IDisposable item;
-                    if (_containers.TryTake(out item))
-                    {
-                        item?.Dispose();
-                    }
-                }
-            }
         }
         #endregion
 
@@ -119,9 +88,9 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.QueueCreator, _registerService, queue, connection, _transportInit,
                 ConnectionTypes.Send, x => { }, _setOptions);
-            lock (_containers)
+            lock (Containers)
             {
-                _containers.Add(container);
+                Containers.Add(container);
             }
             return container.GetInstance<TQueue>();
         }
@@ -134,12 +103,11 @@ namespace DotNetWorkQueue
     /// Creates a module for creating queues.
     /// </summary>
     /// <typeparam name="T">The type of transport to use</typeparam>
-    public class JobQueueCreationContainer<T> : IDisposable
+    public class JobQueueCreationContainer<T> : BaseContainer
         where T : ITransportInit, new()
     {
         // ReSharper disable once StaticMemberInGenericType
         private static Func<ICreateContainer<T>> _createContainerInternal = () => new CreateContainer<T>();
-        private readonly ConcurrentBag<IDisposable> _containers;
         private readonly Action<IContainer> _setOptions;
 
         #region Static IoC replacement functions
@@ -172,41 +140,9 @@ namespace DotNetWorkQueue
         /// <param name="setOptions">The options.</param>
         public JobQueueCreationContainer(Action<IContainer> registerService, Action<IContainer> setOptions = null)
         {
-            _containers = new ConcurrentBag<IDisposable>();
             _registerService = registerService;
             _setOptions = setOptions;
             _transportInit = new T();
-        }
-        #endregion
-
-        #region Dispose
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing) return;
-            lock (_containers)
-            {
-                while (!_containers.IsEmpty)
-                {
-                    IDisposable item;
-                    if (_containers.TryTake(out item))
-                    {
-                        item?.Dispose();
-                    }
-                }
-            }
         }
         #endregion
 
@@ -226,9 +162,9 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.JobQueueCreator, _registerService, queue, connection, _transportInit,
                 ConnectionTypes.Send, x => { }, _setOptions);
-            lock (_containers)
+            lock (Containers)
             {
-                _containers.Add(container);
+                Containers.Add(container);
             }
             return container.GetInstance<TQueue>();
         }

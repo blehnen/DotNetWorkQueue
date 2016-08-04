@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Data.SQLite;
 using System.Data;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 {

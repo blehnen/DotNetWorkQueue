@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Metrics.Decorator;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Factory
 {
     /// <summary>

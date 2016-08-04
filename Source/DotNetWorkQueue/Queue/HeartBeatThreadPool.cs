@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.TaskScheduling;
+using DotNetWorkQueue.Validation;
 using ThreadPool = DotNetWorkQueue.TaskScheduling.ThreadPool;
 namespace DotNetWorkQueue.Queue
 {

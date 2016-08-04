@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
 {

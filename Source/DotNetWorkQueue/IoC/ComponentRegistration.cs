@@ -35,6 +35,7 @@ using DotNetWorkQueue.QueueStatus;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Time;
+using DotNetWorkQueue.Validation;
 using ClearExpiredMessagesDecorator = DotNetWorkQueue.Metrics.Decorator.ClearExpiredMessagesDecorator;
 using ReceivePoisonMessageDecorator = DotNetWorkQueue.Metrics.Decorator.ReceivePoisonMessageDecorator;
 using ResetHeartBeatDecorator = DotNetWorkQueue.Metrics.Decorator.ResetHeartBeatDecorator;

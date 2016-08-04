@@ -20,6 +20,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Messages
 {
     internal class MessageContext : IMessageContext

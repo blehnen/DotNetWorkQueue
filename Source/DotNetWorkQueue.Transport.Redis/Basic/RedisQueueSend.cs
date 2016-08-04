@@ -22,6 +22,8 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>

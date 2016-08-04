@@ -22,6 +22,8 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Message;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>

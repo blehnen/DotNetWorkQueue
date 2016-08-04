@@ -78,7 +78,9 @@
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
+    <Compile Include="ASendJobToQueue.cs" />
     <Compile Include="ATaskScheduler.cs" />
+    <Compile Include="BaseContainer.cs" />
     <Compile Include="Cache\CachePolicy.cs" />
     <Compile Include="Cache\ObjectPool.cs" />
     <Compile Include="Configuration\AdditionalConfiguration.cs" />

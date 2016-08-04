@@ -20,6 +20,7 @@ using System;
 using System.Collections.Concurrent;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.JobScheduler
 {

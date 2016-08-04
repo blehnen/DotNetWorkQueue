@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
 {
     internal class ReceiveMessageQueryDecorator : IQueryHandler<ReceiveMessageQuery, RedisMessage>

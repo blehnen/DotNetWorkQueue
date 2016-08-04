@@ -20,6 +20,8 @@ using System;
 using System.Collections.Concurrent;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.JobScheduler;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue
 {
     /// <summary>

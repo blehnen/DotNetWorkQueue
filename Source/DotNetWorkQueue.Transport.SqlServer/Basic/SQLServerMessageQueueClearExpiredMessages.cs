@@ -21,6 +21,8 @@ using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>

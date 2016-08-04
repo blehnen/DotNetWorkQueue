@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Command
 {
     /// <summary>

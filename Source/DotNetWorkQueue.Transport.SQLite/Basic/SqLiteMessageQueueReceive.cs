@@ -23,6 +23,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.SQLite.Basic.Message;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {

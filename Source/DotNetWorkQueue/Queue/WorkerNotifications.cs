@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>

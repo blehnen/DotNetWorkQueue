@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     internal class CommitMessageCommandHandler : ICommandHandlerWithOutput<CommitMessageCommand, bool>

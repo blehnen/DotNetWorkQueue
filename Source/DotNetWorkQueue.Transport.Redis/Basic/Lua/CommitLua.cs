@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      return 1";
         }
         /// <summary>
-        /// Deletes the specified message.
+        /// Commits the message by removing it from the queue.
         /// </summary>
         /// <param name="messageId">The message identifier.</param>
         /// <returns></returns>

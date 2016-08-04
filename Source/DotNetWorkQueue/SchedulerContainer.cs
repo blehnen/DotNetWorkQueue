@@ -20,20 +20,21 @@ using System;
 using System.Collections.Concurrent;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.TaskScheduling;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue
 {
     #region Scheduler / task factory creation
     /// <summary>
     /// Allows creation of new <see cref="ATaskScheduler"/> and <see cref="ITaskFactory"/> instances
     /// </summary>
-    public class SchedulerContainer : IDisposable
+    public class SchedulerContainer : BaseContainer
     {
         private static Func<ICreateContainer<SchedulerInit>> _createContainerInternal = () => new CreateContainer<SchedulerInit>();
 
         private readonly Action<IContainer> _registerService;
         private readonly Action<IContainer> _setOptions;
         private readonly SchedulerInit _transportInit;
-        private readonly ConcurrentBag<IDisposable> _containers;
 
         /// <summary>
         /// Set the container creation function. This allows you to use your own IoC container.
@@ -61,43 +62,11 @@ namespace DotNetWorkQueue
         /// <param name="setOptions">The options.</param>
         public SchedulerContainer(Action<IContainer> registerService, Action<IContainer> setOptions = null)
         {
-            _containers = new ConcurrentBag<IDisposable>();
             _registerService = registerService;
             _setOptions = setOptions;
             _transportInit = new SchedulerInit();
         }
 
-        #endregion
-
-        #region Dispose
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing) return;
-            lock (_containers)
-            {
-                while (!_containers.IsEmpty)
-                {
-                    IDisposable item;
-                    if (_containers.TryTake(out item))
-                    {
-                        item?.Dispose();
-                    }
-                }
-            }
-        }
         #endregion
 
         #region Task Scheduler
@@ -109,7 +78,7 @@ namespace DotNetWorkQueue
         public ATaskScheduler CreateTaskScheduler()
         {
             var container = _createContainerInternal().Create(QueueContexts.TaskScheduler, _registerService, _transportInit, x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<ATaskScheduler>();
         }
 
@@ -120,7 +89,7 @@ namespace DotNetWorkQueue
         public ITaskFactory CreateTaskFactory()
         {
             var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit,  x => { }, _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return CreateTaskFactoryInternal(container.GetInstance<ATaskScheduler>());
         }
 
@@ -143,7 +112,7 @@ namespace DotNetWorkQueue
         {
             var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit,
                 serviceRegister => serviceRegister.Register(() => scheduler, LifeStyles.Singleton), _setOptions);
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<ITaskFactory>();
         }
 

@@ -17,50 +17,35 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using DotNetWorkQueue.Validation;
-using StackExchange.Redis;
 
-namespace DotNetWorkQueue.Transport.Redis
+namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Contains the connection to the redis server(s)
+    /// Base class for containers
     /// </summary>
-    public class RedisConnection: IRedisConnection
+    /// <seealso cref="System.IDisposable" />
+    /// <seealso cref="DotNetWorkQueue.IIsDisposed" />
+    public abstract class BaseContainer : IDisposable, IIsDisposed
     {
-        private readonly IConnectionInformation _connectionInformation;
-        private ConnectionMultiplexer _connection;
-        private readonly object _connectionLock = new object();
         private int _disposeCount;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RedisConnection"/> class.
+        /// The containers that should be disposed of when the container is disposed
         /// </summary>
-        /// <param name="connectionInformation">The connection information.</param>
-        public RedisConnection(IConnectionInformation connectionInformation)
-        {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            _connectionInformation = connectionInformation;
-        }
+        protected readonly ConcurrentBag<IDisposable> Containers;
 
         /// <summary>
-        /// Gets the connection.
+        /// Initializes a new instance of the <see cref="BaseContainer"/> class.
         /// </summary>
-        /// <value>
-        /// The connection.
-        /// </value>
-        public ConnectionMultiplexer Connection
+        protected BaseContainer()
         {
-            get
-            {
-                ThrowIfDisposed();
-                EnsureCreated();
-                return _connection;
-            }
+            Containers = new ConcurrentBag<IDisposable>();
         }
 
-        #region IDispose, IIsDisposed
+        #region Dispose
         /// <summary>
         /// Throws an exception if this instance has been disposed.
         /// </summary>
@@ -73,6 +58,15 @@ namespace DotNetWorkQueue.Transport.Redis
                 throw new ObjectDisposedException(name);
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is disposed.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
@@ -92,31 +86,18 @@ namespace DotNetWorkQueue.Transport.Redis
 
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            _connection?.Dispose();
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
-        public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
-
-        #endregion
-
-        /// <summary>
-        /// Ensures that the connection has been opened.
-        /// </summary>
-        /// <remarks>The connection will only be opened once</remarks>
-        private void EnsureCreated()
-        {
-            if (_connection != null) return;
-            lock (_connectionLock)
+            lock (Containers)
             {
-                if (_connection != null) return;
-                _connection = ConnectionMultiplexer.Connect(_connectionInformation.ConnectionString);
+                while (!Containers.IsEmpty)
+                {
+                    IDisposable item;
+                    if (Containers.TryTake(out item))
+                    {
+                        item?.Dispose();
+                    }
+                }
             }
         }
+        #endregion
     }
 }

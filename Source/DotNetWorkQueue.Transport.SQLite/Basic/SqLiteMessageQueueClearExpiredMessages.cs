@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Transport.SQLite.Basic.Command;
 using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {

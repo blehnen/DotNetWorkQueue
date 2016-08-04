@@ -171,7 +171,6 @@
     <Compile Include="IQueryHandler.cs" />
     <Compile Include="ISQLiteTransaction.cs" />
     <Compile Include="ISQLiteTransactionFactory.cs" />
-    <Compile Include="netfx\System\Guard.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Schema\Column.cs" />
     <Compile Include="Schema\ColumnList.cs" />

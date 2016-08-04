@@ -19,6 +19,8 @@
 using System;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     internal class SqlServerMessageQueueSendHeartBeat : ISendHeartBeat 

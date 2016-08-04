@@ -22,6 +22,7 @@ using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 {

@@ -19,6 +19,8 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>

@@ -26,6 +26,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amib.Threading;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.TaskScheduling
 {
     /// <summary>

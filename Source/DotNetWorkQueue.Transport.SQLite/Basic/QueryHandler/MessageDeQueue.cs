@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 {
     internal class MessageDeQueue

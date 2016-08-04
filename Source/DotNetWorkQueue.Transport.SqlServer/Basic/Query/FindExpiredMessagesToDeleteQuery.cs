@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Threading;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
 {
     /// <summary>

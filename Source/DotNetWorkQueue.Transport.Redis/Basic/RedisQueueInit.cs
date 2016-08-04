@@ -30,6 +30,7 @@ using DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Redis.Basic.Time;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {

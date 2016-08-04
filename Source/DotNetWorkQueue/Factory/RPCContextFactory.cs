@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Factory
 {
     /// <summary>

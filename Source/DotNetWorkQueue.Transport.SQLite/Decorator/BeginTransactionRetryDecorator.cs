@@ -20,6 +20,7 @@ using System.Data.SQLite;
 using DotNetWorkQueue.Logging;
 using System.Threading;
 using System;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
 {

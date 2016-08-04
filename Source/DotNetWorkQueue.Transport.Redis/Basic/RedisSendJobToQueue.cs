@@ -17,10 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 
@@ -29,14 +25,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <summary>
     /// Sends a job to a queue
     /// </summary>
-    /// <seealso cref="DotNetWorkQueue.ISendJobToQueue" />
-    public class RedisSendJobToQueue : ISendJobToQueue
+    /// <seealso cref="DotNetWorkQueue.ASendJobToQueue" />
+    public class RedisSendJobToQueue : ASendJobToQueue
     {
-        private readonly IProducerMethodQueue _queue;
         private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _doesJobExist;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, bool> _deleteMessageCommand;
         private readonly IQueryHandler<GetJobIdQuery, string> _getJobId;
-        private readonly IGetTimeFactory _getTimeFactory;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
 
         /// <summary>
@@ -52,140 +46,58 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             ICommandHandlerWithOutput<DeleteMessageCommand, bool> deleteMessageCommand,
             IQueryHandler<GetJobIdQuery, string> getJobId, 
             IGetTimeFactory getTimeFactory, 
-            IJobSchedulerMetaData jobSchedulerMetaData)
+            IJobSchedulerMetaData jobSchedulerMetaData): base(queue, getTimeFactory)
         {
-            _queue = queue;
             _doesJobExist = doesJobExist;
             _deleteMessageCommand = deleteMessageCommand;
             _getJobId = getJobId;
-            _getTimeFactory = getTimeFactory;
             _jobSchedulerMetaData = jobSchedulerMetaData;
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
+        /// Returns the status of the job based on name and scheduled time.
         /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
-        public bool IsDisposed => _queue.IsDisposed;
-
-        /// <summary>
-        /// The configuration settings for the queue.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
-        public QueueProducerConfiguration Configuration => _queue.Configuration;
-
-        /// <summary>
-        /// Sends the specified action to the specified queue.
-        /// </summary>
-        /// <param name="job">The job.</param>
+        /// <param name="name">The name.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="actionToRun">The action to run.</param>
         /// <returns></returns>
-        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun)
+        protected override QueueStatuses DoesJobExist(string name, DateTimeOffset scheduledTime)
         {
-            var status = _doesJobExist.Handle(new DoesJobExistQuery(job.Name, scheduledTime));
-            switch (status)
-            {
-                case QueueStatuses.Processing:
-                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedProcessing);
-                case QueueStatuses.Waiting:
-                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedWaiting);
-                case QueueStatuses.Processed:
-                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyProcessed);
-                case QueueStatuses.Error:
-                    //delete existing record - will re-queue and re-run
-                    _deleteMessageCommand.Handle(new DeleteMessageCommand(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(job.Name)))));
-                    break;
-            }
-            var messageData = new AdditionalMessageData();
-            _jobSchedulerMetaData.Set(job.Name, scheduledTime,
-                new DateTimeOffset(_getTimeFactory.Create().GetCurrentUtcDate()), messageData);
-            return ProcessResult(job, scheduledTime, await _queue.SendAsync(actionToRun, messageData).ConfigureAwait(false));
+            return _doesJobExist.Handle(new DoesJobExistQuery(name, scheduledTime));
         }
 
         /// <summary>
-        /// Sends the specified action to the specified queue.
+        /// Deletes the job based on the job name.
         /// </summary>
-        /// <param name="job">The job.</param>
+        /// <param name="name">The name.</param>
+        protected override void DeleteJob(string name)
+        {
+            _deleteMessageCommand.Handle(new DeleteMessageCommand(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(name)))));
+        }
+
+        /// <summary>
+        /// Return true if the exception indicates that the job already exists.
+        /// </summary>
+        /// <param name="error">The error.</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Used to determine if we should return specific error messages
+        /// </remarks>
+        protected override bool JobAlreadyExistsError(Exception error)
+        {
+            return error.Message.Contains("Failed to enqueue a record. The job already exists");
+        }
+
+        /// <summary>
+        /// Sets the specified meta data on the messageData context
+        /// </summary>
+        /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="expressionToRun">The expression to run.</param>
-        /// <returns></returns>
-        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun expressionToRun)
+        /// <param name="eventTime">The event time.</param>
+        /// <param name="messageData">The message data.</param>
+        protected override void SetMetaDataForJob(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
+            IAdditionalMessageData messageData)
         {
-            var status = _doesJobExist.Handle(new DoesJobExistQuery(job.Name, scheduledTime));
-            switch (status)
-            {
-                case QueueStatuses.Processing:
-                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedProcessing);
-                case QueueStatuses.Waiting:
-                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedWaiting);
-                case QueueStatuses.Processed:
-                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyProcessed);
-                case QueueStatuses.Error:
-                    //delete existing record
-                    _deleteMessageCommand.Handle(new DeleteMessageCommand(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(job.Name)))));
-                    break;
-            }
-            var messageData = new AdditionalMessageData();
-            _jobSchedulerMetaData.Set(job.Name, scheduledTime,
-                new DateTimeOffset(_getTimeFactory.Create().GetCurrentUtcDate()), messageData);
-            return ProcessResult(job, scheduledTime, await _queue.SendAsync(expressionToRun, messageData).ConfigureAwait(false));
+            _jobSchedulerMetaData.Set(jobName, scheduledTime, eventTime, messageData);
         }
-        private IJobQueueOutputMessage ProcessResult(IScheduledJob job, DateTimeOffset scheduledTime, IQueueOutputMessage result)
-        {
-            if (result.HasError)
-            {
-                if (result.SendingException.Message.Contains("Failed to enqueue a record. The job already exists"))
-                {
-                    var status = _doesJobExist.Handle(new DoesJobExistQuery(job.Name, scheduledTime));
-                    switch (status)
-                    {
-                        case QueueStatuses.Processing:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedProcessing);
-                        case QueueStatuses.Waiting:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedWaiting);
-                        case QueueStatuses.Processed:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyProcessed);
-                        default:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.Failed);
-                    }
-                }
-                return new JobQueueOutputMessage(result, JobQueuedStatus.Failed);
-            }
-            return new JobQueueOutputMessage(result, JobQueuedStatus.Success);
-        }
-
-        #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
-
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    _queue.Dispose();
-                }
-                _disposedValue = true;
-            }
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-        }
-        #endregion
     }
 }

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Threading;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
 {

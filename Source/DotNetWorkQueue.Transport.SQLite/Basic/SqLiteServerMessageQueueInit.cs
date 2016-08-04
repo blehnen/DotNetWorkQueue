@@ -26,6 +26,7 @@ using DotNetWorkQueue.Transport.SQLite.Basic.Message;
 using CommitMessage = DotNetWorkQueue.Transport.SQLite.Basic.Message.CommitMessage;
 using DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {

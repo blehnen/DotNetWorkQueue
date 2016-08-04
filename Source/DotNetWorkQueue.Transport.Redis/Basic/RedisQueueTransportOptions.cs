@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Transport.Redis.Basic.Time;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>

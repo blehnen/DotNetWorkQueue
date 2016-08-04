@@ -319,7 +319,7 @@ Jobs may be scheduled using [Schyntax ](https://github.com/schyntax/cs-schyntax)
 
 Any LINQ statement that a linq producer supports can be scheduled using the scheduler.
 
-Multiple schedulers with the same scheduler may be ran if needed for redundancy. However, it's important that the clocks on the machines are in sync, or that the same time provider is injected into the schedulers and consumers. See the WIKI for more information on this.
+Multiple schedulers with the same schedule may be ran if needed for redundancy. However, it's important that the clocks on the machines are in sync, or that the same time provider is injected into the schedulers and consumers. See the WIKI for more information on this.
 
 Generally speaking, you may get funny results if you are using multiple machines and the clocks are not in sync. The server based transports tend to provide solutions for this if you can't sync the clocks of the local machines; see the WIKI.
 
@@ -341,7 +341,7 @@ using (var jobContainer = new JobSchedulerContainer(QueueCreation))
 
         scheduler.AddUpdateJob<SqlServerMessageQueueInit, SqlServerJobQueueCreation>("test job1",
         	"sampleSQL",
-        	connectionStringSqlite,
+        	connectionString,
             "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
     		(message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
 
@@ -353,7 +353,7 @@ using (var jobContainer = new JobSchedulerContainer(QueueCreation))
 
         scheduler.AddUpdateJob<SqLiteMessageQueueInit, SqliteJobQueueCreation>("test job3",
         "sampleSqlite",
-        connectionString,
+        connectionStringSqlite,
         "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
         (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
 

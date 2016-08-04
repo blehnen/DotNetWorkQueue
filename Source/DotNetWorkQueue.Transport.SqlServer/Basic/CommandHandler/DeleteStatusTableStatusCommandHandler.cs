@@ -19,6 +19,8 @@
 using System.Data;
 using System.Data.SqlClient;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 {
     /// <summary>

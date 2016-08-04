@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Concurrent;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Cache
 {
     /// <summary>

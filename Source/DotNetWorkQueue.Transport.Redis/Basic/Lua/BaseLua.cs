@@ -19,6 +19,7 @@
 using System;
 using System.Linq;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Validation;
 using StackExchange.Redis;
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {

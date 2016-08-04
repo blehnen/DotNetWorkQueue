@@ -17,10 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.SQLite.Basic.Command;
 using DotNetWorkQueue.Transport.SQLite.Basic.Query;
 
@@ -29,10 +25,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// <summary>
     /// Sends a job to a SQLite db.
     /// </summary>
-    /// <seealso cref="DotNetWorkQueue.ISendJobToQueue" />
-    public class SqliteSendToJobQueue: ISendJobToQueue
+    /// <seealso cref="DotNetWorkQueue.ASendJobToQueue" />
+    public class SqliteSendToJobQueue: ASendJobToQueue
     {
-        private readonly IProducerMethodQueue _queue;
         private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _doesJobExist;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
         private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
@@ -46,11 +41,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="deleteMessageCommand">The delete message command.</param>
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="createJobMetaData">The create job meta data.</param>
+        /// <param name="getTimeFactory">The get time factory.</param>
         public SqliteSendToJobQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatuses> doesJobExist,
             ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
-            IQueryHandler<GetJobIdQuery, long> getJobId, CreateJobMetaData createJobMetaData)
+            IQueryHandler<GetJobIdQuery, long> getJobId, CreateJobMetaData createJobMetaData,
+            IGetTimeFactory getTimeFactory): base(queue, getTimeFactory)
         {
-            _queue = queue;
             _doesJobExist = doesJobExist;
             _deleteMessageCommand = deleteMessageCommand;
             _getJobId = getJobId;
@@ -58,119 +54,52 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
+        /// Returns the status of the job based on name and scheduled time.
         /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
-        public bool IsDisposed => _queue.IsDisposed;
-
-        /// <summary>
-        /// The configuration settings for the queue.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
-        public QueueProducerConfiguration Configuration => _queue.Configuration;
-
-        /// <summary>
-        /// Sends the specified action to the specified queue.
-        /// </summary>
-        /// <param name="job">The job.</param>
+        /// <param name="name">The name.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="actionToRun">The action to run.</param>
         /// <returns></returns>
-        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun)
+        protected override QueueStatuses DoesJobExist(string name, DateTimeOffset scheduledTime)
         {
-            var status = CheckStatus(job.Name, scheduledTime);
-            return status ??
-                   ProcessResult(job, scheduledTime, await _queue.SendAsync(actionToRun, _createJobMetaData.Create(job, scheduledTime)).ConfigureAwait(false));
+           return _doesJobExist.Handle(new DoesJobExistQuery(name, scheduledTime));
         }
 
         /// <summary>
-        /// Sends the specified action to the specified queue.
+        /// Deletes the job based on the job name.
         /// </summary>
-        /// <param name="job">The job.</param>
+        /// <param name="name">The name.</param>
+        protected override void DeleteJob(string name)
+        {
+            _deleteMessageCommand.Handle(new DeleteMessageCommand(_getJobId.Handle(new GetJobIdQuery(name))));
+        }
+
+        /// <summary>
+        /// Return true if the exception indicates that the job already exists.
+        /// </summary>
+        /// <param name="error">The error.</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Used to determine if we should return specific error messages
+        /// </remarks>
+        protected override bool JobAlreadyExistsError(Exception error)
+        {
+            var message = error.Message.Replace(Environment.NewLine, " ");
+            return (message.Contains("constraint failed UNIQUE constraint failed:") && message.Contains("JobName")) ||
+                    message.Contains("Failed to insert record - the job has already been queued or processed");
+        }
+
+        /// <summary>
+        /// Sets the specified meta data on the messageData context
+        /// </summary>
+        /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="expressionToRun">The expression to run.</param>
-        /// <returns></returns>
-        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun expressionToRun)
+        /// <param name="eventTime">The event time.</param>
+        /// <param name="messageData">The message data.</param>
+        /// <exception cref="NotImplementedException"></exception>
+        protected override void SetMetaDataForJob(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
+            IAdditionalMessageData messageData)
         {
-            var status = CheckStatus(job.Name, scheduledTime);
-            return status ??
-                   ProcessResult(job, scheduledTime, await _queue.SendAsync(expressionToRun, _createJobMetaData.Create(job, scheduledTime)).ConfigureAwait(false));
+            _createJobMetaData.Create(jobName, scheduledTime, eventTime, messageData);
         }
-
-        private IJobQueueOutputMessage CheckStatus(string name, DateTimeOffset scheduledTime)
-        {
-            var status = _doesJobExist.Handle(new DoesJobExistQuery(name, scheduledTime));
-            switch (status)
-            {
-                case QueueStatuses.Processing:
-                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedProcessing);
-                case QueueStatuses.Waiting:
-                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyQueuedWaiting);
-                case QueueStatuses.Processed:
-                    return new JobQueueOutputMessage(JobQueuedStatus.AlreadyProcessed);
-                case QueueStatuses.Error:
-                    //delete existing record
-                    _deleteMessageCommand.Handle(new DeleteMessageCommand(_getJobId.Handle(new GetJobIdQuery(name))));
-                    break;
-            }
-            return null;
-        }
-        private IJobQueueOutputMessage ProcessResult(IScheduledJob job, DateTimeOffset scheduledTime, IQueueOutputMessage result)
-        {
-            if (result.HasError)
-            {
-                var message = result.SendingException.Message.Replace(Environment.NewLine, " ");
-                if ((message.Contains("constraint failed UNIQUE constraint failed:") && message.Contains("JobName")) || message.Contains("Failed to insert record - the job has already been queued or processed"))
-                {
-                    var status = _doesJobExist.Handle(new DoesJobExistQuery(job.Name, scheduledTime));
-                    switch (status)
-                    {
-                        case QueueStatuses.Processing:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedProcessing);
-                        case QueueStatuses.Waiting:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedWaiting);
-                        case QueueStatuses.Processed:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyProcessed);
-                        default:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.Failed);
-                    }
-                }
-                return new JobQueueOutputMessage(result, JobQueuedStatus.Failed);
-            }
-            return new JobQueueOutputMessage(result, JobQueuedStatus.Success);
-        }
-
-        #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
-
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    _queue.Dispose();
-                }
-                _disposedValue = true;
-            }
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-        }
-        #endregion
     }
 }

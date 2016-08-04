@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {

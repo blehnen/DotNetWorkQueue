@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Configuration
 {
     /// <summary>

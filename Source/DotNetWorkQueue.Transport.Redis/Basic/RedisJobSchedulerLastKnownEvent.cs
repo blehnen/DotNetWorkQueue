@@ -19,6 +19,8 @@
 using System;
 using System.Globalization;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>

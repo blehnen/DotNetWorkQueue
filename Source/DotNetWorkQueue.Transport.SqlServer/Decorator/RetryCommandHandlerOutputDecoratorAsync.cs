@@ -21,6 +21,7 @@ using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Decorator
 {

@@ -19,6 +19,8 @@
 using System.Linq;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Factory
 {
     /// <summary>

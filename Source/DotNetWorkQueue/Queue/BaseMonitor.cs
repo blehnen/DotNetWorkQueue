@@ -20,6 +20,8 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>

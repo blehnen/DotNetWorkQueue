@@ -20,19 +20,20 @@ using System;
 using System.Collections.Concurrent;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.QueueStatus;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
     /// Allows creating a queue status module <see cref="IQueueStatus"/>
     /// </summary>
-    public class QueueStatusContainer: IDisposable
+    public class QueueStatusContainer: BaseContainer
     {
         private static Func<ICreateContainer<QueueStatusInit>> _createContainerInternal = () => new CreateContainer<QueueStatusInit>();
 
         private readonly Action<IContainer> _registerService;
         private readonly Action<IContainer> _setOptions;
         private readonly QueueStatusInit _transportInit;
-        private readonly ConcurrentBag<IDisposable> _containers;
 
         #region Static IoC replacement functions
         /// <summary>
@@ -61,43 +62,11 @@ namespace DotNetWorkQueue
         /// <param name="setOptions">The options.</param>
         public QueueStatusContainer(Action<IContainer> registerService,  Action<IContainer> setOptions = null)
         {
-            _containers = new ConcurrentBag<IDisposable>();
             _registerService = registerService;
             _setOptions = setOptions;
             _transportInit = new QueueStatusInit();
         }
 
-        #endregion
-
-        #region Dispose
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing) return;
-            lock (_containers)
-            {
-                while (!_containers.IsEmpty)
-                {
-                    IDisposable item;
-                    if (_containers.TryTake(out item))
-                    {
-                        item?.Dispose();
-                    }
-                }
-            }
-        }
         #endregion
 
         /// <summary>
@@ -110,7 +79,7 @@ namespace DotNetWorkQueue
             var container = _createContainerInternal().Create(QueueContexts.QueueStatus ,_registerService, _transportInit,
                 x => { }, _setOptions);
 
-            _containers.Add(container);
+            Containers.Add(container);
             return container.GetInstance<IQueueStatus>();
         }
 
@@ -137,7 +106,7 @@ namespace DotNetWorkQueue
                 where TTransportInit : ITransportInit, new()
         {
             var creator = new QueueContainer<TTransportInit>(registerService);
-            _containers.Add(creator);
+            Containers.Add(creator);
             return creator.CreateStatusProvider(queue, connection);
         }
     }

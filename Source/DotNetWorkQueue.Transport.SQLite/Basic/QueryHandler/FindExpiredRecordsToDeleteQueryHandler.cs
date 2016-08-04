@@ -22,6 +22,7 @@ using System.Data.SQLite;
 using DotNetWorkQueue.Transport.SQLite.Basic.Query;
 using System.Linq;
 using System.Data;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 {

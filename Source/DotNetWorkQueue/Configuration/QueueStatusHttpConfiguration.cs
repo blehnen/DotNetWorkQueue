@@ -19,6 +19,7 @@
 using System;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.QueueStatus;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Configuration
 {

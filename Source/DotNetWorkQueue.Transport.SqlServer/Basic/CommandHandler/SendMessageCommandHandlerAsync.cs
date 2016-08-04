@@ -25,6 +25,7 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 {

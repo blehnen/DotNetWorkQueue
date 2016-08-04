@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System.Threading;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Factory
 {
     /// <summary>

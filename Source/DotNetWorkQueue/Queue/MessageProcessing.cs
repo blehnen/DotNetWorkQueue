@@ -20,6 +20,8 @@ using System;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>
@@ -151,7 +153,6 @@ namespace DotNetWorkQueue.Queue
                 try
                 {
                     DoTry(context);
-                    _seriousExceptionProcessBackOffHelper.Value.Reset();
                 }
                 catch (OperationCanceledException)
                 {

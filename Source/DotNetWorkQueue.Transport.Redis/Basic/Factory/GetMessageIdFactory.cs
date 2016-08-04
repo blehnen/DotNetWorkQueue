@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Redis.Basic.MessageID;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
 {
     /// <summary>

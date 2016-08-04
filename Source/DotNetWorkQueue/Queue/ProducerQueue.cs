@@ -26,6 +26,8 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>
@@ -292,18 +294,7 @@ namespace DotNetWorkQueue.Queue
         {
             Guard.NotNull(() => messages, messages);
 
-            if (!Configuration.IsReadOnly)
-                Configuration.SetReadOnly();
-
-            var newMessages = new ConcurrentBag<QueueMessage<IMessage, IAdditionalMessageData>>(); 
-            Parallel.ForEach(messages, t =>
-            {
-                var data = t.MessageData ?? new AdditionalMessageData();
-                var additionalHeaders = _generateMessageHeaders.HeaderSetup(data);
-                var newMessage = _messageFactory.Create(t.Message, additionalHeaders);
-                _addStandardMessageHeaders.AddHeaders(newMessage, data);
-                newMessages.Add(new QueueMessage<IMessage, IAdditionalMessageData>(newMessage, data));
-            });
+            var newMessages = InternalSendPrepare(messages);
 
             //send the message to the transport
             return _sendMessages.Send(newMessages.ToList());
@@ -318,6 +309,19 @@ namespace DotNetWorkQueue.Queue
         {
             Guard.NotNull(() => messages, messages);
 
+            var newMessages = InternalSendPrepare(messages);
+          
+            //send the message to the transport
+            return await _sendMessages.SendAsync(newMessages.ToList()).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Turns the user messages into the internal message format for the queue
+        /// </summary>
+        /// <param name="messages">The messages.</param>
+        /// <returns></returns>
+        private ConcurrentBag<QueueMessage<IMessage, IAdditionalMessageData>> InternalSendPrepare(List<QueueMessage<T, IAdditionalMessageData>> messages)
+        {
             if (!Configuration.IsReadOnly)
                 Configuration.SetReadOnly();
 
@@ -330,9 +334,7 @@ namespace DotNetWorkQueue.Queue
                 _addStandardMessageHeaders.AddHeaders(newMessage, data);
                 newMessages.Add(new QueueMessage<IMessage, IAdditionalMessageData>(newMessage, data));
             });
-
-            //send the message to the transport
-            return await _sendMessages.SendAsync(newMessages.ToList()).ConfigureAwait(false);
+            return newMessages;
         }
     }
 }

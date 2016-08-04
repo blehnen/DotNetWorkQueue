@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
 {
