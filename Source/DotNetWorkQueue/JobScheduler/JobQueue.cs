@@ -106,6 +106,7 @@ namespace DotNetWorkQueue.JobScheduler
                             }
                             else
                             {
+                                queue.Start();
                                 _creationScopes.TryAdd(connectionInfo, scope);
                             }
                         }
@@ -165,6 +166,7 @@ namespace DotNetWorkQueue.JobScheduler
                     }
                     else
                     {
+                        queue.Start();
                         _creationScopes.TryAdd(connectionInfo, scope);
                     }
                 }

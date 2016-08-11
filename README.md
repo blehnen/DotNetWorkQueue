@@ -3,7 +3,12 @@ DotNetWorkQueue
 
 [![License LGPLv2.1](https://img.shields.io/badge/license-LGPLv2.1-green.svg)](http://www.gnu.org/licenses/lgpl-2.1.html)
 
-A producer / distributed consumer library for dot net applications. Available transports are SQL server, SQLite and Redis
+A producer / distributed consumer library for dot net applications. Available transports are:
+
+* SQL Server
+* SQLite
+* Redis
+* PostGre
 
 High level features
 
@@ -23,6 +28,7 @@ Transports
 * NuGet package [DotNetWorkQueue.Transports.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/)
 * NuGet package [DotNetWorkQueue.Transports.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/)
 * NuGet package [DotNetWorkQueue.Transports.SQLite](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/)
+* NuGet package [DotNetWorkQueue.Transports.PostgreSQL] - not yet published
 
 Metrics
 
@@ -104,6 +110,32 @@ using (var queueContainer = new QueueContainer<RedisQueueInit>())
 }
 ```
 
+[**Producer - PostGre**]
+
+```csharp
+//Create the queue if it doesn't exist
+var queueName = "testing";
+var connectionString = "Server=V-SQL;Port=5432;Database=IntegrationTesting;Integrated Security=true;";
+using (var createQueueContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>())
+{
+	using (var createQueue = createQueueContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName, connectionString))
+	{
+		if (!createQueue.QueueExists)
+		{
+			createQueue.CreateQueue();
+		}
+	}
+}
+
+using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>())
+{
+	using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
+    {
+		queue.Send(new SimpleMessage {Message = "Hello World"});
+    }
+}
+```
+
 [**Consumer - Sql server**]
 
 ```csharp
@@ -160,6 +192,26 @@ private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNoti
 {
 	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
 }
+
+[**Consumer - PostGre**]
+
+```csharp
+using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>())
+{
+	using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
+    {
+		queue.Start<SimpleMessage>(HandleMessages);
+		Console.WriteLine("Processing messages - press any key to stop");
+        Console.ReadKey((true));
+    }
+}
+
+private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
+{
+	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
+}
+
+```
 
 ```
 Usage - Linq Expression

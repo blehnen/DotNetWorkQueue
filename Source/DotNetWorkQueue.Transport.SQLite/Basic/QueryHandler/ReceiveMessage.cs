@@ -42,9 +42,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         {
             var sb = new StringBuilder();
 
-            //NOTE - this could be optimized a little bit. We are always using a CTE, but that's not necessary if the queue is 
-            //setup as a pure FIFO queue.
-
             var tempName = GenerateTempTableName();
 
             sb.AppendLine($"CREATE TEMP TABLE {tempName}(QueueID Integer PRIMARY KEY, CurrentDateTime Integer);");

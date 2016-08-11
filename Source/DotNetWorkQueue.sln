@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{511E83C7-FB52-4958-9553-5DAA34CDC845}"
 	ProjectSection(SolutionItems) = preProject
@@ -41,6 +41,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests", "DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests\DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj", "{42445E2C-6F0A-4E2D-B784-77870EBAE975}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests", "DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests\DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj", "{965C9CB4-403F-4B66-BBFD-1901905BC2BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.PostgreSQL", "DotNetWorkQueue.Transport.PostgreSQL\DotNetWorkQueue.Transport.PostgreSQL.csproj", "{18DE3A7D-19C4-4131-AB19-F276469AE7D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests", "DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests\DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj", "{D40625D4-17CA-4DBB-A918-8155FE3FBA0C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests", "DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests\DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj", "{71E7FFAE-F698-4ED1-9F2D-9A29AA50277E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.PostgreSQL.Tests", "DotNetWorkQueue.Transport.PostgreSQL.Tests\DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj", "{549B53CC-3F3A-46FB-BD55-CAB011A63AFE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -116,6 +124,22 @@ Global
 		{965C9CB4-403F-4B66-BBFD-1901905BC2BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{965C9CB4-403F-4B66-BBFD-1901905BC2BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{965C9CB4-403F-4B66-BBFD-1901905BC2BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18DE3A7D-19C4-4131-AB19-F276469AE7D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18DE3A7D-19C4-4131-AB19-F276469AE7D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18DE3A7D-19C4-4131-AB19-F276469AE7D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18DE3A7D-19C4-4131-AB19-F276469AE7D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D40625D4-17CA-4DBB-A918-8155FE3FBA0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D40625D4-17CA-4DBB-A918-8155FE3FBA0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D40625D4-17CA-4DBB-A918-8155FE3FBA0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D40625D4-17CA-4DBB-A918-8155FE3FBA0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71E7FFAE-F698-4ED1-9F2D-9A29AA50277E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71E7FFAE-F698-4ED1-9F2D-9A29AA50277E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71E7FFAE-F698-4ED1-9F2D-9A29AA50277E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71E7FFAE-F698-4ED1-9F2D-9A29AA50277E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{549B53CC-3F3A-46FB-BD55-CAB011A63AFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{549B53CC-3F3A-46FB-BD55-CAB011A63AFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{549B53CC-3F3A-46FB-BD55-CAB011A63AFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{549B53CC-3F3A-46FB-BD55-CAB011A63AFE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

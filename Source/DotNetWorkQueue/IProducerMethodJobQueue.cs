@@ -31,6 +31,11 @@ namespace DotNetWorkQueue
     public interface IProducerMethodJobQueue: IQueue
     {
         /// <summary>
+        /// Starts this instance.
+        /// </summary>
+        void Start();
+
+        /// <summary>
         /// Sends the specified linqExpression to be executed.
         /// </summary>
         /// <param name="job">The job.</param>

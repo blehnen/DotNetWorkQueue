@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleShared", "Shared\ConsoleShared\ConsoleShared.csproj", "{E5E6A867-53A0-4012-B116-CFED94AF03C0}"
 EndProject
@@ -42,6 +42,16 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLiteRpcProducer", "SQLite\Rpc\SQLiteRpcProducer\SQLiteRpcProducer.csproj", "{6878986E-0FE2-4DDF-AFB6-88AA2F0D470A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLiteRpcConsumerAsync", "SQLite\Rpc\SQLiteRpcConsumerAsync\SQLiteRpcConsumerAsync.csproj", "{010005B8-C157-4407-BC49-28522074ED50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostGreSQLProducer", "PostGresSQL\Producer\PostGresSQLProducer\PostGreSQLProducer.csproj", "{89826792-A512-4BB3-81BD-055A083D6C5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostGreSQLConsumer", "PostGresSQL\Consumer\PostGresSQLConsumer\PostGreSQLConsumer.csproj", "{742E4DF5-6463-4E18-953D-89A47005900F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostGreSQLConsumerAsync", "PostGresSQL\Consumer\PostGreSQLConsumerAsync\PostGreSQLConsumerAsync.csproj", "{69073AA5-9B2D-4B46-9478-9BFD7FB9F7FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostGreSQLRpcProducer", "PostGresSQL\Rpc\PostGreSQLRpcProducer\PostGreSQLRpcProducer.csproj", "{2991D18E-6B7D-421A-A99D-9CF0767719D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostGreSQLRpcConsumer", "PostGresSQL\Rpc\PostGreSQLRpcConsumer\PostGreSQLRpcConsumer.csproj", "{B86A4CB4-A18C-4016-8BF7-23431696E3DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -129,6 +139,26 @@ Global
 		{010005B8-C157-4407-BC49-28522074ED50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{010005B8-C157-4407-BC49-28522074ED50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{010005B8-C157-4407-BC49-28522074ED50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89826792-A512-4BB3-81BD-055A083D6C5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89826792-A512-4BB3-81BD-055A083D6C5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89826792-A512-4BB3-81BD-055A083D6C5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89826792-A512-4BB3-81BD-055A083D6C5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{742E4DF5-6463-4E18-953D-89A47005900F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{742E4DF5-6463-4E18-953D-89A47005900F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{742E4DF5-6463-4E18-953D-89A47005900F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{742E4DF5-6463-4E18-953D-89A47005900F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69073AA5-9B2D-4B46-9478-9BFD7FB9F7FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69073AA5-9B2D-4B46-9478-9BFD7FB9F7FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69073AA5-9B2D-4B46-9478-9BFD7FB9F7FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69073AA5-9B2D-4B46-9478-9BFD7FB9F7FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2991D18E-6B7D-421A-A99D-9CF0767719D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2991D18E-6B7D-421A-A99D-9CF0767719D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2991D18E-6B7D-421A-A99D-9CF0767719D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2991D18E-6B7D-421A-A99D-9CF0767719D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B86A4CB4-A18C-4016-8BF7-23431696E3DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B86A4CB4-A18C-4016-8BF7-23431696E3DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B86A4CB4-A18C-4016-8BF7-23431696E3DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B86A4CB4-A18C-4016-8BF7-23431696E3DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

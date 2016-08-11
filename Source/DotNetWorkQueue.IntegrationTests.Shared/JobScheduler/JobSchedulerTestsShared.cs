@@ -17,10 +17,12 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Messages;
+using FluentAssertions;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
@@ -195,10 +197,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                 using (var scheduler = CreateScheduler(jobContainer, addInterceptors))
                 {
                     var enqueued = 0;
-                    var errors = 0;
                     var nonFatal = 0;
+                    Exception lastError = null;
                     scheduler.OnJobQueue += (job, message) => enqueued++;
-                    scheduler.OnJobQueueException += (job, exception) => errors++;
+                    scheduler.OnJobQueueException += (job, exception) => lastError = exception;
                     scheduler.OnJobNonFatalFailureQueue += (job, message) => nonFatal++;
                     scheduler.Start();
 
@@ -209,7 +211,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                     WaitForEnQueue();
 
-                    ValidateEnqueue(queueName, connectionString, verify, enqueued, errors, nonFatal, 2);
+                    ValidateEnqueue(queueName, connectionString, verify, enqueued, lastError, nonFatal, 2);
 
                     enqueued = 0;
 
@@ -222,7 +224,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     WaitForEnQueue();
 
                     //validate job1 is not queued a second time. There will still be 2 jobs in the transport storage (job1, job2)
-                    ValidateNonFatalError(queueName, connectionString, verify, enqueued, errors, nonFatal, 2);
+                    ValidateNonFatalError(queueName, connectionString, verify, enqueued, lastError, nonFatal, 2);
 
                     RunConsumer<TTransportInit>(queueName, connectionString);
                     verify(queueName, connectionString, 0);
@@ -233,7 +235,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                     WaitForEnQueue();
 
-                    ValidateEnqueue(queueName, connectionString, verify, enqueued, errors, nonFatal, 1);
+                    ValidateEnqueue(queueName, connectionString, verify, enqueued, lastError, nonFatal, 1);
 
                     //validate that errors are replaced
                     setErrorFlag(queueName, connectionString);
@@ -241,7 +243,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     nonFatal = 0;
                     WaitForRollover(timeFactory);
                     WaitForEnQueue();
-                    ValidateEnqueue(queueName, connectionString, verify, enqueued, errors, nonFatal, 1);
+                    ValidateEnqueue(queueName, connectionString, verify, enqueued, lastError, nonFatal, 1);
 
                     RunConsumer<TTransportInit>(queueName, connectionString);
                     verify(queueName, connectionString, 0);
@@ -254,7 +256,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     WaitForEnQueue(); //nothing will be queued, make sure we are past fire time
                     enqueueWindow(scheduler, Job1, TimeSpan.FromSeconds(40)); //should be fired right away, since we are inside the window
                     Thread.Sleep(5000);
-                    ValidateEnqueue(queueName, connectionString, verify, enqueued, errors, nonFatal, 1);
+                    ValidateEnqueue(queueName, connectionString, verify, enqueued, lastError, nonFatal, 1);
                 }
             }
         }
@@ -277,10 +279,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             }
         }
         private void ValidateEnqueue(string queueName, string connectionString, Action<string, string, long> verify,
-            long enqueued, long errors, long nonFatal, long expectedEnqueue)
+            long enqueued, Exception error, long nonFatal, long expectedEnqueue)
         {
+            error.Should().BeNull("no errors should occur");
             Assert.Equal(expectedEnqueue, enqueued);
-            Assert.Equal(0, errors);
             Assert.Equal(0, nonFatal);
             verify(queueName, connectionString, expectedEnqueue);
         }
@@ -291,10 +293,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Assert.Equal(0, errors);
         }
         private void ValidateNonFatalError(string queueName, string connectionString, Action<string, string, long> verify,
-            long enqueued, long errors, long nonFatal, long inQueueCount)
+            long enqueued, Exception error, long nonFatal, long inQueueCount)
         {
             Assert.Equal(0, enqueued);
-            Assert.Equal(0, errors);
+            error.Should().BeNull("no errors should occur");
             Assert.Equal(1, nonFatal);
             verify(queueName, connectionString, inQueueCount);
         }

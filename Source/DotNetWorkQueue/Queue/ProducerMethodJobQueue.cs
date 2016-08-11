@@ -20,6 +20,7 @@ using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Validation;
@@ -33,6 +34,8 @@ namespace DotNetWorkQueue.Queue
     public class ProducerMethodJobQueue : IProducerMethodJobQueue
     {
         private readonly ISendJobToQueue _sendJobToQueue;
+        private readonly IJobTableCreation _createJobQueue;
+        private bool _started;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProducerMethodJobQueue" /> class.
@@ -54,11 +57,19 @@ namespace DotNetWorkQueue.Queue
             LastKnownEvent = jobSchedulerLastKnownEvent;
             _sendJobToQueue = sendJobToQueue;
             Logger = logFactory.Create();
+            _createJobQueue = createJobQueue;
+        }
 
-            if (!createJobQueue.JobTableExists)
+        /// <summary>
+        /// Starts this instance.
+        /// </summary>
+        public void Start()
+        {
+            if (!_createJobQueue.JobTableExists)
             {
-                createJobQueue.CreateJobTable();
+                _createJobQueue.CreateJobTable();
             }
+            _started = true;
         }
         /// <summary>
         /// Gets the last known event.
@@ -82,6 +93,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression)
         {
+            if(!_started) throw new DotNetWorkQueueException("Start must be called before sending jobs");
             return await _sendJobToQueue.SendAsync(job, scheduledTime, linqExpression).ConfigureAwait(false);
         }
 
@@ -94,6 +106,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method)
         {
+            if (!_started) throw new DotNetWorkQueueException("Start must be called before sending jobs");
             return await _sendJobToQueue.SendAsync(job, scheduledTime, method).ConfigureAwait(false);
         }
 
