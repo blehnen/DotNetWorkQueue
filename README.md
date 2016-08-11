@@ -192,6 +192,7 @@ private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNoti
 {
 	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
 }
+```
 
 [**Consumer - PostGre**]
 
@@ -210,10 +211,9 @@ private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNoti
 {
 	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
 }
-
 ```
 
-```
+
 Usage - Linq Expression
 ------
 
