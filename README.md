@@ -520,6 +520,10 @@ None
 
 * [SQLite ](https://www.sqlite.org/)
 
+[**DotNetWorkQueue.Transport.PostgreSQL**]
+
+* [Npgsql ](http://www.npgsql.org/)
+
 [**DotNetWorkQueue.Metrics.Net**]
 
 * [Metrics.net ](https://github.com/Recognos/Metrics.NET)
