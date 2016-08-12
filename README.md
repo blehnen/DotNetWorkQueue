@@ -8,7 +8,7 @@ A producer / distributed consumer library for dot net applications. Available tr
 * SQL Server
 * SQLite
 * Redis
-* PostGre
+* PostGreSQL
 
 High level features
 
@@ -28,7 +28,7 @@ Transports
 * NuGet package [DotNetWorkQueue.Transports.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/)
 * NuGet package [DotNetWorkQueue.Transports.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/)
 * NuGet package [DotNetWorkQueue.Transports.SQLite](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/)
-* NuGet package [DotNetWorkQueue.Transports.PostgreSQL] - not yet published
+* NuGet package [DotNetWorkQueue.Transports.PostgreSQL](https://www.nuget.org/packages/DotNetWorkQueue.Transport.PostgreSQL/)
 
 Metrics
 
@@ -110,7 +110,7 @@ using (var queueContainer = new QueueContainer<RedisQueueInit>())
 }
 ```
 
-[**Producer - PostGre**]
+[**Producer - PostgreSQL**]
 
 ```csharp
 //Create the queue if it doesn't exist
@@ -194,7 +194,7 @@ private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNoti
 }
 ```
 
-[**Consumer - PostGre**]
+[**Consumer - PostgreSQL**]
 
 ```csharp
 using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>())
