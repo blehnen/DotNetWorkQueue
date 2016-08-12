@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             where TJobQueueCreator : class, IJobQueueCreation
         {
             var enqueued = 0;
-            var errors = 0;
+            Exception lastError = null;
             _queueStarted = false;
 
             using (var jobQueueCreation =
@@ -138,7 +138,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                             scheduler.OnJobQueue +=
                                                 (job, message) => Interlocked.Increment(ref enqueued);
                                             scheduler.OnJobQueueException +=
-                                                (job, exception) => Interlocked.Increment(ref errors);
+                                                (job, exception) => lastError = exception;
                                             scheduler.Start();
 
                                             scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job1, queueName,
@@ -160,7 +160,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                 });
 
                             ValidateEnqueueMultipleProducer(queueName, connectionString, enqueued,
-                                errors, 2);
+                                lastError, 2);
                         }
                     }
                 }
@@ -281,16 +281,22 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         private void ValidateEnqueue(string queueName, string connectionString, Action<string, string, long> verify,
             long enqueued, Exception error, long nonFatal, long expectedEnqueue)
         {
-            error.Should().BeNull("no errors should occur");
+            if (error != null)
+            {
+                throw new Exception("Fatal error!", error);
+            }
             Assert.Equal(expectedEnqueue, enqueued);
             Assert.Equal(0, nonFatal);
             verify(queueName, connectionString, expectedEnqueue);
         }
         private void ValidateEnqueueMultipleProducer(string queueName, string connectionString,
-            long enqueued, long errors, long expectedEnqueue)
+            long enqueued, Exception error, long expectedEnqueue)
         {
+            if (error != null)
+            {
+                throw new Exception("Fatal error!", error);
+            }
             Assert.Equal(expectedEnqueue, enqueued);
-            Assert.Equal(0, errors);
         }
         private void ValidateNonFatalError(string queueName, string connectionString, Action<string, string, long> verify,
             long enqueued, Exception error, long nonFatal, long inQueueCount)

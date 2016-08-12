@@ -115,7 +115,13 @@ namespace DotNetWorkQueue
             var messageData = new AdditionalMessageData();
             SetMetaDataForJob(job.Name, scheduledTime,
                 new DateTimeOffset(GetTimeFactory.Create().GetCurrentUtcDate()), messageData);
-            return ProcessResult(job, scheduledTime, await Queue.SendAsync(actionToRun, messageData).ConfigureAwait(false));
+
+            var message = await Queue.SendAsync(actionToRun, messageData).ConfigureAwait(false);
+            var result = ProcessResult(job, scheduledTime, message);
+            if (result != null) return result;
+            //try one more time
+            result = ProcessResult(job, scheduledTime, await Queue.SendAsync(actionToRun, messageData).ConfigureAwait(false));
+            return result ?? new JobQueueOutputMessage(JobQueuedStatus.Failed);
         }
 
         /// <summary>
@@ -134,7 +140,14 @@ namespace DotNetWorkQueue
             var messageData = new AdditionalMessageData();
             SetMetaDataForJob(job.Name, scheduledTime,
                 new DateTimeOffset(GetTimeFactory.Create().GetCurrentUtcDate()), messageData);
-            return ProcessResult(job, scheduledTime, await Queue.SendAsync(expressionToRun, messageData).ConfigureAwait(false));
+
+            var message = await Queue.SendAsync(expressionToRun, messageData).ConfigureAwait(false);
+            var result = ProcessResult(job, scheduledTime, message);
+            if (result != null) return result;
+            //try one more time
+            result = ProcessResult(job, scheduledTime,
+                await Queue.SendAsync(expressionToRun, messageData).ConfigureAwait(false));
+            return result ?? new JobQueueOutputMessage(JobQueuedStatus.Failed);
         }
 
         private IJobQueueOutputMessage SendPreChecks(string jobName, DateTimeOffset scheduledTime)
@@ -156,26 +169,28 @@ namespace DotNetWorkQueue
         }
         private IJobQueueOutputMessage ProcessResult(IScheduledJob job, DateTimeOffset scheduledTime, IQueueOutputMessage result)
         {
-            if (result.HasError)
-            {
-                if (JobAlreadyExistsError(result.SendingException))
-                {
-                    var status = DoesJobExist(job.Name, scheduledTime);
-                    switch (status)
-                    {
-                        case QueueStatuses.Processing:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedProcessing);
-                        case QueueStatuses.Waiting:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedWaiting);
-                        case QueueStatuses.Processed:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyProcessed);
-                        default:
-                            return new JobQueueOutputMessage(result, JobQueuedStatus.Failed);
-                    }
-                }
+            //no errors, so just return
+            if (!result.HasError) return new JobQueueOutputMessage(result, JobQueuedStatus.Success);
+
+            //this is not an error for the job already existing in the queue
+            if (!JobAlreadyExistsError(result.SendingException))
                 return new JobQueueOutputMessage(result, JobQueuedStatus.Failed);
+
+            var status = DoesJobExist(job.Name, scheduledTime);
+            switch (status)
+            {
+                case QueueStatuses.Processing:
+                    return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedProcessing);
+                case QueueStatuses.Waiting:
+                    return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyQueuedWaiting);
+                case QueueStatuses.Processed:
+                    return new JobQueueOutputMessage(result, JobQueuedStatus.AlreadyProcessed);
+                case QueueStatuses.Error:
+                    DeleteJob(job.Name);
+                    return null;
+                default:
+                    return null; //try to re-queue once; if this is second try and this happens agian, an error will be returned
             }
-            return new JobQueueOutputMessage(result, JobQueuedStatus.Success);
         }
 
         #region IDisposable Support
