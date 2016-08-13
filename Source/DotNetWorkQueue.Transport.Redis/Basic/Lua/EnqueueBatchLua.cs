@@ -149,7 +149,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             var serializer = SerializationContext.Default.GetSerializer<List<MessageToSend>>();
             using (var output = new MemoryStream())
             {
-                serializer.Pack(output, messages);
+                serializer.Pack(output, messages, PackerCompatibilityOptions.Classic);
                 object rc = new
                 {
                     messages = (RedisValue) output.ToArray(),
