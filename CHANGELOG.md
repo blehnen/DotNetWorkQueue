@@ -1,3 +1,8 @@
+###0.1.7 2016-08-16
+
+* Fix issue with PostGreSQL transport returning the wrong message body
+* Update to msgpack.cli 8.0 for the Redis transport
+
 ###0.1.6 2016-08-12
 
 * Add PostGre transport
