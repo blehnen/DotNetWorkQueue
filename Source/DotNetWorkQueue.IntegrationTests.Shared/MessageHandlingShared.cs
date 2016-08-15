@@ -34,12 +34,23 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             throw new OperationCanceledException();
         }
 
-        public static void HandleFakeMessages(int runTime, IncrementWrapper processedCount, int messageCount, ManualResetEventSlim waitForFinish)
+        public static void HandleFakeMessages<TMessage>(IReceivedMessage<TMessage> message, 
+            int runTime, IncrementWrapper processedCount, int messageCount, ManualResetEventSlim waitForFinish)
+            where TMessage : class
         {
             if (runTime > 0)
                 Thread.Sleep(runTime * 1000);
 
             Interlocked.Increment(ref processedCount.ProcessedCount);
+            var body = message?.Body as FakeMessage;
+            if (body != null)
+            {
+                var result = processedCount.AddId(body.Id);
+                if (!result)
+                {
+                    waitForFinish.Set();
+                }
+            }
             if (Interlocked.Read(ref processedCount.ProcessedCount) == messageCount)
             {
                 waitForFinish.Set();

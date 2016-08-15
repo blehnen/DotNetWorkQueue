@@ -71,13 +71,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                         //start looking for work
                         queue.Start<TMessage>((message, notifications) =>
                         {
-                            MessageHandlingShared.HandleFakeMessages(runTime, processedCount, messageCount,
+                            MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
                                 waitForFinish);
                         });
 
                         waitForFinish.Wait(timeOut*1000);
                     }
 
+                    Assert.Null(processedCount.IdError);
                     Assert.Equal(messageCount, processedCount.ProcessedCount);
                     VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                     LoggerShared.CheckForErrors(queueName);

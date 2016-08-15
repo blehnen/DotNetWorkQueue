@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                         //start looking for work
                         queue.Start<TMessage>((message, notifications) =>
                         {
-                            MessageHandlingShared.HandleFakeMessages(runTime, processedCount, messageCount,
+                            MessageHandlingShared.HandleFakeMessages<TMessage>(null, runTime, processedCount, messageCount,
                                 waitForFinish);
                         });
 

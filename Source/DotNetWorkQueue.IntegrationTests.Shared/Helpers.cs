@@ -83,10 +83,25 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     /// </summary>
     public class IncrementWrapper
     {
+        private ConcurrentDictionary<string, string> _ids;
         public IncrementWrapper()
         {
             ProcessedCount = 0;
+            IdError = null;
+            _ids = new ConcurrentDictionary<string, string>();
         }
+
+        public bool AddId(string id)
+        {
+            var result = _ids.TryAdd(id, null);
+            if (!result)
+            {
+                IdError = id;
+            }
+            return result;
+        }
+
+        public string IdError { get; private set; }
         public long ProcessedCount;
     }
 

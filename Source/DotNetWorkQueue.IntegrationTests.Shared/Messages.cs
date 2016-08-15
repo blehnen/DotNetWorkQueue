@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Text;
 using Tynamix.ObjectFiller;
 using System.Threading;
 using DotNetWorkQueue.Messages;
@@ -41,6 +42,24 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         public decimal Amount { get; set; }
         public bool Allowed { get; set; }
         public List<FakeSubClass> MoreInfo { get; set; }
+
+        public string Id
+        {
+            get
+            {
+                var builder = new StringBuilder();
+                builder.Append(Name);
+                builder.Append(BornOn);
+                builder.Append(HomePage);
+                builder.Append(Amount);
+                builder.Append(Allowed);
+                foreach (var data in MoreInfo)
+                {
+                    builder.Append(data.MoreInfo);
+                }
+                return builder.ToString();
+            }
+        }
     }
 
     public class FakeSubClass
