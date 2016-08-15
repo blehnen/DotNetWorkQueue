@@ -131,6 +131,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 sb.Append(", ");
             }
             sb.AppendLine(" q.QueueID asc limit 1 FOR UPDATE SKIP LOCKED) ");
+            sb.AppendLine(" AND q.QueueID = qm.QueueID");
             sb.AppendLine("returning q.queueid, qm.body, qm.Headers, q.CorrelationID");
 
             return commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, sb.ToString());
