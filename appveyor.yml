@@ -1,0 +1,10 @@
+version: 0.1.7.{build}
+branches:
+  only:
+  - master
+before_build:
+- cmd: nuget restore Source\DotNetWorkQueue.sln
+build:
+  project: Source\DotNetWorkQueue.sln
+  verbosity: minimal
+test: off
