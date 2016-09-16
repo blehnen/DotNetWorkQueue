@@ -85,62 +85,63 @@ namespace DotNetWorkQueue.IoC
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
-        public static void RegisterDefaults(IContainer container, 
+        public static void RegisterDefaults(IContainer container,
             RegistrationTypes registrationType)
         {
             Guard.NotNull(() => container, container);
 
             //default types that are always registered in the container for both send and receive
-            if ((registrationType & RegistrationTypes.Default) == RegistrationTypes.Default)
-            {
-                RegisterSharedDefaults(container);
+            RegisterSharedDefaults(container);
 
-                //object cache
-                container.Register<ObjectCache>(() => new MemoryCache("DotNetWorkQueueCache"), LifeStyles.Singleton);
-               
-                //object pool for linq 
-                container.Register<IObjectPool<DynamicCodeCompiler>>(() => new ObjectPool<DynamicCodeCompiler>(20, () => new DynamicCodeCompiler(container.GetInstance<ILogFactory>())), LifeStyles.Singleton);
+            //object cache
+            container.Register<ObjectCache>(() => new MemoryCache("DotNetWorkQueueCache"), LifeStyles.Singleton);
 
-                //created outside of the queue as part of setup, this must be a singleton.
-                //all queues created from the setup class share the same message interceptors
-                container.Register<IMessageInterceptorRegistrar, Interceptors.MessageInterceptors>(LifeStyles.Singleton);
+            //object pool for linq 
+            container.Register<IObjectPool<DynamicCodeCompiler>>(
+                () =>
+                    new ObjectPool<DynamicCodeCompiler>(20,
+                        () => new DynamicCodeCompiler(container.GetInstance<ILogFactory>())), LifeStyles.Singleton);
 
-                container.Register<MessageProcessingMode>(LifeStyles.Singleton);
+            //created outside of the queue as part of setup, this must be a singleton.
+            //all queues created from the setup class share the same message interceptors
+            container.Register<IMessageInterceptorRegistrar, Interceptors.MessageInterceptors>(LifeStyles.Singleton);
 
-                container.Register<IMessageFactory, MessageFactory>(LifeStyles.Singleton);
-                container.Register<IMessageContextDataFactory, MessageContextDataFactory>(LifeStyles.Singleton);
+            container.Register<MessageProcessingMode>(LifeStyles.Singleton);
 
-                container.Register<IJobSchedulerMetaData, JobSchedulerMetaData>(LifeStyles.Singleton);
+            container.Register<IMessageFactory, MessageFactory>(LifeStyles.Singleton);
+            container.Register<IMessageContextDataFactory, MessageContextDataFactory>(LifeStyles.Singleton);
 
-                container.Register<IQueueCancelWork, QueueCancelWork>(LifeStyles.Singleton);
-                container.Register<ASerializer, RootSerializer>(LifeStyles.Singleton);
-                container.Register<ISerializer, JsonSerializer>(LifeStyles.Singleton);
-                container.Register<IExpressionSerializer, JsonExpressionSerializer>(LifeStyles.Singleton);
-                container.Register<IQueueDelayFactory, QueueDelayFactory>(LifeStyles.Singleton);
-                container.Register<ILinqCompiler, LinqCompiler>(LifeStyles.Singleton);
+            container.Register<IJobSchedulerMetaData, JobSchedulerMetaData>(LifeStyles.Singleton);
 
-                container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
-                container.Register<ICompositeSerialization, CompositeSerialization>(LifeStyles.Singleton);
+            container.Register<IQueueCancelWork, QueueCancelWork>(LifeStyles.Singleton);
+            container.Register<ASerializer, RootSerializer>(LifeStyles.Singleton);
+            container.Register<ISerializer, JsonSerializer>(LifeStyles.Singleton);
+            container.Register<IExpressionSerializer, JsonExpressionSerializer>(LifeStyles.Singleton);
+            container.Register<IQueueDelayFactory, QueueDelayFactory>(LifeStyles.Singleton);
+            container.Register<ILinqCompiler, LinqCompiler>(LifeStyles.Singleton);
 
-                container.Register<IHeaders, Headers>(LifeStyles.Singleton);
-                container.Register<IStandardHeaders, StandardHeaders>(LifeStyles.Singleton);
-                container.Register<ICustomHeaders, CustomHeaders>(LifeStyles.Singleton);
+            container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
+            container.Register<ICompositeSerialization, CompositeSerialization>(LifeStyles.Singleton);
 
-                //because of it's usage in 'standard' modules, this must always be added, even if RPC is not enabled.
-                //otherwise, the IoC container can't create the producer queue.
-                container.Register<IRpcTimeoutFactory, RpcTimeoutFactory>(LifeStyles.Singleton);
-                container.Register<IMessageMethodHandling, MessageMethodHandling>(LifeStyles.Singleton);
+            container.Register<IHeaders, Headers>(LifeStyles.Singleton);
+            container.Register<IStandardHeaders, StandardHeaders>(LifeStyles.Singleton);
+            container.Register<ICustomHeaders, CustomHeaders>(LifeStyles.Singleton);
 
-                container.Register<IRegisterMessagesAsync, RegisterMessagesAsync>(LifeStyles.Singleton);
-                container.Register<IRegisterMessages, RegisterMessages>(LifeStyles.Singleton);
+            //because of it's usage in 'standard' modules, this must always be added, even if RPC is not enabled.
+            //otherwise, the IoC container can't create the producer queue.
+            container.Register<IRpcTimeoutFactory, RpcTimeoutFactory>(LifeStyles.Singleton);
+            container.Register<IMessageMethodHandling, MessageMethodHandling>(LifeStyles.Singleton);
 
-                container.Register<IMessageHandlerRegistration, MessageHandlerRegistration>(LifeStyles.Singleton);
-                container
-                    .Register<IMessageHandlerRegistrationAsync, MessageHandlerRegistrationAsync>(LifeStyles.Singleton);
+            container.Register<IRegisterMessagesAsync, RegisterMessagesAsync>(LifeStyles.Singleton);
+            container.Register<IRegisterMessages, RegisterMessages>(LifeStyles.Singleton);
 
-                container.Register<IGenerateReceivedMessage, GenerateReceivedMessage>(LifeStyles.Singleton);
-                container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
-            }
+            container.Register<IMessageHandlerRegistration, MessageHandlerRegistration>(LifeStyles.Singleton);
+            container
+                .Register<IMessageHandlerRegistrationAsync, MessageHandlerRegistrationAsync>(LifeStyles.Singleton);
+
+            container.Register<IGenerateReceivedMessage, GenerateReceivedMessage>(LifeStyles.Singleton);
+            container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
+
 
             //implementations required to send messages
             if ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
@@ -219,7 +220,7 @@ namespace DotNetWorkQueue.IoC
 
                 container.Register<IHeartBeatThreadPoolFactory, HeartBeatThreadPoolFactory>(LifeStyles.Singleton);
                 container.Register<IHeartBeatThreadPool, HeartBeatThreadPool>(LifeStyles.Singleton);
-                
+
                 container.Register<IHeartBeatWorkerFactory, HeartBeatWorkerFactory>(LifeStyles.Singleton);
                 container.Register<IQueueWaitFactory, QueueWaitFactory>(LifeStyles.Singleton);
                 container.Register<IHeartBeatMonitor, HeartBeatMonitor>(LifeStyles.Singleton);
@@ -230,12 +231,13 @@ namespace DotNetWorkQueue.IoC
 
                 container.Register<IWorkerConfiguration, WorkerConfiguration>(LifeStyles.Singleton);
                 container.Register<IHeartBeatConfiguration, HeartBeatConfiguration>(LifeStyles.Singleton);
-                container.Register<IHeartBeatThreadPoolConfiguration, HeartBeatThreadPoolConfiguration>(LifeStyles.Singleton);
+                container.Register<IHeartBeatThreadPoolConfiguration, HeartBeatThreadPoolConfiguration>(
+                    LifeStyles.Singleton);
                 container.Register<IMessageExpirationConfiguration, MessageExpirationConfiguration>(LifeStyles.Singleton);
 
-  
+
                 container.Register<IMessageHandler, MessageHandler>(LifeStyles.Singleton);
-           
+
                 container.Register<IMessageHandlerAsync, MessageHandlerAsync>(LifeStyles.Singleton);
 
                 container.Register<IWorkerFactory, WorkerFactory>(LifeStyles.Singleton);
@@ -254,7 +256,7 @@ namespace DotNetWorkQueue.IoC
             //NOTE - we don't bother to tell the difference between RPC / duplex
             //so it's possible these are registered, but never actually used.
             if ((registrationType & RegistrationTypes.Receive) == RegistrationTypes.Receive &&
-            ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send))
+                ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send))
             {
                 container.Register<IRpcMethodQueue, RpcMethodQueue>(LifeStyles.Singleton);
 

@@ -110,6 +110,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                                     false,
                                     _tableNameHelper.StatusName);
                         }
+
+                        if (commandString == null)
+                            throw new DotNetWorkQueueException("Failed to generate command text for de-queue of messages");
+
                         _buildDequeueCommand.BuildCommand(selectCommand, query.MessageId, commandString);
                         using (var reader = await selectCommand.ExecuteReaderAsync().ConfigureAwait(false))
                         {

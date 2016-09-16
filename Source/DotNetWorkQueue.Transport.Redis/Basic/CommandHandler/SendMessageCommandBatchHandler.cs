@@ -119,7 +119,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             try
             {
                 var result = _enqueue.Execute(messagesToSend);
-                return BatchMessageShared.ProcessSentMessages(result, messages.Count, _sentMessageFactory);
+                if (result != null)
+                {
+                    return BatchMessageShared.ProcessSentMessages(result, messages.Count, _sentMessageFactory);
+                }
+                throw new DotNetWorkQueueException("Returned no data when enqueue messages");
             }
             catch (Exception error)
             {

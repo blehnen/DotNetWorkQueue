@@ -177,17 +177,15 @@ namespace DotNetWorkQueue.Queue
             {
                 Stopped = true;
                 _timer?.Dispose();
-                if (_cancel != null)
+                lock (_cancelLocker)
                 {
-                    lock (_cancelLocker)
+                    if (_cancel != null)
                     {
-                        if (_cancel != null)
-                        {
-                            _cancel.Dispose();
-                            _cancel = null;
-                        }
+                        _cancel.Dispose();
+                        _cancel = null;
                     }
                 }
+
 
                 _runningLock.Dispose();
                 _stoppedLock.Dispose();
@@ -268,7 +266,10 @@ namespace DotNetWorkQueue.Queue
                         "The worker thread has been aborted",
                         error);
                 }
-                _context.WorkerNotification.HeartBeat.SetError(error);
+                lock (_runningLocker)
+                {
+                    _context.WorkerNotification.HeartBeat.SetError(error);
+                }
                 SetCancel();
             }
             catch (Exception error)
@@ -279,7 +280,10 @@ namespace DotNetWorkQueue.Queue
                         "An error has occurred while updating the heartbeat field for a record that is being processed",
                         error);
                 }
-                _context.WorkerNotification.HeartBeat.SetError(error);
+                lock (_runningLocker)
+                {
+                    _context.WorkerNotification.HeartBeat.SetError(error);
+                }
                 SetCancel();
             }
             finally
@@ -287,7 +291,8 @@ namespace DotNetWorkQueue.Queue
                 Running = false;
             }
 
-            if (!IsDisposed && !Stopped)
+            if (IsDisposed || Stopped) return;
+            lock (_runningLocker)
             {
                 _timer.Change(_checkTimespan, Timeout.InfiniteTimeSpan);
             }
@@ -298,8 +303,6 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         private void SetCancel()
         {
-            if (_cancel == null) return;
-
             lock (_cancelLocker)
             {
                 if (_cancel == null) return;

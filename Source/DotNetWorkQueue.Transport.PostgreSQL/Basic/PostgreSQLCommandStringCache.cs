@@ -31,8 +31,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private readonly Dictionary<PostgreSqlCommandStringTypes, string> _commandCache;
         private readonly ConcurrentDictionary<string, string> _commandCacheRunTime;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly object _builderLock = new object();
-        private volatile bool _complete;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgreSqlCommandStringCache" /> class.
@@ -45,6 +43,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             _tableNameHelper = tableNameHelper;
             _commandCache = new Dictionary<PostgreSqlCommandStringTypes, string>();
             _commandCacheRunTime = new ConcurrentDictionary<string, string>();
+
+            BuildCommands();
         }
 
         /// <summary>
@@ -54,10 +54,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <returns></returns>
         public string GetCommand(PostgreSqlCommandStringTypes type)
         {
-            if (!_complete)
-                BuildCommands();
-
-            // ReSharper disable once InconsistentlySynchronizedField
             return _commandCache[type];
         }
 
@@ -99,99 +95,89 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </summary>
         private void BuildCommands()
         {
-            if (_complete) return;
-            lock (_builderLock)
-            {
-                if (_complete)
-                    return;
+            _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromErrorTracking,
+                $"delete from {_tableNameHelper.ErrorTrackingName} where queueID = @queueID");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromErrorTracking,
-                    $"delete from {_tableNameHelper.ErrorTrackingName} where queueID = @queueID");
+            _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromQueue,
+                $"delete from {_tableNameHelper.QueueName} where queueID = @queueID");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromQueue,
-                    $"delete from {_tableNameHelper.QueueName} where queueID = @queueID");
+            _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromMetaData,
+                $"delete from {_tableNameHelper.MetaDataName} where queueID = @queueID");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromMetaData,
-                    $"delete from {_tableNameHelper.MetaDataName} where queueID = @queueID");
+            _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromStatus,
+                $"delete from {_tableNameHelper.StatusName} where queueID = @queueID");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromStatus,
-                    $"delete from {_tableNameHelper.StatusName} where queueID = @queueID");
+            _commandCache.Add(PostgreSqlCommandStringTypes.SaveConfiguration,
+                $"insert into {_tableNameHelper.ConfigurationName} (Configuration) Values (@Configuration)");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.SaveConfiguration,
-                    $"insert into {_tableNameHelper.ConfigurationName} (Configuration) Values (@Configuration)");
+            _commandCache.Add(PostgreSqlCommandStringTypes.UpdateStatusRecord,
+                $"update {_tableNameHelper.StatusName} set status = @status where queueID = @queueID");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.UpdateStatusRecord,
-                    $"update {_tableNameHelper.StatusName} set status = @status where queueID = @queueID");
+            _commandCache.Add(PostgreSqlCommandStringTypes.ResetHeartbeat,
+                $"update {_tableNameHelper.MetaDataName} set status = @Status, heartbeat = null where queueID = @QueueID and status = @SourceStatus and HeartBeat = @HeartBeat");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.ResetHeartbeat,
-                    $"update {_tableNameHelper.MetaDataName} set status = @Status, heartbeat = null where queueID = @QueueID and status = @SourceStatus and HeartBeat = @HeartBeat");
+            _commandCache.Add(PostgreSqlCommandStringTypes.SendHeartBeat,
+                $"Update {_tableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.SendHeartBeat,
-                    $"Update {_tableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID");
+            _commandCache.Add(PostgreSqlCommandStringTypes.InsertMessageBody,
+                $"Insert into {_tableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); SELECT lastval(); ");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.InsertMessageBody,
-                    $"Insert into {_tableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); SELECT lastval(); ");
+            _commandCache.Add(PostgreSqlCommandStringTypes.UpdateErrorCount,
+                $"update {_tableNameHelper.ErrorTrackingName} set retrycount = retrycount + 1 where queueid = @queueid and ExceptionType = @ExceptionType");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.UpdateErrorCount,
-                    $"update {_tableNameHelper.ErrorTrackingName} set retrycount = retrycount + 1 where queueid = @queueid and ExceptionType = @ExceptionType");
+            _commandCache.Add(PostgreSqlCommandStringTypes.InsertErrorCount,
+                $"Insert into {_tableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.InsertErrorCount,
-                    $"Insert into {_tableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetHeartBeatExpiredMessageIds,
+                $"select queueid, heartbeat from {_tableNameHelper.MetaDataName} where status = @status and heartbeat is not null and heartbeat < @time FOR UPDATE SKIP LOCKED");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetHeartBeatExpiredMessageIds,
-                    $"select queueid, heartbeat from {_tableNameHelper.MetaDataName} where status = @status and heartbeat is not null and heartbeat < @time FOR UPDATE SKIP LOCKED");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetColumnNamesFromTable,
+                "select column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = @TableName");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetColumnNamesFromTable,
-                    "select column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = @TableName");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetErrorRecordExists,
+                $"Select 1 from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetErrorRecordExists,
-                    $"Select 1 from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetErrorRetryCount,
+                $"Select RetryCount from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetErrorRetryCount,
-                    $"Select RetryCount from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetConfiguration,
+                $"select Configuration from {_tableNameHelper.ConfigurationName}");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetConfiguration,
-                    $"select Configuration from {_tableNameHelper.ConfigurationName}");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetTableExists,
+                "SELECT 1 FROM pg_catalog.pg_class c JOIN  pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND  c.relname = @Table;");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetTableExists,
-                    "SELECT 1 FROM pg_catalog.pg_class c JOIN  pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND  c.relname = @Table;");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetUtcDate,
+                "select now() at time zone 'utc'");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetUtcDate,
-                   "select now() at time zone 'utc'");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetPendingExcludeDelayCount,
+                $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime < @CurrentDate)");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetPendingExcludeDelayCount,
-                     $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime < @CurrentDate)");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetPendingCount,
+                $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} ");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetPendingCount,
-                     $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} ");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetWorkingCount,
+                $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Processing)} ");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetWorkingCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Processing)} ");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetErrorCount,
+                $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Error)} ");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetErrorCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Error)} ");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetPendingDelayCount,
+                $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime > @CurrentDate) ");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetPendingDelayCount,
-                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime > @CurrentDate) ");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetJobLastKnownEvent,
+                $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetJobLastKnownEvent,
-                    $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
+            _commandCache.Add(PostgreSqlCommandStringTypes.SetJobLastKnownEvent,
+                $"Insert into {_tableNameHelper.JobTableName} (JobName, JobEventTime, JobScheduledTime) values (@JobName, @JobEventTime, @JobScheduledTime) on conflict (JobName) do update set (JobEventTime, JobScheduledTime) = (@JobEventTime, @JobScheduledTime) where {_tableNameHelper.JobTableName}.JobName = @JobName");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.SetJobLastKnownEvent,
-                   $"Insert into {_tableNameHelper.JobTableName} (JobName, JobEventTime, JobScheduledTime) values (@JobName, @JobEventTime, @JobScheduledTime) on conflict (JobName) do update set (JobEventTime, JobScheduledTime) = (@JobEventTime, @JobScheduledTime) where {_tableNameHelper.JobTableName}.JobName = @JobName");
+            _commandCache.Add(PostgreSqlCommandStringTypes.DoesJobExist,
+                $"Select Status from {_tableNameHelper.StatusName} where JobName = @JobName");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.DoesJobExist,
-                    $"Select Status from {_tableNameHelper.StatusName} where JobName = @JobName");
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetJobId,
+                $"Select QueueID from {_tableNameHelper.StatusName} where JobName = @JobName");
 
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetJobId,
-                   $"Select QueueID from {_tableNameHelper.StatusName} where JobName = @JobName");
-
-                _commandCache.Add(PostgreSqlCommandStringTypes.GetJobLastScheduleTime,
-                   $"Select JobScheduledTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
-
-                //always set this last
-                _complete = true;
-            }
+            _commandCache.Add(PostgreSqlCommandStringTypes.GetJobLastScheduleTime,
+                $"Select JobScheduledTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
         }
     }
 

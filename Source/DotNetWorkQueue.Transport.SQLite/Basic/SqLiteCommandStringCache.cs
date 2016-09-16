@@ -31,8 +31,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private readonly Dictionary<SqLiteCommandStringTypes, string> _commandCache;
         private readonly ConcurrentDictionary<string, CommandString> _commandCacheRunTime;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly object _builderLock = new object();
-        private volatile bool _complete;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqLiteCommandStringCache" /> class.
@@ -45,6 +43,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             _tableNameHelper = tableNameHelper;
             _commandCache = new Dictionary<SqLiteCommandStringTypes, string>();
             _commandCacheRunTime = new ConcurrentDictionary<string, CommandString>();
+
+            BuildCommands();
         }
 
         /// <summary>
@@ -54,10 +54,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <returns></returns>
         public string GetCommand(SqLiteCommandStringTypes type)
         {
-            if (!_complete)
-                BuildCommands();
-
-            // ReSharper disable once InconsistentlySynchronizedField
             return _commandCache[type];
         }
 
@@ -99,93 +95,83 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         private void BuildCommands()
         {
-            if (_complete) return;
-            lock (_builderLock)
-            {
-                if (_complete)
-                    return;
+            _commandCache.Add(SqLiteCommandStringTypes.DeleteFromErrorTracking,
+                $"delete from {_tableNameHelper.ErrorTrackingName} where queueID = @queueID");
 
-                _commandCache.Add(SqLiteCommandStringTypes.DeleteFromErrorTracking,
-                    $"delete from {_tableNameHelper.ErrorTrackingName} where queueID = @queueID");
+            _commandCache.Add(SqLiteCommandStringTypes.DeleteFromQueue,
+                $"delete from {_tableNameHelper.QueueName} where queueID = @queueID");
 
-                _commandCache.Add(SqLiteCommandStringTypes.DeleteFromQueue,
-                    $"delete from {_tableNameHelper.QueueName} where queueID = @queueID");
+            _commandCache.Add(SqLiteCommandStringTypes.DeleteFromMetaData,
+                $"delete from {_tableNameHelper.MetaDataName} where queueID = @queueID");
 
-                _commandCache.Add(SqLiteCommandStringTypes.DeleteFromMetaData,
-                    $"delete from {_tableNameHelper.MetaDataName} where queueID = @queueID");
+            _commandCache.Add(SqLiteCommandStringTypes.DeleteFromStatus,
+                $"delete from {_tableNameHelper.StatusName} where queueID = @queueID");
 
-                _commandCache.Add(SqLiteCommandStringTypes.DeleteFromStatus,
-                    $"delete from {_tableNameHelper.StatusName} where queueID = @queueID");
+            _commandCache.Add(SqLiteCommandStringTypes.SaveConfiguration,
+                $"insert into {_tableNameHelper.ConfigurationName} (Configuration) Values (@Configuration)");
 
-                _commandCache.Add(SqLiteCommandStringTypes.SaveConfiguration,
-                    $"insert into {_tableNameHelper.ConfigurationName} (Configuration) Values (@Configuration)");
+            _commandCache.Add(SqLiteCommandStringTypes.UpdateStatusRecord,
+                $"update {_tableNameHelper.StatusName} set status = @status where queueID = @queueID");
 
-                _commandCache.Add(SqLiteCommandStringTypes.UpdateStatusRecord,
-                    $"update {_tableNameHelper.StatusName} set status = @status where queueID = @queueID");
+            _commandCache.Add(SqLiteCommandStringTypes.ResetHeartbeat,
+                $"update {_tableNameHelper.MetaDataName} set status = @Status, heartbeat = null where queueID = @QueueID and status = @SourceStatus and HeartBeat = @HeartBeat");
 
-                _commandCache.Add(SqLiteCommandStringTypes.ResetHeartbeat,
-                    $"update {_tableNameHelper.MetaDataName} set status = @Status, heartbeat = null where queueID = @QueueID and status = @SourceStatus and HeartBeat = @HeartBeat");
+            _commandCache.Add(SqLiteCommandStringTypes.SendHeartBeat,
+                $"Update {_tableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID");
 
-                _commandCache.Add(SqLiteCommandStringTypes.SendHeartBeat,
-                    $"Update {_tableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID");
+            _commandCache.Add(SqLiteCommandStringTypes.InsertMessageBody,
+                $"Insert into {_tableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); SELECT last_insert_rowid(); ");
 
-                _commandCache.Add(SqLiteCommandStringTypes.InsertMessageBody,
-                    $"Insert into {_tableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); SELECT last_insert_rowid(); ");
+            _commandCache.Add(SqLiteCommandStringTypes.UpdateErrorCount,
+                $"update {_tableNameHelper.ErrorTrackingName} set retrycount = retrycount + 1 where queueid = @queueid and ExceptionType = @ExceptionType");
 
-                _commandCache.Add(SqLiteCommandStringTypes.UpdateErrorCount,
-                    $"update {_tableNameHelper.ErrorTrackingName} set retrycount = retrycount + 1 where queueid = @queueid and ExceptionType = @ExceptionType");
+            _commandCache.Add(SqLiteCommandStringTypes.InsertErrorCount,
+                $"Insert into {_tableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
-                _commandCache.Add(SqLiteCommandStringTypes.InsertErrorCount,
-                    $"Insert into {_tableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
+            _commandCache.Add(SqLiteCommandStringTypes.GetHeartBeatExpiredMessageIds,
+                $"select queueid, heartbeat from {_tableNameHelper.MetaDataName} where status = @status and heartbeat is not null and heartbeat < @time");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetHeartBeatExpiredMessageIds,
-                    $"select queueid, heartbeat from {_tableNameHelper.MetaDataName} where status = @status and heartbeat is not null and heartbeat < @time");
+            _commandCache.Add(SqLiteCommandStringTypes.GetErrorRecordExists,
+                $"Select 1 from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetErrorRecordExists,
-                    $"Select 1 from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
+            _commandCache.Add(SqLiteCommandStringTypes.GetErrorRetryCount,
+                $"Select RetryCount from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetErrorRetryCount,
-                    $"Select RetryCount from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
+            _commandCache.Add(SqLiteCommandStringTypes.GetConfiguration,
+                $"select Configuration from {_tableNameHelper.ConfigurationName}");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetConfiguration,
-                    $"select Configuration from {_tableNameHelper.ConfigurationName}");
+            _commandCache.Add(SqLiteCommandStringTypes.GetTableExists,
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name=@Table;");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetTableExists,
-                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name=@Table;");
+            _commandCache.Add(SqLiteCommandStringTypes.GetPendingExcludeDelayCount,
+                $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime < @CurrentDateTime)");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetPendingExcludeDelayCount,
-                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime < @CurrentDateTime)");
+            _commandCache.Add(SqLiteCommandStringTypes.GetPendingCount,
+                $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} ");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetPendingCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} ");
+            _commandCache.Add(SqLiteCommandStringTypes.GetWorkingCount,
+                $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Processing)} ");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetWorkingCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Processing)} ");
+            _commandCache.Add(SqLiteCommandStringTypes.GetErrorCount,
+                $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Error)} ");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetErrorCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} where status = {Convert.ToInt32(QueueStatuses.Error)} ");
+            _commandCache.Add(SqLiteCommandStringTypes.GetPendingDelayCount,
+                $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime > @CurrentDateTime) ");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetPendingDelayCount,
-                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime > @CurrentDateTime) ");
+            _commandCache.Add(SqLiteCommandStringTypes.GetJobLastKnownEvent,
+                $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetJobLastKnownEvent,
-                    $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
+            _commandCache.Add(SqLiteCommandStringTypes.SetJobLastKnownEvent,
+                $"UPDATE {_tableNameHelper.JobTableName} SET JobEventTime = @JobEventTime, JobScheduledTime = @JobScheduledTime WHERE JobName=@JobName; INSERT OR IGNORE INTO {_tableNameHelper.JobTableName}(JobName, JobEventTime, JobScheduledTime) VALUES(@JobName, @JobEventTime, @JobScheduledTime);");
 
-                _commandCache.Add(SqLiteCommandStringTypes.SetJobLastKnownEvent,
-                    $"UPDATE {_tableNameHelper.JobTableName} SET JobEventTime = @JobEventTime, JobScheduledTime = @JobScheduledTime WHERE JobName=@JobName; INSERT OR IGNORE INTO {_tableNameHelper.JobTableName}(JobName, JobEventTime, JobScheduledTime) VALUES(@JobName, @JobEventTime, @JobScheduledTime);");
+            _commandCache.Add(SqLiteCommandStringTypes.GetJobLastScheduleTime,
+                $"Select JobScheduledTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
 
-                _commandCache.Add(SqLiteCommandStringTypes.GetJobLastScheduleTime,
-                    $"Select JobScheduledTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
+            _commandCache.Add(SqLiteCommandStringTypes.DoesJobExist,
+                $"Select Status from {_tableNameHelper.StatusName} where JobName = @JobName");
 
-                _commandCache.Add(SqLiteCommandStringTypes.DoesJobExist,
-                    $"Select Status from {_tableNameHelper.StatusName} where JobName = @JobName");
-
-                _commandCache.Add(SqLiteCommandStringTypes.GetJobId,
-                    $"Select QueueID from {_tableNameHelper.StatusName} where JobName = @JobName");
-
-                //always set this last
-                _complete = true;
-            }
+            _commandCache.Add(SqLiteCommandStringTypes.GetJobId,
+                $"Select QueueID from {_tableNameHelper.StatusName} where JobName = @JobName");
         }
     }
 

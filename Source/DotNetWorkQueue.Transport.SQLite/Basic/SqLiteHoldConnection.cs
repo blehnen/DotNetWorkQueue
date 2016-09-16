@@ -16,10 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Data.SQLite;
+
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
-    internal class SqLiteHoldConnection: System.IDisposable
+    internal class SqLiteHoldConnection : System.IDisposable
     {
         private readonly System.Collections.Concurrent.ConcurrentDictionary<string, SQLiteConnection> _connections;
 
@@ -27,20 +30,26 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         {
             _connections = new System.Collections.Concurrent.ConcurrentDictionary<string, SQLiteConnection>();
         }
+
         public void AddConnectionIfNeeded(IConnectionInformation connection)
         {
             var fileName = GetFileNameFromConnectionString.GetFileName(connection.ConnectionString);
-            if (fileName.IsInMemory)
+            if (!fileName.IsInMemory) return;
+            if (_connections.ContainsKey(connection.ConnectionString)) return;
+            var sqlConnection = new SQLiteConnection(connection.ConnectionString);
+            try
             {
-                if (!_connections.ContainsKey(connection.ConnectionString))
-                {
-                    var sqlConnection = new SQLiteConnection(connection.ConnectionString);
-                    sqlConnection.Open();
-                    if(!_connections.TryAdd(connection.ConnectionString, sqlConnection))
-                    { //already added by another thread
-                        sqlConnection.Dispose();
-                    }
-                }
+                sqlConnection.Open();
+            }
+            catch (Exception) //resource leak possible on open
+            {
+                sqlConnection.Dispose();
+                throw;
+            }
+            if (!_connections.TryAdd(connection.ConnectionString, sqlConnection))
+            {
+                //already added by another thread
+                sqlConnection.Dispose();
             }
         }
 

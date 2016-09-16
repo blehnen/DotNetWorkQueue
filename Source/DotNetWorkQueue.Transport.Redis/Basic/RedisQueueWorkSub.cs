@@ -33,8 +33,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private readonly RedisNames _redisNames;
         private ManualResetEventSlim _waitHandle;
         private readonly ICancelWork _cancelWork;
-
-        private readonly object _locker = new object();
         private readonly object _setup = new object();
         private bool _ranSetup;
 
@@ -75,16 +73,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             Setup();
             using (var cts = CancellationTokenSource.CreateLinkedTokenSource(_cancelWork.Tokens.ToArray()))
             {
-                //no lock here - this is on purpose
                 try
                 {
                     if (timeout.HasValue)
                     {
-                        // ReSharper disable once InconsistentlySynchronizedField
                         return _waitHandle.Wait(timeout.Value, cts.Token);
                     }
-                    
-                    // ReSharper disable once InconsistentlySynchronizedField
                     _waitHandle.Wait(cts.Token);
                 }
                 catch (OperationCanceledException)
@@ -101,11 +95,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public void Reset()
         {
             Setup();
-            lock (_locker)
-            {
-                if (_waitHandle.IsSet)
-                    _waitHandle.Reset();
-            }
+            if (_waitHandle.IsSet)
+                _waitHandle.Reset();
         }
 
         #region IDispose, IIsDisposed
@@ -140,15 +131,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            if (!_ranSetup) return;
-
-            lock (_locker)
+            lock (_setup)
             {
-                _waitHandle.Set();
-                _waitHandle.Dispose();
+                if (!_ranSetup) return;
             }
 
-            //Unsubscribe from the channel
+            _waitHandle.Set();
+            _waitHandle.Dispose();
+
+            //Un-subscribe from the channel
             var sub = _connection.Connection.GetSubscriber();
             sub.UnsubscribeAsync(_redisNames.Notification, Handler);
         }
@@ -168,7 +159,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         private void Setup()
         {
-            if (_ranSetup) return;
             lock (_setup)
             {
                 if (_ranSetup) return;
@@ -196,10 +186,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="redisValue">The redis value.</param>
         private void Handler(RedisChannel redisChannel, RedisValue redisValue)
         {
-            lock (_locker)
-            {
-                _waitHandle.Set();
-            }
+            _waitHandle.Set();
         }
     }
 }

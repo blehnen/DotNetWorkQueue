@@ -31,8 +31,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private readonly Dictionary<SqlServerCommandStringTypes, string> _commandCache;
         private readonly ConcurrentDictionary<string, string> _commandCacheRunTime;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly object _builderLock = new object();
-        private volatile bool _complete;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlServerCommandStringCache" /> class.
@@ -45,6 +43,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             _tableNameHelper = tableNameHelper;
             _commandCache = new Dictionary<SqlServerCommandStringTypes, string>();
             _commandCacheRunTime = new ConcurrentDictionary<string, string>();
+
+            BuildCommands();
         }
 
         /// <summary>
@@ -54,10 +54,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <returns></returns>
         public string GetCommand(SqlServerCommandStringTypes type)
         {
-            if (!_complete)
-                BuildCommands();
-
-            // ReSharper disable once InconsistentlySynchronizedField
             return _commandCache[type];
         }
 
@@ -99,99 +95,89 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// </summary>
         private void BuildCommands()
         {
-            if (_complete) return;
-            lock (_builderLock)
-            {
-                if (_complete)
-                    return;
+            _commandCache.Add(SqlServerCommandStringTypes.DeleteFromErrorTracking,
+                $"delete from {_tableNameHelper.ErrorTrackingName} where queueID = @queueID");
 
-                _commandCache.Add(SqlServerCommandStringTypes.DeleteFromErrorTracking,
-                    $"delete from {_tableNameHelper.ErrorTrackingName} where queueID = @queueID");
+            _commandCache.Add(SqlServerCommandStringTypes.DeleteFromQueue,
+                $"delete from {_tableNameHelper.QueueName} where queueID = @queueID");
 
-                _commandCache.Add(SqlServerCommandStringTypes.DeleteFromQueue,
-                    $"delete from {_tableNameHelper.QueueName} where queueID = @queueID");
+            _commandCache.Add(SqlServerCommandStringTypes.DeleteFromMetaData,
+                $"delete from {_tableNameHelper.MetaDataName} where queueID = @queueID");
 
-                _commandCache.Add(SqlServerCommandStringTypes.DeleteFromMetaData,
-                    $"delete from {_tableNameHelper.MetaDataName} where queueID = @queueID");
+            _commandCache.Add(SqlServerCommandStringTypes.DeleteFromStatus,
+                $"delete from {_tableNameHelper.StatusName} where queueID = @queueID");
 
-                _commandCache.Add(SqlServerCommandStringTypes.DeleteFromStatus,
-                    $"delete from {_tableNameHelper.StatusName} where queueID = @queueID");
+            _commandCache.Add(SqlServerCommandStringTypes.SaveConfiguration,
+                $"insert into {_tableNameHelper.ConfigurationName} (Configuration) Values (@Configuration)");
 
-                _commandCache.Add(SqlServerCommandStringTypes.SaveConfiguration,
-                    $"insert into {_tableNameHelper.ConfigurationName} (Configuration) Values (@Configuration)");
+            _commandCache.Add(SqlServerCommandStringTypes.UpdateStatusRecord,
+                $"update {_tableNameHelper.StatusName} set status = @status where queueID = @queueID");
 
-                _commandCache.Add(SqlServerCommandStringTypes.UpdateStatusRecord,
-                    $"update {_tableNameHelper.StatusName} set status = @status where queueID = @queueID");
+            _commandCache.Add(SqlServerCommandStringTypes.ResetHeartbeat,
+                $"update {_tableNameHelper.MetaDataName} with (updlock, readpast, rowlock) set status = @Status, heartbeat = null where queueID = @QueueID and status = @SourceStatus and HeartBeat = @HeartBeat");
 
-                _commandCache.Add(SqlServerCommandStringTypes.ResetHeartbeat,
-                    $"update {_tableNameHelper.MetaDataName} with (updlock, readpast, rowlock) set status = @Status, heartbeat = null where queueID = @QueueID and status = @SourceStatus and HeartBeat = @HeartBeat");
+            _commandCache.Add(SqlServerCommandStringTypes.SendHeartBeat,
+                $"declare @date as datetime set @date = GETUTCDATE() Update {_tableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID select @date");
 
-                _commandCache.Add(SqlServerCommandStringTypes.SendHeartBeat,
-                    $"declare @date as datetime set @date = GETUTCDATE() Update {_tableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID select @date");
+            _commandCache.Add(SqlServerCommandStringTypes.InsertMessageBody,
+                $"Insert into {_tableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers) select SCOPE_IDENTITY() ");
 
-                _commandCache.Add(SqlServerCommandStringTypes.InsertMessageBody,
-                    $"Insert into {_tableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers) select SCOPE_IDENTITY() ");
+            _commandCache.Add(SqlServerCommandStringTypes.UpdateErrorCount,
+                $"update {_tableNameHelper.ErrorTrackingName} set retrycount = retrycount + 1 where queueid = @queueid and ExceptionType = @ExceptionType");
 
-                _commandCache.Add(SqlServerCommandStringTypes.UpdateErrorCount,
-                    $"update {_tableNameHelper.ErrorTrackingName} set retrycount = retrycount + 1 where queueid = @queueid and ExceptionType = @ExceptionType");
+            _commandCache.Add(SqlServerCommandStringTypes.InsertErrorCount,
+                $"Insert into {_tableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
-                _commandCache.Add(SqlServerCommandStringTypes.InsertErrorCount,
-                    $"Insert into {_tableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
+            _commandCache.Add(SqlServerCommandStringTypes.GetHeartBeatExpiredMessageIds,
+                $"select queueid, heartbeat from {_tableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where status = @status and heartbeat is not null and (DATEDIFF(SECOND, heartbeat, GETUTCDATE()) > @time)");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetHeartBeatExpiredMessageIds,
-                    $"select queueid, heartbeat from {_tableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where status = @status and heartbeat is not null and (DATEDIFF(SECOND, heartbeat, GETUTCDATE()) > @time)");
+            _commandCache.Add(SqlServerCommandStringTypes.GetColumnNamesFromTable,
+                "select c.name from sys.columns c inner join sys.tables t on t.object_id = c.object_id and t.name = @TableName and t.type = 'U'");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetColumnNamesFromTable,
-                    "select c.name from sys.columns c inner join sys.tables t on t.object_id = c.object_id and t.name = @TableName and t.type = 'U'");
+            _commandCache.Add(SqlServerCommandStringTypes.GetErrorRecordExists,
+                $"Select 1 from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetErrorRecordExists,
-                    $"Select 1 from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
+            _commandCache.Add(SqlServerCommandStringTypes.GetErrorRetryCount,
+                $"Select RetryCount from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetErrorRetryCount,
-                    $"Select RetryCount from {_tableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
+            _commandCache.Add(SqlServerCommandStringTypes.GetConfiguration,
+                $"select Configuration from {_tableNameHelper.ConfigurationName}");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetConfiguration,
-                    $"select Configuration from {_tableNameHelper.ConfigurationName}");
+            _commandCache.Add(SqlServerCommandStringTypes.GetTableExists,
+                "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG = @Database AND TABLE_NAME = @Table");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetTableExists,
-                    "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG = @Database AND TABLE_NAME = @Table");
+            _commandCache.Add(SqlServerCommandStringTypes.GetUtcDate,
+                "select getutcdate()");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetUtcDate,
-                   "select getutcdate()");
+            _commandCache.Add(SqlServerCommandStringTypes.GetPendingExcludeDelayCount,
+                $"Select count(queueid) from {_tableNameHelper.MetaDataName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime < getutcdate())");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetPendingExcludeDelayCount,
-                     $"Select count(queueid) from {_tableNameHelper.MetaDataName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime < getutcdate())");
+            _commandCache.Add(SqlServerCommandStringTypes.GetPendingCount,
+                $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Waiting)} ");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetPendingCount,
-                     $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Waiting)} ");
+            _commandCache.Add(SqlServerCommandStringTypes.GetWorkingCount,
+                $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Processing)} ");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetWorkingCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Processing)} ");
+            _commandCache.Add(SqlServerCommandStringTypes.GetErrorCount,
+                $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Error)} ");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetErrorCount,
-                    $"Select count(queueid) from {_tableNameHelper.StatusName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Error)} ");
+            _commandCache.Add(SqlServerCommandStringTypes.GetPendingDelayCount,
+                $"Select count(queueid) from {_tableNameHelper.MetaDataName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime > getutcdate()) ");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetPendingDelayCount,
-                    $"Select count(queueid) from {_tableNameHelper.MetaDataName} with (NOLOCK) where status = {Convert.ToInt32(QueueStatuses.Waiting)} AND (QueueProcessTime > getutcdate()) ");
+            _commandCache.Add(SqlServerCommandStringTypes.GetJobLastKnownEvent,
+                $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetJobLastKnownEvent,
-                    $"Select JobEventTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
+            _commandCache.Add(SqlServerCommandStringTypes.SetJobLastKnownEvent,
+                $"MERGE {_tableNameHelper.JobTableName} USING(VALUES(@JobName, @JobEventTime, @JobScheduledTime)) AS updateJob(JobName, JobEventTime, JobScheduledTime) ON {_tableNameHelper.JobTableName}.JobName = updateJob.JobName WHEN MATCHED THEN UPDATE SET JobEventTime = updateJob.JobEventTime, JobScheduledTime = updateJob.JobScheduledTime WHEN NOT MATCHED THEN INSERT(JobName, JobEventTime, JobScheduledTime) VALUES(JobName, JobEventTime, JobScheduledTime); ");
 
-                _commandCache.Add(SqlServerCommandStringTypes.SetJobLastKnownEvent,
-                    $"MERGE {_tableNameHelper.JobTableName} USING(VALUES(@JobName, @JobEventTime, @JobScheduledTime)) AS updateJob(JobName, JobEventTime, JobScheduledTime) ON {_tableNameHelper.JobTableName}.JobName = updateJob.JobName WHEN MATCHED THEN UPDATE SET JobEventTime = updateJob.JobEventTime, JobScheduledTime = updateJob.JobScheduledTime WHEN NOT MATCHED THEN INSERT(JobName, JobEventTime, JobScheduledTime) VALUES(JobName, JobEventTime, JobScheduledTime); ");
+            _commandCache.Add(SqlServerCommandStringTypes.DoesJobExist,
+                $"Select Status from {_tableNameHelper.StatusName} where JobName = @JobName");
 
-                _commandCache.Add(SqlServerCommandStringTypes.DoesJobExist,
-                    $"Select Status from {_tableNameHelper.StatusName} where JobName = @JobName");
+            _commandCache.Add(SqlServerCommandStringTypes.GetJobId,
+                $"Select QueueID from {_tableNameHelper.StatusName} where JobName = @JobName");
 
-                _commandCache.Add(SqlServerCommandStringTypes.GetJobId,
-                   $"Select QueueID from {_tableNameHelper.StatusName} where JobName = @JobName");
-
-                _commandCache.Add(SqlServerCommandStringTypes.GetJobLastScheduleTime,
-                   $"Select JobScheduledTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
-
-                //always set this last
-                _complete = true;
-            }
+            _commandCache.Add(SqlServerCommandStringTypes.GetJobLastScheduleTime,
+                $"Select JobScheduledTime from {_tableNameHelper.JobTableName} where JobName = @JobName");
         }
     }
 

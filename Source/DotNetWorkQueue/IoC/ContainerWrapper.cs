@@ -287,9 +287,11 @@ namespace DotNetWorkQueue.IoC
         /// </remarks>
         public IContainer SuppressDiagnosticWarning(Type type, DiagnosticTypes warningType, string reason)
         {
+            Guard.NotNull(() => type, type);
+
             var target = _container.GetRegistration(type);
             if (target == null) return this;
-            var registration = _container.GetRegistration(type).Registration;
+            var registration = target.Registration;
             registration?.SuppressDiagnosticWarning((DiagnosticType) warningType, reason);
             return this;
         }

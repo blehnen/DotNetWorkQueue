@@ -35,8 +35,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private readonly ManualResetEventSlim _waitHandle;
         private readonly ICancelWork _cancelWork;
         private readonly IMessageId _messageId;
-
-        private readonly object _locker = new object();
         private readonly object _setup = new object();
         private bool _ranSetup;
 
@@ -89,11 +87,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     if (timeout.HasValue)
                     {
                         var smaller = TimeSpan.FromMilliseconds(timeout.Value.TotalMilliseconds / 4);
-                        // ReSharper disable once InconsistentlySynchronizedField
                         return _waitHandle.Wait(smaller, cts.Token);
                     }
-
-                    // ReSharper disable once InconsistentlySynchronizedField
                     _waitHandle.Wait(cts.Token);
                 }
                 catch (OperationCanceledException)
@@ -110,11 +105,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public void Reset()
         {
             Setup();
-            lock (_locker)
-            {
-                if (_waitHandle.IsSet)
-                    _waitHandle.Reset();
-            }
+            if (_waitHandle.IsSet)
+                _waitHandle.Reset();
         }
 
         #region IDispose, IIsDisposed
@@ -149,17 +141,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            lock (_locker)
-            {
-                _waitHandle.Set();
-                _waitHandle.Dispose();
-            }
+            _waitHandle.Set();
+            _waitHandle.Dispose();
 
-            if (!_connection.IsDisposed)
-            {
-                var sub = _connection.Connection.GetSubscriber();
-                sub.UnsubscribeAsync(_redisNames.Notification, Handler);
-            }
+            if (_connection.IsDisposed) return;
+            var sub = _connection.Connection.GetSubscriber();
+            sub.UnsubscribeAsync(_redisNames.Notification, Handler);
         }
 
         /// <summary>
@@ -177,7 +164,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         private void Setup()
         {
-            if (_ranSetup) return;
             lock (_setup)
             {
                 if (_ranSetup) return;
@@ -206,10 +192,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 return;
             }
 
-            lock (_locker)
-            {
-                _waitHandle.Set();
-            }
+            _waitHandle.Set();
         }
     }
 }
