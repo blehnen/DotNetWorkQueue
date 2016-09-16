@@ -74,36 +74,51 @@ namespace DotNetWorkQueue
         /// <param name="bytes">The bytes.</param>
         /// <param name="graph">The message interception graph.</param>
         /// <returns></returns>
-        /// <exception cref="InterceptorException">An error has occurred while intercepting message de-serialization</exception>
-        /// <exception cref="SerializationException">
-        /// An error has occurred when de-serializing a message
-        /// </exception>
+        /// <exception cref="SerializationException">An error has occurred when de-serializing a message</exception>
         public virtual T BytesToMessage<T>(byte[] bytes, MessageInterceptorsGraph graph) where T : class
         {
             Guard.NotNull(() => bytes, bytes);
+
             if (MessageInterceptors != null)
             {
-                byte[] btBytes;
-                try
-                {
-                    btBytes = MessageInterceptors.BytesToMessage(bytes, graph);
-                }
-                catch (Exception error)
-                {
-                    throw new InterceptorException("An error has occurred while intercepting message de-serialization", error);
-                }
-                try
-                {
-                    return ConvertBytesToMessage<T>(btBytes);
-                }
-                catch (Exception error)
-                {
-                    throw new SerializationException("An error has occurred when de-serializing a message", error);
-                }
+                return BytesToMessageWithInterceptors<T>(bytes, graph);
             }
+
             try
             {
                 return ConvertBytesToMessage<T>(bytes);
+            }
+            catch (Exception error)
+            {
+                throw new SerializationException("An error has occurred when de-serializing a message", error);
+            }
+        }
+
+        /// <summary>
+        /// Converts a byte array to a message and applies any interceptors that are 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="graph">The graph.</param>
+        /// <returns></returns>
+        /// <exception cref="InterceptorException">An error has occurred while intercepting message de-serialization</exception>
+        /// <exception cref="SerializationException">An error has occurred when de-serializing a message</exception>
+        private T BytesToMessageWithInterceptors<T>(byte[] bytes, MessageInterceptorsGraph graph) where T : class
+        {
+            byte[] btBytes;
+
+            try
+            {
+                btBytes = MessageInterceptors.BytesToMessage(bytes, graph);
+            }
+            catch (Exception error)
+            {
+                throw new InterceptorException("An error has occurred while intercepting message de-serialization", error);
+            }
+
+            try
+            {
+                return ConvertBytesToMessage<T>(btBytes);
             }
             catch (Exception error)
             {
