@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: 0.1.7.{build}
 branches:
   only:
   - master
@@ -8,4 +8,6 @@ build:
   project: Source\DotNetWorkQueue.sln
   verbosity: minimal
 test:
-  assemblies: Source\DotNetWorkQueue.Tests\bin\Release\DotNetWorkQueue.Tests.dll
+  assemblies:
+  - Source\DotNetWorkQueue.Tests\bin\Debug\DotNetWorkQueue.Tests.dll
+  - Source\DotNetWorkQueue.Metrics.Net.Tests\bin\Debug\DotNetWorkQueue.Metrics.Net.Tests.dll
