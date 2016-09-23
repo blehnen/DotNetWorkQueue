@@ -1,3 +1,6 @@
+###0.1.8 2016-09-24
+* Refactor default task scheduler to allow easier extension
+
 ###0.1.7 2016-08-16
 
 * Fix issue with PostGreSQL transport returning the wrong message body
