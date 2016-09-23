@@ -89,7 +89,7 @@ namespace DotNetWorkQueue
         {
             var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit,  x => { }, _setOptions);
             Containers.Add(container);
-            return CreateTaskFactoryInternal(container.GetInstance<ATaskScheduler>());
+            return CreateTaskFactoryInternal(container.GetInstance<ATaskScheduler>(), true);
         }
 
         /// <summary>
@@ -99,20 +99,32 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public ITaskFactory CreateTaskFactory(ATaskScheduler scheduler)
         {
-            return CreateTaskFactoryInternal(scheduler);
+            return CreateTaskFactoryInternal(scheduler, false);
         }
 
         /// <summary>
         /// Creates the task factory.
         /// </summary>
         /// <param name="scheduler">The scheduler.</param>
+        /// <param name="weOwnScheduler">if set to <c>true</c> [we own scheduler].</param>
         /// <returns></returns>
-        private ITaskFactory CreateTaskFactoryInternal(ATaskScheduler scheduler)
+        private ITaskFactory CreateTaskFactoryInternal(ATaskScheduler scheduler, bool weOwnScheduler)
         {
-            var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit,
-                serviceRegister => serviceRegister.Register(() => scheduler, LifeStyles.Singleton), _setOptions);
-            Containers.Add(container);
-            return container.GetInstance<ITaskFactory>();
+            if (weOwnScheduler)
+            {
+                var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit,
+                 serviceRegister => serviceRegister.Register(() => scheduler, LifeStyles.Singleton), _setOptions);
+                Containers.Add(container);
+                return container.GetInstance<ITaskFactory>();
+
+            }
+            else
+            {
+                var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit,
+                    serviceRegister => serviceRegister.RegisterNonScopedSingleton(scheduler), _setOptions);
+                Containers.Add(container);
+                return container.GetInstance<ITaskFactory>();
+            }
         }
 
         #endregion

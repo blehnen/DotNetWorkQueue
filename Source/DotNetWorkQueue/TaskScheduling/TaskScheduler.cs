@@ -137,13 +137,72 @@ namespace DotNetWorkQueue.TaskScheduling
                 if (_smartThreadPool == null)
                     throw new DotNetWorkQueueException("Start must be called on the scheduler before adding tasks");
 
-                var haveRoom = Interlocked.CompareExchange(ref _currentTaskCount, 0, 0) < MaximumConcurrencyLevel;
-                if (haveRoom)
+                if (HaveRoomForTask)
                 {
-                    return Interlocked.Read(ref _currentTaskCount) > _smartThreadPool.MaxThreads ? RoomForNewTaskResult.RoomInQueue : RoomForNewTaskResult.RoomForTask;
+                    return CurrentTaskCount > _smartThreadPool.MaxThreads ? RoomForNewTaskResult.RoomInQueue : RoomForNewTaskResult.RoomForTask;
                 }
                 return RoomForNewTaskResult.No;
             }
+        }
+
+        /// <summary>
+        /// Returns true if there is room to add a task
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [have room for task]; otherwise, <c>false</c>.
+        /// </value>
+        protected virtual bool HaveRoomForTask => Interlocked.CompareExchange(ref _currentTaskCount, 0, 0) < MaximumConcurrencyLevel;
+
+        /// <summary>
+        /// Gets the current task count.
+        /// </summary>
+        /// <value>
+        /// The current task count.
+        /// </value>
+        protected virtual long CurrentTaskCount => Interlocked.Read(ref _currentTaskCount);
+
+        /// <summary>
+        /// Returns true if the work group has room for a new task
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <returns></returns>
+        protected virtual bool HaveRoomForWorkGroupTask(IWorkGroup group)
+        {
+           return Interlocked.CompareExchange(ref _groups[group].CurrentWorkItems, 0, 0) < _groups[group].MaxWorkItems;
+        }
+
+        /// <summary>
+        /// Increments the task count for a specific group
+        /// </summary>
+        /// <param name="group">The group.</param>
+        protected virtual void IncrementGroup(IWorkGroup group)
+        {
+            Interlocked.Increment(ref _groups[group].CurrentWorkItems);
+        }
+
+        /// <summary>
+        /// Increments the counter for the running tasks
+        /// </summary>
+        protected virtual void IncrementCounter()
+        {
+            Interlocked.Increment(ref _currentTaskCount);
+        }
+
+        /// <summary>
+        /// De-increments the counter for the running tasks
+        /// </summary>
+        protected virtual void DeincrementCounter()
+        {
+            Interlocked.Decrement(ref _currentTaskCount);
+        }
+
+        /// <summary>
+        /// De-increments the task counter for a specific group.
+        /// </summary>
+        /// <param name="group">The group.</param>
+        protected virtual void DeincrementGroup(IWorkGroup group)
+        {
+            Interlocked.Decrement(ref _groups[group].CurrentWorkItems);
         }
 
         /// <summary>
@@ -156,10 +215,9 @@ namespace DotNetWorkQueue.TaskScheduling
             if (IsDisposed)
                 return RoomForNewTaskResult.No;
 
-            var haveRoom = Interlocked.CompareExchange(ref _groups[group].CurrentWorkItems, 0, 0) < _groups[group].MaxWorkItems;
-            if (haveRoom)
+            if (HaveRoomForWorkGroupTask(group))
             {
-                return Interlocked.Read(ref _currentTaskCount) > _groups[group].GroupInfo.ConcurrencyLevel ? RoomForNewTaskResult.RoomInQueue : RoomForNewTaskResult.RoomForTask;
+                return CurrentTaskCount > _groups[group].GroupInfo.ConcurrencyLevel ? RoomForNewTaskResult.RoomInQueue : RoomForNewTaskResult.RoomForTask;
             }
             return RoomForNewTaskResult.No;
         }
@@ -213,7 +271,8 @@ namespace DotNetWorkQueue.TaskScheduling
                 var state = information;
                 if (state.Group != null)
                 {
-                    Interlocked.Increment(ref _groups[state.Group].CurrentWorkItems);
+                    IncrementCounter();
+                    IncrementGroup(state.Group);
                     _groups[state.Group].MetricCounter.Increment(1);
                     _taskCounter.Increment(1);
                     SetWaitHandle(state.Group);
@@ -221,7 +280,7 @@ namespace DotNetWorkQueue.TaskScheduling
                 }
                 else
                 {
-                    Interlocked.Increment(ref _currentTaskCount);
+                    IncrementCounter();
                     _taskCounter.Increment(1);
                     SetWaitHandle(null);
                     _smartThreadPool.QueueWorkItem(() => TryExecuteTask(task));
@@ -229,7 +288,7 @@ namespace DotNetWorkQueue.TaskScheduling
             }
             else
             {
-                Interlocked.Increment(ref _currentTaskCount);
+                IncrementCounter();
                 _taskCounter.Increment(1);
                 SetWaitHandle(null);
                 _smartThreadPool.QueueWorkItem(() => TryExecuteTask(task));
@@ -340,14 +399,15 @@ namespace DotNetWorkQueue.TaskScheduling
             if (information != null) //if not null, this is a work group
             {
                 var state = information;
-                Interlocked.Decrement(ref _groups[state.Group].CurrentWorkItems);
+                DeincrementCounter();
+                DeincrementGroup(state.Group);
                 _groups[state.Group].MetricCounter.Decrement(1);
                 _taskCounter.Decrement(_groups[state.Group].Group.Name, 1);
                 SetWaitHandle(state.Group);   
             }
             else //is null, so this is not a work group item
             {
-                Interlocked.Decrement(ref _currentTaskCount);
+                DeincrementCounter();
                 _taskCounter.Decrement(1);
                 SetWaitHandle(null);   
             }     
@@ -357,11 +417,11 @@ namespace DotNetWorkQueue.TaskScheduling
         /// Sets the wait handle.
         /// </summary>
         /// <param name="group">The group.</param>
-        private void SetWaitHandle(IWorkGroup group)
+        protected void SetWaitHandle(IWorkGroup group)
         {
             if (group == null) //not a work group
             {
-                if (Interlocked.CompareExchange(ref _currentTaskCount, 0, 0) < MaximumConcurrencyLevel)
+                if (HaveRoomForTask)
                 {
                     _waitForFreeThread.Set(null);
                 }
@@ -372,8 +432,7 @@ namespace DotNetWorkQueue.TaskScheduling
             }
             else //work group
             {
-                var currentCount = Interlocked.CompareExchange(ref _groups[group].CurrentWorkItems, 0, 0);
-                if (currentCount < _groups[group].MaxWorkItems)
+                if (HaveRoomForTask && HaveRoomForWorkGroupTask(group))
                 {
                     _waitForFreeThread.Set(group);
                 }
