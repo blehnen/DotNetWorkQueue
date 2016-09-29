@@ -104,6 +104,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromMetaData,
                 $"delete from {_tableNameHelper.MetaDataName} where queueID = @queueID");
 
+            _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromMetaDataErrors,
+                 $"delete from {_tableNameHelper.MetaDataErrorsName} where queueID = @queueID");
+
             _commandCache.Add(PostgreSqlCommandStringTypes.DeleteFromStatus,
                 $"delete from {_tableNameHelper.StatusName} where queueID = @queueID");
 
@@ -297,6 +300,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <summary>
         /// The get job last schedule time from the last time the job was queued
         /// </summary>
-        GetJobLastScheduleTime
+        GetJobLastScheduleTime,
+        /// <summary>
+        /// Deletes a record from the meta data error table
+        /// </summary>
+        DeleteFromMetaDataErrors
     }
 }

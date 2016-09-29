@@ -85,8 +85,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
                         //delete the meta data record
                         commandSql.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromMetaData);
-                        var i = commandSql.ExecuteNonQuery();
-                        if (i != 1) return 0;
+                        commandSql.ExecuteNonQuery();
 
                         //delete the message body
                         commandSql.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromQueue);
@@ -95,6 +94,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                         //delete any error tracking information
                         commandSql.CommandText =
                             _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromErrorTracking);
+                        commandSql.ExecuteNonQuery();
+
+                        commandSql.CommandText =
+                          _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromMetaDataErrors);
                         commandSql.ExecuteNonQuery();
 
                         //delete status record

@@ -104,6 +104,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             _commandCache.Add(SqlServerCommandStringTypes.DeleteFromMetaData,
                 $"delete from {_tableNameHelper.MetaDataName} where queueID = @queueID");
 
+            _commandCache.Add(SqlServerCommandStringTypes.DeleteFromMetaDataErrors,
+                $"delete from {_tableNameHelper.MetaDataErrorsName} where queueID = @queueID");
+
             _commandCache.Add(SqlServerCommandStringTypes.DeleteFromStatus,
                 $"delete from {_tableNameHelper.StatusName} where queueID = @queueID");
 
@@ -297,6 +300,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <summary>
         /// The get job last schedule time from the last time the job was queued
         /// </summary>
-        GetJobLastScheduleTime
+        GetJobLastScheduleTime,
+        /// <summary>
+        /// Deletes a record from the meta data error table
+        /// </summary>
+        DeleteFromMetaDataErrors
     }
 }

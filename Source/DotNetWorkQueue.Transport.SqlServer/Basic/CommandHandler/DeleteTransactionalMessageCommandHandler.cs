@@ -66,8 +66,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
                 //delete the meta data record
                 commandSql.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.DeleteFromMetaData);
-                var i = commandSql.ExecuteNonQuery();
-                if (i != 1) return 0;
+                commandSql.ExecuteNonQuery();
 
                 //delete the message body
                 commandSql.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.DeleteFromQueue);
@@ -76,6 +75,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 //delete any error tracking information
                 commandSql.CommandText =
                     _commandCache.GetCommand(SqlServerCommandStringTypes.DeleteFromErrorTracking);
+                commandSql.ExecuteNonQuery();
+
+                commandSql.CommandText =
+                    _commandCache.GetCommand(SqlServerCommandStringTypes.DeleteFromMetaDataErrors);
                 commandSql.ExecuteNonQuery();
 
                 //delete status record
