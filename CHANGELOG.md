@@ -1,3 +1,6 @@
+###0.1.9 2016-10-08
+* Fix issue with deleting messages with errors for SQLServer, SQLite, PostGreSQL transports
+
 ###0.1.8 2016-09-24
 * Refactor default task scheduler to allow easier extension
 
