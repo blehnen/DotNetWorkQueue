@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.Query
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var messageid = fixture.Create<IMessageId>();
             var test = new ReceiveMessageQuery(messageid, null);
-            Assert.Null(test.MessageId);
+            Assert.NotNull(test.MessageId);
         }
     }
 }
