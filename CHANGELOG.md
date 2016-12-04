@@ -1,3 +1,6 @@
+###0.1.10 ????-??-??
+* Add route support to SQLServer, SQLite and PostgreSQL transports. Redis transport currently doesn't support routes. This might get added before publishing 0.1.10 to nuget. Routes allow messages to be picked up for processing by specific consumer(s). A message can have at most 0 or 1 routes. A consumer can look for messages with 0 routes or N routes.
+
 ###0.1.9 2016-10-08
 * Fix issue with deleting messages with errors for SQLServer, SQLite, PostGreSQL transports
 

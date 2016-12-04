@@ -45,13 +45,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="eventTime">The event time.</param>
         /// <param name="messageData">The message data.</param>
+        /// <param name="route">The route.</param>
         public void Create(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
-            IAdditionalMessageData messageData)
+            IAdditionalMessageData messageData, string route)
         {
             var item = new AdditionalMetaData<string>("JobName", jobName);
             messageData.AdditionalMetaData.Add(item);
 
-            _jobSchedulerMetaData.Set(jobName, scheduledTime, eventTime, messageData);
+            _jobSchedulerMetaData.Set(jobName, scheduledTime, eventTime, route, messageData);
         }
     }
 }

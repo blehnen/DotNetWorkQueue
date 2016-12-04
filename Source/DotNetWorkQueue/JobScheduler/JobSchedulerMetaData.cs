@@ -31,12 +31,14 @@ namespace DotNetWorkQueue.JobScheduler
         /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="eventTime">The event time.</param>
+        /// <param name="route">The route.</param>
         /// <param name="messageData">The message data.</param>
-        public void Set(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime, IAdditionalMessageData messageData)
+        public void Set(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime, string route, IAdditionalMessageData messageData)
         {
             messageData.SetSetting("JobName", jobName);
             messageData.SetSetting("JobEventTime", eventTime);
             messageData.SetSetting("JobScheduledTime", scheduledTime);
+            messageData.Route = route;
         }
 
         /// <summary>

@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage =
                 _receiveMessage.Handle(new ReceiveMessageQuery(connection.SqlConnection,
-                    connection.SqlTransaction, messageId));
+                    connection.SqlTransaction, messageId, _configuration.Routes));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
@@ -153,7 +153,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage = await 
                 _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync(connection.SqlConnection,
-                    connection.SqlTransaction, messageId)).ConfigureAwait(false);
+                    connection.SqlTransaction, messageId, _configuration.Routes)).ConfigureAwait(false);
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)

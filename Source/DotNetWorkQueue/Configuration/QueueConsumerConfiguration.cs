@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 
 using DotNetWorkQueue.Validation;
+using System;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Configuration
 {
@@ -27,6 +29,7 @@ namespace DotNetWorkQueue.Configuration
     public class QueueConsumerConfiguration : QueueConfigurationReceive, IReadonly, ISetReadonly
     {
         private bool _isReadonly;
+        private List<string> _routes;
 
         #region Constructor
         /// <summary>
@@ -55,6 +58,7 @@ namespace DotNetWorkQueue.Configuration
             Worker = workerConfiguration;
             HeartBeat = heartBeatConfiguration;
             MessageExpiration = messageExpirationConfiguration;
+            _routes = new List<string>();
         }
         #endregion
 
@@ -81,6 +85,17 @@ namespace DotNetWorkQueue.Configuration
         /// Message expiration configuration
         /// </value>
         public IMessageExpirationConfiguration MessageExpiration { get; }
+
+        /// <summary>
+        /// Gets or sets the routes.
+        /// </summary>
+        /// <value>
+        /// The routes.
+        /// </value>
+        public List<string> Routes
+        {
+            get { return _routes; }
+        }
 
         /// <summary>
         /// Gets a value indicating whether this instance is read only.
@@ -110,5 +125,14 @@ namespace DotNetWorkQueue.Configuration
             IsReadOnly = true;
         }
         #endregion
+
+        /// <summary>
+        /// Throws an exception if the read only flag is true.
+        /// </summary>
+        /// <exception cref="System.Data.ReadOnlyException"></exception>
+        protected void FailIfReadOnly()
+        {
+            if (IsReadOnly) throw new InvalidOperationException();
+        }
     }
 }

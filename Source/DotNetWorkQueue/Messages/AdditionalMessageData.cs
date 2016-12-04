@@ -44,6 +44,18 @@ namespace DotNetWorkQueue.Messages
         /// The correlation identifier.
         /// </value>
         public ICorrelationId CorrelationId { get; set; }
+
+        /// <summary>
+        /// Defines data used to route a message to particular consumers
+        /// </summary>
+        /// <value>
+        /// The route.
+        /// </value>
+        /// <remarks>
+        /// Consumers can be set to only pick up messages with specific route(s)
+        /// </remarks>
+        public string Route { get; set; }
+
         /// <summary>
         /// Gets the additional meta data defined by the user.
         /// </summary>

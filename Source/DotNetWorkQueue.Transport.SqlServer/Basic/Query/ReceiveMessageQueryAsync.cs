@@ -17,52 +17,26 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data.SqlClient;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
 {
     /// <summary>
     /// Dequeues a message from the queue.
     /// </summary>
-    public class ReceiveMessageQueryAsync : IQuery<Task<IReceivedMessageInternal>>
+    public class ReceiveMessageQueryAsync : ReceiveMessageQuery, IQuery<Task<IReceivedMessageInternal>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveMessageQuery"/> class.
+        /// Initializes a new instance of the <see cref="ReceiveMessageQuery" /> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="transaction">The transaction.</param>
         /// <param name="messageId">A specific message identifier to de-queue. If null, the first message found will be de-queued.</param>
-        public ReceiveMessageQueryAsync(SqlConnection connection, SqlTransaction transaction, IMessageId messageId)
+        /// <param name="routes">The route.</param>
+        public ReceiveMessageQueryAsync(SqlConnection connection, SqlTransaction transaction, IMessageId messageId, List<string> routes):
+            base(connection, transaction, messageId, routes)
         {
-            //only a connection is required
-            Guard.NotNull(() => connection, connection);
-
-            Connection = connection;
-            Transaction = transaction;
-            MessageId = messageId;
         }
-
-        /// <summary>
-        /// Gets the connection.
-        /// </summary>
-        /// <value>
-        /// The connection.
-        /// </value>
-        public SqlConnection Connection { get; private set; }
-        /// <summary>
-        /// Gets the transaction.
-        /// </summary>
-        /// <value>
-        /// The transaction.
-        /// </value>
-        public SqlTransaction Transaction { get; private set; }
-        /// <summary>
-        /// Gets the message identifier.
-        /// </summary>
-        /// <value>
-        /// The message identifier.
-        /// </value>
-        public IMessageId MessageId { get; private set; }
     }
 }

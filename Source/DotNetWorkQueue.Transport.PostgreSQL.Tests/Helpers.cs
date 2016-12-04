@@ -38,6 +38,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             set;
         }
 
+        public string Route { get; set; }
+
         public List<IAdditionalMetaData> AdditionalMetaData
         {
             get;

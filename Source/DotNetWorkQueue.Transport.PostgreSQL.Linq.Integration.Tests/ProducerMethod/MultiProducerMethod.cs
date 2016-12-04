@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
 
                         RunTest(queueName, 1000, 10, logProvider, Guid.NewGuid(), 0, linqMethodTypes);
                         LoggerShared.CheckForErrors(queueName);
-                        new VerifyQueueData(queueName, oCreation.Options).Verify(1000*10);
+                        new VerifyQueueData(queueName, oCreation.Options).Verify(1000*10, null);
                     }
                 }
                 finally

@@ -16,7 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using Ploeh.AutoFixture;
+using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.Query
 {
@@ -25,7 +29,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.Query
         [Fact]
         public void Create_Null_MessageID_Ok()
         {
-            var test = new ReceiveMessageQuery(null);
+            var test = new ReceiveMessageQuery(null, new List<string>());
+            Assert.Null(test.MessageId);
+        }
+        [Fact]
+        public void Create_Null_Routes_Ok()
+        {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var messageid = fixture.Create<IMessageId>();
+            var test = new ReceiveMessageQuery(messageid, null);
             Assert.Null(test.MessageId);
         }
     }

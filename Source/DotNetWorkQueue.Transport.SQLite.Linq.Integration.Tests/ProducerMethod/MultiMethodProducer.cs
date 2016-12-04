@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
 
                             RunTest(queueName, 100, 10, logProvider, connectionInfo.ConnectionString, linqMethodTypes);
                             LoggerShared.CheckForErrors(queueName);
-                            new VerifyQueueData(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(100 * 10);
+                            new VerifyQueueData(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(100 * 10, null);
                         }
                     }
                     finally

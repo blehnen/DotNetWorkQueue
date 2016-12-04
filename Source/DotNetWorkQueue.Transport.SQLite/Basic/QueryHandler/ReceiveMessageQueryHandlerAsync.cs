@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
@@ -101,20 +102,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                         {
                             commandString = GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
                                     true,
-                                    _tableNameHelper.StatusName);
+                                    _tableNameHelper.StatusName, query.Routes);
                         }
                         else
                         {
                             commandString =
                                   GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
                                     false,
-                                    _tableNameHelper.StatusName);
+                                    _tableNameHelper.StatusName, query.Routes);
                         }
 
                         if (commandString == null)
                             throw new DotNetWorkQueueException("Failed to generate command text for de-queue of messages");
 
-                        _buildDequeueCommand.BuildCommand(selectCommand, query.MessageId, commandString);
+                        _buildDequeueCommand.BuildCommand(selectCommand, query.MessageId, commandString, _options.Value, query.Routes);
                         using (var reader = await selectCommand.ExecuteReaderAsync().ConfigureAwait(false))
                         {
                             return _messageDeQueue.HandleMessage(connection, transaction, reader, commandString);
@@ -130,20 +131,31 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <param name="queueTableName">Name of the queue table.</param>
         /// <param name="forRpc">if set to <c>true</c> [for RPC].</param>
         /// <param name="statusTableName">Name of the status table.</param>
+        /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, bool forRpc, string statusTableName)
+        private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, bool forRpc, string statusTableName, List<string> routes)
         {
-            if (forRpc && _commandCache.Contains(RpcdequeueKey))
+            if (routes == null || routes.Count == 0)
             {
-                return _commandCache.Get(RpcdequeueKey);
-            }
-            if (_commandCache.Contains(DequeueKey))
-            {
-                return _commandCache.Get(DequeueKey);
+                if (forRpc && _commandCache.Contains(RpcdequeueKey))
+                {
+                    return _commandCache.Get(RpcdequeueKey);
+                }
+                if (_commandCache.Contains(DequeueKey))
+                {
+                    return _commandCache.Get(DequeueKey);
+                }
             }
 
-            return _commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey,
-                ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, forRpc, statusTableName, _options.Value));
+            var command = ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, forRpc, statusTableName, _options.Value, routes);
+            if (routes != null && routes.Count > 0)
+            { //TODO - cache based on route
+                return command;
+            }
+            else
+            {
+                return _commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, command);
+            }
         }
     }
 }

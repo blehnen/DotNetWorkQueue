@@ -18,10 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data.SqlClient;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
 
@@ -103,12 +99,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="eventTime">The event time.</param>
+        /// <param name="route">The route. May be null.</param>
         /// <param name="messageData">The message data.</param>
-        /// <exception cref="NotImplementedException"></exception>
         protected override void SetMetaDataForJob(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
-            IAdditionalMessageData messageData)
+            string route, IAdditionalMessageData messageData)
         {
-            _createJobMetaData.Create(jobName, scheduledTime, eventTime, messageData);
+            _createJobMetaData.Create(jobName, scheduledTime, eventTime, messageData, route);
         }
     }
 }

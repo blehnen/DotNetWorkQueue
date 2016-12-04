@@ -26,11 +26,19 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
     public static class Helpers
     {
+        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route)
+        {
+            using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration, connectionString))
+            {
+                verify.Verify(messageCount, 0, route);
+            }
+        }
+
         public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
         {
             using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration, connectionString))
             {
-                verify.Verify(messageCount, 0);
+                verify.Verify(messageCount, 0, null);
             }
         }
 

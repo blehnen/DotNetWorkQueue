@@ -56,6 +56,14 @@ namespace DotNetWorkQueue
         IJobSchedule Schedule { get; }
 
         /// <summary>
+        /// Gets the route.
+        /// </summary>
+        /// <value>
+        /// The route.
+        /// </value>
+        string Route { get; }
+
+        /// <summary>
         /// Gets a value indicating whether this instance is running.
         /// </summary>
         /// <value>

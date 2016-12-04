@@ -36,6 +36,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private bool _enableDelayedProcessing;
         private QueueTypes _queueType;
         private bool _enableMessageExpiration;
+        private bool _enableRoute;
 
         #region Constructor
         /// <summary>
@@ -50,6 +51,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             EnableMessageExpiration = false;
             QueueType = QueueTypes.Normal;
             EnableStatusTable = false;
+            EnableRoute = false;
 
             AdditionalColumns = new ColumnList();
             AdditionalConstraints = new ConstraintList();
@@ -152,6 +154,22 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 FailIfReadOnly();
                 _enableStatusTable = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether routing is enabled.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [enable route]; otherwise, <c>false</c>.
+        /// </value>
+        public bool EnableRoute
+        {
+            get { return _enableRoute; }
+            set
+            {
+                FailIfReadOnly();
+                _enableRoute = value;
             }
         }
 
@@ -272,6 +290,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 command.Append(", Priority ");
             }
 
+            if (EnableRoute)
+            {
+                command.Append(", Route ");
+            }
+
             if (EnableStatus)
             {
                 command.Append(", Status ");
@@ -298,6 +321,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             if (EnablePriority)
             {
                 command.Append(", @Priority ");
+            }
+
+            if (EnableRoute)
+            {
+                command.Append(", @Route ");
             }
 
             if (EnableStatus)
@@ -340,6 +368,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     priority = data.GetPriority().Value;
                 }
                 command.Parameters.Add("@priority", DbType.Int16, 1).Value = priority;
+            }
+            if (EnableRoute)
+            {
+                if (!string.IsNullOrEmpty(data.Route))
+                {
+                    command.Parameters.Add("@Route", DbType.AnsiString, 255).Value = data.Route;
+                }
+                else
+                {
+                    command.Parameters.Add("@Route", DbType.AnsiString, 255).Value = DBNull.Value;
+                }
             }
             if (EnableStatus)
             {

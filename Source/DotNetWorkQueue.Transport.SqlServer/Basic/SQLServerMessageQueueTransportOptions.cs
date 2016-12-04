@@ -37,6 +37,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private bool _enableDelayedProcessing;
         private QueueTypes _queueType;
         private bool _enableMessageExpiration;
+        private bool _enableRoute;
 
         #region Constructor
         /// <summary>
@@ -52,6 +53,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             EnableMessageExpiration = false;
             QueueType = QueueTypes.Normal;
             EnableStatusTable = false;
+            EnableRoute = false;
 
             AdditionalColumns = new ColumnList();
             AdditionalConstraints = new ConstraintList();
@@ -172,6 +174,21 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether routing is enabled.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [enable route]; otherwise, <c>false</c>.
+        /// </value>
+        public bool EnableRoute
+        {
+            get { return _enableRoute; }
+            set
+            {
+                FailIfReadOnly();
+                _enableRoute = value;
+            }
+        }
         /// <summary>
         /// Gets or sets the type of the queue.
         /// </summary>
@@ -305,6 +322,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 command.Append(", Priority ");
             }
 
+            if (EnableRoute)
+            {
+                command.Append(", Route ");
+            }
+
             if (EnableStatus)
             {
                 command.Append(", Status ");
@@ -338,6 +360,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             if (EnablePriority)
             {
                 command.Append(", @Priority ");
+            }
+
+            if (EnableRoute)
+            {
+                command.Append(", @Route ");
             }
 
             if (EnableStatus)
@@ -374,6 +401,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     priority = data.GetPriority().Value;
                 }
                 command.Parameters.Add("@priority", SqlDbType.TinyInt, 1).Value = priority;
+            }
+            if (EnableRoute)
+            {
+                if (!string.IsNullOrEmpty(data.Route))
+                {
+                    command.Parameters.Add("@Route", SqlDbType.VarChar, 255).Value = data.Route;
+                }
+                else
+                {
+                    command.Parameters.Add("@Route", SqlDbType.VarChar, 255).Value = DBNull.Value;
+                }
             }
             if (EnableStatus)
             {

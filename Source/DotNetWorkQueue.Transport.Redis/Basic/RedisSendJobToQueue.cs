@@ -94,11 +94,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="eventTime">The event time.</param>
+        /// <param name="route">The route. May be null.</param>
         /// <param name="messageData">The message data.</param>
         protected override void SetMetaDataForJob(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
-            IAdditionalMessageData messageData)
+            string route, IAdditionalMessageData messageData)
         {
-            _jobSchedulerMetaData.Set(jobName, scheduledTime, eventTime, messageData);
+            _jobSchedulerMetaData.Set(jobName, scheduledTime, eventTime, route, messageData);
         }
     }
 }

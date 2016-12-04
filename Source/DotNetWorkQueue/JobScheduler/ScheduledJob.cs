@@ -49,6 +49,7 @@ namespace DotNetWorkQueue.JobScheduler
         public DateTimeOffset NextEvent { get; private set; }
         public DateTimeOffset PrevEvent { get; private set; }
         public ILog Logger => _queue.Logger;
+        public string Route { get; private set; }
 
         public event Action<IScheduledJob, Exception> OnException;
         public event Action<IScheduledJob, IJobQueueOutputMessage> OnNonFatalFailureEnQueue;
@@ -63,7 +64,8 @@ namespace DotNetWorkQueue.JobScheduler
             IJobSchedule schedule,
             IProducerMethodJobQueue queue,
             LinqExpressionToRun expressionToRun,
-            IGetTime time
+            IGetTime time,
+            string route
            )
         {
             _scheduler = scheduler;
@@ -72,13 +74,15 @@ namespace DotNetWorkQueue.JobScheduler
             _queue = queue;
             _expressionToRun = expressionToRun;
             _getTime = time;
+            Route = route;
         }
         internal ScheduledJob(JobScheduler scheduler,
             string name,
             IJobSchedule schedule,
             IProducerMethodJobQueue queue,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
-            IGetTime time)
+            IGetTime time,
+            string route)
         {
             _scheduler = scheduler;
             Name = name;
@@ -86,6 +90,7 @@ namespace DotNetWorkQueue.JobScheduler
             _queue = queue;
             _actionToRun = actionToRun;
             _getTime = time;
+            Route = route;
         }
 
         public void StartSchedule()

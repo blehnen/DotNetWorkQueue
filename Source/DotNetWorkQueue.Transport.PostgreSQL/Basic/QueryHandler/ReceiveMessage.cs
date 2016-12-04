@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using System.Text;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
 {
@@ -32,19 +33,24 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="options">The options.</param>
         /// <param name="forRpc">if set to <c>true</c> [for RPC].</param>
+        /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, TableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, bool forRpc)
+        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, TableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, bool forRpc, List<string> routes )
         {
-            if (forRpc && commandCache.Contains(RpcdequeueKey))
+            if (routes == null || routes.Count == 0)
             {
-                return commandCache.Get(RpcdequeueKey);
-            }
-            if (commandCache.Contains(DequeueKey))
-            {
-                return commandCache.Get(DequeueKey);
+                if (forRpc && commandCache.Contains(RpcdequeueKey))
+                {
+                    return commandCache.Get(RpcdequeueKey);
+                }
+                if (commandCache.Contains(DequeueKey))
+                {
+                    return commandCache.Get(DequeueKey);
+                }
             }
 
             var sb = new StringBuilder();
+            var needWhere = true;
             if (options.EnableStatus)
             {
                 sb.AppendLine($"update {tableNameHelper.MetaDataName} q");
@@ -69,25 +75,70 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             {
                 sb.AppendFormat(" WHERE q.Status = {0} ", Convert.ToInt16(QueueStatuses.Waiting));
                 sb.AppendLine("and q.QueueProcessTime < @CurrentDate ");
+                needWhere = false;
             }
             else if (options.EnableStatus)
             {
                 sb.AppendFormat("WHERE q.Status = {0} ", Convert.ToInt16(QueueStatuses.Waiting));
+                needWhere = false;
             }
             else if (options.EnableDelayedProcessing)
             {
                 sb.AppendLine("WHERE (q.QueueProcessTime < @CurrentDate) ");
+                needWhere = false;
             }
 
             if (forRpc)
             {
-                sb.AppendLine("AND q.SourceQueueID = @QueueID");
+                if (needWhere)
+                {
+                    sb.AppendLine("where q.SourceQueueID = @QueueID");
+                    needWhere = false;
+                }
+                else
+                {
+                    sb.AppendLine("AND q.SourceQueueID = @QueueID");
+                }
             }
-
 
             if (options.EnableMessageExpiration || options.QueueType == QueueTypes.RpcReceive || options.QueueType == QueueTypes.RpcSend)
             {
-                sb.AppendLine("AND q.ExpirationTime > @CurrentDate");
+                if (needWhere)
+                {
+                    sb.AppendLine("Where q.ExpirationTime > @CurrentDate ");
+                    needWhere = false;
+                }
+                else
+                {
+                    sb.AppendLine("AND q.ExpirationTime > @CurrentDate ");
+                }
+                needWhere = false;
+            }
+
+            if (options.EnableRoute && routes != null && routes.Count > 0)
+            {
+                if (needWhere)
+                {
+                    sb.AppendLine("where Route IN ( ");
+                    needWhere = false;
+                }
+                else
+                {
+                    sb.AppendLine("AND Route IN ( ");
+                }
+
+                var routeCounter = 1;
+                foreach (var route in routes)
+                {
+                    sb.Append("@Route" + routeCounter.ToString());
+                    routeCounter++;
+                    if (routeCounter != routes.Count + 1)
+                    {
+                        sb.Append(", ");
+                    }
+                }
+
+                sb.Append(") ");
             }
 
             //determine order by looking at the options
@@ -134,7 +185,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             sb.AppendLine(" AND q.QueueID = qm.QueueID");
             sb.AppendLine("returning q.queueid, qm.body, qm.Headers, q.CorrelationID");
 
-            return commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, sb.ToString());
+            if (routes != null && routes.Count > 0)
+            { //TODO - cache based on route
+                return sb.ToString();
+            }
+            else
+            {
+                return commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, sb.ToString());
+            }
         }
     }
 }

@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
+
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
 {
     /// <summary>
@@ -24,12 +27,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
     public class ReceiveMessageQuery : IQuery<IReceivedMessageInternal>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveMessageQuery"/> class.
+        /// Initializes a new instance of the <see cref="ReceiveMessageQuery" /> class.
         /// </summary>
         /// <param name="messageId">A specific message identifier to de-queue. If null, the first message found will be de-queued.</param>
-        public ReceiveMessageQuery(IMessageId messageId)
+        /// <param name="routes">The routes.</param>
+        public ReceiveMessageQuery(IMessageId messageId, List<string> routes )
         {
             MessageId = messageId;
+            Routes = routes;
         }
         /// <summary>
         /// Gets the message identifier.
@@ -38,5 +43,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
         /// The message identifier.
         /// </value>
         public IMessageId MessageId { get; private set; }
+        /// <summary>
+        /// Gets the route.
+        /// </summary>
+        /// <value>
+        /// The route.
+        /// </value>
+        public List<string> Routes { get; private set; }
     }
 }

@@ -40,9 +40,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
             _tableNameHelper = new TableNameHelper(_connection);
         }
-        public void Verify(long expectedMessageCount)
+        public void Verify(long expectedMessageCount, string route)
         {
-            VerifyCount(expectedMessageCount);
+            VerifyCount(expectedMessageCount, route);
 
             if (_options.EnablePriority)
             {
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
 
         // ReSharper disable once UnusedParameter.Local
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        private void VerifyCount(long messageCount)
+        private void VerifyCount(long messageCount, string route)
         {
             using (var conn = new NpgsqlConnection(_connection.ConnectionString))
             {
@@ -80,6 +80,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                 using (var command = conn.CreateCommand())
                 {
                     command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataName}";
+                    if (!string.IsNullOrEmpty(route))
+                    {
+                        command.CommandText += " where route = @route";
+                        command.Parameters.AddWithValue("@Route", route);
+                    }
                     using (var reader = command.ExecuteReader())
                     {
                         Assert.True(reader.Read());

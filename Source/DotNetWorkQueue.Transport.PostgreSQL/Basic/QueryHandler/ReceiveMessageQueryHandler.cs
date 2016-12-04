@@ -95,18 +95,29 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 if (query.MessageId != null && query.MessageId.HasValue)
                 {
                     selectCommand.CommandText =
-                        ReceiveMessage.GetDeQueueCommand(_commandCache, _tableNameHelper, _options.Value, true);
+                        ReceiveMessage.GetDeQueueCommand(_commandCache, _tableNameHelper, _options.Value, true, query.Routes);
                     selectCommand.Parameters.Add("@QueueID", NpgsqlDbType.Bigint);
                     selectCommand.Parameters["@QueueID"].Value = query.MessageId.Id.Value;
                 }
                 else
                 {
                     selectCommand.CommandText =
-                         ReceiveMessage.GetDeQueueCommand(_commandCache, _tableNameHelper, _options.Value, false);
+                         ReceiveMessage.GetDeQueueCommand(_commandCache, _tableNameHelper, _options.Value, false, query.Routes);
                 }
 
                 selectCommand.Parameters.Add("@CurrentDate", NpgsqlDbType.Bigint);
                 selectCommand.Parameters["@CurrentDate"].Value = _getTime.GetCurrentUtcDate().Ticks;
+
+                if (_options.Value.EnableRoute && query.Routes != null && query.Routes.Count > 0)
+                {
+                    var routeCounter = 1;
+                    foreach (var route in query.Routes)
+                    {
+                        selectCommand.Parameters.Add("@Route" + routeCounter.ToString(), NpgsqlDbType.Varchar);
+                        selectCommand.Parameters["@Route" + routeCounter.ToString()].Value = route;
+                        routeCounter++;
+                    }
+                }
 
                 using (var reader = selectCommand.ExecuteReader())
                 {

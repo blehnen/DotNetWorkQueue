@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -130,7 +131,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 var connection = GetConnectionAndSetOnContext(context);
                 try
                 {
-                    return _receiveMessages.GetMessage(context, connection, connection1 => _disposeConnection(connection));
+                    return _receiveMessages.GetMessage(context, connection, connection1 => _disposeConnection(connection), _configuration.Routes);
                 }
                 finally
                 {
@@ -190,7 +191,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 var connection = GetConnectionAndSetOnContext(context);
                 try
                 {
-                    return await _receiveMessages.GetMessageAsync(context, connection, connection1 => _disposeConnection(connection)).ConfigureAwait(false);
+                    return await _receiveMessages.GetMessageAsync(context, connection, connection1 => _disposeConnection(connection), _configuration.Routes).ConfigureAwait(false);
                 }
                 finally
                 {

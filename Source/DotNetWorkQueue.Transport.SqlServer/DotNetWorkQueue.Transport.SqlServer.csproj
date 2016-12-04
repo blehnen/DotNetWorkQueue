@@ -92,6 +92,8 @@
     <Compile Include="Basic\Message\HandleMessage.cs" />
     <Compile Include="Basic\Message\ReceiveMessage.cs" />
     <Compile Include="Basic\Message\RollbackMessage.cs" />
+    <Compile Include="Basic\QueryHandler\BuildDequeueCommand.cs" />
+    <Compile Include="Basic\QueryHandler\CreateDequeueStatement.cs" />
     <Compile Include="Basic\QueryHandler\DoesJobExistQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\FindExpiredRecordsToDeleteQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\FindRecordsToResetByHeartBeatQueryHandler.cs" />
@@ -108,6 +110,7 @@
     <Compile Include="Basic\QueryHandler\GetTableExistsQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetUTCDateQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetWorkingCountQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\ReadMessage.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
     <Compile Include="Basic\Query\DoesJobExistQuery.cs" />

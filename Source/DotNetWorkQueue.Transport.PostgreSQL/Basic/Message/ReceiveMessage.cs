@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -70,11 +71,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         /// <param name="context">The context.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="noMessageFoundActon">The no message found action.</param>
+        /// <param name="routes">The routes.</param>
         /// <returns>
         /// A message if one is found; null otherwise
         /// </returns>
         public IReceivedMessageInternal GetMessage(IMessageContext context, Connection connection,
-            Action<Connection> noMessageFoundActon)
+            Action<Connection> noMessageFoundActon, List<string> routes )
         {
             //if stopping, exit now
             if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
@@ -94,7 +96,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage =
                 _receiveMessage.Handle(new ReceiveMessageQuery(connection.NpgsqlConnection,
-                    connection.NpgsqlTransaction, messageId));
+                    connection.NpgsqlTransaction, messageId, routes));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
@@ -128,11 +130,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         /// <param name="context">The context.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="noMessageFoundActon">The no message found action.</param>
+        /// <param name="routes">The routes.</param>
         /// <returns>
         /// A message if one is found; null otherwise
         /// </returns>
         public async Task<IReceivedMessageInternal> GetMessageAsync(IMessageContext context, Connection connection,
-            Action<Connection> noMessageFoundActon)
+            Action<Connection> noMessageFoundActon, List<string> routes )
         {
             //if stopping, exit now
             if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
@@ -152,7 +155,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage = await 
                 _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync(connection.NpgsqlConnection,
-                    connection.NpgsqlTransaction, messageId)).ConfigureAwait(false);
+                    connection.NpgsqlTransaction, messageId, routes)).ConfigureAwait(false);
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)

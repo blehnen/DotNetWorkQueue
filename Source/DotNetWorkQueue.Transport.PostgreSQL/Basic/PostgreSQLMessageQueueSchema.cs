@@ -175,6 +175,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 meta.Columns.Add(new Column("HeartBeat", ColumnTypes.Bigint, true));
             }
 
+            if (_options.Value.EnableRoute)
+            {
+                meta.Columns.Add(new Column("Route", ColumnTypes.Text, 255, true));
+            }
+
             if (_options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend)
             {
                 meta.Columns.Add(new Column("ExpirationTime", ColumnTypes.Bigint, false));
@@ -199,6 +204,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             if (_options.Value.EnableDelayedProcessing)
             {
                 clusterIndex.Add("QueueProcessTime");
+            }
+            if (_options.Value.EnableRoute)
+            {
+                clusterIndex.Add("Route");
             }
             //add index on expiration time if needed
             if (_options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend)

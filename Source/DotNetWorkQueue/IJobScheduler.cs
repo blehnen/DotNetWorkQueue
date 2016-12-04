@@ -47,6 +47,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
+        /// <param name="route">The route.</param>
         /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
@@ -56,6 +57,7 @@ namespace DotNetWorkQueue
             string connection,
             string schedule,
             LinqExpressionToRun job,
+            string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
             TimeSpan window = default(TimeSpan))
@@ -72,6 +74,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
+        /// <param name="route">The route.</param>
         /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
@@ -82,6 +85,7 @@ namespace DotNetWorkQueue
             string connection,
             string schedule,
             LinqExpressionToRun job,
+            string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
             TimeSpan window = default(TimeSpan))
@@ -97,6 +101,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
+        /// <param name="route">The route.</param>
         /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
@@ -106,6 +111,7 @@ namespace DotNetWorkQueue
             string connection,
             string schedule,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> job,
+            string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
             TimeSpan window = default(TimeSpan))
@@ -122,6 +128,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
+        /// <param name="route">The route.</param>
         /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
@@ -132,6 +139,7 @@ namespace DotNetWorkQueue
             string connection,
             string schedule,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> job,
+            string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
             TimeSpan window = default(TimeSpan))

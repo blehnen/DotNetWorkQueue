@@ -50,11 +50,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                 setErrorFlag,
                 (x, name) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueName, connectionString,
                     "min(*)",
-                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), config => { }),
+                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null, config => { }),
 
                 (x, name, time) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueName, connectionString,
                     "min(*)",
-                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), config => { }, true, time), timeFactory
+                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null,  config => { }, true, time), timeFactory
 
                 );
         }
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                             x.AddUpdateJob<TTransportInit>(createQueue, name, queueName, connectionString,
                                 "min(*)",
                                 new LinqExpressionToRun(
-                                    "(message, workerNotification) => Console.WriteLine(DateTime.Now.Ticks)"), null, true,
+                                    "(message, workerNotification) => Console.WriteLine(DateTime.Now.Ticks)"), null, null, true,
                                 time), timeFactory
                         );
                 }

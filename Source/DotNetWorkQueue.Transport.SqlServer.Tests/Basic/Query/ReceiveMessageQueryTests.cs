@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.Query
         {
             using (var conn = new SqlConnection())
             {
-                var test = new ReceiveMessageQuery(conn, null, null);
+                var test = new ReceiveMessageQuery(conn, null, null, null);
                 Assert.NotNull(test.Connection);
                 Assert.Null(test.Transaction);
             }

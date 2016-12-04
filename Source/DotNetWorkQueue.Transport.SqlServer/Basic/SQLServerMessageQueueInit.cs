@@ -93,6 +93,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<RollbackMessage>(LifeStyles.Transient);
             container.Register<HandleMessage>(LifeStyles.Transient);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
+            container.Register<QueryHandler.CreateDequeueStatement>(LifeStyles.Singleton);
+            container.Register<QueryHandler.BuildDequeueCommand>(LifeStyles.Singleton);
+            container.Register<QueryHandler.ReadMessage>(LifeStyles.Singleton);
 
             container.Register<IResetHeartBeat, SqlServerMessageQueueResetHeartBeat>(LifeStyles.Singleton);
             container.Register<ISendHeartBeat, SqlServerMessageQueueSendHeartBeat>(LifeStyles.Singleton);

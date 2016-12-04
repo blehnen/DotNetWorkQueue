@@ -36,9 +36,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             _redisNames = new RedisNames(connection);
             _connection = new RedisConnection(connection);
         }
-        public void Verify(long expectedMessageCount, int expectedStatus)
+        public void Verify(long expectedMessageCount, int expectedStatus, string route)
         {
-            VerifyCount(expectedMessageCount);
+            VerifyCount(expectedMessageCount, route);
             VerifyStatus(expectedMessageCount, expectedStatus);
 
             // ReSharper disable once PossibleInvalidOperationException
@@ -55,8 +55,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         }
 
         // ReSharper disable once UnusedParameter.Local
-        private void VerifyCount(long messageCount)
+        private void VerifyCount(long messageCount, string route)
         {
+            if (!string.IsNullOrEmpty(route))
+            {
+                throw new NotImplementedException();
+            }
+
             var db = _connection.Connection.GetDatabase();
             var records = db.HashLength(_redisNames.Values);
             Assert.Equal(messageCount, records);

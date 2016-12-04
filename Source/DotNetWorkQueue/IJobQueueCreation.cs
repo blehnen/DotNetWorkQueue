@@ -32,8 +32,9 @@ namespace DotNetWorkQueue
         /// <param name="registerService">The additional registrations.</param>
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
+        /// <param name="enableRoutes">if set to <c>true</c> route support will be enabled.</param>
         /// <returns></returns>
-        QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection);
+        QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, bool enableRoutes = false);
 
         /// <summary>
         /// Attempts to delete an existing queue

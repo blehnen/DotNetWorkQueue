@@ -183,6 +183,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 meta.Columns.Add(new Column("ExpirationTime", ColumnTypes.Datetime, false, null));
             }
 
+            if (_options.Value.EnableRoute)
+            {
+                meta.Columns.Add(new Column("Route", ColumnTypes.Varchar, 255, true, null));
+            }
+
             switch (_options.Value.QueueType)
             {
                 case QueueTypes.RpcReceive:
@@ -203,7 +208,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             {
                 clusterIndex.Add("QueueProcessTime");
             }
-            //add index on expiration time if needed
+            if (_options.Value.EnableRoute)
+            {
+                clusterIndex.Add("Route");
+            }
+                //add index on expiration time if needed
             if (_options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend)
             {
                 clusterIndex.Add("ExpirationTime");
@@ -219,10 +228,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             if (clusterIndex.Count > 0)
             {
                 clusterIndex.Add("QueueID");
-            }
-
-            if (clusterIndex.Count > 0)
-            {
                 var cluster = new Constraint("IX_DeQueue", ContraintType.Index, clusterIndex)
                 {
                     Clustered = true,

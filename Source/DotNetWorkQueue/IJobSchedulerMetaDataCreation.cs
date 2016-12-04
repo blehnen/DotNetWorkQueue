@@ -30,9 +30,10 @@ namespace DotNetWorkQueue
         /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="eventTime">The event time.</param>
+        /// <param name="route">The route.</param>
         /// <param name="messageData">The message data.</param>
         void Set(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
-            IAdditionalMessageData messageData);
+            string route, IAdditionalMessageData messageData);
 
         /// <summary>
         /// Gets the scheduled time.

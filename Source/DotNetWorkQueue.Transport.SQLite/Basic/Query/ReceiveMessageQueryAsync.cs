@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
@@ -29,9 +31,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
         /// Initializes a new instance of the <see cref="ReceiveMessageQuery" /> class.
         /// </summary>
         /// <param name="messageId">The transaction.</param>
-        public ReceiveMessageQueryAsync(IMessageId messageId)
+        /// <param name="routes">The routes.</param>
+        public ReceiveMessageQueryAsync(IMessageId messageId, List<string> routes )
         {
             MessageId = messageId;
+            Routes = routes;
         }
         /// <summary>
         /// Gets the message identifier.
@@ -40,5 +44,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Query
         /// The message identifier.
         /// </value>
         public IMessageId MessageId { get; private set; }
+        /// <summary>
+        /// Gets the route.
+        /// </summary>
+        /// <value>
+        /// The route.
+        /// </value>
+        public List<string> Routes { get; private set; }
     }
 }

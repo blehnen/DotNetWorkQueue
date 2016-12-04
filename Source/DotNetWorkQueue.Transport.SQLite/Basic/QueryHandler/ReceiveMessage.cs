@@ -33,12 +33,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <param name="forRpc">if set to <c>true</c> [for RPC].</param>
         /// <param name="statusTableName">Name of the status table.</param>
         /// <param name="options">The options.</param>
+        /// <param name="routes">The routes.</param>
         /// <returns></returns>
         public static CommandString GetDeQueueCommand(string metaTableName, 
             string queueTableName, 
             bool forRpc, 
             string statusTableName,
-            SqLiteMessageQueueTransportOptions options)
+            SqLiteMessageQueueTransportOptions options,
+            List<string> routes )
         {
             var sb = new StringBuilder();
 
@@ -52,29 +54,76 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             sb.AppendLine($"from {metaTableName}  ");
 
             //calculate where clause...
+            var needWhere = true;
             if (options.EnableStatus && options.EnableDelayedProcessing)
             {
                 sb.Append($" WHERE {metaTableName}.Status = {Convert.ToInt16(QueueStatuses.Waiting)} ");
                 sb.AppendLine("and QueueProcessTime < @CurrentDateTime ");
+                needWhere = false;
             }
             else if (options.EnableStatus)
             {
                 sb.Append($" WHERE {metaTableName}.Status = {Convert.ToInt16(QueueStatuses.Waiting)} ");
+                needWhere = false;
             }
             else if (options.EnableDelayedProcessing)
             {
                 sb.AppendLine("WHERE (QueueProcessTime < @CurrentDateTime) ");
+                needWhere = false;
             }
 
             if (forRpc)
             {
-                sb.AppendLine("AND SourceQueueID = @QueueID");
+                if (needWhere)
+                {
+                    sb.AppendLine("Where SourceQueueID = @QueueID ");
+                    needWhere = false;
+                }
+                else
+                {
+                    sb.AppendLine("AND SourceQueueID = @QueueID ");
+                }
             }
 
 
             if (options.EnableMessageExpiration || options.QueueType == QueueTypes.RpcReceive || options.QueueType == QueueTypes.RpcSend)
             {
-                sb.AppendLine("AND ExpirationTime > @CurrentDateTime");
+                if (needWhere)
+                {
+                    sb.AppendLine("where ExpirationTime > getutcdate() ");
+                    needWhere = false;
+                }
+                else
+                {
+                    sb.AppendLine("AND ExpirationTime > getutcdate() ");
+                }
+                needWhere = false;
+            }
+
+            if (options.EnableRoute && routes != null && routes.Count > 0)
+            {
+                if (needWhere)
+                {
+                    sb.AppendLine("where Route IN ( ");
+                    needWhere = false;
+                }
+                else
+                {
+                    sb.AppendLine("AND Route IN ( ");
+                }
+
+                var routeCounter = 1;
+                foreach (var route in routes)
+                {
+                    sb.Append("@Route" + routeCounter.ToString());
+                    routeCounter++;
+                    if (routeCounter != routes.Count + 1)
+                    {
+                        sb.Append(", ");
+                    }
+                }
+
+                sb.Append(") ");
             }
 
             //determine order by looking at the options

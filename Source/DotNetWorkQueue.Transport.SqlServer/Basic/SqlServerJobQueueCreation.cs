@@ -71,8 +71,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="registerService">The additional registrations.</param>
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
+        /// <param name="enableRoute">if set to <c>true</c> route support will be enabled.</param>
         /// <returns></returns>
-        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection)
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, bool enableRoute = false)
         {
             if (_queueCreation.Options.AdditionalColumns.Count == 0)
             {
@@ -80,6 +81,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 var constraint = new Constraint($"IX_{queue}JobName", ContraintType.Constraint,
                     "JobName") {Unique = true};
                 _queueCreation.Options.AdditionalConstraints.Add(constraint);
+            }
+            if(enableRoute)
+            {
+                _queueCreation.Options.EnableRoute = true;
             }
             return _queueCreation.CreateQueue();
         }

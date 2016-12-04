@@ -61,9 +61,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="registerService">The additional registrations.</param>
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
+        /// <param name="enableRoute">if set to <c>true</c> [enable route].</param>
         /// <returns></returns>
-        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection)
+        /// <exception cref="NotImplementedException"></exception>
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, bool enableRoute = false)
         {
+            if(enableRoute)
+            {
+                throw new NotImplementedException();
+            }
             return _creation.CreateQueue();
         }
 

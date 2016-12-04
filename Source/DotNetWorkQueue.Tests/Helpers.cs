@@ -82,6 +82,8 @@ namespace DotNetWorkQueue.Tests
             set;
         }
 
+        public string Route { get; set; }
+
         public List<IAdditionalMetaData> AdditionalMetaData
         {
             get;

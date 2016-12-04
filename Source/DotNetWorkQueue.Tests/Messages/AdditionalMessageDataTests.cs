@@ -35,6 +35,17 @@ namespace DotNetWorkQueue.Tests.Messages
             message.CorrelationId = correlationId;
             Assert.Equal(message.CorrelationId, correlationId);
         }
+
+        [Fact]
+        public void SetAndGet_Route()
+        {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var message = fixture.Create<AdditionalMessageData>();
+            var route = fixture.Create<string>();
+            message.Route = route;
+            Assert.Equal(message.Route, route);
+        }
+
         [Fact]
         public void SetAndGet_AdditionalMetaData()
         {

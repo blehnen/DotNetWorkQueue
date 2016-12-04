@@ -32,6 +32,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             new VerifyQueueData(queueName, queueProducerConfiguration.Options()).Verify(messageCount);
         }
 
+        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route)
+        {
+            new VerifyQueueData(queueName, queueProducerConfiguration.Options()).Verify(messageCount, route);
+        }
+
         public static void Verify(string queueName, string connectionString, long messageCount)
         {
             var connection = new SqlConnectionInformation(queueName, connectionString);

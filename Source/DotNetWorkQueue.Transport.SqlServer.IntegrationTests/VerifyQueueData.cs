@@ -40,7 +40,37 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         }
         public void Verify(long expectedMessageCount)
         {
-            VerifyCount(expectedMessageCount);
+            VerifyCount(expectedMessageCount, null);
+
+            if (_options.EnablePriority)
+            {
+                VerifyPriority();
+            }
+
+            if (_options.EnableDelayedProcessing)
+            {
+                VerifyDelayedProcessing();
+            }
+
+            if (_options.EnableMessageExpiration)
+            {
+                VerifyMessageExpiration();
+            }
+
+            if (_options.EnableStatus)
+            {
+                VerifyStatus();
+            }
+
+            if (_options.EnableStatusTable)
+            {
+                VerifyStatusTable();
+            }
+        }
+
+        public void Verify(long expectedMessageCount, string route)
+        {
+            VerifyCount(expectedMessageCount, route);
 
             if (_options.EnablePriority)
             {
@@ -70,14 +100,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
 
         // ReSharper disable once UnusedParameter.Local
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        private void VerifyCount(long messageCount)
+        private void VerifyCount(long messageCount, string route)
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))
             {
                 conn.Open();
                 using (var command = conn.CreateCommand())
                 {
-                    command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataName}";
+                    command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataName} ";
+                    if (!string.IsNullOrEmpty(route))
+                    {
+                        command.CommandText += " where route = @route";
+                        command.Parameters.AddWithValue("@Route", route);
+                    }
                     using (var reader = command.ExecuteReader())
                     {
                         Assert.True(reader.Read());

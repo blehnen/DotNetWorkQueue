@@ -29,7 +29,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
     {
         public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
         {
-            new VerifyQueueData(queueName, connectionString, queueProducerConfiguration.Options()).Verify(messageCount);
+            new VerifyQueueData(queueName, connectionString, queueProducerConfiguration.Options()).Verify(messageCount, null);
+        }
+
+        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route)
+        {
+            new VerifyQueueData(queueName, connectionString, queueProducerConfiguration.Options()).Verify(messageCount, route);
         }
 
         public static void Verify(string queueName, string connectionString, long messageCount)

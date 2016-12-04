@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Metrics.Net;
@@ -39,11 +41,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 int timeOut,
                 int readerCount,
                 TimeSpan heartBeatTime, 
-                TimeSpan heartBeatMonitorTime)
+                TimeSpan heartBeatMonitorTime,
+                List<string> routes = null)
             where TTransportInit : ITransportInit, new()
         {
 
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            var metricName = queueName;
+            if (routes != null)
+            {
+                metricName = routes.Aggregate(metricName, (current, route) => current + (route + "|-|"));
+            }
+
+            using (var metrics = new Metrics.Net.Metrics(metricName))
             {
                 var processedCount = new IncrementWrapper();
                 var addInterceptorConsumer = InterceptorAdding.No;
@@ -65,22 +74,42 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
                             heartBeatMonitorTime);
+
+                        if(routes != null)
+                            queue.Configuration.Routes.AddRange(routes);
+
                         var waitForFinish = new ManualResetEventSlim(false);
                         waitForFinish.Reset();
 
                         //start looking for work
                         queue.Start<TMessage>((message, notifications) =>
                         {
-                            MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
+                            if (routes != null && routes.Count > 0)
+                            {
+                                MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount * routes.Count,
                                 waitForFinish);
+                            }
+                            else
+                            {
+                                MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
+                                waitForFinish);
+                            }
                         });
 
                         waitForFinish.Wait(timeOut*1000);
                     }
 
                     Assert.Null(processedCount.IdError);
-                    Assert.Equal(messageCount, processedCount.ProcessedCount);
-                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    if (routes != null && routes.Count > 0)
+                    {
+                        Assert.Equal(messageCount * routes.Count, processedCount.ProcessedCount);
+                        VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount * routes.Count);
+                    }
+                    else
+                    {
+                        Assert.Equal(messageCount, processedCount.ProcessedCount);
+                        VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    }
                     LoggerShared.CheckForErrors(queueName);
                 }
             }

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Data.SqlClient;
 using DotNetWorkQueue.Validation;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
 {
@@ -27,12 +28,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
     public class ReceiveMessageQuery : IQuery<IReceivedMessageInternal>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveMessageQuery"/> class.
+        /// Initializes a new instance of the <see cref="ReceiveMessageQuery" /> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="transaction">The transaction.</param>
         /// <param name="messageId">A specific message identifier to de-queue. If null, the first message found will be de-queued.</param>
-        public ReceiveMessageQuery(SqlConnection connection, SqlTransaction transaction, IMessageId messageId)
+        /// <param name="routes">The route.</param>
+        public ReceiveMessageQuery(SqlConnection connection, SqlTransaction transaction, IMessageId messageId, List<string> routes)
         {
             //only a connection is required
             Guard.NotNull(() => connection, connection);
@@ -40,6 +42,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
             Connection = connection;
             Transaction = transaction;
             MessageId = messageId;
+            Routes = routes;
         }
 
         /// <summary>
@@ -63,5 +66,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Query
         /// The message identifier.
         /// </value>
         public IMessageId MessageId { get; private set; }
+        /// <summary>
+        /// Gets the route.
+        /// </summary>
+        /// <value>
+        /// The route.
+        /// </value>
+        public List<string> Routes { get; private set; }
     }
 }
