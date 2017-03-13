@@ -195,3 +195,6 @@ FakesAssemblies/
 # Visual Studio 6 workspace options file
 *.opt
 MergedBuild/
+Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/AppReadme/Compare-NET-Objects-Help.chm
+Source/DotNetWorkQueue.Transport.SQLite.Tests/AppReadme/Compare-NET-Objects-Help.chm
+Source/DotNetWorkQueue.Transport.SqlServer.Tests/AppReadme/Compare-NET-Objects-Help.chm
