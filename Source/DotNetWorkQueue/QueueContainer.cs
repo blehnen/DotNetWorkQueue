@@ -32,6 +32,7 @@ namespace DotNetWorkQueue
     /// The root container for consumers and producers
     /// </summary>
     /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly")]
     public class QueueContainer<TTransportInit>: BaseContainer, IQueueContainer where TTransportInit : ITransportInit, new()
     {
         // ReSharper disable once StaticMemberInGenericType

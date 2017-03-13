@@ -868,6 +868,7 @@ namespace DotNetWorkQueue.Logging.LogProviders
             private static readonly object _levelError;
             private static readonly object _levelFatal;
 
+            [SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
             static NLogLogger()
             {
                 try

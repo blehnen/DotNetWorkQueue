@@ -17,13 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 #region Using
-
-using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using Npgsql;
 using Xunit;
-
 #endregion
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests

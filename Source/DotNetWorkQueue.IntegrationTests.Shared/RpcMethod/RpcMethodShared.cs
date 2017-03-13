@@ -193,7 +193,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
             }
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private static async Task SendMultipleMessagesAsync(IRpcMethodQueue queue, IEnumerable<Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>>> jobs)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             Parallel.ForEach(jobs, async job =>
             {
@@ -223,7 +225,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
             });
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private static async Task SendMultipleMessagesAsync(IRpcMethodQueue queue, IEnumerable<LinqExpressionToRun> jobs)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             Parallel.ForEach(jobs, async job =>
             {

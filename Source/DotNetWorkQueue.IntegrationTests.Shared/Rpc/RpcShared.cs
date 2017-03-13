@@ -135,7 +135,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
             });
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private static async void SendMultipleMessagesAsync(IRpcQueue<TTResponse, TTMessage> queue, int number)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             //send a bunch of messages
             var numberOfJobs = number;
