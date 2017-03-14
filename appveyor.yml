@@ -8,5 +8,4 @@ before_build:
 build:
   project: Source\DotNetWorkQueue.sln
   verbosity: minimal
-  -test:
- -  assemblies:
+test: off
