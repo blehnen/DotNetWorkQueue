@@ -2,16 +2,9 @@ version: 0.1.10.{build}
 branches:
   only:
   - master
+image: Visual Studio 2017
 before_build:
 - cmd: nuget restore Source\DotNetWorkQueue.sln
 build:
   project: Source\DotNetWorkQueue.sln
   verbosity: minimal
-test:
-  assemblies:
-  - Source\DotNetWorkQueue.Tests\bin\Debug\DotNetWorkQueue.Tests.dll
-  - Source\DotNetWorkQueue.Metrics.Net.Tests\bin\Debug\DotNetWorkQueue.Metrics.Net.Tests.dll
-  - Source\DotNetWorkQueue.Transport.PostgreSQL.Tests\bin\Debug\DotNetWorkQueue.Transport.PostgreSQL.Tests.dll
-  - Source\DotNetWorkQueue.Transport.Redis.Tests\bin\Debug\DotNetWorkQueue.Transport.Redis.Tests.dll
-  - Source\DotNetWorkQueue.Transport.SQLite.Tests\bin\Debug\DotNetWorkQueue.Transport.SQLite.Tests.dll
-  - Source\DotNetWorkQueue.Transport.SqlServer.Tests\bin\Debug\DotNetWorkQueue.Transport.SqlServer.Tests.dll
