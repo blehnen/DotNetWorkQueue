@@ -8,4 +8,11 @@ before_build:
 build:
   project: Source\DotNetWorkQueue.sln
   verbosity: minimal
-test: off
+-test:
+ -  assemblies:
+ -  - Source\DotNetWorkQueue.Tests\bin\Debug\DotNetWorkQueue.Tests.dll
+ -  - Source\DotNetWorkQueue.Metrics.Net.Tests\bin\Debug\DotNetWorkQueue.Metrics.Net.Tests.dll
+ -  - Source\DotNetWorkQueue.Transport.PostgreSQL.Tests\bin\Debug\DotNetWorkQueue.Transport.PostgreSQL.Tests.dll
+ -  - Source\DotNetWorkQueue.Transport.Redis.Tests\bin\Debug\DotNetWorkQueue.Transport.Redis.Tests.dll
+ -  - Source\DotNetWorkQueue.Transport.SQLite.Tests\bin\Debug\DotNetWorkQueue.Transport.SQLite.Tests.dll
+ -  - Source\DotNetWorkQueue.Transport.SqlServer.Tests\bin\Debug\DotNetWorkQueue.Transport.SqlServer.Tests.dll
