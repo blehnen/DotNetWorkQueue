@@ -8,7 +8,7 @@ before_build:
 build:
   project: Source\DotNetWorkQueue.sln
   verbosity: minimal
--test:
+- test:
  -  assemblies:
  -  - Source\DotNetWorkQueue.Tests\bin\Debug\DotNetWorkQueue.Tests.dll
  -  - Source\DotNetWorkQueue.Metrics.Net.Tests\bin\Debug\DotNetWorkQueue.Metrics.Net.Tests.dll
