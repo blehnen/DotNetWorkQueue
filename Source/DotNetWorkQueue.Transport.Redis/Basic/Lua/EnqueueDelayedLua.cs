@@ -57,14 +57,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="headers">The headers.</param>
         /// <param name="metaData">The meta data.</param>
         /// <param name="unixTime">The delay time in unix format.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
-        public string Execute(string messageId, byte[] message, byte[] headers, byte[] metaData, long unixTime)
+        public string Execute(string messageId, byte[] message, byte[] headers, byte[] metaData, long unixTime, string route)
         {
             if (Connection.IsDisposed)
                 return null;
 
             var db = Connection.Connection.GetDatabase();
-            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, unixTime));
+            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, unixTime, route));
         }
         /// <summary>
         /// Enqueues a message that is delayed
@@ -74,11 +75,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="headers">The headers.</param>
         /// <param name="metaData">The meta data.</param>
         /// <param name="unixTime">The delay time in unix format.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
-        public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, long unixTime)
+        public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, long unixTime, string route)
         {
             var db = Connection.Connection.GetDatabase();
-            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, unixTime)).ConfigureAwait(false);
+            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, unixTime, route)).ConfigureAwait(false);
         }
         /// <summary>
         /// Gets the parameters.
@@ -88,9 +90,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="headers">The headers.</param>
         /// <param name="metaData">The meta data.</param>
         /// <param name="unixTime">The unix time.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
-        private object GetParameters(string messageId, byte[] message, byte[] headers, byte[] metaData, long unixTime)
+        private object GetParameters(string messageId, byte[] message, byte[] headers, byte[] metaData, long unixTime, string route)
         {
+            var realRoute = string.IsNullOrEmpty(route) ? string.Empty : route;
             return
              new
              {
@@ -98,6 +102,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                  field = messageId,
                  value = message,
                  headers,
+                 Route = realRoute,
                  headerskey = (RedisKey)RedisNames.Headers,
                  delaykey = (RedisKey)RedisNames.Delayed,
                  channel = RedisNames.Notification,

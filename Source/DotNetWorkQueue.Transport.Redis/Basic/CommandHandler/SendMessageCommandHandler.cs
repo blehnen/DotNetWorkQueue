@@ -204,7 +204,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
             var result = _enqueueDelayedLua.Execute(messageId,
-                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), delayTime);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), delayTime, commandSend.MessageData.Route);
 
             if (string.IsNullOrWhiteSpace(result))
             {

@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         private void VerifyCount(long messageCount, string route)
         {
             var db = _connection.Connection.GetDatabase();
-            var records = db.ListLength(!string.IsNullOrEmpty(route) ? _redisNames.PendingRoute(route) : _redisNames.Pending);
+            var records = !string.IsNullOrEmpty(route) ? db.ListLength(_redisNames.PendingRoute(route)) : db.HashLength(_redisNames.Status);
             Assert.Equal(messageCount, records);
         }
 
