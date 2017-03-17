@@ -42,14 +42,36 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 	                            redis.call('LREM', @errorkey, -1, v) 
 	                            redis.call('zrem', @delaykey, v) 
 	                            redis.call('zrem', @expirekey, v) 
-
-                                 local jobName = redis.call('hget', @JobIDKey, v) 
-                                 if (jobName) then
-                                    redis.call('hdel', @JobIDKey, v) 
-                                    redis.call('hdel', @JobKey, jobName) 
-                                 end
-                            else 
-                                inProgress = inProgress + 1
+                                local jobName = redis.call('hget', @JobIDKey, v) 
+                                if (jobName) then
+                                   redis.call('hdel', @JobIDKey, v) 
+                                   redis.call('hdel', @JobKey, jobName) 
+                                end
+                            else
+                                local routeName = redis.call('hget', @RouteIDKey, v) 
+                                if(routeName) then
+                                   local routePending = @pendingkey + '_}' + route
+                                   inPending = redis.call('LREM', routePending, -1, v)
+                                   if(inPending == 1) then                                             
+	                                   redis.call('hdel', @valueskey, v) 
+                                       redis.call('hdel', @headerskey, v) 
+                                       redis.call('hdel', @Statuskey, v) 
+	                                   redis.call('hdel', @metakey, v) 
+	                                   redis.call('LREM', @errorkey, -1, v) 
+	                                   redis.call('zrem', @delaykey, v) 
+	                                   redis.call('zrem', @expirekey, v) 
+                                       redis.call('hdel', @RouteIDKey, v) 
+                                       local jobName = redis.call('hget', @JobIDKey, v) 
+                                       if (jobName) then
+                                          redis.call('hdel', @JobIDKey, v) 
+                                          redis.call('hdel', @JobKey, jobName) 
+                                       end
+                                    else
+                                       inProgress = inProgress + 1
+                                    end
+                                else
+                                    inProgress = inProgress + 1
+                                end
                             end
                         end
                         return table.getn(uuids) - inProgress";
@@ -90,6 +112,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 JobKey = (RedisKey)RedisNames.JobNames,
                 JobIDKey = (RedisKey)RedisNames.JobIdNames,
                 Statuskey = (RedisKey)RedisNames.Status,
+                RouteIDKey = (RedisKey)RedisNames.Route,
                 limit = count,
             };
         }

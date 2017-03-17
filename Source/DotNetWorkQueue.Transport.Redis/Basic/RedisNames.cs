@@ -118,6 +118,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <summary>
+        /// Gets the job event.
+        /// </summary>
+        /// <value>
+        /// The job event.
+        /// </value>
+        public string Route
+        {
+            get
+            {
+                BuildListIfNeeded();
+                return _names["Route"];
+            }
+        }
+
+        /// <summary>
         /// Gets the values queue name
         /// </summary>
         /// <value>
@@ -252,12 +267,23 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <summary>
+        /// Returns the key name for a pending route
+        /// </summary>
+        /// <param name="route">The route.</param>
+        /// <returns></returns>
+        public string PendingRoute(string route)
+        {
+            BuildListIfNeeded();
+            return string.Concat(_names["Pending"], "_}", route);
+        }
+
+        /// <summary>
         /// Gets all key names
         /// </summary>
         /// <value>
         /// The values.
         /// </value>
-        /// <remarks>The notification name is a channel, not a key; it is not included in this property</remarks>
+        /// <remarks>The notification name is a channel, not a key; it is not included in this property. Does not include route keys.</remarks>
         public IEnumerable<string> KeyNames
         {
             get
@@ -274,6 +300,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 yield return JobNames;
                 yield return JobIdNames;
                 yield return Status;
+                yield return Route;
             }
         } 
 
@@ -282,7 +309,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         private void BuildListIfNeeded()
         {
-            if (_names.Count == 14) return; //don't return unless all names are loaded
+            if (_names.Count == 15) return; //don't return unless all names are loaded
             lock (_names)
             {
                 if (_names.Count != 0) return;
@@ -299,6 +326,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 _names.Add("JobNames", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}JobNames"));
                 _names.Add("JobIDNames", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}JobIDNames"));
                 _names.Add("Status", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Status"));
+                _names.Add("Route", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Routes"));
                 _names.Add("JobEvent", string.Concat(QueuePrefix, "}JobEvent"));  //NOTE - not part of a queue
             }
         }

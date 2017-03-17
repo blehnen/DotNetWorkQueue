@@ -173,7 +173,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             var result = _enqueueLua.Execute(messageId,
                 serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), 
-                _serializer.InternalSerializer.ConvertToBytes(meta), rpc, jobName, scheduledTime, eventTime);
+                _serializer.InternalSerializer.ConvertToBytes(meta), rpc, jobName, scheduledTime, eventTime, commandSend.MessageData.Route);
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -237,7 +237,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             var result = _enqueueDelayedAndExpirationLua.Execute(messageId,
                 serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), delayTime,
-                expireTime);
+                expireTime, commandSend.MessageData.Route);
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -270,7 +270,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
             var result = _enqueueExpirationLua.Execute(messageId,
-                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), expireTime, rpc);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), expireTime, rpc, commandSend.MessageData.Route);
 
             if (string.IsNullOrWhiteSpace(result))
             {

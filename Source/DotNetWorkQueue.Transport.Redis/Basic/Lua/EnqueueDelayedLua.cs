@@ -43,6 +43,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      redis.call('zadd', @delaykey, @timestamp, id) 
                      redis.call('hset', @metakey, id, @metavalue) 
                      redis.call('hset', @StatusKey, id, '0') 
+
+                     if @Route ~= '' then
+                         redis.call('hset', @RouteIDKey, id, @Route)
+                     end
                      return id";
         }
         /// <summary>
@@ -102,6 +106,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                  timestamp = unixTime,
                  IDKey = (RedisKey)RedisNames.Id,
                  StatusKey = (RedisKey)RedisNames.Status,
+                 RouteIDKey = (RedisKey)RedisNames.Route,
              };
         }
     }

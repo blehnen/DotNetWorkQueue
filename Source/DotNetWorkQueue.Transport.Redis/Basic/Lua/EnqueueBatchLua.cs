@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using MsgPack;
 using MsgPack.Serialization;
 using StackExchange.Redis;
+using System.Linq;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
@@ -51,6 +52,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 	                        local metadata
 	                        local timestamp
 	                        local expiretime
+                            local route
 
 	                        for k2, v2 in pairs(v1) do     
 		                        local key = tonumber(k2)   
@@ -72,7 +74,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 		                        if key == 6 then
 			                        metadata = v2
 		                        end
-		                        if key == 7 then
+                                if key == 7 then
+			                        route = v2
+		                        end
+		                        if key == 8 then
 			                        timestamp = tonumber(v2)
 		                        end
 	                        end
@@ -96,6 +101,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 		                        signal = 1
 	                        end
 
+                            if route ~= '' then
+                               redis.call('hset', @RouteIDKey, id, route)
+                            end
+
 	                        if expiretime > 0 then
 		                        redis.call('zadd', @expirekey, expiretime, id) 
 	                        end
@@ -118,10 +127,19 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 return null;
 
             var db = Connection.Connection.GetDatabase();
-            var result = (byte[])db.ScriptEvaluate(LoadedLuaScript, GetParameters(messages));
-            if (result == null || result.Length <= 0) return new List<string>();
-            var serializer = SerializationContext.Default.GetSerializer<List<string>>();
-            return serializer.UnpackSingleObject(result);
+
+            //we need to group by route
+            var splitList = messages.GroupBy(x => x.Route);
+            var returnData = new List<string>(messages.Count);
+            foreach (var group in splitList)
+            {
+                var result = (byte[])db.ScriptEvaluate(LoadedLuaScript, GetParameters(group.ToList(), group.Key));
+                if (result == null || result.Length <= 0) continue;
+                var serializer = SerializationContext.Default.GetSerializer<List<string>>();
+                var tempData = serializer.UnpackSingleObject(result);
+                returnData.AddRange(tempData);
+            }
+            return returnData;
         }
 
         /// <summary>
@@ -131,20 +149,34 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <returns></returns>
         public async Task<List<string>> ExecuteAsync(List<MessageToSend> messages)
         {
+            if (Connection.IsDisposed)
+                return null;
+
             var db = Connection.Connection.GetDatabase();
-            var result = (byte[]) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messages)).ConfigureAwait(false);
-            if (result == null || result.Length <= 0) return new List<string>();
-            var serializer = SerializationContext.Default.GetSerializer<List<string>>();
-            return serializer.UnpackSingleObject(result);
+
+            //we need to group by route
+            var splitList = messages.GroupBy(x => x.Route);
+            var returnData = new List<string>(messages.Count);
+            foreach (var group in splitList)
+            {
+                var result = (byte[])await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(group.ToList(), group.Key)).ConfigureAwait(false);
+                if (result == null || result.Length <= 0) continue;
+                var serializer = SerializationContext.Default.GetSerializer<List<string>>();
+                var tempData = serializer.UnpackSingleObject(result);
+                returnData.AddRange(tempData);
+            }
+            return returnData;
         }
 
         /// <summary>
         /// Gets the parameters.
         /// </summary>
         /// <param name="messages">The messages.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
-        private object GetParameters(List<MessageToSend> messages)
+        private object GetParameters(List<MessageToSend> messages, string route)
         {
+            var pendingKey = !string.IsNullOrEmpty(route) ? RedisNames.PendingRoute(route) : RedisNames.Pending;
             // Creates serializer.
             var serializer = SerializationContext.Default.GetSerializer<List<MessageToSend>>();
             using (var output = new MemoryStream())
@@ -154,7 +186,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 {
                     messages = (RedisValue) output.ToArray(),
                     key = (RedisKey) RedisNames.Values,
-                    pendingkey = (RedisKey) RedisNames.Pending,
+                    pendingkey = (RedisKey)pendingKey,
                     headerskey = (RedisKey)RedisNames.Headers,
                     channel = RedisNames.Notification,
                     metakey = (RedisKey) RedisNames.MetaData,
@@ -162,6 +194,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                     delaykey = (RedisKey)RedisNames.Delayed,
                     expirekey = (RedisKey)RedisNames.Expiration,
                     StatusKey = (RedisKey)RedisNames.Status,
+                    RouteIDKey = (RedisKey)RedisNames.Route,
                 };
                 return rc;
             }
@@ -175,6 +208,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </remarks>
         public class MessageToSend
         {
+            private string _route;
             /// <summary>
             /// Initializes a new instance of the <see cref="MessageToSend"/> class.
             /// </summary>
@@ -237,6 +271,22 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             /// The headers.
             /// </value>
             public MessagePackObject Headers { get; set; }
+
+            /// <summary>
+            /// Gets or sets the route.
+            /// </summary>
+            /// <value>
+            /// The route.
+            /// </value>
+            /// <remarks>Optional</remarks>
+            public string Route
+            {
+                get { return _route; }
+                set
+                {
+                    _route = value ?? string.Empty;
+                }
+            }
         }
     }
 }

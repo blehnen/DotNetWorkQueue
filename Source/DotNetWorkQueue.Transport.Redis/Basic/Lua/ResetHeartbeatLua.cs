@@ -35,7 +35,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                         end
                         for k, v in pairs(uuids) do                             
 	                        redis.call('zrem',  @workingkey, v)
-	                        redis.call('rpush', @pendingkey, v) 
+                            local routeName = redis.call('hget', @RouteIDKey, v) 
+                            if(routeName) then
+                                local routePending = @pendingkey + '_}' + route
+                                redis.call('rpush', routePending, v) 
+                            else
+	                            redis.call('rpush', @pendingkey, v) 
+                            end
                             redis.call('hset', @StatusKey, v, '0') 
 	                        if signal == 1 then
 		                        redis.call('publish', @channel, v) 
@@ -79,6 +85,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 channel = RedisNames.Notification,
                 limit = count,
                 signalID = Convert.ToInt32(rpc),
+                RouteIDKey = (RedisKey)RedisNames.Route,
                 StatusKey = (RedisKey)RedisNames.Status,
             };
         }

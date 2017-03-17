@@ -85,12 +85,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             try
             {
-                //TODO - temp - fail all messages with routes, as they are not supported yet
-                if (!string.IsNullOrEmpty(data.Route))
-                {
-                    throw new NotImplementedException("Redis transport does not yet support routes");
-                }
-
                 //correlationID must be stored as a message header
                 messageToSend.SetHeader(_headers.CorelationId, new RedisQueueCorrelationIdSerialized((Guid)data.CorrelationId.Id.Value));
 
@@ -116,11 +110,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             try
             {
-                //TODO - temp - fail all messages with routes, as they are not supported yet
-                if (messages.Any(x => !string.IsNullOrEmpty(x.MessageData.Route)))
-                {
-                    throw new NotImplementedException("Redis transport does not yet support routes");
-                }
                 return _sendMessageBatch.Handle(new SendMessageCommandBatch(messages));
             }
             catch (Exception exception)
@@ -139,12 +128,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             try
             {
-                //TODO - temp - fail all messages with routes, as they are not supported yet
-                if (!string.IsNullOrEmpty(data.Route))
-                {
-                    throw new NotImplementedException("Redis transport does not yet support routes");
-                }
-
                 //correlationID must be stored as a message header
                 messageToSend.SetHeader(_headers.CorelationId, new RedisQueueCorrelationIdSerialized((Guid)data.CorrelationId.Id.Value));
                 var messageId = await _sendMessageAsync.Handle(new SendMessageCommand(messageToSend, data)).ConfigureAwait(false);
@@ -170,11 +153,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             try
             { 
-                //TODO - temp - fail all messages with routes, as they are not supported yet
-                if (messages.Any(x => !string.IsNullOrEmpty(x.MessageData.Route)))
-                {
-                    throw new NotImplementedException("Redis transport does not yet support routes");
-                }
                 return await _sendMessageBatchAsync.Handle(new SendMessageCommandBatch(messages)).ConfigureAwait(false);
             }
             catch (Exception exception)

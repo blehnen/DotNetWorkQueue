@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
@@ -40,6 +41,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         private readonly DequeueRpcLua _dequeueRpcLua;
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly IMessageFactory _messageFactory;
+        private readonly QueueConsumerConfiguration _configuration;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessageQueryHandler" /> class.
@@ -52,6 +54,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// <param name="dequeueRpcLua">The dequeue RPC.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="messageFactory">The message factory.</param>
+        /// <param name="configuration">The configuration.</param>
         public ReceiveMessageQueryHandler(
             ICompositeSerialization serializer, 
             IReceivedMessageFactory receivedMessageFactory,
@@ -60,7 +63,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             DequeueLua dequeueLua,
             DequeueRpcLua dequeueRpcLua, 
             IUnixTimeFactory unixTimeFactory, 
-            IMessageFactory messageFactory)
+            IMessageFactory messageFactory, 
+            QueueConsumerConfiguration configuration)
         {
             Guard.NotNull(() => serializer, serializer);
             Guard.NotNull(() => receivedMessageFactory, receivedMessageFactory);
@@ -69,6 +73,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             Guard.NotNull(() => dequeueLua, dequeueLua);
             Guard.NotNull(() => dequeueRpcLua, dequeueRpcLua);
             Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
+            Guard.NotNull(() => configuration, configuration);
 
             _serializer = serializer;
             _receivedMessageFactory = receivedMessageFactory;
@@ -78,6 +83,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _dequeueRpcLua = dequeueRpcLua;
             _unixTimeFactory = unixTimeFactory;
             _messageFactory = messageFactory;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -99,11 +105,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                 RedisValue[] result;
                 if (query.MessageId != null && query.MessageId.HasValue)
                 {
-                    result = _dequeueRpcLua.Execute(query.MessageId.Id.Value.ToString(), unixTimestamp);
+                    result = _dequeueRpcLua.Execute(query.MessageId.Id.Value.ToString(), unixTimestamp, _configuration.Routes);
                 }
                 else
                 {
-                    result = _dequeueLua.Execute(unixTimestamp);
+                    result = _dequeueLua.Execute(unixTimestamp, _configuration.Routes);
                 }
 
                 if (result == null || (result.Length == 1 && !result[0].HasValue) || !result[0].HasValue)

@@ -44,6 +44,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                         redis.call('hdel', @JobKey, jobName) 
                      end
                     
+                     local routeName = redis.call('hget', @RouteIDKey, @uuid) 
+                     if(routeName) then
+                         redis.call('hdel', @RouteIDKey, @uuid) 
+                     end
                      return 1";
         }
         /// <summary>
@@ -75,6 +79,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 JobKey = (RedisKey)RedisNames.JobNames,
                 JobIDKey = (RedisKey)RedisNames.JobIdNames,
                 StatusKey = (RedisKey)RedisNames.Status,
+                RouteIDKey = (RedisKey)RedisNames.Route,
             };
         }
     }

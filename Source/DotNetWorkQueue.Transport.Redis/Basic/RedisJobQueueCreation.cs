@@ -66,10 +66,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <exception cref="NotImplementedException"></exception>
         public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, bool enableRoute = false)
         {
-            if(enableRoute)
-            {
-                throw new NotImplementedException();
-            }
             return _creation.CreateQueue();
         }
 

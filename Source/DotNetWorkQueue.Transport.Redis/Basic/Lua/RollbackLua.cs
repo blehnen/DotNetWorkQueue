@@ -35,7 +35,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         {
             Script = @"local signal = tonumber(@signalID)
                      redis.call('zrem', @workingkey, @uuid) 
-                     redis.call('rpush', @pendingkey, @uuid) 
+                     local routeName = redis.call('hget', @RouteIDKey, @uuid) 
+                     if(routeName) then
+                        local routePending = @pendingkey + '_}' + routeName
+                        redis.call('rpush', routePending, @uuid) 
+                     else
+                        redis.call('rpush', @pendingkey, @uuid)
+                     end
                      redis.call('hset', @StatusKey, @uuid, '0') 
                      if signal == 1 then
                        redis.call('publish', @channel, @uuid) 
@@ -70,6 +76,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 pendingkey = (RedisKey)RedisNames.Pending,
                 channel = RedisNames.Notification,
                 signalID = Convert.ToInt32(rpc),
+                RouteIDKey = (RedisKey)RedisNames.Route,
                 StatusKey = (RedisKey)RedisNames.Status,
             };
         }

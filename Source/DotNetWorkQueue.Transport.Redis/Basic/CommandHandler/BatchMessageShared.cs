@@ -87,7 +87,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
                     MetaData = meta,
                     CorrelationId = m.MessageData.CorrelationId.ToString(),
                     TimeStamp = unixTimeStampDelay,
-                    ExpireTimeStamp = unixTimeStampExpiration
+                    ExpireTimeStamp = unixTimeStampExpiration,
+                    Route = m.MessageData.Route
                 });
             });
             return messagesToSend.ToList();

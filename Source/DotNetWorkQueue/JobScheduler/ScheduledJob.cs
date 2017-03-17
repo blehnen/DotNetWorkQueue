@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.JobScheduler
         public DateTimeOffset NextEvent { get; private set; }
         public DateTimeOffset PrevEvent { get; private set; }
         public ILog Logger => _queue.Logger;
-        public string Route { get; private set; }
+        public string Route { get; }
 
         public event Action<IScheduledJob, Exception> OnException;
         public event Action<IScheduledJob, IJobQueueOutputMessage> OnNonFatalFailureEnQueue;

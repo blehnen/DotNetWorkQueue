@@ -45,6 +45,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      redis.call('zadd', @expirekey, @timestampexpire, id) 
                      redis.call('hset', @metakey, id, @metavalue) 
                      redis.call('hset', @StatusKey, id, '0') 
+
+                     if @Route ~= '' then
+                         redis.call('hset', @RouteIDKey, id, @Route)
+                     end
                      return id";
         }
         /// <summary>
@@ -56,14 +60,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="metaData">The meta data.</param>
         /// <param name="delayTime">The delay time.</param>
         /// <param name="expireTime">The expire time.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
-        public string Execute(string messageId, byte[] message, byte[] headers, byte[] metaData, long delayTime, long expireTime)
+        public string Execute(string messageId, byte[] message, byte[] headers, 
+            byte[] metaData, long delayTime, long expireTime, string route)
         {
             if (Connection.IsDisposed)
                 return null;
 
             var db = Connection.Connection.GetDatabase();
-            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, delayTime, expireTime));
+            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, delayTime, expireTime, route));
         }
         /// <summary>
         /// Enqueues a message that is both delayed and has expiration
@@ -74,11 +80,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="metaData">The meta data.</param>
         /// <param name="delayTime">The delay time.</param>
         /// <param name="expireTime">The expire time.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
-        public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, long delayTime, long expireTime)
+        public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData,
+            long delayTime, long expireTime, string route)
         {
             var db = Connection.Connection.GetDatabase();
-            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, delayTime, expireTime)).ConfigureAwait(false);
+            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, delayTime, expireTime, route)).ConfigureAwait(false);
         }
         /// <summary>
         /// Gets the parameters.
@@ -89,9 +97,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="metaData">The meta data.</param>
         /// <param name="delayTime">The delay time.</param>
         /// <param name="expireTime">The expire time.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
-        private object GetParameters(string messageId, byte[] message, byte[] headers, byte[] metaData, long delayTime, long expireTime)
+        private object GetParameters(string messageId, byte[] message, byte[] headers, byte[] metaData, 
+            long delayTime, long expireTime, string route)
         {
+            var realRoute = string.IsNullOrEmpty(route) ? string.Empty : route;
             return
             new
             {
@@ -101,6 +112,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 delaykey = (RedisKey)RedisNames.Delayed,
                 channel = RedisNames.Notification,
                 headers,
+                Route = realRoute,
                 headerskey = (RedisKey)RedisNames.Headers,
                 metakey = (RedisKey)RedisNames.MetaData,
                 metavalue = metaData,
@@ -109,6 +121,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 timestampexpire = expireTime,
                 IDKey = (RedisKey)RedisNames.Id,
                 StatusKey = (RedisKey)RedisNames.Status,
+                RouteIDKey = (RedisKey)RedisNames.Route,
             };
         }
     }

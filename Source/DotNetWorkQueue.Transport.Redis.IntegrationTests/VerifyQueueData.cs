@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         public void Verify(long expectedMessageCount, int expectedStatus, string route)
         {
             VerifyCount(expectedMessageCount, route);
-            VerifyStatus(expectedMessageCount, expectedStatus);
+            VerifyStatus(expectedMessageCount, expectedStatus, route);
 
             // ReSharper disable once PossibleInvalidOperationException
             if(_configuration.GetMessageDelay().HasValue && _configuration.GetMessageDelay().Value)
@@ -57,20 +57,15 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         // ReSharper disable once UnusedParameter.Local
         private void VerifyCount(long messageCount, string route)
         {
-            if (!string.IsNullOrEmpty(route))
-            {
-                throw new NotImplementedException();
-            }
-
             var db = _connection.Connection.GetDatabase();
-            var records = db.HashLength(_redisNames.Values);
+            var records = db.ListLength(!string.IsNullOrEmpty(route) ? _redisNames.PendingRoute(route) : _redisNames.Pending);
             Assert.Equal(messageCount, records);
         }
 
-        private void VerifyStatus(long messageCount, int expectedStatus)
+        private void VerifyStatus(long messageCount, int expectedStatus, string route)
         {
             var db = _connection.Connection.GetDatabase();
-            var records = db.HashLength(_redisNames.Status);
+            var records = !string.IsNullOrEmpty(route) ? db.ListLength(_redisNames.PendingRoute(route)) : db.HashLength(_redisNames.Status);
             Assert.Equal(messageCount, records);
 
             var hashes = db.HashGetAll(_redisNames.Status);

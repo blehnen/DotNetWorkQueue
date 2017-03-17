@@ -89,6 +89,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             return GenerateData(configuration);
         }
 
+        public static AdditionalMessageData GenerateRouteData(QueueProducerConfiguration configuration, string route)
+        {
+            return new AdditionalMessageData {Route = route};
+        }
+
         public static AdditionalMessageData GenerateData(QueueProducerConfiguration configuration)
         {
             if (configuration.GetMessageExpiration().HasValue ||
@@ -107,7 +112,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
                 return data;
             }
 
-            return null;
+            return new AdditionalMessageData();
         }
     }
     /// <summary>

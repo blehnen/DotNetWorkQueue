@@ -62,6 +62,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                         redis.call('hset', @JobEventKey, @JobName, @EventTime)
                         redis.call('hset', @JobEventKey, @JobNameScheduled, @ScheduledTime)
                      end
+                     if @Route ~= '' then
+                         redis.call('hset', @RouteIDKey, id, @Route)
+                     end
                      if signal == 1 then
                         redis.call('publish', @channel, id) 
                      else
@@ -80,15 +83,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="eventTime">The event time.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
         public string Execute(string messageId, byte[] message, byte[] headers, byte[] metaData, bool rpc, string jobName,
-             DateTimeOffset scheduledTime, DateTimeOffset eventTime)
+             DateTimeOffset scheduledTime, DateTimeOffset eventTime, string route)
         {
             if (Connection.IsDisposed)
                 return null;
 
             var db = Connection.Connection.GetDatabase();
-            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, rpc, jobName, scheduledTime, eventTime));
+            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, rpc, jobName, scheduledTime, eventTime, route));
         }
         /// <summary>
         /// Executes the specified message identifier.
@@ -101,12 +105,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="eventTime">The event time.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
         public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, bool rpc, string jobName,
-             DateTimeOffset scheduledTime, DateTimeOffset eventTime)
+             DateTimeOffset scheduledTime, DateTimeOffset eventTime, string route)
         {
             var db = Connection.Connection.GetDatabase();
-            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, rpc, jobName, scheduledTime, eventTime)).ConfigureAwait(false);
+            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, rpc, jobName, scheduledTime, eventTime, route)).ConfigureAwait(false);
         }
         /// <summary>
         /// Gets the parameters.
@@ -119,10 +124,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="jobName">Name of the job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="eventTime">The event time.</param>
+        /// <param name="route">The route.</param>
         /// <returns></returns>
         private object GetParameters(string messageId, byte[] message, byte[] headers, byte[] metaData, bool rpc, string jobName,
-            DateTimeOffset scheduledTime, DateTimeOffset eventTime)
+            DateTimeOffset scheduledTime, DateTimeOffset eventTime, string route)
         {
+            var pendingKey = !string.IsNullOrEmpty(route) ? RedisNames.PendingRoute(route) : RedisNames.Pending;
+            var realRoute = string.IsNullOrEmpty(route) ? string.Empty : route;
             return new
             {
                 key = (RedisKey)RedisNames.Values,
@@ -130,17 +138,19 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 value = (RedisValue)message,
                 headers,
                 headerskey = (RedisKey)RedisNames.Headers,
-                pendingkey = (RedisKey)RedisNames.Pending,
+                pendingkey = (RedisKey)pendingKey,
                 channel = RedisNames.Notification,
                 metakey = (RedisKey)RedisNames.MetaData,
                 metavalue = (RedisValue)metaData,
                 signalID = Convert.ToInt32(rpc),
+                Route = realRoute,
                 IDKey = (RedisKey)RedisNames.Id,
                 JobKey = (RedisKey)RedisNames.JobNames,
                 JobIDKey = (RedisKey)RedisNames.JobIdNames,
                 JobName = jobName,
                 StatusKey = (RedisKey)RedisNames.Status,
                 JobEventKey = (RedisKey)RedisNames.JobEvent,
+                RouteIDKey = (RedisKey)RedisNames.Route,
                 JobNameScheduled = string.Concat(jobName, "|scheduled"),
                 ScheduledTime = scheduledTime.ToString(DateTimeScheduler, System.Globalization.CultureInfo.InvariantCulture),
                 EventTime = eventTime.ToString(DateTimeFormat, System.Globalization.CultureInfo.InvariantCulture)

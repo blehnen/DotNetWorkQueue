@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using System.Threading;
 using DotNetWorkQueue.Validation;
 
@@ -147,8 +149,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private QueueRemoveResult RemoveQueueInternal()
         {
             var db = _redisConnection.Connection.GetDatabase();
+            var routesKey = _redisNames.Route;
             foreach (var key in _redisNames.KeyNames)
             {
+                if (key == routesKey)
+                { //delete pending route items
+                    var hashset = new HashSet<string>();
+                    var records = db.HashGetAll(routesKey);
+                    foreach (var routeName in records)
+                    {
+                        if (hashset.Contains(routeName.Value)) continue;
+                        var keyToDelete = _redisNames.PendingRoute(routeName.Value);
+                        db.KeyDelete(keyToDelete);
+                        hashset.Add(routeName.Value);
+                    }
+                }
                 db.KeyDelete(key);
             }
             return new QueueRemoveResult(QueueRemoveStatus.Success);

@@ -29,7 +29,6 @@ namespace DotNetWorkQueue.Configuration
     public class QueueConsumerConfiguration : QueueConfigurationReceive, IReadonly, ISetReadonly
     {
         private bool _isReadonly;
-        private List<string> _routes;
 
         #region Constructor
         /// <summary>
@@ -58,7 +57,7 @@ namespace DotNetWorkQueue.Configuration
             Worker = workerConfiguration;
             HeartBeat = heartBeatConfiguration;
             MessageExpiration = messageExpirationConfiguration;
-            _routes = new List<string>();
+            Routes = new List<string>();
         }
         #endregion
 
@@ -92,10 +91,7 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The routes.
         /// </value>
-        public List<string> Routes
-        {
-            get { return _routes; }
-        }
+        public List<string> Routes { get; }
 
         /// <summary>
         /// Gets a value indicating whether this instance is read only.

@@ -180,7 +180,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             }
 
             var result = await _enqueueLua.ExecuteAsync(messageId,
-                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), rpc, jobName, scheduledTime, eventTime).ConfigureAwait(false);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), rpc, jobName, scheduledTime, eventTime, commandSend.MessageData.Route).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -244,7 +244,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             var result = await _enqueueDelayedAndExpirationLua.ExecuteAsync(messageId,
                 serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), delayTime,
-                expireTime).ConfigureAwait(false);
+                expireTime, commandSend.MessageData.Route).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -276,7 +276,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
             var result = await _enqueueExpirationLua.ExecuteAsync(messageId,
-                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), expireTime, rpc).ConfigureAwait(false);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), expireTime, rpc, commandSend.MessageData.Route).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result))
             {

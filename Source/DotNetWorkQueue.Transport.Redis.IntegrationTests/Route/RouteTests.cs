@@ -11,17 +11,17 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
     public class RouteTests
     {
         [Theory]
-        [InlineData(10, 1, 60, 1, 1, ConnectionInfoTypes.Windows),
-         InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Windows),
-         InlineData(50, 5, 200, 1, 3, ConnectionInfoTypes.Windows),
-         InlineData(10, 5, 180, 1, 4, ConnectionInfoTypes.Windows),
-         InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Windows),
-         InlineData(50, 5, 200, 1, 2, ConnectionInfoTypes.Linux),
-         InlineData(10, 5, 180, 1, 10, ConnectionInfoTypes.Linux),
-         InlineData(100, 0, 180, 1, 2, ConnectionInfoTypes.Linux),
-         InlineData(100, 0, 180, 1, 2, ConnectionInfoTypes.Linux)]
+        [InlineData(10, 1, 60, 1, 1, ConnectionInfoTypes.Windows, false),
+         InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Windows, false),
+         InlineData(50, 5, 200, 1, 3, ConnectionInfoTypes.Windows, false),
+         InlineData(10, 5, 180, 1, 4, ConnectionInfoTypes.Windows, false),
+         InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Windows, false),
+         InlineData(50, 5, 200, 1, 2, ConnectionInfoTypes.Linux, false),
+         InlineData(10, 5, 180, 1, 10, ConnectionInfoTypes.Linux, false),
+         InlineData(100, 0, 180, 1, 2, ConnectionInfoTypes.Linux, false),
+         InlineData(500, 0, 180, 1, 2, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
-           int routeCount, ConnectionInfoTypes type)
+           int routeCount, ConnectionInfoTypes type, bool batch)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
 
                         var routeTest = new RouteTestsShared();
                         routeTest.RunTest<RedisQueueInit, FakeMessageA>(queueName, connectionString,
-                            true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
+                            true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, batch,
                             GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
 
                         using (var count = new VerifyQueueRecordCount(queueName, connectionString))
