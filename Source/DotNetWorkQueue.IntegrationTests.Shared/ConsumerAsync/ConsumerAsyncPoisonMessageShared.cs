@@ -36,7 +36,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             int queueSize,
             long messageCount,
             TimeSpan heartBeatTime, 
-            TimeSpan heartBeatMonitorTime)
+            TimeSpan heartBeatMonitorTime,
+            string route = null)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -69,7 +70,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                             queueName, connectionString, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime);
+                                    heartBeatMonitorTime, route);
 
                                 //start looking for work
                                 queue.Start<TMessage>((message, notifications) =>

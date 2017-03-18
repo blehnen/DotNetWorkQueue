@@ -30,11 +30,16 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux),
-        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Linux),
-            InlineData(100, 0, 20, 5, ConnectionInfoTypes.Windows),
-        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Windows)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
+        [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, true),
+        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Linux, true),
+        InlineData(100, 0, 20, 5, ConnectionInfoTypes.Windows, true),
+        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Windows, true),
+        InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, false),
+        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Linux, false),
+        InlineData(100, 0, 20, 5, ConnectionInfoTypes.Windows, false),
+        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Windows, false)
+            ]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -46,18 +51,29 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
             {
                 try
                 {
-                    var producer = new ProducerShared();
-                    producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        connectionString, false, messageCount, logProvider, Helpers.GenerateExpiredData,
-                        Helpers.Verify, false);
+                    if (route)
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateExpiredDataWithRoute,
+                            Helpers.Verify, false);
+                    }
+                    else
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateExpiredData,
+                            Helpers.Verify, false);
+                    }
 
                     Thread.Sleep(2000);
 
+                    var defaultRoute = route ? Helpers.DefaultRoute : null;
                     var consumer = new ConsumerExpiredMessageShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), defaultRoute);
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

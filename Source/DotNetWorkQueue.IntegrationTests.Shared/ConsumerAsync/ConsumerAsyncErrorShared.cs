@@ -30,7 +30,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             ILogProvider logProvider,
             int messageCount, int workerCount, int timeOut,
             int queueSize, int readerCount,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
+            string route = null)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -69,7 +70,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                             queueName, connectionString, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime);
+                                    heartBeatMonitorTime, route);
                                 SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
                                 var waitForFinish = new ManualResetEventSlim(false);

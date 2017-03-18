@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                             else
                                 local routeName = redis.call('hget', @RouteIDKey, v) 
                                 if(routeName) then
-                                   local routePending = @pendingkey + '_}' + route
+                                   local routePending = @pendingkey .. '_}'.. routeName
                                    inPending = redis.call('LREM', routePending, -1, v)
                                    if(inPending == 1) then                                             
 	                                   redis.call('hdel', @valueskey, v) 

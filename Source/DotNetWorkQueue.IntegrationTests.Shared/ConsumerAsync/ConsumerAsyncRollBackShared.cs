@@ -39,7 +39,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             int runTime,
             int messageCount,
             TimeSpan heartBeatTime, 
-            TimeSpan heartBeatMonitorTime)
+            TimeSpan heartBeatMonitorTime,
+            string route = null)
             where TTransportInit : ITransportInit, new()
         {
             var processedCount = new IncrementWrapper();
@@ -75,7 +76,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                             queueName, connectionString, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime);
+                                    heartBeatMonitorTime, route);
 
                                 var waitForFinish = new ManualResetEventSlim(false);
                                 waitForFinish.Reset();

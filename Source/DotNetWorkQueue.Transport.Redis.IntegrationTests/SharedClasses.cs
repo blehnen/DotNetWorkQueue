@@ -26,6 +26,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
     public static class Helpers
     {
+        public static string DefaultRoute = "route1";
+
         public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route)
         {
             using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration, connectionString))
@@ -89,15 +91,24 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             return GenerateData(configuration);
         }
 
-        public static AdditionalMessageData GenerateRouteData(QueueProducerConfiguration configuration, string route)
+        public static AdditionalMessageData GenerateRouteData(QueueProducerConfiguration configuration)
         {
-            return new AdditionalMessageData {Route = route};
+            configuration.SetRoute(true);
+            return GenerateData(configuration);
+        }
+
+        public static AdditionalMessageData GenerateExpiredDataWithRoute(QueueProducerConfiguration configuration)
+        {
+            configuration.SetMessageExpiration(true);
+            configuration.SetRoute(true);
+            return GenerateData(configuration);
         }
 
         public static AdditionalMessageData GenerateData(QueueProducerConfiguration configuration)
         {
             if (configuration.GetMessageExpiration().HasValue ||
-                configuration.GetMessageDelay().HasValue)
+                configuration.GetMessageDelay().HasValue ||
+                configuration.GetMessageRoute().HasValue)
             {
                 var data = new AdditionalMessageData();
 
@@ -108,6 +119,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
                 // ReSharper disable once PossibleInvalidOperationException
                 if (configuration.GetMessageDelay().HasValue && configuration.GetMessageDelay().Value)
                     data.SetDelay(TimeSpan.FromSeconds(5));
+
+                // ReSharper disable once PossibleInvalidOperationException
+                if (configuration.GetMessageRoute().HasValue && configuration.GetMessageRoute().Value)
+                    data.Route = DefaultRoute;
 
                 return data;
             }
@@ -126,17 +141,23 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         }
         public static bool? GetMessageExpiration(this QueueConfigurationSend queue)
         {
-            dynamic value;
-            return queue.AdditionalConfiguration.TryGetSetting("RedisMessageExpirationEnabled", out value) ? value : null;
+            return queue.AdditionalConfiguration.TryGetSetting("RedisMessageExpirationEnabled", out dynamic value) ? value : null;
         }
         public static void SetMessageDelay(this QueueConfigurationSend queue, bool enabled)
         {
             queue.AdditionalConfiguration.SetSetting("RedisMessageDelayEnabled", enabled);
         }
+        public static void SetRoute(this QueueConfigurationSend queue, bool enabled)
+        {
+            queue.AdditionalConfiguration.SetSetting("RedisRouteEnabled", enabled);
+        }
         public static bool? GetMessageDelay(this QueueConfigurationSend queue)
         {
-            dynamic value;
-            return queue.AdditionalConfiguration.TryGetSetting("RedisMessageDelayEnabled", out value) ? value : null;
+            return queue.AdditionalConfiguration.TryGetSetting("RedisMessageDelayEnabled", out dynamic value) ? value : null;
+        }
+        public static bool? GetMessageRoute(this QueueConfigurationSend queue)
+        {
+            return queue.AdditionalConfiguration.TryGetSetting("RedisRouteEnabled", out dynamic value) ? value : null;
         }
     }
 }

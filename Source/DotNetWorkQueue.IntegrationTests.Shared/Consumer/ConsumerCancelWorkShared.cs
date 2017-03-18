@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string route = null)
         {
             _queueName = queueName;
             _connectionString = connectionString;
@@ -53,13 +53,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             _heartBeatTime = heartBeatTime;
             _heartBeatMonitorTime = heartBeatMonitorTime;
 
-            _queue = CreateConsumerInternalThread();
+            _queue = CreateConsumerInternalThread(route);
             var t = new Thread(RunBadQueue);
             t.Start();
 
             //run consumer
             RunConsumerInternal(queueName, connectionString, addInterceptors, logProvider, runTime,
-                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime);
+                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, route);
         }
 
 
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, IDisposable queueBad,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string route)
         {
 
             using (var metrics = new Metrics.Net.Metrics(queueName))
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                                 connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime);
+                            heartBeatMonitorTime, route);
                         var waitForFinish = new ManualResetEventSlim(false);
                         waitForFinish.Reset();
                         //start looking for work
@@ -114,7 +114,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             }
         }
 
-        private IConsumerQueue CreateConsumerInternalThread()
+        private IConsumerQueue CreateConsumerInternalThread(string route)
         {
             _badQueueContainer = SharedSetup.CreateCreator<TTransportInit>(_badQueueAdditions);
 
@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                     _connectionString);
 
             SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime,
-                _heartBeatMonitorTime);
+                _heartBeatMonitorTime, route);
             return queue;
         }
 

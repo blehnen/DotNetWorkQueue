@@ -28,9 +28,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncErrorTable
     {
         [Theory]
-        [InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows),
-            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux)]
-        public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
+        [InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows, false),
+            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, false),
+            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows, true),
+            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, true)]
+        public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -43,16 +45,27 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                 try
                 {
                     //create data
-                    var producer = new ProducerShared();
-                    producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, false);
+                    if (route)
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateRouteData,
+                            Helpers.Verify, false);
+                    }
+                    else
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            Helpers.Verify, false);
+                    }
 
                     //process data
+                    var defaultRoute = route ? Helpers.DefaultRoute : null;
                     var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         logProvider,
-                        messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                        messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), defaultRoute);
                     ValidateErrorCounts(queueName, messageCount, connectionString);
                     using (
                         var count = new VerifyQueueRecordCount(queueName, connectionString))

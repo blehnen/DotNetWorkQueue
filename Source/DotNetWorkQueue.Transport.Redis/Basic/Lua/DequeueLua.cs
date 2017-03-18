@@ -16,10 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using StackExchange.Redis;
+using System.Threading;
+using DotNetWorkQueue.Configuration;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
     /// <summary>
@@ -27,15 +28,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
     /// </summary>
     internal class DequeueLua : BaseLua
     {
+        private string[] _routes;
+        private int _nextRoute;
+        private readonly QueueConsumerConfiguration _configuration;
+        private readonly object _routeInit = new object();
         /// <summary>
-        /// Initializes a new instance of the <see cref="DequeueLua"/> class.
+        /// Initializes a new instance of the <see cref="DequeueLua" /> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="redisNames">The redis names.</param>
-        public DequeueLua(IRedisConnection connection, RedisNames redisNames)
+        /// <param name="configuration">The configuration.</param>
+        public DequeueLua(IRedisConnection connection, RedisNames redisNames, QueueConsumerConfiguration configuration)
             : base(connection, redisNames)
         {
-            Script= @"local uuid = redis.call('rpop', @pendingkey) 
+            _configuration = configuration;
+            Script = @"local uuid = redis.call('rpop', @pendingkey) 
                     if (uuid==false) then 
                         return nil;
                     end        
@@ -55,25 +62,29 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// Dequeues the next record
         /// </summary>
         /// <param name="unixTime">The current unix time.</param>
-        /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        public RedisValue[] Execute(long unixTime, List<string> routes )
+        public RedisValue[] Execute(long unixTime )
         {
             if (Connection.IsDisposed)
                 return null;
 
+            InitRoutes();
+
             var db = Connection.Connection.GetDatabase();
 
-            if(routes == null || routes.Count == 0)
+            if(_routes == null)
                 return (RedisValue[]) db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, null));
 
-            foreach (var route in routes)
+            var counter = 0;
+            while (counter < _routes.Length)
             {
+                var route = _routes[GetNextRoute()];
                 var result = db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, route));
                 if (!result.IsNull)
                 {
                     return (RedisValue[])result;
                 }
+                counter++;
             }
             return null;
         }
@@ -82,34 +93,58 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// Dequeues the next record
         /// </summary>
         /// <param name="unixTime">The current unix time.</param>
-        /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        public async Task<RedisValue[]> ExecuteAsync(long unixTime, List<string> routes)
+        public async Task<RedisValue[]> ExecuteAsync(long unixTime)
         {
             if (Connection.IsDisposed)
                 return null;
 
+            InitRoutes();
+
             var db = Connection.Connection.GetDatabase();
-            if (routes == null || routes.Count == 0)
+            if (_routes == null)
             {
                 var result = await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(unixTime, null))
                     .ConfigureAwait(false);
                 return (RedisValue[]) result;
             }
 
-            foreach (var route in routes)
+            var counter = 0;
+            while (counter < _routes.Length)
             {
+                var route = _routes[GetNextRoute()];
                 var result =
                     await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(unixTime, route)).ConfigureAwait(false);
                 if (!result.IsNull)
                 {
-                    return (RedisValue[]) result;
+                    return (RedisValue[])result;
                 }
+                counter++;
             }
 
             return null;
         }
 
+        private int GetNextRoute()
+        {
+            if (_routes.Length == 1)
+                return 0;
+
+            var number = Interlocked.Increment(ref _nextRoute);
+            if (number < _routes.Length) return number;
+            Interlocked.Exchange(ref _nextRoute, -1);
+            return 0;
+        }
+        private void InitRoutes()
+        {
+            if (_routes != null || _configuration.Routes == null || _configuration.Routes.Count == 0) return;
+            lock (_routeInit)
+            {
+                if (_routes != null) return;
+                _routes = _configuration.Routes.ToArray();
+                _nextRoute = -1;
+            }
+        }
         /// <summary>
         /// Gets the parameters.
         /// </summary>

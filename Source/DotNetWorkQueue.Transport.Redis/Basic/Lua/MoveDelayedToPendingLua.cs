@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                         
                         local routeName = redis.call('hget', @RouteIDKey, v) 
                         if(routeName) then
-                            local routePending = @pendingkey + '_}' + route
+                            local routePending = @pendingkey .. '_}' .. routeName
                             redis.call('lpush', routePending, v) 
                         else
                             redis.call('lpush', @pendingkey, v) 

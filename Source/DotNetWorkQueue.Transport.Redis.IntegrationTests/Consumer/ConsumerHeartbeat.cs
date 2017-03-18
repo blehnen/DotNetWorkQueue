@@ -28,9 +28,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerHeartbeat
     {
         [Theory]
-        [InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux),
-            InlineData(7, 15, 90, 3, ConnectionInfoTypes.Windows)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
+        [InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux, false),
+            InlineData(7, 15, 90, 3, ConnectionInfoTypes.Windows, false),
+            InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux, true),
+            InlineData(7, 15, 90, 3, ConnectionInfoTypes.Windows, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -42,16 +44,27 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
             {
                 try
                 {
-                    var producer = new ProducerShared();
-                    producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, false);
+                    if (route)
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateRouteData,
+                            Helpers.Verify, false);
+                    }
+                    else
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            Helpers.Verify, false);
+                    }
 
+                    var defaultRoute = route ? Helpers.DefaultRoute : null;
                     var consumer = new ConsumerHeartBeatShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), defaultRoute);
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

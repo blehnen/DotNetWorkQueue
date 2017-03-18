@@ -120,7 +120,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 times);
         }
 
-        public static void SetupDefaultConsumerQueue(QueueConsumerConfiguration configuration, int workerCount, TimeSpan heatbeatTime, TimeSpan heartbeatMonitorTime)
+        public static void SetupDefaultConsumerQueue(QueueConsumerConfiguration configuration, int workerCount, 
+            TimeSpan heatbeatTime, TimeSpan heartbeatMonitorTime, string route = null)
         {
             configuration.HeartBeat.Time = heatbeatTime;
             configuration.HeartBeat.MonitorTime = heartbeatMonitorTime;
@@ -129,6 +130,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
             configuration.Worker.TimeToWaitForWorkersToCancel = TimeSpan.FromSeconds(10);
             configuration.Worker.SingleWorkerWhenNoWorkFound = true;
+            if(!string.IsNullOrEmpty(route))
+                configuration.Routes.Add(route);
         }
     }
 

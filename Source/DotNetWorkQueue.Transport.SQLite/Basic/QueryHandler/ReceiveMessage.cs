@@ -90,12 +90,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             {
                 if (needWhere)
                 {
-                    sb.AppendLine("where ExpirationTime > getutcdate() ");
+                    sb.AppendLine("where ExpirationTime > @CurrentDateTime ");
                     needWhere = false;
                 }
                 else
                 {
-                    sb.AppendLine("AND ExpirationTime > getutcdate() ");
+                    sb.AppendLine("AND ExpirationTime > @CurrentDateTime ");
                 }
                 needWhere = false;
             }

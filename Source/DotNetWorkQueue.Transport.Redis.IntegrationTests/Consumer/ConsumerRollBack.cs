@@ -29,13 +29,19 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     {
 
         [Theory]
-        [InlineData(500, 0, 240, 5, ConnectionInfoTypes.Linux),
-        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux),
-        InlineData(10, 15, 180, 7, ConnectionInfoTypes.Linux),
-          InlineData(500, 0, 240, 5, ConnectionInfoTypes.Windows),
-        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Windows),
-        InlineData(10, 15, 180, 7, ConnectionInfoTypes.Windows)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
+        [InlineData(500, 0, 240, 5, ConnectionInfoTypes.Linux, false),
+        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux, false),
+        InlineData(10, 15, 180, 7, ConnectionInfoTypes.Linux, false),
+          InlineData(500, 0, 240, 5, ConnectionInfoTypes.Windows, false),
+        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Windows, false),
+        InlineData(10, 15, 180, 7, ConnectionInfoTypes.Windows, false),
+            InlineData(500, 0, 240, 5, ConnectionInfoTypes.Linux, true),
+        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux, true),
+        InlineData(10, 15, 180, 7, ConnectionInfoTypes.Linux, true),
+          InlineData(500, 0, 240, 5, ConnectionInfoTypes.Windows, true),
+        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Windows, true),
+        InlineData(10, 15, 180, 7, ConnectionInfoTypes.Windows, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -48,16 +54,26 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                 try
                 {
 
-                    //create data
-                    var producer = new ProducerShared();
-                    producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, false);
+                    if (route)
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateRouteData,
+                            Helpers.Verify, false);
+                    }
+                    else
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            Helpers.Verify, false);
+                    }
 
                     //process data
+                    var defaultRoute = route ? Helpers.DefaultRoute : null;
                     var consumer = new ConsumerRollBackShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
-                        workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                        workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), defaultRoute);
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

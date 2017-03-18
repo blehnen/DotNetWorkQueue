@@ -28,13 +28,19 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncRollBack
     {
         [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux),
-         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Linux),
-         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Linux),
-            InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Windows),
-         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Windows),
-         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Windows)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
+        [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, false),
+         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Linux, false),
+         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Linux, false),
+            InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Windows, false),
+         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Windows, false),
+         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Windows, false),
+            InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, true),
+         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Linux, true),
+         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Linux, true),
+            InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Windows, true),
+         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Windows, true),
+         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Windows, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -47,16 +53,27 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                 try
                 {
                     //create data
-                    var producer = new ProducerShared();
-                    producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, false);
+                    if (route)
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateRouteData,
+                            Helpers.Verify, false);
+                    }
+                    else
+                    {
+                        var producer = new ProducerShared();
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            Helpers.Verify, false);
+                    }
 
                     //process data
+                    var defaultRoute = route ? Helpers.DefaultRoute : null;
                     var consumer = new ConsumerAsyncRollBackShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         workerCount, logProvider,
-                        timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                        timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), defaultRoute);
                     LoggerShared.CheckForErrors(queueName);
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {
