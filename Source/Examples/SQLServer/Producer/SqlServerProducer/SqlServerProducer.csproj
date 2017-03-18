@@ -45,9 +45,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="Metrics, Version=0.3.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Metrics.NET.0.3.7\lib\net45\Metrics.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Metrics, Version=0.4.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Metrics.NET.0.4.8\lib\net45\Metrics.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />

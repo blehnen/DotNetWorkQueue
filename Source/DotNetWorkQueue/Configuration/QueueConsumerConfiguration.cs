@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2016 Brian Lehnen
+//Copyright © 2017 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -121,14 +121,5 @@ namespace DotNetWorkQueue.Configuration
             IsReadOnly = true;
         }
         #endregion
-
-        /// <summary>
-        /// Throws an exception if the read only flag is true.
-        /// </summary>
-        /// <exception cref="System.Data.ReadOnlyException"></exception>
-        protected void FailIfReadOnly()
-        {
-            if (IsReadOnly) throw new InvalidOperationException();
-        }
     }
 }

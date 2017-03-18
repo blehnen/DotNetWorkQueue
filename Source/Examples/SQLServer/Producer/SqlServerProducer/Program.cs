@@ -1,5 +1,5 @@
 ﻿// ---------------------------------------------------------------------
-// Copyright (c) 2016 Brian Lehnen
+// Copyright © 2017 Brian Lehnen
 // 
 // All rights reserved.
 // 

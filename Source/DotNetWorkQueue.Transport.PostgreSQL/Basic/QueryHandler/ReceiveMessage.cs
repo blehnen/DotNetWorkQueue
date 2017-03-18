@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2016 Brian Lehnen
+//Copyright © 2017 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -112,25 +112,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 {
                     sb.AppendLine("AND q.ExpirationTime > @CurrentDate ");
                 }
-                needWhere = false;
             }
 
             if (options.EnableRoute && routes != null && routes.Count > 0)
             {
-                if (needWhere)
-                {
-                    sb.AppendLine("where Route IN ( ");
-                    needWhere = false;
-                }
-                else
-                {
-                    sb.AppendLine("AND Route IN ( ");
-                }
+                sb.AppendLine(needWhere ? "where Route IN ( " : "AND Route IN ( ");
 
                 var routeCounter = 1;
                 foreach (var route in routes)
                 {
-                    sb.Append("@Route" + routeCounter.ToString());
+                    sb.Append("@Route" + routeCounter);
                     routeCounter++;
                     if (routeCounter != routes.Count + 1)
                     {
