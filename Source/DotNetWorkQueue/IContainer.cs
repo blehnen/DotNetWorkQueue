@@ -190,42 +190,32 @@ namespace DotNetWorkQueue
     public enum DiagnosticTypes
     {
         /// <summary>
-        ///     Diagnostic type that warns about a concrete type that was not registered
-        ///     explicitly and was not resolved using unregistered type resolution, but was
-        ///     created by the container using the transient lifestyle.
+        /// A container registered component
         /// </summary>
         ContainerRegisteredComponent = 0,
         /// <summary>
-        ///  Diagnostic type that warns when a component depends on a service with a lifestyle
-        ///     that is shorter than that of the component.
+        /// lifestyle mismatch
         /// </summary>
         LifestyleMismatch = 1,
         /// <summary>
-        ///  Diagnostic type that warns when a component depends on an unregistered concrete
-        ///     type and this concrete type has a lifestyle that is different than the lifestyle
-        ///     of an explicitly registered type that uses this concrete type as its implementation.
+        /// The short circuited dependency
         /// </summary>
-        ShortCircuitedDependency = 3,
+        ShortCircuitedDependency = 2,
         /// <summary>
-        /// Diagnostic type that warns when a component depends on (too) many services.
+        /// The single responsibility violation
         /// </summary>
-        SingleResponsibilityViolation = 4,
+        SingleResponsibilityViolation = 3,
         /// <summary>
-        ///  Diagnostic type that warns when multiple registrations map to the same component
-        ///     and lifestyle, which might cause multiple instances to be created during
-        ///     the lifespan of that lifestyle.
+        /// torn lifestyle
         /// </summary>
-        TornLifestyle = 5,
+        TornLifestyle = 4,
         /// <summary>
-        ///  Diagnostic type that warns when a component is registered as transient, while
-        ///     implementing System.IDisposable.
+        /// disposable transient component
         /// </summary>
-        DisposableTransientComponent = 6,
+        DisposableTransientComponent = 5,
         /// <summary>
-        ///  Diagnostic type that warns when multiple registrations exist that map to
-        ///     the same component but with different lifestyles, which will cause the component
-        ///     to be cached in different -possibly incompatible- ways.
+        /// ambiguous lifestyles
         /// </summary>
-        AmbiguousLifestyles = 7,
+        AmbiguousLifestyles = 6
     }
 }
