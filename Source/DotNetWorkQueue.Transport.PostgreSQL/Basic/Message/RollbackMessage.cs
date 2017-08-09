@@ -67,7 +67,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
 
             if (_configuration.Options().EnableStatusTable)
             {
-                _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand((long)context.MessageId.Id.Value, QueueStatuses.Waiting));
+                if (context.MessageId != null && context.MessageId.HasValue)
+                {
+                    _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand((long) context.MessageId.Id.Value,
+                        QueueStatuses.Waiting));
+                }
             }
             connection.NpgsqlTransaction.Rollback();
         }
