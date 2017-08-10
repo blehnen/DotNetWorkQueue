@@ -335,7 +335,8 @@ namespace DotNetWorkQueue.Queue
                 }
                 finally
                 {
-                    _runningLock.ExitReadLock();
+                    if (!IsDisposed)
+                        _runningLock.ExitReadLock();
                 }
             }
             set
@@ -350,7 +351,8 @@ namespace DotNetWorkQueue.Queue
                 }
                 finally
                 {
-                    _runningLock.ExitWriteLock();
+                    if (!IsDisposed)
+                        _runningLock.ExitWriteLock();
                 }
             }
         }
@@ -375,7 +377,8 @@ namespace DotNetWorkQueue.Queue
                 }
                 finally
                 {
-                    _stoppedLock.ExitReadLock();
+                    if (!IsDisposed)
+                        _stoppedLock.ExitReadLock();
                 }
             }
             set
@@ -390,7 +393,8 @@ namespace DotNetWorkQueue.Queue
                 }
                 finally
                 {
-                    _stoppedLock.ExitWriteLock();
+                    if (!IsDisposed)
+                        _stoppedLock.ExitWriteLock();
                 }
             }
         }
