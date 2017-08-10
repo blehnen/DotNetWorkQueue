@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Queue
     internal abstract class WorkerBase : IWorkerBase
     {
         private readonly WorkerTerminate _workerTerminate;
-        private readonly ReaderWriterLockSlim _shouldExitLock;
+        private readonly object _shouldExitLock = new object();
 
         private bool _shouldExit;
         protected Thread WorkerThread;
@@ -54,7 +54,6 @@ namespace DotNetWorkQueue.Queue
         {
             Guard.NotNull(() => workerTerminate, workerTerminate);
             _workerTerminate = workerTerminate;
-            _shouldExitLock = new ReaderWriterLockSlim();
         }
         /// <summary>
         /// Raises the system exception.
@@ -126,14 +125,14 @@ namespace DotNetWorkQueue.Queue
                 if (IsDisposed)
                     return true;
 
-                _shouldExitLock.EnterReadLock();
+                Monitor.Enter(_shouldExitLock);
                 try
                 {
                     return _shouldExit;
                 }
                 finally
                 {
-                    _shouldExitLock.ExitReadLock();
+                    Monitor.Exit(_shouldExitLock);
                 }
             }
             set
@@ -141,14 +140,14 @@ namespace DotNetWorkQueue.Queue
                 if (IsDisposed)
                     return;
 
-                _shouldExitLock.EnterWriteLock();
+                Monitor.Enter(_shouldExitLock);
                 try
                 {
                     _shouldExit = value;
                 }
                 finally
                 {
-                    _shouldExitLock.ExitWriteLock();
+                    Monitor.Exit(_shouldExitLock);
                 }
             }
         }
@@ -172,10 +171,7 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         public virtual void Dispose()
         {
-            if (Interlocked.Increment(ref _disposeCount) == 1)
-            {
-                _shouldExitLock.Dispose();
-            }
+            Interlocked.Increment(ref _disposeCount);
         }
 
         /// <summary>

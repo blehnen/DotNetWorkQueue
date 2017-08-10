@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.Queue
         private bool _started;
         private bool _shouldWork;
 
-        private readonly ReaderWriterLockSlim _shouldWorkLocker;
-        private readonly ReaderWriterLockSlim _startedLocker;
+        private readonly object _shouldWorkLocker = new object();
+        private readonly object _startedLocker = new object();
 
         private int _disposeCount;
 
@@ -46,8 +46,6 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(() => log, log);
 
             Log = log.Create();
-            _startedLocker = new ReaderWriterLockSlim();
-            _shouldWorkLocker = new ReaderWriterLockSlim();
         }
         /// <summary>
         /// Gets or sets the log.
@@ -88,28 +86,28 @@ namespace DotNetWorkQueue.Queue
                 if (IsDisposed)
                     return false;
 
-                _shouldWorkLocker.EnterReadLock();
+                Monitor.Enter(_shouldWorkLocker);
                 try
                 {
                     return _shouldWork;
                 }
                 finally
                 {
-                    _shouldWorkLocker.ExitReadLock();
+                    Monitor.Exit(_shouldWorkLocker);
                 }
             }
             set
             {
                 ThrowIfDisposed();
 
-                _shouldWorkLocker.EnterWriteLock();
+                Monitor.Enter(_shouldWorkLocker);
                 try
                 {
                     _shouldWork = value;
                 }
                 finally
                 {
-                    _shouldWorkLocker.ExitWriteLock();
+                    Monitor.Exit(_shouldWorkLocker);
                 }
             }
         }
@@ -127,28 +125,28 @@ namespace DotNetWorkQueue.Queue
                 if (IsDisposed)
                     return false;
 
-                _startedLocker.EnterReadLock();
+                Monitor.Enter(_startedLocker);
                 try
                 {
                     return _started;
                 }
                 finally
                 {
-                    _startedLocker.ExitReadLock();
+                    Monitor.Exit(_startedLocker);
                 }
             }
             set
             {
                 ThrowIfDisposed();
 
-                _startedLocker.EnterWriteLock();
+                Monitor.Enter(_startedLocker);
                 try
                 {
                     _started = value;
                 }
                 finally
                 {
-                    _startedLocker.ExitWriteLock();
+                    Monitor.Exit(_startedLocker);
                 }
             }
         }
@@ -182,11 +180,7 @@ namespace DotNetWorkQueue.Queue
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
-
-            if (Interlocked.Increment(ref _disposeCount) != 1) return;
-
-            _shouldWorkLocker.Dispose();
-            _startedLocker.Dispose();
+            Interlocked.Increment(ref _disposeCount);
         }
 
         /// <summary>
@@ -196,7 +190,6 @@ namespace DotNetWorkQueue.Queue
         /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
         /// </value>
         public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
-
         #endregion
     }
 }

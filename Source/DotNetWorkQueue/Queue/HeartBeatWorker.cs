@@ -46,8 +46,8 @@ namespace DotNetWorkQueue.Queue
         private readonly object _runningLocker = new object();
         private readonly IHeartBeatThreadPool _smartThreadPool;
 
-        private ReaderWriterLockSlim _runningLock;
-        private ReaderWriterLockSlim _stoppedLock;
+        private readonly object _runningLock = new object();
+        private readonly object _stoppedLock = new object();
 
         #endregion
 
@@ -83,9 +83,6 @@ namespace DotNetWorkQueue.Queue
             _sendHeartbeat = sendHeartBeat;
             _smartThreadPool = threadPool;
             _logger = log.Create();
-
-            _runningLock = new ReaderWriterLockSlim();
-            _stoppedLock = new ReaderWriterLockSlim();
 
             _cancel = new CancellationTokenSource();
             context.WorkerNotification.HeartBeat = heartBeatNotificationFactory.Create(_cancel.Token);
@@ -179,18 +176,10 @@ namespace DotNetWorkQueue.Queue
                 _timer?.Dispose();
                 lock (_cancelLocker)
                 {
-                    if (_cancel != null)
-                    {
-                        _cancel.Dispose();
-                        _cancel = null;
-                    }
+                    if (_cancel == null) return;
+                    _cancel.Dispose();
+                    _cancel = null;
                 }
-
-
-                _runningLock.Dispose();
-                _stoppedLock.Dispose();
-                _runningLock = null;
-                _stoppedLock = null;
             }
         }
         #endregion
@@ -328,31 +317,26 @@ namespace DotNetWorkQueue.Queue
                 if (IsDisposed)
                     return false;
 
-                _runningLock.EnterReadLock();
+                Monitor.Enter(_runningLock);
                 try
                 {
                     return _running;
                 }
                 finally
                 {
-                    if (!IsDisposed)
-                        _runningLock.ExitReadLock();
+                    Monitor.Exit(_runningLock);
                 }
             }
             set
             {
-                if (_runningLock == null)
-                    return;
-
-                _runningLock.EnterWriteLock();
+                Monitor.Enter(_runningLock);
                 try
                 {
                     _running = value;
                 }
                 finally
                 {
-                    if (!IsDisposed)
-                        _runningLock.ExitWriteLock();
+                    Monitor.Exit(_runningLock);
                 }
             }
         }
@@ -370,15 +354,14 @@ namespace DotNetWorkQueue.Queue
                 if (IsDisposed)
                     return true;
 
-                _stoppedLock.EnterReadLock();
+                Monitor.Enter(_stoppedLock);
                 try
                 {
                     return _stopped;
                 }
                 finally
                 {
-                    if (!IsDisposed)
-                        _stoppedLock.ExitReadLock();
+                    Monitor.Exit(_stoppedLock);
                 }
             }
             set
@@ -386,15 +369,14 @@ namespace DotNetWorkQueue.Queue
                 if (_stoppedLock == null)
                     return;
 
-                _stoppedLock.EnterWriteLock();
+                Monitor.Enter(_stoppedLock);
                 try
                 {
                     _stopped = value;
                 }
                 finally
                 {
-                    if (!IsDisposed)
-                        _stoppedLock.ExitWriteLock();
+                    Monitor.Exit(_stoppedLock);
                 }
             }
         }

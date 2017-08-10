@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Queue
         private CancellationTokenSource _cancel;
         private bool _running;
         private volatile bool _stopping;
-        private readonly ReaderWriterLockSlim _runningLock;
+        private readonly object _runningLock = new object();
         private readonly ILog _log;
         private readonly object _cancelSync = new object();
         private int _disposeCount;
@@ -58,7 +58,6 @@ namespace DotNetWorkQueue.Queue
             _monitorAction = monitorAction;
             _monitorTimeSpan = monitorTimeSpan;
             _log = log.Create();
-            _runningLock = new ReaderWriterLockSlim();
         }
         /// <summary>
         /// Starts the monitor process.
@@ -179,28 +178,28 @@ namespace DotNetWorkQueue.Queue
                 if (IsDisposed)
                     return false;
 
-                _runningLock.EnterReadLock();
+                Monitor.Enter(_runningLock);
                 try
                 {
                     return _running;
                 }
                 finally
                 {
-                    _runningLock.ExitReadLock();
+                    Monitor.Exit(_runningLock);
                 }
             }
             set
             {
 
                 ThrowIfDisposed();
-                _runningLock.EnterWriteLock();
+                Monitor.Enter(_runningLock);
                 try
                 {
                     _running = value;
                 }
                 finally
                 {
-                    _runningLock.ExitWriteLock();
+                    Monitor.Exit(_runningLock);
                 }
             }
         }
@@ -245,8 +244,6 @@ namespace DotNetWorkQueue.Queue
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
             _timer?.Dispose();
-
-            _runningLock.Dispose();
         }
 
         /// <summary>
