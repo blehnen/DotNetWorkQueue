@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// <summary>
     /// Creates a table that stores data about scheduled jobs
     /// </summary>
-    public class SqlServerJobSchema
+    public class SqlServerJobSchema: IJobSchema
     {
         private readonly TableNameHelper _tableNameHelper;
 

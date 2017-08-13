@@ -30,6 +30,7 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
@@ -54,15 +55,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<SqlServerMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, SqlServerMessageQueueCreation>(LifeStyles.Singleton);
-            container.Register<SqlServerMessageQueueStatusQueries>(LifeStyles.Singleton);
-            container.Register<IQueueStatusProvider, SqlServerQueueStatusProvider>(LifeStyles.Singleton);
+            container.Register<QueueStatusQueries>(LifeStyles.Singleton);
+            container.Register<IQueueStatusProvider, QueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, SqlServerJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
-            container.Register<IJobTableCreation, SqlServerJobTableCreation>(LifeStyles.Singleton);
+            container.Register<IJobTableCreation, JobTableCreation>(LifeStyles.Singleton);
             container.Register<SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, SqlServerSendJobToQueue>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<CommandStringCache, SqlServerCommandStringCache>(LifeStyles.Singleton);
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
+            container.Register<ISetupCommand, SetupCommand>(LifeStyles.Singleton);
+            container.Register<IJobSchema, SqlServerJobSchema>(LifeStyles.Singleton);
 
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
@@ -91,7 +94,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             //**all
 
             //**send
-            container.Register<ISendMessages, SqlServerMessageQueueSend>(LifeStyles.Singleton);
+            container.Register<ISendMessages, SendMessages>(LifeStyles.Singleton);
             //**send
 
 

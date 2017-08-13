@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     /// <summary>
     /// Creates a table that stores data about scheduled jobs
     /// </summary>
-    public class PostgreSqlJobSchema
+    public class PostgreSqlJobSchema: IJobSchema
     {
         private readonly TableNameHelper _tableNameHelper;
 

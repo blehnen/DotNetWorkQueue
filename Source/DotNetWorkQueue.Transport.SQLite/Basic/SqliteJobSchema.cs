@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// <summary>
     /// Creates a table that stores data about scheduled jobs
     /// </summary>
-    public class SqliteJobSchema
+    public class SqliteJobSchema: IJobSchema
     {
         private readonly TableNameHelper _tableNameHelper;
 

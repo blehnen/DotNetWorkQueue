@@ -24,6 +24,7 @@ using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic.Factory;
 using DotNetWorkQueue.Transport.SQLite.Basic.Message;
@@ -56,11 +57,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             container.Register<SqLiteMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, SqLiteMessageQueueCreation>(LifeStyles.Singleton);
-            container.Register<SqLiteMessageQueueStatusQueries>(LifeStyles.Singleton);
-            container.Register<IQueueStatusProvider, SqLiteQueueStatusProvider>(LifeStyles.Singleton);
+            container.Register<QueueStatusQueries>(LifeStyles.Singleton);
+            container.Register<IQueueStatusProvider, QueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, SqliteJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, SqliteSendToJobQueue>(LifeStyles.Singleton);
-            container.Register<IJobTableCreation, SqliteJobTableCreation>(LifeStyles.Singleton);
+            container.Register<IJobTableCreation, JobTableCreation>(LifeStyles.Singleton);
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<SqliteJobSchema>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
@@ -68,6 +69,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<CommandStringCache, SqLiteCommandStringCache>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
             container.Register<ITransactionFactory, SQLite.Basic.TransactionFactory>(LifeStyles.Singleton);
+            container.Register<ISetupCommand, SetupCommand>(LifeStyles.Singleton);
+            container.Register<IJobSchema, SqliteJobSchema>(LifeStyles.Singleton);
 
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
             container
@@ -96,7 +99,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             //**all
 
             //**send
-            container.Register<ISendMessages, SqLiteMessageQueueSend>(LifeStyles.Singleton);
+            container.Register<ISendMessages, SendMessages>(LifeStyles.Singleton);
             //**send
 
 
@@ -144,6 +147,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandler<DeleteStatusTableStatusCommand>),
                 typeof(SetStatusTableStatusCommandDecorator), LifeStyles.Singleton);
+
+            //registor our decorator for resetting the heart beat
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutput<ResetHeartBeatCommand, long>),
+                typeof(ResetHeartBeatCommandDecorator), LifeStyles.Singleton);
         }
 
         private void RegisterCommands(IContainer container, Assembly target)

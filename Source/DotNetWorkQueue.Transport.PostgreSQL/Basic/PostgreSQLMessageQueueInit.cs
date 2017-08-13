@@ -30,6 +30,7 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Validation;
 
@@ -56,15 +57,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<PostgreSqlMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, PostgreSqlMessageQueueCreation>(LifeStyles.Singleton);
-            container.Register<PostgreSqlMessageQueueStatusQueries>(LifeStyles.Singleton);
-            container.Register<IQueueStatusProvider, PostgreSqlQueueStatusProvider>(LifeStyles.Singleton);
+            container.Register<QueueStatusQueries>(LifeStyles.Singleton);
+            container.Register<IQueueStatusProvider, QueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, PostgreSqlJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
-            container.Register<IJobTableCreation, PostgreSqlJobTableCreation>(LifeStyles.Singleton);
+            container.Register<IJobTableCreation,JobTableCreation>(LifeStyles.Singleton);
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<PostgreSqlJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, PostgreSqlSendJobToQueue>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<CommandStringCache, PostgreSqlCommandStringCache>(LifeStyles.Singleton);
+            container.Register<ISetupCommand, SetupCommand>(LifeStyles.Singleton);
+            container.Register<IJobSchema, PostgreSqlJobSchema>(LifeStyles.Singleton);
 
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
@@ -94,7 +97,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //**all
 
             //**send
-            container.Register<ISendMessages, PostgreSqlMessageQueueSend>(LifeStyles.Singleton);
+            container.Register<ISendMessages, SendMessages>(LifeStyles.Singleton);
             //**send
 
 
