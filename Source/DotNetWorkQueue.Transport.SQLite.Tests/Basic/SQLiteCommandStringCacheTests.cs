@@ -48,16 +48,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         }
 
         [Fact]
-        public void All_Commands_Set()
-        {
-            var test = Create();
-            foreach (CommandStringTypes command in Enum.GetValues(typeof(CommandStringTypes)))
-            {
-                test.GetCommand(command).Should().NotBe(null, "All commands should be set {0}", command);
-            }
-        }
-
-        [Fact]
         public void Threaded_Query()
         {
             var test = Create();

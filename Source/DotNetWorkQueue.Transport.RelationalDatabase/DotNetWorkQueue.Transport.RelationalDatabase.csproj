@@ -61,7 +61,7 @@
     <Compile Include="Basic\Command\SetJobLastKnownEventCommand.cs" />
     <Compile Include="Basic\Command\SetStatusTableStatusCommand.cs" />
     <Compile Include="Basic\Message\CommitMessage.cs" />
-    <Compile Include="Basic\PostgreSQLCommandStringCache.cs" />
+    <Compile Include="Basic\CommandStringCache.cs" />
     <Compile Include="Basic\Query\DoesJobExistQuery.cs" />
     <Compile Include="Basic\Query\FindExpiredMessagesToDeleteQuery.cs" />
     <Compile Include="Basic\Query\FindMessagesToResetByHeartBeatQuery.cs" />
