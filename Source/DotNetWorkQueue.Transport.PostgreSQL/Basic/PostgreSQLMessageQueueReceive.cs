@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic.Message;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic

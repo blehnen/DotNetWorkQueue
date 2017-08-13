@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private readonly SqlHeaders _headers;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeleteMessageCommandHandler" /> class.
+        /// Initializes a new instance of the <see cref="DeleteTransactionalMessageCommandHandler" /> class.
         /// </summary>
         /// <param name="options">The options.</param>
         /// <param name="commandCache">The command cache.</param>

@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
         private readonly IConnectionInformation _connection;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly ICommandHandlerWithOutput<CreateJobTablesCommand<Table>, QueueCreationResult>
+        private readonly ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult>
             _createCommand;
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="tableNameHelper">The table name helper.</param>
         public SqliteJobTableCreation(IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             SqliteJobSchema createSchema,
-            ICommandHandlerWithOutput<CreateJobTablesCommand<Table>, QueueCreationResult> createCommand,
+            ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult> createCommand,
             IConnectionInformation connectionInfo,
             TableNameHelper tableNameHelper
             )
@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         {
             return
                 _createCommand.Handle(
-                    new CreateJobTablesCommand<Table>(_createSchema.GetSchema()));
+                    new CreateJobTablesCommand<ITable>(_createSchema.GetSchema()));
         }
     }
 }

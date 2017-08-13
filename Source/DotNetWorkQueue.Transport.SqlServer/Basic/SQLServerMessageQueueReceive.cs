@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Message;
 using DotNetWorkQueue.Validation;
 

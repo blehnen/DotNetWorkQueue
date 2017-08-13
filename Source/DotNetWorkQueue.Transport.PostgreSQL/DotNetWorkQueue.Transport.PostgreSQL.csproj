@@ -56,11 +56,8 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Basic\CommandHandler\DeleteMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteQueueTablesCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\DeleteStatusTableStatusCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteTransactionalMessageCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\MessageExpiration.cs" />
     <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\ResetHeartBeatCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
@@ -70,13 +67,10 @@
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
     <Compile Include="Basic\CommandHandler\SetErrorCountCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SetStatusTableStatusCommandHandler.cs" />
     <Compile Include="Basic\Connection.cs" />
     <Compile Include="Basic\DbConnectionFactory.cs" />
-    <Compile Include="Basic\CreateJobMetaData.cs" />
     <Compile Include="Basic\Factory\ConnectionFactory.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
-    <Compile Include="Basic\Factory\SQLServerMessageQueueCorrelationIDFactory.cs" />
     <Compile Include="Basic\Factory\SQLServerMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
     <Compile Include="Basic\IConnectionFactory.cs" />
@@ -93,7 +87,6 @@
     <Compile Include="Basic\QueryHandler\GetErrorCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetErrorRecordExistsQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetErrorRetryCountQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetJobIdQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetJobLastKnownEventQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetPendingCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetPendingDelayedCountHandler.cs" />
@@ -113,9 +106,7 @@
     <Compile Include="Basic\PostgreSQLJobSchema.cs" />
     <Compile Include="Basic\PostgreSQLJobTableCreation.cs" />
     <Compile Include="Basic\PostgreSQLMessageQueueClearExpiredMessages.cs" />
-    <Compile Include="Basic\PostgreSQLMessageQueueCorrelationId.cs" />
     <Compile Include="Basic\PostgreSQLMessageQueueCreation.cs" />
-    <Compile Include="Basic\PostgreSQLMessageQueueId.cs" />
     <Compile Include="Basic\PostgreSQLMessageQueueInit.cs" />
     <Compile Include="Basic\PostgreSQLMessageQueueReceive.cs" />
     <Compile Include="Basic\PostgreSQLMessageQueueReceiveErrorMessage.cs" />
@@ -130,6 +121,7 @@
     <Compile Include="Basic\PostgreSQLRpcConnection.cs" />
     <Compile Include="Basic\PostgreSQLSendJobToQueue.cs" />
     <Compile Include="Basic\Time\PostgreSQLTime.cs" />
+    <Compile Include="Basic\TransportOptionsFactory.cs" />
     <Compile Include="ConfigurationExtensions.cs" />
     <Compile Include="Decorator\CreateJobTablesCommandDecorator.cs" />
     <Compile Include="Decorator\CreateQueueTablesAndSaveConfigurationDecorator.cs" />

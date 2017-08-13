@@ -88,8 +88,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// <param name="query">The query.</param>
         /// <returns></returns>
         /// <exception cref="PoisonMessageException">An error has occurred trying to re-assemble a message de-queued from the server</exception>
-        /// <exception cref="PostgreSqlMessageQueueId"></exception>
-        /// <exception cref="PostgreSqlMessageQueueCorrelationId"></exception>
         public IReceivedMessageInternal Handle(ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction> query)
         {
             using (var selectCommand = query.Connection.CreateCommand())
@@ -144,14 +142,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                         var newMessage = _messageFactory.Create(message, headers);
 
                         return _receivedMessageFactory.Create(newMessage,
-                            new PostgreSqlMessageQueueId(id),
-                            new PostgreSqlMessageQueueCorrelationId(correlationId));
+                            new MessageQueueId(id),
+                            new MessageCorrelationId(correlationId));
                     }
                     catch (Exception error)
                     {
                         //at this point, the record has been de-queued, but it can't be processed.
                         throw new PoisonMessageException(
-                            "An error has occurred trying to re-assemble a message de-queued from the server ", error, new PostgreSqlMessageQueueId(id), new PostgreSqlMessageQueueCorrelationId(correlationId), messagePayload, headerPayload);
+                            "An error has occurred trying to re-assemble a message de-queued from the server ", error, new MessageQueueId(id), new MessageCorrelationId(correlationId), messagePayload, headerPayload);
 
                     }
                 }

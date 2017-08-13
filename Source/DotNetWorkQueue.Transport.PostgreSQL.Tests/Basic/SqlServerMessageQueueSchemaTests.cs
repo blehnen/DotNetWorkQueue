@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using NSubstitute;
 using Xunit;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;

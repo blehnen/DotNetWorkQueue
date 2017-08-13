@@ -152,7 +152,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 var expiration = TimeSpan.Zero;
                                 if (_messageExpirationEnabled.Value)
                                 {
-                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers);
+                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, (data) => data.GetExpiration());
                                 }
 
                                 await

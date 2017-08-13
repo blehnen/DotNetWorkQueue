@@ -20,6 +20,7 @@ using System;
 using System.Data;
 using System.Text;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -28,7 +29,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     /// <summary>
     /// Transport options. Generally speaking, this controls the feature set of the transport.
     /// </summary>
-    public class PostgreSqlMessageQueueTransportOptions: IReadonly, ISetReadonly
+    public class PostgreSqlMessageQueueTransportOptions: ITransportOptions, IReadonly, ISetReadonly
     {
         private bool _enableStatusTable;
         private bool _enablePriority;
@@ -415,23 +416,5 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
         #endregion
-    }
-    /// <summary>
-    /// Types of queues that this transport supports
-    /// </summary>
-    public enum QueueTypes
-    {
-        /// <summary>
-        /// Standard queue
-        /// </summary>
-        Normal,
-        /// <summary>
-        /// RPC send
-        /// </summary>
-        RpcSend,
-        /// <summary>
-        /// RPC receive
-        /// </summary>
-        RpcReceive
     }
 }

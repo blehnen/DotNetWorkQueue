@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Schema;
 using DotNetWorkQueue.Validation;
@@ -51,10 +52,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// Returns our schema as a list of tables.
         /// </summary>
         /// <returns></returns>
-        public List<Table> GetSchema()
+        public List<ITable> GetSchema()
         {
             var meta = CreateMetaDataTable();
-            var rc = new List<Table>
+            var rc = new List<ITable>
             {
                 CreateMainTable(),
                 meta,

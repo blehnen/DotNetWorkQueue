@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 {
@@ -62,14 +63,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 var newMessage = _messageFactory.Create(message, headers);
 
                 return _receivedMessageFactory.Create(newMessage,
-                    new SqlServerMessageQueueId(id),
-                    new SqlServerMessageQueueCorrelationId(correlationId));
+                    new MessageQueueId(id),
+                    new MessageCorrelationId(correlationId));
             }
             catch (Exception error)
             {
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
-                    "An error has occurred trying to re-assemble a message de-queued from the SQL server", error, new SqlServerMessageQueueId(id), new SqlServerMessageQueueCorrelationId(correlationId), messagePayload, headerPayload);
+                    "An error has occurred trying to re-assemble a message de-queued from the SQL server", error, new MessageQueueId(id), new MessageCorrelationId(correlationId), messagePayload, headerPayload);
 
             }
         }

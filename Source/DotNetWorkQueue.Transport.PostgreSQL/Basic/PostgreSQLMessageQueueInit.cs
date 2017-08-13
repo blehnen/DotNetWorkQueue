@@ -27,11 +27,10 @@ using DotNetWorkQueue.Transport.PostgreSQL.Basic.Time;
 using DotNetWorkQueue.Transport.PostgreSQL.Decorator;
 using CommitMessage = DotNetWorkQueue.Transport.PostgreSQL.Basic.Message.CommitMessage;
 using DotNetWorkQueue.Queue;
-using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
+using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
@@ -67,6 +66,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<CommandStringCache, PostgreSqlCommandStringCache>(LifeStyles.Singleton);
 
+            container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
+            container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
+
             container.Register<IGetTime, PostgreSqlTime>(LifeStyles.Singleton);
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
             container
@@ -79,7 +81,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queue, connection),
                 LifeStyles.Singleton);
-            container.Register<ICorrelationIdFactory, PostgreSqlMessageQueueCorrelationIdFactory>(
+            container.Register<ICorrelationIdFactory, CorrelationIdFactory>(
                 LifeStyles.Singleton);
 
             container.Register<PostgreSqlMessageQueueTransportOptions>(LifeStyles.Singleton);

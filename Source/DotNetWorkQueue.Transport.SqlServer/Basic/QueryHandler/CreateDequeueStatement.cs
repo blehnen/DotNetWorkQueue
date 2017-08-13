@@ -20,6 +20,7 @@ using DotNetWorkQueue.Validation;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler

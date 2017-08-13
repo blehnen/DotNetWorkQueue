@@ -21,6 +21,7 @@ using System.Data.SQLite;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.SqlServer.Basic;
 
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
@@ -102,7 +103,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         protected override void SetMetaDataForJob(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime, string route,
             IAdditionalMessageData messageData)
         {
-            _createJobMetaData.Create(jobName, scheduledTime, eventTime, route, messageData);
+            _createJobMetaData.Create(jobName, scheduledTime, eventTime,  messageData, route);
         }
     }
 }

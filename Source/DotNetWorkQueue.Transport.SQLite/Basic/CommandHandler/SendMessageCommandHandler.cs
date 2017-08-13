@@ -122,7 +122,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 var expiration = TimeSpan.Zero;
                 if (_messageExpirationEnabled.Value)
                 {
-                    expiration = MessageExpiration.GetExpiration(commandSend, _headers);
+                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, (data) => data.GetExpiration());
                 }
 
                 var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
@@ -148,7 +148,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                                 commandSend.MessageData);
                         }
 
-                        using (var trans = _transactionFactory.Create(connection).BeginTransaction())
+                        using (var trans = (SQLiteTransaction)_transactionFactory.Create(connection).BeginTransaction())
                         {
                             try
                             {

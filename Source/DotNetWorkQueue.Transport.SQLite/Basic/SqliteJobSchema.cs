@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Schema;
 
@@ -41,9 +42,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// Returns our schema as a list of tables.
         /// </summary>
         /// <returns></returns>
-        public List<Table> GetSchema()
+        public List<ITable> GetSchema()
         {
-            var rc = new List<Table>
+            var rc = new List<ITable>
             {
                 CreateMainTable()
             };

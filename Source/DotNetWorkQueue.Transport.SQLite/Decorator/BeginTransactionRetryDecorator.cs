@@ -20,6 +20,7 @@ using System.Data.SQLite;
 using DotNetWorkQueue.Logging;
 using System.Threading;
 using System;
+using System.Data;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
@@ -42,13 +43,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             _log = log.Create();
             _threadSafeRandom = threadSafeRandom;
         }
-        public SQLiteConnection Connection
+        public IDbConnection Connection
         {
-            get { return _decorated.Connection; }
-            set { _decorated.Connection = value; }
+            get => _decorated.Connection;
+            set => _decorated.Connection = value;
         }
 
-        public SQLiteTransaction BeginTransaction()
+        public IDbTransaction BeginTransaction()
         {
             return BeginTransactionWithCountDown(RetryConstants.RetryCount);
         }
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// </summary>
         /// <param name="count">The count.</param>
         /// <returns></returns>
-        private SQLiteTransaction BeginTransactionWithCountDown(int count)
+        private IDbTransaction BeginTransactionWithCountDown(int count)
         {
             try
             {

@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
         private readonly IConnectionInformation _connection;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly ICommandHandlerWithOutput<CreateJobTablesCommand<Table>, QueueCreationResult>
+        private readonly ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult>
             _createCommand;
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="tableNameHelper">The table name helper.</param>
         public SqlServerJobTableCreation(IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             SqlServerJobSchema createSchema,
-            ICommandHandlerWithOutput<CreateJobTablesCommand<Table>, QueueCreationResult> createCommand,
+            ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult> createCommand,
             IConnectionInformation connectionInfo,
             TableNameHelper tableNameHelper
             )
@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             return
                 _createCommand.Handle(
-                    new CreateJobTablesCommand<Table>(_createSchema.GetSchema()));
+                    new CreateJobTablesCommand<ITable>(_createSchema.GetSchema()));
         }
     }
 }

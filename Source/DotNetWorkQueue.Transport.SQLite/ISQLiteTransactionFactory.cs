@@ -16,18 +16,21 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Data;
+
 namespace DotNetWorkQueue.Transport.SQLite
 {
     /// <summary>
     /// Wraps creating a new SQLite transaction so that it can be intercepted
     /// </summary>
-    interface ISqLiteTransactionFactory
+    internal interface ISqLiteTransactionFactory
     {
         /// <summary>
         /// Creates a new instance of <seealso cref="ISqLiteTransactionWrapper"/>
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        ISqLiteTransactionWrapper Create(System.Data.SQLite.SQLiteConnection connection);
+        ISqLiteTransactionWrapper Create(IDbConnection connection);
     }
 }

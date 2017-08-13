@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private readonly SqLiteMessageQueueSchema _createSchema;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
 
-        private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<Table>, QueueCreationResult>
+        private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult>
             _createCommand;
 
         private readonly ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> _deleteCommand;
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             ISqLiteMessageQueueTransportOptionsFactory options, 
             SqLiteMessageQueueSchema createSchema,
-            ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<Table>, QueueCreationResult> createCommand,
+            ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> createCommand,
             ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> deleteCommand,
             ICreationScope creationScope
             )
@@ -204,7 +204,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 return
                     _createCommand.Handle(
-                        new CreateQueueTablesAndSaveConfigurationCommand<Table>(_createSchema.GetSchema()));
+                        new CreateQueueTablesAndSaveConfigurationCommand<ITable>(_createSchema.GetSchema()));
             }
             return new QueueCreationResult(QueueCreationStatus.ConfigurationError, valid.ErrorMessage);
         }

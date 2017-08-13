@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic

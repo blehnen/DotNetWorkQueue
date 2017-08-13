@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             using (var connection = new SQLiteConnection(_connectionInformation.ConnectionString))
             {
                 connection.Open();
-                using (var trans = _transactionFactory.Create(connection).BeginTransaction())
+                using (var trans = (SQLiteTransaction)_transactionFactory.Create(connection).BeginTransaction())
                 {
                     using (var command = connection.CreateCommand())
                     {

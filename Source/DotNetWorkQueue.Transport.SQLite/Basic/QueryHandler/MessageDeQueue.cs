@@ -98,16 +98,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 transaction.Commit();
 
                 return _receivedMessageFactory.Create(newMessage,
-                    new SqLiteMessageQueueId(id),
-                    new SqLiteMessageQueueCorrelationId(correlationId));
+                    new MessageQueueId(id),
+                    new MessageCorrelationId(correlationId));
             }
             catch (Exception err)
             {
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
                     "An error has occured trying to re-assemble a message de-queued from SQLite",
-                    err, new SqLiteMessageQueueId(id),
-                    new SqLiteMessageQueueCorrelationId(correlationId),
+                    err, new MessageQueueId(id),
+                    new MessageCorrelationId(correlationId),
                     messagePayload,
                     headerPayload);
             }

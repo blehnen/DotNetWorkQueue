@@ -29,6 +29,7 @@ using CommitMessage = DotNetWorkQueue.Transport.SqlServer.Basic.Message.CommitMe
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
@@ -50,6 +51,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             Guard.NotNull(() => container, container);
 
             //**all
+            container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<SqlServerMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, SqlServerMessageQueueCreation>(LifeStyles.Singleton);
             container.Register<SqlServerMessageQueueStatusQueries>(LifeStyles.Singleton);
@@ -59,6 +61,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, SqlServerSendJobToQueue>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
+            container.Register<CommandStringCache, SqlServerCommandStringCache>(LifeStyles.Singleton);
+            container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
+
+            container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
+            container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
 
             container.Register<IGetTime, SqlServerTime>(LifeStyles.Singleton);
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
@@ -71,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<SqlServerCommandStringCache>(LifeStyles.Singleton);
 
             container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queue, connection), LifeStyles.Singleton);
-            container.Register<ICorrelationIdFactory, SqlServerMessageQueueCorrelationIdFactory>(
+            container.Register<ICorrelationIdFactory, CorrelationIdFactory>(
                 LifeStyles.Singleton);
 
             container.Register<SqlServerMessageQueueTransportOptions>(LifeStyles.Singleton);
@@ -107,28 +114,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             //**receive
 
             var target = Assembly.GetAssembly(GetType());
+            RegisterCommands(container, target);
 
-            //commands and decorators
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandlerWithOutput<T> by their closed interface:
-            container.Register(typeof (ICommandHandlerWithOutput<,>), LifeStyles.Singleton,
-                target);
-
-            //commands and decorators
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandlerWithOutputAsync<T> by their closed interface:
-            container.Register(typeof(ICommandHandlerWithOutputAsync<,>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandler<T> by their closed interface:
-            container.Register(typeof (ICommandHandler<>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of IQueryHandler<T> by their closed interface:
-            container.Register(typeof (IQueryHandler<,>), LifeStyles.Singleton,
-                target);
+            var target2 = Assembly.GetAssembly(typeof(ITable));
+            if (target.FullName != target2.FullName)
+                RegisterCommands(container, target2);
 
             container.RegisterDecorator(typeof (ICommandHandlerWithOutput<,>),
                 typeof (RetryCommandHandlerOutputDecorator<,>), LifeStyles.Singleton);
@@ -141,6 +131,41 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             container.RegisterDecorator(typeof(IQueryHandler<,>),
                typeof(RetryQueryHandlerDecorator<,>), LifeStyles.Singleton);
+
+            //register our decorator that handles table creation errors
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult>),
+                typeof(CreateJobTablesCommandDecorator), LifeStyles.Singleton);
+
+            //register our decorator that handles table creation errors
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult>),
+                typeof(CreateQueueTablesAndSaveConfigurationDecorator), LifeStyles.Singleton);
+        }
+
+        private void RegisterCommands(IContainer container, Assembly target)
+        {
+            //commands and decorators
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandlerWithOutput<T> by their closed interface:
+            container.Register(typeof(ICommandHandlerWithOutput<,>), LifeStyles.Singleton,
+                target);
+
+            //commands and decorators
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandlerWithOutputAsync<T> by their closed interface:
+            container.Register(typeof(ICommandHandlerWithOutputAsync<,>), LifeStyles.Singleton,
+                target);
+
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandler<T> by their closed interface:
+            container.Register(typeof(ICommandHandler<>), LifeStyles.Singleton,
+                target);
+
+            // Go look in all assemblies and register all implementations
+            // of IQueryHandler<T> by their closed interface:
+            container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,
+                target);
         }
 
         /// <summary>

@@ -19,6 +19,7 @@
 using System;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
@@ -51,7 +52,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             var command = new SendHeartBeatCommand((long)context.MessageId.Id.Value);
             var oDate = _commandHandler.Handle(command);
-            return new HeartBeatStatus(new PostgreSqlMessageQueueId(command.QueueId), oDate);
+            return new HeartBeatStatus(new MessageQueueId(command.QueueId), oDate);
         }
         #endregion
     }

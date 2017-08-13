@@ -16,18 +16,20 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Data;
 using System.Data.SQLite;
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     internal class SqLiteTransactionWrapper : ISqLiteTransactionWrapper
     {
-        public SQLiteConnection Connection
+        public IDbConnection Connection
         {
             get;
             set;
         }
 
-        public SQLiteTransaction BeginTransaction()
+        public IDbTransaction BeginTransaction()
         {
             return Connection.BeginTransaction();
         }

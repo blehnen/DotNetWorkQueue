@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
@@ -77,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 var id = _sendMessage.Handle(
                     new SendMessageCommand(messageToSend, data));
-                return new QueueOutputMessage(_sentMessageFactory.Create(new SqLiteMessageQueueId(id), data.CorrelationId));
+                return new QueueOutputMessage(_sentMessageFactory.Create(new MessageQueueId(id), data.CorrelationId));
             }
             catch (Exception exception)
             {
@@ -103,7 +104,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                         var id = _sendMessage.Handle(
                             new SendMessageCommand(m.Message, m.MessageData));
                         rc.Add(
-                            new QueueOutputMessage(_sentMessageFactory.Create(new SqLiteMessageQueueId(id),
+                            new QueueOutputMessage(_sentMessageFactory.Create(new MessageQueueId(id),
                                 m.MessageData.CorrelationId)));
                     }
                     catch (Exception error)
@@ -134,7 +135,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 var id = await _sendMessageAsync.Handle(
                     new SendMessageCommand(messageToSend, data)).ConfigureAwait(false);
-                return new QueueOutputMessage(_sentMessageFactory.Create(new SqLiteMessageQueueId(id), data.CorrelationId));
+                return new QueueOutputMessage(_sentMessageFactory.Create(new MessageQueueId(id), data.CorrelationId));
             }
             catch (Exception exception)
             {
@@ -159,7 +160,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     {
                         var id = await _sendMessageAsync.Handle(
                             new SendMessageCommand(m.Message, m.MessageData)).ConfigureAwait(false);
-                        rc.Add(new QueueOutputMessage(_sentMessageFactory.Create(new SqLiteMessageQueueId(id), m.MessageData.CorrelationId)));
+                        rc.Add(new QueueOutputMessage(_sentMessageFactory.Create(new MessageQueueId(id), m.MessageData.CorrelationId)));
                     }
                     catch (Exception error)
                     {

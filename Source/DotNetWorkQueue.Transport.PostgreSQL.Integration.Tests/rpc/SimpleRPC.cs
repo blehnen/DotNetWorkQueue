@@ -20,6 +20,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Rpc;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using System;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using Xunit;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.rpc
 {

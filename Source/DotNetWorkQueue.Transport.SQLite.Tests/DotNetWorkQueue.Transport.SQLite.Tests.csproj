@@ -87,14 +87,11 @@
     <Compile Include="Basic\CreationScopeTests.cs" />
     <Compile Include="Basic\DatabaseExistsTests.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactoryTests.cs" />
-    <Compile Include="Basic\Factory\SQLiteMessageQueueCorrelationIdFactoryTests.cs" />
     <Compile Include="Basic\Factory\SQLiteMessageQueueTransportOptionsFactoryTests.cs" />
     <Compile Include="Basic\SqlHeadersTests.cs" />
     <Compile Include="Basic\SqLiteHoldConnectionTests.cs" />
     <Compile Include="Basic\SqlQueueDelayTests.cs" />
     <Compile Include="Basic\SQLiteCommandStringCacheTests.cs" />
-    <Compile Include="Basic\SQLiteMessageQueueCorrelationIdTests.cs" />
-    <Compile Include="Basic\SQLiteMessageQueueIdTests.cs" />
     <Compile Include="Basic\SQLiteMessageQueueSchemaTests.cs" />
     <Compile Include="Basic\SQLiteMessageQueueTransportOptionsTests.cs" />
     <Compile Include="Basic\SQLiteQueueStatusProviderTests.cs" />

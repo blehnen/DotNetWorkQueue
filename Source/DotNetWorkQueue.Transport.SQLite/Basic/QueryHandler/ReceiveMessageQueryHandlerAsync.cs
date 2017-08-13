@@ -82,8 +82,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <param name="query">The query.</param>
         /// <returns></returns>
         /// <exception cref="PoisonMessageException">An error has occured trying to re-assemble a message de-queued from SQLite</exception>
-        /// <exception cref="SqLiteMessageQueueId"></exception>
-        /// <exception cref="SqLiteMessageQueueCorrelationId"></exception>
+        /// <exception cref="MessageQueueId"></exception>
         public async Task<IReceivedMessageInternal> Handle(ReceiveMessageQueryAsync<SQLiteConnection, SQLiteTransaction> query)
         {
             if (!DatabaseExists.Exists(_connectionInformation.ConnectionString))
@@ -94,7 +93,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             using (var connection = new SQLiteConnection(_connectionInformation.ConnectionString))
             {
                 connection.Open();
-                using (var transaction = _transactionFactory.Create(connection).BeginTransaction())
+                using (var transaction = (SQLiteTransaction)_transactionFactory.Create(connection).BeginTransaction())
                 {
                     using (var selectCommand = connection.CreateCommand())
                     {

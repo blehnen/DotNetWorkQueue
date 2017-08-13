@@ -20,6 +20,7 @@ using System;
 using System.Data;
 using System.Data.SQLite;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SQLite.Schema;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
@@ -27,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// <summary>
     /// Transport options. Generally speaking, this controls the feature set of the transport.
     /// </summary>
-    public class SqLiteMessageQueueTransportOptions: IReadonly, ISetReadonly
+    public class SqLiteMessageQueueTransportOptions: ITransportOptions, IReadonly, ISetReadonly
     {
         private bool _enableStatusTable;
         private bool _enablePriority;
@@ -203,6 +204,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 FailIfReadOnly();
                 _enableMessageExpiration = value;
             }
+        }
+
+        /// <summary>
+        /// If true, a transaction will be held until the message is finished processing.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [enable hold transaction until message committed]; otherwise, <c>false</c>.
+        /// </value>
+        public bool EnableHoldTransactionUntilMessageCommited
+        {
+            get => false;
+            // ReSharper disable once ValueParameterNotUsed
+            set => FailIfReadOnly();
         }
 
         #endregion
@@ -386,23 +400,5 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             }
         }
         #endregion
-    }
-    /// <summary>
-    /// Types of queues that this transport supports
-    /// </summary>
-    public enum QueueTypes
-    {
-        /// <summary>
-        /// Standard queue
-        /// </summary>
-        Normal,
-        /// <summary>
-        /// RPC send
-        /// </summary>
-        RpcSend,
-        /// <summary>
-        /// RPC receive
-        /// </summary>
-        RpcReceive
     }
 }

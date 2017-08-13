@@ -16,12 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
-using System;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 

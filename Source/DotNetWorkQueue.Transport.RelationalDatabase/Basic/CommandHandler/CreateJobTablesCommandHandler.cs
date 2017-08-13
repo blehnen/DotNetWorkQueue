@@ -42,7 +42,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// </summary>
         /// <param name="command">The command.</param>
         /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException"></exception>
         public QueueCreationResult Handle(CreateJobTablesCommand<ITable> command)
         {
             using (var conn = _dbConnectionFactory.Create())

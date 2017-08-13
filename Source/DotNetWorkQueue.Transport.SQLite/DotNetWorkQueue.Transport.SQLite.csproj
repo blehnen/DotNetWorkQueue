@@ -53,20 +53,15 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Basic\CommandHandler\CreateJobTablesCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\CreateQueueTablesAndSaveConfigurationCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\DeleteMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteQueueTablesCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\DeleteStatusTableStatusCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\MessageExpiration.cs" />
     <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
-    <Compile Include="Basic\CreateJobMetaData.cs" />
     <Compile Include="Basic\CreationScope.cs" />
+    <Compile Include="Basic\DbConnectionFactory.cs" />
     <Compile Include="Basic\Factory\SQLiteTransactionFactory.cs" />
+    <Compile Include="Basic\OptionsSerialization.cs" />
     <Compile Include="Basic\QueryHandler\BuildDequeueCommand.cs" />
     <Compile Include="Basic\QueryHandler\DoesJobExistQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetJobIdQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetJobLastKnownEventQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\MessageDeQueue.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessage.cs" />
@@ -77,9 +72,7 @@
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
     <Compile Include="Basic\CommandHandler\SetErrorCountCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SetStatusTableStatusCommandHandler.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
-    <Compile Include="Basic\Factory\SqLiteMessageQueueCorrelationIdFactory.cs" />
     <Compile Include="Basic\Factory\SqLiteMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\GetFileNameFromConnectionString.cs" />
     <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
@@ -112,10 +105,8 @@
     <Compile Include="Basic\SqLiteCommandStringCache.cs" />
     <Compile Include="Basic\SqLiteHoldConnection.cs" />
     <Compile Include="Basic\SqLiteMessageQueueClearExpiredMessages.cs" />
-    <Compile Include="Basic\SqLiteMessageQueueCorrelationId.cs" />
     <Compile Include="Basic\SqLiteMessageQueueCreation.cs" />
-    <Compile Include="Basic\SqLiteMessageQueueId.cs" />
-    <Compile Include="Basic\SqLiteServerMessageQueueInit.cs" />
+    <Compile Include="Basic\SqLiteMessageQueueInit.cs" />
     <Compile Include="Basic\SqLiteMessageQueueReceive.cs" />
     <Compile Include="Basic\SqLiteMessageQueueReceiveErrorMessage.cs" />
     <Compile Include="Basic\SqLiteMessageQueueResetHeartBeat.cs" />
@@ -128,11 +119,17 @@
     <Compile Include="Basic\SqLiteQueueStatusProvider.cs" />
     <Compile Include="Basic\SqLiteRpcConnection.cs" />
     <Compile Include="Basic\SqliteJobSchema.cs" />
+    <Compile Include="Basic\TransactionFactory.cs" />
+    <Compile Include="Basic\TransportOptionsFactory.cs" />
     <Compile Include="ConfigurationExtensions.cs" />
     <Compile Include="Basic\DatabaseExists.cs" />
     <Compile Include="Decorator\BeginTransactionRetryDecorator.cs" />
+    <Compile Include="Decorator\CreateJobTablesCommandDecorator.cs" />
+    <Compile Include="Decorator\CreateQueueTablesAndSaveConfigurationDecorator.cs" />
+    <Compile Include="Decorator\DeleteMessageCommandDecorator.cs" />
     <Compile Include="Decorator\RetryableSqlErrors.cs" />
     <Compile Include="Decorator\RetryConstants.cs" />
+    <Compile Include="Decorator\SetStatusTableStatusCommandDecorator.cs" />
     <Compile Include="Decorator\ThreadSafeRandom.cs" />
     <Compile Include="ISQLiteTransaction.cs" />
     <Compile Include="ISQLiteTransactionFactory.cs" />

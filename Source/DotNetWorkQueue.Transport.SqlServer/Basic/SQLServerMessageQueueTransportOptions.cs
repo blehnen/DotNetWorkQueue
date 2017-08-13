@@ -21,13 +21,14 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>
     /// Transport options. Generally speaking, this controls the feature set of the transport.
     /// </summary>
-    public class SqlServerMessageQueueTransportOptions: IReadonly, ISetReadonly
+    public class SqlServerMessageQueueTransportOptions: ITransportOptions, IReadonly, ISetReadonly
     {
         private bool _enableStatusTable;
         private bool _enablePriority;
@@ -419,23 +420,5 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             }
         }
         #endregion
-    }
-    /// <summary>
-    /// Types of queues that this transport supports
-    /// </summary>
-    public enum QueueTypes
-    {
-        /// <summary>
-        /// Standard queue
-        /// </summary>
-        Normal,
-        /// <summary>
-        /// RPC send
-        /// </summary>
-        RpcSend,
-        /// <summary>
-        /// RPC receive
-        /// </summary>
-        RpcReceive
     }
 }

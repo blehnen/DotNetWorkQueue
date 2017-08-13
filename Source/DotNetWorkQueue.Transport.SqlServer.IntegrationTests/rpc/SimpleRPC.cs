@@ -20,6 +20,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Rpc;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using System;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.rpc
 {

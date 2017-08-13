@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Data;
 using System.Data.SQLite;
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Factory
 {
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Factory
         {
             _container = container.Create();
         }
-        public ISqLiteTransactionWrapper Create(SQLiteConnection connection)
+        public ISqLiteTransactionWrapper Create(IDbConnection connection)
         {
             var transaction = _container.GetInstance<ISqLiteTransactionWrapper>();
             transaction.Connection = connection;

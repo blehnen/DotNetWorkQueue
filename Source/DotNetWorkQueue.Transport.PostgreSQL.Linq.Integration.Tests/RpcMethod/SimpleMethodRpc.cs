@@ -21,6 +21,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.RpcMethod;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.RpcMethod
