@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             container.Register<TableNameHelper>(LifeStyles.Singleton);
             container.Register<SqlHeaders>(LifeStyles.Singleton);
-            container.Register<IClearExpiredMessages, SqLiteMessageQueueClearExpiredMessages>(LifeStyles.Singleton);
+            container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
 
             container.Register<ISqLiteTransactionFactory, SqLiteTransactionFactory>(LifeStyles.Singleton);
             container.Register<ISqLiteTransactionWrapper, SqLiteTransactionWrapper>(LifeStyles.Transient);
@@ -107,10 +107,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<HandleMessage>(LifeStyles.Transient);
             container.Register<Message.ReceiveMessage>(LifeStyles.Transient);
 
-            container.Register<IResetHeartBeat, SqLiteMessageQueueResetHeartBeat>(LifeStyles.Singleton);
-            container.Register<ISendHeartBeat, SqLiteMessageQueueSendHeartBeat>(LifeStyles.Singleton);
+            container.Register<IResetHeartBeat, ResetHeartBeat>(LifeStyles.Singleton);
+            container.Register<ISendHeartBeat, SendHeartBeat>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
-            container.Register<IReceivePoisonMessage, SqLiteQueueReceivePoisonMessage>(LifeStyles.Singleton);
+            container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesError, SqLiteMessageQueueReceiveErrorMessage>(LifeStyles.Singleton);
             //**receive
 

@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<SqlHeaders>(LifeStyles.Singleton);
 
             container.Register<ThreadSafeRandom>(LifeStyles.Singleton);
-            container.Register<IClearExpiredMessages, SqlServerMessageQueueClearExpiredMessages>(LifeStyles.Singleton);
+            container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
             //**all
 
             //**send
@@ -106,10 +106,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<QueryHandler.BuildDequeueCommand>(LifeStyles.Singleton);
             container.Register<QueryHandler.ReadMessage>(LifeStyles.Singleton);
 
-            container.Register<IResetHeartBeat, SqlServerMessageQueueResetHeartBeat>(LifeStyles.Singleton);
-            container.Register<ISendHeartBeat, SqlServerMessageQueueSendHeartBeat>(LifeStyles.Singleton);
+            container.Register<IResetHeartBeat, ResetHeartBeat>(LifeStyles.Singleton);
+            container.Register<ISendHeartBeat, SendHeartBeat>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
-            container.Register<IReceivePoisonMessage, SqlServerQueueReceivePoisonMessage>(LifeStyles.Singleton);
+            container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesError, SqlServerMessageQueueReceiveErrorMessage>(LifeStyles.Singleton);
             //**receive
 

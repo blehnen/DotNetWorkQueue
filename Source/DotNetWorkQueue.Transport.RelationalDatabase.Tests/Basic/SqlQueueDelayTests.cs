@@ -17,9 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Xunit;
-namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 {
     public class SqlQueueDelayTests
     {

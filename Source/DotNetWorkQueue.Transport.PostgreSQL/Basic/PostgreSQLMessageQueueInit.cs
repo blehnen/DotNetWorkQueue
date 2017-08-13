@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<SqlHeaders>(LifeStyles.Singleton);
 
             container.Register<ThreadSafeRandom>(LifeStyles.Singleton);
-            container.Register<IClearExpiredMessages, PostgreSqlMessageQueueClearExpiredMessages>(LifeStyles.Singleton);
+            container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
             //**all
 
             //**send
@@ -106,10 +106,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<HandleMessage>(LifeStyles.Transient);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
 
-            container.Register<IResetHeartBeat, PostgreSqlMessageQueueResetHeartBeat>(LifeStyles.Singleton);
-            container.Register<ISendHeartBeat, PostgreSqlMessageQueueSendHeartBeat>(LifeStyles.Singleton);
+            container.Register<IResetHeartBeat, ResetHeartBeat>(LifeStyles.Singleton);
+            container.Register<ISendHeartBeat, SendHeartBeat>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
-            container.Register<IReceivePoisonMessage, PostgreSqlQueueReceivePoisonMessage>(LifeStyles.Singleton);
+            container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesError, PostgreSqlMessageQueueReceiveErrorMessage>(LifeStyles.Singleton);
             //**receive
 

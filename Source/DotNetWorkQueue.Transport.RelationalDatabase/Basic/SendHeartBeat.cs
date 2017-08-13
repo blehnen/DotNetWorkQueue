@@ -16,16 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Queue;
-using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
-namespace DotNetWorkQueue.Transport.SqlServer.Basic
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    internal class SqlServerMessageQueueSendHeartBeat : ISendHeartBeat 
+   public class SendHeartBeat : ISendHeartBeat 
     {
         #region Member Level Variables
         private readonly ICommandHandlerWithOutput<SendHeartBeatCommand, DateTime?> _commandHandler;
@@ -33,10 +32,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
         #region Constructor
         /// <summary>
-        /// Initializes a new instance of the <see cref="SqlServerMessageQueueSendHeartBeat" /> class.
+        /// Initializes a new instance of the <see cref="SendHeartBeat" /> class.
         /// </summary>
         /// <param name="commandHandler">The command handler.</param>
-        public SqlServerMessageQueueSendHeartBeat(ICommandHandlerWithOutput<SendHeartBeatCommand, DateTime?> commandHandler)
+        public SendHeartBeat(ICommandHandlerWithOutput<SendHeartBeatCommand, DateTime?> commandHandler)
         {
             Guard.NotNull(() => commandHandler, commandHandler);
             _commandHandler = commandHandler;

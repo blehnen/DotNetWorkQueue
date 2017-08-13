@@ -16,21 +16,19 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
-
 using DotNetWorkQueue.Validation;
-
-namespace DotNetWorkQueue.Transport.SQLite.Basic
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
     /// <summary>
     /// Deletes expired messages from the queue
     /// </summary>
-    internal class SqLiteMessageQueueClearExpiredMessages: IClearExpiredMessages
+    public class ClearExpiredMessages: IClearExpiredMessages
     {
         #region Member Level Variables
         private readonly IConnectionInformation _connectionInfo;
@@ -41,12 +39,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
         #region Constructor
         /// <summary>
-        /// Initializes a new instance of the <see cref="SqLiteMessageQueueClearExpiredMessages" /> class.
+        /// Initializes a new instance of the <see cref="ClearExpiredMessages" /> class.
         /// </summary>
         /// <param name="connectionInfo">The connection information.</param>
         /// <param name="findExpiredMessagesQueryHandler">The find expired messages query handler.</param>
         /// <param name="deleteMessageCommandHandler">The delete message command handler.</param>
-        public SqLiteMessageQueueClearExpiredMessages(IConnectionInformation connectionInfo,
+        public ClearExpiredMessages(IConnectionInformation connectionInfo,
             IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> findExpiredMessagesQueryHandler, 
             ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommandHandler)
         {

@@ -75,6 +75,7 @@
     <Compile Include="Basic\Query\MessageToResetTests.cs" />
     <Compile Include="Basic\MessageQueueIdTests.cs" />
     <Compile Include="Basic\CorrelationIdTests.cs" />
+    <Compile Include="Basic\SqlQueueDelayTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Basic\TableNameHelperTests.cs" />
   </ItemGroup>

@@ -90,7 +90,6 @@
     <Compile Include="Basic\Factory\SQLiteMessageQueueTransportOptionsFactoryTests.cs" />
     <Compile Include="Basic\SqlHeadersTests.cs" />
     <Compile Include="Basic\SqLiteHoldConnectionTests.cs" />
-    <Compile Include="Basic\SqlQueueDelayTests.cs" />
     <Compile Include="Basic\SQLiteCommandStringCacheTests.cs" />
     <Compile Include="Basic\SQLiteMessageQueueSchemaTests.cs" />
     <Compile Include="Basic\SQLiteMessageQueueTransportOptionsTests.cs" />

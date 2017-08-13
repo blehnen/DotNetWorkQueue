@@ -16,31 +16,31 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
-namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
     /// <summary>
     /// Handles moving poison messages to the error table
     /// </summary>
-    internal class PostgreSqlQueueReceivePoisonMessage : IReceivePoisonMessage
+    public class ReceivePoisonMessage : IReceivePoisonMessage
     {
         private readonly ICommandHandler<MoveRecordToErrorQueueCommand> _commandMoveRecord;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PostgreSqlQueueReceivePoisonMessage"/> class.
+        /// Initializes a new instance of the <see cref="ReceivePoisonMessage"/> class.
         /// </summary>
         /// <param name="commandMoveRecord">The command move record.</param>
-        public PostgreSqlQueueReceivePoisonMessage(ICommandHandler<MoveRecordToErrorQueueCommand> commandMoveRecord)
+        public ReceivePoisonMessage(ICommandHandler<MoveRecordToErrorQueueCommand> commandMoveRecord)
         {
             Guard.NotNull(() => commandMoveRecord, commandMoveRecord); 
             _commandMoveRecord = commandMoveRecord;
         }
         /// <summary>
-        /// Invoked when we have dequeued a message, but a failure occurred during re-assembly.
+        /// Invoked when we have dequeued a message, but a failure occured during re-assembly.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>

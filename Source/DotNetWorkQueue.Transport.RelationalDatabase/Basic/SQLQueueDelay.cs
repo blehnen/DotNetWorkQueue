@@ -17,13 +17,12 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-
-namespace DotNetWorkQueue.Transport.SQLite.Basic
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
     /// <summary>
     /// Holds information indicating if an existing message should have it's queue delay time increased
     /// </summary>
-    internal class SqlQueueDelay
+    public class SqlQueueDelay
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlQueueDelay"/> class.
@@ -39,6 +38,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <value>
         /// The increase delay.
         /// </value>
-        public TimeSpan IncreaseDelay { get; private set; }
+        public TimeSpan IncreaseDelay { get;  }
     }
 }

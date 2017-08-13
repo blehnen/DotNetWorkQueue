@@ -16,22 +16,21 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
-
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
-namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
     /// <summary>
     /// Searches for and updates work items that are outside of the heart beat window
     /// </summary>
-    internal class PostgreSqlMessageQueueResetHeartBeat : IResetHeartBeat
+    public class ResetHeartBeat : IResetHeartBeat
     {
         #region Member Level Variables
         private readonly QueueConsumerConfiguration _configuration;
@@ -41,12 +40,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
         #region Constructor
         /// <summary>
-        /// Initializes a new instance of the <see cref="PostgreSqlMessageQueueResetHeartBeat"/> class.
+        /// Initializes a new instance of the <see cref="ResetHeartBeat"/> class.
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="commandHandler">The command handler.</param>
         /// <param name="queryHandler">The query handler.</param>
-        public PostgreSqlMessageQueueResetHeartBeat(QueueConsumerConfiguration configuration, 
+        public ResetHeartBeat(QueueConsumerConfiguration configuration, 
             ICommandHandlerWithOutput<ResetHeartBeatCommand, long> commandHandler, 
             IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>> queryHandler)
         {

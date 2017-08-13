@@ -90,6 +90,11 @@
     <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
     <Compile Include="Basic\MessageQueueID.cs" />
     <Compile Include="Basic\MessageCorrelationId.cs" />
+    <Compile Include="Basic\SendHeartBeat.cs" />
+    <Compile Include="Basic\ResetHeartBeat.cs" />
+    <Compile Include="Basic\ClearExpiredMessages.cs" />
+    <Compile Include="Basic\ReceivePoisonMessage.cs" />
+    <Compile Include="Basic\SQLQueueDelay.cs" />
     <Compile Include="Basic\TableNameHelper.cs" />
     <Compile Include="Basic\TransactionFactory.cs" />
     <Compile Include="Basic\TransactionWrapper.cs" />
