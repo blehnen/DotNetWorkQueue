@@ -19,7 +19,9 @@
 using System;
 using System.Data;
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -68,7 +70,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 conn.Open();
                 using (var commandSql = conn.CreateCommand())
                 {
-                    commandSql.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.SendHeartBeat);
+                    commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SendHeartBeat);
                     commandSql.Parameters.Add("@QueueID", DbType.Int64);
                     commandSql.Parameters["@QueueID"].Value = command.QueueId;
                     commandSql.Parameters.Add("@status", DbType.Int32);

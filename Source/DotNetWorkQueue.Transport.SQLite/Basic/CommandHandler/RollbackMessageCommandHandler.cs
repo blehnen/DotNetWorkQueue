@@ -21,7 +21,9 @@ using System.Collections.Concurrent;
 using System.Data;
 using System.Data.SQLite;
 using System.Text;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 {
@@ -128,7 +130,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             command.Parameters.Add("@status", DbType.Int32);
                             command.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Waiting);
                             command.CommandText =
-                                _commandCache.GetCommand(SqLiteCommandStringTypes.UpdateStatusRecord);
+                                _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
                             command.ExecuteNonQuery();
                         }
                     }

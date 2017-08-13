@@ -19,6 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
 {
     internal static class ReceiveMessage
@@ -41,11 +43,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             {
                 if (forRpc && commandCache.Contains(RpcdequeueKey))
                 {
-                    return commandCache.Get(RpcdequeueKey);
+                    return commandCache.Get(RpcdequeueKey).CommandText;
                 }
                 if (commandCache.Contains(DequeueKey))
                 {
-                    return commandCache.Get(DequeueKey);
+                    return commandCache.Get(DequeueKey).CommandText;
                 }
             }
 

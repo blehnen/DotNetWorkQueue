@@ -20,8 +20,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic

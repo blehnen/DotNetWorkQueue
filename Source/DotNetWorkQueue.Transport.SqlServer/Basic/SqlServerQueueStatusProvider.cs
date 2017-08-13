@@ -19,7 +19,8 @@
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.QueueStatus;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>

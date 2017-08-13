@@ -27,6 +27,11 @@ using DotNetWorkQueue.Transport.PostgreSQL.Basic.Time;
 using DotNetWorkQueue.Transport.PostgreSQL.Decorator;
 using CommitMessage = DotNetWorkQueue.Transport.PostgreSQL.Basic.Message.CommitMessage;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.PostgreSQL.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
@@ -43,20 +48,24 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="registrationType">Type of the registration.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="queue">The queue.</param>
-        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
+        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
+            string connection, string queue)
         {
             Guard.NotNull(() => container, container);
 
             //**all
+            container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<PostgreSqlMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, PostgreSqlMessageQueueCreation>(LifeStyles.Singleton);
             container.Register<PostgreSqlMessageQueueStatusQueries>(LifeStyles.Singleton);
             container.Register<IQueueStatusProvider, PostgreSqlQueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, PostgreSqlJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<IJobTableCreation, PostgreSqlJobTableCreation>(LifeStyles.Singleton);
+            container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<PostgreSqlJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, PostgreSqlSendJobToQueue>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
+            container.Register<CommandStringCache, PostgreSqlCommandStringCache>(LifeStyles.Singleton);
 
             container.Register<IGetTime, PostgreSqlTime>(LifeStyles.Singleton);
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
@@ -68,7 +77,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
             container.Register<PostgreSqlCommandStringCache>(LifeStyles.Singleton);
 
-            container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queue, connection), LifeStyles.Singleton);
+            container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queue, connection),
+                LifeStyles.Singleton);
             container.Register<ICorrelationIdFactory, PostgreSqlMessageQueueCorrelationIdFactory>(
                 LifeStyles.Singleton);
 
@@ -102,11 +112,41 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //**receive
 
             var target = Assembly.GetAssembly(GetType());
+            RegisterCommands(container, target);
 
+            var target2 = Assembly.GetAssembly(typeof(ITable));
+            if(target.FullName != target2.FullName)
+                RegisterCommands(container, target2);
+
+            container.RegisterDecorator(typeof(ICommandHandlerWithOutput<,>),
+                typeof(RetryCommandHandlerOutputDecorator<,>), LifeStyles.Singleton);
+
+            container.RegisterDecorator(typeof(ICommandHandler<>),
+                typeof(RetryCommandHandlerDecorator<>), LifeStyles.Singleton);
+
+            container.RegisterDecorator(typeof(ICommandHandlerWithOutputAsync<,>),
+                typeof(RetryCommandHandlerOutputDecoratorAsync<,>), LifeStyles.Singleton);
+
+            container.RegisterDecorator(typeof(IQueryHandler<,>),
+                typeof(RetryQueryHandlerDecorator<,>), LifeStyles.Singleton);
+
+            //register our decorator that handles table creation errors
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult>),
+                typeof(CreateJobTablesCommandDecorator), LifeStyles.Singleton);
+
+            //register our decorator that handles table creation errors
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult>),
+                typeof(CreateQueueTablesAndSaveConfigurationDecorator), LifeStyles.Singleton);
+        }
+
+        private void RegisterCommands(IContainer container, Assembly target)
+        {
             //commands and decorators
             // Go look in all assemblies and register all implementations
             // of ICommandHandlerWithOutput<T> by their closed interface:
-            container.Register(typeof (ICommandHandlerWithOutput<,>), LifeStyles.Singleton,
+            container.Register(typeof(ICommandHandlerWithOutput<,>), LifeStyles.Singleton,
                 target);
 
             //commands and decorators
@@ -117,25 +157,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             // Go look in all assemblies and register all implementations
             // of ICommandHandler<T> by their closed interface:
-            container.Register(typeof (ICommandHandler<>), LifeStyles.Singleton,
+            container.Register(typeof(ICommandHandler<>), LifeStyles.Singleton,
                 target);
 
             // Go look in all assemblies and register all implementations
             // of IQueryHandler<T> by their closed interface:
-            container.Register(typeof (IQueryHandler<,>), LifeStyles.Singleton,
+            container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,
                 target);
-
-            container.RegisterDecorator(typeof (ICommandHandlerWithOutput<,>),
-                typeof (RetryCommandHandlerOutputDecorator<,>), LifeStyles.Singleton);
-
-            container.RegisterDecorator(typeof(ICommandHandler<>),
-                typeof(RetryCommandHandlerDecorator<>), LifeStyles.Singleton);
-
-            container.RegisterDecorator(typeof(ICommandHandlerWithOutputAsync<,>),
-                typeof(RetryCommandHandlerOutputDecoratorAsync<,>), LifeStyles.Singleton);
-
-            container.RegisterDecorator(typeof(IQueryHandler<,>),
-               typeof(RetryQueryHandlerDecorator<,>), LifeStyles.Singleton);
         }
 
         /// <summary>

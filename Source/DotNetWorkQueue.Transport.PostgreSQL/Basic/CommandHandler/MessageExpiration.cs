@@ -17,7 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
     internal static class MessageExpiration

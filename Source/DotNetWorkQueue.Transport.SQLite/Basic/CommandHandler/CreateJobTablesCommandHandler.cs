@@ -18,7 +18,9 @@
 // ---------------------------------------------------------------------
 using System.Data.SQLite;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.SQLite.Schema;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
     /// <summary>
     /// Creates tables for storing job info
     /// </summary>
-    public class CreateJobTablesCommandHandler : ICommandHandlerWithOutput<CreateJobTablesCommand, QueueCreationResult>
+    public class CreateJobTablesCommandHandler : ICommandHandlerWithOutput<CreateJobTablesCommand<Table>, QueueCreationResult>
     {
         private readonly IConnectionInformation _connectionInformation;
 
@@ -46,7 +48,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="command">The command.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException"></exception>
-        public QueueCreationResult Handle(CreateJobTablesCommand command)
+        public QueueCreationResult Handle(CreateJobTablesCommand<Table> command)
         {
             var script = string.Empty;
             try

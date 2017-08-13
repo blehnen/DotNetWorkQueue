@@ -19,7 +19,10 @@
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
@@ -67,7 +70,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText =
-                        _commandCache.GetCommand(PostgreSqlCommandStringTypes.GetHeartBeatExpiredMessageIds);
+                        _commandCache.GetCommand(CommandStringTypes.GetHeartBeatExpiredMessageIds);
                     command.Parameters.Add("@Time", NpgsqlDbType.Bigint);
                     var selectTime = _getTime.GetCurrentUtcDate().AddSeconds(_configuration.HeartBeat.Time.TotalSeconds * -1);
                     command.Parameters["@time"].Value = selectTime.Ticks;

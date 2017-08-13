@@ -19,12 +19,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
 {
     /// <summary>
     /// Represents a table
     /// </summary>
-	public class Table
+	public class Table: ITable
     {
         #region Constructor
         /// <summary>

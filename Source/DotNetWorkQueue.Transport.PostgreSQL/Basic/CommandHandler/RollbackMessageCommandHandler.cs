@@ -19,7 +19,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Text;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -118,7 +120,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                             command.Parameters.Add("@status", NpgsqlDbType.Integer);
                             command.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Waiting);
                             command.CommandText =
-                                _commandCache.GetCommand(PostgreSqlCommandStringTypes.UpdateStatusRecord);
+                                _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
                             command.ExecuteNonQuery();
                         }
                     }

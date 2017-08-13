@@ -19,7 +19,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler

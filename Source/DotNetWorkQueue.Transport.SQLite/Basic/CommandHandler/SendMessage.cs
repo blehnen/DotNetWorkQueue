@@ -21,7 +21,8 @@ using System.Data;
 using System.Data.SQLite;
 using System.Text;
 using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 {
@@ -46,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             ICompositeSerialization serializer)
         {
             var command = connection.CreateCommand();
-            command.CommandText = commandCache.GetCommand(SqLiteCommandStringTypes.InsertMessageBody);
+            command.CommandText = commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
             var serialization =
                 serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
 

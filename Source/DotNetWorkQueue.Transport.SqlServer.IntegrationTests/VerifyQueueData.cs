@@ -19,6 +19,7 @@
 #region Using
 
 using System.Data.SqlClient;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
 

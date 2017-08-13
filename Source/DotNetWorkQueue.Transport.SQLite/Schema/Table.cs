@@ -19,13 +19,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 
 namespace DotNetWorkQueue.Transport.SQLite.Schema
 {
     /// <summary>
     /// Represents a table in SQLite
     /// </summary>
-	public class Table
+	public class Table: ITable
     {
         #region Constructor
         /// <summary>

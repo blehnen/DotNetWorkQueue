@@ -19,7 +19,9 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -57,7 +59,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 conn.Open();
                 using (var commandSql = conn.CreateCommand())
                 {
-                    commandSql.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.SendHeartBeat);
+                    commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SendHeartBeat);
                     commandSql.Parameters.Add("@QueueID", SqlDbType.BigInt);
                     commandSql.Parameters["@QueueID"].Value = command.QueueId;
                     commandSql.Parameters.Add("@status", SqlDbType.Int);

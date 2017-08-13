@@ -21,6 +21,8 @@ using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
 using NSubstitute;
 using Xunit;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
 {
     public class SqlServerMessageQueueSchemaTests

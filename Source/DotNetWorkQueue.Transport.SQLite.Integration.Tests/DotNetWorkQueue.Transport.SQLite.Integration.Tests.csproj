@@ -93,6 +93,10 @@
       <Project>{3c5a2726-36c2-41fa-8840-91d2fd74f872}</Project>
       <Name>DotNetWorkQueue.IntegrationTests.Shared</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj">
+      <Project>{b5c21f35-5f81-438c-b27f-a32c0c730581}</Project>
+      <Name>DotNetWorkQueue.Transport.RelationalDatabase</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj">
       <Project>{50ab47cd-3038-4426-aa92-7ed11b990d4b}</Project>
       <Name>DotNetWorkQueue.Transport.SQLite</Name>

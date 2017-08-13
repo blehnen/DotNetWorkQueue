@@ -19,7 +19,9 @@
 using System;
 using System.Data;
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -71,7 +73,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                     using (var sqLiteCommand = connection.CreateCommand())
                     {
                         sqLiteCommand.Transaction = trans;
-                        sqLiteCommand.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.ResetHeartbeat);
+                        sqLiteCommand.CommandText = _commandCache.GetCommand(CommandStringTypes.ResetHeartbeat);
                         sqLiteCommand.Parameters.Add("@QueueID", DbType.Int64);
                         sqLiteCommand.Parameters.Add("@SourceStatus", DbType.Int32);
                         sqLiteCommand.Parameters.Add("@Status", DbType.Int32);

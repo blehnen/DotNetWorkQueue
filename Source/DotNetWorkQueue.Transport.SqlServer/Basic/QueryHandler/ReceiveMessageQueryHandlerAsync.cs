@@ -16,8 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Data.SqlClient;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
@@ -25,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
     /// <summary>
     /// Dequeues a message.
     /// </summary>
-    internal class ReceiveMessageQueryHandlerAsync : IQueryHandler<ReceiveMessageQueryAsync, Task<IReceivedMessageInternal>>
+    internal class ReceiveMessageQueryHandlerAsync : IQueryHandler<ReceiveMessageQueryAsync<SqlConnection, SqlTransaction>, Task<IReceivedMessageInternal>>
     {
         private readonly BuildDequeueCommand _buildDequeueCommand;
         private readonly ReadMessage _readMessage;
@@ -49,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public async Task<IReceivedMessageInternal> Handle(ReceiveMessageQueryAsync query)
+        public async Task<IReceivedMessageInternal> Handle(ReceiveMessageQueryAsync<SqlConnection, SqlTransaction> query)
         {
             using (var selectCommand = query.Connection.CreateCommand())
             {

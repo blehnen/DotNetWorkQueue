@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Factory
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Factory
     /// </summary>
     internal class SqLiteMessageQueueTransportOptionsFactory : ISqLiteMessageQueueTransportOptionsFactory
     {
-        private readonly IQueryHandler<GetQueueOptionsQuery, SqLiteMessageQueueTransportOptions> _queryOptions;
+        private readonly IQueryHandler<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>, SqLiteMessageQueueTransportOptions> _queryOptions;
         private readonly IConnectionInformation _connectionInformation;
         private readonly object _creator = new object();
         private SqLiteMessageQueueTransportOptions _options;
@@ -37,7 +39,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Factory
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="queryOptions">The query options.</param>
         public SqLiteMessageQueueTransportOptionsFactory(IConnectionInformation connectionInformation,
-            IQueryHandler<GetQueueOptionsQuery, SqLiteMessageQueueTransportOptions> queryOptions)
+            IQueryHandler<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>, SqLiteMessageQueueTransportOptions> queryOptions)
         {
             Guard.NotNull(() => queryOptions, queryOptions);
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -62,7 +64,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Factory
             {
                 if (_options == null)
                 {
-                    _options = _queryOptions.Handle(new GetQueueOptionsQuery());
+                    _options = _queryOptions.Handle(new GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>());
                 }
                 if (_options == null) //does not exist in DB; return a new copy
                 {

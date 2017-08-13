@@ -22,8 +22,11 @@ using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Text;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -114,7 +117,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             var commandSqlDeleteMetaData = conn.CreateCommand())
                         {
                             commandSqlDeleteMetaData.CommandText =
-                                _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromMetaData);
+                                _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaData);
                             commandSqlDeleteMetaData.Transaction = trans;
                             commandSqlDeleteMetaData.Parameters.Add("@QueueID", DbType.Int64);
                             commandSqlDeleteMetaData.Parameters["@QueueID"].Value = command.QueueId;
@@ -132,7 +135,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             var commandSqlUpdateStatusRecord = conn.CreateCommand())
                         {
                             commandSqlUpdateStatusRecord.CommandText =
-                                _commandCache.GetCommand(SqLiteCommandStringTypes.UpdateStatusRecord);
+                                _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
                             commandSqlUpdateStatusRecord.Transaction = trans;
                             commandSqlUpdateStatusRecord.Parameters.Add("@QueueID", DbType.Int64);
                             commandSqlUpdateStatusRecord.Parameters.Add("@Status", DbType.Int32);

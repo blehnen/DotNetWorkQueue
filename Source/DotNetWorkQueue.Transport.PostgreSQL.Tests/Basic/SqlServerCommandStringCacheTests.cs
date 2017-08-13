@@ -19,6 +19,7 @@
 using System;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using FluentAssertions;
 using NSubstitute;
 using Ploeh.AutoFixture;
@@ -27,7 +28,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 {
-    public class PostgreSQLCommandStringCacheTests
+    public class PostgreSqlCommandStringCacheTests
     {
         [Fact]
         public void Create_Key_Missing()
@@ -42,14 +43,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create();
             test.Add("test", "command");
             Assert.True(test.Contains("test"));
-            Assert.Equal("command", test.Get("test"));
+            Assert.Equal("command", test.Get("test").CommandText);
         }
 
         [Fact]
         public void All_Commands_Set()
         {
             var test = Create();
-            foreach (PostgreSqlCommandStringTypes command in Enum.GetValues(typeof(PostgreSqlCommandStringTypes)))
+            foreach (CommandStringTypes command in Enum.GetValues(typeof(CommandStringTypes)))
             {
                 test.GetCommand(command).Should().NotBe(null, "All commands should be set {0}", command);
             }
@@ -60,11 +61,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         {
             var test = Create();
 
-            var task1 = new Task(() => test.GetCommand(PostgreSqlCommandStringTypes.DeleteFromErrorTracking));
-            var task2 = new Task(() => test.GetCommand(PostgreSqlCommandStringTypes.DeleteFromErrorTracking));
-            var task3 = new Task(() => test.GetCommand(PostgreSqlCommandStringTypes.DeleteFromErrorTracking));
-            var task4 = new Task(() => test.GetCommand(PostgreSqlCommandStringTypes.DeleteFromErrorTracking));
-            var task5 = new Task(() => test.GetCommand(PostgreSqlCommandStringTypes.DeleteFromErrorTracking));
+            var task1 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
+            var task2 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
+            var task3 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
+            var task4 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
+            var task5 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
 
             task1.Start();
             task2.Start();

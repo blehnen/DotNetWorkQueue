@@ -20,6 +20,8 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 {
     internal static class SendMessage

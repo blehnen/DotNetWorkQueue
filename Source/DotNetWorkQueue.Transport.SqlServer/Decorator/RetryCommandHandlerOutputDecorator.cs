@@ -20,6 +20,7 @@ using System;
 using System.Data.SqlClient;
 using System.Threading;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Decorator

@@ -27,6 +27,8 @@ using DotNetWorkQueue.Transport.SqlServer.Basic.Time;
 using DotNetWorkQueue.Transport.SqlServer.Decorator;
 using CommitMessage = DotNetWorkQueue.Transport.SqlServer.Basic.Message.CommitMessage;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using FluentAssertions;
 using NSubstitute;
@@ -50,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void All_Commands_Set()
         {
             var test = Create();
-            foreach (SqLiteCommandStringTypes command in Enum.GetValues(typeof(SqLiteCommandStringTypes)))
+            foreach (CommandStringTypes command in Enum.GetValues(typeof(CommandStringTypes)))
             {
                 test.GetCommand(command).Should().NotBe(null, "All commands should be set {0}", command);
             }
@@ -61,11 +62,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         {
             var test = Create();
 
-            var task1 = new Task(() => test.GetCommand(SqLiteCommandStringTypes.DeleteFromErrorTracking));
-            var task2 = new Task(() => test.GetCommand(SqLiteCommandStringTypes.DeleteFromErrorTracking));
-            var task3 = new Task(() => test.GetCommand(SqLiteCommandStringTypes.DeleteFromErrorTracking));
-            var task4 = new Task(() => test.GetCommand(SqLiteCommandStringTypes.DeleteFromErrorTracking));
-            var task5 = new Task(() => test.GetCommand(SqLiteCommandStringTypes.DeleteFromErrorTracking));
+            var task1 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
+            var task2 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
+            var task3 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
+            var task4 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
+            var task5 = new Task(() => test.GetCommand(CommandStringTypes.DeleteFromErrorTracking));
 
             task1.Start();
             task2.Start();

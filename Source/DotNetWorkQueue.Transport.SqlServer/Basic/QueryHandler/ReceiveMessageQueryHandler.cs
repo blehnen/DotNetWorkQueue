@@ -16,7 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+
+using System.Data.SqlClient;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
@@ -24,7 +27,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
     /// <summary>
     /// Dequeues a message.
     /// </summary>
-    internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery, IReceivedMessageInternal>
+    internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery<SqlConnection, SqlTransaction>, IReceivedMessageInternal>
     {
         private readonly BuildDequeueCommand _buildDequeueCommand;
         private readonly ReadMessage _readMessage;
@@ -48,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public IReceivedMessageInternal Handle(ReceiveMessageQuery query)
+        public IReceivedMessageInternal Handle(ReceiveMessageQuery<SqlConnection, SqlTransaction> query)
         {
             using (var selectCommand = query.Connection.CreateCommand())
             {

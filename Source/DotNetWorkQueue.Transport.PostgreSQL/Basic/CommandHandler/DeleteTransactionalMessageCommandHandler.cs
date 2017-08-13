@@ -17,9 +17,11 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
 using DotNetWorkQueue.Validation;
 using NpgsqlTypes;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
@@ -65,22 +67,22 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                 commandSql.Parameters["@QueueID"].Value = command.QueueId;
 
                 //delete the meta data record
-                commandSql.CommandText = _commandCache.GetCommand(PostgreSqlCommandStringTypes.DeleteFromMetaData);
+                commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaData);
                 commandSql.ExecuteNonQuery();
 
                 //delete the message body
-                commandSql.CommandText = _commandCache.GetCommand(PostgreSqlCommandStringTypes.DeleteFromQueue);
+                commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromQueue);
                 commandSql.ExecuteNonQuery();
 
                 //delete any error tracking information
                 commandSql.CommandText =
-                    _commandCache.GetCommand(PostgreSqlCommandStringTypes.DeleteFromErrorTracking);
+                    _commandCache.GetCommand(CommandStringTypes.DeleteFromErrorTracking);
                 commandSql.ExecuteNonQuery();
 
                 //delete status record
                 if (!_options.Value.EnableStatusTable) return 1;
 
-                commandSql.CommandText = _commandCache.GetCommand(PostgreSqlCommandStringTypes.DeleteFromStatus);
+                commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromStatus);
                 commandSql.ExecuteNonQuery();
                 return 1;
             }

@@ -19,8 +19,10 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.SqlServer.Schema;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
@@ -35,7 +37,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private readonly SqlServerMessageQueueSchema _createSchema;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
 
-        private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand, QueueCreationResult>
+        private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<Table>, QueueCreationResult>
             _createCommand;
 
         private readonly ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> _deleteCommand;
@@ -60,7 +62,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             ISqlServerMessageQueueTransportOptionsFactory options, 
             SqlServerMessageQueueSchema createSchema,
-            ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand, QueueCreationResult> createCommand,
+            ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<Table>, QueueCreationResult> createCommand,
             ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> deleteCommand,
             ICreationScope creationScope
             )
@@ -202,7 +204,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             {
                 return
                     _createCommand.Handle(
-                        new CreateQueueTablesAndSaveConfigurationCommand(_createSchema.GetSchema()));
+                        new CreateQueueTablesAndSaveConfigurationCommand<Table>(_createSchema.GetSchema()));
             }
             return new QueueCreationResult(QueueCreationStatus.ConfigurationError, valid.ErrorMessage);
         }

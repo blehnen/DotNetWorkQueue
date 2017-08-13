@@ -20,8 +20,11 @@ using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
+using Npgsql;
 using NpgsqlTypes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
@@ -29,7 +32,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
     /// <summary>
     /// Dequeues a message.
     /// </summary>
-    internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery, IReceivedMessageInternal>
+    internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal>
     {
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
         private readonly TableNameHelper _tableNameHelper;
@@ -87,7 +90,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// <exception cref="PoisonMessageException">An error has occurred trying to re-assemble a message de-queued from the server</exception>
         /// <exception cref="PostgreSqlMessageQueueId"></exception>
         /// <exception cref="PostgreSqlMessageQueueCorrelationId"></exception>
-        public IReceivedMessageInternal Handle(ReceiveMessageQuery query)
+        public IReceivedMessageInternal Handle(ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction> query)
         {
             using (var selectCommand = query.Connection.CreateCommand())
             {

@@ -17,7 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
@@ -25,7 +27,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
     /// <summary>
     /// Gets the queue options
     /// </summary>
-    internal class GetQueueOptionsQueryHandler : IQueryHandler<GetQueueOptionsQuery, SqLiteMessageQueueTransportOptions>
+    internal class GetQueueOptionsQueryHandler : IQueryHandler<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>, SqLiteMessageQueueTransportOptions>
     {
         private readonly IInternalSerializer _serializer;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _tableExists;
@@ -65,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <param name="query">The query.</param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        public SqLiteMessageQueueTransportOptions Handle(GetQueueOptionsQuery query)
+        public SqLiteMessageQueueTransportOptions Handle(GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions> query)
         {
             if (!_tableExists.Handle(new GetTableExistsQuery(_connectionInformation.ConnectionString,
                 _tableNameHelper.ConfigurationName))) return null;
@@ -75,7 +77,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 conn.Open();
                 using (var command = conn.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.GetConfiguration);
+                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetConfiguration);
                     using (var reader = command.ExecuteReader())
                     {
                         if (!reader.Read()) return null;

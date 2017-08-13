@@ -21,7 +21,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+ 
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
@@ -62,7 +65,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText =
-                        _commandCache.GetCommand(SqlServerCommandStringTypes.GetHeartBeatExpiredMessageIds);
+                        _commandCache.GetCommand(CommandStringTypes.GetHeartBeatExpiredMessageIds);
                     command.Parameters.Add("@Time", SqlDbType.BigInt);
                     command.Parameters["@Time"].Value = _configuration.HeartBeat.Time.TotalSeconds;
                     command.Parameters.Add("@Status", SqlDbType.Int);

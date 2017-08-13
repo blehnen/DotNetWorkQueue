@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B5C21F35-5F81-438C-B27F-A32C0C730581}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DotNetWorkQueue.Transport.RelationalDatabase</RootNamespace>
+    <AssemblyName>DotNetWorkQueue.Transport.RelationalDatabase</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\SharedAssemblyInfo.cs">
+      <Link>SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="Basic\CommandHandler\CreateJobTablesCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\CreateQueueTablesAndSaveConfigurationCommandHandler.cs" />
+    <Compile Include="Basic\Command\CreateJobTablesCommand.cs" />
+    <Compile Include="Basic\Command\CreateQueueTablesAndSaveConfigurationCommand.cs" />
+    <Compile Include="Basic\Command\DeleteMessageCommand.cs" />
+    <Compile Include="Basic\Command\DeleteQueueTablesCommand.cs" />
+    <Compile Include="Basic\Command\DeleteStatusTableStatusCommand.cs" />
+    <Compile Include="Basic\Command\DeleteTransactionalMessageCommand.cs" />
+    <Compile Include="Basic\Command\MoveRecordToErrorQueueCommand.cs" />
+    <Compile Include="Basic\Command\ResetHeartBeatCommand.cs" />
+    <Compile Include="Basic\Command\RollbackMessageCommand.cs" />
+    <Compile Include="Basic\Command\SendHeartBeatCommand.cs" />
+    <Compile Include="Basic\Command\SendMessageCommand.cs" />
+    <Compile Include="Basic\Command\SetErrorCountCommand.cs" />
+    <Compile Include="Basic\Command\SetJobLastKnownEventCommand.cs" />
+    <Compile Include="Basic\Command\SetStatusTableStatusCommand.cs" />
+    <Compile Include="Basic\Message\CommitMessage.cs" />
+    <Compile Include="Basic\PostgreSQLCommandStringCache.cs" />
+    <Compile Include="Basic\Query\DoesJobExistQuery.cs" />
+    <Compile Include="Basic\Query\FindExpiredMessagesToDeleteQuery.cs" />
+    <Compile Include="Basic\Query\FindMessagesToResetByHeartBeatQuery.cs" />
+    <Compile Include="Basic\Query\GetColumnNamesFromTableQuery.cs" />
+    <Compile Include="Basic\Query\GetErrorCountQuery.cs" />
+    <Compile Include="Basic\Query\GetErrorRecordExistsQuery.cs" />
+    <Compile Include="Basic\Query\GetErrorRetryCountQuery.cs" />
+    <Compile Include="Basic\Query\GetJobIDQuery.cs" />
+    <Compile Include="Basic\Query\GetJobLastKnownEventQuery.cs" />
+    <Compile Include="Basic\Query\GetPendingCountQuery.cs" />
+    <Compile Include="Basic\Query\GetPendingDelayedCountQuery.cs" />
+    <Compile Include="Basic\Query\GetPendingExcludeDelayCountQuery.cs" />
+    <Compile Include="Basic\Query\GetQueueOptionsQuery.cs" />
+    <Compile Include="Basic\Query\GetTableExistsQuery.cs" />
+    <Compile Include="Basic\Query\GetUTCDateQuery.cs" />
+    <Compile Include="Basic\Query\GetWorkingCountQuery.cs" />
+    <Compile Include="Basic\Query\MessageToReset.cs" />
+    <Compile Include="Basic\Query\ReceiveMessageQuery.cs" />
+    <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
+    <Compile Include="Basic\TableNameHelper.cs" />
+    <Compile Include="ICommandHandler.cs" />
+    <Compile Include="ICommandHandlerWithOutput.cs" />
+    <Compile Include="ICommandHandlerWithOutputAsync.cs" />
+    <Compile Include="IDbConnectionFactory.cs" />
+    <Compile Include="IOptionsSerialization.cs" />
+    <Compile Include="IQuery.cs" />
+    <Compile Include="IQueryHandler.cs" />
+    <Compile Include="ITable.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj">
+      <Project>{26e740da-e63d-497a-bf5b-fbbf28c8846f}</Project>
+      <Name>DotNetWorkQueue</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Basic\QueryHandler\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

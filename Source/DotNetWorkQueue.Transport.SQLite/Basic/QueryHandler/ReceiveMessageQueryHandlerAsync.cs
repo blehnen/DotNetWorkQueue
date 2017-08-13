@@ -21,7 +21,9 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
@@ -29,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
     /// <summary>
     /// Dequeues a message.
     /// </summary>
-    internal class ReceiveMessageQueryHandlerAsync : IQueryHandler<ReceiveMessageQueryAsync, Task<IReceivedMessageInternal>>
+    internal class ReceiveMessageQueryHandlerAsync : IQueryHandler<ReceiveMessageQueryAsync<SQLiteConnection, SQLiteTransaction>, Task<IReceivedMessageInternal>>
     {
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
         private readonly TableNameHelper _tableNameHelper;
@@ -82,7 +84,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <exception cref="PoisonMessageException">An error has occured trying to re-assemble a message de-queued from SQLite</exception>
         /// <exception cref="SqLiteMessageQueueId"></exception>
         /// <exception cref="SqLiteMessageQueueCorrelationId"></exception>
-        public async Task<IReceivedMessageInternal> Handle(ReceiveMessageQueryAsync query)
+        public async Task<IReceivedMessageInternal> Handle(ReceiveMessageQueryAsync<SQLiteConnection, SQLiteTransaction> query)
         {
             if (!DatabaseExists.Exists(_connectionInformation.ConnectionString))
             {

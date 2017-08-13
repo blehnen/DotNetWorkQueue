@@ -17,8 +17,11 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using System.Data.SQLite;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -28,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// <seealso cref="DotNetWorkQueue.ASendJobToQueue" />
     public class SqliteSendToJobQueue: ASendJobToQueue
     {
-        private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _doesJobExist;
+        private readonly IQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>, QueueStatuses> _doesJobExist;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
         private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
@@ -42,7 +45,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="createJobMetaData">The create job meta data.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
-        public SqliteSendToJobQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatuses> doesJobExist,
+        public SqliteSendToJobQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>, QueueStatuses> doesJobExist,
             ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
             IQueryHandler<GetJobIdQuery, long> getJobId, CreateJobMetaData createJobMetaData,
             IGetTimeFactory getTimeFactory): base(queue, getTimeFactory)
@@ -61,7 +64,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <returns></returns>
         protected override QueueStatuses DoesJobExist(string name, DateTimeOffset scheduledTime)
         {
-           return _doesJobExist.Handle(new DoesJobExistQuery(name, scheduledTime));
+           return _doesJobExist.Handle(new DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>(name, scheduledTime));
         }
 
         /// <summary>

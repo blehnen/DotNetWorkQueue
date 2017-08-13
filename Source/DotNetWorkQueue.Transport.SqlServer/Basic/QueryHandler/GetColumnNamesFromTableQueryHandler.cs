@@ -18,7 +18,9 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
@@ -51,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.GetColumnNamesFromTable);
+                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetColumnNamesFromTable);
                     command.Parameters.AddWithValue("@TableName", query.TableName);
                     using (var reader = command.ExecuteReader())
                     {

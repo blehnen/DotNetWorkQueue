@@ -18,8 +18,11 @@
 // ---------------------------------------------------------------------
 using System.Data;
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -69,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 using (var commandSql = connection.CreateCommand())
                 {
                     commandSql.CommandText = _commandCache.GetCommand(_queryHandler.Handle(new GetErrorRecordExistsQuery(command.ExceptionType,
-                        command.QueueId)) ? SqLiteCommandStringTypes.UpdateErrorCount : SqLiteCommandStringTypes.InsertErrorCount);
+                        command.QueueId)) ? CommandStringTypes.UpdateErrorCount : CommandStringTypes.InsertErrorCount);
 
                     commandSql.Parameters.Add("@QueueID", DbType.Int64);
                     commandSql.Parameters.Add("@ExceptionType", DbType.StringFixedLength, 500);

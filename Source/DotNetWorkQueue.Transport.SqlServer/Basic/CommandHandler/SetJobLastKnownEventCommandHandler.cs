@@ -18,7 +18,9 @@
 // ---------------------------------------------------------------------
 using System.Data;
 using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
     /// <summary>
     /// 
     /// </summary>
-    public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand>
+    public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>>
     {
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -48,14 +50,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// Handles the specified command.
         /// </summary>
         /// <param name="command">The command.</param>
-        public void Handle(SetJobLastKnownEventCommand command)
+        public void Handle(SetJobLastKnownEventCommand<SqlConnection, SqlTransaction> command)
         {
             using (var conn = new SqlConnection(_connectionInformation.ConnectionString))
             {
                 conn.Open();
                 using (var commandSql = conn.CreateCommand())
                 {
-                    commandSql.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.SetJobLastKnownEvent);
+                    commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SetJobLastKnownEvent);
                     commandSql.Parameters.Add("@JobName", SqlDbType.VarChar);
                     commandSql.Parameters["@JobName"].Value = command.JobName;
                     commandSql.Parameters.Add("@JobEventTime", SqlDbType.DateTimeOffset);

@@ -19,7 +19,10 @@
 using System;
 
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -53,7 +56,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             using (var connection = new NpgsqlConnection(query.ConnectionString))
             {
                 connection.Open();
-                using (var npgsqlCommand = new NpgsqlCommand(_commandCache.GetCommand(PostgreSqlCommandStringTypes.GetUtcDate), connection))
+                using (var npgsqlCommand = new NpgsqlCommand(_commandCache.GetCommand(CommandStringTypes.GetUtcDate), connection))
                 {
                     using (var reader = npgsqlCommand.ExecuteReader())
                     {

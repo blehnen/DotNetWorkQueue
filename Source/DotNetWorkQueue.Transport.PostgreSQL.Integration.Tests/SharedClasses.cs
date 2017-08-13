@@ -21,6 +21,7 @@ using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
 using Xunit;
 

@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Factory
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Factory
     /// </summary>
     internal class SqlServerMessageQueueTransportOptionsFactory : ISqlServerMessageQueueTransportOptionsFactory
     {
-        private readonly IQueryHandler<GetQueueOptionsQuery, SqlServerMessageQueueTransportOptions> _queryOptions;
+        private readonly IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions> _queryOptions;
         private readonly IConnectionInformation _connectionInformation;
         private readonly object _creator = new object();
         private SqlServerMessageQueueTransportOptions _options;
@@ -37,7 +39,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Factory
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="queryOptions">The query options.</param>
         public SqlServerMessageQueueTransportOptionsFactory(IConnectionInformation connectionInformation,
-            IQueryHandler<GetQueueOptionsQuery, SqlServerMessageQueueTransportOptions> queryOptions)
+            IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions> queryOptions)
         {
             Guard.NotNull(() => queryOptions, queryOptions);
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -62,7 +64,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Factory
             {
                 if (_options == null)
                 {
-                    _options = _queryOptions.Handle(new GetQueueOptionsQuery());
+                    _options = _queryOptions.Handle(new GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>());
                 }
                 if (_options == null) //does not exist in DB; return a new copy
                 {

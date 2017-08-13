@@ -21,7 +21,9 @@ using System.Collections.Concurrent;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 {
     internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand>
@@ -117,7 +119,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                             command.Parameters.Add("@status", SqlDbType.Int);
                             command.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Waiting);
                             command.CommandText =
-                                _commandCache.GetCommand(SqlServerCommandStringTypes.UpdateStatusRecord);
+                                _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
                             command.ExecuteNonQuery();
                         }
                     }

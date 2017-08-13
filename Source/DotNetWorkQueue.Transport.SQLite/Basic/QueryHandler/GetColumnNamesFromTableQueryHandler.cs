@@ -18,7 +18,9 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 {

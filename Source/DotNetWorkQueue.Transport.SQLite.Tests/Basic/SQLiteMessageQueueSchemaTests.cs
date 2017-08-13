@@ -21,6 +21,8 @@ using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Schema;
 using NSubstitute;
 using Xunit;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
     public class SqLiteMessageQueueSchemaTests

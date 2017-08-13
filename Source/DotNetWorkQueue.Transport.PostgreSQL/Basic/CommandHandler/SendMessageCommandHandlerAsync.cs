@@ -21,8 +21,11 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
@@ -41,8 +44,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
         private readonly PostgreSqlCommandStringCache _commandCache;
         private readonly TransportConfigurationSend _configurationSend;
-        private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
-        private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _jobExistsHandler;
+        private readonly ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>> _sendJobStatus;
+        private readonly IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> _jobExistsHandler;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
         private readonly IGetTime _getTime;
 
@@ -65,8 +68,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             IHeaders headers,
             PostgreSqlCommandStringCache commandCache, 
             TransportConfigurationSend configurationSend, 
-            ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus, 
-            IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler, 
+            ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>> sendJobStatus, 
+            IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> jobExistsHandler, 
             IJobSchedulerMetaData jobSchedulerMetaData,
             IGetTimeFactory getTimeFactory)
         {
@@ -120,12 +123,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                 connection.Open();
                 using (var trans = connection.BeginTransaction())
                 {
-                    if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
+                    if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>(jobName, scheduledTime, connection, trans)) ==
                         QueueStatuses.NotQueued)
                     {
                         using (var command = connection.CreateCommand())
                         {
-                            command.CommandText = _commandCache.GetCommand(PostgreSqlCommandStringTypes.InsertMessageBody);
+                            command.CommandText = _commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
                             command.Transaction = trans;
                             var serialization =
                                 _serializer.Serializer.MessageToBytes(new MessageBody
@@ -165,7 +168,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 
                                 if (!string.IsNullOrWhiteSpace(jobName))
                                 {
-                                    _sendJobStatus.Handle(new SetJobLastKnownEventCommand(jobName, eventTime,
+                                    _sendJobStatus.Handle(new SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>(jobName, eventTime,
                                         scheduledTime, connection, trans));
                                 }
 

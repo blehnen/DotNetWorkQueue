@@ -19,7 +19,10 @@
 using System;
 using System.Data;
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
@@ -57,7 +60,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.GetJobLastKnownEvent);
+                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetJobLastKnownEvent);
 
                     command.Parameters.Add("@JobName", DbType.String, 255);
                     command.Parameters["@JobName"].Value = query.JobName;

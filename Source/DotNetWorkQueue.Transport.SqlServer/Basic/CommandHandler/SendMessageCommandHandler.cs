@@ -22,8 +22,11 @@ using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+ 
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -40,8 +43,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly TransportConfigurationSend _configurationSend;
-        private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
-        private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _jobExistsHandler;
+        private readonly ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>> _sendJobStatus;
+        private readonly IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> _jobExistsHandler;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
 
         /// <summary>
@@ -62,8 +65,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             IHeaders headers,
             SqlServerCommandStringCache commandCache, 
             TransportConfigurationSend configurationSend, 
-            ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus, 
-            IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler, 
+            ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>> sendJobStatus, 
+            IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> jobExistsHandler, 
             IJobSchedulerMetaData jobSchedulerMetaData)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
@@ -115,13 +118,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 connection.Open();
                 using (var trans = connection.BeginTransaction())
                 {
-                    if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection, trans)) ==
+                    if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery<SqlConnection, SqlTransaction>(jobName, scheduledTime, connection, trans)) ==
                         QueueStatuses.NotQueued)
                     {
                         using (var command = connection.CreateCommand())
                         {
                             command.Transaction = trans;
-                            command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.InsertMessageBody);
+                            command.CommandText = _commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
                             var serialization =
                                 _serializer.Serializer.MessageToBytes(new MessageBody
                                 {
@@ -157,7 +160,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
                                 if (!string.IsNullOrWhiteSpace(jobName))
                                 {
-                                    _sendJobStatus.Handle(new SetJobLastKnownEventCommand(jobName, eventTime,
+                                    _sendJobStatus.Handle(new SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>(jobName, eventTime,
                                         scheduledTime, connection, trans));
                                 }
                             }

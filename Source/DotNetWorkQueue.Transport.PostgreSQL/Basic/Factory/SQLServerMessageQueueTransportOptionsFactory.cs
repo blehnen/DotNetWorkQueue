@@ -16,8 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
+using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
 {
@@ -26,7 +29,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
     /// </summary>
     internal class PostgreSqlMessageQueueTransportOptionsFactory : IPostgreSqlMessageQueueTransportOptionsFactory
     {
-        private readonly IQueryHandler<GetQueueOptionsQuery, PostgreSqlMessageQueueTransportOptions> _queryOptions;
+        private readonly IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>, PostgreSqlMessageQueueTransportOptions> _queryOptions;
         private readonly IConnectionInformation _connectionInformation;
         private readonly object _creator = new object();
         private PostgreSqlMessageQueueTransportOptions _options;
@@ -37,7 +40,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="queryOptions">The query options.</param>
         public PostgreSqlMessageQueueTransportOptionsFactory(IConnectionInformation connectionInformation,
-            IQueryHandler<GetQueueOptionsQuery, PostgreSqlMessageQueueTransportOptions> queryOptions)
+            IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>, PostgreSqlMessageQueueTransportOptions> queryOptions)
         {
             Guard.NotNull(() => queryOptions, queryOptions);
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -62,7 +65,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
             {
                 if (_options == null)
                 {
-                    _options = _queryOptions.Handle(new GetQueueOptionsQuery());
+                    _options = _queryOptions.Handle(new GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>());
                 }
                 if (_options == null) //does not exist in DB; return a new copy
                 {

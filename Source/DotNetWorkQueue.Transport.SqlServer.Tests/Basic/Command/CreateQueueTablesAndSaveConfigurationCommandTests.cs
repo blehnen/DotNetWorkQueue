@@ -17,7 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.Command
@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.Command
         public void Create_Default()
         {
             var tables = new List<Table>();
-            var test = new CreateQueueTablesAndSaveConfigurationCommand(tables);
+            var test = new CreateQueueTablesAndSaveConfigurationCommand<Table>(tables);
             Assert.Equal(tables, test.Tables);
         }
     }

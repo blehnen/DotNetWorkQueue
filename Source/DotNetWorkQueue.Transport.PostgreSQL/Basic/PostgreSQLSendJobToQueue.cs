@@ -17,8 +17,12 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using Npgsql;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
     /// <summary>
@@ -27,7 +31,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     /// <seealso cref="DotNetWorkQueue.ISendJobToQueue" />
     public class PostgreSqlSendJobToQueue : ASendJobToQueue
     {
-        private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _doesJobExist;
+        private readonly IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> _doesJobExist;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
         private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
@@ -41,7 +45,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="createJobMetaData">The create job meta data.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
-        public PostgreSqlSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatuses> doesJobExist,
+        public PostgreSqlSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> doesJobExist,
             ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
             IQueryHandler<GetJobIdQuery, long> getJobId,
             CreateJobMetaData createJobMetaData,
@@ -61,7 +65,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <returns></returns>
         protected override QueueStatuses DoesJobExist(string name, DateTimeOffset scheduledTime)
         {
-            return _doesJobExist.Handle(new DoesJobExistQuery(name, scheduledTime));
+            return _doesJobExist.Handle(new DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>(name, scheduledTime));
         }
 
         /// <summary>

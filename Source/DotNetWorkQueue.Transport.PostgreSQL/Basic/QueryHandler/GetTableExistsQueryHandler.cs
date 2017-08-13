@@ -16,7 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -51,7 +54,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 conn.Open();
                 using (var command = conn.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(PostgreSqlCommandStringTypes.GetTableExists);
+                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetTableExists);
                     command.Parameters.AddWithValue("@Database", new NpgsqlConnectionStringBuilder(query.ConnectionString).Database);
                     command.Parameters.AddWithValue("@Table", query.TableName.ToLowerInvariant());
                     using (var reader = command.ExecuteReader())

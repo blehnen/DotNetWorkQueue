@@ -19,8 +19,11 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
+using DotNetWorkQueue.Transport.PostgreSQL.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
@@ -35,7 +38,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private readonly PostgreSqlMessageQueueSchema _createSchema;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
 
-        private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand, QueueCreationResult>
+        private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult>
             _createCommand;
 
         private readonly ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> _deleteCommand;
@@ -60,7 +63,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             IPostgreSqlMessageQueueTransportOptionsFactory options, 
             PostgreSqlMessageQueueSchema createSchema,
-            ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand, QueueCreationResult> createCommand,
+            ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> createCommand,
             ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> deleteCommand,
             ICreationScope creationScope
             )
@@ -202,7 +205,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             {
                 return
                     _createCommand.Handle(
-                        new CreateQueueTablesAndSaveConfigurationCommand(_createSchema.GetSchema()));
+                        new CreateQueueTablesAndSaveConfigurationCommand<ITable>(_createSchema.GetSchema()));
             }
             return new QueueCreationResult(QueueCreationStatus.ConfigurationError, valid.ErrorMessage);
         }

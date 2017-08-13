@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler

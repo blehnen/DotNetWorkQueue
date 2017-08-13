@@ -17,7 +17,10 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using System.Data.SQLite;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -25,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
     /// <summary>
     /// 
     /// </summary>
-    public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand>
+    public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand<SQLiteConnection, SQLiteTransaction>>
     {
         private readonly SqLiteCommandStringCache _commandCache;
         /// <summary>
@@ -42,12 +45,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// Handles the specified command.
         /// </summary>
         /// <param name="command">The command.</param>
-        public void Handle(SetJobLastKnownEventCommand command)
+        public void Handle(SetJobLastKnownEventCommand<SQLiteConnection, SQLiteTransaction> command)
         {
             using (var commandSql = command.Connection.CreateCommand())
             {
                 commandSql.Transaction = commandSql.Transaction;
-                commandSql.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.SetJobLastKnownEvent);
+                commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SetJobLastKnownEvent);
                 commandSql.Parameters.Add("@JobName", DbType.String);
                 commandSql.Parameters["@JobName"].Value = command.JobName;
                 commandSql.Parameters.Add("@JobEventTime", DbType.String);

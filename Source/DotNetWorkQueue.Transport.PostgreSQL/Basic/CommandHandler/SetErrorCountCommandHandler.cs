@@ -16,11 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
@@ -63,7 +66,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                 using (var commandSql = connection.CreateCommand())
                 {
                     commandSql.CommandText = _commandCache.GetCommand(_queryHandler.Handle(new GetErrorRecordExistsQuery(command.ExceptionType,
-                        command.QueueId)) ? PostgreSqlCommandStringTypes.UpdateErrorCount : PostgreSqlCommandStringTypes.InsertErrorCount);
+                        command.QueueId)) ? CommandStringTypes.UpdateErrorCount : CommandStringTypes.InsertErrorCount);
 
                     commandSql.Parameters.Add("@QueueID", NpgsqlDbType.Bigint);
                     commandSql.Parameters.Add("@ExceptionType", NpgsqlDbType.Varchar, 500);

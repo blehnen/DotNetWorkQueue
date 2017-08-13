@@ -17,7 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -74,7 +76,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                         using (var commandExists = connection.CreateCommand())
                         {
                             commandExists.Transaction = trans;
-                            commandExists.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.GetTableExists);
+                            commandExists.CommandText = _commandCache.GetCommand(CommandStringTypes.GetTableExists);
                             commandExists.Parameters.AddWithValue("@Table", table);
                             bool delete;
                             using (var reader = commandExists.ExecuteReader())

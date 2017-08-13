@@ -16,7 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -25,7 +28,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
     /// <summary>
     /// Gets the queue options
     /// </summary>
-    internal class GetQueueOptionsQueryHandler : IQueryHandler<GetQueueOptionsQuery, PostgreSqlMessageQueueTransportOptions>
+    internal class GetQueueOptionsQueryHandler : IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>, PostgreSqlMessageQueueTransportOptions>
     {
         private readonly IInternalSerializer _serializer;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _tableExists;
@@ -64,7 +67,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public PostgreSqlMessageQueueTransportOptions Handle(GetQueueOptionsQuery query)
+        public PostgreSqlMessageQueueTransportOptions Handle(GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions> query)
         {
             if (!_tableExists.Handle(new GetTableExistsQuery(_connectionInformation.ConnectionString,
                 _tableNameHelper.ConfigurationName))) return null;
@@ -74,7 +77,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 conn.Open();
                 using (var command = conn.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(PostgreSqlCommandStringTypes.GetConfiguration);
+                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetConfiguration);
                     using (var reader = command.ExecuteReader())
                     {
                         if (!reader.Read()) return null;

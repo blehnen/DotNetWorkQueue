@@ -20,7 +20,9 @@ using System;
 using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -84,20 +86,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                         commandSql.Parameters["@QueueID"].Value = command.QueueId;
 
                         //delete the meta data record
-                        commandSql.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromMetaData);
+                        commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaData);
                         commandSql.ExecuteNonQuery();
 
                         //delete the message body
-                        commandSql.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromQueue);
+                        commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromQueue);
                         commandSql.ExecuteNonQuery();
 
                         //delete any error tracking information
                         commandSql.CommandText =
-                            _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromErrorTracking);
+                            _commandCache.GetCommand(CommandStringTypes.DeleteFromErrorTracking);
                         commandSql.ExecuteNonQuery();
 
                         commandSql.CommandText =
-                          _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromMetaDataErrors);
+                          _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaDataErrors);
                         commandSql.ExecuteNonQuery();
 
                         //delete status record
@@ -107,7 +109,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             return 1;
                         }
 
-                        commandSql.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.DeleteFromStatus);
+                        commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromStatus);
                         commandSql.ExecuteNonQuery();
                         trans.Commit();
                         return 1;

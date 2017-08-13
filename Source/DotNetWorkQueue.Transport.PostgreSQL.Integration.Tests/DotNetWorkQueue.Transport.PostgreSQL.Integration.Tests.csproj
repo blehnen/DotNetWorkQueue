@@ -105,6 +105,10 @@
       <Project>{18de3a7d-19c4-4131-ab19-f276469ae7d3}</Project>
       <Name>DotNetWorkQueue.Transport.PostgreSQL</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj">
+      <Project>{b5c21f35-5f81-438c-b27f-a32c0c730581}</Project>
+      <Name>DotNetWorkQueue.Transport.RelationalDatabase</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj">
       <Project>{26e740da-e63d-497a-bf5b-fbbf28c8846f}</Project>
       <Name>DotNetWorkQueue</Name>

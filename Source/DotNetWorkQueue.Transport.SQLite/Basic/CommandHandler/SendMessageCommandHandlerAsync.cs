@@ -22,8 +22,11 @@ using System.Data.SQLite;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -42,8 +45,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private readonly TransportConfigurationSend _configurationSend;
         private readonly IGetTime _getTime;
         private readonly ISqLiteTransactionFactory _transactionFactory;
-        private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
-        private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _jobExistsHandler;
+        private readonly ICommandHandler<SetJobLastKnownEventCommand<SQLiteConnection, SQLiteTransaction>> _sendJobStatus;
+        private readonly IQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>, QueueStatuses> _jobExistsHandler;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
 
         /// <summary>
@@ -68,8 +71,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             TransportConfigurationSend configurationSend,
             IGetTimeFactory getTimeFactory,
             ISqLiteTransactionFactory transactionFactory,
-            ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus, 
-            IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler, 
+            ICommandHandler<SetJobLastKnownEventCommand<SQLiteConnection, SQLiteTransaction>> sendJobStatus, 
+            IQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>, QueueStatuses> jobExistsHandler, 
             IJobSchedulerMetaData jobSchedulerMetaData)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
@@ -154,7 +157,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             try
                             {
                                 if (string.IsNullOrWhiteSpace(jobName) || 
-                                    _jobExistsHandler.Handle(new DoesJobExistQuery(jobName, scheduledTime, connection,
+                                    _jobExistsHandler.Handle(new DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>(jobName, scheduledTime, connection,
                                         trans)) ==
                                     QueueStatuses.NotQueued)
                                 {
@@ -173,7 +176,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                                         }
                                         if (!string.IsNullOrWhiteSpace(jobName))
                                         {
-                                            _sendJobStatus.Handle(new SetJobLastKnownEventCommand(jobName, eventTime,
+                                            _sendJobStatus.Handle(new SetJobLastKnownEventCommand<SQLiteConnection, SQLiteTransaction>(jobName, eventTime,
                                                 scheduledTime, connection, trans));
                                         }
                                         trans.Commit();

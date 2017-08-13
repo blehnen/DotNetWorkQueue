@@ -21,7 +21,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
@@ -87,7 +89,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText =
-                        _commandCache.GetCommand(SqLiteCommandStringTypes.GetHeartBeatExpiredMessageIds);
+                        _commandCache.GetCommand(CommandStringTypes.GetHeartBeatExpiredMessageIds);
                     command.Parameters.Add("@time", DbType.Int64);
                     var selectTime = _getTime.GetCurrentUtcDate().AddSeconds(_configuration.HeartBeat.Time.TotalSeconds * -1);
                     command.Parameters["@time"].Value = selectTime.Ticks;

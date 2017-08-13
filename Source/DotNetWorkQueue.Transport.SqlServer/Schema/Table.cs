@@ -19,12 +19,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Schema
 {
     /// <summary>
     /// Represents a table in SQL server
     /// </summary>
-	public class Table
+	public class Table: ITable
     {
         #region Constructor
         /// <summary>

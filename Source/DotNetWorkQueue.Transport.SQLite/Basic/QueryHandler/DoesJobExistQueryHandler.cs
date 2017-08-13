@@ -20,7 +20,10 @@
 using System;
 using System.Data;
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
@@ -28,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
     /// <summary>
     /// 
     /// </summary>
-    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatuses>
+    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>, QueueStatuses>
     {
         private readonly SqLiteCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -63,7 +66,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public QueueStatuses Handle(DoesJobExistQuery query)
+        public QueueStatuses Handle(DoesJobExistQuery<SQLiteConnection, SQLiteTransaction> query)
         {
             if (!DatabaseExists.Exists(_connectionInformation.ConnectionString))
             {
@@ -86,12 +89,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 
         }
 
-        private QueueStatuses RunQuery(DoesJobExistQuery query, SQLiteConnection connection, SQLiteTransaction transaction)
+        private QueueStatuses RunQuery(DoesJobExistQuery<SQLiteConnection, SQLiteTransaction> query, SQLiteConnection connection, SQLiteTransaction transaction)
         {
             var returnStatus = QueueStatuses.NotQueued;
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.DoesJobExist);
+                command.CommandText = _commandCache.GetCommand(CommandStringTypes.DoesJobExist);
                 command.Transaction = transaction;
                 command.Parameters.Add("@JobName", DbType.String, 255);
                 command.Parameters["@JobName"].Value = query.JobName;
@@ -109,7 +112,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                         _tableNameHelper.JobTableName)))
                 {
                     command.CommandText =
-                        _commandCache.GetCommand(SqLiteCommandStringTypes.GetJobLastScheduleTime);
+                        _commandCache.GetCommand(CommandStringTypes.GetJobLastScheduleTime);
                     command.Transaction = transaction;
                     using (var reader = command.ExecuteReader())
                     {

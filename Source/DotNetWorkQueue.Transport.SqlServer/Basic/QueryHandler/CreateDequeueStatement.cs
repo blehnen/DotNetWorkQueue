@@ -20,6 +20,8 @@ using DotNetWorkQueue.Validation;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 {
     internal class CreateDequeueStatement
@@ -56,11 +58,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             {
                 if (forRpc && _commandCache.Contains(RpcdequeueKey))
                 {
-                    return _commandCache.Get(RpcdequeueKey);
+                    return _commandCache.Get(RpcdequeueKey).CommandText;
                 }
                 if (_commandCache.Contains(DequeueKey))
                 {
-                    return _commandCache.Get(DequeueKey);
+                    return _commandCache.Get(DequeueKey).CommandText;
                 }
             }
 

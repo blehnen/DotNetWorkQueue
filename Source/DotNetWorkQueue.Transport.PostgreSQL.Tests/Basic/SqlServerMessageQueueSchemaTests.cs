@@ -17,11 +17,14 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Linq;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using NSubstitute;
 using Xunit;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 {
     public class PostgreSQLMessageQueueSchemaTests
@@ -42,7 +45,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
-            var tables = test.GetSchema();
+            var tables = test.GetSchema().ConvertAll(o => (Table)o);
             Assert.True(tables.Any(item => item.Name == tableName.StatusName));
         }
 
@@ -55,7 +58,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
-            var tables = test.GetSchema();
+            var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.StatusName);
             Assert.True(statusTable.Columns.Items.Any(item => item.Name == "testing"));
         }
@@ -70,7 +73,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
-            var tables = test.GetSchema();
+            var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.StatusName);
             Assert.True(statusTable.Constraints.Any(item => item.Name == "ix_testing"));
         }
@@ -83,7 +86,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
-            var tables = test.GetSchema();
+            var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
             Assert.True(statusTable.Columns.Items.Any(item => item.Name == "Priority"));
         }
@@ -96,7 +99,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
-            var tables = test.GetSchema();
+            var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
             Assert.True(statusTable.Columns.Items.Any(item => item.Name == "Status"));
         }
@@ -109,7 +112,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
-            var tables = test.GetSchema();
+            var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
             Assert.True(statusTable.Columns.Items.Any(item => item.Name == "QueueProcessTime"));
         }
@@ -122,7 +125,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
-            var tables = test.GetSchema();
+            var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
             Assert.True(statusTable.Columns.Items.Any(item => item.Name == "HeartBeat"));
         }
@@ -135,7 +138,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
-            var tables = test.GetSchema();
+            var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
             Assert.True(statusTable.Columns.Items.Any(item => item.Name == "ExpirationTime"));
         }
@@ -148,7 +151,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
-            var tables = test.GetSchema();
+            var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
             Assert.True(statusTable.Columns.Items.Any(item => item.Name == "SourceQueueID"));
         }

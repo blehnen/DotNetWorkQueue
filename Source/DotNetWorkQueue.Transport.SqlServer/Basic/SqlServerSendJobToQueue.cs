@@ -18,8 +18,10 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -29,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// <seealso cref="DotNetWorkQueue.ASendJobToQueue" />
     public class SqlServerSendJobToQueue : ASendJobToQueue
     {
-        private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _doesJobExist;
+        private readonly IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> _doesJobExist;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
         private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
@@ -43,7 +45,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="createJobMetaData">The create job meta data.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
-        public SqlServerSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatuses> doesJobExist,
+        public SqlServerSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> doesJobExist,
             ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
             IQueryHandler<GetJobIdQuery, long> getJobId,
             CreateJobMetaData createJobMetaData,
@@ -63,7 +65,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <returns></returns>
         protected override QueueStatuses DoesJobExist(string name, DateTimeOffset scheduledTime)
         {
-            return _doesJobExist.Handle(new DoesJobExistQuery(name, scheduledTime));
+            return _doesJobExist.Handle(new DoesJobExistQuery<SqlConnection, SqlTransaction>(name, scheduledTime));
         }
 
         /// <summary>

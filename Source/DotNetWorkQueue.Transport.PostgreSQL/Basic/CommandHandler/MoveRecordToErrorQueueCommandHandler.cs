@@ -20,8 +20,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
@@ -107,7 +109,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 var commandSqlDeleteMetaData = conn.CreateCommand())
                             {
                                 commandSqlDeleteMetaData.CommandText =
-                                    _commandCache.GetCommand(PostgreSqlCommandStringTypes.DeleteFromMetaData);
+                                    _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaData);
                                 commandSqlDeleteMetaData.Transaction = trans;
                                 commandSqlDeleteMetaData.Parameters.Add("@QueueID", NpgsqlDbType.Bigint);
                                 commandSqlDeleteMetaData.Parameters["@QueueID"].Value = command.QueueId;
@@ -125,7 +127,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 var commandSqlUpdateStatusRecord = conn.CreateCommand())
                             {
                                 commandSqlUpdateStatusRecord.CommandText =
-                                    _commandCache.GetCommand(PostgreSqlCommandStringTypes.UpdateStatusRecord);
+                                    _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
                                 commandSqlUpdateStatusRecord.Transaction = trans;
                                 commandSqlUpdateStatusRecord.Parameters.Add("@QueueID", NpgsqlDbType.Bigint);
                                 commandSqlUpdateStatusRecord.Parameters.Add("@Status", NpgsqlDbType.Integer);
@@ -168,7 +170,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                             var commandSqlUpdateStatusRecord = conn.CreateCommand())
                         {
                             commandSqlUpdateStatusRecord.CommandText =
-                                _commandCache.GetCommand(PostgreSqlCommandStringTypes.UpdateStatusRecord);
+                                _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
                             commandSqlUpdateStatusRecord.Parameters.Add("@QueueID", NpgsqlDbType.Bigint);
                             commandSqlUpdateStatusRecord.Parameters.Add("@Status", NpgsqlDbType.Integer);
                             commandSqlUpdateStatusRecord.Parameters["@QueueID"].Value = command.QueueId;

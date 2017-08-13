@@ -17,7 +17,10 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
@@ -27,7 +30,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
     /// <summary>
     /// 
     /// </summary>
-    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatuses>
+    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses>
     {
         private readonly PostgreSqlCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -61,7 +64,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public QueueStatuses Handle(DoesJobExistQuery query)
+        public QueueStatuses Handle(DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction> query)
         {
             if (query.Connection != null)
             {
@@ -77,12 +80,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             }
         }
 
-        private QueueStatuses RunQuery(DoesJobExistQuery query, NpgsqlConnection connection, NpgsqlTransaction transaction)
+        private QueueStatuses RunQuery(DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction> query, NpgsqlConnection connection, NpgsqlTransaction transaction)
         {
             var returnStatus = QueueStatuses.NotQueued;
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = _commandCache.GetCommand(PostgreSqlCommandStringTypes.DoesJobExist);
+                command.CommandText = _commandCache.GetCommand(CommandStringTypes.DoesJobExist);
                 command.Transaction = transaction;
                 command.Parameters.Add("@JobName", NpgsqlDbType.Varchar, 255);
                 command.Parameters["@JobName"].Value = query.JobName;
@@ -100,7 +103,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                         _tableNameHelper.JobTableName)))
                 {
                     command.CommandText =
-                        _commandCache.GetCommand(PostgreSqlCommandStringTypes.GetJobLastScheduleTime);
+                        _commandCache.GetCommand(CommandStringTypes.GetJobLastScheduleTime);
                     command.Transaction = transaction;
                     using (var reader = command.ExecuteReader())
                     {

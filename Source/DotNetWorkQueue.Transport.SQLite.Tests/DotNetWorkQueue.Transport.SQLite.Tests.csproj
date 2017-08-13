@@ -45,10 +45,10 @@
       <HintPath>..\packages\NSubstitute.2.0.3\lib\net45\NSubstitute.dll</HintPath>
     </Reference>
     <Reference Include="Ploeh.AutoFixture, Version=3.50.0.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoFixture.3.50.4\lib\net40\Ploeh.AutoFixture.dll</HintPath>
+      <HintPath>..\packages\AutoFixture.3.50.5\lib\net40\Ploeh.AutoFixture.dll</HintPath>
     </Reference>
     <Reference Include="Ploeh.AutoFixture.AutoNSubstitute, Version=3.50.0.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoFixture.AutoNSubstitute.3.50.4\lib\net40\Ploeh.AutoFixture.AutoNSubstitute.dll</HintPath>
+      <HintPath>..\packages\AutoFixture.AutoNSubstitute.3.50.5\lib\net40\Ploeh.AutoFixture.AutoNSubstitute.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -83,30 +83,12 @@
     </Compile>
     <Compile Include="Basic\CommandStringTests.cs" />
     <Compile Include="Basic\Command\CreateQueueTablesAndSaveConfigurationCommandTests.cs" />
-    <Compile Include="Basic\Command\DeleteMessageCommandTests.cs" />
-    <Compile Include="Basic\Command\DeleteStatusTableStatusCommandTests.cs" />
-    <Compile Include="Basic\Command\MoveRecordToErrorQueueCommandTests.cs" />
-    <Compile Include="Basic\Command\ResetHeartBeatCommandTests.cs" />
-    <Compile Include="Basic\Command\RollbackMessageCommandTests.cs" />
-    <Compile Include="Basic\Command\SendHeartBeatCommandTests.cs" />
-    <Compile Include="Basic\Command\SendMessageCommandTests.cs" />
-    <Compile Include="Basic\Command\SetErrorCountCommandTests.cs" />
-    <Compile Include="Basic\Command\SetStatusTableStatusCommandTests.cs" />
     <Compile Include="Basic\ConnectionStringInfoTests.cs" />
     <Compile Include="Basic\CreationScopeTests.cs" />
     <Compile Include="Basic\DatabaseExistsTests.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactoryTests.cs" />
     <Compile Include="Basic\Factory\SQLiteMessageQueueCorrelationIdFactoryTests.cs" />
     <Compile Include="Basic\Factory\SQLiteMessageQueueTransportOptionsFactoryTests.cs" />
-    <Compile Include="Basic\Query\FindExpiredMessagesToDeleteQueryTests.cs" />
-    <Compile Include="Basic\Query\FindMessagesToResetByHeartBeatQueryTests.cs" />
-    <Compile Include="Basic\Query\GetColumnNamesFromTableQueryTests.cs" />
-    <Compile Include="Basic\Query\GetErrorRecordExistsQueryTests.cs" />
-    <Compile Include="Basic\Query\GetErrorRetryCountQueryTests.cs" />
-    <Compile Include="Basic\Query\GetQueueOptionsQueryTests.cs" />
-    <Compile Include="Basic\Query\GetTableExistsQueryTests.cs" />
-    <Compile Include="Basic\Query\MessageToResetTests.cs" />
-    <Compile Include="Basic\Query\ReceiveMessageQueryTests.cs" />
     <Compile Include="Basic\SqlHeadersTests.cs" />
     <Compile Include="Basic\SqLiteHoldConnectionTests.cs" />
     <Compile Include="Basic\SqlQueueDelayTests.cs" />
@@ -116,7 +98,6 @@
     <Compile Include="Basic\SQLiteMessageQueueSchemaTests.cs" />
     <Compile Include="Basic\SQLiteMessageQueueTransportOptionsTests.cs" />
     <Compile Include="Basic\SQLiteQueueStatusProviderTests.cs" />
-    <Compile Include="Basic\TableNameHelperTests.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Schema\ColumnsTests.cs" />
@@ -128,6 +109,10 @@
     <Compile Include="SQLiteConnectionInformationTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj">
+      <Project>{B5C21F35-5F81-438C-B27F-A32C0C730581}</Project>
+      <Name>DotNetWorkQueue.Transport.RelationalDatabase</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj">
       <Project>{50ab47cd-3038-4426-aa92-7ed11b990d4b}</Project>
       <Name>DotNetWorkQueue.Transport.SQLite</Name>

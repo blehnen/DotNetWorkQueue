@@ -20,7 +20,9 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -75,20 +77,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                         commandSql.Parameters["@QueueID"].Value = command.QueueId;
 
                         //delete the meta data record
-                        commandSql.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.DeleteFromMetaData);
+                        commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaData);
                         commandSql.ExecuteNonQuery();
 
                         //delete the message body
-                        commandSql.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.DeleteFromQueue);
+                        commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromQueue);
                         commandSql.ExecuteNonQuery();
 
                         //delete any error tracking information
                         commandSql.CommandText =
-                            _commandCache.GetCommand(SqlServerCommandStringTypes.DeleteFromErrorTracking);
+                            _commandCache.GetCommand(CommandStringTypes.DeleteFromErrorTracking);
                         commandSql.ExecuteNonQuery();
 
                         commandSql.CommandText =
-                            _commandCache.GetCommand(SqlServerCommandStringTypes.DeleteFromMetaDataErrors);
+                            _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaDataErrors);
                         commandSql.ExecuteNonQuery();
 
                         //delete status record
@@ -98,7 +100,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                             return 1;
                         }
 
-                        commandSql.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.DeleteFromStatus);
+                        commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromStatus);
                         commandSql.ExecuteNonQuery();
                         trans.Commit();
                         return 1;

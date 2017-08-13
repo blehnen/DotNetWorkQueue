@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
 using NpgsqlTypes;
 

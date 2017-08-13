@@ -16,17 +16,19 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
     /// <summary>
     /// 
     /// </summary>
-    public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand>
+    public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>>
     {
         private readonly PostgreSqlCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -48,14 +50,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// Handles the specified command.
         /// </summary>
         /// <param name="command">The command.</param>
-        public void Handle(SetJobLastKnownEventCommand command)
+        public void Handle(SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction> command)
         {
             using (var conn = new NpgsqlConnection(_connectionInformation.ConnectionString))
             {
                 conn.Open();
                 using (var commandSql = conn.CreateCommand())
                 {
-                    commandSql.CommandText = _commandCache.GetCommand(PostgreSqlCommandStringTypes.SetJobLastKnownEvent);
+                    commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SetJobLastKnownEvent);
                     commandSql.Parameters.Add("@JobName", NpgsqlDbType.Varchar);
                     commandSql.Parameters["@JobName"].Value = command.JobName;
                     commandSql.Parameters.Add("@JobEventTime", NpgsqlDbType.Bigint);

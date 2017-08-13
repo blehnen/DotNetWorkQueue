@@ -16,10 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Transport.SQLite.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
@@ -30,8 +33,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
     internal class ReceiveMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly IQueryHandler<ReceiveMessageQuery, IReceivedMessageInternal> _receiveMessage;
-        private readonly IQueryHandler<ReceiveMessageQueryAsync, Task<IReceivedMessageInternal>> _receiveMessageAsync;
+        private readonly IQueryHandler<ReceiveMessageQuery<SQLiteConnection, SQLiteTransaction>, IReceivedMessageInternal> _receiveMessage;
+        private readonly IQueryHandler<ReceiveMessageQueryAsync<SQLiteConnection, SQLiteTransaction>, Task<IReceivedMessageInternal>> _receiveMessageAsync;
         private readonly ICancelWork _cancelToken;
 
         /// <summary>
@@ -42,9 +45,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         /// <param name="cancelToken">The cancel token.</param>
         /// <param name="receiveMessageAsync">The receive message asynchronous.</param>
         public ReceiveMessage(QueueConsumerConfiguration configuration,
-            IQueryHandler<ReceiveMessageQuery, IReceivedMessageInternal> receiveMessage,
+            IQueryHandler<ReceiveMessageQuery<SQLiteConnection, SQLiteTransaction>, IReceivedMessageInternal> receiveMessage,
             IQueueCancelWork cancelToken, 
-            IQueryHandler<ReceiveMessageQueryAsync, Task<IReceivedMessageInternal>> receiveMessageAsync)
+            IQueryHandler<ReceiveMessageQueryAsync<SQLiteConnection, SQLiteTransaction>, Task<IReceivedMessageInternal>> receiveMessageAsync)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => receiveMessage, receiveMessage);
@@ -82,7 +85,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage =
-                _receiveMessage.Handle(new ReceiveMessageQuery(messageId, _configuration.Routes));
+                _receiveMessage.Handle(new ReceiveMessageQuery<SQLiteConnection, SQLiteTransaction>(null, null, messageId, _configuration.Routes));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
@@ -121,7 +124,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage = await 
-                _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync(messageId, _configuration.Routes)).ConfigureAwait(false);
+                _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync<SQLiteConnection, SQLiteTransaction>(null, null, messageId, _configuration.Routes)).ConfigureAwait(false);
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)

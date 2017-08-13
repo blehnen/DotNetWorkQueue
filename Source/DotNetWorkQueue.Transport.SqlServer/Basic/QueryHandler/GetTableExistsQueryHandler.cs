@@ -17,7 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
@@ -51,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 conn.Open();
                 using (var command = conn.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.GetTableExists);
+                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetTableExists);
                     command.Parameters.AddWithValue("@Database", new SqlConnectionStringBuilder(query.ConnectionString).InitialCatalog);
                     command.Parameters.AddWithValue("@Table", query.TableName);
                     using (var reader = command.ExecuteReader())

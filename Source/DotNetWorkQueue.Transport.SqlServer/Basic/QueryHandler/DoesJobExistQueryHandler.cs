@@ -18,7 +18,9 @@
 // ---------------------------------------------------------------------
 using System.Data;
 using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
     /// <summary>
     /// 
     /// </summary>
-    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatuses>
+    public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses>
     {
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -60,7 +62,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public QueueStatuses Handle(DoesJobExistQuery query)
+        public QueueStatuses Handle(DoesJobExistQuery<SqlConnection, SqlTransaction> query)
         {
             if (query.Connection != null)
             {
@@ -76,12 +78,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             }
         }
 
-        private QueueStatuses RunQuery(DoesJobExistQuery query, SqlConnection connection, SqlTransaction transaction)
+        private QueueStatuses RunQuery(DoesJobExistQuery<SqlConnection, SqlTransaction> query, SqlConnection connection, SqlTransaction transaction)
         {
             var returnStatus = QueueStatuses.NotQueued;
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.DoesJobExist);
+                command.CommandText = _commandCache.GetCommand(CommandStringTypes.DoesJobExist);
                 command.Transaction = transaction;
                 command.Parameters.Add("@JobName", SqlDbType.VarChar, 255);
                 command.Parameters["@JobName"].Value = query.JobName;
@@ -99,7 +101,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                         _tableNameHelper.JobTableName)))
                 {
                     command.CommandText =
-                        _commandCache.GetCommand(SqlServerCommandStringTypes.GetJobLastScheduleTime);
+                        _commandCache.GetCommand(CommandStringTypes.GetJobLastScheduleTime);
                     command.Transaction = transaction;
                     using (var reader = command.ExecuteReader())
                     {

@@ -19,7 +19,9 @@
 using System;
 using System.Data.SqlClient;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
@@ -52,7 +54,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             using (var connection = new SqlConnection(query.ConnectionString))
             {
                 connection.Open();
-                using (var sqlcommand = new SqlCommand(_commandCache.GetCommand(SqlServerCommandStringTypes.GetUtcDate), connection))
+                using (var sqlcommand = new SqlCommand(_commandCache.GetCommand(CommandStringTypes.GetUtcDate), connection))
                 {
                     using (var reader = sqlcommand.ExecuteReader())
                     {

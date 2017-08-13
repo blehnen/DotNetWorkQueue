@@ -16,8 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.SqlServer.Schema;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
@@ -31,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
         private readonly IConnectionInformation _connection;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly ICommandHandlerWithOutput<CreateJobTablesCommand, QueueCreationResult>
+        private readonly ICommandHandlerWithOutput<CreateJobTablesCommand<Table>, QueueCreationResult>
             _createCommand;
 
         /// <summary>
@@ -44,7 +48,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="tableNameHelper">The table name helper.</param>
         public SqlServerJobTableCreation(IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             SqlServerJobSchema createSchema,
-            ICommandHandlerWithOutput<CreateJobTablesCommand, QueueCreationResult> createCommand,
+            ICommandHandlerWithOutput<CreateJobTablesCommand<Table>, QueueCreationResult> createCommand,
             IConnectionInformation connectionInfo,
             TableNameHelper tableNameHelper
             )
@@ -88,7 +92,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             return
                 _createCommand.Handle(
-                    new CreateJobTablesCommand(_createSchema.GetSchema()));
+                    new CreateJobTablesCommand<Table>(_createSchema.GetSchema()));
         }
     }
 }

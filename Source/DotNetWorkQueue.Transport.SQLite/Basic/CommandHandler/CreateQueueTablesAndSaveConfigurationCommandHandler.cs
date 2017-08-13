@@ -21,7 +21,10 @@ using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.SQLite.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.SQLite.Schema;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -29,7 +32,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
     /// <summary>
     /// Creates a queue and saves the configuration
     /// </summary>
-    internal class CreateQueueTablesAndSaveConfigurationCommandHandler : ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand, QueueCreationResult>
+    internal class CreateQueueTablesAndSaveConfigurationCommandHandler : ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<Table>, QueueCreationResult>
     {
         private readonly IInternalSerializer _serializer;
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
@@ -69,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="command">The command.</param>
         /// <returns></returns>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "query is ok")]
-        public QueueCreationResult Handle(CreateQueueTablesAndSaveConfigurationCommand command)
+        public QueueCreationResult Handle(CreateQueueTablesAndSaveConfigurationCommand<Table> command)
         {
             var script = string.Empty;
             try
@@ -126,7 +129,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             using (var commandSql = conn.CreateCommand())
             {
                 commandSql.Transaction = trans;
-                commandSql.CommandText = _commandCache.GetCommand(SqLiteCommandStringTypes.SaveConfiguration);
+                commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SaveConfiguration);
                 commandSql.Parameters.Add("@Configuration", DbType.Binary, -1).Value =
                     _serializer.ConvertToBytes(_options.Value);
                 commandSql.ExecuteNonQuery();

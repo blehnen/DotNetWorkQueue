@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 #region Using
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
 using Xunit;
 #endregion

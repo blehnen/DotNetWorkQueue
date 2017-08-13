@@ -17,8 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using Xunit;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.Command
 {
@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.Command
         public void Create_Default()
         {
             var tables = new List<Table>();
-            var test = new CreateQueueTablesAndSaveConfigurationCommand(tables);
+            var test = new CreateQueueTablesAndSaveConfigurationCommand<Table>(tables);
             Assert.Equal(tables, test.Tables);
         }
     }

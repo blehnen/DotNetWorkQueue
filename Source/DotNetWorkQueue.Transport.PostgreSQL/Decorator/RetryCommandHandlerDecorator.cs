@@ -19,6 +19,7 @@
 using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 

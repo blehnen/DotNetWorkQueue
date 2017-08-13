@@ -9,10 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DotNetWorkQueue.Transport.SQLite</RootNamespace>
     <AssemblyName>DotNetWorkQueue.Transport.SQLite</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -39,7 +40,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SQLite, Version=1.0.105.2, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.SQLite.Core.1.0.105.2\lib\net45\System.Data.SQLite.dll</HintPath>
+      <HintPath>..\packages\System.Data.SQLite.Core.1.0.105.2\lib\net451\System.Data.SQLite.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -60,8 +61,6 @@
     <Compile Include="Basic\CommandHandler\MessageExpiration.cs" />
     <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
-    <Compile Include="Basic\Command\CreateJobTablesCommand.cs" />
-    <Compile Include="Basic\Command\SetJobLastKnownEventCommand.cs" />
     <Compile Include="Basic\CreateJobMetaData.cs" />
     <Compile Include="Basic\CreationScope.cs" />
     <Compile Include="Basic\Factory\SQLiteTransactionFactory.cs" />
@@ -79,17 +78,6 @@
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
     <Compile Include="Basic\CommandHandler\SetErrorCountCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetStatusTableStatusCommandHandler.cs" />
-    <Compile Include="Basic\Command\CreateQueueTablesAndSaveConfigurationCommand.cs" />
-    <Compile Include="Basic\Command\DeleteMessageCommand.cs" />
-    <Compile Include="Basic\Command\DeleteQueueTablesCommand.cs" />
-    <Compile Include="Basic\Command\DeleteStatusTableStatusCommand.cs" />
-    <Compile Include="Basic\Command\MoveRecordToErrorQueueCommand.cs" />
-    <Compile Include="Basic\Command\ResetHeartBeatCommand.cs" />
-    <Compile Include="Basic\Command\RollbackMessageCommand.cs" />
-    <Compile Include="Basic\Command\SendHeartBeatCommand.cs" />
-    <Compile Include="Basic\Command\SendMessageCommand.cs" />
-    <Compile Include="Basic\Command\SetErrorCountCommand.cs" />
-    <Compile Include="Basic\Command\SetStatusTableStatusCommand.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
     <Compile Include="Basic\Factory\SqLiteMessageQueueCorrelationIdFactory.cs" />
     <Compile Include="Basic\Factory\SqLiteMessageQueueTransportOptionsFactory.cs" />
@@ -114,24 +102,6 @@
     <Compile Include="Basic\QueryHandler\GetWorkingCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
-    <Compile Include="Basic\Query\DoesJobExistQuery.cs" />
-    <Compile Include="Basic\Query\FindExpiredMessagesToDeleteQuery.cs" />
-    <Compile Include="Basic\Query\FindMessagesToResetByHeartBeatQuery.cs" />
-    <Compile Include="Basic\Query\GetColumnNamesFromTableQuery.cs" />
-    <Compile Include="Basic\Query\GetErrorCountQuery.cs" />
-    <Compile Include="Basic\Query\GetErrorRecordExistsQuery.cs" />
-    <Compile Include="Basic\Query\GetErrorRetryCountQuery.cs" />
-    <Compile Include="Basic\Query\GetJobIDQuery.cs" />
-    <Compile Include="Basic\Query\GetJobLastKnownEventQuery.cs" />
-    <Compile Include="Basic\Query\GetPendingCountQuery.cs" />
-    <Compile Include="Basic\Query\GetPendingDelayedCountQuery.cs" />
-    <Compile Include="Basic\Query\GetPendingExcludeDelayCountQuery.cs" />
-    <Compile Include="Basic\Query\GetQueueOptionsQuery.cs" />
-    <Compile Include="Basic\Query\GetTableExistsQuery.cs" />
-    <Compile Include="Basic\Query\GetWorkingCountQuery.cs" />
-    <Compile Include="Basic\Query\MessageToReset.cs" />
-    <Compile Include="Basic\Query\ReceiveMessageQuery.cs" />
-    <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
     <Compile Include="Basic\SQLHeaders.cs" />
     <Compile Include="Basic\SqliteJobQueueCreation.cs" />
     <Compile Include="Basic\SqliteJobSchedulerLastKnownEvent.cs" />
@@ -158,16 +128,12 @@
     <Compile Include="Basic\SqLiteQueueStatusProvider.cs" />
     <Compile Include="Basic\SqLiteRpcConnection.cs" />
     <Compile Include="Basic\SqliteJobSchema.cs" />
-    <Compile Include="Basic\TableNameHelper.cs" />
     <Compile Include="ConfigurationExtensions.cs" />
     <Compile Include="Basic\DatabaseExists.cs" />
     <Compile Include="Decorator\BeginTransactionRetryDecorator.cs" />
     <Compile Include="Decorator\RetryableSqlErrors.cs" />
     <Compile Include="Decorator\RetryConstants.cs" />
     <Compile Include="Decorator\ThreadSafeRandom.cs" />
-    <Compile Include="ICommandHandler.cs" />
-    <Compile Include="IQuery.cs" />
-    <Compile Include="IQueryHandler.cs" />
     <Compile Include="ISQLiteTransaction.cs" />
     <Compile Include="ISQLiteTransactionFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -183,6 +149,10 @@
     <Compile Include="SqliteConnectionInformation.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj">
+      <Project>{b5c21f35-5f81-438c-b27f-a32c0c730581}</Project>
+      <Name>DotNetWorkQueue.Transport.RelationalDatabase</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj">
       <Project>{26e740da-e63d-497a-bf5b-fbbf28c8846f}</Project>
       <Name>DotNetWorkQueue</Name>
@@ -201,6 +171,7 @@
     <!-- sql transport -->
     <ItemGroup>
       <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.Transport.SQLite.dll" />
+      <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" />
     </ItemGroup>
     <PropertyGroup>
       <OutputAssembly>$(SolutionDir)\..\MergedBuild\DotNetWorkQueue.Transport.SQLite.dll</OutputAssembly>
@@ -210,11 +181,11 @@
     <Exec Command="$(Merger) /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
     <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.SQLite.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
   </Target>
-  <Import Project="..\packages\System.Data.SQLite.Core.1.0.105.2\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.105.2\build\net45\System.Data.SQLite.Core.targets')" />
+  <Import Project="..\packages\System.Data.SQLite.Core.1.0.105.2\build\net451\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.105.2\build\net451\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.105.2\build\net45\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.105.2\build\net45\System.Data.SQLite.Core.targets'))" />
+    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.105.2\build\net451\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.105.2\build\net451\System.Data.SQLite.Core.targets'))" />
   </Target>
 </Project>

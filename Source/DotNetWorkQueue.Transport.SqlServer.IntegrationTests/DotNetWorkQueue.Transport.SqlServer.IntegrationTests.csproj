@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DotNetWorkQueue.Transport.SqlServer.IntegrationTests</RootNamespace>
     <AssemblyName>DotNetWorkQueue.Transport.SqlServer.Integration.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -60,7 +60,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Tynamix.ObjectFiller, Version=1.5.4.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Tynamix.ObjectFiller.1.5.4.1\lib\net45\Tynamix.ObjectFiller.dll</HintPath>
+      <HintPath>..\packages\Tynamix.ObjectFiller.1.5.4.1\lib\net452\Tynamix.ObjectFiller.dll</HintPath>
     </Reference>
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
@@ -109,6 +109,10 @@
     <ProjectReference Include="..\DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj">
       <Project>{3c5a2726-36c2-41fa-8840-91d2fd74f872}</Project>
       <Name>DotNetWorkQueue.IntegrationTests.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj">
+      <Project>{b5c21f35-5f81-438c-b27f-a32c0c730581}</Project>
+      <Name>DotNetWorkQueue.Transport.RelationalDatabase</Name>
     </ProjectReference>
     <ProjectReference Include="..\DotNetWorkQueue.Transport.SqlServer\DotNetWorkQueue.Transport.SqlServer.csproj">
       <Project>{4e0c6f9d-0b43-4989-be8b-93174a42636a}</Project>

@@ -22,6 +22,7 @@ using System;
 using System.Data.SQLite;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using Xunit;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 #endregion
 

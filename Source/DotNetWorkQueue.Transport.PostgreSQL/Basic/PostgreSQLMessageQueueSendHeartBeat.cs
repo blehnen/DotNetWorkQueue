@@ -18,7 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Queue;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic

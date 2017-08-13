@@ -1,4 +1,4 @@
-﻿using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+﻿ 
 using DotNetWorkQueue.Validation;
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 {
@@ -24,25 +25,35 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(optionsFactory.Create);
             _createDequeueStatement = createDequeueStatement;
         }
-        public void BuildCommand(SqlCommand selectCommand, ReceiveMessageQuery query)
+        public void BuildCommand(SqlCommand selectCommand, ReceiveMessageQuery<SqlConnection, SqlTransaction> query)
         {
-            selectCommand.Transaction = query.Transaction;
-            if (query.MessageId != null && query.MessageId.HasValue)
+            BuildCommandInternal(selectCommand, query.Connection, query.Transaction, query.MessageId, query.Routes);
+        }
+        public void BuildCommand(SqlCommand selectCommand, ReceiveMessageQueryAsync<SqlConnection, SqlTransaction> query)
+        {
+            BuildCommandInternal(selectCommand, query.Connection, query.Transaction, query.MessageId, query.Routes);
+        }
+
+        internal void BuildCommandInternal(SqlCommand selectCommand, 
+            SqlConnection connection, SqlTransaction transaction, IMessageId messageId, List<string> routes)
+        {
+            selectCommand.Transaction = transaction;
+            if (messageId != null && messageId.HasValue)
             {
                 selectCommand.CommandText =
-                     _createDequeueStatement.GetDeQueueCommand(true, query.Routes);
+                    _createDequeueStatement.GetDeQueueCommand(true, routes);
                 selectCommand.Parameters.Add("@QueueID", SqlDbType.BigInt);
-                selectCommand.Parameters["@QueueID"].Value = query.MessageId.Id.Value;
+                selectCommand.Parameters["@QueueID"].Value = messageId.Id.Value;
             }
             else
             {
                 selectCommand.CommandText =
-                     _createDequeueStatement.GetDeQueueCommand(false, query.Routes);
+                    _createDequeueStatement.GetDeQueueCommand(false, routes);
             }
-            if (_options.Value.EnableRoute && query.Routes != null && query.Routes.Count > 0)
+            if (_options.Value.EnableRoute && routes != null && routes.Count > 0)
             {
                 var routeCounter = 1;
-                foreach (var route in query.Routes)
+                foreach (var route in routes)
                 {
                     selectCommand.Parameters.Add("@Route" + routeCounter.ToString(), SqlDbType.VarChar);
                     selectCommand.Parameters["@Route" + routeCounter.ToString()].Value = route;

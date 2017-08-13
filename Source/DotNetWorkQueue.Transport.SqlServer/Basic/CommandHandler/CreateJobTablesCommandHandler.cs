@@ -16,9 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.SqlServer.Basic.Command;
 using System.Data.SqlClient;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.SqlServer.Schema;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
     /// <summary>
     /// Creates tables for storing job info
     /// </summary>
-    public class CreateJobTablesCommandHandler : ICommandHandlerWithOutput<CreateJobTablesCommand, QueueCreationResult>
+    public class CreateJobTablesCommandHandler : ICommandHandlerWithOutput<CreateJobTablesCommand<Table>, QueueCreationResult>
     {
         private readonly IConnectionInformation _connectionInformation;
 
@@ -46,7 +48,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="command">The command.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException"></exception>
-        public QueueCreationResult Handle(CreateJobTablesCommand command)
+        public QueueCreationResult Handle(CreateJobTablesCommand<Table> command)
         {
             var script = string.Empty;
             try

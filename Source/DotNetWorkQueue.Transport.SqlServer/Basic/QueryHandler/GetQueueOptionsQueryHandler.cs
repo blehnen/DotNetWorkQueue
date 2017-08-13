@@ -17,7 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
@@ -25,7 +27,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
     /// <summary>
     /// Gets the queue options
     /// </summary>
-    internal class GetQueueOptionsQueryHandler : IQueryHandler<GetQueueOptionsQuery, SqlServerMessageQueueTransportOptions>
+    internal class GetQueueOptionsQueryHandler : IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions>
     {
         private readonly IInternalSerializer _serializer;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _tableExists;
@@ -64,7 +66,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public SqlServerMessageQueueTransportOptions Handle(GetQueueOptionsQuery query)
+        public SqlServerMessageQueueTransportOptions Handle(GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions> query)
         {
             if (!_tableExists.Handle(new GetTableExistsQuery(_connectionInformation.ConnectionString,
                 _tableNameHelper.ConfigurationName))) return null;
@@ -74,7 +76,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 conn.Open();
                 using (var command = conn.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(SqlServerCommandStringTypes.GetConfiguration);
+                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetConfiguration);
                     using (var reader = command.ExecuteReader())
                     {
                         if (!reader.Read()) return null;

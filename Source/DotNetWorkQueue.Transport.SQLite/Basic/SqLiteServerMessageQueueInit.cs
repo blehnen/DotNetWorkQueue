@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic.Factory;
 using DotNetWorkQueue.Transport.SQLite.Basic.Message;
 using CommitMessage = DotNetWorkQueue.Transport.SQLite.Basic.Message.CommitMessage;

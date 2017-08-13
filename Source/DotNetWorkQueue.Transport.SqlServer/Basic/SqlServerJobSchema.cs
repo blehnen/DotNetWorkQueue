@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>
