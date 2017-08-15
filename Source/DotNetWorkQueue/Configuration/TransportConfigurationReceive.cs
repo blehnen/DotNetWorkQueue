@@ -76,10 +76,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public IQueueDelay QueueDelayBehavior
         {
-            get
-            {
-                return _queueDelayBehavior;
-            }
+            get => _queueDelayBehavior;
             set
             {
                 FailIfReadOnly();
@@ -96,7 +93,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public IQueueDelay FatalExceptionDelayBehavior
         {
-            get { return _fatalExceptionDelayBehavior; }
+            get => _fatalExceptionDelayBehavior;
             set
             {
                 FailIfReadOnly();
@@ -112,10 +109,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public IRetryDelay RetryDelayBehavior
         {
-            get
-            {
-                return _retryDelayBehavior;
-            }
+            get => _retryDelayBehavior;
             set
             {
                 FailIfReadOnly();
@@ -131,10 +125,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public bool HeartBeatSupported
         {
-            get
-            {
-                return _heartBeatSupported;
-            }
+            get => _heartBeatSupported;
             set
             {
                 FailIfLocked();
@@ -150,10 +141,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public bool MessageExpirationSupported
         {
-            get
-            {
-                return _messageExpirationSupported;
-            }
+            get => _messageExpirationSupported;
             set
             {
                 FailIfLocked();
@@ -169,7 +157,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public bool MessageRollbackSupported
         {
-            get { return _messageRollbackSupported; }
+            get => _messageRollbackSupported;
             set
             {
                 FailIfLocked();
@@ -185,7 +173,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public bool IsReadOnly
         {
-            get { return _isReadonly; }
+            get => _isReadonly;
             protected set
             {
                 _isReadonly = value;

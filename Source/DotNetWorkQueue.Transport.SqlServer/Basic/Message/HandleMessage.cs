@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
@@ -46,13 +45,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// <value>
         /// The commit message module.
         /// </value>
-        public CommitMessage CommitMessage { get; private set; }
+        public CommitMessage CommitMessage { get; }
         /// <summary>
         /// Gets the rollback message module.
         /// </summary>
         /// <value>
         /// The rollback message module.
         /// </value>
-        public RollbackMessage RollbackMessage { get; private set; }
+        public RollbackMessage RollbackMessage { get; }
     }
 }

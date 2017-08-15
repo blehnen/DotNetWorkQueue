@@ -44,13 +44,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
         /// <value>
         /// The message context.
         /// </value>
-        public IMessageContext MessageContext { get; private set; }
+        public IMessageContext MessageContext { get;  }
         /// <summary>
         /// Gets the message identifier.
         /// </summary>
         /// <value>
         /// The message identifier.
         /// </value>
-        public IMessageId MessageId { get; private set; }
+        public IMessageId MessageId { get; }
     }
 }

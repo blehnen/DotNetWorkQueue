@@ -16,11 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using DotNetWorkQueue.Messages;
 
-namespace DotNetWorkQueue.Transport.SqlServer.Basic
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
     /// <summary>
     /// Creates metadata needed to add this job to the db.

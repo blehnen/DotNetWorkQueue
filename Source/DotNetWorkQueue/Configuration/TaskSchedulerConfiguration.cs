@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public int MaximumThreads
         {
-            get { return _maximumThreads; }
+            get => _maximumThreads;
             set
             {
                 FailIfReadOnly();
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public int MinimumThreads
         {
-            get { return _minimumThreads; }
+            get => _minimumThreads;
             set
             {
                 FailIfReadOnly();
@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public int MaxQueueSize
         {
-            get { return _maxQueueSize; }
+            get => _maxQueueSize;
             set
             {
                 FailIfReadOnly();
@@ -110,7 +110,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public TimeSpan ThreadIdleTimeout
         {
-            get { return _threadIdleTimeout; }
+            get => _threadIdleTimeout;
             set
             {
                 FailIfReadOnly();
@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.Configuration
         /// </summary>
         public TimeSpan WaitForTheadPoolToFinish
         {
-            get { return _waitForTheadPoolToFinish; }
+            get => _waitForTheadPoolToFinish;
             set
             {
                 FailIfReadOnly();

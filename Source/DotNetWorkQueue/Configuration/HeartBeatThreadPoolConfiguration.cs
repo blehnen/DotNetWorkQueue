@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public int ThreadsMax
         {
-            get { return _threadsMax; }
+            get => _threadsMax;
             set
             {
                 FailIfReadOnly();
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public TimeSpan ThreadIdleTimeout
         {
-            get { return _threadIdleTimeout; }
+            get => _threadIdleTimeout;
             set
             {
                 FailIfReadOnly();
@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public int ThreadsMin
         {
-            get { return _threadsMin; }
+            get => _threadsMin;
             set
             {
                 FailIfReadOnly();

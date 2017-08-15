@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Query
@@ -44,13 +43,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
         /// <value>
         /// The message context.
         /// </value>
-        public IMessageContext MessageContext { get; private set; }
+        public IMessageContext MessageContext { get;  }
         /// <summary>
         /// Gets the message identifier.
         /// </summary>
         /// <value>
         /// The message identifier.
         /// </value>
-        public IMessageId MessageId { get; private set; }
+        public IMessageId MessageId { get; }
     }
 }

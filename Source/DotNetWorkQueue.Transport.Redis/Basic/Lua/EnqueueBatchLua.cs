@@ -281,11 +281,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             /// <remarks>Optional</remarks>
             public string Route
             {
-                get { return _route; }
-                set
-                {
-                    _route = value ?? string.Empty;
-                }
+                get => _route;
+                set => _route = value ?? string.Empty;
             }
         }
     }

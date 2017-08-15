@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
         {
             using (_sendAsyncTimer.NewContext())
             {
-                var result = await _handler.SendAsync(messageToSend, data);
+                var result = await _handler.SendAsync(messageToSend, data).ConfigureAwait(false);
                 if (!result.HasError)
                 {
                     _sendMeter.Mark("SendMessageAsync", 1);
@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
         {
             using (_sendBatchAsyncTimer.NewContext())
             {
-                var result = await _handler.SendAsync(messages);
+                var result = await _handler.SendAsync(messages).ConfigureAwait(false);
                 _sendMeter.Mark("SendMessageBatchAsync", result.Count(x => !x.HasError));
                 _sendErrorMeter.Mark("SendMessageBatchAsync", result.Count(x => x.HasError));
                 return result;

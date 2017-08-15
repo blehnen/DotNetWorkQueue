@@ -65,7 +65,7 @@ namespace DotNetWorkQueue
         /// <value>
         /// The graph.
         /// </value>
-        public MessageInterceptorsGraph Graph { get; private set; }
+        public MessageInterceptorsGraph Graph { get; }
     }
 
     /// <summary>

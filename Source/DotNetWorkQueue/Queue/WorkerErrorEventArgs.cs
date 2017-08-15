@@ -40,13 +40,13 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         /// The worker.
         /// </value>
-        public IWorkerBase Worker { get; private set; }
+        public IWorkerBase Worker { get; }
         /// <summary>
         /// Gets the error.
         /// </summary>
         /// <value>
         /// The error.
         /// </value>
-        public Exception Error { get; private set; }
+        public Exception Error { get;  }
     }
 }

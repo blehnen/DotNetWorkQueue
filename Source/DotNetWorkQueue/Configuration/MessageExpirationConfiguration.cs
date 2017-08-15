@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public TimeSpan MonitorTime
         {
-            get { return _monitorTime; }
+            get => _monitorTime;
             set
             {
                 FailIfReadOnly();
@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public bool Enabled
         {
-            get { return _enabled && Supported; }
+            get => _enabled && Supported;
             set
             {
                 FailIfReadOnly();

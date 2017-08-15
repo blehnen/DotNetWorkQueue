@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 if (_loadedLuaScript == null) throw new InvalidOperationException("Script has not been loaded");
                 return _loadedLuaScript;
             }
-            private set { _loadedLuaScript = value; }
+            private set => _loadedLuaScript = value;
         }
         /// <summary>
         /// Loads the script.

@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Queue
             _queue.Dispose();
             _messageMethodHandling.Dispose();
 
-            base.Dispose(disposing);
+            base.Dispose(true);
         }
     }
 }

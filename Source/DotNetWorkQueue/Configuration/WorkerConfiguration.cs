@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Configuration
         /// </remarks>
         public int WorkerCount
         {
-            get { return _workerCount; }
+            get => _workerCount;
             set
             {
                 FailIfReadOnly();
@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public TimeSpan TimeToWaitForWorkersToCancel
         {
-            get { return _timeToWaitForWorkersToCancel; }
+            get => _timeToWaitForWorkersToCancel;
             set
             {
                 FailIfReadOnly();
@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public TimeSpan TimeToWaitForWorkersToStop
         {
-            get { return _timeToWaitForWorkersToStop; }
+            get => _timeToWaitForWorkersToStop;
             set
             {
                 FailIfReadOnly();
@@ -110,7 +110,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public bool AbortWorkerThreadsWhenStopping
         {
-            get { return _abortWorkerThreadsWhenStopping; }
+            get => _abortWorkerThreadsWhenStopping;
             set
             {
                 FailIfReadOnly();
@@ -127,7 +127,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public bool SingleWorkerWhenNoWorkFound
         {
-            get { return _singleWorkerWhenNoWorkFound; }
+            get => _singleWorkerWhenNoWorkFound;
             set
             {
                 FailIfReadOnly();

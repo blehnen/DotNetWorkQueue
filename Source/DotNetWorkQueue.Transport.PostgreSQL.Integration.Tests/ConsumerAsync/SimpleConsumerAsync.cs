@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         if (messageType == 1)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
+                            producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 
@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         else if (messageType == 2)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTest<PostgreSqlMessageQueueInit, FakeMessageA>(queueName,
+                            producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessageA>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         else if (messageType == 3)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTest<PostgreSqlMessageQueueInit, FakeMessageB>(queueName,
+                            producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessageB>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 

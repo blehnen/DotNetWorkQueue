@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         }
 
         [Theory, AutoData]
-        public void SetAndGet_WaitForTheadPoolToFinish(TimeSpan value)
+        public void SetAndGet_WaitForThreadPoolToFinish(TimeSpan value)
         {
             var configuration = GetConfiguration();
             configuration.WaitForTheadPoolToFinish = value;
@@ -129,7 +129,7 @@ namespace DotNetWorkQueue.Tests.Configuration
               });
         }
         [Theory, AutoData]
-        public void Set_WaitForTheadPoolToFinish_WhenReadOnly_Fails(TimeSpan value)
+        public void Set_WaitForThreadPoolToFinish_WhenReadOnly_Fails(TimeSpan value)
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();

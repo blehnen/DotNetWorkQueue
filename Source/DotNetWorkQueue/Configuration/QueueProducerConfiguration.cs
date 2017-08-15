@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public bool IsReadOnly
         {
-            get { return _isReadonly; }
+            get => _isReadonly;
             protected set
             {
                 _isReadonly = value;

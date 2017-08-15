@@ -38,6 +38,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <value>
         /// The increase delay.
         /// </value>
-        public TimeSpan IncreaseDelay { get; private set; }
+        public TimeSpan IncreaseDelay { get; }
     }
 }

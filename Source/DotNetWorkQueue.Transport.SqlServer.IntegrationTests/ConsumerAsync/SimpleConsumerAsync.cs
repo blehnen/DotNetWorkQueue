@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                         if (messageType == 1)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
+                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessage>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 
@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                         else if (messageType == 2)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTest<SqlServerMessageQueueInit, FakeMessageA>(queueName,
+                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageA>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                         else if (messageType == 3)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTest<SqlServerMessageQueueInit, FakeMessageB>(queueName,
+                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageB>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 

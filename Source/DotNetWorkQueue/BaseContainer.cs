@@ -90,8 +90,7 @@ namespace DotNetWorkQueue
             {
                 while (!Containers.IsEmpty)
                 {
-                    IDisposable item;
-                    if (Containers.TryTake(out item))
+                    if (Containers.TryTake(out IDisposable item))
                     {
                         item?.Dispose();
                     }

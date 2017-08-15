@@ -70,7 +70,6 @@
     <Compile Include="Basic\ExceptionDelay.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
     <Compile Include="Basic\MessageExpiration.cs" />
-    <Compile Include="Basic\Message\CommitMessage.cs" />
     <Compile Include="Basic\CommandStringCache.cs" />
     <Compile Include="Basic\QueueStatusQueries.cs" />
     <Compile Include="Basic\QueueStatusProvider.cs" />
@@ -134,6 +133,10 @@
       <Name>DotNetWorkQueue</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
+      <Link>DotNetWorkQueue.licenseheader</Link>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

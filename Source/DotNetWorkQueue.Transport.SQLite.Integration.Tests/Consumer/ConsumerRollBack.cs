@@ -35,8 +35,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
         InlineData(500, 0, 240, 5, false),
         InlineData(50, 5, 200, 10, false),
         InlineData(10, 15, 180, 7, false),
-        InlineData(10, 45, 200, 10, true),
-        InlineData(10, 45, 220, 7, false)]
+        InlineData(10, 20, 200, 10, true),
+        InlineData(10, 20, 220, 7, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

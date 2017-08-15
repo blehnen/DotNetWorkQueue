@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     {
                         await
                             RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch, runTime, id,
-                                linqMethodTypes);
+                                linqMethodTypes).ConfigureAwait(false);
                     }
                     VerifyMetrics.VerifyProducedAsyncCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }

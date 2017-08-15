@@ -114,7 +114,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// </summary>
         /// <param name="command">The command.</param>
         /// <param name="data">The data.</param>
-        public static void AddUserColumnsParams(SqlCommand command, IAdditionalMessageData data)
+        private static void AddUserColumnsParams(SqlCommand command, IAdditionalMessageData data)
         {
             foreach (var metadata in data.AdditionalMetaData)
             {
@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="command">The command.</param>
         /// <param name="data">The data.</param>
         /// <param name="headers">The headers.</param>
-        public static void AddHeaderColumnParams(SqlCommand command, IMessage data, IHeaders headers)
+        private static void AddHeaderColumnParams(SqlCommand command, IMessage data, IHeaders headers)
         {
             var responseId = data.GetInternalHeader(headers.StandardHeaders.RpcResponseId);
             if (!string.IsNullOrEmpty(responseId))
@@ -142,7 +142,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// </summary>
         /// <param name="command">The command.</param>
         /// <param name="data">The data.</param>
-        public static void AddUserColumns(StringBuilder command, IAdditionalMessageData data)
+        private static void AddUserColumns(StringBuilder command, IAdditionalMessageData data)
         {
             var i = 0;
             foreach (var metadata in data.AdditionalMetaData)
@@ -165,7 +165,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="command">The command.</param>
         /// <param name="data">The data.</param>
         /// <param name="headers">The headers.</param>
-        public static void AddHeaderColumns(StringBuilder command, IMessage data, IHeaders headers)
+        private static void AddHeaderColumns(StringBuilder command, IMessage data, IHeaders headers)
         {
             var responseId = data.GetInternalHeader(headers.StandardHeaders.RpcResponseId);
             if (string.IsNullOrEmpty(responseId)) return;
@@ -178,7 +178,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="command">The command.</param>
         /// <param name="data">The data.</param>
         /// <param name="headers">The headers.</param>
-        public static void AddHeaderValues(StringBuilder command, IMessage data, IHeaders headers)
+        private static void AddHeaderValues(StringBuilder command, IMessage data, IHeaders headers)
         {
             var responseId = data.GetInternalHeader(headers.StandardHeaders.RpcResponseId);
             if (string.IsNullOrEmpty(responseId)) return;
@@ -189,7 +189,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// </summary>
         /// <param name="command">The command.</param>
         /// <param name="data">The data.</param>
-        public static void AddUserColumnsValues(StringBuilder command, IAdditionalMessageData data)
+        private static void AddUserColumnsValues(StringBuilder command, IAdditionalMessageData data)
         {
             var i = 0;
             foreach (var metadata in data.AdditionalMetaData)

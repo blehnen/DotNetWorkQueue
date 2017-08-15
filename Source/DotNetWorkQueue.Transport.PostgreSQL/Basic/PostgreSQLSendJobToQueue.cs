@@ -19,9 +19,9 @@
 using System;
 
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
-using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic

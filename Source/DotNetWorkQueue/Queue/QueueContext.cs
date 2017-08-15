@@ -38,6 +38,6 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         /// The context.
         /// </value>
-        public QueueContexts Context { get; private set; }
+        public QueueContexts Context { get; }
     }
 }

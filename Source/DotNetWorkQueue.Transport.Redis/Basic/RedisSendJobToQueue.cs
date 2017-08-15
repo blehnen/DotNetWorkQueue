@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </remarks>
         protected override bool JobAlreadyExistsError(Exception error)
         {
-            var message = error.Message.Replace(System.Environment.NewLine, "");
+            var message = error.Message.Replace(Environment.NewLine, "");
             return message.Contains("Failed to enqueue a record. The job already exists");
         }
 

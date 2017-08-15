@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
                             if (messageType == 1)
                             {
                                 var producer = new ProducerAsyncShared();
-                                producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
+                                producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 
@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
                             else if (messageType == 2)
                             {
                                 var producer = new ProducerAsyncShared();
-                                producer.RunTest<SqLiteMessageQueueInit, FakeMessageA>(queueName,
+                                producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessageA>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
                             else if (messageType == 3)
                             {
                                 var producer = new ProducerAsyncShared();
-                                producer.RunTest<SqLiteMessageQueueInit, FakeMessageB>(queueName,
+                                producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessageB>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false).Wait(timeOut / 2 * 1000);
 

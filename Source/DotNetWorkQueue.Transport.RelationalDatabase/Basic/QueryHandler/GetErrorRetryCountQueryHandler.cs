@@ -29,23 +29,20 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     internal class GetErrorRetryCountQueryHandler : IQueryHandler<GetErrorRetryCountQuery, int>
     {
         private readonly CommandStringCache _commandCache;
-        private readonly IConnectionInformation _connectionInformation;
         private readonly IDbConnectionFactory _connectionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetErrorRetryCountQueryHandler" /> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
-        /// <param name="connectionInformation">The connection information.</param>
+        /// <param name="connectionFactory">The connection factory.</param>
         public GetErrorRetryCountQueryHandler(CommandStringCache commandCache, 
-            IConnectionInformation connectionInformation,
             IDbConnectionFactory connectionFactory)
         {
             Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => connectionFactory, connectionFactory);
 
             _commandCache = commandCache;
-            _connectionInformation = connectionInformation;
             _connectionFactory = connectionFactory;
         }
         /// <summary>
@@ -78,7 +75,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     var o = command.ExecuteScalar();
                     if (o != null && o != DBNull.Value)
                     {
-                        return (int)o;
+                        return Convert.ToInt32(o);
                     }
                 }
             }

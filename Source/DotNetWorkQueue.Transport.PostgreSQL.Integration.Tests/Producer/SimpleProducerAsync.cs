@@ -84,10 +84,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                         Assert.True(result.Success, result.ErrorMessage);
 
                         var producer = new ProducerAsyncShared();
-                        await producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
+                        await producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
-                            Helpers.Verify, false);
+                            Helpers.Verify, false).ConfigureAwait(false);
                     }
                 }
                 finally

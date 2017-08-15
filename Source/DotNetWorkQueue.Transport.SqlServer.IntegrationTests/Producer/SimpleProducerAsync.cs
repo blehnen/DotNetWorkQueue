@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
                         Assert.True(result.Success, result.ErrorMessage);
 
                         var producer = new ProducerAsyncShared();
-                        await producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
+                        await producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
                             Helpers.Verify, false);

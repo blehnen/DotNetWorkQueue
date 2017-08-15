@@ -43,13 +43,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
         /// <value>
         /// The queue identifier.
         /// </value>
-        public RedisQueueId Id { get; private set; }
+        public RedisQueueId Id { get;  }
         /// <summary>
         /// Gets the increase queue delay.
         /// </summary>
         /// <value>
         /// The increase queue delay.
         /// </value>
-        public TimeSpan? IncreaseQueueDelay { get; private set; }
+        public TimeSpan? IncreaseQueueDelay { get; }
     }
 }

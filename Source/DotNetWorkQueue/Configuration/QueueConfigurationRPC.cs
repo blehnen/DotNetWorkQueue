@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Configuration
@@ -54,14 +53,14 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The transport configuration.
         /// </value>
-        public TransportConfigurationSend TransportConfigurationSend { get; private set; }
+        public TransportConfigurationSend TransportConfigurationSend { get;  }
         /// <summary>
         /// Gets or sets the transport configuration for receiving messages
         /// </summary>
         /// <value>
         /// The transport configuration.
         /// </value>
-        public TransportConfigurationReceive TransportConfigurationReceive { get; private set; }
+        public TransportConfigurationReceive TransportConfigurationReceive { get; }
 
         /// <summary>
         /// Gets the header names.
@@ -69,7 +68,7 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The header names.
         /// </value>
-        public IHeaders HeaderNames { get; private set; }
+        public IHeaders HeaderNames { get; }
         #endregion
     }
 }

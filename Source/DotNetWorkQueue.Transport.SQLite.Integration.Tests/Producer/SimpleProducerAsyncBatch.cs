@@ -29,22 +29,22 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
     {
         [Theory]
         [InlineData(1000, true, true, true, false, false, true, false, false, true),
-         InlineData(1000, false, true, true, false, false, true, false, false, true),
-         InlineData(1000, false, false, false, false, false, false, false, false, true),
-         InlineData(1000, true, false, false, false, false, false, false, false, true),
-         InlineData(1000, false, false, false, false, false, false, true, false, true),
-         InlineData(1000, false, false, false, false, false, true, true, false, true),
-         InlineData(1000, false, true, false, true, true, false, true, false, true),
-         InlineData(1000, false, true, true, true, true, true, true, false, true),
-         InlineData(1000, true, true, true, false, false, true, false, true, true),
-         InlineData(1000, true, true, true, false, false, true, false, false, false),
-         InlineData(1000, false, true, true, false, false, true, false, false, false),
-         InlineData(1000, false, false, false, false, false, false, false, false, false),
-         InlineData(1000, true, false, false, false, false, false, false, false, false),
-         InlineData(1000, false, false, false, false, false, false, true, false, false),
-         InlineData(1000, false, false, false, false, false, true, true, false, false),
-         InlineData(1000, false, true, false, true, true, false, true, false, false),
-         InlineData(1000, false, true, true, true, true, true, true, false, false),
+         InlineData(100, false, true, true, false, false, true, false, false, true),
+         InlineData(100, false, false, false, false, false, false, false, false, true),
+         InlineData(100, true, false, false, false, false, false, false, false, true),
+         InlineData(100, false, false, false, false, false, false, true, false, true),
+         InlineData(100, false, false, false, false, false, true, true, false, true),
+         InlineData(100, false, true, false, true, true, false, true, false, true),
+         InlineData(100, false, true, true, true, true, true, true, false, true),
+         InlineData(100, true, true, true, false, false, true, false, true, true),
+         InlineData(100, true, true, true, false, false, true, false, false, false),
+         InlineData(100, false, true, true, false, false, true, false, false, false),
+         InlineData(100, false, false, false, false, false, false, false, false, false),
+         InlineData(100, true, false, false, false, false, false, false, false, false),
+         InlineData(100, false, false, false, false, false, false, true, false, false),
+         InlineData(100, false, false, false, false, false, true, true, false, false),
+         InlineData(100, false, true, false, true, true, false, true, false, false),
+         InlineData(100, false, true, true, true, true, true, true, false, false),
          InlineData(1000, true, true, true, false, false, true, false, true, false)]
         public async void Run(
             int messageCount,
@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                             Assert.True(result.Success, result.ErrorMessage);
 
                             var producer = new ProducerAsyncShared();
-                            await producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
+                            await producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
                                 Helpers.Verify, true);

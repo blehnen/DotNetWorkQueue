@@ -42,6 +42,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
         /// <value>
         /// The message to send.
         /// </value>
-        public List<QueueMessage<IMessage, IAdditionalMessageData>> Messages { get; private set; }
+        public List<QueueMessage<IMessage, IAdditionalMessageData>> Messages { get; }
     }
 }

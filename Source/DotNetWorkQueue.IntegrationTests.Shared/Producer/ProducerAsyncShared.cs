@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
 {
     public class ProducerAsyncShared
     {
-        public async Task RunTest<TTransportInit, TMessage>(string queueName,
+        public async Task RunTestAsync<TTransportInit, TMessage>(string queueName,
             string connectionString,
             bool addInterceptors,
             long messageCount,
@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                             .CreateProducer
                             <TMessage>(queueName, connectionString))
                     {
-                        await RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch);
+                        await RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch).ConfigureAwait(false);
                     }
                     VerifyMetrics.VerifyProducedAsyncCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
             {
                 var messages = new List<QueueMessage<TMessage, IAdditionalMessageData>>(numberOfJobs);
                 messages.AddRange(from job in jobs let data = generateData(queue.Configuration) select data != null ? new QueueMessage<TMessage, IAdditionalMessageData>(job, data) : new QueueMessage<TMessage, IAdditionalMessageData>(job, null));
-                var results = await queue.SendAsync(messages);
+                var results = await queue.SendAsync(messages).ConfigureAwait(false);
                 Assert.False(results.HasErrors);
             }
             else

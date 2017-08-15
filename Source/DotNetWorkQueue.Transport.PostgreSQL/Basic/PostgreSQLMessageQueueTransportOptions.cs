@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Data;
 using System.Text;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -92,7 +91,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public bool EnablePriority
         {
-            get { return _enablePriority; }
+            get => _enablePriority;
             set
             {
                 FailIfReadOnly();
@@ -107,7 +106,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public bool EnableHoldTransactionUntilMessageCommited
         {
-            get { return _enableHoldTransactionUntilMessageCommited; }
+            get => _enableHoldTransactionUntilMessageCommited;
             set
             {
                 FailIfReadOnly();
@@ -122,7 +121,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public bool EnableStatus
         {
-            get { return _enableStatus; }
+            get => _enableStatus;
             set
             {
                 FailIfReadOnly();
@@ -137,7 +136,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public bool EnableHeartBeat
         {
-            get { return _enableHeartBeat; }
+            get => _enableHeartBeat;
             set
             {
                 FailIfReadOnly();
@@ -152,7 +151,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public bool EnableDelayedProcessing
         {
-            get { return _enableDelayedProcessing; }
+            get => _enableDelayedProcessing;
             set
             {
                 FailIfReadOnly();
@@ -168,7 +167,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public bool EnableRoute
         {
-            get { return _enableRoute; }
+            get => _enableRoute;
             set
             {
                 FailIfReadOnly();
@@ -184,7 +183,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public bool EnableStatusTable
         {
-            get { return _enableStatusTable || AdditionalColumns.Count > 0; }
+            get => _enableStatusTable || AdditionalColumns.Count > 0;
             set
             {
                 FailIfReadOnly();
@@ -200,7 +199,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public QueueTypes QueueType
         {
-            get { return _queueType; }
+            get => _queueType;
             set
             {
                 FailIfReadOnly();
@@ -216,7 +215,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public bool EnableMessageExpiration
         {
-            get { return _enableMessageExpiration; }
+            get => _enableMessageExpiration;
             set
             {
                 FailIfReadOnly();

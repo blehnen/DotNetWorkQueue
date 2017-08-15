@@ -207,7 +207,7 @@ namespace DotNetWorkQueue
         /// <value>
         /// The error message.
         /// </value>
-        public string ErrorMessage { get; private set; }
+        public string ErrorMessage { get; }
 
         /// <summary>
         /// Gets a value indicating if the queue was created, or already exists.

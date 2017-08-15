@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
@@ -28,14 +27,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         where TConnection : class
         where TTransaction : class
     {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DoesJobExistQuery" /> class.
-    /// </summary>
-    /// <param name="jobName">Name of the job.</param>
-    /// <param name="scheduledTime">The expected scheduled time.</param>
-    /// <param name="connection">The connection.</param>
-    /// <param name="transaction">The transaction.</param>
-    public DoesJobExistQuery(string jobName, DateTimeOffset scheduledTime, TConnection connection = null,
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DoesJobExistQuery{TConnection, TTransaction}"/> class.
+        /// </summary>
+        /// <param name="jobName">Name of the job.</param>
+        /// <param name="scheduledTime">The expected scheduled time.</param>
+        /// <param name="connection">The connection.</param>
+        /// <param name="transaction">The transaction.</param>
+        public DoesJobExistQuery(string jobName, DateTimeOffset scheduledTime, TConnection connection = null,
         TTransaction transaction = null)
     {
         JobName = jobName;

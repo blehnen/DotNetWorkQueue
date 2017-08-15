@@ -53,8 +53,8 @@ namespace DotNetWorkQueue.Metrics.Net.Tests
             var metric = Metric.Timer(name, Unit.Bytes);
             var test = Create(metric);
             dynamic dyn = metric;
-            Action action = () => System.Threading.Thread.Sleep(30);
-            test.Time(action);
+            void Action() => System.Threading.Thread.Sleep(30);
+            test.Time(Action);
             Assert.Equal(1, dyn.Value.Rate.Count);
         }
 

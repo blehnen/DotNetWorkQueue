@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <value>
         /// The headers.
         /// </value>
-        public IHeaders Headers { get; private set; }
+        public IHeaders Headers { get; }
         /// <summary>
         /// Gets the increase queue delay.
         /// </summary>
@@ -57,7 +57,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public IMessageContextData<RedisQueueDelay> IncreaseQueueDelay
         {
             get; 
-            private set; 
         }
         /// <summary>
         /// Gets the correlation identifier.
@@ -65,6 +64,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <value>
         /// The correlation identifier.
         /// </value>
-        public IMessageContextData<RedisQueueCorrelationIdSerialized> CorelationId { get; private set; } 
+        public IMessageContextData<RedisQueueCorrelationIdSerialized> CorelationId { get;  } 
     }
 }

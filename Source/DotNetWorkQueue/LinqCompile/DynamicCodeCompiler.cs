@@ -88,14 +88,12 @@ namespace DotNetWorkQueue.LinqCompile
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (_disposedValue) return;
+            if (disposing)
             {
-                if (disposing)
-                {
-                   _compiler.Dispose();
-                }
-                _disposedValue = true;
+                _compiler.Dispose();
             }
+            _disposedValue = true;
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

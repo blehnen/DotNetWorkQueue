@@ -67,20 +67,20 @@ namespace DotNetWorkQueue
         /// <value>
         /// The output.
         /// </value>
-        public byte[] Output { get; private set; }
+        public byte[] Output { get; }
         /// <summary>
         /// Returns true if the interceptor injected itself
         /// </summary>
         /// <value>
         /// True or false
         /// </value>
-        public bool AddToGraph { get; private set; }
+        public bool AddToGraph { get; }
         /// <summary>
         /// Gets or sets the base type of the interceptor
         /// </summary>
         /// <value>
         /// Base type of the interceptor
         /// </value>
-        public Type BaseType { get; private set; }
+        public Type BaseType { get; }
     }
 }

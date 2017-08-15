@@ -38,6 +38,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
         /// <value>
         /// The token.
         /// </value>
-        public CancellationToken Token { get; private set; }
+        public CancellationToken Token { get; }
     }
 }

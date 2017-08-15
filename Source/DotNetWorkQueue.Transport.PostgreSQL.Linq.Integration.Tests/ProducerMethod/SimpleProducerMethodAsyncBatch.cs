@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                         await producer.RunTest<PostgreSqlMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
-                            Helpers.Verify, true, 0, id, linqMethodTypes);
+                            Helpers.Verify, true, 0, id, linqMethodTypes).ConfigureAwait(false);
                     }
                 }
                 finally

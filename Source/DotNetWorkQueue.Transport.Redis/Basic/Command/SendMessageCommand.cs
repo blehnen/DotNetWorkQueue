@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Command
@@ -45,13 +44,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
         /// <value>
         /// The message to send.
         /// </value>
-        public IMessage MessageToSend { get; private set; }
+        public IMessage MessageToSend { get;  }
         /// <summary>
         /// Gets or sets the message data.
         /// </summary>
         /// <value>
         /// The message data.
         /// </value>
-        public IAdditionalMessageData MessageData { get; private set; }
+        public IAdditionalMessageData MessageData { get;  }
     }
 }

@@ -309,12 +309,12 @@ namespace DotNetWorkQueue.Tests.IoC
 
             public async Task<IQueueOutputMessage> SendAsync(IMessage messageToSend, IAdditionalMessageData data)
             {
-                return await Task.FromResult<QueueOutputMessage>(null);
+                return await Task.FromResult<QueueOutputMessage>(null).ConfigureAwait(false);
             }
 
             public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
             {
-                return await Task.FromResult<QueueOutputMessages>(null);
+                return await Task.FromResult<QueueOutputMessages>(null).ConfigureAwait(false);
             }
         }
     }

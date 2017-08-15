@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public TimeSpan MonitorTime
         {
-            get { return _monitorTime; }
+            get => _monitorTime;
             set
             {
                 FailIfReadOnly();
@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public TimeSpan Time
         {
-            get { return _time; }
+            get => _time;
             set
             {
                 FailIfReadOnly();
@@ -135,7 +135,7 @@ namespace DotNetWorkQueue.Configuration
         /// </value>
         public int Interval
         {
-            get { return _interval; }
+            get => _interval;
             set
             {
                 FailIfReadOnly();

@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        internal static void BuildMetaCommand(SQLiteCommand command, 
+        private static void BuildMetaCommand(SQLiteCommand command, 
             TableNameHelper tableNameHelper,
             IHeaders headers,
             IAdditionalMessageData data,

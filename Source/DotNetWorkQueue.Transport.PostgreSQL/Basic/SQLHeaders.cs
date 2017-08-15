@@ -47,7 +47,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public IMessageContextData<Connection> Connection
         {
             get;
-            private set;
         }
 
         /// <summary>
@@ -59,7 +58,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public IMessageContextData<SqlQueueDelay> IncreaseQueueDelay
         {
             get; 
-            private set; 
         }
     }
 }

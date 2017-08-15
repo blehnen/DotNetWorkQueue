@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public bool EnablePriority
         {
-            get { return _enablePriority; }
+            get => _enablePriority;
             set
             {
                 FailIfReadOnly();
@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public bool EnableStatus
         {
-            get { return _enableStatus; }
+            get => _enableStatus;
             set
             {
                 FailIfReadOnly();
@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public bool EnableHeartBeat
         {
-            get { return _enableHeartBeat; }
+            get => _enableHeartBeat;
             set
             {
                 FailIfReadOnly();
@@ -134,7 +134,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public bool EnableDelayedProcessing
         {
-            get { return _enableDelayedProcessing; }
+            get => _enableDelayedProcessing;
             set
             {
                 FailIfReadOnly();
@@ -150,7 +150,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public bool EnableStatusTable
         {
-            get { return _enableStatusTable || AdditionalColumns.Count > 0; }
+            get => _enableStatusTable || AdditionalColumns.Count > 0;
             set
             {
                 FailIfReadOnly();
@@ -166,7 +166,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public bool EnableRoute
         {
-            get { return _enableRoute; }
+            get => _enableRoute;
             set
             {
                 FailIfReadOnly();
@@ -182,7 +182,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public QueueTypes QueueType
         {
-            get { return _queueType; }
+            get => _queueType;
             set
             {
                 FailIfReadOnly();
@@ -198,7 +198,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public bool EnableMessageExpiration
         {
-            get { return _enableMessageExpiration; }
+            get => _enableMessageExpiration;
             set
             {
                 FailIfReadOnly();

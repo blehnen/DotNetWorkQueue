@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// The message.
         /// </value>
         /// <remarks>This is the dequeued message</remarks>
-        public IReceivedMessageInternal Message { get; private set; }
+        public IReceivedMessageInternal Message { get;}
         /// <summary>
         /// Gets a value indicating whether this <see cref="RedisMessage"/> is expired.
         /// </summary>
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         ///   <c>true</c> if expired; otherwise, <c>false</c>.
         /// </value>
         /// <remarks>If the message has expired, it won't be processed; it will be deleted.</remarks>
-        public bool Expired { get; private set; }
+        public bool Expired { get; }
 
         /// <summary>
         /// Gets the message identifier.
@@ -59,6 +59,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// The message identifier.
         /// </value>
         /// <remarks>Can be used to obtain the messageId of expired messages</remarks>
-        public string MessageId { get; private set; }
+        public string MessageId { get;}
     }
 }

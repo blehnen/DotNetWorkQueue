@@ -44,7 +44,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         public string ConnectionString
         {
             get;
-            private set;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]

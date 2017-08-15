@@ -164,8 +164,8 @@ namespace DotNetWorkQueue.Tests.Queue
 
         public bool RunningPublic
         {
-            get { return Running; }
-            set { Running = value; }
+            get => Running;
+            set => Running = value;
         }
     }
 }

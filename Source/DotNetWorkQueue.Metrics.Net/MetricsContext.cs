@@ -99,7 +99,7 @@ namespace DotNetWorkQueue.Metrics.Net
         /// <remarks>
         /// The mean rate is the average rate of events. It’s generally useful for trivia, 
         /// but as it represents the total rate for your application’s entire lifetime (e.g., the total number of requests handled, 
-        /// divided by the number of seconds the process has been running), it does not offer a sense of recency. 
+        /// divided by the number of seconds the process has been running), it does not offer a sense of recent y. 
         /// Luckily, meters also record three different exponentially-weighted moving average rates: the 1-, 5-, and 15-minute moving averages.
         /// </remarks>
         /// <param name="name">Name of the metric. Must be unique across all meters in this context.</param>
@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.Metrics.Net
         /// <remarks>
         /// The mean rate is the average rate of events. It’s generally useful for trivia,
         /// but as it represents the total rate for your application’s entire lifetime (e.g., the total number of requests handled,
-        /// divided by the number of seconds the process has been running), it does not offer a sense of recency.
+        /// divided by the number of seconds the process has been running), it does not offer a sense of recent y.
         /// Luckily, meters also record three different exponentially-weighted moving average rates: the 1-, 5-, and 15-minute moving averages.
         /// </remarks>
         public IMeter Meter(string name, string unitName, TimeUnits rateUnit, string tag = null)

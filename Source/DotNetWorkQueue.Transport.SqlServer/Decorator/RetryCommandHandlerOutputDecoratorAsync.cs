@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
         public async Task<TOutput> Handle(TCommand command)
         {
             Guard.NotNull(() => command, command);
-            return await HandleWithCountDown(command, RetryConstants.RetryCount);
+            return await HandleWithCountDown(command, RetryConstants.RetryCount).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
         {
             try
             {
-                return await _decorated.Handle(command);
+                return await _decorated.Handle(command).ConfigureAwait(false);
             }
             catch (SqlException sqlEx)
             {
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
                 _log.WarnException($"An error has occurred; we will try to re-run the transaction in {wait} ms", sqlEx);
                 Thread.Sleep(wait);
 
-                return await HandleWithCountDown(command, count - 1);
+                return await HandleWithCountDown(command, count - 1).ConfigureAwait(false);
             }
         }
     }

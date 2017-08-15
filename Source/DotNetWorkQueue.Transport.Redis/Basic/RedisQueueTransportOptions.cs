@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </value>
         public SntpTimeConfiguration SntpTimeConfiguration
         {
-            get; private set;
+            get; 
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </value>
         public TimeLocations TimeServer
         {
-            get { return _timeServer; }
+            get => _timeServer;
             set 
             { 
                 FailIfReadOnly();
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </value>
         public MessageIdLocations MessageIdLocation
         {
-            get { return _messageIdLocations; }
+            get => _messageIdLocations;
             set
             {
                 FailIfReadOnly();
@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </value>
         public int ClearExpiredMessagesBatchLimit
         {
-            get { return _clearExpiredMessagesBatchLimit; }
+            get => _clearExpiredMessagesBatchLimit;
             set
             {
                 FailIfReadOnly();
@@ -118,7 +118,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </value>
         public int MoveDelayedMessagesBatchLimit
         {
-            get { return _moveDelayedMessagesBatchLimit; }
+            get => _moveDelayedMessagesBatchLimit;
             set
             {
                 FailIfReadOnly();
@@ -134,7 +134,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </value>
         public int ResetHeartBeatBatchLimit
         {
-            get { return _resetHeartBeatBatchLimit; }
+            get => _resetHeartBeatBatchLimit;
             set
             {
                 FailIfReadOnly();
@@ -201,7 +201,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <remarks>This defaults to 1 second</remarks>
         public TimeSpan MonitorTime
         {
-            get { return _monitorTime; }
+            get => _monitorTime;
             set
             {
                 FailIfReadOnly();

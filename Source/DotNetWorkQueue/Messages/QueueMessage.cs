@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Messages
@@ -47,13 +46,13 @@ namespace DotNetWorkQueue.Messages
         /// <value>
         /// The message.
         /// </value>
-        public TMessage Message { get; private set; }
+        public TMessage Message { get; }
         /// <summary>
         /// Gets the message data.
         /// </summary>
         /// <value>
         /// The message data.
         /// </value>
-        public TMessageData MessageData { get; private set; }
+        public TMessageData MessageData { get; }
     }
 }

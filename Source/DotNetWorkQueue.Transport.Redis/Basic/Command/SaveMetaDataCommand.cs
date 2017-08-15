@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Command
@@ -44,13 +43,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
         /// <value>
         /// The meta data.
         /// </value>
-        public RedisMetaData MetaData { get; private set; }
+        public RedisMetaData MetaData { get; }
         /// <summary>
         /// Gets or sets the queue identifier.
         /// </summary>
         /// <value>
         /// The queue identifier.
         /// </value>
-        public RedisQueueId Id { get; private set; }
+        public RedisQueueId Id { get;}
     }
 }

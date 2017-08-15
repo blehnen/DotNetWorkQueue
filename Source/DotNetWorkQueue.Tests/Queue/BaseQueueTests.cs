@@ -123,13 +123,13 @@ namespace DotNetWorkQueue.Tests.Queue
 
         public bool ShouldWorkPublic
         {
-            get { return ShouldWork;}
-            set { ShouldWork = value; }
+            get => ShouldWork;
+            set => ShouldWork = value;
         }
         public bool StartedPublic
         {
-            get { return Started; }
-            set { Started = value; }
+            get => Started;
+            set => Started = value;
         }
     }
 }

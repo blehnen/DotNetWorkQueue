@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <value>
         /// The group.
         /// </value>
-        public IWorkItemsGroup Group { get; private set; }
+        public IWorkItemsGroup Group { get;  }
         /// <summary>
         /// How many work items are being processed and are also in the queue
         /// </summary>
@@ -68,10 +68,10 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <value>
         /// The maximum work items.
         /// </value>
-        public int MaxWorkItems { get; private set; }
+        public int MaxWorkItems { get; }
         /// <summary>
         /// Records how many items are currently being processed
         /// </summary>
-        public ICounter MetricCounter { get; private set; }
+        public ICounter MetricCounter { get;  }
     }
 }

@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// The queue date time.
         /// </value>
         /// <remarks>Unix timestamps (MS) of when this record was enqueued</remarks>
-        public long QueueDateTime { get; private set; }
+        public long QueueDateTime { get;}
         /// <summary>
         /// Gets the error tracking.
         /// </summary>

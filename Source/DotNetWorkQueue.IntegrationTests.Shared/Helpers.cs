@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     /// </summary>
     public class IncrementWrapper
     {
-        private ConcurrentDictionary<string, string> _ids;
+        private readonly ConcurrentDictionary<string, string> _ids;
         public IncrementWrapper()
         {
             ProcessedCount = 0;

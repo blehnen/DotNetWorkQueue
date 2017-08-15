@@ -37,6 +37,6 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <value>
         /// The group.
         /// </value>
-        public IWorkGroup Group { get; private set; }
+        public IWorkGroup Group { get;  }
     }
 }

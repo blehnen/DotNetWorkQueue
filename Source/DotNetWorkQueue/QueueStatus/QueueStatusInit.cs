@@ -17,9 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
-using DotNetWorkQueue.Serialization;
 
 namespace DotNetWorkQueue.QueueStatus
 {

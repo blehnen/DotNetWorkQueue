@@ -48,29 +48,29 @@ namespace DotNetWorkQueue.Tests.QueueStatus
 
             using (var client = new HttpClient())
             {
-                using (var response = await client.GetAsync(ping))
+                using (var response = await client.GetAsync(ping).ConfigureAwait(false))
                 {
                     using (var content = response.Content)
                     {
-                        var result = await content.ReadAsStringAsync();
+                        var result = await content.ReadAsStringAsync().ConfigureAwait(false);
                         Assert.Contains("pong", result);
                     }
                 }
 
-                using (var response = await client.GetAsync(invalid))
+                using (var response = await client.GetAsync(invalid).ConfigureAwait(false))
                 {
                     using (var content = response.Content)
                     {
-                        var result = await content.ReadAsStringAsync();
+                        var result = await content.ReadAsStringAsync().ConfigureAwait(false);
                         Assert.Contains("invalid request", result);
                     }
                 }
 
-                using (var response = await client.GetAsync(status))
+                using (var response = await client.GetAsync(status).ConfigureAwait(false))
                 {
                     using (var content = response.Content)
                     {
-                        var result = await content.ReadAsStringAsync();
+                        var result = await content.ReadAsStringAsync().ConfigureAwait(false);
                         Assert.Contains("Queues", result);
                     }
                 }

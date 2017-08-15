@@ -31,12 +31,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
     {
         [Theory]
         [InlineData(1000, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic),
-            InlineData(1000, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled),
-         InlineData(1000, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled),
+         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic),
+         InlineData(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic),
+         InlineData(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic),
+            InlineData(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled),
+         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled),
+         InlineData(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled),
          InlineData(1000, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled)]
         public async void Run(
             int messageCount,

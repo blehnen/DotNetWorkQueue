@@ -41,6 +41,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
         /// <value>
         /// The tables.
         /// </value>
-        public List<TTableType> Tables { get; private set; }
+        public List<TTableType> Tables { get;  }
     }
 }

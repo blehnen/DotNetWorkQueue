@@ -37,6 +37,6 @@ namespace DotNetWorkQueue.Interceptors
         /// <value>
         /// The stream manager.
         /// </value>
-        public static RecyclableMemoryStreamManager StreamManager { get; private set; }
+        public static RecyclableMemoryStreamManager StreamManager { get; }
     }
 }

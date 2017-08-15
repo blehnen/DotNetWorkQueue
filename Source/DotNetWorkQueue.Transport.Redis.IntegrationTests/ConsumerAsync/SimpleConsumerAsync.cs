@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     if (messageType == 1)
                     {
                         var producer = new ProducerAsyncShared();
-                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
+                        producer.RunTestAsync<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false).Wait(timeOut * 1000 / 2);
 
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     else if (messageType == 2)
                     {
                         var producer = new ProducerAsyncShared();
-                        producer.RunTest<RedisQueueInit, FakeMessageA>(queueName,
+                        producer.RunTestAsync<RedisQueueInit, FakeMessageA>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false).Wait(timeOut * 1000 / 2);
 
@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     else if (messageType == 3)
                     {
                         var producer = new ProducerAsyncShared();
-                        producer.RunTest<RedisQueueInit, FakeMessageB>(queueName,
+                        producer.RunTestAsync<RedisQueueInit, FakeMessageB>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false).Wait(timeOut * 1000 / 2);
 

@@ -45,13 +45,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         /// <value>
         /// The commit message module.
         /// </value>
-        public CommitMessage CommitMessage { get; private set; }
+        public CommitMessage CommitMessage { get;  }
         /// <summary>
         /// Gets the rollback message module.
         /// </summary>
         /// <value>
         /// The rollback message module.
         /// </value>
-        public RollbackMessage RollbackMessage { get; private set; }
+        public RollbackMessage RollbackMessage { get; }
     }
 }

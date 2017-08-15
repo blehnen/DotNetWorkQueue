@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Configuration
@@ -58,7 +57,7 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The transport configuration.
         /// </value>
-        public TransportConfigurationReceive TransportConfiguration { get; private set; }
+        public TransportConfigurationReceive TransportConfiguration { get; }
 
         /// <summary>
         /// Gets the header names.
@@ -66,7 +65,7 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The header names.
         /// </value>
-        public IHeaders HeaderNames { get; private set; }
+        public IHeaders HeaderNames { get; }
 
         /// <summary>
         /// Gets the additional configuration settings.
@@ -75,7 +74,7 @@ namespace DotNetWorkQueue.Configuration
         /// The additional configuration.
         /// </value>
         /// <remarks>It's expected that extension methods will be used to access this in a type safe manner</remarks>
-        public IConfiguration AdditionalConfiguration { get; private set; }
+        public IConfiguration AdditionalConfiguration { get; }
 
         /// <summary>
         /// Gets the time configuration.
@@ -83,7 +82,7 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The time configuration.
         /// </value>
-        public BaseTimeConfiguration TimeConfiguration { get; private set; }
+        public BaseTimeConfiguration TimeConfiguration { get;}
         #endregion
     }
 }

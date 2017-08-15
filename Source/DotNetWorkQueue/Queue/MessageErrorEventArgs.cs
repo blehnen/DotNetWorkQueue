@@ -38,6 +38,6 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         /// The error.
         /// </value>
-        public Exception Error { get; private set; }
+        public Exception Error { get; }
     }
 }
