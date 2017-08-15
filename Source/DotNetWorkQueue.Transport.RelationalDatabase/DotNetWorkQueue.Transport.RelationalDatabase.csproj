@@ -66,6 +66,8 @@
     <Compile Include="Basic\Command\SetStatusTableStatusCommand.cs" />
     <Compile Include="Basic\CorrelationIdFactory.cs" />
     <Compile Include="Basic\CreateJobMetaData.cs" />
+    <Compile Include="Basic\DefaultQueueDelay.cs" />
+    <Compile Include="Basic\ExceptionDelay.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
     <Compile Include="Basic\MessageExpiration.cs" />
     <Compile Include="Basic\Message\CommitMessage.cs" />

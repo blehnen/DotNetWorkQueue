@@ -207,9 +207,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             transportReceive.MessageRollbackSupported = options.EnableStatus;
 
             transportReceive.QueueDelayBehavior.Clear();
-            transportReceive.QueueDelayBehavior.Add(DefaultQueueDelay());
+            transportReceive.QueueDelayBehavior.Add(DefaultQueueDelay.GetDefaultQueueDelay());
             transportReceive.FatalExceptionDelayBehavior.Clear();
-            transportReceive.FatalExceptionDelayBehavior.Add(ExceptionDelay());
+            transportReceive.FatalExceptionDelayBehavior.Add(ExceptionDelay.GetExceptionDelay());
 
             transportReceive.LockFeatures();
 
@@ -226,61 +226,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 holder.AddConnectionIfNeeded(connection);
                 scope.AddScopedObject(holder);
             }
-        }
-
-        /// <summary>
-        /// Gets the default fatal exception delay timespans
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerable<TimeSpan> ExceptionDelay()
-        {
-            var rc = new List<TimeSpan>(10)
-            {
-                TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(2),
-                TimeSpan.FromSeconds(3),
-                TimeSpan.FromSeconds(5),
-                TimeSpan.FromSeconds(8),
-                TimeSpan.FromSeconds(13),
-                TimeSpan.FromSeconds(21),
-                TimeSpan.FromSeconds(34),
-                TimeSpan.FromSeconds(55)
-            };
-            return rc;
-        }
-
-        /// <summary>
-        /// Gets the default queue delay timespans
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerable<TimeSpan> DefaultQueueDelay()
-        {
-            var rc = new List<TimeSpan>(21)
-            {
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(1000),
-                TimeSpan.FromMilliseconds(2000)
-            };
-            return rc;
         }
 
         /// <summary>

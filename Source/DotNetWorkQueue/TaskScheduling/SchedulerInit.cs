@@ -17,10 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
-using DotNetWorkQueue.Serialization;
-
 namespace DotNetWorkQueue.TaskScheduling
 {
     /// <summary>
@@ -37,10 +34,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="queue">The queue.</param>
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
         {
-            container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queue, connection),
-                LifeStyles.Singleton);
-            container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
-            container.Register<IWorkerNotificationFactory, WorkerNotificationFactoryNoOp>(LifeStyles.Singleton);
+            RegisterConnectionImplementation.RegisterImplementations(container, registrationType, connection, queue);
         }
     }
 }

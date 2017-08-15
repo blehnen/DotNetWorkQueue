@@ -121,21 +121,10 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(() => message, message);
             Guard.NotNull(() => responseId, responseId);
 
-            var data = inputData ?? new AdditionalMessageData();
-
-            if (!Configuration.IsReadOnly)
-                Configuration.SetReadOnly();
-       
-            var additionalHeaders = _generateMessageHeaders.HeaderSetup(data);
-
-            //construct our wrapper around the data to send
-            var messageToSend = _messageFactory.Create(message, additionalHeaders);
-            _addStandardMessageHeaders.AddHeaders(messageToSend, data);
-
-            SetIpcInternalHeaders(messageToSend, responseId);
+            var data = SetupForSend(message, responseId, inputData);
 
             //send the message to the transport
-            return _sendMessages.Send(messageToSend, data);
+            return _sendMessages.Send(data.Item1, data.Item2);
         }
 
         /// <summary>
@@ -165,6 +154,14 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(() => message, message);
             Guard.NotNull(() => responseId, responseId);
 
+            var data = SetupForSend(message, responseId, inputData);
+
+            //send the message to the transport
+            return await _sendMessages.SendAsync(data.Item1, data.Item2).ConfigureAwait(false);
+        }
+
+        private Tuple<IMessage, IAdditionalMessageData> SetupForSend(T message, IResponseId responseId, IAdditionalMessageData inputData)
+        {
             var data = inputData ?? new AdditionalMessageData();
 
             if (!Configuration.IsReadOnly)
@@ -178,10 +175,8 @@ namespace DotNetWorkQueue.Queue
 
             SetIpcInternalHeaders(messageToSend, responseId);
 
-            //send the message to the transport
-            return await _sendMessages.SendAsync(messageToSend, data).ConfigureAwait(false);
+            return new Tuple<IMessage, IAdditionalMessageData>(messageToSend, data);
         }
-
         /// <summary>
         /// Sets the ipc internal headers.
         /// </summary>

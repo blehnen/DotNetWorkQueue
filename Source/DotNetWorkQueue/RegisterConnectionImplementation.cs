@@ -16,28 +16,30 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Serialization;
 
-namespace DotNetWorkQueue.QueueStatus
+namespace DotNetWorkQueue
 {
-    /// <summary>
-    /// Initialization of the queue status modules
-    /// </summary>
-    public class QueueStatusInit : TransportInitReceive
+    internal static class RegisterConnectionImplementation
     {
         /// <summary>
-        /// Allows a transport to register its dependencies in the IoC container.
+        /// Registers the implementations for base connection and serialization
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="queue">The queue.</param>
-        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
+        public static void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
+            string connection, string queue)
         {
-            RegisterConnectionImplementation.RegisterImplementations(container, registrationType, connection, queue);
+            container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queue, connection),
+                LifeStyles.Singleton);
+            container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
+            container.Register<IWorkerNotificationFactory, WorkerNotificationFactoryNoOp>(LifeStyles.Singleton);
         }
     }
 }

@@ -63,17 +63,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             var result = _handler.ReceiveMessage(context);
             if (result != null)
             {
-                if (result.Headers.ContainsKey(_headers.StandardHeaders.FirstPossibleDeliveryDate.Name))
-                {
-                    var waitTime =
-                        (ValueTypeWrapper<DateTime>)result.Headers[_headers.StandardHeaders.FirstPossibleDeliveryDate.Name];
-                    if (waitTime != null)
-                    {
-                        var difference = _getTime.Create().GetCurrentUtcDate() - waitTime.Value;
-                        _waitTimer.Record((long)difference.TotalMilliseconds, TimeUnits.Milliseconds);
-                    }
-                }
-                _meter.Mark();
+                ProcessResult(result);
             }
             return result;
         }
@@ -90,19 +80,24 @@ namespace DotNetWorkQueue.Metrics.Decorator
             var result = await _handler.ReceiveMessageAsync(context).ConfigureAwait(false);
             if (result != null)
             {
-                if (result.Headers.ContainsKey(_headers.StandardHeaders.FirstPossibleDeliveryDate.Name))
-                {
-                    var waitTime =
-                        (ValueTypeWrapper<DateTime>)result.Headers[_headers.StandardHeaders.FirstPossibleDeliveryDate.Name];
-                    if (waitTime != null)
-                    {
-                        var difference = _getTime.Create().GetCurrentUtcDate() - waitTime.Value;
-                        _waitTimer.Record((long)difference.TotalMilliseconds, TimeUnits.Milliseconds);
-                    }
-                }
-                _meter.Mark();
+                ProcessResult(result);
             }
             return result;
+        }
+
+        private void ProcessResult(IReceivedMessageInternal message)
+        {
+            if (message.Headers.ContainsKey(_headers.StandardHeaders.FirstPossibleDeliveryDate.Name))
+            {
+                var waitTime =
+                    (ValueTypeWrapper<DateTime>)message.Headers[_headers.StandardHeaders.FirstPossibleDeliveryDate.Name];
+                if (waitTime != null)
+                {
+                    var difference = _getTime.Create().GetCurrentUtcDate() - waitTime.Value;
+                    _waitTimer.Record((long)difference.TotalMilliseconds, TimeUnits.Milliseconds);
+                }
+            }
+            _meter.Mark();
         }
     }
 }

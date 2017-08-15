@@ -235,6 +235,7 @@
     <Compile Include="Queue\StopThread.cs" />
     <Compile Include="Queue\WorkerErrorEventArgs.cs" />
     <Compile Include="Queue\WorkerNotificationNoOp.cs" />
+    <Compile Include="RegisterConnectionImplementation.cs" />
     <Compile Include="Serialization\CompositeSerialization.cs" />
     <Compile Include="Serialization\JsonExpressionSerializer.cs" />
     <Compile Include="Serialization\MessageBody.cs" />
