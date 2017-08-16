@@ -121,10 +121,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             {
                 sb.AppendLine(needWhere ? "where Route IN ( " : "AND Route IN ( ");
 
-                for (var i = 1; i < routes.Count; i++)
+                for (var i = 1; i - 1 < routes.Count; i++)
                 {
                     sb.Append("@Route" + i);
-                    if (i != routes.Count + 1)
+                    if (i != routes.Count)
                     {
                         sb.Append(", ");
                     }
