@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var test = Create();
             test.Wait(t);
             watch.Stop();
-            Assert.InRange(watch.ElapsedMilliseconds, 2950, 4050);
+            Assert.InRange(watch.ElapsedMilliseconds, 2950, 4250);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var test = Create();
             test.Wait(t);
             watch.Stop();
-            Assert.InRange(watch.ElapsedMilliseconds, 6950, 8050);
+            Assert.InRange(watch.ElapsedMilliseconds, 6950, 8250);
         }
 
         [Fact]
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var test = Create();
             test.Wait(t, TimeSpan.FromMilliseconds(1000));
             watch.Stop();
-            Assert.InRange(watch.ElapsedMilliseconds, 950, 2250);
+            Assert.InRange(watch.ElapsedMilliseconds, 950, 2350);
         }
 
         private WaitForThreadToFinish Create()
