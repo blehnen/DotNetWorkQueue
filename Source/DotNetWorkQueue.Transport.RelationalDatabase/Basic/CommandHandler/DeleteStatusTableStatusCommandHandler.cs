@@ -61,6 +61,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                     param.ParameterName = "@QueueID";
                     param.Value = command.QueueId;
                     param.DbType = DbType.Int64;
+                    commandSql.Parameters.Add(param);
                     commandSql.ExecuteNonQuery();
                 }
             }
