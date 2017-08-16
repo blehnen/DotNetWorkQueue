@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public IMessageContextData<Connection> Connection
         {
             get;
-            private set;
+
         }
 
         /// <summary>
@@ -59,7 +59,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public IMessageContextData<SqlQueueDelay> IncreaseQueueDelay
         {
             get; 
-            private set; 
         }
     }
 }

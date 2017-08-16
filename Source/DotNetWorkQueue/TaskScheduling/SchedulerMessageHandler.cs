@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="functionToRun">The function to run.</param>
         /// <param name="taskFactory">The task factory.</param>
         /// <returns></returns>
-        public Task Handle<T>(IWorkGroup workGroup, IReceivedMessage<T> message, IWorkerNotification notifications, Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ITaskFactory taskFactory) 
+        public Task HandleAsync<T>(IWorkGroup workGroup, IReceivedMessage<T> message, IWorkerNotification notifications, Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ITaskFactory taskFactory) 
             where T : class
         {
             Guard.NotNull(() => message, message);

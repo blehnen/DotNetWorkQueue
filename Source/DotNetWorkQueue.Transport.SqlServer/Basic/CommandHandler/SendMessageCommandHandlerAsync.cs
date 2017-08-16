@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="commandSend">The command.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to insert record - the ID of the new record returned by SQL server was 0</exception>
-        public async Task<long> Handle(SendMessageCommand commandSend)
+        public async Task<long> HandleAsync(SendMessageCommand commandSend)
         {
             if (!_messageExpirationEnabled.HasValue)
             {

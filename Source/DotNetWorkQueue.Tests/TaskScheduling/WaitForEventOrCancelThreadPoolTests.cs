@@ -181,7 +181,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         }
 
         [Fact]
-        public void Default_Workgroup_Threads()
+        public void Default_WorkGroup_Threads()
         {
             using (var test = Create())
             {

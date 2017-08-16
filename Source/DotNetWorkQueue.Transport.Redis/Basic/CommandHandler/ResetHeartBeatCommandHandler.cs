@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// Initializes a new instance of the <see cref="RollbackMessageCommandHandler" /> class.
         /// </summary>
         /// <param name="configuration">The configuration.</param>
-        /// <param name="resetHeartbeatLua">The resetheartbeat.</param>
+        /// <param name="resetHeartbeatLua">The reset heartbeat lua.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="options">The options.</param>
         /// <param name="queueContext">The queue context.</param>

@@ -156,7 +156,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             try
             {
                 var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string,object>> (headers);
-                correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorelationId.Name];
+                correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorrelationId.Name];
                 var messageGraph = (MessageInterceptorsGraph)allHeaders[_redisHeaders.Headers.StandardHeaders.MessageInterceptorGraph.Name];
                 var messageData = _serializer.Serializer.BytesToMessage<MessageBody>(message, messageGraph);
 

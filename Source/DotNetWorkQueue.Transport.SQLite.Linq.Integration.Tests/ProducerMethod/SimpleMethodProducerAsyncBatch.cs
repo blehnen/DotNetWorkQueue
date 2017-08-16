@@ -87,10 +87,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
 
                             var producer = new ProducerMethodAsyncShared();
                             var id = Guid.NewGuid();
-                            await producer.RunTest<SqLiteMessageQueueInit>(queueName,
+                            await producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, true, 0, id, linqMethodTypes);
+                                Helpers.Verify, true, 0, id, linqMethodTypes).ConfigureAwait(false);
                         }
                     }
                     finally

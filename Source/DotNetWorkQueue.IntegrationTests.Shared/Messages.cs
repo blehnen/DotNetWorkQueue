@@ -159,9 +159,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             return CreateDefaultLinq($"(message, workerNotification) => StandardTesting.RunRpc(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
         }
 
-        private static LinqExpressionToRun CreateDefaultLinq(string method, bool unquie = false)
+        private static LinqExpressionToRun CreateDefaultLinq(string method, bool unique = false)
         {
-            return new LinqExpressionToRun(method, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared.dll" }, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared" }, unquie);
+            return new LinqExpressionToRun(method, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared.dll" }, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared" }, unique);
         }
 
         public static void ClearCancel(Guid id)

@@ -190,7 +190,7 @@ namespace DotNetWorkQueue
                     DeleteJob(job.Name);
                     return null;
                 default:
-                    return null; //try to re-queue once; if this is second try and this happens agian, an error will be returned
+                    return null; //try to re-queue once; if this is second try and this happens again, an error will be returned
             }
         }
 

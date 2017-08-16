@@ -22,7 +22,6 @@ using System.Threading;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
-using DotNetWorkQueue.Transport.SQLite.Schema;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
@@ -104,7 +103,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public IConnectionInformation ConnectionInfo { get; }
 
         /// <summary>
-        /// Gets a disposable creation scrope
+        /// Gets a disposable creation scope
         /// </summary>
         /// <value>
         /// The scope.

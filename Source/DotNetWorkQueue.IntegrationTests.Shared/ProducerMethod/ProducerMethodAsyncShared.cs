@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
 {
     public class ProducerMethodAsyncShared
     {
-        public async Task RunTest<TTransportInit>(string queueName,
+        public async Task RunTestAsync<TTransportInit>(string queueName,
             string connectionString,
             bool addInterceptors,
             long messageCount,
@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                             .CreateMethodProducer(queueName, connectionString))
                     {
                         await
-                            RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch, runTime, id,
+                            RunProducerAsync(queue, queueName, messageCount, generateData, verify, sendViaBatch, runTime, id,
                                 linqMethodTypes).ConfigureAwait(false);
                     }
                     VerifyMetrics.VerifyProducedAsyncCount(queueName, metrics.GetCurrentMetrics(), messageCount);
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             }
         }
 
-        private async Task RunProducer(
+        private async Task RunProducerAsync(
           IProducerMethodQueue
               queue,
                 string queueName,
@@ -74,12 +74,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
                 Action<string, string, QueueProducerConfiguration, long> verify, bool sendViaBatch, int runTime, Guid id, LinqMethodTypes type)
         {
-            await RunProducerInternal(queue, messageCount, generateData, sendViaBatch, runTime, id, type).ConfigureAwait(false);
+            await RunProducerInternalAsync(queue, messageCount, generateData, sendViaBatch, runTime, id, type).ConfigureAwait(false);
             LoggerShared.CheckForErrors(queueName);
             verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString, queue.Configuration, messageCount);
         }
 
-        private async Task RunProducerInternal(
+        private async Task RunProducerInternalAsync(
            IProducerMethodQueue
                queue, long messageCount, Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
                     bool sendViaBatch, int runTime, Guid id, LinqMethodTypes methodType)
@@ -91,20 +91,20 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 {
                     var jobs = Enumerable.Range(0, numberOfJobs)
                         .Select(i => GenerateMethod.CreateCompiled(id, runTime));
-                    await RunProducerInternal(queue, generateData, sendViaBatch, jobs, numberOfJobs).ConfigureAwait(false);
+                    await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs).ConfigureAwait(false);
                 }
                     break;
                 case LinqMethodTypes.Dynamic:
                 {
                     var jobs = Enumerable.Range(0, numberOfJobs)
                         .Select(i => GenerateMethod.CreateDynamic(id, runTime));
-                    await RunProducerInternal(queue, generateData, sendViaBatch, jobs, numberOfJobs).ConfigureAwait(false);
+                    await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs).ConfigureAwait(false);
                 }
                     break;
             }
         }
 
-        private async Task RunProducerInternal(
+        private async Task RunProducerInternalAsync(
            IProducerMethodQueue
                queue, Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
                     bool sendViaBatch, IEnumerable<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> jobs, int numberOfJobs)
@@ -135,7 +135,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             }
         }
 
-        private async Task RunProducerInternal(
+        private async Task RunProducerInternalAsync(
           IProducerMethodQueue
               queue, Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
                    bool sendViaBatch, IEnumerable<LinqExpressionToRun> jobs, int numberOfJobs)

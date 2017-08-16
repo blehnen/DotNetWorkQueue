@@ -121,9 +121,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
 
         public static void SetupDefaultConsumerQueue(QueueConsumerConfiguration configuration, int workerCount, 
-            TimeSpan heatbeatTime, TimeSpan heartbeatMonitorTime, string route = null)
+            TimeSpan heartbeatTime, TimeSpan heartbeatMonitorTime, string route = null)
         {
-            configuration.HeartBeat.Time = heatbeatTime;
+            configuration.HeartBeat.Time = heartbeatTime;
             configuration.HeartBeat.MonitorTime = heartbeatMonitorTime;
             configuration.HeartBeat.ThreadPoolConfiguration.ThreadIdleTimeout = TimeSpan.FromSeconds(5);
             configuration.Worker.WorkerCount = workerCount;

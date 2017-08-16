@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
                         oCreation.Options.EnableHeartBeat = true;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommited = false;
+                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted = false;
                         oCreation.Options.EnableStatus = true;
                         oCreation.Options.EnableStatusTable = true;
 

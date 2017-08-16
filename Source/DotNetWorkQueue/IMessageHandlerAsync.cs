@@ -29,7 +29,6 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="workerNotification">The worker notification.</param>
-        /// <returns>an awaitable task</returns>
-        Task Handle(IReceivedMessageInternal message, IWorkerNotification workerNotification);
+        Task HandleAsync(IReceivedMessageInternal message, IWorkerNotification workerNotification);
     }
 }

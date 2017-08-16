@@ -26,7 +26,7 @@ using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
-    /// Handles receiving a message that has errored
+    /// Handles receiving a message that has failed to process
     /// </summary>
     internal class RedisQueueReceiveMessagesError : IReceiveMessagesError
     {
@@ -121,7 +121,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             //we are done doing any processing - remove the messageID to block other actions
             context.MessageId = null;
             _log.ErrorException("Message with ID {0} has failed and has been moved to the error queue", exception,
-                message.MesssageId);
+                message.MessageId);
             return ReceiveMessagesErrorResult.Error;
         }
     }

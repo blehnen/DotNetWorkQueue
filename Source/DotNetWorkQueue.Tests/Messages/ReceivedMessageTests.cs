@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Tests.Messages
         {
             var message = CreateMessage();
             var test = new ReceivedMessage<FakeMessage>(message);
-            Assert.Equal(test.MessageId, message.MesssageId);
+            Assert.Equal(test.MessageId, message.MessageId);
         }
 
         [Fact]

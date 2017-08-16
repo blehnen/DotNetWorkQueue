@@ -75,9 +75,9 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void SetAndGet_WaitForThreadPoolToFinish(TimeSpan value)
         {
             var configuration = GetConfiguration();
-            configuration.WaitForTheadPoolToFinish = value;
+            configuration.WaitForThreadPoolToFinish = value;
 
-            Assert.Equal(value, configuration.WaitForTheadPoolToFinish);
+            Assert.Equal(value, configuration.WaitForThreadPoolToFinish);
         }
 
         [Theory, AutoData]
@@ -136,7 +136,7 @@ namespace DotNetWorkQueue.Tests.Configuration
             Assert.Throws<InvalidOperationException>(
               delegate
               {
-                  configuration.WaitForTheadPoolToFinish = value;
+                  configuration.WaitForThreadPoolToFinish = value;
               });
         }
         private TaskSchedulerConfiguration GetConfiguration()

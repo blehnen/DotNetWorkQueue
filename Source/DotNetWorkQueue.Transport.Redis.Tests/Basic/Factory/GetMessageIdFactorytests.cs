@@ -27,7 +27,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Factory
 {
-    public class GetMessageIdFactorytests
+    public class GetMessageIdFactoryTests
     {
         [Fact]
         public void Create()

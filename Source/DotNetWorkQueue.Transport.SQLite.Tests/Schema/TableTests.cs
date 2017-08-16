@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
         [Fact]
         public void Set_PrimaryKey()
         {
-            var c = new Constraint("ix_testing", ContraintType.PrimaryKey, "testing");
+            var c = new Constraint("ix_testing", ConstraintType.PrimaryKey, "testing");
             var test = new Table("test");
             test.Constraints.Add(c);
             Assert.Equal(c, test.PrimaryKey);
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
         [Fact]
         public void No_PrimaryKey()
         {
-            var c = new Constraint("ix_testing", ContraintType.Index, "testing");
+            var c = new Constraint("ix_testing", ConstraintType.Index, "testing");
             var test = new Table("test");
             test.Constraints.Add(c);
             Assert.Null(test.PrimaryKey);
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
         public void Create_Script()
         {
             var c = new Column("testing", ColumnTypes.Integer, true, null);
-            var cc = new Constraint("ix_testing", ContraintType.Index, "testing");
+            var cc = new Constraint("ix_testing", ConstraintType.Index, "testing");
             var test = new Table("test");
             test.Constraints.Add(cc);
             test.Columns.Add(c);

@@ -38,30 +38,30 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <summary>
         /// Sends a heartbeat for a single message
         /// </summary>
-        /// <param name="messageid">The messageid.</param>
+        /// <param name="messageId">The messageId.</param>
         /// <param name="unixTime">The unix time.</param>
         /// <returns></returns>
-        public int? Execute(string messageid, long unixTime)
+        public int? Execute(string messageId, long unixTime)
         {
             if (Connection.IsDisposed)
                 return null;
 
             var db = Connection.Connection.GetDatabase();
-            return (int)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageid, unixTime));
+            return (int)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, unixTime));
         }
         /// <summary>
         /// Gets the parameters.
         /// </summary>
-        /// <param name="messageid">The messageid.</param>
+        /// <param name="messageId">The messageId.</param>
         /// <param name="unixTime">The unix time.</param>
         /// <returns></returns>
-        private object GetParameters(string messageid, long unixTime)
+        private object GetParameters(string messageId, long unixTime)
         {
             return new
             {
                 workingkey = (RedisKey)RedisNames.Working,
                 timestamp = unixTime,
-                uuid = messageid,
+                uuid = messageId,
             };
         }
 

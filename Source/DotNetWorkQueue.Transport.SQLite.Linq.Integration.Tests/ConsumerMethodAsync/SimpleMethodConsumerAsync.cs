@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             {
                                 var id = Guid.NewGuid();
                                 var producer = new ProducerMethodAsyncShared();
-                                producer.RunTest<SqLiteMessageQueueInit>(queueName,
+                                producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
 
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             {
                                 var id = Guid.NewGuid();
                                 var producer = new ProducerMethodAsyncShared();
-                                producer.RunTest<SqLiteMessageQueueInit>(queueName,
+                                producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
 
@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             {
                                 var id = Guid.NewGuid();
                                 var producer = new ProducerMethodAsyncShared();
-                                producer.RunTest<SqLiteMessageQueueInit>(queueName,
+                                producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
 

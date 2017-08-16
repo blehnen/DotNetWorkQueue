@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
             bool interceptors,
             bool enableDelayedProcessing,
             bool enableHeartBeat,
-            bool enableHoldTransactionUntilMessageCommited,
+            bool enableHoldTransactionUntilMessageCommitted,
             bool enableMessageExpiration,
             bool enablePriority,
             bool enableStatus,
@@ -68,8 +68,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
                         oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
                         oCreation.Options.EnableHeartBeat = enableHeartBeat;
                         oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommited =
-                            enableHoldTransactionUntilMessageCommited;
+                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted =
+                            enableHoldTransactionUntilMessageCommitted;
                         oCreation.Options.EnablePriority = enablePriority;
                         oCreation.Options.EnableStatus = enableStatus;
                         oCreation.Options.EnableStatusTable = enableStatusTable;

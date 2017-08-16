@@ -37,10 +37,10 @@ namespace DotNetWorkQueue.Tests.Queue
         }
 
         [Fact]
-        public void IsShuttingdown_False_By_Default()
+        public void IsShutting_Down_False_By_Default()
         {
             var test = Create();
-            Assert.Equal(test.IsShuttingdown, false);
+            Assert.Equal(test.IsShuttingDown, false);
         }
 
         [Fact]
@@ -98,8 +98,11 @@ namespace DotNetWorkQueue.Tests.Queue
                 Assert.Throws<ObjectDisposedException>(
                     delegate
                     {
-                        Action action = () => { };
-                        test.QueueWorkItem(action);
+                        void Action()
+                        {
+                        }
+
+                        test.QueueWorkItem(Action);
                     });
             }
         }
@@ -109,11 +112,15 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             using (var test = Create(1, 1, TimeSpan.FromDays(1)))
             {
-                Action action = () => { Thread.Sleep(3000); };
+                void Action()
+                {
+                    Thread.Sleep(3000);
+                }
+
                 Assert.Throws<DotNetWorkQueueException>(
                     delegate
                     {
-                        test.QueueWorkItem(action);
+                        test.QueueWorkItem(Action);
                     });
             }
         }
@@ -124,8 +131,13 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var test = Create(1, 1, TimeSpan.FromDays(1)))
             {
                 test.Start();
-                Action action = () => { Thread.Sleep(3000); };
-                test.QueueWorkItem(action);
+
+                void Action()
+                {
+                    Thread.Sleep(3000);
+                }
+
+                test.QueueWorkItem(Action);
                 Thread.Sleep(1500);
                 Assert.Equal(1, test.ActiveThreads);
             }
@@ -137,9 +149,14 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var test = Create(2, 2, TimeSpan.FromDays(1)))
             {
                 test.Start();
-                Action action = () => { Thread.Sleep(3000); };
-                test.QueueWorkItem(action);
-                test.QueueWorkItem(action);
+
+                void Action()
+                {
+                    Thread.Sleep(3000);
+                }
+
+                test.QueueWorkItem(Action);
+                test.QueueWorkItem(Action);
                 Thread.Sleep(1500);
                 Assert.Equal(2, test.ActiveThreads);
             }

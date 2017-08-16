@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         public void Handle(MoveRecordToErrorQueueCommand command)
         {
             GenerateSqlForMove();
-            if (_options.Value.EnableHoldTransactionUntilMessageCommited)
+            if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
             {
                 HandleForTransaction(command);
             }
@@ -243,7 +243,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 i++;
             }
             sb.Append(", @LastException, GetUTCDate() from " + _tableNameHelper.MetaDataName);
-            if (_options.Value.EnableHoldTransactionUntilMessageCommited)
+            if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
             {
                 sb.Append(" WITH (NOLOCK)"); //perform a dirty read on our own transaction so that we can access the record that we've already deleted
             }

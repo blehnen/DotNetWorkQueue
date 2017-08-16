@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                             await producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, true);
+                                Helpers.Verify, true).ConfigureAwait(false);
                         }
                     }
                     finally

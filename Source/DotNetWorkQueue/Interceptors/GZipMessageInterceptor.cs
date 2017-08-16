@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Interceptors
         public MessageInterceptorResult MessageToBytes(byte[] input)
         {
             Guard.NotNull(() => input, input);
-            if (input.Length < _configuration.MiniumSize)
+            if (input.Length < _configuration.MinimumSize)
             {
                 return new MessageInterceptorResult(input, false, GetType());
             }
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Interceptors
         /// </summary>
         public GZipMessageInterceptorConfiguration()
         {
-            MiniumSize = 150;
+            MinimumSize = 150;
         }
 
         /// <summary>
@@ -94,6 +94,6 @@ namespace DotNetWorkQueue.Interceptors
         /// The minimum size of the input data, in bytes.
         /// </value>
         /// <remarks>Input data less than this size will not be compressed. Default is 150</remarks>
-        public int MiniumSize { get; set; }
+        public int MinimumSize { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
     /// <summary>
     /// The correlation ID for the SQLite queue
-    /// <remarks>A GUID is used, since this needs to be different accross queues</remarks>
+    /// <remarks>A GUID is used, since this needs to be different across queues</remarks>
     /// </summary>
     public class MessageCorrelationId: ICorrelationId
     {

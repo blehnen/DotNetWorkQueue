@@ -432,25 +432,25 @@ namespace DotNetWorkQueue
         /// <typeparam name="TMessageReceive">The type of the received message.</typeparam>
         /// <typeparam name="TMessageSend">The type of the sent message.</typeparam>
         /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
-        /// <param name="connectonSettings">The connection settings.</param>
+        /// <param name="connectionSettings">The connection settings.</param>
         /// <returns></returns>
         public IRpcQueue<TMessageReceive, TMessageSend> CreateRpc
-            <TMessageReceive, TMessageSend, TTConnectionSettings>(TTConnectionSettings connectonSettings)
+            <TMessageReceive, TMessageSend, TTConnectionSettings>(TTConnectionSettings connectionSettings)
             where TMessageReceive : class
             where TMessageSend : class
             where TTConnectionSettings : BaseRpcConnection
         {
             //we need to create an explicit producer queue
-            var connectionSend = connectonSettings.GetConnection(ConnectionTypes.Send);
+            var connectionSend = connectionSettings.GetConnection(ConnectionTypes.Send);
             var producer = CreateProducer<TMessageSend>(connectionSend.QueueName, connectionSend.ConnectionString);
 
-            var connectionReceive = connectonSettings.GetConnection(ConnectionTypes.Receive);
+            var connectionReceive = connectionSettings.GetConnection(ConnectionTypes.Receive);
             var container = _createContainerInternal().Create(QueueContexts.RpcQueue, _registerService,
                 connectionReceive.QueueName, connectionReceive.ConnectionString, _transportInit, ConnectionTypes.Receive,
                 serviceRegister =>
                     serviceRegister.Register(
                         () => producer, LifeStyles.Singleton).Register(
-                        () => connectonSettings, LifeStyles.Singleton), _setOptions);
+                        () => connectionSettings, LifeStyles.Singleton), _setOptions);
             Containers.Add(container);
             return
                 container
@@ -461,21 +461,21 @@ namespace DotNetWorkQueue
         /// Creates an RPC queue.
         /// </summary>
         /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
-        /// <param name="connectonSettings">The connection settings.</param>
+        /// <param name="connectionSettings">The connection settings.</param>
         /// <returns></returns>
         public IRpcMethodQueue CreateMethodRpc
-            <TTConnectionSettings>(TTConnectionSettings connectonSettings)
+            <TTConnectionSettings>(TTConnectionSettings connectionSettings)
             where TTConnectionSettings : BaseRpcConnection
         {
             //create a base RPC queue for usage by the method RPC queue
-            var rpc = CreateRpc<object, MessageExpression, TTConnectionSettings>(connectonSettings);
-            var connectionReceive = connectonSettings.GetConnection(ConnectionTypes.Receive);
+            var rpc = CreateRpc<object, MessageExpression, TTConnectionSettings>(connectionSettings);
+            var connectionReceive = connectionSettings.GetConnection(ConnectionTypes.Receive);
             var container = _createContainerInternal().Create(QueueContexts.RpcMethodQueue, _registerService,
                 connectionReceive.QueueName, connectionReceive.ConnectionString, _transportInit, ConnectionTypes.Receive,
                 serviceRegister =>
                     serviceRegister.Register(
                         () => rpc, LifeStyles.Singleton).Register(
-                        () => connectonSettings, LifeStyles.Singleton), _setOptions);
+                        () => connectionSettings, LifeStyles.Singleton), _setOptions);
             Containers.Add(container);
             return
                 container

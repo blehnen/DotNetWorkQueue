@@ -158,7 +158,6 @@
       <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.Transport.PostgreSQL.dll" />
       <MergeAssemblies Include="$(OutputPath)\Npgsql.dll" />
       <MergeAssemblies Include="$(OutputPath)\System.Threading.Tasks.Extensions.dll" />
-      <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" />
     </ItemGroup>
     <PropertyGroup>
       <OutputAssembly>$(SolutionDir)\..\MergedBuild\DotNetWorkQueue.Transport.PostgreSQL.dll</OutputAssembly>
@@ -167,5 +166,6 @@
     <Message Text="MERGING: @(MergeAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
     <Exec Command="$(Merger) /internalize /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
     <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.PostgreSQL.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
+	<Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
   </Target>
 </Project>

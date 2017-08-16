@@ -112,23 +112,23 @@ namespace DotNetWorkQueue.QueueStatus
             _httpListener.Prefixes.Add(_configuration.ListenerAddress.ToString());
 
             _httpListener.Start();
-            _processingTask = Task.Factory.StartNew(async () => await ProcessRequest(), TaskCreationOptions.LongRunning);
+            _processingTask = Task.Factory.StartNew(async () => await ProcessRequestAsync().ConfigureAwait(false), TaskCreationOptions.LongRunning);
         }
 
         /// <summary>
         /// Processes the requests.
         /// </summary>
         /// <returns></returns>
-        private async Task ProcessRequest()
+        private async Task ProcessRequestAsync()
         {
             while (!_cancelTokenSource.IsCancellationRequested)
             {
                 try
                 {
-                    var context = await _httpListener.GetContextAsync();
+                    var context = await _httpListener.GetContextAsync().ConfigureAwait(false);
                     try
                     {
-                        await ProcessRequest(context).ConfigureAwait(false);
+                        await ProcessRequestAsync(context).ConfigureAwait(false);
                         context.Response.Close();
                     }
                     catch (Exception ex)
@@ -164,11 +164,11 @@ namespace DotNetWorkQueue.QueueStatus
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>
-        private Task ProcessRequest(HttpListenerContext context)
+        private Task ProcessRequestAsync(HttpListenerContext context)
         {
             if (context.Request.HttpMethod.ToUpperInvariant() != "GET")
             {
-                return WriteNotFound(context);
+                return WriteNotFoundAsync(context);
             }
 
             var urlPath = context.Request.RawUrl.Substring(_prefixPath.Length)
@@ -177,20 +177,20 @@ namespace DotNetWorkQueue.QueueStatus
             switch (urlPath)
             {
                 case "/ping":
-                    return WritePong(context);
+                    return WritePongAsync(context);
                 case "/":
                 case "/status":
-                    return WriteStatus(context);
+                    return WriteStatusAsync(context);
                 default:
                     var providers = _queueStatusProviders.ToList();
                     var outputs = providers.Select(provider => provider.HandlePath(urlPath)).Where(output => output != null).ToList();
                     if (outputs.Count > 0)
                     {
-                        return WriteString(context, _serializer.ConvertToString(outputs), "application/json");
+                        return WriteStringAsync(context, _serializer.ConvertToString(outputs), "application/json");
                     }
                     break;
             }
-            return WriteNotFound(context);
+            return WriteNotFoundAsync(context);
         }
 
         /// <summary>
@@ -198,19 +198,19 @@ namespace DotNetWorkQueue.QueueStatus
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>
-        private Task WriteStatus(HttpListenerContext context)
+        private Task WriteStatusAsync(HttpListenerContext context)
         {
             var status = new QueueStatus(_queueStatusProviders.ToList());
-            return WriteString(context, _serializer.ConvertToString(status), "application/json");
+            return WriteStringAsync(context, _serializer.ConvertToString(status), "application/json");
         }
         /// <summary>
         /// Writes the reply to a ping.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>
-        private Task WritePong(HttpListenerContext context)
+        private Task WritePongAsync(HttpListenerContext context)
         {
-            return WriteString(context, "pong", "text/plain");
+            return WriteStringAsync(context, "pong", "text/plain");
         }
 
         /// <summary>
@@ -218,9 +218,9 @@ namespace DotNetWorkQueue.QueueStatus
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>
-        private Task WriteNotFound(HttpListenerContext context)
+        private Task WriteNotFoundAsync(HttpListenerContext context)
         {
-            return WriteString(context, NotFoundResponse, "text/html", 404, "NOT FOUND");
+            return WriteStringAsync(context, NotFoundResponse, "text/html", 404, "NOT FOUND");
         }
 
         /// <summary>
@@ -232,7 +232,7 @@ namespace DotNetWorkQueue.QueueStatus
         /// <param name="httpStatus">The HTTP status.</param>
         /// <param name="httpStatusDescription">The HTTP status description.</param>
         /// <returns></returns>
-        private async Task WriteString(HttpListenerContext context, string data, string contentType,
+        private async Task WriteStringAsync(HttpListenerContext context, string data, string contentType,
             int httpStatus = 200, string httpStatusDescription = "OK")
         {
             AddCorsHeaders(context.Response);

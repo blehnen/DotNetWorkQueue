@@ -22,7 +22,7 @@ using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.Factory
 {
-    public class PostgreSQLMessageQueueTransportOptionsFactoryTests
+    public class PostgreSqlMessageQueueTransportOptionsFactoryTests
     {
         [Fact]
         public void Create()

@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             foreach (var m in splitList)
             {
                 var meta = _serializer.InternalSerializer.ConvertToBytes(new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds()));
-                var sentMessages = await SendMesagesAsync(m, meta).ConfigureAwait(false);
+                var sentMessages = await SendMessagesAsync(m, meta).ConfigureAwait(false);
                 foreach (var s in sentMessages)
                 {
                     rc.Add(s);
@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="meta">The meta.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException"></exception>
-        private async Task<IEnumerable<QueueOutputMessage>> SendMesagesAsync(IReadOnlyCollection<QueueMessage<IMessage, IAdditionalMessageData>> messages, byte[] meta)
+        private async Task<IEnumerable<QueueOutputMessage>> SendMessagesAsync(IReadOnlyCollection<QueueMessage<IMessage, IAdditionalMessageData>> messages, byte[] meta)
         {
             var messagesToSend = BatchMessageShared.CreateMessagesToSend(_redisHeaders, messages, meta,
                 _unixTimeFactory, _messageIdFactory, _serializer);

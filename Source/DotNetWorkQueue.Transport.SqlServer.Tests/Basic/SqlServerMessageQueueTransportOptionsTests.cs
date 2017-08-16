@@ -48,12 +48,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         }
 
         [Fact]
-        public void GetSet_EnableHoldTransactionUntilMessageCommited()
+        public void GetSet_enableHoldTransactionUntilMessageCommitted()
         {
             var test = new SqlServerMessageQueueTransportOptions();
-            var c = test.EnableHoldTransactionUntilMessageCommited;
-            test.EnableHoldTransactionUntilMessageCommited = !c;
-            Assert.Equal(!c, test.EnableHoldTransactionUntilMessageCommited);
+            var c = test.EnableHoldTransactionUntilMessageCommitted;
+            test.EnableHoldTransactionUntilMessageCommitted = !c;
+            Assert.Equal(!c, test.EnableHoldTransactionUntilMessageCommitted);
         }
 
         [Fact]

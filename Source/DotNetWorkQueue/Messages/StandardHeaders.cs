@@ -22,7 +22,7 @@ using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Messages
 {
     /// <summary>
-    /// Contains system standard header accessors
+    /// Contains system standard headers 
     /// </summary>
     public class StandardHeaders : IStandardHeaders
     {

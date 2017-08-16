@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Tests.Serialization
             var bytes = test.ConvertMethodToBytes((message, notification) => Tester.SetValue(value));
             var method = test.ConvertBytesToMethod(bytes);
             method.Compile().DynamicInvoke(null, null);
-            Assert.Equal(Tester.Getvalue(), value);
+            Assert.Equal(Tester.GetValue(), value);
         }
 
         [Theory, AutoData]
@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Tests.Serialization
                 _value = value;
             }
 
-            public static int Getvalue()
+            public static int GetValue()
             {
                return _value;
             }

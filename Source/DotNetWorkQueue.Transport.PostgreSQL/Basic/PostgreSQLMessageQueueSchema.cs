@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             main.Columns.Add(new Column("Headers", ColumnTypes.Bytea, -1, false));
 
             //add primary key constraint
-            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.QueueName, ContraintType.PrimaryKey, "QueueID"));
+            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.QueueName, ConstraintType.PrimaryKey, "QueueID"));
             main.PrimaryKey.Unique = true;
             return main;
         }
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             table.Columns.Add(mainPrimaryKey);
             table.Columns.Add(new Column("Configuration", ColumnTypes.Bytea, -1, false));
 
-            table.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ConfigurationName, ContraintType.PrimaryKey, "ID"));
+            table.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ConfigurationName, ConstraintType.PrimaryKey, "ID"));
             table.PrimaryKey.Unique = true;
             return table;
         }
@@ -113,7 +113,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             status.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ContraintType.PrimaryKey, "QueueID"));
+            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ConstraintType.PrimaryKey, "QueueID"));
             status.PrimaryKey.Unique = true;
 
             status.Columns.Add(new Column("Status", ColumnTypes.Integer, false));
@@ -151,7 +151,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             meta.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ContraintType.PrimaryKey, "QueueID"));
+            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ConstraintType.PrimaryKey, "QueueID"));
             meta.PrimaryKey.Unique = true;
 
             if (_options.Value.EnablePriority)
@@ -231,7 +231,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             if (clusterIndex.Count > 0)
             {
-                var cluster = new Constraint($"IX_DeQueue{_tableNameHelper.MetaDataName}", ContraintType.Index, clusterIndex)
+                var cluster = new Constraint($"IX_DeQueue{_tableNameHelper.MetaDataName}", ConstraintType.Index, clusterIndex)
                 {
                     Unique = true
                 };
@@ -241,7 +241,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //add index on heartbeat column if enabled
             if (_options.Value.EnableHeartBeat)
             {
-                meta.Constraints.Add(new Constraint($"IX_HeartBeat{_tableNameHelper.MetaDataName}", ContraintType.Index, "HeartBeat"));
+                meta.Constraints.Add(new Constraint($"IX_HeartBeat{_tableNameHelper.MetaDataName}", ConstraintType.Index, "HeartBeat"));
             }
 
             //set the table reference
@@ -271,10 +271,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             errorTracking.Columns.Add(new Column("RetryCount", ColumnTypes.Integer, false));
 
             //add primary key constraint
-            errorTracking.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ErrorTrackingName, ContraintType.PrimaryKey, "ErrorTrackingID"));
+            errorTracking.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ErrorTrackingName, ConstraintType.PrimaryKey, "ErrorTrackingID"));
             errorTracking.PrimaryKey.Unique = true;
 
-            errorTracking.Constraints.Add(new Constraint($"IX_QueueID{_tableNameHelper.ErrorTrackingName}", ContraintType.Index, "QueueID"));
+            errorTracking.Constraints.Add(new Constraint($"IX_QueueID{_tableNameHelper.ErrorTrackingName}", ConstraintType.Index, "QueueID"));
 
             foreach (var c in errorTracking.Constraints)
             {
@@ -301,7 +301,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             metaErrors.Columns.Add(new Column("LastExceptionDate", ColumnTypes.Timestamp, true));
 
             //add primary key constraint
-            metaErrors.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataErrorsName, ContraintType.PrimaryKey, "ID"));
+            metaErrors.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataErrorsName, ConstraintType.PrimaryKey, "ID"));
             metaErrors.PrimaryKey.Unique = true;
 
             //NOTE no indexes are copied from the meta table

@@ -22,9 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
@@ -45,15 +42,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         }
         public void BuildCommand(SqlCommand selectCommand, ReceiveMessageQuery<SqlConnection, SqlTransaction> query)
         {
-            BuildCommandInternal(selectCommand, query.Connection, query.Transaction, query.MessageId, query.Routes);
+            BuildCommandInternal(selectCommand, query.Transaction, query.MessageId, query.Routes);
         }
         public void BuildCommand(SqlCommand selectCommand, ReceiveMessageQueryAsync<SqlConnection, SqlTransaction> query)
         {
-            BuildCommandInternal(selectCommand, query.Connection, query.Transaction, query.MessageId, query.Routes);
+            BuildCommandInternal(selectCommand, query.Transaction, query.MessageId, query.Routes);
         }
 
         private void BuildCommandInternal(SqlCommand selectCommand, 
-            SqlConnection connection, SqlTransaction transaction, IMessageId messageId, List<string> routes)
+             SqlTransaction transaction, IMessageId messageId, List<string> routes)
         {
             selectCommand.Transaction = transaction;
             if (messageId != null && messageId.HasValue)

@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
         public void Create_Default()
         {
             const int id = 19334;
-            var type = "errortype";
+            var type = "errorType";
             var test = new SetErrorCountCommand(type, id);
             Assert.Equal(id, test.QueueId);
             Assert.Equal(type, test.ExceptionType);

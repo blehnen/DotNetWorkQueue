@@ -129,29 +129,29 @@ namespace ConsoleSharedCommands.Commands
             return new ConsoleExecuteResult($"Invalid queue type {type}. Valid values are 0=POCO,1=Linq Expression");
         }
 
-        public ConsoleExecuteResult SetFatalExceptionDelayBehavior(string queueName, params TimeSpan[] timespans)
+        public ConsoleExecuteResult SetFatalExceptionDelayBehavior(string queueName, params TimeSpan[] timespan)
         {
             var valid = ValidateQueue(queueName);
             if (valid != null) return valid;
             Queues[queueName].Configuration.TransportConfiguration.FatalExceptionDelayBehavior.Clear();
-            Queues[queueName].Configuration.TransportConfiguration.FatalExceptionDelayBehavior.Add(timespans.ToList());
+            Queues[queueName].Configuration.TransportConfiguration.FatalExceptionDelayBehavior.Add(timespan.ToList());
             return new ConsoleExecuteResult("fatal exception delays have been set");
         }
 
-        public ConsoleExecuteResult SetQueueDelayBehavior(string queueName, params TimeSpan[] timespans)
+        public ConsoleExecuteResult SetQueueDelayBehavior(string queueName, params TimeSpan[] timespan)
         {
             var valid = ValidateQueue(queueName);
             if (valid != null) return valid;
             Queues[queueName].Configuration.TransportConfiguration.QueueDelayBehavior.Clear();
-            Queues[queueName].Configuration.TransportConfiguration.QueueDelayBehavior.Add(timespans.ToList());
+            Queues[queueName].Configuration.TransportConfiguration.QueueDelayBehavior.Add(timespan.ToList());
             return new ConsoleExecuteResult("queue delays have been set");
         }
 
-        public ConsoleExecuteResult SetQueueRetryBehavior(string queueName, string exceptionType, params TimeSpan[] timespans)
+        public ConsoleExecuteResult SetQueueRetryBehavior(string queueName, string exceptionType, params TimeSpan[] timespan)
         {
             var valid = ValidateQueue(queueName);
             if (valid != null) return valid;
-            Queues[queueName].Configuration.TransportConfiguration.RetryDelayBehavior.Add(Type.GetType(exceptionType, true), timespans.ToList());
+            Queues[queueName].Configuration.TransportConfiguration.RetryDelayBehavior.Add(Type.GetType(exceptionType, true), timespan.ToList());
             return new ConsoleExecuteResult("queue delays have been set");
         }
 
@@ -159,7 +159,7 @@ namespace ConsoleSharedCommands.Commands
             int minimumThreads = 0,
             int maxQueueSize = 0,
             TimeSpan? threadIdleTimeout = null,
-            TimeSpan? waitForTheadPoolToFinish = null
+            TimeSpan? waitForThreadPoolToFinish = null
             )
         {
             CreateModuleIfNeeded(string.Empty);
@@ -171,9 +171,9 @@ namespace ConsoleSharedCommands.Commands
             {
                 _taskScheduler.Configuration.ThreadIdleTimeout = threadIdleTimeout.Value;
             }
-            if (waitForTheadPoolToFinish.HasValue)
+            if (waitForThreadPoolToFinish.HasValue)
             {
-                _taskScheduler.Configuration.WaitForTheadPoolToFinish = waitForTheadPoolToFinish.Value;
+                _taskScheduler.Configuration.WaitForThreadPoolToFinish = waitForThreadPoolToFinish.Value;
             }
 
             return new ConsoleExecuteResult("task scheduler configuration set");

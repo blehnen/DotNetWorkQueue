@@ -31,6 +31,7 @@ using System.Linq;
 using System.Text;
 using ConsoleShared;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Schema;
 
@@ -206,11 +207,10 @@ namespace SQLiteProducer.Commands
 
         public ConsoleExecuteResult AddConstraint(string queueName, string name, string type, string column)
         {
-            ContraintType contraintType;
-            if (Enum.TryParse(type, true, out contraintType))
+            if (Enum.TryParse(type, true, out ConstraintType constraintType))
             {
                 CreateModuleIfNeeded(queueName);
-                _queueCreators[queueName].Options.AdditionalConstraints.Add(new Constraint(name, contraintType, column));
+                _queueCreators[queueName].Options.AdditionalConstraints.Add(new Constraint(name, constraintType, column));
                 return new ConsoleExecuteResult($"Added constraint {name}");
             }
             throw new Exception($"Failed to parse {type}");
@@ -218,11 +218,10 @@ namespace SQLiteProducer.Commands
 
         public ConsoleExecuteResult AddConstraintManyColumns(string queueName, string name, string type, params string[] columns)
         {
-            ContraintType contraintType;
-            if (Enum.TryParse(type, true, out contraintType))
+            if (Enum.TryParse(type, true, out ConstraintType constraintType))
             {
                 CreateModuleIfNeeded(queueName);
-                _queueCreators[queueName].Options.AdditionalConstraints.Add(new Constraint(name, contraintType, columns.ToList()));
+                _queueCreators[queueName].Options.AdditionalConstraints.Add(new Constraint(name, constraintType, columns.ToList()));
                 return new ConsoleExecuteResult($"Added constraint {name}");
             }
             throw new Exception($"Failed to parse {type}");

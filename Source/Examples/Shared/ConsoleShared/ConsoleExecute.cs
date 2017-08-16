@@ -123,7 +123,9 @@ namespace ConsoleShared
                     {
                         _consoleMacro?.Remove(id.Value);
                     }
-                    throw ex.InnerException;
+                    if (ex.InnerException != null)
+                        throw ex.InnerException;
+                    throw;
                 }
             }
             return new ConsoleExecuteResult(errorMessage);
@@ -168,7 +170,9 @@ namespace ConsoleShared
                     {
                         _consoleMacro?.Remove(id.Value);
                     }
-                    throw ex.InnerException;
+                    if(ex.InnerException != null)
+                        throw ex.InnerException;
+                    throw;
                 }
             }
             return new ConsoleExecuteResult(errorMessage);

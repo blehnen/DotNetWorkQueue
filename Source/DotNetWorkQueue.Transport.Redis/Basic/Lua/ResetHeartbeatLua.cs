@@ -21,7 +21,7 @@ using StackExchange.Redis;
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
     /// <summary>
-    /// Resets the hearbeat for records outside of the window.
+    /// Resets the heartbeat for records outside of the window.
     /// </summary>
     internal class ResetHeartbeatLua : BaseLua
     {

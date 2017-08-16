@@ -75,6 +75,6 @@ namespace DotNetWorkQueue
         /// <summary>
         /// How long to wait for thread pool threads to exit when shutting down
         /// </summary>
-        TimeSpan WaitForTheadPoolToFinish { get; set; }
+        TimeSpan WaitForThreadPoolToFinish { get; set; }
     }
 }

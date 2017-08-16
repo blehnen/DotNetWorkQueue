@@ -84,8 +84,12 @@ namespace ConsoleView
         {
             if (InvokeRequired)
             {
-                MethodInvoker del = delegate { logControl1.Display(s); };
-                BeginInvoke(del);
+                void Del()
+                {
+                    logControl1.Display(s);
+                }
+
+                BeginInvoke((MethodInvoker) Del);
                 return;
             }
 
@@ -186,8 +190,12 @@ namespace ConsoleView
         {
             if (InvokeRequired)
             {
-                MethodInvoker del = delegate { WriteToConsole(message); };
-                BeginInvoke(del);
+                void Del()
+                {
+                    WriteToConsole(message);
+                }
+
+                BeginInvoke((MethodInvoker) Del);
                 return;
             }
 

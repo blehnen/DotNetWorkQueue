@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             try
             {
                 //correlationID must be stored as a message header
-                messageToSend.SetHeader(_headers.CorelationId, new RedisQueueCorrelationIdSerialized((Guid)data.CorrelationId.Id.Value));
+                messageToSend.SetHeader(_headers.CorrelationId, new RedisQueueCorrelationIdSerialized((Guid)data.CorrelationId.Id.Value));
 
                 var messageId = _sendMessage.Handle(new SendMessageCommand(messageToSend, data));
                 if (messageId == "JobAlreadyExists")
@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             try
             {
                 //correlationID must be stored as a message header
-                messageToSend.SetHeader(_headers.CorelationId, new RedisQueueCorrelationIdSerialized((Guid)data.CorrelationId.Id.Value));
+                messageToSend.SetHeader(_headers.CorrelationId, new RedisQueueCorrelationIdSerialized((Guid)data.CorrelationId.Id.Value));
                 var messageId = await _sendMessageAsync.Handle(new SendMessageCommand(messageToSend, data)).ConfigureAwait(false);
                 if (messageId == "JobAlreadyExists")
                 {

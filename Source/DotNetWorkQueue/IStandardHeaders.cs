@@ -20,7 +20,7 @@ using System;
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Contains system standard header accessors
+    /// Contains system standard header assessors
     /// </summary>
     public interface IStandardHeaders
     {

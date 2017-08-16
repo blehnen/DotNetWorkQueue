@@ -16,12 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
     public interface ITransportOptions
@@ -45,7 +39,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <value>
         /// <c>true</c> if [enable hold transaction until message committed]; otherwise, <c>false</c>.
         /// </value>
-        bool EnableHoldTransactionUntilMessageCommited
+        bool EnableHoldTransactionUntilMessageCommitted
         {
             get;
             set;

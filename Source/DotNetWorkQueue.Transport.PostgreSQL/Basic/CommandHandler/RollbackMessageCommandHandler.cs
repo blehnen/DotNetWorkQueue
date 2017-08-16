@@ -61,8 +61,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// <summary>
         /// Handles the specified rollback command.
         /// </summary>
-        /// <param name="rollbackcommand">The rollbackcommand.</param>
-        public void Handle(RollbackMessageCommand rollbackcommand)
+        /// <param name="rollBackCommand">The rollBackCommand.</param>
+        public void Handle(RollbackMessageCommand rollBackCommand)
         {
             SetupSql();
             using (var connection = new NpgsqlConnection(_connectionInformation.ConnectionString))
@@ -74,15 +74,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                     {
                         command.Transaction = trans;
                         command.Parameters.Add("@QueueID", NpgsqlDbType.Bigint);
-                        command.Parameters["@QueueID"].Value = rollbackcommand.QueueId;
+                        command.Parameters["@QueueID"].Value = rollBackCommand.QueueId;
 
-                        if (_options.Value.EnableDelayedProcessing && rollbackcommand.IncreaseQueueDelay.HasValue)
+                        if (_options.Value.EnableDelayedProcessing && rollBackCommand.IncreaseQueueDelay.HasValue)
                         {
-                            if (rollbackcommand.LastHeartBeat.HasValue)
+                            if (rollBackCommand.LastHeartBeat.HasValue)
                             {
                                 command.CommandText = GetRollbackSql(false, true);
                                 command.Parameters.Add("@HeartBeat", NpgsqlDbType.Bigint);
-                                command.Parameters["@HeartBeat"].Value = rollbackcommand.LastHeartBeat.Value.Ticks;
+                                command.Parameters["@HeartBeat"].Value = rollBackCommand.LastHeartBeat.Value.Ticks;
                             }
                             else
                             {
@@ -90,17 +90,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                             }
 
                             var dtUtcDate = _getUtcDateQuery.Create().GetCurrentUtcDate();
-                            dtUtcDate = dtUtcDate.Add(rollbackcommand.IncreaseQueueDelay.Value);
+                            dtUtcDate = dtUtcDate.Add(rollBackCommand.IncreaseQueueDelay.Value);
                             command.Parameters.Add("@QueueProcessTime", NpgsqlDbType.Bigint);
                             command.Parameters["@QueueProcessTime"].Value = dtUtcDate.Ticks;
                         }
                         else
                         {
-                            if (rollbackcommand.LastHeartBeat.HasValue)
+                            if (rollBackCommand.LastHeartBeat.HasValue)
                             {
                                 command.CommandText = GetRollbackSql(false, true);
                                 command.Parameters.Add("@HeartBeat", NpgsqlDbType.Bigint);
-                                command.Parameters["@HeartBeat"].Value = rollbackcommand.LastHeartBeat.Value.Ticks;
+                                command.Parameters["@HeartBeat"].Value = rollBackCommand.LastHeartBeat.Value.Ticks;
                             }
                             else
                             {
@@ -116,7 +116,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                         {
                             command.Transaction = trans;
                             command.Parameters.Add("@QueueID", NpgsqlDbType.Bigint);
-                            command.Parameters["@QueueID"].Value = rollbackcommand.QueueId;
+                            command.Parameters["@QueueID"].Value = rollBackCommand.QueueId;
                             command.Parameters.Add("@status", NpgsqlDbType.Integer);
                             command.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Waiting);
                             command.CommandText =

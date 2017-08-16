@@ -17,13 +17,13 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Messages;
 using FluentAssertions;
 using Xunit;
+// ReSharper disable AccessToDisposedClosure
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 {
@@ -159,8 +159,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                     }
                                 });
 
-                            ValidateEnqueueMultipleProducer(queueName, connectionString, enqueued,
-                                lastError, 2);
+                            ValidateEnqueueMultipleProducer(enqueued,lastError, 2);
                         }
                     }
                 }
@@ -199,8 +198,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     var enqueued = 0;
                     var nonFatal = 0;
                     Exception lastError = null;
+                    // ReSharper disable once AccessToModifiedClosure
                     scheduler.OnJobQueue += (job, message) => enqueued++;
                     scheduler.OnJobQueueException += (job, exception) => lastError = exception;
+                    // ReSharper disable once AccessToModifiedClosure
                     scheduler.OnJobNonFatalFailureQueue += (job, message) => nonFatal++;
                     scheduler.Start();
 
@@ -279,7 +280,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             }
         }
         private void ValidateEnqueue(string queueName, string connectionString, Action<string, string, long> verify,
-            long enqueued, Exception error, long nonFatal, long expectedEnqueue)
+            // ReSharper disable once UnusedParameter.Local
+            long enqueued, 
+            Exception error,
+            // ReSharper disable once UnusedParameter.Local
+            long nonFatal, 
+            long expectedEnqueue)
         {
             if (error != null)
             {
@@ -289,8 +295,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Assert.Equal(0, nonFatal);
             verify(queueName, connectionString, expectedEnqueue);
         }
-        private void ValidateEnqueueMultipleProducer(string queueName, string connectionString,
-            long enqueued, Exception error, long expectedEnqueue)
+        // ReSharper disable once UnusedParameter.Local
+        private void ValidateEnqueueMultipleProducer(long enqueued, Exception error, 
+            // ReSharper disable once UnusedParameter.Local
+            long expectedEnqueue)
         {
             if (error != null)
             {
@@ -299,7 +307,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Assert.Equal(expectedEnqueue, enqueued);
         }
         private void ValidateNonFatalError(string queueName, string connectionString, Action<string, string, long> verify,
-            long enqueued, Exception error, long nonFatal, long inQueueCount)
+            // ReSharper disable once UnusedParameter.Local
+            long enqueued, Exception error, 
+            // ReSharper disable once UnusedParameter.Local
+            long nonFatal, long inQueueCount)
         {
             Assert.Equal(0, enqueued);
             error.Should().BeNull("no errors should occur");

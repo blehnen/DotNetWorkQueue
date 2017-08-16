@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <value>
         /// <c>true</c> if this instance is shutting down; otherwise, <c>false</c>.
         /// </value>
-        public bool IsShuttingdown
+        public bool IsShuttingDown
         {
             get
             {
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.TaskScheduling
             if (Interlocked.Increment(ref _disposeCount) != 1 || _threadPool == null) return;
 
             _threadPool.Cancel(false);
-            _threadPool.WaitForIdle(_configuration.WaitForTheadPoolToFinish);
+            _threadPool.WaitForIdle(_configuration.WaitForThreadPoolToFinish);
             _threadPool.Shutdown();
             _threadPool.Dispose();
         }

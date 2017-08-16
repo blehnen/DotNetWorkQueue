@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Tests.Messages
             fixture.Inject(correlationId);
             var messageInternal = fixture.Create<ReceivedMessageInternal>();
 
-            Assert.Equal(messageInternal.MesssageId, messageId);
+            Assert.Equal(messageInternal.MessageId, messageId);
             Assert.Equal(messageInternal.Body, message.Body);
             Assert.Equal(messageInternal.CorrelationId, correlationId);
             Assert.Equal(messageInternal.Headers, message.Headers);

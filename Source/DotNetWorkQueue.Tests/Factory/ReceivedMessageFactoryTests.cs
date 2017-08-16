@@ -34,14 +34,14 @@ namespace DotNetWorkQueue.Tests.Factory
             var correlationId = fixture.Create<ICorrelationId>();
 
             var factory = Create(fixture);
-            var messageinternal = factory.Create(message,
+            var messageInternal = factory.Create(message,
                 messageId,
                 correlationId);
 
-            Assert.Equal(messageinternal.MesssageId, messageId);
-            Assert.Equal(messageinternal.Body, message.Body);
-            Assert.Equal(messageinternal.Headers, message.Headers);
-            Assert.Equal(messageinternal.CorrelationId, correlationId);
+            Assert.Equal(messageInternal.MessageId, messageId);
+            Assert.Equal(messageInternal.Body, message.Body);
+            Assert.Equal(messageInternal.Headers, message.Headers);
+            Assert.Equal(messageInternal.CorrelationId, correlationId);
         }
         private IReceivedMessageFactory Create(IFixture fixture)
         {

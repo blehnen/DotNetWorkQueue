@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             if (_queueCreation.Options.AdditionalColumns.Count == 0)
             {
                 _queueCreation.Options.AdditionalColumns.Add(new Column("JobName", ColumnTypes.Varchar, 255, false));
-                var constraint = new Constraint($"IX_{queue}JobName", ContraintType.Constraint,
+                var constraint = new Constraint($"IX_{queue}JobName", ConstraintType.Constraint,
                     "JobName") {Unique = true};
                 _queueCreation.Options.AdditionalConstraints.Add(constraint);
             }

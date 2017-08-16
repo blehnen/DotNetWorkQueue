@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        private SchedulerMethod Create(int workerCount, IWorkGroup workgroup = null)
+        private SchedulerMethod Create(int workerCount, IWorkGroup workGroup = null)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var cancelWork = fixture.Create<IQueueCancelWork>();
@@ -117,8 +117,8 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             ITaskFactoryFactory factoryFactory = fixture2.Create<ITaskFactoryFactory>();
             fixture2.Inject(factoryFactory);
 
-            IConsumerQueueScheduler scheulder = fixture2.Create<Scheduler>();
-            fixture2.Inject(scheulder);
+            IConsumerQueueScheduler scheduler = fixture2.Create<Scheduler>();
+            fixture2.Inject(scheduler);
 
             ATaskScheduler schedule = new CreateContainerTest.TaskSchedulerNoOp();
             schedule.Start();
@@ -129,8 +129,8 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
 
             factoryFactory.Create().Returns(taskFactory);
 
-            if (workgroup != null)
-                fixture2.Inject(workgroup);
+            if (workGroup != null)
+                fixture2.Inject(workGroup);
 
             var handler = fixture2.Create<SchedulerMessageHandler>();
             fixture2.Inject(handler);

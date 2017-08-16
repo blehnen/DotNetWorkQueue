@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.LinqCompile
     internal class DynamicCodeCompiler: IPooledObject, IDisposable
     {
         private static readonly string[] DefaultReferences = { "System.dll", "System.Core.dll", "DotNetWorkQueue.dll" };
-        private static readonly string[] DefaultUsings = { "System", "System.Collections.Generic", "System.Linq", "System.Linq.Expressions", "DotNetWorkQueue", "DotNetWorkQueue.Messages" };
+        private static readonly string[] DefaultUsing = { "System", "System.Collections.Generic", "System.Linq", "System.Linq.Expressions", "DotNetWorkQueue", "DotNetWorkQueue.Messages" };
         private readonly Compiler _compiler;
         private readonly ILog _log;
 
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.LinqCompile
         public Action<object, object> CompileAction(LinqExpressionToRun linqExpression)
         {
             _compiler.References = DefaultReferences.Union(linqExpression.References).ToArray();
-            _compiler.Usings = DefaultUsings.Union(linqExpression.Usings).ToArray();
+            _compiler.Usings = DefaultUsing.Union(linqExpression.Usings).ToArray();
             return _compiler.ParseLambdaExpr<Action<object, object>>(linqExpression.Linq).Compile();
         }
         /// <summary>
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.LinqCompile
         public Func<object, object, object> CompileFunction(LinqExpressionToRun linqExpression)
         {
             _compiler.References = DefaultReferences.Union(linqExpression.References).ToArray();
-            _compiler.Usings = DefaultUsings.Union(linqExpression.Usings).ToArray();
+            _compiler.Usings = DefaultUsing.Union(linqExpression.Usings).ToArray();
             return _compiler.ParseLambdaExpr<Func<object, object, object>>(linqExpression.Linq).Compile();
         }
 

@@ -17,10 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
 using Xunit;

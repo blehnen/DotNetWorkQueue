@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="message">The message.</param>
         /// <param name="workerNotification">The worker notification.</param>
         /// <returns></returns>
-        public Task Handle(IReceivedMessageInternal message, IWorkerNotification workerNotification)
+        public Task HandleAsync(IReceivedMessageInternal message, IWorkerNotification workerNotification)
         {
             Guard.NotNull(() => message, message);
             Guard.NotNull(() => workerNotification, workerNotification);

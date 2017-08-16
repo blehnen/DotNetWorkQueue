@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MesssageId;
+            context.MessageId = receivedTransportMessage.MessageId;
             
             //if we are holding open transactions, we need to update the status table in a separate call
             //When not using held transactions, this is part of the de-queue statement and so not needed here
@@ -122,7 +122,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             {
                 _setStatusCommandHandler.Handle(
                     new SetStatusTableStatusCommand(
-                        (long) receivedTransportMessage.MesssageId.Id.Value, QueueStatuses.Processing));
+                        (long) receivedTransportMessage.MessageId.Id.Value, QueueStatuses.Processing));
             }
             return receivedTransportMessage;
         }
@@ -168,7 +168,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MesssageId;
+            context.MessageId = receivedTransportMessage.MessageId;
 
             //if we are holding open transactions, we need to update the status table in a separate call
             //When not using held transactions, this is part of the de-queue statement and so not needed here
@@ -181,7 +181,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             {
                 _setStatusCommandHandler.Handle(
                     new SetStatusTableStatusCommand(
-                        (long)receivedTransportMessage.MesssageId.Id.Value, QueueStatuses.Processing));
+                        (long)receivedTransportMessage.MessageId.Id.Value, QueueStatuses.Processing));
             }
             return receivedTransportMessage;
         }

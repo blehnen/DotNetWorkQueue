@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Tests.QueueStatus
             IQueueInformation test = new QueueInformation(name, server, currentDateTime, dateTimeProvider, systemEntries);
             Assert.Equal(name, test.Name);
             Assert.Equal(server, test.Server);
-            Assert.Equal(currentDateTime, test.CurentDateTime);
+            Assert.Equal(currentDateTime, test.CurrentDateTime);
             Assert.Equal(dateTimeProvider, test.DateTimeProvider);
             Assert.Equal(systemEntries, test.Data);
         }

@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.JobScheduler
 
         internal void Run()
         {
-            System.Threading.Tasks.Task.Run(() => Job.RunPendingEvent(this));
+            System.Threading.Tasks.Task.Run(() => Job.RunPendingEventAsync(this));
         }
     }
 }

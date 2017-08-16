@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Tests.Messages
             Assert.Throws<ArgumentNullException>(
             delegate
             {
-                test.Handle(null, null);
+                test.HandleAsync(null, null);
             });
         }
     }

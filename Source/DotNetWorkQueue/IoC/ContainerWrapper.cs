@@ -28,7 +28,7 @@ using SimpleInjector.Diagnostics;
 namespace DotNetWorkQueue.IoC
 {
     /// <summary>
-    /// The limited IoC container provided for user code / transport inits
+    /// The limited IoC container provided for user code / transport initialize
     /// </summary>
     /// <remarks>This exists so that outside code does not need to reference simple injector directly.</remarks>
     public class ContainerWrapper : IContainer

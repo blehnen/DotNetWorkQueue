@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 _queueCreation.Options.EnableStatusTable = true;
                 _queueCreation.Options.AdditionalColumns.Add(new Column("JobName", ColumnTypes.Text, 255, false, null));
-                var constraint = new Constraint($"IX_{queue}JobName", ContraintType.Constraint,
+                var constraint = new Constraint($"IX_{queue}JobName", ConstraintType.Constraint,
                     "JobName")
                 { Unique = true };
                 _queueCreation.Options.AdditionalConstraints.Add(constraint);

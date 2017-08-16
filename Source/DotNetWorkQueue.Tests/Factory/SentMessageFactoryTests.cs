@@ -29,14 +29,14 @@ namespace DotNetWorkQueue.Tests.Factory
         public void Create_SentMessage()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var messageid = fixture.Create<IMessageId>();
-            var correlationid = fixture.Create<ICorrelationId>();
+            var messageId = fixture.Create<IMessageId>();
+            var correlationId = fixture.Create<ICorrelationId>();
 
             var factory = Create(fixture);
-            var id = factory.Create(messageid, correlationid);
+            var id = factory.Create(messageId, correlationId);
 
-            Assert.Equal(id.MessageId, messageid);
-            Assert.Equal(id.CorrelationId, correlationid);
+            Assert.Equal(id.MessageId, messageId);
+            Assert.Equal(id.CorrelationId, correlationId);
         }
 
         [Fact]

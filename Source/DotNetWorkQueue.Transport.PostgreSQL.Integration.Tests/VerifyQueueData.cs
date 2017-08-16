@@ -106,7 +106,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                         while (reader.Read())
                         {
                             var priority = (int)reader[0];
-                            Assert.Equal((byte)5, priority);
+                            Assert.Equal(5, priority);
                         }
                     }
                 }

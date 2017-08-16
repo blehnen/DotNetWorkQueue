@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             //we are done doing any processing - remove the messageID to block other actions
             context.MessageId = null;
             _log.ErrorException("Message with ID {0} has failed and has been moved to the error queue", exception,
-                message.MesssageId);
+                message.MessageId);
             return ReceiveMessagesErrorResult.Error;
         }
         #endregion

@@ -19,7 +19,7 @@
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Contains standard and custom header accessors
+    /// Contains standard and custom headers
     /// </summary>
     public interface IHeaders
     {

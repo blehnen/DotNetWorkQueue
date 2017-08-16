@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         {
                             oCreation.Options.EnableDelayedProcessing = true;
                             oCreation.Options.EnableHeartBeat = !useTransactions;
-                            oCreation.Options.EnableHoldTransactionUntilMessageCommited = useTransactions;
+                            oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
                             oCreation.Options.EnableStatus = !useTransactions;
                             oCreation.Options.EnableStatusTable = true;
 

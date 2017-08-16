@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.RpcMethod
 
                                     var rpc =
                                         new RpcMethodShared
-                                            <SqLiteMessageQueueInit, FakeResponse, SqLiteRpcConnection>();
+                                            <SqLiteMessageQueueInit, SqLiteRpcConnection>();
 
                                     var id = Guid.NewGuid();
                                     rpc.Run(queueNameReceive, queueNameSend, connectionInfo.ConnectionString,

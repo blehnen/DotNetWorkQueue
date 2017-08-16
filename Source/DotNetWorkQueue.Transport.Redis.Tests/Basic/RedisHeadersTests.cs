@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
         public void Create_Default()
         {
             var test = Create();
-            Assert.NotNull(test.CorelationId);
+            Assert.NotNull(test.CorrelationId);
             Assert.NotNull(test.IncreaseQueueDelay);
         }
 

@@ -105,12 +105,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             {
                 sb.AppendLine(needWhere ? "where Route IN ( " : "AND Route IN ( ");
 
-                var routeCounter = 1;
-                foreach (var route in routes)
+                for (var i = 1; i < routes.Count; i++)
                 {
-                    sb.Append("@Route" + routeCounter.ToString());
-                    routeCounter++;
-                    if (routeCounter != routes.Count + 1)
+                    sb.Append("@Route" + i);
+                    if (i != routes.Count + 1)
                     {
                         sb.Append(", ");
                     }

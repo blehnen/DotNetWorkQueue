@@ -34,7 +34,7 @@ namespace DotNetWorkQueue
         /// The current date time.
         /// </value>
         /// <remarks>This is what the queue considers to be the current date/time</remarks>
-        DateTime CurentDateTime { get; }
+        DateTime CurrentDateTime { get; }
         /// <summary>
         /// Gets the date time provider.
         /// </summary>

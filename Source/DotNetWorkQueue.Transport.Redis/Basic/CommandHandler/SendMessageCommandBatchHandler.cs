@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
                 var meta =
                     _serializer.InternalSerializer.ConvertToBytes(
                         new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds()));
-                var sentMessages = SendMesages(m, meta);
+                var sentMessages = SendMessages(m, meta);
                 foreach (var s in sentMessages)
                 {
                     rc.Add(s);
@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="meta">The meta.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException"></exception>
-        private IEnumerable<QueueOutputMessage> SendMesages(
+        private IEnumerable<QueueOutputMessage> SendMessages(
             IReadOnlyCollection<QueueMessage<IMessage, IAdditionalMessageData>> messages, byte[] meta)
         {
             var messagesToSend = BatchMessageShared.CreateMessagesToSend(_redisHeaders, messages, meta,

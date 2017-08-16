@@ -91,13 +91,16 @@ namespace DotNetWorkQueue.Tests.Queue
         public void Start_Stop_Works()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            Func<CancellationToken, long> action = cancel =>
+
+            long Action(CancellationToken cancel)
             {
-                Thread.Sleep(2000); return 0;
-            };
+                Thread.Sleep(2000);
+                return 0;
+            }
+
             var monitor = fixture.Create<IMonitorTimespan>();
             monitor.MonitorTime.Returns(TimeSpan.FromHours(1));
-            using (var test = CreateMonitor(action, monitor, fixture.Create<ILogFactory>()))
+            using (var test = CreateMonitor(Action, monitor, fixture.Create<ILogFactory>()))
             {
                 test.Start();
                 Thread.Sleep(500);
@@ -109,13 +112,16 @@ namespace DotNetWorkQueue.Tests.Queue
         public void Dispose_Running_Instance_Works()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            Func<CancellationToken, long> action = cancel =>
+
+            long Action(CancellationToken cancel)
             {
-                Thread.Sleep(2000); return 0;
-            };
+                Thread.Sleep(2000);
+                return 0;
+            }
+
             var monitor = fixture.Create<IMonitorTimespan>();
             monitor.MonitorTime.Returns(TimeSpan.FromHours(1));
-            using (var test = CreateMonitor(action, monitor, fixture.Create<ILogFactory>()))
+            using (var test = CreateMonitor(Action, monitor, fixture.Create<ILogFactory>()))
             {
                 test.Start();
                 Thread.Sleep(500);
@@ -150,8 +156,8 @@ namespace DotNetWorkQueue.Tests.Queue
         private BaseMonitorTest CreateMonitor()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            Func<CancellationToken, long> action = cancel => 0;
-            return CreateMonitor(action, fixture.Create<IMonitorTimespan>(), fixture.Create<ILogFactory>());
+            long Func(CancellationToken cancel) => 0;
+            return CreateMonitor(Func, fixture.Create<IMonitorTimespan>(), fixture.Create<ILogFactory>());
         }
     }
     public class BaseMonitorTest : BaseMonitor

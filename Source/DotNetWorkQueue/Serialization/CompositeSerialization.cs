@@ -19,7 +19,7 @@
 namespace DotNetWorkQueue.Serialization
 {
     /// <summary>
-    /// A Composite serialization wrapper that provides access to both the user and internal serializers
+    /// A Composite serialization wrapper that provides access to both the user and internal serialization
     /// </summary>
     public class CompositeSerialization : ICompositeSerialization
     {

@@ -29,29 +29,29 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     internal class QueueWait : IQueueWait
     {
-        private readonly TimeSpan[] _backoffTimes;
+        private readonly TimeSpan[] _backOffTimes;
         private readonly ICancelWork _tokenWorkerCanceled;
         private long _currentIndex;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueWait"/> class.
         /// </summary>
-        /// <param name="backoffTimes">The back off times.</param>
+        /// <param name="backOffTimes">The back off times.</param>
         /// <param name="tokenWorkerCanceled">The cancel token.</param>
         /// <exception cref="System.ArgumentException">
-        /// Back off helper must be initialized with at least one time span!;backoffTimes
+        /// Back off helper must be initialized with at least one time span!;backOffTimes
         /// or
-        /// backoffTimes
+        /// backOffTimes
         /// </exception>
-        public QueueWait(IEnumerable<TimeSpan> backoffTimes, ICancelWork tokenWorkerCanceled)
+        public QueueWait(IEnumerable<TimeSpan> backOffTimes, ICancelWork tokenWorkerCanceled)
         {
             Guard.NotNull(() => tokenWorkerCanceled, tokenWorkerCanceled);
-            var timeSpans = backoffTimes.ToArray();
+            var timeSpans = backOffTimes.ToArray();
             Guard.NotNull(() => timeSpans, timeSpans);
             if(timeSpans.Length == 0)
                throw new ArgumentException("Back off helper must be initialized with at least one time span");
 
-            _backoffTimes = timeSpans;
+            _backOffTimes = timeSpans;
             _tokenWorkerCanceled = tokenWorkerCanceled;
         }
 
@@ -77,8 +77,8 @@ namespace DotNetWorkQueue.Queue
         /// <param name="waitTime">The how long the wait will last.</param>
         public void Wait(Action<TimeSpan> waitTime)
         {
-            var effectiveIndex = Math.Min(Interlocked.Read(ref _currentIndex), _backoffTimes.Length - 1);
-            var timeToWait = _backoffTimes[effectiveIndex];
+            var effectiveIndex = Math.Min(Interlocked.Read(ref _currentIndex), _backOffTimes.Length - 1);
+            var timeToWait = _backOffTimes[effectiveIndex];
 
             waitTime(timeToWait);
             WaitInternal(timeToWait);

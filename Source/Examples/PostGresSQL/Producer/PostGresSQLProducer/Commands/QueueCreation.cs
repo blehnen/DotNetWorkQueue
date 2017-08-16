@@ -23,6 +23,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -32,8 +33,9 @@ using ConsoleShared;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 
-namespace PostgreSQLProducer.Commands
+namespace PostGresSQLProducer.Commands
 {
     public class QueueCreation: IConsoleCommand, IDisposable
     {
@@ -144,7 +146,7 @@ namespace PostgreSQLProducer.Commands
         public ConsoleExecuteResult SetHoldTransaction(string queueName, bool value)
         {
             CreateModuleIfNeeded(queueName);
-            _queueCreators[queueName].Options.EnableHoldTransactionUntilMessageCommited = value;
+            _queueCreators[queueName].Options.EnableHoldTransactionUntilMessageCommitted = value;
             return new ConsoleExecuteResult($"HoldTransaction set to {value}");
         }
 
@@ -214,11 +216,10 @@ namespace PostgreSQLProducer.Commands
 
         public ConsoleExecuteResult AddConstraint(string queueName, string name, string type, string column)
         {
-            ContraintType contraintType;
-            if (Enum.TryParse(type, true, out contraintType))
+            if (Enum.TryParse(type, true, out ConstraintType constraintType))
             {
                 CreateModuleIfNeeded(queueName);
-                _queueCreators[queueName].Options.AdditionalConstraints.Add(new Constraint(name, contraintType, column));
+                _queueCreators[queueName].Options.AdditionalConstraints.Add(new Constraint(name, constraintType, column));
                 return new ConsoleExecuteResult($"Added constraint {name}");
             }
             throw new Exception($"Failed to parse {type}");
@@ -226,11 +227,11 @@ namespace PostgreSQLProducer.Commands
 
         public ConsoleExecuteResult AddConstraintManyColumns(string queueName, string name, string type, params string[] columns)
         {
-            ContraintType contraintType;
-            if (Enum.TryParse(type, true, out contraintType))
+            ConstraintType constraintType;
+            if (Enum.TryParse(type, true, out constraintType))
             {
                 CreateModuleIfNeeded(queueName);
-                _queueCreators[queueName].Options.AdditionalConstraints.Add(new Constraint(name, contraintType, columns.ToList()));
+                _queueCreators[queueName].Options.AdditionalConstraints.Add(new Constraint(name, constraintType, columns.ToList()));
                 return new ConsoleExecuteResult($"Added constraint {name}");
             }
             throw new Exception($"Failed to parse {type}");

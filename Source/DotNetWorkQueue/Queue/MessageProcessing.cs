@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Queue
         private readonly IMessageContextFactory _messageContextFactory;
         private readonly IReceivePoisonMessage _receivePoisonMessage;
         private readonly Lazy<IQueueWait> _seriousExceptionProcessBackOffHelper;
-        private readonly Lazy<IQueueWait> _noMessageToProcessBackoffHelper;
+        private readonly Lazy<IQueueWait> _noMessageToProcessBackOffHelper;
         private readonly IRollbackMessage _rollbackMessage;
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Queue
             _receivePoisonMessage = receivePoisonMessage;
             _rollbackMessage = rollbackMessage;
 
-            _noMessageToProcessBackoffHelper = new Lazy<IQueueWait>(queueWaitFactory.CreateQueueDelay);
+            _noMessageToProcessBackOffHelper = new Lazy<IQueueWait>(queueWaitFactory.CreateQueueDelay);
             _seriousExceptionProcessBackOffHelper = new Lazy<IQueueWait>(queueWaitFactory.CreateFatalErrorDelay);
 
         }
@@ -198,12 +198,12 @@ namespace DotNetWorkQueue.Queue
                     Idle(this, EventArgs.Empty);
                     _idle = true;
                 }
-                _noMessageToProcessBackoffHelper.Value.Wait();
+                _noMessageToProcessBackOffHelper.Value.Wait();
                 return;
             }
 
             //reset the back off counter - we have a message to process, so the wait times are now reset
-            _noMessageToProcessBackoffHelper.Value.Reset();
+            _noMessageToProcessBackOffHelper.Value.Reset();
             if (_idle)
             {
                 NotIdle(this, EventArgs.Empty);

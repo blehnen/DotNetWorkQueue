@@ -20,7 +20,7 @@ using System;
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// The root interface for a queue. This interface indicates that the implementor is a queue, which means that it
+    /// The root interface for a queue. This interface indicates that the implementer is a queue, which means that it
     /// A) Can consume or produce data
     /// B) Can be disposed
     /// </summary>

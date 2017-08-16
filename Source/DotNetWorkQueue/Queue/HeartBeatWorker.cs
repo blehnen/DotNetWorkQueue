@@ -198,7 +198,7 @@ namespace DotNetWorkQueue.Queue
             if (Stopped)
                 return;
 
-            if (!_smartThreadPool.IsShuttingdown && !_smartThreadPool.IsDisposed)
+            if (!_smartThreadPool.IsShuttingDown && !_smartThreadPool.IsDisposed)
             {
                 _smartThreadPool.QueueWorkItem(SendHeartBeatInternal);
             }

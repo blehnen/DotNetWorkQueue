@@ -108,7 +108,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             status.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ContraintType.PrimaryKey, "QueueID"));
+            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ConstraintType.PrimaryKey, "QueueID"));
             status.PrimaryKey.Unique = true;
 
             status.Columns.Add(new Column("Status", ColumnTypes.Integer, false, null));
@@ -146,7 +146,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             meta.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ContraintType.PrimaryKey, "QueueID"));
+            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ConstraintType.PrimaryKey, "QueueID"));
             meta.PrimaryKey.Unique = true;
 
             if (_options.Value.EnablePriority)
@@ -226,7 +226,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             if (clusterIndex.Count > 0)
             {
-                var cluster = new Constraint("IX_DeQueue", ContraintType.Index, clusterIndex)
+                var cluster = new Constraint("IX_DeQueue", ConstraintType.Index, clusterIndex)
                 {
                     Unique = true
                 };
@@ -236,7 +236,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             //add index on heartbeat column if enabled
             if (_options.Value.EnableHeartBeat)
             {
-                meta.Constraints.Add(new Constraint("IX_HeartBeat", ContraintType.Index, "HeartBeat"));
+                meta.Constraints.Add(new Constraint("IX_HeartBeat", ConstraintType.Index, "HeartBeat"));
             }
 
             //set the table reference
@@ -266,10 +266,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             errorTracking.Columns.Add(new Column("RetryCount", ColumnTypes.Integer, false, null));
 
             //add primary key constraint
-            //errorTracking.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ErrorTrackingName, ContraintType.PrimaryKey, "ErrorTrackingID"));
+            //errorTracking.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ErrorTrackingName, ConstraintType.PrimaryKey, "ErrorTrackingID"));
             //errorTracking.PrimaryKey.Unique = true;
 
-            errorTracking.Constraints.Add(new Constraint("IX_QueueID", ContraintType.Index, "QueueID"));
+            errorTracking.Constraints.Add(new Constraint("IX_QueueID", ConstraintType.Index, "QueueID"));
 
             foreach (var c in errorTracking.Constraints)
             {
@@ -296,7 +296,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             metaErrors.Columns.Add(new Column("LastExceptionDate", ColumnTypes.Integer, true, null));
 
             //add primary key constraint
-            //metaErrors.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataErrorsName, ContraintType.PrimaryKey, "ID"));
+            //metaErrors.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataErrorsName, ConstraintType.PrimaryKey, "ID"));
             //metaErrors.PrimaryKey.Unique = true;
 
             //NOTE no indexes are copied from the meta table

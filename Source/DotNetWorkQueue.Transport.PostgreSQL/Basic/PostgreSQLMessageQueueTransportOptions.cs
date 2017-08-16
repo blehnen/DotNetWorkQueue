@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     {
         private bool _enableStatusTable;
         private bool _enablePriority;
-        private bool _enableHoldTransactionUntilMessageCommited;
+        private bool _enableHoldTransactionUntilMessageCommitted;
         private bool _enableStatus;
         private bool _enableHeartBeat;
         private bool _enableDelayedProcessing;
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             EnableDelayedProcessing = false;
             EnableHeartBeat = true;
-            EnableHoldTransactionUntilMessageCommited = false;
+            EnableHoldTransactionUntilMessageCommitted = false;
             EnablePriority = false;
             EnableStatus = true;
             EnableMessageExpiration = false;
@@ -104,13 +104,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <value>
         /// <c>true</c> if [enable hold transaction until message committed]; otherwise, <c>false</c>.
         /// </value>
-        public bool EnableHoldTransactionUntilMessageCommited
+        public bool EnableHoldTransactionUntilMessageCommitted
         {
-            get => _enableHoldTransactionUntilMessageCommited;
+            get => _enableHoldTransactionUntilMessageCommitted;
             set
             {
                 FailIfReadOnly();
-                _enableHoldTransactionUntilMessageCommited = value;
+                _enableHoldTransactionUntilMessageCommitted = value;
             }
         }
         /// <summary>
@@ -236,7 +236,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             var sbErrors = new StringBuilder();
             v.Valid = true;
 
-            if (EnableHoldTransactionUntilMessageCommited)
+            if (EnableHoldTransactionUntilMessageCommitted)
             {
                 if (EnableHeartBeat)
                 {
@@ -249,7 +249,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
                 if (QueueType != QueueTypes.Normal)
                 {
-                    sbErrors.AppendLine("[EnableHoldTransactionUntilMessageCommited] must be false when using RPC queues");
+                    sbErrors.AppendLine("[EnableHoldTransactionUntilMessageCommitted] must be false when using RPC queues");
                 }
             }
 

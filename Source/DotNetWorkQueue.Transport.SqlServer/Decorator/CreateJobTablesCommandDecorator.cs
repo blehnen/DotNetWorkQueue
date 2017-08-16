@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
                 {
                     return new QueueCreationResult(QueueCreationStatus.AttemptedToCreateAlreadyExists);
                 }
-                throw new DotNetWorkQueueException($"Failed to create job table(s)",
+                throw new DotNetWorkQueueException("Failed to create job table(s)",
                     error);
             }
         }

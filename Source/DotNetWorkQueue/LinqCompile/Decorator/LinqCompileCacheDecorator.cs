@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
             _counterActionCacheMiss = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheMissCounter", Units.Items);
             _counterActionCacheUnique = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionUniqueFlaggedCounter", Units.Items);
 
-            _counterFunctionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionCacheHiCountert", Units.Items);
+            _counterFunctionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionCacheHitCounter", Units.Items);
             _counterFunctionCacheMiss = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionCacheMissCounter", Units.Items);
             _counterFunctionCacheUnique = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionUniqueFlaggedCounter", Units.Items);
 

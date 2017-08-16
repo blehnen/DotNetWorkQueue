@@ -56,10 +56,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <summary>
         /// Dequeues the next record for a Rpc.
         /// </summary>
-        /// <param name="messageid">The messageid.</param>
+        /// <param name="messageId">The messageId.</param>
         /// <param name="unixTime">The current unix time.</param>
         /// <returns></returns>
-        public RedisValue[] Execute(string messageid, long unixTime)
+        public RedisValue[] Execute(string messageId, long unixTime)
         {
             if (Connection.IsDisposed)
                 return null;
@@ -68,13 +68,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 
             var db = Connection.Connection.GetDatabase();
             if (_routes == null)
-                return (RedisValue[])db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageid, unixTime, null));
+                return (RedisValue[])db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, unixTime, null));
 
             var counter = 0;
             while (counter < _routes.Length)
             {
                 var route = _routes[GetNextRoute()];
-                var result = db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageid, unixTime, route));
+                var result = db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, unixTime, route));
                 if (!result.IsNull)
                 {
                     return (RedisValue[])result;
@@ -87,10 +87,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <summary>
         /// Dequeues the next record for a Rpc.
         /// </summary>
-        /// <param name="messageid">The messageid.</param>
+        /// <param name="messageId">The messageId.</param>
         /// <param name="unixTime">The current unix time.</param>
         /// <returns></returns>
-        public async Task<RedisValue[]> ExecuteAsync(string messageid, long unixTime)
+        public async Task<RedisValue[]> ExecuteAsync(string messageId, long unixTime)
         {
             if (Connection.IsDisposed)
                 return null;
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             if (_routes == null)
             {
                 var result =
-                    await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageid, unixTime, null))
+                    await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, unixTime, null))
                         .ConfigureAwait(false);
                 return (RedisValue[]) result;
             }
@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             {
                 var route = _routes[GetNextRoute()];
                 var result =
-                   await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageid, unixTime, route))
+                   await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, unixTime, route))
                        .ConfigureAwait(false);
                 if (!result.IsNull)
                 {
@@ -145,11 +145,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <summary>
         /// Gets the parameters.
         /// </summary>
-        /// <param name="messageid">The messageid.</param>
+        /// <param name="messageId">The messageId.</param>
         /// <param name="unixTime">The current unix time.</param>
         /// <param name="route">The route.</param>
         /// <returns></returns>
-        private object GetParameters(string messageid, long unixTime, string route)
+        private object GetParameters(string messageId, long unixTime, string route)
         {
             var pendingKey = !string.IsNullOrEmpty(route) ? RedisNames.PendingRoute(route) : RedisNames.Pending;
             return new
@@ -161,7 +161,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 valueskey = (RedisKey)RedisNames.Values,
                 expirekey = (RedisKey)RedisNames.Expiration,
                 StatusKey = (RedisKey)RedisNames.Status,
-                uuid = messageid
+                uuid = messageId
             };
         }
     }

@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             Guard.NotNull(() => headers, headers);
             Headers = headers;
             IncreaseQueueDelay = messageContextDataFactory.Create("IncreaseQueueDelay", new RedisQueueDelay(TimeSpan.Zero));
-            CorelationId = messageContextDataFactory.Create<RedisQueueCorrelationIdSerialized>("CorelationId", null);
+            CorrelationId = messageContextDataFactory.Create<RedisQueueCorrelationIdSerialized>("CorrelationId", null);
         }
         /// <summary>
         /// Gets the standard headers
@@ -64,6 +64,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <value>
         /// The correlation identifier.
         /// </value>
-        public IMessageContextData<RedisQueueCorrelationIdSerialized> CorelationId { get;  } 
+        public IMessageContextData<RedisQueueCorrelationIdSerialized> CorrelationId { get;  } 
     }
 }

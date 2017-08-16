@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Tests
          "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#@$^*()";
 
         /// <summary>
-        /// Creates a random collecton of strings
+        /// Creates a random collection of strings
         /// </summary>
         /// <param name="minLength">The minimum length.</param>
         /// <param name="maxLength">The maximum length.</param>

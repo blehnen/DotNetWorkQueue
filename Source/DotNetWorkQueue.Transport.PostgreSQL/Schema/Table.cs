@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         {
             get
             {
-                return Constraints.FirstOrDefault(c => c.Type == ContraintType.PrimaryKey);
+                return Constraints.FirstOrDefault(c => c.Type == ConstraintType.PrimaryKey);
             }
         }
 
@@ -102,14 +102,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
                 text.AppendLine();
             }
             //add anything that is not an index
-			foreach (var c in Constraints.Where(c => c.Type != ContraintType.Index))
+			foreach (var c in Constraints.Where(c => c.Type != ConstraintType.Index))
 			{
 			    text.AppendLine("   ," + c.Script());
 			}
 			text.AppendLine();
             text.AppendLine(");");
             //add indexes
-            foreach (var c in Constraints.Where(c => c.Type == ContraintType.Index))
+            foreach (var c in Constraints.Where(c => c.Type == ConstraintType.Index))
 			{
 			    text.AppendLine(c.Script());
                 text.AppendLine(";");

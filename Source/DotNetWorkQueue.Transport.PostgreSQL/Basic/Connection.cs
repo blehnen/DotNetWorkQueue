@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             NpgsqlConnection = new NpgsqlConnection(connectionInfo.ConnectionString);
             NpgsqlConnection.Open();
 
-            if (options.EnableHoldTransactionUntilMessageCommited)
+            if (options.EnableHoldTransactionUntilMessageCommitted)
             {
                 NpgsqlTransaction = NpgsqlConnection.BeginTransaction(IsolationLevel.ReadCommitted);
             }

@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.QueueStatus
         {
             Name = name;
             Server = server;
-            CurentDateTime = currentDateTime;
+            CurrentDateTime = currentDateTime;
             DateTimeProvider = dateTimeProvider;
             Data = data;
         }
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.QueueStatus
         /// <remarks>
         /// This is what the current time value is for the queue itself
         /// </remarks>
-        public DateTime CurentDateTime { get; }
+        public DateTime CurrentDateTime { get; }
 
         /// <summary>
         /// Gets the date time provider.

@@ -35,7 +35,7 @@ namespace DotNetWorkQueue
 
 
         /// <summary>
-        /// Gets a value indicating whether anyc mode has been registered.
+        /// Gets a value indicating whether async mode has been registered.
         /// </summary>
         /// <value>
         /// <c>true</c> if registered; otherwise, <c>false</c>.

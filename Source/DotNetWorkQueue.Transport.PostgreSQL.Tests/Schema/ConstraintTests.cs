@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Schema
         [Fact]
         public void GetSet_Unique()
         {
-            var test = new Constraint("test", ContraintType.Constraint, new List<string>());
+            var test = new Constraint("test", ConstraintType.Constraint, new List<string>());
             var c = test.Unique;
             test.Unique = !c;
             Assert.Equal(!c, test.Unique);
@@ -42,26 +42,26 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Schema
         public void GetSet_Columns()
         {
             var columns = new List<string> {"test"};
-            var test = new Constraint("test", ContraintType.Constraint, columns);
+            var test = new Constraint("test", ConstraintType.Constraint, columns);
             Assert.Equal(columns, test.Columns);
         }
         [Fact]
         public void GetSet_Name()
         {
-            var test = new Constraint("test", ContraintType.Constraint, new List<string>()) {Name = "test1"};
+            var test = new Constraint("test", ConstraintType.Constraint, new List<string>()) {Name = "test1"};
             Assert.Equal("test1", test.Name);
         }
         [Fact]
-        public void GetSet_ContraintType()
+        public void GetSet_ConstraintType()
         {
-            var test = new Constraint("test", ContraintType.Constraint, new List<string>());
-            Assert.Equal(ContraintType.Constraint, test.Type);
+            var test = new Constraint("test", ConstraintType.Constraint, new List<string>());
+            Assert.Equal(ConstraintType.Constraint, test.Type);
         }
 
         [Fact]
         public void Script()
         {
-            var test = new Constraint("test", ContraintType.PrimaryKey, new List<string>());
+            var test = new Constraint("test", ConstraintType.PrimaryKey, new List<string>());
             Assert.Contains("test", test.Script());
         }
 

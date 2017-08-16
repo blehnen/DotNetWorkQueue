@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     if (messageType == 1)
                     {
                         var producer = new ProducerMethodAsyncShared();
-                        producer.RunTest<RedisQueueInit>(queueName,
+                        producer.RunTestAsync<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
 
@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     else if (messageType == 2)
                     {
                         var producer = new ProducerMethodAsyncShared();
-                        producer.RunTest<RedisQueueInit>(queueName,
+                        producer.RunTestAsync<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
 
@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     else if (messageType == 3)
                     {
                         var producer = new ProducerMethodAsyncShared();
-                        producer.RunTest<RedisQueueInit>(queueName,
+                        producer.RunTestAsync<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
 

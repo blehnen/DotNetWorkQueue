@@ -41,15 +41,15 @@ namespace DotNetWorkQueue.Queue
         /// <param name="messageProcessing">The message processing.</param>
         /// <param name="workerTerminate">The worker terminate.</param>
         /// <param name="workerCollection">The worker collection.</param>
-        /// <param name="stopThead">The stop thread.</param>
+        /// <param name="stopThread">The stop thread.</param>
         public PrimaryWorker(
             IWorkerNameFactory nameFactory,
             ILogFactory log,
             IMessageProcessingFactory messageProcessing,
             WorkerTerminate workerTerminate,
             IWorkerCollection workerCollection,
-            StopThread stopThead)
-            : base(workerTerminate, stopThead)
+            StopThread stopThread)
+            : base(workerTerminate, stopThread)
         {
             Guard.NotNull(() => nameFactory, nameFactory);
             Guard.NotNull(() => log, log);

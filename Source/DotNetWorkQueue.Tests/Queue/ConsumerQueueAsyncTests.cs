@@ -64,11 +64,11 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = CreateQueue(1);
             test.Dispose();
-            Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task> action = (message, worker) => null;
+            Task Func(IReceivedMessage<FakeMessage> message, IWorkerNotification worker) => null;
             Assert.Throws<ObjectDisposedException>(
             delegate
             {
-                test.Start(action);
+                test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
             });
         }
 
@@ -77,12 +77,12 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             using (var test = CreateQueue(1))
             {
-                Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task> action = (message, worker) => null;
-                test.Start(action);
+                Task Func(IReceivedMessage<FakeMessage> message, IWorkerNotification worker) => null;
+                test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
                 Assert.Throws<DotNetWorkQueueException>(
                     delegate
                     {
-                        test.Start(action);
+                        test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
                     });
             }
         }
@@ -91,12 +91,12 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             using (var test = CreateQueue(2))
             {
-                Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task> action = (message, worker) => null;
-                test.Start(action);
+                Task Func(IReceivedMessage<FakeMessage> message, IWorkerNotification worker) => null;
+                test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
                 Assert.Throws<DotNetWorkQueueException>(
                     delegate
                     {
-                        test.Start(action);
+                        test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
                     });
             }
         }

@@ -52,9 +52,9 @@ namespace DotNetWorkQueue.Interceptors
             Guard.NotNull(() => input, input);
             using (var tripleDes = TripleDES.Create())
             {
-                using (var tripleDesEncryptor = tripleDes.CreateEncryptor(_configuration.Key, _configuration.Iv))
+                using (var tripleDesEncrypt = tripleDes.CreateEncryptor(_configuration.Key, _configuration.Iv))
                 {
-                    return new MessageInterceptorResult(tripleDesEncryptor.TransformFinalBlock(input, 0, input.Length), true, GetType());
+                    return new MessageInterceptorResult(tripleDesEncrypt.TransformFinalBlock(input, 0, input.Length), true, GetType());
                 }
             }
         }
@@ -69,9 +69,9 @@ namespace DotNetWorkQueue.Interceptors
             Guard.NotNull(() => input, input);
             using (var tripleDes = TripleDES.Create())
             {
-                using (var tripleDesDecryptor = tripleDes.CreateDecryptor(_configuration.Key, _configuration.Iv))
+                using (var tripleDesDecrypt = tripleDes.CreateDecryptor(_configuration.Key, _configuration.Iv))
                 {
-                    return tripleDesDecryptor.TransformFinalBlock(input, 0, input.Length);
+                    return tripleDesDecrypt.TransformFinalBlock(input, 0, input.Length);
                 }
             }
         }

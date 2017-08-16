@@ -1,3 +1,11 @@
+###0.2.0 ????
+* Refactoring to share logic between transports better
+
+* Various spelling mistakes have been fixed. This is a breaking change, as this changed the public signatures of a few methods / properties. There are no behavior changes.
+
+* A Typo with an internal redis property was fixed. This might prevent new code from reading the correlation Id for items saved inbetween versions. The queues should be drained before upgrading.
+
+
 ###0.1.10 2017-03-19
 * Add route support to SQLServer, SQLite, Redis and PostgreSQL transports. Routes allow messages to be picked up for processing by specific consumer(s). A message can have at most 0 or 1 routes. A consumer can look for messages with 0 routes or N routes.
 

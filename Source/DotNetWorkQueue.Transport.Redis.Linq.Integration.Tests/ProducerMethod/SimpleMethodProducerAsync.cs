@@ -73,9 +73,9 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
             {
                 try
                 {
-                    await producer.RunTest<RedisQueueInit>(queueName,
+                    await producer.RunTestAsync<RedisQueueInit>(queueName,
                         connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, batchSending, 0, id, linqMethodTypes);
+                        Helpers.Verify, batchSending, 0, id, linqMethodTypes).ConfigureAwait(false);
                 }
                 finally
                 {

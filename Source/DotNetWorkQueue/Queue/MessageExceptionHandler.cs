@@ -63,12 +63,12 @@ namespace DotNetWorkQueue.Queue
             {
                 _log.ErrorException(
                     "An error has occurred while trying to move message {0} to the error queue", exception,
-                    message.MesssageId);
+                    message.MessageId);
                 throw new DotNetWorkQueueException("An error has occurred in the error handling code",
                     errorHandlingError);
             }
             throw new MessageException("An unhanded exception has occurred while processing a message",
-                exception, message.MesssageId, message.CorrelationId);
+                exception, message.MessageId, message.CorrelationId);
         }
     }
 }

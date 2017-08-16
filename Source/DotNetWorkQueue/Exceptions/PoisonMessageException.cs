@@ -23,7 +23,7 @@ using System.Security.Permissions;
 namespace DotNetWorkQueue.Exceptions
 {
     /// <summary>
-    /// A poison message has beeen pulled from a transport. A poison message can be read from the transport, but can't be re-created.
+    /// A poison message has been pulled from a transport. A poison message can be read from the transport, but can't be re-created.
     /// </summary>
     /// <remarks>
     /// When possible, all 'standard' data is included with the exception. Transport specific data is generally not included.

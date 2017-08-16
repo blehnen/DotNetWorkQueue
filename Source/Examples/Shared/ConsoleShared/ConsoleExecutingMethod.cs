@@ -39,9 +39,9 @@ namespace ConsoleShared
             Namespace = nameSpace;
             Async = async;
         }
-        public Assembly TargetAssembly { get; private set; }
-        public IEnumerable<ParameterInfo> Parameters { get; private set; }
-        public string Namespace { get; private set; }
-        public bool Async { get; private set; }
+        public Assembly TargetAssembly { get; }
+        public IEnumerable<ParameterInfo> Parameters { get; }
+        public string Namespace { get; }
+        public bool Async { get;  }
     }
 }

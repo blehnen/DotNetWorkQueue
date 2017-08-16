@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
             var tableName = GetTableNameHelper();
             var options = new SqlServerMessageQueueTransportOptions {EnableStatusTable = true};
             options.AdditionalColumns.Add(new Column("testing", ColumnTypes.Bigint, true, null));
-            options.AdditionalConstraints.Add(new Constraint("ix_testing", ContraintType.Index, "testing"));
+            options.AdditionalConstraints.Add(new Constraint("ix_testing", ConstraintType.Index, "testing"));
             var factory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);

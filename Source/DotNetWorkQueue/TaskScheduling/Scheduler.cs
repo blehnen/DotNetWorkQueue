@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.TaskScheduling
 
             _queue.Start<T>(
                 (message, notifications) =>
-                    _schedulerMessageHandler.Handle(WorkGroup, message, notifications, functionToRun, _taskFactory.Value));
+                    _schedulerMessageHandler.HandleAsync(WorkGroup, message, notifications, functionToRun, _taskFactory.Value));
         }
 
         /// <summary>

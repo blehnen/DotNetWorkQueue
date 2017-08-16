@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Messages
         /// </returns>
         public async Task HandleAsync(IReceivedMessageInternal message, IWorkerNotification workerNotification)
         {
-             await _messageHandlerAsync.Handle(message, workerNotification);
+             await _messageHandlerAsync.HandleAsync(message, workerNotification).ConfigureAwait(false);
         }
     }
 }

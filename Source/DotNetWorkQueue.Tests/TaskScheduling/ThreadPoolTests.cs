@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             using (var test = Create())
             {
                 test.Dispose();
-                Assert.True(test.IsShuttingdown);
+                Assert.True(test.IsShuttingDown);
             }
         }
 
@@ -149,7 +149,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             config.IdleTimeout = idle;
             config.MaxWorkerThreads = max;
             config.MinWorkerThreads = min;
-            config.WaitForTheadPoolToFinish = wait;
+            config.WaitForThreadPoolToFinish = wait;
             fixture.Inject(config);
             return fixture.Create<ThreadPool>();
         }

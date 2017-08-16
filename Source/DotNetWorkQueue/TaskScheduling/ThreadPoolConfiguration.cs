@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.TaskScheduling
             IdleTimeout = TimeSpan.FromSeconds(5);
             MaxWorkerThreads = 1;
             MinWorkerThreads = 0;
-            WaitForTheadPoolToFinish = TimeSpan.FromSeconds(5);
+            WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
         }
         /// <summary>
         /// Gets or sets the idle timeout.
@@ -58,6 +58,6 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <summary>
         /// How long to wait for thread pool threads to exit when shutting down
         /// </summary>
-        public TimeSpan WaitForTheadPoolToFinish { get; set; }
+        public TimeSpan WaitForThreadPoolToFinish { get; set; }
     }
 }

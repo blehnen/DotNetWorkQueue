@@ -53,7 +53,7 @@ namespace ConsoleShared
             }
         }
 
-        public string RawCommand { get; private set; }
+        public string RawCommand { get; }
         public string Name { get; set; }
         public string LibraryClassName { get; set; }
         public IEnumerable<string> Arguments => _arguments;

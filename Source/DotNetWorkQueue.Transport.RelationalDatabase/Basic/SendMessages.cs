@@ -131,7 +131,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         {
             try
             {
-                var id = await _sendMessageAsync.Handle(
+                var id = await _sendMessageAsync.HandleAsync(
                     new SendMessageCommand(messageToSend, data)).ConfigureAwait(false);
                 return new QueueOutputMessage(_sentMessageFactory.Create(new MessageQueueId(id), data.CorrelationId));
             }
@@ -156,7 +156,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 {
                     try
                     {
-                        var id = await _sendMessageAsync.Handle(
+                        var id = await _sendMessageAsync.HandleAsync(
                             new SendMessageCommand(m.Message, m.MessageData)).ConfigureAwait(false);
                         rc.Add(new QueueOutputMessage(_sentMessageFactory.Create(new MessageQueueId(id), m.MessageData.CorrelationId)));
                     }

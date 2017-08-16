@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Messages
             Guard.NotNull(() => correlationId, correlationId);
 
             Body = message.Body;
-            MesssageId = messageId;
+            MessageId = messageId;
             CorrelationId = correlationId;
             Headers = new ReadOnlyDictionary<string, object>(message.Headers.ToDictionary(entry => entry.Key,
                                                entry => entry.Value));
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Messages
         /// <value>
         /// The identifier.
         /// </value>
-        public IMessageId MesssageId { get; }
+        public IMessageId MessageId { get; }
         /// <summary>
         /// Gets or sets the correlation identifier.
         /// </summary>

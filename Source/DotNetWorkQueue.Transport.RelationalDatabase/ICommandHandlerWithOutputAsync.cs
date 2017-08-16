@@ -32,6 +32,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// </summary>
         /// <param name="command">The command.</param>
         /// <returns></returns>
-        Task<TOutput> Handle(TCommand command);
+        Task<TOutput> HandleAsync(TCommand command);
     }
 }

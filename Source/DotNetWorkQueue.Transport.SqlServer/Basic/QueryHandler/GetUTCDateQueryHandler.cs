@@ -54,9 +54,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             using (var connection = new SqlConnection(query.ConnectionString))
             {
                 connection.Open();
-                using (var sqlcommand = new SqlCommand(_commandCache.GetCommand(CommandStringTypes.GetUtcDate), connection))
+                using (var sqlCommand = new SqlCommand(_commandCache.GetCommand(CommandStringTypes.GetUtcDate), connection))
                 {
-                    using (var reader = sqlcommand.ExecuteReader())
+                    using (var reader = sqlCommand.ExecuteReader())
                     {
                         if (reader.Read())
                         {

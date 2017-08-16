@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="commandSend">The command.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to insert record - the ID of the new record returned by SQLite was 0</exception>
-        public async Task<long> Handle(SendMessageCommand commandSend)
+        public async Task<long> HandleAsync(SendMessageCommand commandSend)
         {
             if (!DatabaseExists.Exists(_configurationSend.ConnectionInfo.ConnectionString))
             {

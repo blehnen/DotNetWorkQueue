@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Tests.Queue
     public class HeartBeatStatusTests
     {
         [Fact]
-        public void Get_MessagId()
+        public void Get_MessageId()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var messageId = fixture.Create<IMessageId>();

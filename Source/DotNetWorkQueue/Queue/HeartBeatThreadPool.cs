@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         /// <c>true</c> if this instance is shutting down; otherwise, <c>false</c>.
         /// </value>
-        public bool IsShuttingdown => _threadPool != null && _threadPool.IsShuttingdown;
+        public bool IsShuttingDown => _threadPool != null && _threadPool.IsShuttingDown;
 
         /// <summary>
         /// Queues a work item.

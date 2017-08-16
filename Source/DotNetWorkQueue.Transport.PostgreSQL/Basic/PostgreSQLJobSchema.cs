@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             main.Columns.Add(new Column("JobName", ColumnTypes.Varchar, 255, false));
 
             //add primary key constraint
-            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.JobTableName, ContraintType.PrimaryKey, "JobName"));
+            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.JobTableName, ConstraintType.PrimaryKey, "JobName"));
             main.PrimaryKey.Unique = true;
             return main;
         }

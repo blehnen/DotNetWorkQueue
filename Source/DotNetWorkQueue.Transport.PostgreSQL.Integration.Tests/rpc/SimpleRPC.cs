@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.rpc
 
                             oCreationReceive.Options.EnableDelayedProcessing = true;
                             oCreationReceive.Options.EnableHeartBeat = !useTransactions;
-                            oCreationReceive.Options.EnableHoldTransactionUntilMessageCommited = useTransactions;
+                            oCreationReceive.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
                             oCreationReceive.Options.EnableStatus = !useTransactions;
                             oCreationReceive.Options.EnableStatusTable = true;
                             oCreationReceive.Options.QueueType = QueueTypes.RpcReceive;
@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.rpc
                             {
                                 oCreation.Options.EnableDelayedProcessing = true;
                                 oCreation.Options.EnableHeartBeat = !useTransactions;
-                                oCreation.Options.EnableHoldTransactionUntilMessageCommited = useTransactions;
+                                oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
                                 oCreation.Options.EnableStatus = !useTransactions;
                                 oCreation.Options.EnableStatusTable = true;
                                 oCreation.Options.QueueType = QueueTypes.RpcSend;

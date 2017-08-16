@@ -106,7 +106,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <exception cref="ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
         public IReceivedMessageInternal ReceiveMessage(IMessageContext context)
         {
-            if (_configuration.Options().EnableHoldTransactionUntilMessageCommited)
+            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
                 _commitConnection = (c, b) => _handleMessage.CommitMessage.CommitForTransaction(context);
                 _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.RollbackForTransaction(context);
@@ -135,7 +135,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 }
                 finally
                 {
-                    if (!_configuration.Options().EnableHoldTransactionUntilMessageCommited)
+                    if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
                     {
                         _disposeConnection(connection);
                     }
@@ -166,7 +166,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <exception cref="ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
         public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
         {
-            if (_configuration.Options().EnableHoldTransactionUntilMessageCommited)
+            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
                 _commitConnection = (c, b) => _handleMessage.CommitMessage.CommitForTransaction(context);
                 _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.RollbackForTransaction(context);
@@ -195,7 +195,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 }
                 finally
                 {
-                    if (!_configuration.Options().EnableHoldTransactionUntilMessageCommited)
+                    if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
                     {
                         _disposeConnection(connection);
                     }
@@ -230,7 +230,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             context.Set(_sqlHeaders.Connection, connection);
 
             //wire up the context commit/rollback/dispose delegates
-            if (!_configuration.Options().EnableHoldTransactionUntilMessageCommited)
+            if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
                 context.Commit += ContextOnCommit;
                 context.Rollback += ContextOnRollback;
@@ -313,7 +313,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="connection">The connection.</param>
         private void ContextCleanup(IMessageContext context, Connection connection)
         {
-            if (!_configuration.Options().EnableHoldTransactionUntilMessageCommited)
+            if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
                 context.Commit -= ContextOnCommit;
                 context.Rollback -= ContextOnRollback;

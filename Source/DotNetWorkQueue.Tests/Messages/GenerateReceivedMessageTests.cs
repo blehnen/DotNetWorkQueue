@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Tests.Messages
             Assert.Equal(translatedMessage.Body, rec.Body);
             Assert.Equal(translatedMessage.CorrelationId, rec.CorrelationId);
             Assert.Equal(translatedMessage.Headers, rec.Headers);
-            Assert.Equal(translatedMessage.MessageId, rec.MesssageId);
+            Assert.Equal(translatedMessage.MessageId, rec.MessageId);
         }
 
         private class FakeMessage

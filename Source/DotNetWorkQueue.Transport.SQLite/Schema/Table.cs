@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         {
             get
             {
-                return Constraints.FirstOrDefault(c => c.Type == ContraintType.PrimaryKey);
+                return Constraints.FirstOrDefault(c => c.Type == ConstraintType.PrimaryKey);
             }
         }
 
@@ -103,7 +103,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
                 text.AppendLine();
             }
             //add primary keys
-			foreach (var c in Constraints.Where(c => c.Type == ContraintType.PrimaryKey))
+			foreach (var c in Constraints.Where(c => c.Type == ConstraintType.PrimaryKey))
 			{
 			    text.AppendLine("   ," + c.Script());
 			}
@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
 			text.AppendLine();
 
             //add indexes and constraints
-            foreach (var c in Constraints.Where(c => c.Type != ContraintType.PrimaryKey))
+            foreach (var c in Constraints.Where(c => c.Type != ConstraintType.PrimaryKey))
             {
                 text.AppendLine(c.Script());
             }

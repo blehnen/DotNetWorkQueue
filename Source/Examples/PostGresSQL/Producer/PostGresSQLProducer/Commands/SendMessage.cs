@@ -23,6 +23,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -38,7 +39,7 @@ using DotNetWorkQueue.Transport.PostgreSQL;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using ExampleMessage;
 
-namespace PostgreSQL.Producer.Commands
+namespace PostGresSQLProducer.Commands
 {
     public class SendMessage: SharedSendCommands
     {

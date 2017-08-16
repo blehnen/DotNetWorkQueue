@@ -72,11 +72,15 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             using (var test = Create(1))
             {
                 test.Dispose();
-                Action<IReceivedMessage<FakeMessage>, IWorkerNotification> action = (message, worker) => { };
+
+                void Action(IReceivedMessage<FakeMessage> message, IWorkerNotification worker)
+                {
+                }
+
                 Assert.Throws<ObjectDisposedException>(
             delegate
             {
-                test.Start(action);
+                test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
             });
             }
         }
@@ -113,12 +117,15 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         {
             using (var test = Create(1))
             {
-                Action<IReceivedMessage<FakeMessage>, IWorkerNotification> action = (message, worker) => { };
-                test.Start(action);
+                void Action(IReceivedMessage<FakeMessage> message, IWorkerNotification worker)
+                {
+                }
+
+                test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
                 Assert.Throws<DotNetWorkQueueException>(
             delegate
             {
-                test.Start(action);
+                test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
             });
             }
         }
@@ -144,7 +151,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        private Scheduler Create(int workerCount, IWorkGroup workgroup = null)
+        private Scheduler Create(int workerCount, IWorkGroup workGroup = null)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var cancelWork = fixture.Create<IQueueCancelWork>();
@@ -176,8 +183,8 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
 
             factoryFactory.Create().Returns(taskFactory);
 
-            if (workgroup != null)
-                fixture2.Inject(workgroup);
+            if (workGroup != null)
+                fixture2.Inject(workGroup);
 
             var handler = fixture2.Create<SchedulerMessageHandler>();
             fixture2.Inject(handler);

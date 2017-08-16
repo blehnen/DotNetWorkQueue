@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.RpcMethod
                     var id = Guid.NewGuid();
                     var rpc =
                         new RpcMethodShared
-                            <RedisQueueInit, FakeResponse, RedisQueueRpcConnection>();
+                            <RedisQueueInit,  RedisQueueRpcConnection>();
                     rpc.Run(queueNameSend, queueNameSend, connectionString,
                         connectionString, logProviderSend, logProviderSend,
                         runtime, messageCount, workerCount, timeOut, async,

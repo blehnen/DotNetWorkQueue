@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteMessageCommandHandler" /> class.
         /// </summary>
-        /// <param name="sendHeartbeatLua">The sendheartbeat.</param>
+        /// <param name="sendHeartbeatLua">The send heartbeat lua.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         public SendHeartBeatCommandHandler(SendHeartbeatLua sendHeartbeatLua, 
             IUnixTimeFactory unixTimeFactory)

@@ -22,7 +22,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 {
-    public class PostgreSQLMessageQueueTransportOptionsTests
+    public class PostgreSqlMessageQueueTransportOptionsTests
     {
         [Fact]
         public void Readonly()
@@ -48,12 +48,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         }
 
         [Fact]
-        public void GetSet_EnableHoldTransactionUntilMessageCommited()
+        public void GetSet_EnableHoldTransactionUntilMessageCommitted()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
-            var c = test.EnableHoldTransactionUntilMessageCommited;
-            test.EnableHoldTransactionUntilMessageCommited = !c;
-            Assert.Equal(!c, test.EnableHoldTransactionUntilMessageCommited);
+            var c = test.EnableHoldTransactionUntilMessageCommitted;
+            test.EnableHoldTransactionUntilMessageCommitted = !c;
+            Assert.Equal(!c, test.EnableHoldTransactionUntilMessageCommitted);
         }
 
         [Fact]

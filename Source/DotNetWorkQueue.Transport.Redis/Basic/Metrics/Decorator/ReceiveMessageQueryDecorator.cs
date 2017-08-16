@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator
             Guard.NotNull(() => handler, handler);
 
             var name = handler.GetType().Name;
-            _counter = metrics.Counter($"{connectionInformation.QueueName}.{name}.Handle.Expired", Units.Items);
+            _counter = metrics.Counter($"{connectionInformation.QueueName}.{name}.HandleAsync.Expired", Units.Items);
             _handler = handler;
         }
 

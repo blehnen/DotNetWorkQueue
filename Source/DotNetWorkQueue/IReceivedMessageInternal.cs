@@ -40,7 +40,7 @@ namespace DotNetWorkQueue
         /// <value>
         /// The identifier.
         /// </value>
-        IMessageId MesssageId { get; }
+        IMessageId MessageId { get; }
         /// <summary>
         /// Gets the correlation identifier.
         /// </summary>

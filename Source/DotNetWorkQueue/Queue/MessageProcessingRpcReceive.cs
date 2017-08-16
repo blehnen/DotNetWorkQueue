@@ -69,8 +69,11 @@ namespace DotNetWorkQueue.Queue
             _rpcContextFactory = rpcContextFactory;
             _commitMessage = commitMessage;
 
-            Action<IReceivedMessage<TReceivedMessage>, IWorkerNotification> action = (message, worker) => { };
-            messageHandler.Set(action);
+            void Action(IReceivedMessage<TReceivedMessage> message, IWorkerNotification worker)
+            {
+            }
+
+            messageHandler.Set((Action<IReceivedMessage<TReceivedMessage>, IWorkerNotification>) Action);
         }
         /// <summary>
         /// Handles the specified message.

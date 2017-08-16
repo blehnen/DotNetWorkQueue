@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MesssageId;
+            context.MessageId = receivedTransportMessage.MessageId;
             
             return receivedTransportMessage;
         }
@@ -132,7 +132,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MesssageId;
+            context.MessageId = receivedTransportMessage.MessageId;
 
             return receivedTransportMessage;
         }

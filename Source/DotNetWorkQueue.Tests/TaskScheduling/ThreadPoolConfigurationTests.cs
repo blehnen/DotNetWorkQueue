@@ -47,11 +47,11 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             Assert.Equal(5, test.MinWorkerThreads);
         }
         [Fact]
-        public void GetSet_WaitForTheadPoolToFinish()
+        public void GetSet_WaitForThreadPoolToFinish()
         {
             var test = Create();
-            test.WaitForTheadPoolToFinish = TimeSpan.MaxValue;
-            Assert.Equal(TimeSpan.MaxValue, test.WaitForTheadPoolToFinish);
+            test.WaitForThreadPoolToFinish = TimeSpan.MaxValue;
+            Assert.Equal(TimeSpan.MaxValue, test.WaitForThreadPoolToFinish);
         }
 
         private ThreadPoolConfiguration Create()

@@ -21,7 +21,6 @@ using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.SQLite.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests

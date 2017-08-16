@@ -30,6 +30,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         protected readonly Dictionary<CommandStringTypes, string> CommandCache;
         private readonly ConcurrentDictionary<string, CommandString> _commandCacheRunTime;
         protected readonly TableNameHelper TableNameHelper;
+        private bool _commandsBuilt;
+        private readonly object _commandBuilder = new object();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandStringCache" /> class.
@@ -42,8 +44,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             TableNameHelper = tableNameHelper;
             CommandCache = new Dictionary<CommandStringTypes, string>();
             _commandCacheRunTime = new ConcurrentDictionary<string, CommandString>();
-
-            BuildCommands();
         }
 
         /// <summary>
@@ -53,6 +53,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <returns></returns>
         public string GetCommand(CommandStringTypes type)
         {
+            if (CommandCache.Count != 0 && _commandsBuilt) return CommandCache[type];
+            lock (_commandBuilder)
+            {
+                if (CommandCache.Count != 0) return CommandCache[type];
+                BuildCommands();
+                _commandsBuilt = true;
+            }
             return CommandCache[type];
         }
 

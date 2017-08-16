@@ -148,10 +148,10 @@ namespace DotNetWorkQueue
         /// <typeparam name="TMessageReceive">The type of the received message.</typeparam>
         /// <typeparam name="TMessageSend">The type of the sent message.</typeparam>
         /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
-        /// <param name="connectonSettings">The connection settings.</param>
+        /// <param name="connectionSettings">The connection settings.</param>
         /// <returns></returns>
         IRpcQueue<TMessageReceive, TMessageSend> CreateRpc
-            <TMessageReceive, TMessageSend, TTConnectionSettings>(TTConnectionSettings connectonSettings)
+            <TMessageReceive, TMessageSend, TTConnectionSettings>(TTConnectionSettings connectionSettings)
             where TMessageReceive : class
             where TMessageSend : class
             where TTConnectionSettings : BaseRpcConnection;
@@ -160,10 +160,10 @@ namespace DotNetWorkQueue
         /// Creates an RPC queue.
         /// </summary>
         /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
-        /// <param name="connectonSettings">The connection settings.</param>
+        /// <param name="connectionSettings">The connection settings.</param>
         /// <returns></returns>
         IRpcMethodQueue CreateMethodRpc
-            <TTConnectionSettings>(TTConnectionSettings connectonSettings)
+            <TTConnectionSettings>(TTConnectionSettings connectionSettings)
             where TTConnectionSettings : BaseRpcConnection;
 
         /// <summary>

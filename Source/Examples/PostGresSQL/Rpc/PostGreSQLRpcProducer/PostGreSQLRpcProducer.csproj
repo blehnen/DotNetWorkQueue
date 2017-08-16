@@ -42,6 +42,9 @@
     <Reference Include="DotNetWorkQueue.Transport.PostgreSQL">
       <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.PostgreSQL.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetWorkQueue.Transport.RelationalDatabase">
+      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />

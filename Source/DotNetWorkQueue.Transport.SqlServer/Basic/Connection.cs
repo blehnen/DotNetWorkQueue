@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             SqlConnection = new SqlConnection(connectionInfo.ConnectionString);
             SqlConnection.Open();
 
-            if (options.EnableHoldTransactionUntilMessageCommited)
+            if (options.EnableHoldTransactionUntilMessageCommitted)
             {
                 SqlTransaction = SqlConnection.BeginTransaction(IsolationLevel.ReadCommitted);
             }

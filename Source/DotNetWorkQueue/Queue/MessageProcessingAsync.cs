@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Queue
         private readonly ILog _log;
         private readonly IReceiveMessagesFactory _receiveMessages;
         private readonly Lazy<IQueueWait> _seriousExceptionProcessBackOffHelper;
-        private readonly Lazy<IQueueWait> _noMessageToProcessBackoffHelper;
+        private readonly Lazy<IQueueWait> _noMessageToProcessBackOffHelper;
         private readonly ProcessMessageAsync _processMessage;
         private readonly IMessageContextFactory _messageContextFactory;
         private readonly IReceivePoisonMessage _receivePoisonMessage;
@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Queue
             _receivePoisonMessage = receivePoisonMessage;
             _rollbackMessage = rollbackMessage;
 
-            _noMessageToProcessBackoffHelper = new Lazy<IQueueWait>(queueWaitFactory.CreateQueueDelay);
+            _noMessageToProcessBackOffHelper = new Lazy<IQueueWait>(queueWaitFactory.CreateQueueDelay);
             _seriousExceptionProcessBackOffHelper = new Lazy<IQueueWait>(queueWaitFactory.CreateFatalErrorDelay);
         }
 
@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Queue
             {
                 try
                 {
-                    await TryProcessIncomingMessage().ConfigureAwait(false);
+                    await TryProcessIncomingMessageAsync().ConfigureAwait(false);
                     _seriousExceptionProcessBackOffHelper.Value.Reset();
                 }
                 catch (MessageException exception)
@@ -153,13 +153,13 @@ namespace DotNetWorkQueue.Queue
         /// Tries the process a new incoming message.
         /// </summary>
         /// <returns></returns>
-        private async Task TryProcessIncomingMessage()
+        private async Task TryProcessIncomingMessageAsync()
         {
             using (var context = _messageContextFactory.Create())
             {
                 try
                 {
-                    await DoTry(context).ConfigureAwait(false);
+                    await DoTryAsync(context).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -194,7 +194,7 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>
-        private async Task DoTry(IMessageContext context)
+        private async Task DoTryAsync(IMessageContext context)
         {
             var receiveMessage = _receiveMessages.Create();
 
@@ -210,12 +210,12 @@ namespace DotNetWorkQueue.Queue
                     Idle(this, EventArgs.Empty);
                     _idle = true;
                 }
-                _noMessageToProcessBackoffHelper.Value.Wait();
+                _noMessageToProcessBackOffHelper.Value.Wait();
                 return;
             }
 
             //reset the back off counter - we have a message to process, so the wait times are now reset
-            _noMessageToProcessBackoffHelper.Value.Reset();
+            _noMessageToProcessBackOffHelper.Value.Reset();
             //we are no longer idle
             if (_idle)
             {
@@ -224,7 +224,7 @@ namespace DotNetWorkQueue.Queue
             }
 
             //process the message
-            await _processMessage.Handle(context, transportMessage).ConfigureAwait(false);
+            await _processMessage.HandleAsync(context, transportMessage).ConfigureAwait(false);
         }
     }
 }

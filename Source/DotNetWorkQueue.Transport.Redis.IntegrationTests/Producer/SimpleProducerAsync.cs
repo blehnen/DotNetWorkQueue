@@ -58,8 +58,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
                 try
                 {
                     await producer.RunTestAsync<RedisQueueInit, FakeMessage>(queueName,
-                       connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, batchSending);
+                        connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
+                        Helpers.Verify, batchSending).ConfigureAwait(false);
                 }
                 finally
                 {

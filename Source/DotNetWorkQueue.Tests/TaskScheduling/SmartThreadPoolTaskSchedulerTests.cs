@@ -149,7 +149,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
-        public void RoomForNewWorkgroup_Task_Disposed_Returns_False()
+        public void RoomForNewWorkGroup_Task_Disposed_Returns_False()
         {
             using (var test = Create())
             {
@@ -160,7 +160,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         }
 
         [Theory, AutoData]
-        public void RoomForNewWorkgroup_True(string value)
+        public void RoomForNewWorkGroup_True(string value)
         {
             using (var test = Create())
             {
@@ -196,7 +196,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         }
 
         [Theory, AutoData]
-        public void AddTask_Workgroup(string value)
+        public void AddTask_WorkGroup(string value)
         {
             using (var test = Create())
             {
@@ -281,7 +281,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             config.MaxQueueSize.Returns(0);
             config.MinimumThreads.Returns(min);
             config.ThreadIdleTimeout.Returns(idle);
-            config.WaitForTheadPoolToFinish.Returns(wait);
+            config.WaitForThreadPoolToFinish.Returns(wait);
             fixture.Inject(config);
 
             return fixture.Create<SmartThreadPoolTaskScheduler>();

@@ -46,8 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public IMessageContextData<SqlQueueDelay> IncreaseQueueDelay
         {
-            get; 
-            private set; 
+            get;
         }
     }
 }

@@ -30,11 +30,11 @@ namespace DotNetWorkQueue.Tests.Factory
         public void Create_id(TimeSpan value)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var messageid = fixture.Create<IMessageId>();
+            var messageId = fixture.Create<IMessageId>();
             var factory = Create(fixture);
-            var id = factory.Create(messageid, value);
+            var id = factory.Create(messageId, value);
 
-            Assert.Equal(id.MessageId, messageid);
+            Assert.Equal(id.MessageId, messageId);
             Assert.Equal(id.TimeOut, value);
         }
 

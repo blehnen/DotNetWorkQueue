@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
 {

@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             main.Columns.Add(new Column("Headers", ColumnTypes.Varbinary, -1, false, null));
 
             //add primary key constraint
-            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.QueueName, ContraintType.PrimaryKey, "QueueID"));
+            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.QueueName, ConstraintType.PrimaryKey, "QueueID"));
             main.PrimaryKey.Clustered = true;
             main.PrimaryKey.Unique = true;
             return main;
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             table.Columns.Add(mainPrimaryKey);
             table.Columns.Add(new Column("Configuration", ColumnTypes.Varbinary, -1, false, null));
 
-            table.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ConfigurationName, ContraintType.PrimaryKey, "ID"));
+            table.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ConfigurationName, ConstraintType.PrimaryKey, "ID"));
             table.PrimaryKey.Clustered = true;
             table.PrimaryKey.Unique = true;
             return table;
@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             status.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ContraintType.PrimaryKey, "QueueID"));
+            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ConstraintType.PrimaryKey, "QueueID"));
             status.PrimaryKey.Unique = true;
             status.PrimaryKey.Clustered = true;
 
@@ -154,7 +154,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             meta.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ContraintType.PrimaryKey, "QueueID"));
+            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ConstraintType.PrimaryKey, "QueueID"));
             meta.PrimaryKey.Unique = true;
 
             if (_options.Value.EnablePriority)
@@ -230,7 +230,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             if (clusterIndex.Count > 0)
             {
                 clusterIndex.Add("QueueID");
-                var cluster = new Constraint("IX_DeQueue", ContraintType.Index, clusterIndex)
+                var cluster = new Constraint("IX_DeQueue", ConstraintType.Index, clusterIndex)
                 {
                     Clustered = true,
                     Unique = true
@@ -245,7 +245,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             //add index on heartbeat column if enabled
             if (_options.Value.EnableHeartBeat)
             {
-                meta.Constraints.Add(new Constraint("IX_HeartBeat", ContraintType.Index, "HeartBeat"));
+                meta.Constraints.Add(new Constraint("IX_HeartBeat", ConstraintType.Index, "HeartBeat"));
             }
 
             //set the table reference
@@ -275,11 +275,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             errorTracking.Columns.Add(new Column("RetryCount", ColumnTypes.Int, false, null));
 
             //add primary key constraint
-            errorTracking.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ErrorTrackingName, ContraintType.PrimaryKey, "ErrorTrackingID"));
+            errorTracking.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ErrorTrackingName, ConstraintType.PrimaryKey, "ErrorTrackingID"));
             errorTracking.PrimaryKey.Clustered = true;
             errorTracking.PrimaryKey.Unique = true;
 
-            errorTracking.Constraints.Add(new Constraint("IX_QueueID", ContraintType.Index, "QueueID"));
+            errorTracking.Constraints.Add(new Constraint("IX_QueueID", ConstraintType.Index, "QueueID"));
 
             foreach (var c in errorTracking.Constraints)
             {
@@ -306,7 +306,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             metaErrors.Columns.Add(new Column("LastExceptionDate", ColumnTypes.Datetime, true, null));
 
             //add primary key constraint
-            metaErrors.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataErrorsName, ContraintType.PrimaryKey, "ID"));
+            metaErrors.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataErrorsName, ConstraintType.PrimaryKey, "ID"));
             metaErrors.PrimaryKey.Clustered = true;
             metaErrors.PrimaryKey.Unique = true;
 

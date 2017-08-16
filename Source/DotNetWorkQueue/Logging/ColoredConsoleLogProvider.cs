@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Logging
                 ConsoleColor consoleColor;
                 if (Colors.TryGetValue(logLevel, out consoleColor))
                 {
-                    var originalForground = Console.ForegroundColor;
+                    var originalForeground = Console.ForegroundColor;
                     try
                     {
                         Console.ForegroundColor = consoleColor;
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Logging
                     }
                     finally
                     {
-                        Console.ForegroundColor = originalForground;
+                        Console.ForegroundColor = originalForeground;
                     }
                 }
                 else

@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                  builder = new System.Data.SQLite.SQLiteConnectionStringBuilder(connectionString);
             }
             // ReSharper disable once UncatchableException
-            catch (System.ArgumentException) //bad format - return a connectionstring info that isn't valid
+            catch (System.ArgumentException) //bad format - return a connection string info that isn't valid
             {
                 return new ConnectionStringInfo(false, string.Empty);
             }
@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public string FileName { get; }
 
         /// <summary>
-        /// Returns true if the filename is valid or this is an inmemory database
+        /// Returns true if the filename is valid or this is an in-memory database
         /// </summary>
         /// <value>
         ///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.

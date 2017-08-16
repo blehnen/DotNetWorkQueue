@@ -212,7 +212,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <value>
         /// <c>true</c> if [enable hold transaction until message committed]; otherwise, <c>false</c>.
         /// </value>
-        public bool EnableHoldTransactionUntilMessageCommited
+        public bool EnableHoldTransactionUntilMessageCommitted
         {
             get => false;
             // ReSharper disable once ValueParameterNotUsed
@@ -259,7 +259,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <summary>
-        /// Marks this instance as imutable
+        /// Marks this instance as immutable
         /// </summary>
         public void SetReadOnly()
         {

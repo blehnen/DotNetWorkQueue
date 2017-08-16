@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         public void Handle(MoveRecordToErrorQueueCommand command)
         {
             GenerateSqlForMove();
-            if (_options.Value.EnableHoldTransactionUntilMessageCommited)
+            if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
             {
                 HandleForTransaction(command);
             }
@@ -235,7 +235,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                 i++;
             }
             sb.Append(", @LastException, now() at time zone 'utc' from " + _tableNameHelper.MetaDataName);
-            //if (_options.Value.EnableHoldTransactionUntilMessageCommited)
+            //if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
             //{
             //    sb.Append(" WITH (NOLOCK)"); //perform a dirty read on our own transaction so that we can access the record that we've already deleted
             //}

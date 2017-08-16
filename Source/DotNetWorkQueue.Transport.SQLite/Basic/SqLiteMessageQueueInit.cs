@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
@@ -67,7 +66,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<CommandStringCache, SqLiteCommandStringCache>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
-            container.Register<ITransactionFactory, SQLite.Basic.TransactionFactory>(LifeStyles.Singleton);
+            container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<ISetupCommand, SetupCommand>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqliteJobSchema>(LifeStyles.Singleton);
 
@@ -142,12 +141,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 typeof(ICommandHandlerWithOutput<DeleteMessageCommand, long>),
                 typeof(DeleteMessageCommandDecorator), LifeStyles.Singleton);
 
-            //registor our decorator for setting the status
+            //register our decorator for setting the status
             container.RegisterDecorator(
                 typeof(ICommandHandler<DeleteStatusTableStatusCommand>),
                 typeof(SetStatusTableStatusCommandDecorator), LifeStyles.Singleton);
 
-            //registor our decorator for resetting the heart beat
+            //register our decorator for resetting the heart beat
             container.RegisterDecorator(
                 typeof(ICommandHandlerWithOutput<ResetHeartBeatCommand, long>),
                 typeof(ResetHeartBeatCommandDecorator), LifeStyles.Singleton);

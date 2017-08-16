@@ -62,7 +62,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             Assert.Equal(messageCount, records);
         }
 
-        private void VerifyStatus(long messageCount, int expectedStatus, string route)
+        // ReSharper disable once UnusedParameter.Local
+        private void VerifyStatus(long messageCount, 
+            // ReSharper disable once UnusedParameter.Local
+            int expectedStatus, string route)
         {
             var db = _connection.Connection.GetDatabase();
             var records = !string.IsNullOrEmpty(route) ? db.ListLength(_redisNames.PendingRoute(route)) : db.HashLength(_redisNames.Status);
@@ -134,7 +137,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             VerifyStatus(recordCount, expectedStatus);
         }
 
-        private void VerifyStatus(long messageCount, int expectedStatus)
+        // ReSharper disable once UnusedParameter.Local
+        private void VerifyStatus(long messageCount, 
+            // ReSharper disable once UnusedParameter.Local
+            int expectedStatus)
         {
             var db = _connection.Connection.GetDatabase();
             var records = db.HashLength(_redisNames.Status);

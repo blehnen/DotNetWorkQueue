@@ -213,7 +213,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (message == null) return null;
             if (!message.Expired)
             {
-                context.MessageId = message.Message.MesssageId;
+                context.MessageId = message.Message.MessageId;
             }
             return message;
         }
@@ -230,7 +230,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (message == null) return null;
             if (!message.Expired)
             {
-                context.MessageId = message.Message.MesssageId;
+                context.MessageId = message.Message.MessageId;
             }
             return message;
         }

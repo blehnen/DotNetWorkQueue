@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Messages
             Body = (T)message.Body;
             Headers = new ReadOnlyDictionary<string, object>(message.Headers.ToDictionary(entry => entry.Key,
                                                entry => entry.Value));
-            MessageId = message.MesssageId;
+            MessageId = message.MessageId;
             CorrelationId = message.CorrelationId;
         }
         /// <summary>

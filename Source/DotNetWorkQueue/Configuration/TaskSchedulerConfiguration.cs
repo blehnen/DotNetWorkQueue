@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Configuration
         private int _minimumThreads;
         private int _maxQueueSize;
         private TimeSpan _threadIdleTimeout;
-        private TimeSpan _waitForTheadPoolToFinish;
+        private TimeSpan _waitForThreadPoolToFinish;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskSchedulerConfiguration"/> class.
@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Configuration
             MinimumThreads = 0;
             MaxQueueSize = 0;
             ThreadIdleTimeout = TimeSpan.FromSeconds(60);
-            WaitForTheadPoolToFinish = TimeSpan.FromSeconds(5);
+            WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
         }
         /// <summary>
         /// The maximum amount of threads to use to process messages
@@ -121,13 +121,13 @@ namespace DotNetWorkQueue.Configuration
         /// <summary>
         /// How long to wait for thread pool threads to exit when shutting down
         /// </summary>
-        public TimeSpan WaitForTheadPoolToFinish
+        public TimeSpan WaitForThreadPoolToFinish
         {
-            get => _waitForTheadPoolToFinish;
+            get => _waitForThreadPoolToFinish;
             set
             {
                 FailIfReadOnly();
-                _waitForTheadPoolToFinish = value;
+                _waitForThreadPoolToFinish = value;
             }
         }
 

@@ -189,14 +189,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
 
             transportReceive.HeartBeatSupported = options.EnableHeartBeat && options.EnableStatus &&
-                                                  !options.EnableHoldTransactionUntilMessageCommited;
+                                                  !options.EnableHoldTransactionUntilMessageCommitted;
 
             transportReceive.MessageExpirationSupported = options.EnableMessageExpiration ||
                                                           options.QueueType == QueueTypes.RpcReceive ||
                                                           options.QueueType == QueueTypes.RpcSend;
 
             transportReceive.MessageRollbackSupported = options.EnableStatus ||
-                                                        options.EnableHoldTransactionUntilMessageCommited;
+                                                        options.EnableHoldTransactionUntilMessageCommitted;
 
             transportReceive.QueueDelayBehavior.Clear();
             transportReceive.QueueDelayBehavior.Add(DefaultQueueDelay.GetDefaultQueueDelay());

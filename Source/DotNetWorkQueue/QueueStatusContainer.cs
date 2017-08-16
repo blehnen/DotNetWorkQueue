@@ -74,7 +74,7 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IQueueStatus CreateStatus()
         {
-            //when creating a status module outside of the queue itself, use a noop system information module
+            //when creating a status module outside of the queue itself, use a no-op system information module
             var container = _createContainerInternal().Create(QueueContexts.QueueStatus ,_registerService, _transportInit,
                 x => { }, _setOptions);
 

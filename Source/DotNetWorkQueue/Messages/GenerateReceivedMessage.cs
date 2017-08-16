@@ -50,9 +50,9 @@ namespace DotNetWorkQueue.Messages
 
             //if d1 is null, just let it throw an exception; this would indicate that something strange has happened
             // ReSharper disable once PossibleNullReferenceException
-            var makeme = d1.MakeGenericType(typeArgs);
+            var make = d1.MakeGenericType(typeArgs);
 
-            return (IReceivedMessage<T>)Activator.CreateInstance(makeme, internalMessage);
+            return (IReceivedMessage<T>)Activator.CreateInstance(make, internalMessage);
         }
     }
 }

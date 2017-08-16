@@ -153,14 +153,14 @@
     <!-- sql transport -->
     <ItemGroup>
       <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.Transport.SqlServer.dll" />
-      <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" />
     </ItemGroup>
     <PropertyGroup>
       <OutputAssembly>$(SolutionDir)\..\MergedBuild\DotNetWorkQueue.Transport.SqlServer.dll</OutputAssembly>
       <Merger Condition="('$(OS)' == 'Windows_NT')">"$(SolutionDir)\packages\ilmerge.2.14.1208\Tools\ILMerge.exe"</Merger>
     </PropertyGroup>
     <Message Text="MERGING: @(MergeAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
-    <Exec Command="$(Merger) /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
+    <Exec Command="$(Merger) /internalize /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
     <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.SqlServer.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
+	<Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
   </Target>
 </Project>

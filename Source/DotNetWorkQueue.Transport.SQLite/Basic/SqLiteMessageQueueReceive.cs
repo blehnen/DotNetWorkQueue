@@ -139,7 +139,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <summary>
-        /// Performs prechecks on context
+        /// Performs pre-checks on context
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>

@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
@@ -191,14 +190,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
 
             transportReceive.HeartBeatSupported = options.EnableHeartBeat && options.EnableStatus &&
-                                                  !options.EnableHoldTransactionUntilMessageCommited;
+                                                  !options.EnableHoldTransactionUntilMessageCommitted;
 
             transportReceive.MessageExpirationSupported = options.EnableMessageExpiration ||
                                                           options.QueueType == QueueTypes.RpcReceive ||
                                                           options.QueueType == QueueTypes.RpcSend;
 
             transportReceive.MessageRollbackSupported = options.EnableStatus ||
-                                                        options.EnableHoldTransactionUntilMessageCommited;
+                                                        options.EnableHoldTransactionUntilMessageCommitted;
 
             transportReceive.QueueDelayBehavior.Clear();
             transportReceive.QueueDelayBehavior.Add(DefaultQueueDelay.GetDefaultQueueDelay());

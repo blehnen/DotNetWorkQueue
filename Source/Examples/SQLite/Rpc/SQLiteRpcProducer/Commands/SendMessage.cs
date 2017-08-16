@@ -227,7 +227,7 @@ namespace SQLiteRpcProducer.Commands
             {
                 try
                 {
-                    var response = await ((IRpcQueue<SimpleResponse, SimpleMessage>)_queues[queueReceive]).SendAsync(message.Message, timeout, message.MessageData);
+                    var response = await ((IRpcQueue<SimpleResponse, SimpleMessage>)_queues[queueReceive]).SendAsync(message.Message, timeout, message.MessageData).ConfigureAwait(false);
                     if (response.Body == null)
                     {
                         //RPC call failed

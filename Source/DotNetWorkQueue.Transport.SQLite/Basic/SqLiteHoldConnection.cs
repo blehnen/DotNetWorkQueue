@@ -21,7 +21,7 @@ using System.Data.SQLite;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
-    internal class SqLiteHoldConnection : System.IDisposable
+    internal class SqLiteHoldConnection : IDisposable
     {
         private readonly System.Collections.Concurrent.ConcurrentDictionary<string, SQLiteConnection> _connections;
 

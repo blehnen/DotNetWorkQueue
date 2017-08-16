@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
             bool interceptors,
             bool enableDelayedProcessing,
             bool enableHeartBeat,
-            bool enableHoldTransactionUntilMessageCommited,
+            bool enableHoldTransactionUntilMessageCommitted,
             bool enableMessageExpiration,
             bool enablePriority,
             bool enableStatus,
@@ -81,8 +81,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                         oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
                         oCreation.Options.EnableHeartBeat = enableHeartBeat;
                         oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommited =
-                            enableHoldTransactionUntilMessageCommited;
+                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted =
+                            enableHoldTransactionUntilMessageCommitted;
                         oCreation.Options.EnablePriority = enablePriority;
                         oCreation.Options.EnableStatus = enableStatus;
                         oCreation.Options.EnableStatusTable = enableStatusTable;
@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
 
                         var id = Guid.NewGuid();
                         var producer = new ProducerMethodAsyncShared();
-                        await producer.RunTest<PostgreSqlMessageQueueInit>(queueName,
+                        await producer.RunTestAsync<PostgreSqlMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
                             Helpers.Verify, false, 0, id, linqMethodTypes).ConfigureAwait(false);

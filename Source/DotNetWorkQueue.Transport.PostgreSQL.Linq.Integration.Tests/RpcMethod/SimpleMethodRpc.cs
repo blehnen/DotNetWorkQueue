@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.RpcMethod
 
                             oCreationReceive.Options.EnableDelayedProcessing = true;
                             oCreationReceive.Options.EnableHeartBeat = !useTransactions;
-                            oCreationReceive.Options.EnableHoldTransactionUntilMessageCommited = useTransactions;
+                            oCreationReceive.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
                             oCreationReceive.Options.EnableStatus = !useTransactions;
                             oCreationReceive.Options.EnableStatusTable = true;
                             oCreationReceive.Options.QueueType = QueueTypes.RpcReceive;
@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.RpcMethod
                             {
                                 oCreation.Options.EnableDelayedProcessing = true;
                                 oCreation.Options.EnableHeartBeat = !useTransactions;
-                                oCreation.Options.EnableHoldTransactionUntilMessageCommited = useTransactions;
+                                oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
                                 oCreation.Options.EnableStatus = !useTransactions;
                                 oCreation.Options.EnableStatusTable = true;
                                 oCreation.Options.QueueType = QueueTypes.RpcSend;
@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.RpcMethod
 
                                 var rpc =
                                     new RpcMethodShared
-                                        <PostgreSqlMessageQueueInit, FakeResponse, PostgreSqlRpcConnection>();
+                                        <PostgreSqlMessageQueueInit, PostgreSqlRpcConnection>();
 
                                 rpc.Run(queueNameReceive, queueNameSend, ConnectionInfo.ConnectionString,
                                     ConnectionInfo.ConnectionString, logProviderReceive, logProviderSend,

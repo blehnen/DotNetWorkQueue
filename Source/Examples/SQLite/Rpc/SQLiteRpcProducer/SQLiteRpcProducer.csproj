@@ -41,6 +41,9 @@
     <Reference Include="DotNetWorkQueue.Metrics.Net">
       <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Metrics.Net.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetWorkQueue.Transport.RelationalDatabase">
+      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetWorkQueue.Transport.SQLite">
       <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.SQLite.dll</HintPath>
     </Reference>

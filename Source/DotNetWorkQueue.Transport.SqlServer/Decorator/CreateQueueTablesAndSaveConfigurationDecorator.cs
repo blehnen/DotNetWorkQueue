@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
                 {
                     return new QueueCreationResult(QueueCreationStatus.AttemptedToCreateAlreadyExists);
                 }
-                throw new DotNetWorkQueueException($"Failed to create queue",
+                throw new DotNetWorkQueueException("Failed to create queue",
                     error);
             }
         }

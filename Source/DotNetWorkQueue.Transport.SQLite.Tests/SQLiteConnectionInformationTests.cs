@@ -46,6 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
             Assert.Throws<ArgumentException>(
             delegate
             {
+                // ReSharper disable once UnusedVariable
                 var test = new SqliteConnectionInformation(string.Empty, BadConnection);
             });
         }

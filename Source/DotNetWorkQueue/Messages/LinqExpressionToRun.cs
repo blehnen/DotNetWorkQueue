@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Messages
         /// </summary>
         /// <param name="linq">The linq.</param>
         /// <param name="references">The references. Add any DLL references needed by your code here</param>
-        /// <param name="usings">The using statements. Add any using statements needed by your code here</param>
+        /// <param name="usingStatements">The using statements. Add any using statements needed by your code here</param>
         /// <param name="unique">if set to <c>true</c> this expression contains data that makes it likely to unique. The compiler may choose to not cache the output if this flag is true.</param>
         /// <example>
         /// The compiler needs to know about all of your references and any using statements that are required.
@@ -51,14 +51,14 @@ namespace DotNetWorkQueue.Messages
         /// new List{string} {"ProducerMethodTestingClasses.dll"}, //additional references
         /// new List{string} {"ProducerMethodTestingClasses.TestClasses"})); //additional using statements
         /// </example>
-        public LinqExpressionToRun(string linq, IReadOnlyList<string> references = null, IReadOnlyList<string> usings = null, bool unique = false) : this()
+        public LinqExpressionToRun(string linq, IReadOnlyList<string> references = null, IReadOnlyList<string> usingStatements = null, bool unique = false) : this()
         {
             Linq = linq;
             Unique = unique;
             if(references != null)
                 References = references;
-            if(usings != null)
-                Usings = usings;
+            if(usingStatements != null)
+                Usings = usingStatements;
 
             _hashCode = CalculateHashCode();
         }

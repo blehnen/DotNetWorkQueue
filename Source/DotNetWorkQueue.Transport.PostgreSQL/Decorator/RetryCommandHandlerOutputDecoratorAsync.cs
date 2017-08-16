@@ -56,10 +56,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         /// </summary>
         /// <param name="command">The command.</param>
         /// <returns></returns>
-        public async Task<TOutput> Handle(TCommand command)
+        public async Task<TOutput> HandleAsync(TCommand command)
         {
             Guard.NotNull(() => command, command);
-            return await HandleWithCountDown(command, RetryConstants.RetryCount).ConfigureAwait(false);
+            return await HandleWithCountDownAsync(command, RetryConstants.RetryCount).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -68,11 +68,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         /// <param name="command">The command.</param>
         /// <param name="count">The count.</param>
         /// <returns></returns>
-        private async Task<TOutput> HandleWithCountDown(TCommand command, int count)
+        private async Task<TOutput> HandleWithCountDownAsync(TCommand command, int count)
         {
             try
             {
-                return await _decorated.Handle(command).ConfigureAwait(false);
+                return await _decorated.HandleAsync(command).ConfigureAwait(false);
             }
             catch (PostgresException sqlEx)
             {
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
                 _log.WarnException($"An error has occurred; we will try to re-run the transaction in {wait} ms", sqlEx);
                 Thread.Sleep(wait);
 
-                return await HandleWithCountDown(command, count - 1).ConfigureAwait(false);
+                return await HandleWithCountDownAsync(command, count - 1).ConfigureAwait(false);
             }
         }
     }

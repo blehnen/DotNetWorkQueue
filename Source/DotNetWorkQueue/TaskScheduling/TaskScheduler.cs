@@ -191,7 +191,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <summary>
         /// De-increments the counter for the running tasks
         /// </summary>
-        protected virtual void DeincrementCounter()
+        protected virtual void DecrementCounter()
         {
             Interlocked.Decrement(ref _currentTaskCount);
         }
@@ -200,7 +200,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// De-increments the task counter for a specific group.
         /// </summary>
         /// <param name="group">The group.</param>
-        protected virtual void DeincrementGroup(IWorkGroup group)
+        protected virtual void DecrementGroup(IWorkGroup group)
         {
             Interlocked.Decrement(ref _groups[group].CurrentWorkItems);
         }
@@ -399,15 +399,15 @@ namespace DotNetWorkQueue.TaskScheduling
             if (information != null) //if not null, this is a work group
             {
                 var state = information;
-                DeincrementCounter();
-                DeincrementGroup(state.Group);
+                DecrementCounter();
+                DecrementGroup(state.Group);
                 _groups[state.Group].MetricCounter.Decrement(1);
                 _taskCounter.Decrement(_groups[state.Group].Group.Name, 1);
                 SetWaitHandle(state.Group);   
             }
             else //is null, so this is not a work group item
             {
-                DeincrementCounter();
+                DecrementCounter();
                 _taskCounter.Decrement(1);
                 SetWaitHandle(null);   
             }     
@@ -465,7 +465,7 @@ namespace DotNetWorkQueue.TaskScheduling
 
             if (_smartThreadPool != null)
             {
-                _smartThreadPool.WaitForIdle(_configuration.WaitForTheadPoolToFinish);
+                _smartThreadPool.WaitForIdle(_configuration.WaitForThreadPoolToFinish);
                 _smartThreadPool.Shutdown();
                 _smartThreadPool.Dispose();
                 _smartThreadPool = null;

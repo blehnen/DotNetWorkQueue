@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <param name="name">The name.</param>
         /// <param name="type">The type.</param>
         /// <param name="column">The column.</param>
-        public Constraint(string name, ContraintType type, string column) 
+        public Constraint(string name, ConstraintType type, string column) 
         {
 			Name = name;
 			Type = type;
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <param name="name">The name.</param>
         /// <param name="type">The type.</param>
         /// <param name="columns">The columns.</param>
-        public Constraint(string name, ContraintType type, List<string> columns)
+        public Constraint(string name, ConstraintType type, List<string> columns)
         {
             Name = name;
             Type = type;
@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// </value>
         public string Name { get; set; }
         /// <summary>
-        /// Gets or sets the table that this contraint belongs to
+        /// Gets or sets the table that this constraint belongs to
         /// </summary>
         /// <value>
         /// The table.
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <value>
         /// The type.
         /// </value>
-        public ContraintType Type { get; set; }
+        public ConstraintType Type { get; set; }
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="Constraint"/> is unique.
         /// </summary>
@@ -119,10 +119,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         {
             switch (Type)
             {
-                case ContraintType.Constraint:
-                case ContraintType.Index:
+                case ConstraintType.Constraint:
+                case ConstraintType.Index:
                     return $"CREATE {UniqueText} INDEX {Name}{Table.Name} ON {Table.Name} ({string.Join(", ", Columns.ToArray())});";
-                case ContraintType.PrimaryKey:
+                case ConstraintType.PrimaryKey:
                     return $"PRIMARY KEY ({string.Join("], [", Columns.ToArray())})";
             }
             throw new DotNetWorkQueueException($"Unhandled type of {Type}");
@@ -150,7 +150,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
     /// <summary>
     /// The type of the constraint
     /// </summary>
-    public enum ContraintType
+    public enum ConstraintType
     {
         /// <summary>
         /// index

@@ -29,8 +29,8 @@ namespace ShellControlV2
 
         public string Prompt
         {
-            get { return _prompt; }
-            set { SetPromptText(value); }
+            get => _prompt;
+            set => SetPromptText(value);
         }
 
         public string[] GetCommandHistory()

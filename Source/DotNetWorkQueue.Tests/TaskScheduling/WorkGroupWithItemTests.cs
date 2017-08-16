@@ -31,18 +31,18 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var group = fixture.Create<IWorkGroup>();
-            var threadgroup = fixture.Create<IWorkItemsGroup>();
+            var threadGroup = fixture.Create<IWorkItemsGroup>();
             var counter = fixture.Create<ICounter>();
             group.ConcurrencyLevel.Returns(5);
             group.MaxQueueSize.Returns(1);
             fixture.Inject(group);
-            fixture.Inject(threadgroup);
+            fixture.Inject(threadGroup);
             fixture.Inject(counter);
 
             var test = fixture.Create<WorkGroupWithItem>();
 
             Assert.Equal(group, test.GroupInfo);
-            Assert.Equal(threadgroup, test.Group);
+            Assert.Equal(threadGroup, test.Group);
             Assert.Equal(counter, test.MetricCounter);
             Assert.Equal(group.ConcurrencyLevel + group.MaxQueueSize, test.MaxWorkItems);
             test.CurrentWorkItems = 0;

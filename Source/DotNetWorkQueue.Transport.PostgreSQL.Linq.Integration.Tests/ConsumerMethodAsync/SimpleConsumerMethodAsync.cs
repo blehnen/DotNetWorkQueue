@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
                         oCreation.Options.EnableHeartBeat = !useTransactions;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommited = useTransactions;
+                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
                         oCreation.Options.EnableStatus = !useTransactions;
                         oCreation.Options.EnableStatusTable = true;
 
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         if (messageType == 1)
                         {
                             var producer = new ProducerMethodAsyncShared();
-                            producer.RunTest<PostgreSqlMessageQueueInit>(queueName,
+                            producer.RunTestAsync<PostgreSqlMessageQueueInit>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
 
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         else if (messageType == 2)
                         {
                             var producer = new ProducerMethodAsyncShared();
-                            producer.RunTest<PostgreSqlMessageQueueInit>(queueName,
+                            producer.RunTestAsync<PostgreSqlMessageQueueInit>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
 
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         else if (messageType == 3)
                         {
                             var producer = new ProducerMethodAsyncShared();
-                            producer.RunTest<PostgreSqlMessageQueueInit>(queueName,
+                            producer.RunTestAsync<PostgreSqlMessageQueueInit>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
 

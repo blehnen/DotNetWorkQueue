@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.QueueStatus
         /// <value>
         /// The current date time.
         /// </value>
-        public DateTime CurentDateTime => DateTime.MinValue;
+        public DateTime CurrentDateTime => DateTime.MinValue;
         /// <summary>
         /// Gets or sets the date time provider.
         /// </summary>

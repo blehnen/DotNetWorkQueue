@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
         public static long GetExpiredMessageCount(MetricsData data)
         {
-            var names = new List<string>(2) { ".ClearMessages.ResetCounter", ".Handle.Expired" };
+            var names = new List<string>(2) { ".ClearMessages.ResetCounter", ".HandleAsync.Expired" };
             long count = 0;
             foreach (var name in names)
             {

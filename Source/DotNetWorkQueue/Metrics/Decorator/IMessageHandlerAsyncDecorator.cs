@@ -45,14 +45,11 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="workerNotification">The worker notification.</param>
-        /// <returns>
-        /// an awaitable task
-        /// </returns>
-        public async Task Handle(IReceivedMessageInternal message, IWorkerNotification workerNotification)
+        public async Task HandleAsync(IReceivedMessageInternal message, IWorkerNotification workerNotification)
         {
             using (_runCodeTimer.NewContext())
             {
-                await _handler.Handle(message, workerNotification).ConfigureAwait(false);
+                await _handler.HandleAsync(message, workerNotification).ConfigureAwait(false);
             }
         }
     }

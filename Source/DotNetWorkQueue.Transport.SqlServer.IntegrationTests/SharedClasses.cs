@@ -21,7 +21,6 @@ using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests

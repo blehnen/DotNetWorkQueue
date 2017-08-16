@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {

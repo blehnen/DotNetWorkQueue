@@ -35,10 +35,13 @@ namespace DotNetWorkQueue.Tests.Messages
             fixture.Inject(messageHandlerRegistration);
             var test = fixture.Create<RegisterMessages>();
 
-            Action<IReceivedMessage<FakeMessage>, IWorkerNotification> action = (message, worker) => { };
-            test.Register(action);
+            void Action(IReceivedMessage<FakeMessage> message, IWorkerNotification worker)
+            {
+            }
 
-            messageHandlerRegistration.Received(1).Set(action);
+            test.Register((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
+
+            messageHandlerRegistration.Received(1).Set((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
         }
     }
 }

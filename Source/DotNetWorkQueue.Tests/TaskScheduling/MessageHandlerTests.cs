@@ -28,13 +28,13 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
     public class MessageHandlerTests
     {
         [Fact]
-        public void Handle_Null_Parms_Fails()
+        public void Handle_Null_Params_Fails()
         {
             var test = Create();
             Assert.Throws<ArgumentNullException>(
             delegate
             {
-                test.Handle<FakeMessage>(Substitute.For<IWorkGroup>(),
+                test.HandleAsync<FakeMessage>(Substitute.For<IWorkGroup>(),
                     null, null, null, null);
             });
         }
@@ -42,7 +42,9 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         [Fact]
         public void Handle_Message()
         {
-            Action<IReceivedMessage<FakeMessage>, IWorkerNotification> action = (message, notification) => {};
+            void Action(IReceivedMessage<FakeMessage> message, IWorkerNotification notification)
+            {
+            }
 
             var factory = Substitute.For<ITaskFactory>();
             factory.Scheduler.Returns(Substitute.For<ATaskScheduler>());
@@ -50,9 +52,9 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             factory.TryStartNew(null, null, null, out blah).ReturnsForAnyArgs(TryStartNewResult.Added);
 
             var test = Create();
-            test.Handle(null, Substitute.For<IReceivedMessage<FakeMessage>>(),
+            test.HandleAsync(null, Substitute.For<IReceivedMessage<FakeMessage>>(),
                 Substitute.For<IWorkerNotification>(),
-                action,
+                Action,
                 factory);
         }
 

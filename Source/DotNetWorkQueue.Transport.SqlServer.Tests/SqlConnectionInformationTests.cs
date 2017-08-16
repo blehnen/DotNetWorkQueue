@@ -40,6 +40,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
             Assert.Throws<ArgumentException>(
             delegate
             {
+                // ReSharper disable once UnusedVariable
                 var test = new SqlConnectionInformation(string.Empty, BadConnection);
             });
         }

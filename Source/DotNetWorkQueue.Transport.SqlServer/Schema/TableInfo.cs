@@ -39,13 +39,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <value>
         /// The owner.
         /// </value>
-        public string Owner { get; private set; }
+        public string Owner { get;  }
         /// <summary>
         /// Gets the name.
         /// </summary>
         /// <value>
         /// The name.
         /// </value>
-        public string Name { get; private set; }
+        public string Name { get; }
     }
 }

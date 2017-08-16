@@ -180,7 +180,7 @@ namespace DotNetWorkQueue.JobScheduler
             return Name;
         }
 
-        internal async Task RunPendingEvent(PendingEvent ev)
+        internal async Task RunPendingEventAsync(PendingEvent ev)
         {
             var eventTime = ev.ScheduledTime;
             var execLockTaken = false;
@@ -212,7 +212,7 @@ namespace DotNetWorkQueue.JobScheduler
                                  result.Status == JobQueuedStatus.AlreadyProcessed)
                         {
                             _queue.Logger.Log(LogLevel.Warn, () => $"Failed to enqueue job {this}, the status is {result.Status}");
-                            RaiseNonFatalFailtureEnQueue(result);
+                            RaiseNonFatalFailureEnQueue(result);
                         }
                         else if (result.SendingException != null)
                         {
@@ -270,7 +270,7 @@ namespace DotNetWorkQueue.JobScheduler
                 ev?.Invoke(this, ex);
             });
         }
-        private void RaiseNonFatalFailtureEnQueue(IJobQueueOutputMessage message)
+        private void RaiseNonFatalFailureEnQueue(IJobQueueOutputMessage message)
         {
             Task.Run(() =>
             {

@@ -123,12 +123,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                     sb.AppendLine("AND Route IN ( ");
                 }
 
-                var routeCounter = 1;
-                foreach(var route in routes)
+                for (var i = 1; i < routes.Count; i++)
                 {
-                    sb.Append("@Route" + routeCounter.ToString());
-                    routeCounter++;
-                    if (routeCounter != routes.Count + 1)
+                    sb.Append("@Route" + i);
+                    if (i != routes.Count + 1)
                     {
                         sb.Append(", ");
                     }
@@ -153,16 +151,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 
             if (_options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend)
             {
-                if (needWhere)
-                {
-                    sb.AppendLine("where ExpirationTime > getutcdate() ");
-                    needWhere = false;
-                }
-                else
-                {
-                    sb.AppendLine("AND ExpirationTime > getutcdate() ");
-                }
-                needWhere = false;
+                sb.AppendLine(needWhere
+                    ? "where ExpirationTime > getutcdate() "
+                    : "AND ExpirationTime > getutcdate() ");
             }
 
             //determine order by looking at the options
@@ -208,7 +199,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             sb.AppendLine(" [QueueID] asc ) ");
 
             //determine if performing update or delete...
-            if (_options.Value.EnableStatus && !_options.Value.EnableHoldTransactionUntilMessageCommited)
+            if (_options.Value.EnableStatus && !_options.Value.EnableHoldTransactionUntilMessageCommitted)
             { //update
 
                 sb.AppendFormat("update cte set status = {0} ", Convert.ToInt16(QueueStatuses.Processing));
@@ -218,7 +209,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 }
                 sb.AppendLine("output inserted.QueueID, inserted.CorrelationID into @Queue1 ");
             }
-            else if (_options.Value.EnableHoldTransactionUntilMessageCommited)
+            else if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
             {
                 sb.AppendLine("update cte set queueid = QueueID ");
                 sb.AppendLine("output inserted.QueueID, inserted.CorrelationID into @Queue1 ");
@@ -238,7 +229,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             sb.AppendLine("ON q.QueueID = qm.QueueID  ");
 
             //if we are holding transactions, we can't update the status table as part of this query - has to be done after de-queue instead
-            if (_options.Value.EnableStatusTable && !_options.Value.EnableHoldTransactionUntilMessageCommited)
+            if (_options.Value.EnableStatusTable && !_options.Value.EnableHoldTransactionUntilMessageCommitted)
             {
                 sb.AppendFormat("update {0} set status = {1} where {0}.QueueID = (select q.queueid from @Queue1 q)", _tableNameHelper.StatusName, Convert.ToInt16(QueueStatuses.Processing));
             }

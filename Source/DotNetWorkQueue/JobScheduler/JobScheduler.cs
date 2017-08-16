@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.JobScheduler
             log.Log(LogLevel.Info, () => $"Scheduler time is {_getTime.Create().GetCurrentUtcDate()}");
             log.Log(LogLevel.Info, () => $"Local time is {DateTime.UtcNow}");
 
-            Task.Run(Poll);
+            Task.Run(PollAsync);
         }
         /// <summary>
         /// Adds a scheduled task to this instance of the scheduler
@@ -470,14 +470,14 @@ namespace DotNetWorkQueue.JobScheduler
             }
         }
 
-        private async Task Poll()
+        private async Task PollAsync()
         {
             // figure out the initial delay
             var now = new DateTimeOffset(_getTime.Create().GetCurrentUtcDate());
             var intendedTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second, 0, now.Offset);
             if (now.Millisecond > 0)
             {
-                await Task.Delay(1000 - now.Millisecond);
+                await Task.Delay(1000 - now.Millisecond).ConfigureAwait(false);
                 intendedTime = intendedTime.AddSeconds(1);
             }
 
@@ -496,7 +496,7 @@ namespace DotNetWorkQueue.JobScheduler
                 }
                 while (intendedTime < now);
 
-                await Task.Delay(intendedTime - now);
+                await Task.Delay(intendedTime - now).ConfigureAwait(false);
             }
         }
 

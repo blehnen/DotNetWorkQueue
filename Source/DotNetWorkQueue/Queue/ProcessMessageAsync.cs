@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="context">The context.</param>
         /// <param name="transportMessage">The transport message.</param>
         /// <returns></returns>
-        public async Task Handle(IMessageContext context, IReceivedMessageInternal transportMessage)
+        public async Task HandleAsync(IMessageContext context, IReceivedMessageInternal transportMessage)
         {
             using (var heartBeat = _heartBeatWorkerFactory.Create(context))
             {

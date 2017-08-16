@@ -30,7 +30,7 @@ namespace DotNetWorkQueue
         /// <value>
         /// <c>true</c> if this instance is shutting down; otherwise, <c>false</c>.
         /// </value>
-        bool IsShuttingdown { get; }
+        bool IsShuttingDown { get; }
         /// <summary>
         /// Queues a work item.
         /// </summary>

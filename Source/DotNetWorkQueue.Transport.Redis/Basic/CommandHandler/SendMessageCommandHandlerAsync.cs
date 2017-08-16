@@ -127,7 +127,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             {
                 return
                     await
-                        SendDelayAndExpirationMessage(commandSend,
+                        SendDelayAndExpirationMessageAsync(commandSend,
                             _unixTimeFactory.Create().GetAddDifferenceMilliseconds(delay.Value),
                             _unixTimeFactory.Create().GetAddDifferenceMilliseconds(expiration.Value))
                             .ConfigureAwait(false);
@@ -136,18 +136,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             {
                 return
                     await
-                        SendDelayMessage(commandSend,
+                        SendDelayMessageAsync(commandSend,
                             _unixTimeFactory.Create().GetAddDifferenceMilliseconds(delay.Value)).ConfigureAwait(false);
             }
             if (expiration.HasValue)
             {
                 return
                     await
-                        SendExpirationMessage(commandSend,
+                        SendExpirationMessageAsync(commandSend,
                             _unixTimeFactory.Create().GetAddDifferenceMilliseconds(expiration.Value))
                             .ConfigureAwait(false);
             }
-            return await SendStandardMessage(commandSend).ConfigureAwait(false);
+            return await SendStandardMessageAsync(commandSend).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="commandSend">The command send.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to enqueue a record. The LUA enqueue script returned null</exception>
-        private async Task<string> SendStandardMessage(SendMessageCommand commandSend)
+        private async Task<string> SendStandardMessageAsync(SendMessageCommand commandSend)
         {
             var id = commandSend.MessageToSend.GetInternalHeader(_headers.StandardHeaders.RpcResponseId);
             var rpc = false;
@@ -197,7 +197,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="delayTime">The delay time.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to enqueue a record. The LUA enqueue script returned null</exception>
-        private async Task<string> SendDelayMessage(SendMessageCommand commandSend, long delayTime)
+        private async Task<string> SendDelayMessageAsync(SendMessageCommand commandSend, long delayTime)
         {
             var id = commandSend.MessageToSend.GetInternalHeader(_headers.StandardHeaders.RpcResponseId);
             var messageId = _messageIdFactory.Create().Create().ToString();
@@ -228,7 +228,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="expireTime">The expire time.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to enqueue a record. The LUA enqueue script returned null</exception>
-        private async Task<string> SendDelayAndExpirationMessage(SendMessageCommand commandSend, long delayTime,
+        private async Task<string> SendDelayAndExpirationMessageAsync(SendMessageCommand commandSend, long delayTime,
             long expireTime)
         {
             var id = commandSend.MessageToSend.GetInternalHeader(_headers.StandardHeaders.RpcResponseId);
@@ -261,7 +261,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="expireTime">The expire time.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to enqueue a record. The LUA enqueue script returned null</exception>
-        private async Task<string> SendExpirationMessage(SendMessageCommand commandSend, long expireTime)
+        private async Task<string> SendExpirationMessageAsync(SendMessageCommand commandSend, long expireTime)
         {
             var id = commandSend.MessageToSend.GetInternalHeader(_headers.StandardHeaders.RpcResponseId);
             var rpc = false;

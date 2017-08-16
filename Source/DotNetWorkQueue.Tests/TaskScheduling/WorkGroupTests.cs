@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         public void Test_NotEquals()
         {
             var test = new WorkGroup(Name, 1, 10);
-            var test2 = new WorkGroup("notequal", 50, 50);
+            var test2 = new WorkGroup("not-equal", 50, 50);
             Assert.False(test.Equals(test2));
         }
 

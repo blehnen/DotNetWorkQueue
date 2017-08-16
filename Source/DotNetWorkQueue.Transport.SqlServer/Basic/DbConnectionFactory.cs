@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// 
     /// </summary>
     /// <seealso cref="IDbConnectionFactory" />
-    public class DbConnectionFactory : RelationalDatabase.IDbConnectionFactory
+    public class DbConnectionFactory : IDbConnectionFactory
     {
         private readonly IConnectionInformation _connectionInformation;
         /// <summary>

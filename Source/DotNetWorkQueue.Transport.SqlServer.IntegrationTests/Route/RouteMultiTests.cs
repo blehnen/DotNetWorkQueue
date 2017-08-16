@@ -18,9 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
@@ -60,7 +57,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
                         oCreation.Options.EnableHeartBeat = !useTransactions;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommited = useTransactions;
+                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
                         oCreation.Options.EnableStatus = !useTransactions;
                         oCreation.Options.EnableStatusTable = true;
                         oCreation.Options.EnableRoute = true;

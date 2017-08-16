@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             Parallel.ForEach(messages, m =>
             {
                 //the correlation ID must be saved as a message header
-                m.Message.SetHeader(redisHeaders.CorelationId, new RedisQueueCorrelationIdSerialized((Guid)m.MessageData.CorrelationId.Id.Value));
+                m.Message.SetHeader(redisHeaders.CorrelationId, new RedisQueueCorrelationIdSerialized((Guid)m.MessageData.CorrelationId.Id.Value));
 
                 //check for delay and expiration
                 long unixTimeStampDelay = 0;

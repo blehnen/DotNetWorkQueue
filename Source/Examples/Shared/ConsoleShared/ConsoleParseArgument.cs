@@ -31,7 +31,7 @@ namespace ConsoleShared
                     }
                 }
                 else if (requiredType.BaseType != null && requiredType.BaseType == typeof(Array) && requiredType.UnderlyingSystemType.Name.Contains("TimeSpan[]"))
-                { //a param array of timespans
+                { //a param array of timespan
                     isArray = true;
                     isTimeSpan = true;
                 }
@@ -42,7 +42,7 @@ namespace ConsoleShared
             }
 
             string exceptionMessage =
-                $"Cannnot coerce the input argument {inputValue} to required type {requiredType.Name}";
+                $"Cannot coerce the input argument {inputValue} to required type {requiredType.Name}";
 
             object result;
             switch (requiredTypeCode)
@@ -196,12 +196,12 @@ namespace ConsoleShared
                 case TypeCode.Empty:
                     if (isTimeSpan && isArray)
                     {
-                        var timespans = inputValue.Split(',');
+                        var timespan = inputValue.Split(',');
                         var output = new List<TimeSpan>();
-                        foreach (var timespan in timespans)
+                        foreach (var ts in timespan)
                         {
                             TimeSpan timespanValue;
-                            if (TimeSpan.TryParse(timespan, out timespanValue))
+                            if (TimeSpan.TryParse(ts, out timespanValue))
                             {
                                 output.Add(timespanValue);
                             }

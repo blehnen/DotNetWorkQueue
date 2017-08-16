@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Collections.Generic;
 using System.Linq;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
@@ -27,7 +26,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 {
-    public class PostgreSQLMessageQueueSchemaTests
+    public class PostgreSqlMessageQueueSchemaTests
     {
         [Fact]
         public void Create_Default()
@@ -69,7 +68,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var tableName = GetTableNameHelper();
             var options = new PostgreSqlMessageQueueTransportOptions {EnableStatusTable = true};
             options.AdditionalColumns.Add(new Column("testing", ColumnTypes.Bigint, true));
-            options.AdditionalConstraints.Add(new Constraint("ix_testing", ContraintType.Index, "testing"));
+            options.AdditionalConstraints.Add(new Constraint("ix_testing", ConstraintType.Index, "testing"));
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);

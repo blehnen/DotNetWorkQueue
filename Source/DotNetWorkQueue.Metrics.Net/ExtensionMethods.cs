@@ -21,7 +21,7 @@ using Metrics.MetricData;
 namespace DotNetWorkQueue.Metrics.Net
 {
     /// <summary>
-    /// Extention methods for obtaining the current metrics
+    /// Extension methods for obtaining the current metrics
     /// </summary>
     public static class ExtensionMethods
     {

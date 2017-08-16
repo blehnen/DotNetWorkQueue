@@ -41,6 +41,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Metrics.Net.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetWorkQueue.Transport.RelationalDatabase">
+      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetWorkQueue.Transport.SqlServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.SqlServer.dll</HintPath>

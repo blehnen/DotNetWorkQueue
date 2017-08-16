@@ -31,16 +31,16 @@ namespace DotNetWorkQueue.Tests.Messages
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
 
-            var testdata = new TestData();
+            var testData = new TestData();
 
             var factory = fixture.Create<IMessageContextDataFactory>();
-            factory.Create(name, testdata).Returns(new MessageContextData<TestData>(name, testdata));
+            factory.Create(name, testData).Returns(new MessageContextData<TestData>(name, testData));
             fixture.Inject(factory);
             var customHeaders = fixture.Create<CustomHeaders>();
-            customHeaders.Add(name, testdata);
+            customHeaders.Add(name, testData);
             var data = customHeaders.Get<TestData>(name);
 
-            Assert.Equal(testdata, data.Default);
+            Assert.Equal(testData, data.Default);
             Assert.Equal(name, data.Name);
         }
 

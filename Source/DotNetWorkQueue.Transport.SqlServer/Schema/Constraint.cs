@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <param name="name">The name.</param>
         /// <param name="type">The type.</param>
         /// <param name="column">The column.</param>
-        public Constraint(string name, ContraintType type, string column) 
+        public Constraint(string name, ConstraintType type, string column) 
         {
 			Name = name;
 			Type = type;
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <param name="name">The name.</param>
         /// <param name="type">The type.</param>
         /// <param name="columns">The columns.</param>
-        public Constraint(string name, ContraintType type, List<string> columns)
+        public Constraint(string name, ConstraintType type, List<string> columns)
         {
             Name = name;
             Type = type;
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// </value>
         public string Name { get; set; }
         /// <summary>
-        /// Gets or sets the table that this contraint belongs to
+        /// Gets or sets the table that this constraint belongs to
         /// </summary>
         /// <value>
         /// The table.
@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <value>
         /// The type.
         /// </value>
-        public ContraintType Type { get; set; }
+        public ConstraintType Type { get; set; }
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="Constraint"/> is unique.
         /// </summary>
@@ -132,7 +132,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <returns></returns>
         public string Script()
         {
-            return Type != ContraintType.Index 
+            return Type != ConstraintType.Index 
                 ? 
                 $"CONSTRAINT [{Name}] {ConvertToString(Type)} {ClusteredText} ([{string.Join("], [", Columns.ToArray())}])" 
                 : 
@@ -164,13 +164,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns></returns>
-        private string ConvertToString(ContraintType type)
+        private string ConvertToString(ConstraintType type)
         {
             switch(type)
             {
-                case ContraintType.PrimaryKey:
+                case ConstraintType.PrimaryKey:
                     return "PRIMARY KEY";
-                case ContraintType.Constraint:
+                case ConstraintType.Constraint:
                     if (Unique)
                     {
                         return "Unique";
@@ -184,7 +184,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
     /// <summary>
     /// The type of the constraint
     /// </summary>
-    public enum ContraintType
+    public enum ConstraintType
     {
         /// <summary>
         /// index

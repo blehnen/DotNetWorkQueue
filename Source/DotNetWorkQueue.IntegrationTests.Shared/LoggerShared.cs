@@ -55,12 +55,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     var errors = textReader.ReadToEnd();
                     errors.Should()
                         .NotBeNullOrWhiteSpace(
-                            $"errors should have occured, however no errors where found for queue {queueName}");
+                            $"errors should have occurred, however no errors where found for queue {queueName}");
                 }
             }
             else
             {
-                Assert.False(true, $"No error file was found; errors should have occured for queue {queueName}");
+                Assert.False(true, $"No error file was found; errors should have occurred for queue {queueName}");
             }
         }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 {
                     var errors = textReader.ReadToEnd();
                     errors.Should()
-                        .BeEmpty("No errors should have occured, however the following errors where found {0}", errors);
+                        .BeEmpty("No errors should have occurred, however the following errors where found {0}", errors);
                 }
             }
         }
@@ -90,6 +90,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         private readonly string _fileNameOther;
         private readonly LogLevel _logLevel;
 
+        // ReSharper disable once UnusedParameter.Local
         public TextFileLogProvider(string fileName, LogLevel logLevel, string initText)
         {
             _fileName = fileName;
@@ -189,6 +190,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
+        // ReSharper disable once UnusedMember.Local
         private void FileWriteLineOther(string message)
         {
             lock (_locker)

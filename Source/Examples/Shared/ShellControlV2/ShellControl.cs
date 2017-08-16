@@ -45,7 +45,7 @@ namespace ShellControlV2
 
         public Color ShellTextForeColor
         {
-            get { return _shellTextBox?.ForeColor ?? Color.Green; }
+            get => _shellTextBox?.ForeColor ?? Color.Green;
             set
             {
                 if (_shellTextBox != null)
@@ -55,7 +55,7 @@ namespace ShellControlV2
 
         public Color ShellTextBackColor
         {
-            get { return _shellTextBox?.BackColor ?? Color.Black; }
+            get => _shellTextBox?.BackColor ?? Color.Black;
             set
             {
                 if (_shellTextBox != null)
@@ -65,7 +65,7 @@ namespace ShellControlV2
 
         public Font ShellTextFont
         {
-            get { return _shellTextBox?.Font ?? new Font("Tahoma", 8); }
+            get => _shellTextBox?.Font ?? new Font("Tahoma", 8);
             set
             {
                 if (_shellTextBox != null)
@@ -90,8 +90,8 @@ namespace ShellControlV2
 
         public string Prompt
         {
-            get { return _shellTextBox.Prompt; }
-            set { _shellTextBox.Prompt = value; }
+            get => _shellTextBox.Prompt;
+            set => _shellTextBox.Prompt = value;
         }
     }
 

@@ -31,9 +31,8 @@ using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
 {
-    public class RpcMethodShared<TTransportInit, TTResponse, TTConnectionSettings>
+    public class RpcMethodShared<TTransportInit, TTConnectionSettings>
         where TTransportInit : ITransportInit, new()
-        where TTResponse: class, new()
         where TTConnectionSettings : BaseRpcConnection
     {
         public void Run(string queueNameReceive, string queueNameSend, string connectionStringReceive,
@@ -259,6 +258,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
 
         private void RunRpcReceive(string queueName, string connectionString,
             ILogProvider logProvider,
+            // ReSharper disable once UnusedParameter.Local
             int runTime, int messageCount,
             int workerCount, int timeOut,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id)
