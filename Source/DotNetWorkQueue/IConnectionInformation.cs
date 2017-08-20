@@ -49,6 +49,15 @@ namespace DotNetWorkQueue
         string Server { get; }
 
         /// <summary>
+        /// Gets the container.
+        /// </summary>
+        /// <value>
+        /// The container.
+        /// </value>
+        /// <remarks>The name of the container for the queue</remarks>
+        string Container { get; }
+
+        /// <summary>
         /// Returns a <see cref="string" /> that represents this instance.
         /// </summary>
         /// <returns>

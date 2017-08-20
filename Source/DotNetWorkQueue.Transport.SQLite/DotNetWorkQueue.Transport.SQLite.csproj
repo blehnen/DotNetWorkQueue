@@ -53,17 +53,17 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Basic\CommandHandler\DeleteQueueTablesCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
+    <Compile Include="Basic\CommandSetup\FindExpiredMessagesToDeleteSetup.cs" />
+    <Compile Include="Basic\CommandSetup\FindRecordsToResetByHeartBeatSetup.cs" />
     <Compile Include="Basic\CommandSetup\ResetHeartbeatSetup.cs" />
     <Compile Include="Basic\CreationScope.cs" />
+    <Compile Include="Basic\DateTimeOffsetParser.cs" />
     <Compile Include="Basic\DbConnectionFactory.cs" />
     <Compile Include="Basic\Factory\SQLiteTransactionFactory.cs" />
     <Compile Include="Basic\OptionsSerialization.cs" />
     <Compile Include="Basic\QueryHandler\BuildDequeueCommand.cs" />
-    <Compile Include="Basic\QueryHandler\DoesJobExistQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetJobLastKnownEventQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\MessageDeQueue.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessage.cs" />
     <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
@@ -71,7 +71,6 @@
     <Compile Include="Basic\CommandHandler\SendMessage.cs" />
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
-    <Compile Include="Basic\CommandHandler\SetErrorCountCommandHandler.cs" />
     <Compile Include="Basic\Factory\SqLiteMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\GetFileNameFromConnectionString.cs" />
     <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
@@ -80,14 +79,9 @@
     <Compile Include="Basic\Message\HandleMessage.cs" />
     <Compile Include="Basic\Message\ReceiveMessage.cs" />
     <Compile Include="Basic\Message\RollbackMessage.cs" />
-    <Compile Include="Basic\QueryHandler\FindExpiredRecordsToDeleteQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\FindRecordsToResetByHeartBeatQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetColumnNamesFromTableQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetErrorRecordExistsQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetQueueOptionsQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetTableExistsQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
+    <Compile Include="Basic\ReadColumn.cs" />
     <Compile Include="Basic\SetupCommand.cs" />
     <Compile Include="Basic\SQLHeaders.cs" />
     <Compile Include="Basic\SqliteJobQueueCreation.cs" />
@@ -99,7 +93,6 @@
     <Compile Include="Basic\SqLiteMessageQueueCreation.cs" />
     <Compile Include="Basic\SqLiteMessageQueueInit.cs" />
     <Compile Include="Basic\SqLiteMessageQueueReceive.cs" />
-    <Compile Include="Basic\SqLiteMessageQueueReceiveErrorMessage.cs" />
     <Compile Include="Basic\SqLiteMessageQueueSchema.cs" />
     <Compile Include="Basic\SQLiteMessageQueueTransportOptions.cs" />
     <Compile Include="Basic\SqLiteRpcConnection.cs" />
@@ -112,9 +105,17 @@
     <Compile Include="Decorator\CreateJobTablesCommandDecorator.cs" />
     <Compile Include="Decorator\CreateQueueTablesAndSaveConfigurationDecorator.cs" />
     <Compile Include="Decorator\DeleteMessageCommandDecorator.cs" />
+    <Compile Include="Decorator\DeleteQueueTablesDecorator.cs" />
+    <Compile Include="Decorator\DoesJobExistDecorator.cs" />
+    <Compile Include="Decorator\FindExpiredRecordsToDeleteDecorator.cs" />
+    <Compile Include="Decorator\FindRecordsToResetByHeartBeatDecorator.cs" />
+    <Compile Include="Decorator\GetColumnNamesFromTableDecorator.cs" />
+    <Compile Include="Decorator\GetErrorRecordExistsQueryDecorator.cs" />
+    <Compile Include="Decorator\GetTableExistsDecorator.cs" />
     <Compile Include="Decorator\ResetHeartBeatCommandDecorator.cs" />
     <Compile Include="Decorator\RetryableSqlErrors.cs" />
     <Compile Include="Decorator\RetryConstants.cs" />
+    <Compile Include="Decorator\SetErrorCountCommandDecorator.cs" />
     <Compile Include="Decorator\SetStatusTableStatusCommandDecorator.cs" />
     <Compile Include="Decorator\ThreadSafeRandom.cs" />
     <Compile Include="ISQLiteTransaction.cs" />
@@ -162,7 +163,7 @@
     <Message Text="MERGING: @(MergeAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
     <Exec Command="$(Merger) /internalize /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
     <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.SQLite.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
-	<Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
+    <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
   </Target>
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.105.2\build\net451\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.105.2\build\net451\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

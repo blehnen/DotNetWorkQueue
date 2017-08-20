@@ -65,6 +65,14 @@ namespace DotNetWorkQueue.Configuration
         /// <remarks>The server display name</remarks>
         public virtual string Server => "Base connection object cannot determine server";
 
+        /// <summary>
+        /// Gets the container.
+        /// </summary>
+        /// <value>
+        /// The container.
+        /// </value>
+        /// <remarks>The name of the container for the queue</remarks>
+        public virtual string Container => "Base connection object cannot determine container";
         #endregion
 
         #region IClone

@@ -109,13 +109,10 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun)
         {
-            var data = SendPreChecks(job.Name, scheduledTime);
+            var messageData = new AdditionalMessageData();
+            var data = StartSend(job, scheduledTime, messageData);
             if (data != null)
                 return data;
-
-            var messageData = new AdditionalMessageData();
-            SetMetaDataForJob(job.Name, scheduledTime,
-                new DateTimeOffset(GetTimeFactory.Create().GetCurrentUtcDate()), job.Route, messageData);
 
             var message = await Queue.SendAsync(actionToRun, messageData).ConfigureAwait(false);
             var result = ProcessResult(job, scheduledTime, message);
@@ -134,13 +131,10 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun expressionToRun)
         {
-            var data = SendPreChecks(job.Name, scheduledTime);
+            var messageData = new AdditionalMessageData();
+            var data = StartSend(job, scheduledTime, messageData);
             if (data != null)
                 return data;
-
-            var messageData = new AdditionalMessageData();
-            SetMetaDataForJob(job.Name, scheduledTime,
-                new DateTimeOffset(GetTimeFactory.Create().GetCurrentUtcDate()), job.Route, messageData);
 
             var message = await Queue.SendAsync(expressionToRun, messageData).ConfigureAwait(false);
             var result = ProcessResult(job, scheduledTime, message);
@@ -151,6 +145,24 @@ namespace DotNetWorkQueue
             return result ?? new JobQueueOutputMessage(JobQueuedStatus.Failed);
         }
 
+        /// <summary>
+        /// Begins the send process, if possible
+        /// </summary>
+        /// <param name="job">The job.</param>
+        /// <param name="scheduledTime">The scheduled time.</param>
+        /// <param name="messageData">The message data.</param>
+        /// <returns>Null if we should continue; a <see cref="IJobQueueOutputMessage"/> object if the send should be aborted </returns>
+        private IJobQueueOutputMessage StartSend(IScheduledJob job, DateTimeOffset scheduledTime, IAdditionalMessageData messageData)
+        {
+            var data = SendPreChecks(job.Name, scheduledTime);
+            if (data != null)
+                return data;
+
+            SetMetaDataForJob(job.Name, scheduledTime,
+                new DateTimeOffset(GetTimeFactory.Create().GetCurrentUtcDate()), job.Route, messageData);
+
+            return null;
+        }
         private IJobQueueOutputMessage SendPreChecks(string jobName, DateTimeOffset scheduledTime)
         {
             var status = DoesJobExist(jobName, scheduledTime);

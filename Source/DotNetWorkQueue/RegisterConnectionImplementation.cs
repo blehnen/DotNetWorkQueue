@@ -29,11 +29,9 @@ namespace DotNetWorkQueue
         /// Registers the implementations for base connection and serialization
         /// </summary>
         /// <param name="container">The container.</param>
-        /// <param name="registrationType">Type of the registration.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="queue">The queue.</param>
-        public static void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
-            string connection, string queue)
+        public static void RegisterImplementations(IContainer container, string connection, string queue)
         {
             container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queue, connection),
                 LifeStyles.Singleton);

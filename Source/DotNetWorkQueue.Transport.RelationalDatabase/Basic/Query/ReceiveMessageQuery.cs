@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
+using System.Data;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
@@ -24,7 +25,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
     /// Dequeues a message from the queue.
     /// </summary>
     public class ReceiveMessageQuery<TConnection, TTransaction> : IQuery<IReceivedMessageInternal>
+        where TConnection : IDbConnection
+        where TTransaction : IDbTransaction
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReceiveMessageQuery{TConnection, TTransaction}" /> class.
+        /// </summary>
+        /// <param name="messageId">A specific message identifier to de-queue. If null, the first message found will be de-queued.</param>
+        /// <param name="routes">The routes.</param>
+        public ReceiveMessageQuery(IMessageId messageId, List<string> routes)
+        {
+            Connection = default(TConnection);
+            Transaction = default(TTransaction);
+            MessageId = messageId;
+            Routes = routes;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessageQuery{TConnection, TTransaction}" /> class.
         /// </summary>

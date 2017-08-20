@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Xunit;
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
@@ -26,7 +27,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         [Fact]
         public void Create_Default()
         {
-            var test = new SqlQueueDelay(TimeSpan.FromHours(1));
+            var test = new QueueDelay(TimeSpan.FromHours(1));
             Assert.Equal(TimeSpan.FromHours(1), test.IncreaseDelay);
         }
     }

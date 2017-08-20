@@ -18,9 +18,11 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Basic.CommandSetup;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -30,6 +32,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.ISetupCommand" />
     public class SetupCommand : ISetupCommand
     {
+        private readonly QueueConsumerConfiguration _configuration;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SetupCommand"/> class.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        public SetupCommand(QueueConsumerConfiguration configuration)
+        {
+            Guard.NotNull(() => configuration, configuration);
+            _configuration = configuration;
+        }
         /// <summary>
         /// Setup the specified command.
         /// </summary>
@@ -39,15 +52,22 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <exception cref="NotImplementedException"></exception>
         public void Setup(IDbCommand command, CommandStringTypes type, object commandParams)
         {
+            ISetupCommand setup = null;
             switch (type)
             {
                 case CommandStringTypes.ResetHeartbeat:
-                    var resetHeartbeatSetup = new ResetHeartbeatSetup();
-                    resetHeartbeatSetup.Setup(command, type, commandParams);
+                    setup = new ResetHeartbeatSetup();
+                    break;
+                case CommandStringTypes.FindExpiredRecordsToDelete:
+                case CommandStringTypes.FindExpiredRecordsWithStatusToDelete:
+                    break;
+                case CommandStringTypes.GetHeartBeatExpiredMessageIds:
+                    setup = new FindRecordsToResetByHeartBeatSetup(_configuration);
                     break;
                 default:
                     throw new NotImplementedException();
             }
+            setup?.Setup(command, type, commandParams);
         }
     }
 }

@@ -30,7 +30,10 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Validation;
+using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
@@ -66,6 +69,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<CommandStringCache, PostgreSqlCommandStringCache>(LifeStyles.Singleton);
             container.Register<ISetupCommand, SetupCommand>(LifeStyles.Singleton);
             container.Register<IJobSchema, PostgreSqlJobSchema>(LifeStyles.Singleton);
+            container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
+            container.Register<ICaseTableName, CaseTableName>(LifeStyles.Singleton);
+            container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
 
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
@@ -111,7 +117,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<ISendHeartBeat, SendHeartBeat>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
             container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
-            container.Register<IReceiveMessagesError, PostgreSqlMessageQueueReceiveErrorMessage>(LifeStyles.Singleton);
+            container.Register<IReceiveMessagesError, ReceiveErrorMessage>(LifeStyles.Singleton);
+            container.Register<IIncreaseQueueDelay, SqlHeaders>(LifeStyles.Singleton);
             //**receive
 
             var target = Assembly.GetAssembly(GetType());
@@ -121,6 +128,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             if(target.FullName != target2.FullName)
                 RegisterCommands(container, target2);
 
+            //explicit registration of our job exists query
+            container
+                .Register<IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>,
+                        QueueStatuses>,
+                    DoesJobExistQueryHandler<NpgsqlConnection, NpgsqlTransaction>>(LifeStyles.Singleton);
+
+            //explicit registration of options
+            container
+                .Register<IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>, PostgreSqlMessageQueueTransportOptions>,
+                    GetQueueOptionsQueryHandler<PostgreSqlMessageQueueTransportOptions>>(LifeStyles.Singleton);
+            
             container.RegisterDecorator(typeof(ICommandHandlerWithOutput<,>),
                 typeof(RetryCommandHandlerOutputDecorator<,>), LifeStyles.Singleton);
 

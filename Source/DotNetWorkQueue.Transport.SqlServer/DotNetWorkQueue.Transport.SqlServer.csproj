@@ -48,7 +48,6 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Basic\CommandHandler\DeleteQueueTablesCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteTransactionalMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
@@ -56,10 +55,11 @@
     <Compile Include="Basic\CommandHandler\SendMessage.cs" />
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
-    <Compile Include="Basic\CommandHandler\SetErrorCountCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
+    <Compile Include="Basic\CommandSetup\FindRecordsToResetByHeartBeatSetup.cs" />
     <Compile Include="Basic\CommandSetup\ResetHeartbeatSetup.cs" />
     <Compile Include="Basic\Connection.cs" />
+    <Compile Include="Basic\DateTimeOffsetParser.cs" />
     <Compile Include="Basic\DbConnectionFactory.cs" />
     <Compile Include="Basic\Factory\ConnectionFactory.cs" />
     <Compile Include="Basic\Factory\SQLServerMessageQueueTransportOptionsFactory.cs" />
@@ -73,15 +73,6 @@
     <Compile Include="Basic\OptionsSerialization.cs" />
     <Compile Include="Basic\QueryHandler\BuildDequeueCommand.cs" />
     <Compile Include="Basic\QueryHandler\CreateDequeueStatement.cs" />
-    <Compile Include="Basic\QueryHandler\DoesJobExistQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\FindExpiredRecordsToDeleteQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\FindRecordsToResetByHeartBeatQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetColumnNamesFromTableQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetErrorRecordExistsQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetJobLastKnownEventQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetQueueOptionsQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetTableExistsQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetUTCDateQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReadMessage.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
@@ -94,7 +85,6 @@
     <Compile Include="Basic\SQLServerMessageQueueCreation.cs" />
     <Compile Include="Basic\SQLServerMessageQueueInit.cs" />
     <Compile Include="Basic\SQLServerMessageQueueReceive.cs" />
-    <Compile Include="Basic\SQLServerMessageQueueReceiveErrorMessage.cs" />
     <Compile Include="Basic\SQLServerMessageQueueSchema.cs" />
     <Compile Include="Basic\SQLServerMessageQueueTransportOptions.cs" />
     <Compile Include="Basic\SqlServerRpcConnection.cs" />
@@ -161,6 +151,6 @@
     <Message Text="MERGING: @(MergeAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
     <Exec Command="$(Merger) /internalize /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
     <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.SqlServer.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
-	<Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
+    <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
   </Target>
 </Project>

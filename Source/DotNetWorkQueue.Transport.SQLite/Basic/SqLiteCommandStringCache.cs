@@ -119,6 +119,18 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             CommandCache.Add(CommandStringTypes.GetJobId,
                 $"Select QueueID from {TableNameHelper.StatusName} where JobName = @JobName");
+
+            CommandCache.Add(CommandStringTypes.FindExpiredRecordsToDelete,
+                $"select queueid from {TableNameHelper.MetaDataName} where @CurrentDateTime > ExpirationTime");
+
+            CommandCache.Add(CommandStringTypes.FindExpiredRecordsWithStatusToDelete,
+                $"select queueid from {TableNameHelper.MetaDataName} where status = {Convert.ToInt16(QueueStatuses.Waiting)} and @CurrentDateTime > ExpirationTime");
+
+            CommandCache.Add(CommandStringTypes.GetColumnNamesFromTable,
+                "PRAGMA table_info('{0}')");
+
+            CommandCache.Add(CommandStringTypes.DeleteTable,
+                "drop table {0}");
         }
     }
 }

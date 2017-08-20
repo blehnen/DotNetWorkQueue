@@ -44,11 +44,14 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Basic\CaseTableName.cs" />
     <Compile Include="Basic\CommandHandler\CreateJobTablesCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\CreateQueueTablesAndSaveConfigurationCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteMessageCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\DeleteQueueTablesCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteStatusTableStatusCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\ResetHeartBeatCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\SetErrorCountCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetStatusTableStatusCommandHandler.cs" />
     <Compile Include="Basic\Command\CreateJobTablesCommand.cs" />
     <Compile Include="Basic\Command\CreateQueueTablesAndSaveConfigurationCommand.cs" />
@@ -71,6 +74,17 @@
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
     <Compile Include="Basic\MessageExpiration.cs" />
     <Compile Include="Basic\CommandStringCache.cs" />
+    <Compile Include="Basic\QueryHandler\DoesJobExistQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\FindExpiredRecordsToDeleteQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\FindRecordsToResetByHeartBeatQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetColumnNamesFromTableQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetErrorRecordExistsQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetJobLastKnownEventQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetQueueOptionsQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetTableExistsQueryHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetUTCDateQueryHandler.cs" />
+    <Compile Include="Basic\ReadColumn.cs" />
+    <Compile Include="Basic\ReceiveErrorMessage.cs" />
     <Compile Include="Basic\QueueStatusQueries.cs" />
     <Compile Include="Basic\QueueStatusProvider.cs" />
     <Compile Include="Basic\QueryHandler\GetErrorCountQueryHandler.cs" />
@@ -107,18 +121,20 @@
     <Compile Include="Basic\ReceivePoisonMessage.cs" />
     <Compile Include="Basic\SendMessages.cs" />
     <Compile Include="Basic\JobTableCreation.cs" />
-    <Compile Include="Basic\SQLQueueDelay.cs" />
     <Compile Include="Basic\TableNameHelper.cs" />
     <Compile Include="Basic\TransactionFactory.cs" />
     <Compile Include="Basic\TransactionWrapper.cs" />
+    <Compile Include="ICaseTableName.cs" />
     <Compile Include="ICommandHandler.cs" />
     <Compile Include="ICommandHandlerWithOutput.cs" />
     <Compile Include="ICommandHandlerWithOutputAsync.cs" />
+    <Compile Include="IDateTimeOffsetParser.cs" />
     <Compile Include="IDbConnectionFactory.cs" />
     <Compile Include="IJobSchema.cs" />
     <Compile Include="IOptionsSerialization.cs" />
     <Compile Include="IQuery.cs" />
     <Compile Include="IQueryHandler.cs" />
+    <Compile Include="IReadColumn.cs" />
     <Compile Include="ISetupCommand.cs" />
     <Compile Include="ITransactionWrapper.cs" />
     <Compile Include="ITransactionFactory.cs" />

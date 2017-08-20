@@ -110,14 +110,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
 
             //set the message ID on the context for later usage
             context.MessageId = receivedTransportMessage.MessageId;
-            
-            //if we are holding open transactions, we need to update the status table in a separate call
-            //When not using held transactions, this is part of the de-queue statement and so not needed here
 
-            //TODO - we could consider using a task to update the status table
-            //the status table drives nothing internally, however it may drive external processes
-            //because of that, we are not returning the message until the status table is updated.
-            //we could make this a configurable option in the future?
+            //we need to update the status table here, as we don't do it as part of the de-queue
             if (_configuration.Options().EnableStatusTable)
             {
                 _setStatusCommandHandler.Handle(
@@ -170,13 +164,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             //set the message ID on the context for later usage
             context.MessageId = receivedTransportMessage.MessageId;
 
-            //if we are holding open transactions, we need to update the status table in a separate call
-            //When not using held transactions, this is part of the de-queue statement and so not needed here
-
-            //TODO - we could consider using a task to update the status table
-            //the status table drives nothing internally, however it may drive external processes
-            //because of that, we are not returning the message until the status table is updated.
-            //we could make this a configurable option in the future?
+            //we need to update the status table here, as we don't do it as part of the de-queue
             if (_configuration.Options().EnableStatusTable)
             {
                 _setStatusCommandHandler.Handle(

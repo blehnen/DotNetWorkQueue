@@ -126,6 +126,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             CommandCache.Add(CommandStringTypes.GetJobLastScheduleTime,
                 $"Select JobScheduledTime from {TableNameHelper.JobTableName} where JobName = @JobName");
+
+            CommandCache.Add(CommandStringTypes.FindExpiredRecordsWithStatusToDelete,
+                $"select queueid from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where status = {Convert.ToInt16(QueueStatuses.Waiting)} and GETUTCDate() > ExpirationTime");
+
+            CommandCache.Add(CommandStringTypes.FindExpiredRecordsToDelete,
+                $"select queueid from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where GETUTCDate() > ExpirationTime");
+
+            CommandCache.Add(CommandStringTypes.DeleteTable,
+                "IF OBJECT_ID('dbo.{0}', 'U') IS NOT NULL DROP TABLE dbo.{0};");
         }
     }
 }

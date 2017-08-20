@@ -76,7 +76,6 @@
     <Compile Include="Basic\Query\GetColumnNamesFromTableQueryTests.cs" />
     <Compile Include="Basic\Query\GetErrorRecordExistsQueryTests.cs" />
     <Compile Include="Basic\Query\GetErrorRetryCountQueryTests.cs" />
-    <Compile Include="Basic\Query\GetQueueOptionsQueryTests.cs" />
     <Compile Include="Basic\Query\GetTableExistsQueryTests.cs" />
     <Compile Include="Basic\Query\GetUtcDateQueryTests.cs" />
     <Compile Include="Basic\Query\MessageToResetTests.cs" />

@@ -53,10 +53,28 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <returns></returns>
         public string GetCommand(CommandStringTypes type)
         {
-            if (CommandCache.Count != 0 && _commandsBuilt) return CommandCache[type];
+            if (_commandsBuilt && CommandCache.Count != 0) return CommandCache[type];
             lock (_commandBuilder)
             {
                 if (CommandCache.Count != 0) return CommandCache[type];
+                BuildCommands();
+                _commandsBuilt = true;
+            }
+            return CommandCache[type];
+        }
+
+        /// <summary>
+        /// Gets the command for the indicated command type
+        /// </summary>
+        /// <param name="type">The command type.</param>
+        /// <param name="input">The input.</param>
+        /// <returns></returns>
+        public string GetCommand(CommandStringTypes type, params object[] input)
+        {
+            if (_commandsBuilt && CommandCache.Count != 0) return string.Format(CommandCache[type], input);
+            lock (_commandBuilder)
+            {
+                if (CommandCache.Count != 0) return string.Format(CommandCache[type], input);
                 BuildCommands();
                 _commandsBuilt = true;
             }
@@ -233,7 +251,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Deletes a record from the meta data error table
         /// </summary>
-        DeleteFromMetaDataErrors
+        DeleteFromMetaDataErrors,
+        /// <summary>
+        /// Finds expired records to delete, that are in a waiting status
+        /// </summary>
+        FindExpiredRecordsWithStatusToDelete,
+        /// <summary>
+        /// Finds expired records to delete
+        /// </summary>
+        FindExpiredRecordsToDelete,
+        /// <summary>
+        /// Deletes a table
+        /// </summary>
+        DeleteTable
     }
 
     /// <summary>

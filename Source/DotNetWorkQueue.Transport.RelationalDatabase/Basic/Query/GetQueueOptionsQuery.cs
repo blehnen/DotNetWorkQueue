@@ -21,7 +21,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
     /// <summary>
     /// Gets the queue options
     /// </summary>
-    public class GetQueueOptionsQuery<TTransportOptions> : IQuery<TTransportOptions>
+    public class GetQueueOptionsQuery<TTransportOptions>: IQuery<TTransportOptions>
+        where TTransportOptions: class, ITransportOptions
     {
     }
 }

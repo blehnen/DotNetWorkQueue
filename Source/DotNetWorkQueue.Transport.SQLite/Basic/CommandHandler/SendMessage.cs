@@ -133,7 +133,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             sbMeta.Append("@QueueID, @CorrelationID, @CurrentDate ");
 
             //add the values for built in fields
-            options.AddBuiltInColumnValues(delay, expiration, sbMeta);
+            options.AddBuiltInColumnValues(sbMeta);
 
             AddHeaderValues(sbMeta, message, headers);
 

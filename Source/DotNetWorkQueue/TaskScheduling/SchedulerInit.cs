@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="queue">The queue.</param>
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
         {
-            RegisterConnectionImplementation.RegisterImplementations(container, registrationType, connection, queue);
+            RegisterConnectionImplementation.RegisterImplementations(container, connection, queue);
         }
     }
 }

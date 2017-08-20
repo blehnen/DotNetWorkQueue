@@ -18,9 +18,11 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic.CommandSetup;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -30,6 +32,23 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.ISetupCommand" />
     public class SetupCommand : ISetupCommand
     {
+        private readonly IGetTimeFactory _getTimeFactory;
+        private readonly QueueConsumerConfiguration _configuration;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SetupCommand" /> class.
+        /// </summary>
+        /// <param name="getTimeFactory">The get time factory.</param>
+        /// <param name="configuration">The configuration.</param>
+        public SetupCommand(IGetTimeFactory getTimeFactory,
+            QueueConsumerConfiguration configuration)
+        {
+            Guard.NotNull(() => getTimeFactory, getTimeFactory);
+            Guard.NotNull(() => configuration, configuration);
+            _getTimeFactory = getTimeFactory;
+            _configuration = configuration;
+        }
+
         /// <summary>
         /// Setup the specified command.
         /// </summary>
@@ -39,15 +58,23 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <exception cref="NotImplementedException"></exception>
         public void Setup(IDbCommand command, CommandStringTypes type, object commandParams)
         {
+            ISetupCommand setup;
             switch (type)
             {
                 case CommandStringTypes.ResetHeartbeat:
-                    var resetHeartbeatSetup = new ResetHeartbeatSetup();
-                    resetHeartbeatSetup.Setup(command, type, commandParams);
+                    setup = new ResetHeartbeatSetup();
+                    break;
+                case CommandStringTypes.FindExpiredRecordsToDelete:
+                case CommandStringTypes.FindExpiredRecordsWithStatusToDelete:
+                    setup = new FindExpiredMessagesToDeleteSetup(_getTimeFactory);
+                    break;
+                case CommandStringTypes.GetHeartBeatExpiredMessageIds:
+                    setup = new FindRecordsToResetByHeartBeatSetup(_configuration, _getTimeFactory);
                     break;
                 default:
                     throw new NotImplementedException();
             }
+            setup?.Setup(command, type, commandParams);
         }
     }
 }

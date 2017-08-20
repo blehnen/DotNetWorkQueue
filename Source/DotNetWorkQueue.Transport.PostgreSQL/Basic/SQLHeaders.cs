@@ -17,7 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     /// <summary>
     /// Defines our custom headers for internal operations
     /// </summary>
-    internal class SqlHeaders
+    internal class SqlHeaders : IIncreaseQueueDelay
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlHeaders"/> class.
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             Guard.NotNull(() => messageContextDataFactory, messageContextDataFactory);
 
             Connection = messageContextDataFactory.Create<Connection>("Connection", null);
-            IncreaseQueueDelay = messageContextDataFactory.Create("IncreaseQueueDelay", new SqlQueueDelay(TimeSpan.Zero));
+            IncreaseQueueDelay = messageContextDataFactory.Create("IncreaseQueueDelay", new QueueDelay(TimeSpan.Zero));
         }
         /// <summary>
         /// Gets the connection.
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <value>
         /// The increase queue delay.
         /// </value>
-        public IMessageContextData<SqlQueueDelay> IncreaseQueueDelay
+        public IMessageContextData<QueueDelay> IncreaseQueueDelay
         {
             get; 
         }

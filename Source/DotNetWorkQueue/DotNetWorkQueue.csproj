@@ -107,6 +107,7 @@
     <Compile Include="IContainerFactory.cs" />
     <Compile Include="ICreationScope.cs" />
     <Compile Include="IExpressionSerializer.cs" />
+    <Compile Include="IIncreaseQueueDelay.cs" />
     <Compile Include="IJobQueueCreation.cs" />
     <Compile Include="IJobQueueOutputMessage.cs" />
     <Compile Include="IJobSchedulerLastKnownEvent.cs" />
@@ -232,6 +233,7 @@
     <Compile Include="Queue\QueueContext.cs" />
     <Compile Include="Queue\RollbackMessage.cs" />
     <Compile Include="Queue\RpcMethodQueue.cs" />
+    <Compile Include="Queue\QueueDelay.cs" />
     <Compile Include="Queue\StopThread.cs" />
     <Compile Include="Queue\WorkerErrorEventArgs.cs" />
     <Compile Include="Queue\WorkerNotificationNoOp.cs" />

@@ -124,6 +124,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             CommandCache.Add(CommandStringTypes.GetJobLastScheduleTime,
                 $"Select JobScheduledTime from {TableNameHelper.JobTableName} where JobName = @JobName");
+
+            CommandCache.Add(CommandStringTypes.FindExpiredRecordsWithStatusToDelete,
+                $"select queueid from {TableNameHelper.MetaDataName} where status = {Convert.ToInt16(QueueStatuses.Waiting)} and @CurrentDate > ExpirationTime FOR UPDATE SKIP LOCKED");
+
+            CommandCache.Add(CommandStringTypes.FindExpiredRecordsToDelete,
+                $"select queueid from {TableNameHelper.MetaDataName} where @CurrentDate > ExpirationTime FOR UPDATE SKIP LOCKED");
+
+            CommandCache.Add(CommandStringTypes.DeleteTable,
+                $"DROP TABLE IF EXISTS {0} CASCADE;");
         }
     }
 }

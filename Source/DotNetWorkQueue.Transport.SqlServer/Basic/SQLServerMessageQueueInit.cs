@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Data.SqlClient;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
@@ -30,6 +31,8 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
@@ -65,6 +68,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<ISetupCommand, SetupCommand>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqlServerJobSchema>(LifeStyles.Singleton);
+            container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
+            container.Register<ICaseTableName, CaseTableName>(LifeStyles.Singleton);
+            container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
 
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
@@ -112,7 +118,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<ISendHeartBeat, SendHeartBeat>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
             container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
-            container.Register<IReceiveMessagesError, SqlServerMessageQueueReceiveErrorMessage>(LifeStyles.Singleton);
+            container.Register<IReceiveMessagesError, ReceiveErrorMessage>(LifeStyles.Singleton);
+            container.Register<IIncreaseQueueDelay, SqlHeaders>(LifeStyles.Singleton);
             //**receive
 
             var target = Assembly.GetAssembly(GetType());
@@ -121,6 +128,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             var target2 = Assembly.GetAssembly(typeof(ITable));
             if (target.FullName != target2.FullName)
                 RegisterCommands(container, target2);
+
+            //explicit registration of our job exists query
+            container
+                .Register<IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>,
+                        QueueStatuses>,
+                    DoesJobExistQueryHandler<SqlConnection, SqlTransaction>>(LifeStyles.Singleton);
+
+            //explicit registration of options
+            container
+                .Register<IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions>,
+                    GetQueueOptionsQueryHandler<SqlServerMessageQueueTransportOptions>>(LifeStyles.Singleton);
 
             container.RegisterDecorator(typeof (ICommandHandlerWithOutput<,>),
                 typeof (RetryCommandHandlerOutputDecorator<,>), LifeStyles.Singleton);

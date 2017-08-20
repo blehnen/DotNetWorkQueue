@@ -26,6 +26,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
     public class SqlConnectionInformation: BaseConnectionInformation
     {
         private string _server;
+        private string _catalog;
 
         #region Constructor
         /// <summary>
@@ -47,6 +48,17 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// The server.
         /// </value>
         public override string Server => _server;
+
+        /// <summary>
+        /// Gets the container.
+        /// </summary>
+        /// <value>
+        /// The container.
+        /// </value>
+        /// <remarks>
+        /// The name of the container for the queue
+        /// </remarks>
+        public override string Container => _catalog;
 
         #endregion
 
@@ -73,6 +85,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
             //validate that the passed in string parses as a SQL server connection string
             var builder = new SqlConnectionStringBuilder(value); //will fail here if not valid
             _server = builder.DataSource;
+            _catalog = builder.InitialCatalog;
         }
     }
 }

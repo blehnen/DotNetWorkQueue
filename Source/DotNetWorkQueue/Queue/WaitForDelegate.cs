@@ -30,18 +30,9 @@ namespace DotNetWorkQueue.Queue
         /// Waits for an action to complete
         /// </summary>
         /// <param name="action">The action.</param>
-        /// <returns></returns>
-        public static bool Wait(Func<bool> action)
-        {
-            return Wait(action, null);
-        }
-        /// <summary>
-        /// Waits for an action to complete
-        /// </summary>
-        /// <param name="action">The action.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns></returns>
-        public static bool Wait(Func<bool> action, TimeSpan? timeout)
+        public static bool Wait(Func<bool> action, TimeSpan? timeout = null)
         {
             Stopwatch timer = null;
             if (timeout.HasValue)

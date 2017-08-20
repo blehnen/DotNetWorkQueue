@@ -49,6 +49,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// </value>
         public override string Server => _server;
 
+        /// <summary>
+        /// Gets the container.
+        /// </summary>
+        /// <value>
+        /// The container.
+        /// </value>
+        /// <remarks>
+        /// The name of the container for the queue
+        /// </remarks>
+        public override string Container => Server;
         #endregion
 
         #region IClone

@@ -322,10 +322,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <summary>
         /// Adds the built in column values.
         /// </summary>
-        /// <param name="delay">The delay.</param>
-        /// <param name="expiration">The expiration.</param>
         /// <param name="command">The command.</param>
-        internal void AddBuiltInColumnValues(TimeSpan? delay, TimeSpan expiration, StringBuilder command)
+        internal void AddBuiltInColumnValues(StringBuilder command)
         {
             if (EnableDelayedProcessing)
             {

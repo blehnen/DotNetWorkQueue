@@ -40,21 +40,12 @@ namespace DotNetWorkQueue.Queue
             _log = log.Create();
         }
         /// <summary>
-        /// Waits for specified worker thread to finish.
-        /// </summary>
-        /// <param name="workerThread">The worker thread.</param>
-        /// <returns></returns>
-        public bool Wait(Thread workerThread)
-        {
-            return Wait(workerThread, null);
-        }
-        /// <summary>
         ///  Waits for specified worker thread to finish, or until the timeout period has been reached.
         /// </summary>
         /// <param name="workerThread">The worker thread.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns></returns>
-        public bool Wait(Thread workerThread, TimeSpan? timeout)
+        public bool Wait(Thread workerThread, TimeSpan? timeout = null)
         {
             var iLogCount = 0;
             Stopwatch timer = null;
