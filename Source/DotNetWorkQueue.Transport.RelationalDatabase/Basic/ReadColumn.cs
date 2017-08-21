@@ -23,12 +23,38 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
     public class ReadColumn : IReadColumn
     {
-        public string ReadAsString(CommandStringTypes command, IDataReader reader)
+        /// <summary>
+        /// Reads data as a string
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public virtual string ReadAsString(CommandStringTypes command, int column, IDataReader reader)
         {
             switch (command)
             {
                 case CommandStringTypes.GetColumnNamesFromTable:
                     return reader.GetString(0);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Reads as date time.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        public virtual DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader)
+        {
+            switch (command)
+            {
+                case CommandStringTypes.GetHeartBeatExpiredMessageIds:
+                    return reader.GetDateTime(column);
                 default:
                     throw new NotImplementedException();
             }

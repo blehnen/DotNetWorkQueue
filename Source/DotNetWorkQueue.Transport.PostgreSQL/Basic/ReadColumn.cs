@@ -16,23 +16,18 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
-namespace DotNetWorkQueue.Transport.RelationalDatabase
+namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    public interface IReadColumn
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.IReadColumn" />
+    public class ReadColumn : RelationalDatabase.Basic.ReadColumn
     {
-        /// <summary>
-        /// Reads data as a string
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
-        /// <param name="reader">The reader.</param>
-        /// <returns></returns>
-        string ReadAsString(CommandStringTypes command, int column, IDataReader reader);
         /// <summary>
         /// Reads as date time.
         /// </summary>
@@ -40,6 +35,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader);
+        public override DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader)
+        {
+            switch (command)
+            {
+                case CommandStringTypes.GetHeartBeatExpiredMessageIds:
+                    return DateTime.FromBinary(reader.GetInt64(column));
+                default:
+                    return base.ReadAsDateTime(command, column, reader);
+            }
+        }
     }
 }

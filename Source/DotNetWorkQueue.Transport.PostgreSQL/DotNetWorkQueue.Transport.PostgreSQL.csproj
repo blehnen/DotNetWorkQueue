@@ -84,6 +84,7 @@
     <Compile Include="Basic\QueryHandler\ReceiveMessage.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
+    <Compile Include="Basic\ReadColumn.cs" />
     <Compile Include="Basic\SetupCommand.cs" />
     <Compile Include="Basic\SQLHeaders.cs" />
     <Compile Include="Basic\PostgreSQLCommandStringCache.cs" />

@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     {
                         while (reader.Read())
                         {
-                            columns.Add(_readColumn.ReadAsString(CommandStringTypes.GetColumnNamesFromTable, reader));
+                            columns.Add(_readColumn.ReadAsString(CommandStringTypes.GetColumnNamesFromTable, 0, reader));
                         }
                     }
                 }

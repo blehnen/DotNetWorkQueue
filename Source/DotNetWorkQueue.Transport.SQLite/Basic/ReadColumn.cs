@@ -16,10 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
@@ -28,23 +26,41 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// 
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.IReadColumn" />
-    public class ReadColumn : IReadColumn
+    public class ReadColumn : RelationalDatabase.Basic.ReadColumn
     {
         /// <summary>
         /// Reads as string.
         /// </summary>
         /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public string ReadAsString(CommandStringTypes command, IDataReader reader)
+        public override string ReadAsString(CommandStringTypes command, int column, IDataReader reader)
         {
             switch (command)
             {
                 case CommandStringTypes.GetColumnNamesFromTable:
-                    return reader.GetString(1);
+                    return reader.GetString(1); //sqlite puts column name in column 1, not 0
                 default:
-                    throw new NotImplementedException();
+                    return base.ReadAsString(command, column, reader);
+            }
+        }
+        /// <summary>
+        /// Reads as date time.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        public override DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader)
+        {
+            switch (command)
+            {
+                case CommandStringTypes.GetHeartBeatExpiredMessageIds:
+                    return DateTime.FromBinary(reader.GetInt64(column));
+                default:
+                    return base.ReadAsDateTime(command, column, reader);
             }
         }
     }

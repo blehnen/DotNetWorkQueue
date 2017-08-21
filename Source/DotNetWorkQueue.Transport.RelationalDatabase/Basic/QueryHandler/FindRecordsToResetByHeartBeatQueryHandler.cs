@@ -18,8 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Data;
-using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -34,6 +32,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         private readonly CommandStringCache _commandCache;
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly ISetupCommand _setupCommand;
+        private readonly IReadColumn _readColumn;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatQueryHandler" /> class.
@@ -41,17 +40,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// <param name="commandCache">The command cache.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="setupCommand">The setup command.</param>
+        /// <param name="readColumn">The read column.</param>
         public FindRecordsToResetByHeartBeatQueryHandler(CommandStringCache commandCache,
             IDbConnectionFactory dbConnectionFactory,
-            ISetupCommand setupCommand)
+            ISetupCommand setupCommand,
+            IReadColumn readColumn)
         {
             Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
             Guard.NotNull(() => setupCommand, setupCommand);
+            Guard.NotNull(() => readColumn, readColumn);
 
             _commandCache = commandCache;
             _dbConnectionFactory = dbConnectionFactory;
             _setupCommand = setupCommand;
+            _readColumn = readColumn;
         }
         /// <summary>
         /// Handles the specified query.
@@ -92,7 +95,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                             {
                                 break;
                             }
-                            results.Add(new MessageToReset(reader.GetInt64(0), DateTime.FromBinary(reader.GetInt64(1))));
+                            results.Add(new MessageToReset(Convert.ToInt64(reader[0]), _readColumn.ReadAsDateTime(CommandStringTypes.GetHeartBeatExpiredMessageIds, 1, reader)));
                         }
                     }
                 }
