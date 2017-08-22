@@ -30,8 +30,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     internal class DeleteMessageCommandHandler : ICommandHandlerWithOutput<DeleteMessageCommand, long>
     {
         private readonly Lazy<ITransportOptions> _options;
-        private readonly CommandStringCache _commandCache;
         private readonly ITransactionFactory _transactionFactory;
+        private readonly IPrepareCommandHandler<DeleteMessageCommand> _prepareCommand;
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
         /// <summary>
@@ -39,21 +39,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// </summary>
         /// <param name="options">The options.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        /// <param name="commandCache">The command cache.</param>
         /// <param name="transactionFactory">The transaction factory.</param>
+        /// <param name="prepareCommand">The prepare command.</param>
         public DeleteMessageCommandHandler(ITransportOptionsFactory options,
             IDbConnectionFactory dbConnectionFactory,
-            CommandStringCache commandCache,
-            ITransactionFactory transactionFactory)
+            ITransactionFactory transactionFactory,
+            IPrepareCommandHandler<DeleteMessageCommand> prepareCommand)
         {
             Guard.NotNull(() => options, options);
-            Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
             Guard.NotNull(() => transactionFactory, transactionFactory);
+            Guard.NotNull(() => prepareCommand, prepareCommand);
 
             _options = new Lazy<ITransportOptions>(options.Create);
-            _commandCache = commandCache;
             _transactionFactory = transactionFactory;
+            _prepareCommand = prepareCommand;
             _dbConnectionFactory = dbConnectionFactory;
         }
 
@@ -74,28 +74,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                     {
                         commandSql.Transaction = trans;
 
-                        //set ID
-                        var param = commandSql.CreateParameter();
-                        param.ParameterName = "@QueueID";
-                        param.DbType = DbType.Int64;
-                        param.Value = command.QueueId;
-                        commandSql.Parameters.Add(param);
-
                         //delete the meta data record
-                        commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaData);
+                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromMetaData);
                         commandSql.ExecuteNonQuery();
 
                         //delete the message body
-                        commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromQueue);
+                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromQueue);
                         commandSql.ExecuteNonQuery();
 
                         //delete any error tracking information
-                        commandSql.CommandText =
-                            _commandCache.GetCommand(CommandStringTypes.DeleteFromErrorTracking);
+                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromErrorTracking);
                         commandSql.ExecuteNonQuery();
 
-                        commandSql.CommandText =
-                          _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaDataErrors);
+                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromMetaDataErrors);
                         commandSql.ExecuteNonQuery();
 
                         //delete status record
@@ -105,7 +96,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                             return 1;
                         }
 
-                        commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromStatus);
+                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromStatus);
                         commandSql.ExecuteNonQuery();
                         trans.Commit();
                         return 1;

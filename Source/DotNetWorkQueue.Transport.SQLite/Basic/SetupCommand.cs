@@ -61,9 +61,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             ISetupCommand setup;
             switch (type)
             {
-                case CommandStringTypes.ResetHeartbeat:
-                    setup = new ResetHeartbeatSetup();
-                    break;
                 case CommandStringTypes.FindExpiredRecordsToDelete:
                 case CommandStringTypes.FindExpiredRecordsWithStatusToDelete:
                     setup = new FindExpiredMessagesToDeleteSetup(_getTimeFactory);

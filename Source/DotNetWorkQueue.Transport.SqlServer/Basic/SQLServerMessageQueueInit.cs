@@ -186,6 +186,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             // of IQueryHandler<T> by their closed interface:
             container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,
                 target);
+
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandler<T> by their closed interface:
+            container.Register(typeof(IPrepareCommandHandler<>), LifeStyles.Singleton,
+                target);
         }
 
         /// <summary>

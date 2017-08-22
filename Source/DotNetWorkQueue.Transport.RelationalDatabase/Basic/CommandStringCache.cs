@@ -263,7 +263,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Deletes a table
         /// </summary>
-        DeleteTable
+        DeleteTable,
+        /// <summary>
+        /// Create queue tables
+        /// </summary>
+        CreateQueueTables,
+        /// <summary>
+        /// Create job tables
+        /// </summary>
+        CreateJobTables
     }
 
     /// <summary>

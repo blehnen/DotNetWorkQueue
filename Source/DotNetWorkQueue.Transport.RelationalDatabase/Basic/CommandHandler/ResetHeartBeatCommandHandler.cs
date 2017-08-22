@@ -26,32 +26,27 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// </summary>
     internal class ResetHeartBeatCommandHandler : ICommandHandlerWithOutput<ResetHeartBeatCommand, long>
     {
-        private readonly CommandStringCache _commandCache;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IDbConnectionFactory _connectionFactory;
-        private readonly ISetupCommand _setupCommand;
+        private readonly IPrepareCommandHandler<ResetHeartBeatCommand> _prepareCommand;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ResetHeartBeatCommandHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
         /// <param name="transactionFactory">The transaction factory.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        /// <param name="setupCommand">The setup command.</param>
-        public ResetHeartBeatCommandHandler(CommandStringCache commandCache, 
-            ITransactionFactory transactionFactory,
+        /// <param name="prepareCommand">The prepare command.</param>
+        public ResetHeartBeatCommandHandler(ITransactionFactory transactionFactory,
             IDbConnectionFactory connectionFactory,
-            ISetupCommand setupCommand)
+            IPrepareCommandHandler<ResetHeartBeatCommand> prepareCommand)
         {
-            Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => transactionFactory, transactionFactory);
             Guard.NotNull(() => connectionFactory, connectionFactory);
-            Guard.NotNull(() => setupCommand, setupCommand);
+            Guard.NotNull(() => prepareCommand, prepareCommand);
 
-            _commandCache = commandCache;
             _transactionFactory = transactionFactory;
             _connectionFactory = connectionFactory;
-            _setupCommand = setupCommand;
+            _prepareCommand = prepareCommand;
         }
         /// <summary>
         /// Resets the status for a specific record, if the status is currently 1
@@ -69,10 +64,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                     using (var command = connection.CreateCommand())
                     {
                         command.Transaction = trans;
-
-                        command.CommandText = _commandCache.GetCommand(CommandStringTypes.ResetHeartbeat);
-                        _setupCommand.Setup(command, CommandStringTypes.ResetHeartbeat, inputCommand);
-
+                        _prepareCommand.Handle(inputCommand, command, CommandStringTypes.ResetHeartbeat);
                         var result = command.ExecuteNonQuery();
                         if (result > 0)
                         {

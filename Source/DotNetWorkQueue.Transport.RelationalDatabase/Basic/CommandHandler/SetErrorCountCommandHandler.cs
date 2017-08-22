@@ -28,32 +28,28 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// </summary>
     internal class SetErrorCountCommandHandler : ICommandHandler<SetErrorCountCommand>
     {
-        private readonly CommandStringCache _commandCache;
         private readonly IQueryHandler<GetErrorRecordExistsQuery, bool> _queryHandler;
-        private readonly IConnectionInformation _connectionInformation;
         private readonly IDbConnectionFactory _dbConnectionFactory;
+        private readonly IPrepareCommandHandler<SetErrorCountCommand> _prepareCommand;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SetErrorCountCommandHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
         /// <param name="queryHandler">The query handler.</param>
-        /// <param name="connectionInformation">The connection information.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        public SetErrorCountCommandHandler(CommandStringCache commandCache, 
+        /// <param name="prepareCommand">The prepare command.</param>
+        public SetErrorCountCommandHandler(
             IQueryHandler<GetErrorRecordExistsQuery, bool> queryHandler,
-            IConnectionInformation connectionInformation,
-            IDbConnectionFactory dbConnectionFactory)
+            IDbConnectionFactory dbConnectionFactory,
+            IPrepareCommandHandler<SetErrorCountCommand> prepareCommand)
         {
-            Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => queryHandler, queryHandler);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            Guard.NotNull(() => prepareCommand, prepareCommand);
 
-            _commandCache = commandCache;
             _queryHandler = queryHandler;
-            _connectionInformation = connectionInformation;
             _dbConnectionFactory = dbConnectionFactory;
+            _prepareCommand = prepareCommand;
         }
         /// <summary>
         /// Handles the specified command.
@@ -67,22 +63,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                 connection.Open();
                 using (var commandSql = connection.CreateCommand())
                 {
-                    commandSql.CommandText = _commandCache.GetCommand(_queryHandler.Handle(new GetErrorRecordExistsQuery(command.ExceptionType,
-                        command.QueueId)) ? CommandStringTypes.UpdateErrorCount : CommandStringTypes.InsertErrorCount);
-
-                    //set ID
-                    var param = commandSql.CreateParameter();
-                    param.ParameterName = "@QueueID";
-                    param.DbType = DbType.Int64;
-                    param.Value = command.QueueId;
-                    commandSql.Parameters.Add(param);
-
-                    param = commandSql.CreateParameter();
-                    param.ParameterName = "@ExceptionType";
-                    param.DbType = DbType.AnsiStringFixedLength;
-                    param.Size = 500;
-                    param.Value = command.ExceptionType;
-                    commandSql.Parameters.Add(param);
+                    var commandType = _queryHandler.Handle(new GetErrorRecordExistsQuery(command.ExceptionType,
+                        command.QueueId))
+                        ? CommandStringTypes.UpdateErrorCount
+                        : CommandStringTypes.InsertErrorCount;
+                    _prepareCommand.Handle(command, commandSql, commandType);
                     commandSql.ExecuteNonQuery();
                 }
             }

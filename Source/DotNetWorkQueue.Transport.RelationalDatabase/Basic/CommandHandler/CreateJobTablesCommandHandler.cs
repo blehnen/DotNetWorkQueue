@@ -27,14 +27,25 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     public class CreateJobTablesCommandHandler : ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult>
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
+        private readonly IPrepareCommandHandler<CreateJobTablesCommand<ITable>> _prepareCommandHandler;
+        private readonly ITransactionFactory _transactionFactory;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateJobTablesCommandHandler" /> class.
         /// </summary>
         /// <param name="dbConnectionFactory">The connection factory.</param>
-        public CreateJobTablesCommandHandler(IDbConnectionFactory dbConnectionFactory)
+        /// <param name="prepareCommandHandler">The prepare command.</param>
+        /// <param name="transactionFactory"></param>
+        public CreateJobTablesCommandHandler(IDbConnectionFactory dbConnectionFactory,
+            IPrepareCommandHandler<CreateJobTablesCommand<ITable>> prepareCommandHandler,
+            ITransactionFactory transactionFactory)
         {
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            Guard.NotNull(() => prepareCommandHandler, prepareCommandHandler);
+            Guard.NotNull(() => transactionFactory, transactionFactory);
             _dbConnectionFactory = dbConnectionFactory;
+            _prepareCommandHandler = prepareCommandHandler;
+            _transactionFactory = transactionFactory;
         }
 
         /// <summary>
@@ -47,16 +58,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             using (var conn = _dbConnectionFactory.Create())
             {
                 conn.Open();
-                using (var trans = conn.BeginTransaction())
+                using (var trans = _transactionFactory.Create(conn).BeginTransaction())
                 {
-                    foreach (var t in command.Tables)
+                    using (var commandSql = conn.CreateCommand())
                     {
-                        using (var commandSql = conn.CreateCommand())
-                        {
-                            commandSql.Transaction = trans;
-                            commandSql.CommandText = t.Script();
-                            commandSql.ExecuteNonQuery();
-                        }
+                        commandSql.Transaction = trans;
+                        _prepareCommandHandler.Handle(command, commandSql, CommandStringTypes.CreateJobTables);
+                        commandSql.ExecuteNonQuery();
                     }
                     trans.Commit();
                 }

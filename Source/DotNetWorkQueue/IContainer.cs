@@ -141,6 +141,17 @@ namespace DotNetWorkQueue
         IContainer RegisterConditional(Type serviceType, Type implementationType, LifeStyles lifestyle);
 
         /// <summary>
+        /// Registers the implementation type as a fall back if no other registration has been made.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service.</typeparam>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="lifestyle">The lifestyle.</param>
+        /// <returns></returns>
+        IContainer RegisterConditional<TService, TImplementation>(LifeStyles lifestyle)
+            where TService : class
+            where TImplementation : class, TService;
+
+        /// <summary>
         /// Registers a collection of services for a single service type
         /// </summary>
         /// <typeparam name="TService">The type of the service.</typeparam>

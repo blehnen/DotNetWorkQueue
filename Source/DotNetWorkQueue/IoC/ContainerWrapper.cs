@@ -172,6 +172,21 @@ namespace DotNetWorkQueue.IoC
         }
 
         /// <summary>
+        /// Registers the conditional.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service.</typeparam>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="lifestyle">The lifestyle.</param>
+        /// <returns></returns>
+        public IContainer RegisterConditional<TService, TImplementation>(LifeStyles lifestyle)
+            where TService : class
+            where TImplementation : class, TService
+        {
+            _container.RegisterConditional<TService, TImplementation>(GetLifeStyle(lifestyle), c => !c.Handled);
+            return this;
+        }
+
+        /// <summary>
         /// Registers the service with the specified life style.
         /// </summary>
         /// <typeparam name="TConcrete">The type of the concrete implementation.</typeparam>

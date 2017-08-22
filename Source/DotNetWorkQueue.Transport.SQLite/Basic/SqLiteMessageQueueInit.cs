@@ -28,6 +28,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
+using DotNetWorkQueue.Transport.SQLite.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.SQLite.Basic.Factory;
 using DotNetWorkQueue.Transport.SQLite.Basic.Message;
 using CommitMessage = DotNetWorkQueue.Transport.SQLite.Basic.Message.CommitMessage;
@@ -130,6 +131,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             if (target.FullName != target2.FullName)
                 RegisterCommands(container, target2);
 
+            //reset heart beat 
+                container
+                    .Register<IPrepareCommandHandler<ResetHeartBeatCommand>,
+                        ResetHeartBeatCommandPrepareHandler>(LifeStyles.Singleton);
+
             //explicit registration of our job exists query
             container
                 .Register<IQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>,
@@ -225,6 +231,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             // Go look in all assemblies and register all implementations
             // of IQueryHandler<T> by their closed interface:
             container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,
+                target);
+
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandler<T> by their closed interface:
+            container.Register(typeof(IPrepareCommandHandler<>), LifeStyles.Singleton,
                 target);
         }
 

@@ -26,6 +26,7 @@ using DotNetWorkQueue.Transport.PostgreSQL.Basic.Time;
 using DotNetWorkQueue.Transport.PostgreSQL.Decorator;
 using CommitMessage = DotNetWorkQueue.Transport.PostgreSQL.Basic.Message.CommitMessage;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -128,6 +129,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             if(target.FullName != target2.FullName)
                 RegisterCommands(container, target2);
 
+            //reset heart beat 
+            container
+                .Register<IPrepareCommandHandler<ResetHeartBeatCommand>,
+                    ResetHeartBeatCommandPrepareHandler>(LifeStyles.Singleton);
+
             //explicit registration of our job exists query
             container
                 .Register<IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>,
@@ -184,6 +190,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             // Go look in all assemblies and register all implementations
             // of IQueryHandler<T> by their closed interface:
             container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,
+                target);
+
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandler<T> by their closed interface:
+            container.Register(typeof(IPrepareCommandHandler<>), LifeStyles.Singleton,
                 target);
         }
 

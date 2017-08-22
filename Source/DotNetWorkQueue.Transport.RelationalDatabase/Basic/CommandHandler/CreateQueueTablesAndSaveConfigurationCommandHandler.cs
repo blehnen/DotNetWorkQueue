@@ -29,26 +29,36 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     internal class CreateQueueTablesAndSaveConfigurationCommandHandler : ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult>
     {
         private readonly IOptionsSerialization _options;
-        private readonly CommandStringCache _commandCache;
         private readonly IDbConnectionFactory _connectionFactory;
+        private readonly IPrepareCommandHandler<CreateQueueTablesAndSaveConfigurationCommand<ITable>> _prepareCommand;
+        private readonly ITransactionFactory _transactionFactory;
+        private readonly IPrepareCommandHandler<SaveQueueConfigurationCommand> _prepareSaveConfigurationCommand;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateQueueTablesAndSaveConfigurationCommandHandler" /> class.
         /// </summary>
         /// <param name="options">The options.</param>
-        /// <param name="commandCache">The command cache.</param>
         /// <param name="connectionFactory">The connection factory.</param>
+        /// <param name="prepareCommand">The prepare command.</param>
+        /// <param name="transactionFactory">The transaction factory.</param>
+        /// <param name="prepareSaveConfigurationCommand">The prepare save configuration command.</param>
         public CreateQueueTablesAndSaveConfigurationCommandHandler(IOptionsSerialization options, 
-            CommandStringCache commandCache,
-            IDbConnectionFactory connectionFactory)
+            IDbConnectionFactory connectionFactory,
+            IPrepareCommandHandler<CreateQueueTablesAndSaveConfigurationCommand<ITable>> prepareCommand,
+            ITransactionFactory transactionFactory,
+            IPrepareCommandHandler<SaveQueueConfigurationCommand> prepareSaveConfigurationCommand)
         {
             Guard.NotNull(() => options, options);
-            Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => connectionFactory, connectionFactory);
+            Guard.NotNull(() => prepareCommand, prepareCommand);
+            Guard.NotNull(() => transactionFactory, transactionFactory);
+            Guard.NotNull(() => prepareSaveConfigurationCommand, prepareSaveConfigurationCommand);
 
             _options = options;
-            _commandCache = commandCache;
             _connectionFactory = connectionFactory;
+            _prepareCommand = prepareCommand;
+            _transactionFactory = transactionFactory;
+            _prepareSaveConfigurationCommand = prepareSaveConfigurationCommand;
         }
 
         /// <summary>
@@ -63,16 +73,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             using (var conn = _connectionFactory.Create())
             {
                 conn.Open();
-                using (var trans = conn.BeginTransaction())
+                using (var trans = _transactionFactory.Create(conn).BeginTransaction())
                 {
-                    foreach (var t in command.Tables)
+                    using (var commandSql = conn.CreateCommand())
                     {
-                        using (var commandSql = conn.CreateCommand())
-                        {
-                            commandSql.Transaction = trans;
-                            commandSql.CommandText = t.Script();
-                            commandSql.ExecuteNonQuery();
-                        }
+                        commandSql.Transaction = trans;
+                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.CreateQueueTables);
+                        commandSql.ExecuteNonQuery();
                     }
 
                     //save the configuration
@@ -94,12 +101,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             using (var commandSql = conn.CreateCommand())
             {
                 commandSql.Transaction = trans;
-                commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SaveConfiguration);
-                var param = commandSql.CreateParameter();
-                param.ParameterName = "@Configuration";
-                param.DbType = DbType.Binary;
-                param.Value = _options.ConvertToBytes();
-                commandSql.Parameters.Add(param);
+                _prepareSaveConfigurationCommand.Handle(new SaveQueueConfigurationCommand(_options.ConvertToBytes()), commandSql, CommandStringTypes.SaveConfiguration);
                 commandSql.ExecuteNonQuery();
             }
         }

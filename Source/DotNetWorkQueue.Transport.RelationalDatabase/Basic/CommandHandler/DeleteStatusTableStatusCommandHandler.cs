@@ -27,21 +27,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// </summary>
     internal class DeleteStatusTableStatusCommandHandler : ICommandHandler<DeleteStatusTableStatusCommand>
     {
-        private readonly CommandStringCache _commandCache;
+        private readonly IPrepareCommandHandler<DeleteStatusTableStatusCommand> _prepareCommand;
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteStatusTableStatusCommandHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
+        /// <param name="prepareCommand">The command cache.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        public DeleteStatusTableStatusCommandHandler(CommandStringCache commandCache, 
+        public DeleteStatusTableStatusCommandHandler(IPrepareCommandHandler<DeleteStatusTableStatusCommand> prepareCommand, 
             IDbConnectionFactory dbConnectionFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => prepareCommand, prepareCommand);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
 
-            _commandCache = commandCache;
+            _prepareCommand = prepareCommand;
             _dbConnectionFactory = dbConnectionFactory;
         }
 
@@ -56,12 +56,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                 connection.Open();
                 using (var commandSql = connection.CreateCommand())
                 {
-                    commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromStatus);
-                    var param = commandSql.CreateParameter();
-                    param.ParameterName = "@QueueID";
-                    param.Value = command.QueueId;
-                    param.DbType = DbType.Int64;
-                    commandSql.Parameters.Add(param);
+                    _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromStatus);
                     commandSql.ExecuteNonQuery();
                 }
             }

@@ -16,8 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
@@ -28,22 +26,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// </summary>
     internal class SetStatusTableStatusCommandHandler : ICommandHandler<SetStatusTableStatusCommand>
     {
-        private readonly CommandStringCache _commandCache;
         private readonly IDbConnectionFactory _dbConnectionFactory;
+        private readonly IPrepareCommandHandler<SetStatusTableStatusCommand> _prepareCommand;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SetStatusTableStatusCommandHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        public SetStatusTableStatusCommandHandler(CommandStringCache commandCache,
-                IDbConnectionFactory dbConnectionFactory)
+        /// <param name="prepareCommand">The prepare command.</param>
+        public SetStatusTableStatusCommandHandler(IDbConnectionFactory dbConnectionFactory,
+                IPrepareCommandHandler<SetStatusTableStatusCommand> prepareCommand)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => prepareCommand, prepareCommand);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
 
-            _commandCache = commandCache;
             _dbConnectionFactory = dbConnectionFactory;
+            _prepareCommand = prepareCommand;
         }
 
         /// <summary>
@@ -58,20 +56,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                 connection.Open();
                 using (var commandSql = connection.CreateCommand())
                 {
-                    commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
-
-                    var queueId = commandSql.CreateParameter();
-                    queueId.ParameterName = "@QueueID";
-                    queueId.DbType = DbType.Int64;
-                    queueId.Value = command.QueueId;
-                    commandSql.Parameters.Add(queueId);
-
-                    var status = commandSql.CreateParameter();
-                    status.ParameterName = "@Status";
-                    status.DbType = DbType.Int16;
-                    status.Value = Convert.ToInt16(command.Status);
-                    commandSql.Parameters.Add(status);
-
+                    _prepareCommand.Handle(command, commandSql, CommandStringTypes.UpdateStatusRecord);
                     commandSql.ExecuteNonQuery();
                 }
             }
