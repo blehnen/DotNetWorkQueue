@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
         }
         public void Handle(SetErrorCountCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
-            _commandCache.GetCommand(commandType);
+            dbCommand.CommandText = _commandCache.GetCommand(commandType);
             var param = dbCommand.CreateParameter();
             param.ParameterName = "@QueueID";
             param.DbType = DbType.Int64;
