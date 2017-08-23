@@ -56,8 +56,6 @@
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
-    <Compile Include="Basic\CommandSetup\FindRecordsToResetByHeartBeatSetup.cs" />
-    <Compile Include="Basic\CommandSetup\ResetHeartbeatSetup.cs" />
     <Compile Include="Basic\Connection.cs" />
     <Compile Include="Basic\DateTimeOffsetParser.cs" />
     <Compile Include="Basic\DbConnectionFactory.cs" />
@@ -65,7 +63,7 @@
     <Compile Include="Basic\Factory\SQLServerMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
     <Compile Include="Basic\IConnectionFactory.cs" />
-    <Compile Include="Basic\ISQLServerMessageQueueTransportOptionsFactory.cs" />
+    <Compile Include="ISQLServerMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\Message\CommitMessage.cs" />
     <Compile Include="Basic\Message\HandleMessage.cs" />
     <Compile Include="Basic\Message\ReceiveMessage.cs" />
@@ -76,7 +74,6 @@
     <Compile Include="Basic\QueryHandler\ReadMessage.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
-    <Compile Include="Basic\SetupCommand.cs" />
     <Compile Include="Basic\SQLHeaders.cs" />
     <Compile Include="Basic\SqlServerCommandStringCache.cs" />
     <Compile Include="Basic\SqlServerJobQueueCreation.cs" />

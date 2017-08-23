@@ -17,34 +17,30 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
-namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
-    public class SetErrorCountCommandPrepareHandler : IPrepareCommandHandler<SetErrorCountCommand>
+    public class DoesJobExistQueryPrepareHandler<TConnection, TTransaction> : IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses>
+        where TConnection : class, IDbConnection
+        where TTransaction : class, IDbTransaction
     {
         private readonly CommandStringCache _commandCache;
-
-        public SetErrorCountCommandPrepareHandler(CommandStringCache commandCache)
+        public DoesJobExistQueryPrepareHandler(CommandStringCache commandCache)
         {
             Guard.NotNull(() => commandCache, commandCache);
             _commandCache = commandCache;
         }
-        public void Handle(SetErrorCountCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(DoesJobExistQuery<TConnection, TTransaction> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
-            var param = dbCommand.CreateParameter();
-            param.ParameterName = "@QueueID";
-            param.DbType = DbType.Int64;
-            param.Value = command.QueueId;
-            dbCommand.Parameters.Add(param);
 
-            param = dbCommand.CreateParameter();
-            param.ParameterName = "@ExceptionType";
-            param.DbType = DbType.AnsiStringFixedLength;
-            param.Size = 500;
-            param.Value = command.ExceptionType;
+            var param = dbCommand.CreateParameter();
+            param.ParameterName = "@JobName";
+            param.Size = 255;
+            param.DbType = DbType.AnsiString;
+            param.Value = query.JobName;
             dbCommand.Parameters.Add(param);
         }
     }

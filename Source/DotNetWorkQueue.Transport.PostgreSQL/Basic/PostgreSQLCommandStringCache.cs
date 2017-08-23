@@ -132,7 +132,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 $"select queueid from {TableNameHelper.MetaDataName} where @CurrentDate > ExpirationTime FOR UPDATE SKIP LOCKED");
 
             CommandCache.Add(CommandStringTypes.DeleteTable,
-                $"DROP TABLE IF EXISTS {0} CASCADE;");
+                "DROP TABLE IF EXISTS {0} CASCADE;");
         }
     }
 }

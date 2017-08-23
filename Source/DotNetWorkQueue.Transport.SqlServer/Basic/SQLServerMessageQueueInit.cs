@@ -33,6 +33,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
@@ -66,7 +67,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<CommandStringCache, SqlServerCommandStringCache>(LifeStyles.Singleton);
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
-            container.Register<ISetupCommand, SetupCommand>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
             container.Register<ICaseTableName, CaseTableName>(LifeStyles.Singleton);
@@ -135,6 +135,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                         QueueStatuses>,
                     DoesJobExistQueryHandler<SqlConnection, SqlTransaction>>(LifeStyles.Singleton);
 
+            //because we have an explicit registration for job exists, we need to explicitly register the prepare statement
+            container
+                .Register<IPrepareQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>,
+                        QueueStatuses>,
+                    DoesJobExistQueryPrepareHandler<SqlConnection, SqlTransaction>>(LifeStyles.Singleton);
+
             //explicit registration of options
             container
                 .Register<IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions>,
@@ -190,6 +196,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             // Go look in all assemblies and register all implementations
             // of ICommandHandler<T> by their closed interface:
             container.Register(typeof(IPrepareCommandHandler<>), LifeStyles.Singleton,
+                target);
+
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandler<T> by their closed interface:
+            container.Register(typeof(IPrepareQueryHandler<,>), LifeStyles.Singleton,
                 target);
         }
 

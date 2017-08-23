@@ -16,17 +16,20 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
+
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+
+namespace DotNetWorkQueue.Transport.PostgreSQL
 {
     /// <summary>
-    /// Returns the options class
+    /// Creates new instances of <see cref="Connection"/>
     /// </summary>
-    public interface IPostgreSqlMessageQueueTransportOptionsFactory
+    internal interface IConnectionFactory
     {
         /// <summary>
-        /// Returns the options class
+        /// Creates new instance of <see cref="Connection"/>
         /// </summary>
         /// <returns></returns>
-        PostgreSqlMessageQueueTransportOptions Create();
+        Connection Create();
     }
 }

@@ -16,36 +16,45 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
-namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
-    public class SetErrorCountCommandPrepareHandler : IPrepareCommandHandler<SetErrorCountCommand>
+    public class FindRecordsToResetByHeartBeatQueryPrepareHandler : IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
     {
         private readonly CommandStringCache _commandCache;
+        private readonly QueueConsumerConfiguration _configuration;
 
-        public SetErrorCountCommandPrepareHandler(CommandStringCache commandCache)
+        public FindRecordsToResetByHeartBeatQueryPrepareHandler(CommandStringCache commandCache,
+            QueueConsumerConfiguration configuration)
         {
             Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => configuration, configuration);
             _commandCache = commandCache;
+            _configuration = configuration;
         }
-        public void Handle(SetErrorCountCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindMessagesToResetByHeartBeatQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
-            dbCommand.CommandText = _commandCache.GetCommand(commandType);
+            dbCommand.CommandText =
+                _commandCache.GetCommand(commandType);
+
             var param = dbCommand.CreateParameter();
-            param.ParameterName = "@QueueID";
+            param.ParameterName = "@Time";
             param.DbType = DbType.Int64;
-            param.Value = command.QueueId;
+            param.Value = _configuration.HeartBeat.Time.TotalSeconds;
             dbCommand.Parameters.Add(param);
 
             param = dbCommand.CreateParameter();
-            param.ParameterName = "@ExceptionType";
-            param.DbType = DbType.AnsiStringFixedLength;
-            param.Size = 500;
-            param.Value = command.ExceptionType;
+            param.ParameterName = "@Status";
+            param.DbType = DbType.Int32;
+            param.Value = Convert.ToInt16(QueueStatuses.Processing);
             dbCommand.Parameters.Add(param);
+
         }
     }
 }

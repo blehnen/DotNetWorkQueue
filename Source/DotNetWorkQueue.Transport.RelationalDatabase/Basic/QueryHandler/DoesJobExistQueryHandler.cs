@@ -36,6 +36,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IDateTimeOffsetParser _dateTimeOffsetParser;
+        private readonly IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses> _prepareQuery;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DoesJobExistQueryHandler{TConnection, TTransaction}" /> class.
@@ -47,13 +48,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="transactionFactory">The transaction factory.</param>
         /// <param name="dateTimeOffsetParser">The date time offset parser.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         public DoesJobExistQueryHandler(CommandStringCache commandCache,
             IConnectionInformation connectionInformation,
             IQueryHandler<GetTableExistsQuery, bool> tableExists, 
             TableNameHelper tableNameHelper,
             IDbConnectionFactory dbConnectionFactory,
             ITransactionFactory transactionFactory,
-            IDateTimeOffsetParser dateTimeOffsetParser)
+            IDateTimeOffsetParser dateTimeOffsetParser,
+            IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses> prepareQuery)
         {
             Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -62,6 +65,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
             Guard.NotNull(() => transactionFactory, transactionFactory);
             Guard.NotNull(() => dateTimeOffsetParser, dateTimeOffsetParser);
+            Guard.NotNull(() => prepareQuery, prepareQuery);
 
             _commandCache = commandCache;
             _connectionInformation = connectionInformation;
@@ -70,6 +74,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _dbConnectionFactory = dbConnectionFactory;
             _transactionFactory = transactionFactory;
             _dateTimeOffsetParser = dateTimeOffsetParser;
+            _prepareQuery = prepareQuery;
         }
 
         /// <summary>
@@ -100,16 +105,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             var returnStatus = QueueStatuses.NotQueued;
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = _commandCache.GetCommand(CommandStringTypes.DoesJobExist);
                 command.Transaction = transaction;
-
-                var param = command.CreateParameter();
-                param.ParameterName = "@JobName";
-                param.Size = 255;
-                param.DbType = DbType.AnsiString;
-                param.Value = query.JobName;
-                command.Parameters.Add(param);
-
+                _prepareQuery.Handle(query, command, CommandStringTypes.DoesJobExist);
                 using (var reader = command.ExecuteReader())
                 {
                     if (reader.Read())

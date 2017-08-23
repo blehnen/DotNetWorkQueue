@@ -16,10 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
@@ -32,8 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     internal class FindExpiredRecordsToDeleteQueryHandler : IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly CommandStringCache _commandStringCache;
-        private readonly ISetupCommand _setupCommand;
+        private readonly IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> _prepareQuery;
         private readonly Lazy<ITransportOptions> _options;
 
         /// <summary>
@@ -41,22 +38,18 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// </summary>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="options">The options.</param>
-        /// <param name="commandStringCache">The command string cache.</param>
-        /// <param name="setupCommand">The setup command.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         public FindExpiredRecordsToDeleteQueryHandler(
             IDbConnectionFactory dbConnectionFactory,
             ITransportOptionsFactory options, 
-            CommandStringCache commandStringCache,
-            ISetupCommand setupCommand)
+            IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> prepareQuery)
         {
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
             Guard.NotNull(() => options, options);
-            Guard.NotNull(() => commandStringCache, commandStringCache);
-            Guard.NotNull(() => setupCommand, setupCommand);
+            Guard.NotNull(() => prepareQuery, prepareQuery);
 
             _dbConnectionFactory = dbConnectionFactory;
-            _commandStringCache = commandStringCache;
-            _setupCommand = setupCommand;
+            _prepareQuery = prepareQuery;
             _options = new Lazy<ITransportOptions>(options.Create);
         }
         /// <summary>
@@ -76,8 +69,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             var commandType = _options.Value.EnableStatus
                 ? CommandStringTypes.FindExpiredRecordsWithStatusToDelete
                 : CommandStringTypes.FindExpiredRecordsToDelete;
-            var sqLiteCommand = _commandStringCache.GetCommand(commandType);
-
             using (var connection = _dbConnectionFactory.Create())
             {
                 connection.Open();
@@ -91,8 +82,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = sqLiteCommand;
-                    _setupCommand.Setup(command, commandType, query);
+                    _prepareQuery.Handle(query, command, commandType);
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())

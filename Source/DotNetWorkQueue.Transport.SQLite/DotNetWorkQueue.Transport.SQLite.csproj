@@ -56,8 +56,6 @@
     <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
     <Compile Include="Basic\CommandPrepareHandler\ResetHeartBeatCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandSetup\FindExpiredMessagesToDeleteSetup.cs" />
-    <Compile Include="Basic\CommandSetup\FindRecordsToResetByHeartBeatSetup.cs" />
     <Compile Include="Basic\CreationScope.cs" />
     <Compile Include="Basic\DateTimeOffsetParser.cs" />
     <Compile Include="Basic\DbConnectionFactory.cs" />
@@ -74,15 +72,16 @@
     <Compile Include="Basic\Factory\SqLiteMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\GetFileNameFromConnectionString.cs" />
     <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
-    <Compile Include="Basic\ISqLiteMessageQueueTransportOptionsFactory.cs" />
+    <Compile Include="ISqLiteMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\Message\CommitMessage.cs" />
     <Compile Include="Basic\Message\HandleMessage.cs" />
     <Compile Include="Basic\Message\ReceiveMessage.cs" />
     <Compile Include="Basic\Message\RollbackMessage.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\FindExpiredRecordsToDeleteQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\FindRecordsToResetByHeartBeatQueryPrepareHandler.cs" />
     <Compile Include="Basic\ReadColumn.cs" />
-    <Compile Include="Basic\SetupCommand.cs" />
     <Compile Include="Basic\SQLHeaders.cs" />
     <Compile Include="Basic\SqliteJobQueueCreation.cs" />
     <Compile Include="Basic\SqliteJobSchedulerLastKnownEvent.cs" />

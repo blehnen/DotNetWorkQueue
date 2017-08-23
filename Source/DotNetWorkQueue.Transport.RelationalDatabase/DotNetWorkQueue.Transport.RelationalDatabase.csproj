@@ -83,6 +83,10 @@
     <Compile Include="Basic\DefaultQueueDelay.cs" />
     <Compile Include="Basic\ExceptionDelay.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\DoesJobExistQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\FindExpiredRecordsToDeleteQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\FindRecordsToResetByHeartBeatQueryPrepareHandler.cs" />
+    <Compile Include="IPrepareQueryHandler.cs" />
     <Compile Include="Basic\MessageExpiration.cs" />
     <Compile Include="Basic\CommandStringCache.cs" />
     <Compile Include="Basic\QueryHandler\DoesJobExistQueryHandler.cs" />
@@ -149,7 +153,6 @@
     <Compile Include="IQuery.cs" />
     <Compile Include="IQueryHandler.cs" />
     <Compile Include="IReadColumn.cs" />
-    <Compile Include="ISetupCommand.cs" />
     <Compile Include="ITransactionWrapper.cs" />
     <Compile Include="ITransactionFactory.cs" />
     <Compile Include="ITable.cs" />
@@ -168,5 +171,6 @@
       <Link>DotNetWorkQueue.licenseheader</Link>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

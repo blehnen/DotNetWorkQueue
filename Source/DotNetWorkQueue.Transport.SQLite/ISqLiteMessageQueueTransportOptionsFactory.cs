@@ -16,7 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.Transport.SQLite.Basic
+
+using DotNetWorkQueue.Transport.SQLite.Basic;
+
+namespace DotNetWorkQueue.Transport.SQLite
 {
     /// <summary>
     /// Returns the options class

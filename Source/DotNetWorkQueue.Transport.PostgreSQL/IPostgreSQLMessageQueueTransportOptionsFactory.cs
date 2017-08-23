@@ -16,13 +16,20 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
-namespace DotNetWorkQueue.Transport.RelationalDatabase
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+
+namespace DotNetWorkQueue.Transport.PostgreSQL
 {
-    public interface ISetupCommand
+    /// <summary>
+    /// Returns the options class
+    /// </summary>
+    public interface IPostgreSqlMessageQueueTransportOptionsFactory
     {
-        void Setup(IDbCommand command, CommandStringTypes type, object commandParams);
+        /// <summary>
+        /// Returns the options class
+        /// </summary>
+        /// <returns></returns>
+        PostgreSqlMessageQueueTransportOptions Create();
     }
 }

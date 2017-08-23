@@ -16,48 +16,57 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
-using System;
-using System.Data;
-using System.Data.SQLite;
 
-namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandSetup
+namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.ISetupCommand" />
-    public class FindRecordsToResetByHeartBeatSetup : ISetupCommand
+    /// <seealso cref="MessageToReset" />
+    public class FindRecordsToResetByHeartBeatQueryPrepareHandler : IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
     {
+        private readonly CommandStringCache _commandCache;
         private readonly QueueConsumerConfiguration _configuration;
         private readonly IGetTime _getTime;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatSetup"/> class.
+        /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatQueryPrepareHandler"/> class.
         /// </summary>
+        /// <param name="commandCache">The command cache.</param>
         /// <param name="configuration">The configuration.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
-        public FindRecordsToResetByHeartBeatSetup(QueueConsumerConfiguration configuration,
-            IGetTimeFactory getTimeFactory)
+        public FindRecordsToResetByHeartBeatQueryPrepareHandler(CommandStringCache commandCache,
+            QueueConsumerConfiguration configuration, IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => getTimeFactory, getTimeFactory);
 
             _configuration = configuration;
             _getTime = getTimeFactory.Create();
+            _commandCache = commandCache;
         }
         /// <summary>
-        /// Setups the specified input command.
+        /// Handles the specified query.
         /// </summary>
-        /// <param name="inputCommand">The input command.</param>
-        /// <param name="type">The type.</param>
-        /// <param name="commandParams">The command parameters.</param>
-        public void Setup(IDbCommand inputCommand, CommandStringTypes type, object commandParams)
+        /// <param name="query">The query.</param>
+        /// <param name="dbCommand">The database command.</param>
+        /// <param name="commandType">Type of the command.</param>
+        public void Handle(FindMessagesToResetByHeartBeatQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
-            var command = (SQLiteCommand)inputCommand;
+            dbCommand.CommandText =
+                _commandCache.GetCommand(commandType);
+
+            var command = (SQLiteCommand)dbCommand;
 
             command.Parameters.Add("@time", DbType.Int64);
             var selectTime = _getTime.GetCurrentUtcDate().AddSeconds(_configuration.HeartBeat.Time.TotalSeconds * -1);

@@ -28,6 +28,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.SQLite.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.SQLite.Basic.Factory;
 using DotNetWorkQueue.Transport.SQLite.Basic.Message;
@@ -72,7 +73,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<CommandStringCache, SqLiteCommandStringCache>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
-            container.Register<ISetupCommand, SetupCommand>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqliteJobSchema>(LifeStyles.Singleton);
             container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
             container.Register<ICaseTableName, CaseTableName>(LifeStyles.Singleton);
@@ -141,6 +141,22 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 .Register<IQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>,
                         QueueStatuses>,
                     DoesJobExistQueryHandler<SQLiteConnection, SQLiteTransaction>>(LifeStyles.Singleton);
+
+            //because we have an explicit registration for job exists, we need to explicitly register the prepare statement
+            container
+                .Register<IPrepareQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>,
+                        QueueStatuses>,
+                    DoesJobExistQueryPrepareHandler<SQLiteConnection, SQLiteTransaction>>(LifeStyles.Singleton);
+
+            //expired messages
+            container
+                .Register<IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>,
+                    QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
+
+            //heartbeat
+            container
+                .Register<IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>,
+                    QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
 
             //explicit registration of options
             container
@@ -236,6 +252,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             // Go look in all assemblies and register all implementations
             // of ICommandHandler<T> by their closed interface:
             container.Register(typeof(IPrepareCommandHandler<>), LifeStyles.Singleton,
+                target);
+
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandler<T> by their closed interface:
+            container.Register(typeof(IPrepareQueryHandler<,>), LifeStyles.Singleton,
                 target);
         }
 

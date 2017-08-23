@@ -29,31 +29,30 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     internal class FindRecordsToResetByHeartBeatQueryHandler
         : IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
     {
-        private readonly CommandStringCache _commandCache;
         private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly ISetupCommand _setupCommand;
+
+        private readonly IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
+            _prepareQuery;
+
         private readonly IReadColumn _readColumn;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatQueryHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        /// <param name="setupCommand">The setup command.</param>
+        /// <param name="prepareQuery">The setup command.</param>
         /// <param name="readColumn">The read column.</param>
-        public FindRecordsToResetByHeartBeatQueryHandler(CommandStringCache commandCache,
+        public FindRecordsToResetByHeartBeatQueryHandler(
             IDbConnectionFactory dbConnectionFactory,
-            ISetupCommand setupCommand,
+            IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>> prepareQuery,
             IReadColumn readColumn)
         {
-            Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => setupCommand, setupCommand);
+            Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => readColumn, readColumn);
 
-            _commandCache = commandCache;
             _dbConnectionFactory = dbConnectionFactory;
-            _setupCommand = setupCommand;
+            _prepareQuery = prepareQuery;
             _readColumn = readColumn;
         }
         /// <summary>
@@ -84,9 +83,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText =
-                        _commandCache.GetCommand(CommandStringTypes.GetHeartBeatExpiredMessageIds);
-                    _setupCommand.Setup(command, CommandStringTypes.GetHeartBeatExpiredMessageIds, query);
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetHeartBeatExpiredMessageIds);
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())

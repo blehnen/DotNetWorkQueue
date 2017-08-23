@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
@@ -33,6 +34,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -68,7 +70,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<ISendJobToQueue, PostgreSqlSendJobToQueue>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<CommandStringCache, PostgreSqlCommandStringCache>(LifeStyles.Singleton);
-            container.Register<ISetupCommand, SetupCommand>(LifeStyles.Singleton);
             container.Register<IJobSchema, PostgreSqlJobSchema>(LifeStyles.Singleton);
             container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
             container.Register<ICaseTableName, CaseTableName>(LifeStyles.Singleton);
@@ -140,6 +141,22 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                         QueueStatuses>,
                     DoesJobExistQueryHandler<NpgsqlConnection, NpgsqlTransaction>>(LifeStyles.Singleton);
 
+            //because we have an explicit registration for job exists, we need to explicitly register the prepare statement
+            container
+                .Register<IPrepareQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>,
+                        QueueStatuses>,
+                    DoesJobExistQueryPrepareHandler<NpgsqlConnection, NpgsqlTransaction>>(LifeStyles.Singleton);
+
+            //expired messages
+            container
+                .Register<IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>,
+                    QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
+
+            //heartbeat
+                container
+                    .Register<IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>,
+                        QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
+
             //explicit registration of options
             container
                 .Register<IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>, PostgreSqlMessageQueueTransportOptions>,
@@ -195,6 +212,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             // Go look in all assemblies and register all implementations
             // of ICommandHandler<T> by their closed interface:
             container.Register(typeof(IPrepareCommandHandler<>), LifeStyles.Singleton,
+                target);
+
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandler<T> by their closed interface:
+            container.Register(typeof(IPrepareQueryHandler<,>), LifeStyles.Singleton,
                 target);
         }
 
