@@ -28,19 +28,20 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// </summary>
     internal class GetUtcDateQueryHandler : IQueryHandler<GetUtcDateQuery, DateTime>
     {
-        private readonly CommandStringCache _commandCache;
+        private readonly IPrepareQueryHandler<GetUtcDateQuery, DateTime> _prepareQuery;
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetUtcDateQueryHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        public GetUtcDateQueryHandler(CommandStringCache commandCache,
+        public GetUtcDateQueryHandler(IPrepareQueryHandler<GetUtcDateQuery, DateTime> prepareQuery,
             IDbConnectionFactory dbConnectionFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            _commandCache = commandCache;
+            Guard.NotNull(() => prepareQuery, prepareQuery);
+            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            _prepareQuery = prepareQuery;
             _dbConnectionFactory = dbConnectionFactory;
         }
 
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetUtcDate);
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetUtcDate);
                     using (var reader = command.ExecuteReader())
                     {
                         if (reader.Read())

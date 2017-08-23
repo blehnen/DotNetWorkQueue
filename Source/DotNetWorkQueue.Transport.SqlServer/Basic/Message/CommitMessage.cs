@@ -16,7 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
@@ -33,6 +36,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
         private readonly ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> _deleteTransactionalMessageCommand;
         private readonly SqlHeaders _headers;
+        private readonly ILog _log;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitMessage" /> class.
@@ -42,23 +46,27 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// <param name="deleteMessageCommand">The delete message command.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="deleteTransactionalMessageCommand">The delete transactional message command.</param>
+        /// <param name="log">The log.</param>
         public CommitMessage(QueueConsumerConfiguration configuration, 
             ICommandHandler<DeleteStatusTableStatusCommand> deleteStatusCommandHandler,
             ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
             SqlHeaders headers, 
-            ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand)
+            ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand,
+            ILogFactory log)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => deleteStatusCommandHandler, deleteStatusCommandHandler);
             Guard.NotNull(() => deleteMessageCommand, deleteMessageCommand);
             Guard.NotNull(() => headers, headers);
             Guard.NotNull(() => deleteTransactionalMessageCommand, deleteTransactionalMessageCommand);
+            Guard.NotNull(() => log, log);
 
             _configuration = configuration;
             _deleteStatusCommandHandler = deleteStatusCommandHandler;
             _deleteMessageCommand = deleteMessageCommand;
             _headers = headers;
             _deleteTransactionalMessageCommand = deleteTransactionalMessageCommand;
+            _log = log.Create();
         }
         /// <summary>
         /// Commits the message, via the held transaction
@@ -73,7 +81,23 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
 
             //delete the message, and then commit the transaction
             _deleteTransactionalMessageCommand.Handle(new DeleteTransactionalMessageCommand((long)context.MessageId.Id.Value, context));
-            connection.SqlTransaction.Commit();
+
+            try
+            {
+                connection.SqlTransaction.Commit();
+            }
+            catch (Exception e)
+            {
+                _log.ErrorException("Failed to commit a transaction; this might be due to a DB timeout", e);
+
+                //don't attempt to use the transaction again at this point.
+                connection.SqlTransaction = null;
+
+                throw;
+            }
+
+            //ensure that transaction won't be used anymore
+            connection.SqlTransaction.Dispose();
             connection.SqlTransaction = null;
 
             if (_configuration.Options().EnableStatusTable)

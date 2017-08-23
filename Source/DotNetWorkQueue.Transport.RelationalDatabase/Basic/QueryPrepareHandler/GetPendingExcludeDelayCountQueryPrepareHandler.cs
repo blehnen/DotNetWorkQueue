@@ -16,18 +16,25 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using DotNetWorkQueue.Queue;
-using Xunit;
-namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
+using System.Data;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Validation;
+
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
-    public class SqlQueueDelayTests
+    public class GetPendingExcludeDelayCountQueryPrepareHandler : IPrepareQueryHandler<GetPendingExcludeDelayCountQuery, long>
     {
-        [Fact]
-        public void Create_Default()
+        private readonly CommandStringCache _commandCache;
+        public GetPendingExcludeDelayCountQueryPrepareHandler(CommandStringCache commandCache)
         {
-            var test = new QueueDelay(TimeSpan.FromHours(1));
-            Assert.Equal(TimeSpan.FromHours(1), test.IncreaseDelay);
+            Guard.NotNull(() => commandCache, commandCache);
+            _commandCache = commandCache;
+        }
+
+
+        public void Handle(GetPendingExcludeDelayCountQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        {
+            dbCommand.CommandText = _commandCache.GetCommand(commandType);
         }
     }
 }

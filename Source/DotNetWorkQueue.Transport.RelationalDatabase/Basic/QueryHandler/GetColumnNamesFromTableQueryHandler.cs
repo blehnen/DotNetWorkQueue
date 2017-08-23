@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
-using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -29,30 +28,25 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     internal class GetColumnNamesFromTableQueryHandler : IQueryHandler<GetColumnNamesFromTableQuery, List<string>>
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly CommandStringCache _commandStringCache;
-        private readonly ICaseTableName _caseTableName;
         private readonly IReadColumn _readColumn;
-
+        private readonly IPrepareQueryHandler<GetColumnNamesFromTableQuery, List<string>> _prepareQuery;
         /// <summary>
         /// Initializes a new instance of the <see cref="GetColumnNamesFromTableQueryHandler" /> class.
         /// </summary>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        /// <param name="commandStringCache">The command string cache.</param>
-        /// <param name="caseTableName">Name of the case table.</param>
         /// <param name="readColumn">The read column.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         public GetColumnNamesFromTableQueryHandler(IDbConnectionFactory dbConnectionFactory,
-            CommandStringCache commandStringCache,
-            ICaseTableName caseTableName,
-            IReadColumn readColumn)
+            IReadColumn readColumn,
+            IPrepareQueryHandler<GetColumnNamesFromTableQuery, List<string>> prepareQuery)
         {
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => commandStringCache, commandStringCache);
-            Guard.NotNull(() => caseTableName, caseTableName);
             Guard.NotNull(() => readColumn, readColumn);
+            Guard.NotNull(() => prepareQuery, prepareQuery);
+
             _dbConnectionFactory = dbConnectionFactory;
-            _commandStringCache = commandStringCache;
-            _caseTableName = caseTableName;
             _readColumn = readColumn;
+            _prepareQuery = prepareQuery;
         }
         /// <summary>
         /// Handles the specified query.
@@ -68,15 +62,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText =
-                        _commandStringCache.GetCommand(CommandStringTypes.GetColumnNamesFromTable, query.TableName);
-
-                    var parameter = command.CreateParameter();
-                    parameter.ParameterName = "@TableName";
-                    parameter.DbType = DbType.AnsiString;
-                    parameter.Value = _caseTableName.FormatTableName(query.TableName);
-                    command.Parameters.Add(parameter);
-
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetColumnNamesFromTable); 
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())

@@ -56,7 +56,6 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Basic\CaseTableName.cs" />
     <Compile Include="Basic\CommandHandler\DeleteTransactionalMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
@@ -72,6 +71,9 @@
     <Compile Include="Basic\Factory\ConnectionFactory.cs" />
     <Compile Include="Basic\Factory\SQLServerMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
+    <Compile Include="Decorator\GetColumnNamesFromTableQueryPrepareDecorator.cs" />
+    <Compile Include="Decorator\GetTableExistsQueryPrepareDecorator.cs" />
+    <Compile Include="Decorator\GetTableExistsTransactionQueryPrepareDecorator.cs" />
     <Compile Include="IConnectionFactory.cs" />
     <Compile Include="IPostgreSQLMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\Message\CommitMessage.cs" />

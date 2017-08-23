@@ -75,7 +75,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqliteJobSchema>(LifeStyles.Singleton);
             container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
-            container.Register<ICaseTableName, CaseTableName>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
 
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
@@ -162,6 +161,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container
                 .Register<IQueryHandler<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>, SqLiteMessageQueueTransportOptions>,
                     GetQueueOptionsQueryHandler<SqLiteMessageQueueTransportOptions>>(LifeStyles.Singleton);
+
+            container
+                .Register<IPrepareQueryHandler<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>,
+                        SqLiteMessageQueueTransportOptions>,
+                    GetQueueOptionsQueryPrepareHandler<SqLiteMessageQueueTransportOptions>>(LifeStyles.Singleton);
 
             container.RegisterDecorator(typeof(ISqLiteTransactionWrapper),
                 typeof(BeginTransactionRetryDecorator), LifeStyles.Transient);

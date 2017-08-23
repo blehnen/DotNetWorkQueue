@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<QueueStatusQueries>(LifeStyles.Singleton);
             container.Register<IQueueStatusProvider, QueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, PostgreSqlJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
-            container.Register<IJobTableCreation,JobTableCreation>(LifeStyles.Singleton);
+            container.Register<IJobTableCreation, JobTableCreation>(LifeStyles.Singleton);
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<PostgreSqlJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, PostgreSqlSendJobToQueue>(LifeStyles.Singleton);
@@ -72,7 +72,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<CommandStringCache, PostgreSqlCommandStringCache>(LifeStyles.Singleton);
             container.Register<IJobSchema, PostgreSqlJobSchema>(LifeStyles.Singleton);
             container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
-            container.Register<ICaseTableName, CaseTableName>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
 
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
@@ -127,7 +126,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             RegisterCommands(container, target);
 
             var target2 = Assembly.GetAssembly(typeof(ITable));
-            if(target.FullName != target2.FullName)
+            if (target.FullName != target2.FullName)
                 RegisterCommands(container, target2);
 
             //reset heart beat 
@@ -153,15 +152,30 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
 
             //heartbeat
-                container
-                    .Register<IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>,
-                        QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
+            container
+                .Register<IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>,
+                    QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
 
             //explicit registration of options
             container
-                .Register<IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>, PostgreSqlMessageQueueTransportOptions>,
+                .Register<IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>,
+                        PostgreSqlMessageQueueTransportOptions>,
                     GetQueueOptionsQueryHandler<PostgreSqlMessageQueueTransportOptions>>(LifeStyles.Singleton);
-            
+
+            container
+                .Register<IPrepareQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>,
+                        PostgreSqlMessageQueueTransportOptions>,
+                    GetQueueOptionsQueryPrepareHandler<PostgreSqlMessageQueueTransportOptions>>(LifeStyles.Singleton);
+
+            container.RegisterDecorator(typeof(IPrepareQueryHandler<GetColumnNamesFromTableQuery, List<string>>),
+                typeof(GetColumnNamesFromTableQueryPrepareDecorator), LifeStyles.Singleton);
+
+            container.RegisterDecorator(typeof(IPrepareQueryHandler<GetTableExistsQuery, bool>),
+                typeof(GetTableExistsQueryPrepareDecorator), LifeStyles.Singleton);
+
+            container.RegisterDecorator(typeof(IPrepareQueryHandler<GetTableExistsTransactionQuery, bool>),
+                typeof(GetTableExistsTransactionQueryPrepareDecorator), LifeStyles.Singleton);
+
             container.RegisterDecorator(typeof(ICommandHandlerWithOutput<,>),
                 typeof(RetryCommandHandlerOutputDecorator<,>), LifeStyles.Singleton);
 
@@ -181,7 +195,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //register our decorator that handles table creation errors
             container.RegisterDecorator(
-                typeof(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult>),
+                typeof(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>,
+                    QueueCreationResult>),
                 typeof(CreateQueueTablesAndSaveConfigurationDecorator), LifeStyles.Singleton);
         }
 

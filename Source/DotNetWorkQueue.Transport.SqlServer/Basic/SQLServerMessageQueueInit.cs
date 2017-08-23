@@ -69,7 +69,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
-            container.Register<ICaseTableName, CaseTableName>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
 
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
@@ -145,6 +144,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container
                 .Register<IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions>,
                     GetQueueOptionsQueryHandler<SqlServerMessageQueueTransportOptions>>(LifeStyles.Singleton);
+
+            container
+                .Register<IPrepareQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>,
+                        SqlServerMessageQueueTransportOptions>,
+                    GetQueueOptionsQueryPrepareHandler<SqlServerMessageQueueTransportOptions>>(LifeStyles.Singleton);
 
             container.RegisterDecorator(typeof (ICommandHandlerWithOutput<,>),
                 typeof (RetryCommandHandlerOutputDecorator<,>), LifeStyles.Singleton);

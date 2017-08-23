@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -27,21 +26,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// </summary>
     public class GetJobIdQueryHandler : IQueryHandler<GetJobIdQuery, long>
     {
-        private readonly CommandStringCache _commandCache;
+        private readonly IPrepareQueryHandler<GetJobIdQuery, long> _prepareQuery;
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetJobIdQueryHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        public GetJobIdQueryHandler(CommandStringCache commandCache,
+        public GetJobIdQueryHandler(IPrepareQueryHandler<GetJobIdQuery, long> prepareQuery,
             IDbConnectionFactory dbConnectionFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
 
-            _commandCache = commandCache;
+            _prepareQuery = prepareQuery;
             _dbConnectionFactory = dbConnectionFactory;
         }
 
@@ -57,14 +56,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetJobId);
-                    var param = command.CreateParameter();
-                    param.ParameterName = "@JobName";
-                    param.Size = 255;
-                    param.DbType = DbType.AnsiString;
-                    param.Value = query.JobName;
-                    command.Parameters.Add(param);
-
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetJobId);
                     using (var reader = command.ExecuteReader())
                     {
                         if (reader.Read())

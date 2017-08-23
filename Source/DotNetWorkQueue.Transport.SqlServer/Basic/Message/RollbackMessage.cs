@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
@@ -33,28 +34,33 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         private readonly ICommandHandler<RollbackMessageCommand> _rollbackCommand;
         private readonly ICommandHandler<SetStatusTableStatusCommand> _setStatusCommandHandler;
         private readonly SqlHeaders _headers;
+        private readonly ILog _log;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RollbackMessage"/> class.
+        /// Initializes a new instance of the <see cref="RollbackMessage" /> class.
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="rollbackCommand">The rollback command.</param>
         /// <param name="setStatusCommandHandler">The set status command handler.</param>
         /// <param name="headers">The headers.</param>
+        /// <param name="log">The log.</param>
         public RollbackMessage(QueueConsumerConfiguration configuration,
             ICommandHandler<RollbackMessageCommand> rollbackCommand,
             ICommandHandler<SetStatusTableStatusCommand> setStatusCommandHandler,
-            SqlHeaders headers)
+            SqlHeaders headers,
+            ILogFactory log)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => rollbackCommand, rollbackCommand);
             Guard.NotNull(() => setStatusCommandHandler, setStatusCommandHandler);
             Guard.NotNull(() => headers, headers);
+            Guard.NotNull(() => log, log);
 
             _configuration = configuration;
             _rollbackCommand = rollbackCommand;
             _setStatusCommandHandler = setStatusCommandHandler;
             _headers = headers;
+            _log = log.Create();
         }
         /// <summary>
         /// Rollbacks the specified message by rolling back the transaction
@@ -74,7 +80,23 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
                         QueueStatuses.Waiting));
                 }
             }
-            connection.SqlTransaction.Rollback();
+            try
+            {
+                connection.SqlTransaction.Rollback();
+            }
+            catch (Exception e)
+            {
+                _log.ErrorException("Failed to rollback a transaction; this might be due to a DB timeout", e);
+
+                //don't attempt to use the transaction again at this point.
+                connection.SqlTransaction = null;
+
+                throw;
+            }
+
+            //ensure that transaction won't be used anymore
+            connection.SqlTransaction.Dispose();
+            connection.SqlTransaction = null;
         }
 
         /// <summary>

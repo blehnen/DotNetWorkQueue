@@ -16,18 +16,24 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
+using System.Data;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Validation;
+
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
-    public class CaseTableName: ICaseTableName
+    public class GetPendingCountQueryPrepareHandler : IPrepareQueryHandler<GetPendingCountQuery, long>
     {
-        /// <summary>
-        /// Formats the name of the table.
-        /// </summary>
-        /// <param name="input">The input.</param>
-        /// <returns></returns>
-        public string FormatTableName(string input)
+        private readonly CommandStringCache _commandCache;
+        public GetPendingCountQueryPrepareHandler(CommandStringCache commandCache)
         {
-            return input;
+            Guard.NotNull(() => commandCache, commandCache);
+            _commandCache = commandCache;
+        }
+
+        public void Handle(GetPendingCountQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        {
+            dbCommand.CommandText = _commandCache.GetCommand(commandType);
         }
     }
 }

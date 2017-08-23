@@ -16,8 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
-using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
@@ -29,7 +27,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         private readonly TableNameHelper _tableNameHelper;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly IConnectionInformation _connectionInformation;
         private readonly IPrepareCommandHandler<DeleteTableCommand> _prepareDeleteTable;
         private readonly IQueryHandler<GetTableExistsTransactionQuery, bool> _tableExists;
 
@@ -39,28 +36,24 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="transactionFactory">The transaction factory.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        /// <param name="connectionInformation">The connection information.</param>
         /// <param name="prepareDeleteTable">The prepare delete table.</param>
         /// <param name="tableExists">The table exists.</param>
         public DeleteQueueTablesCommandHandler(
             TableNameHelper tableNameHelper,
             ITransactionFactory transactionFactory,
             IDbConnectionFactory dbConnectionFactory,
-            IConnectionInformation connectionInformation,
             IPrepareCommandHandler<DeleteTableCommand> prepareDeleteTable,
             IQueryHandler<GetTableExistsTransactionQuery, bool> tableExists)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
             Guard.NotNull(() => transactionFactory, transactionFactory);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => prepareDeleteTable, prepareDeleteTable);
             Guard.NotNull(() => tableExists, tableExists);
 
             _tableNameHelper = tableNameHelper;
             _transactionFactory = transactionFactory;
             _dbConnectionFactory = dbConnectionFactory;
-            _connectionInformation = connectionInformation;
             _prepareDeleteTable = prepareDeleteTable;
             _tableExists = tableExists;
         }

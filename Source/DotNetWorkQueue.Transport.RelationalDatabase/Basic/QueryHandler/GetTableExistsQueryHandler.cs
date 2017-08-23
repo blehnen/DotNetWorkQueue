@@ -16,8 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
-using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -28,29 +26,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// </summary>
     internal class GetTableExistsQueryHandler : IQueryHandler<GetTableExistsQuery, bool>
     {
-        private readonly CommandStringCache _commandCache;
+        private readonly IPrepareQueryHandler<GetTableExistsQuery, bool> _prepareQuery;
         private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly IConnectionInformation _connectionInformation;
-        private readonly ICaseTableName _caseTableName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetTableExistsQueryHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        /// <param name="connectionInformation">The connection information.</param>
-        /// <param name="caseTableName">Name of the case table.</param>
-        public GetTableExistsQueryHandler(CommandStringCache commandCache,
-            IDbConnectionFactory dbConnectionFactory,
-            IConnectionInformation connectionInformation,
-            ICaseTableName caseTableName)
+        public GetTableExistsQueryHandler(IPrepareQueryHandler<GetTableExistsQuery, bool> prepareQuery,
+            IDbConnectionFactory dbConnectionFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            _commandCache = commandCache;
+            _prepareQuery = prepareQuery;
             _dbConnectionFactory = dbConnectionFactory;
-            _connectionInformation = connectionInformation;
-            _caseTableName = caseTableName;
         }
 
         /// <summary>
@@ -66,20 +56,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 conn.Open();
                 using (var command = conn.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetTableExists);
-
-                    var parameter = command.CreateParameter();
-                    parameter.ParameterName = "@Table";
-                    parameter.DbType = DbType.AnsiString;
-                    parameter.Value = _caseTableName.FormatTableName(query.TableName);
-                    command.Parameters.Add(parameter);
-
-                    var parameterDb = command.CreateParameter();
-                    parameterDb.ParameterName = "@Database";
-                    parameterDb.DbType = DbType.AnsiString;
-                    parameterDb.Value = _connectionInformation.Container;
-                    command.Parameters.Add(parameterDb);
-
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetTableExists);
                     using (var reader = command.ExecuteReader())
                     {
                         var result = reader.Read();

@@ -16,26 +16,32 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Factory;
-using DotNetWorkQueue.Serialization;
+using System.Data;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Validation;
 
-namespace DotNetWorkQueue
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
-    internal static class RegisterConnectionImplementation
+    /// <summary>
+    /// 
+    /// </summary>
+    public class GetErrorCountQueryPrepareHandler : IPrepareQueryHandler<GetErrorCountQuery, long>
     {
-        /// <summary>
-        /// Registers the implementations for base connection and serialization
-        /// </summary>
-        /// <param name="container">The container.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="queue">The queue.</param>
-        public static void RegisterImplementations(IContainer container, string connection, string queue)
+        private readonly CommandStringCache _commandCache;
+        public GetErrorCountQueryPrepareHandler(CommandStringCache commandCache)
         {
-            container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queue, connection),
-                LifeStyles.Singleton);
-            container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
-            container.Register<IWorkerNotificationFactory, WorkerNotificationFactoryNoOp>(LifeStyles.Singleton);
+            Guard.NotNull(() => commandCache, commandCache);
+            _commandCache = commandCache;
+        }
+        /// <summary>
+        /// Handles the specified query.
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <param name="dbCommand">The database command.</param>
+        /// <param name="commandType">Type of the command.</param>
+        public void Handle(GetErrorCountQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        {
+            dbCommand.CommandText = _commandCache.GetCommand(CommandStringTypes.GetErrorCount);
         }
     }
 }

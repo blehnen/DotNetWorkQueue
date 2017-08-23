@@ -16,9 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
-using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -29,25 +27,25 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// </summary>
     public class GetJobLastKnownEventQueryHandler : IQueryHandler<GetJobLastKnownEventQuery, DateTimeOffset>
     {
-        private readonly CommandStringCache _commandCache;
+        private readonly IPrepareQueryHandler<GetJobLastKnownEventQuery, DateTimeOffset> _prepareQuery;
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly IDateTimeOffsetParser _dateTimeOffsetParser;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetJobLastKnownEventQueryHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="dateTimeOffsetParser">The date time offset parser.</param>
-        public GetJobLastKnownEventQueryHandler(CommandStringCache commandCache,
+        public GetJobLastKnownEventQueryHandler(IPrepareQueryHandler<GetJobLastKnownEventQuery, DateTimeOffset> prepareQuery,
             IDbConnectionFactory dbConnectionFactory,
             IDateTimeOffsetParser dateTimeOffsetParser)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
             Guard.NotNull(() => dateTimeOffsetParser, dateTimeOffsetParser);
 
-            _commandCache = commandCache;
+            _prepareQuery = prepareQuery;
             _dbConnectionFactory = dbConnectionFactory;
             _dateTimeOffsetParser = dateTimeOffsetParser;
         }
@@ -63,15 +61,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetJobLastKnownEvent);
-
-                    var param = command.CreateParameter();
-                    param.ParameterName = "@JobName";
-                    param.Size = 255;
-                    param.DbType = DbType.AnsiString;
-                    param.Value = query.JobName;
-                    command.Parameters.Add(param);
-
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetJobLastKnownEvent);
                     using (var reader = command.ExecuteReader())
                     {
                         return !reader.Read() ? default(DateTimeOffset) : _dateTimeOffsetParser.Parse(reader[0]);

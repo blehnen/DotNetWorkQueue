@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -27,21 +26,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// </summary>
     internal class GetErrorRecordExistsQueryHandler : IQueryHandler<GetErrorRecordExistsQuery, bool>
     {
-        private readonly CommandStringCache _commandCache;
+        private readonly IPrepareQueryHandler<GetErrorRecordExistsQuery, bool> _prepareQuery;
         private readonly IDbConnectionFactory _connectionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetErrorRecordExistsQueryHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        public GetErrorRecordExistsQueryHandler(CommandStringCache commandCache,
+        public GetErrorRecordExistsQueryHandler(IPrepareQueryHandler<GetErrorRecordExistsQuery, bool> prepareQuery,
             IDbConnectionFactory connectionFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => connectionFactory, connectionFactory);
 
-            _commandCache = commandCache;
+            _prepareQuery = prepareQuery;
+            _prepareQuery = prepareQuery;
             _connectionFactory = connectionFactory;
         }
         /// <summary>
@@ -57,21 +57,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetErrorRecordExists);
-
-                    var queueid = command.CreateParameter();
-                    queueid.ParameterName = "@QueueID";
-                    queueid.DbType = DbType.Int64;
-                    queueid.Value = query.QueueId;
-                    command.Parameters.Add(queueid);
-
-                    var exceptionType = command.CreateParameter();
-                    exceptionType.ParameterName = "@ExceptionType";
-                    exceptionType.DbType = DbType.AnsiString;
-                    exceptionType.Size = 500;
-                    exceptionType.Value = query.ExceptionType;
-                    command.Parameters.Add(exceptionType);
-
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetErrorRecordExists);
                     using (var reader = command.ExecuteReader())
                     {
                         return reader.Read();

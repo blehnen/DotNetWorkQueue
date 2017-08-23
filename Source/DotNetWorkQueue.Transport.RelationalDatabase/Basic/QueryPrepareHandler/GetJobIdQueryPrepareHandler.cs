@@ -16,24 +16,30 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.RelationalDatabase;
+using System.Data;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Validation;
 
-namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.ICaseTableName" />
-    public class CaseTableName : ICaseTableName
+    public class GetJobIdQueryPrepareHandler : IPrepareQueryHandler<GetJobIdQuery, long>
     {
-        /// <summary>
-        /// Formats the name of the table.
-        /// </summary>
-        /// <param name="input">The input.</param>
-        /// <returns></returns>
-        public string FormatTableName(string input)
+        private readonly CommandStringCache _commandCache;
+        public GetJobIdQueryPrepareHandler(CommandStringCache commandCache)
         {
-            return input.ToLowerInvariant();
+            Guard.NotNull(() => commandCache, commandCache);
+            _commandCache = commandCache;
+        }
+
+        public void Handle(GetJobIdQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        {
+            dbCommand.CommandText = _commandCache.GetCommand(commandType);
+            var param = dbCommand.CreateParameter();
+            param.ParameterName = "@JobName";
+            param.Size = 255;
+            param.DbType = DbType.AnsiString;
+            param.Value = query.JobName;
+            dbCommand.Parameters.Add(param);
         }
     }
 }

@@ -16,18 +16,24 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.Transport.RelationalDatabase
+using System;
+using System.Data;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Validation;
+
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public interface ICaseTableName
+    public class GetUtcDateQueryPrepareHandler : IPrepareQueryHandler<GetUtcDateQuery, DateTime>
     {
-        /// <summary>
-        /// Formats the name of the table.
-        /// </summary>
-        /// <param name="input">The input.</param>
-        /// <returns></returns>
-        string FormatTableName(string input);
+        private readonly CommandStringCache _commandCache;
+        public GetUtcDateQueryPrepareHandler(CommandStringCache commandCache)
+        {
+            Guard.NotNull(() => commandCache, commandCache);
+            _commandCache = commandCache;
+        }
+        public void Handle(GetUtcDateQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        {
+            dbCommand.CommandText = _commandCache.GetCommand(commandType);
+        }
     }
 }

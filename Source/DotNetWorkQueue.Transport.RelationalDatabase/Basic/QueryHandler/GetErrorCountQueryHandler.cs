@@ -26,21 +26,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// </summary>
     internal class GetErrorCountQueryHandler : IQueryHandler<GetErrorCountQuery, long>
     {
-        private readonly CommandStringCache _commandCache;
         private readonly IDbConnectionFactory _connectionFactory;
+        private readonly IPrepareQueryHandler<GetErrorCountQuery, long> _prepareQuery;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetErrorCountQueryHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        public GetErrorCountQueryHandler(CommandStringCache commandCache,
-            IDbConnectionFactory connectionFactory)
+        /// <param name="prepareQuery">The prepare query.</param>
+        public GetErrorCountQueryHandler(
+            IDbConnectionFactory connectionFactory,
+            IPrepareQueryHandler<GetErrorCountQuery, long> prepareQuery)
         {
-            Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => connectionFactory, connectionFactory);
-            _commandCache = commandCache;
+            Guard.NotNull(() => prepareQuery, prepareQuery);
             _connectionFactory = connectionFactory;
+            _prepareQuery = prepareQuery;
         }
         /// <summary>
         /// Handles the specified query.
@@ -55,7 +56,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetErrorCount);
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetErrorCount);
                     using (var reader = command.ExecuteReader())
                     {
                         if (reader.Read())

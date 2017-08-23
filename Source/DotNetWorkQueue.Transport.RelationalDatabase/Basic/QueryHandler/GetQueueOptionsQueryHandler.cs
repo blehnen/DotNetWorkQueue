@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -31,7 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         private readonly IInternalSerializer _serializer;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _tableExists;
         private readonly IConnectionInformation _connectionInformation;
-        private readonly CommandStringCache _commandCache;
+        private readonly IPrepareQueryHandler<GetQueueOptionsQuery<TTransportOptions>, TTransportOptions> _prepareQuery;
         private readonly TableNameHelper _tableNameHelper;
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
@@ -41,19 +40,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// <param name="serializer">The serializer.</param>
         /// <param name="tableExists">The table exists.</param>
         /// <param name="connectionInformation">The connection information.</param>
-        /// <param name="commandCache">The command cache.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         public GetQueueOptionsQueryHandler(IInternalSerializer serializer,
                     IQueryHandler<GetTableExistsQuery, bool> tableExists,
                     IConnectionInformation connectionInformation,
-                    CommandStringCache commandCache,
+                    IPrepareQueryHandler<GetQueueOptionsQuery<TTransportOptions>, TTransportOptions> prepareQuery,
                     TableNameHelper tableNameHelper,
                     IDbConnectionFactory dbConnectionFactory)
         {
             Guard.NotNull(() => serializer, serializer);
             Guard.NotNull(() => tableExists, tableExists);
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
@@ -61,7 +60,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _serializer = serializer;
             _tableExists = tableExists;
             _connectionInformation = connectionInformation;
-            _commandCache = commandCache;
+            _prepareQuery = prepareQuery;
             _tableNameHelper = tableNameHelper;
             _dbConnectionFactory = dbConnectionFactory;
         }
@@ -81,13 +80,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 conn.Open();
                 using (var command = conn.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetConfiguration);
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetConfiguration);
                     using (var reader = command.ExecuteReader())
                     {
-                        if (!reader.Read()) return null;
-                        var options =
-                            _serializer.ConvertBytesTo<TTransportOptions>((byte[])reader[0]);
-                        return options;
+                        return !reader.Read() ? null : _serializer.ConvertBytesTo<TTransportOptions>((byte[])reader[0]);
                     }
                 }
             }

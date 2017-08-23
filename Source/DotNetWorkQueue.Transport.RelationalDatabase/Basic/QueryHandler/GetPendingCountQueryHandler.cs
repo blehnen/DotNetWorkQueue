@@ -26,19 +26,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// </summary>
     internal class GetPendingCountQueryHandler : IQueryHandler<GetPendingCountQuery, long>
     {
-        private readonly CommandStringCache _commandCache;
+        private readonly IPrepareQueryHandler<GetPendingCountQuery, long> _prepareQuery;
         private readonly IDbConnectionFactory _connectionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetPendingCountQueryHandler" /> class.
         /// </summary>
-        /// <param name="commandCache">The command cache.</param>
+        /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        public GetPendingCountQueryHandler(CommandStringCache commandCache, 
+        public GetPendingCountQueryHandler(IPrepareQueryHandler<GetPendingCountQuery, long> prepareQuery,
             IDbConnectionFactory connectionFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            _commandCache = commandCache;
+            Guard.NotNull(() => prepareQuery, prepareQuery);
+            _prepareQuery = prepareQuery;
             _connectionFactory = connectionFactory;
         }
         /// <summary>
@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = _commandCache.GetCommand(CommandStringTypes.GetPendingCount);
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetPendingCount);
                     using (var reader = command.ExecuteReader())
                     {
                         if (reader.Read())

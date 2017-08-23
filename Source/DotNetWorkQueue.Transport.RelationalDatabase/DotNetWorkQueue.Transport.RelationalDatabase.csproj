@@ -44,7 +44,6 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Basic\CaseTableName.cs" />
     <Compile Include="Basic\CommandHandler\CreateJobTablesCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\CreateQueueTablesAndSaveConfigurationCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteMessageCommandHandler.cs" />
@@ -86,6 +85,20 @@
     <Compile Include="Basic\QueryPrepareHandler\DoesJobExistQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\FindExpiredRecordsToDeleteQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\FindRecordsToResetByHeartBeatQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetColumnNamesFromTableQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetErrorCountQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetErrorRecordExistsQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetErrorRetryCountQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetJobIdQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetJobLastKnownEventQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetPendingCountQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetPendingDelayedCountQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetPendingExcludeDelayCountQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetQueueOptionsQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetTableExistsQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetTableExistsTransactionQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetUtcDateQueryPrepareHandler.cs" />
+    <Compile Include="Basic\QueryPrepareHandler\GetWorkingCountQueryPrepareHandler.cs" />
     <Compile Include="IPrepareQueryHandler.cs" />
     <Compile Include="Basic\MessageExpiration.cs" />
     <Compile Include="Basic\CommandStringCache.cs" />
@@ -108,7 +121,7 @@
     <Compile Include="Basic\QueryHandler\GetErrorRetryCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetJobIdQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetPendingCountQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetPendingDelayedCountHandler.cs" />
+    <Compile Include="Basic\QueryHandler\GetPendingDelayedCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetPendingExcludeDelayCountQueryHandler.cs" />
     <Compile Include="Basic\QueryHandler\GetWorkingCountQueryHandler.cs" />
     <Compile Include="Basic\Query\DoesJobExistQuery.cs" />
@@ -141,7 +154,6 @@
     <Compile Include="Basic\TableNameHelper.cs" />
     <Compile Include="Basic\TransactionFactory.cs" />
     <Compile Include="Basic\TransactionWrapper.cs" />
-    <Compile Include="ICaseTableName.cs" />
     <Compile Include="ICommandHandler.cs" />
     <Compile Include="ICommandHandlerWithOutput.cs" />
     <Compile Include="ICommandHandlerWithOutputAsync.cs" />
