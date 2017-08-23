@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var test = Create(TimeSpan.FromSeconds(5), 2, context, sendHeartBeat, true))
             {
                 test.Start();
-                Thread.Sleep(6000);
+                Thread.Sleep(7000);
             }
             sendHeartBeat.Received(2).Send(context);
         }
@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var test = Create(TimeSpan.FromSeconds(5), 2, context, sendHeartBeat, true))
             {
                 test.Start();
-                Thread.Sleep(6000);
+                Thread.Sleep(7000);
             }
             sendHeartBeat.Received(2).Send(context);
         }
@@ -135,7 +135,7 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var test = Create(TimeSpan.FromSeconds(5), 2, context, sendHeartBeat, true))
             {
                 test.Start();
-                Thread.Sleep(6000);
+                Thread.Sleep(7000);
             }
         }
 
