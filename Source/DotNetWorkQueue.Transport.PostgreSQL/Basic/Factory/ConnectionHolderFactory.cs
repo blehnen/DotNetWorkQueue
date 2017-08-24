@@ -17,40 +17,41 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
+using Npgsql;
 
-namespace DotNetWorkQueue.Transport.SqlServer.Basic.Factory
+namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
 {
     /// <summary>
-    /// Creates new instances of <see cref="Connection"/>
+    /// 
     /// </summary>
-    internal class ConnectionFactory : IConnectionFactory
+    public class ConnectionHolderFactory : IConnectionHolderFactory<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>
     {
         private readonly IConnectionInformation _connectionInfo;
-        private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
+        private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionFactory" /> class.
+        /// Initializes a new instance of the <see cref="ConnectionHolderFactory" /> class.
         /// </summary>
         /// <param name="connectionInfo">The connection information.</param>
         /// <param name="options">The options.</param>
-        public ConnectionFactory(IConnectionInformation connectionInfo,
-            ISqlServerMessageQueueTransportOptionsFactory options)
+        public ConnectionHolderFactory(IConnectionInformation connectionInfo,
+            IPostgreSqlMessageQueueTransportOptionsFactory options)
         {
             Guard.NotNull(() => connectionInfo, connectionInfo);
             Guard.NotNull(() => options, options);
 
             _connectionInfo = connectionInfo;
-            _options = new Lazy<SqlServerMessageQueueTransportOptions>(options.Create);
+            _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);
         }
-
         /// <summary>
-        /// Creates a new instance of <see cref="Connection" />
+        /// Creates a new instance of <see cref="T:DotNetWorkQueue.Transport.RelationalDatabase.IConnectionHolder`3" />
         /// </summary>
         /// <returns></returns>
-        public Connection Create()
+        public IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> Create()
         {
-            return new Connection(_connectionInfo, _options.Value);
+            return new ConnectionHolder(_connectionInfo, _options.Value);
         }
     }
 }

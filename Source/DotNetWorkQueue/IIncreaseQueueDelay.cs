@@ -29,7 +29,7 @@ namespace DotNetWorkQueue
         /// Gets the next delay for a message
         /// </summary>
         /// <returns></returns>
-        IMessageContextData<QueueDelay> IncreaseQueueDelay
+        IMessageContextData<QueueDelay> QueueDelay
         {
             get;
         }

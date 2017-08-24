@@ -49,6 +49,7 @@
     <Compile Include="Basic\CommandHandler\DeleteMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteQueueTablesCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\DeleteStatusTableStatusCommandHandler.cs" />
+    <Compile Include="Basic\CommandHandler\DeleteTransactionalMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\ResetHeartBeatCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetErrorCountCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SetStatusTableStatusCommandHandler.cs" />
@@ -77,11 +78,13 @@
     <Compile Include="Basic\Command\SetErrorCountCommand.cs" />
     <Compile Include="Basic\Command\SetJobLastKnownEventCommand.cs" />
     <Compile Include="Basic\Command\SetStatusTableStatusCommand.cs" />
+    <Compile Include="Basic\ConnectionHeader.cs" />
     <Compile Include="Basic\CorrelationIdFactory.cs" />
     <Compile Include="Basic\CreateJobMetaData.cs" />
     <Compile Include="Basic\DefaultQueueDelay.cs" />
     <Compile Include="Basic\ExceptionDelay.cs" />
     <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
+    <Compile Include="Basic\IncreaseQueueDelay.cs" />
     <Compile Include="Basic\QueryPrepareHandler\DoesJobExistQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\FindExpiredRecordsToDeleteQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\FindRecordsToResetByHeartBeatQueryPrepareHandler.cs" />
@@ -99,6 +102,9 @@
     <Compile Include="Basic\QueryPrepareHandler\GetTableExistsTransactionQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\GetUtcDateQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\GetWorkingCountQueryPrepareHandler.cs" />
+    <Compile Include="IConnectionHeader.cs" />
+    <Compile Include="IConnectionHolder.cs" />
+    <Compile Include="IConnectionHolderFactory.cs" />
     <Compile Include="IPrepareQueryHandler.cs" />
     <Compile Include="Basic\MessageExpiration.cs" />
     <Compile Include="Basic\CommandStringCache.cs" />
@@ -157,7 +163,6 @@
     <Compile Include="ICommandHandler.cs" />
     <Compile Include="ICommandHandlerWithOutput.cs" />
     <Compile Include="ICommandHandlerWithOutputAsync.cs" />
-    <Compile Include="IDateTimeOffsetParser.cs" />
     <Compile Include="IDbConnectionFactory.cs" />
     <Compile Include="IJobSchema.cs" />
     <Compile Include="IOptionsSerialization.cs" />

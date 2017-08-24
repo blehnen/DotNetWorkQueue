@@ -232,6 +232,5 @@
     <Exec Command="$(Merger) /internalize /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
     <Copy SourceFiles="$(OutputPath)\MsgPack.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="false" />
     <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.Redis.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
-	<Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
   </Target>
 </Project>

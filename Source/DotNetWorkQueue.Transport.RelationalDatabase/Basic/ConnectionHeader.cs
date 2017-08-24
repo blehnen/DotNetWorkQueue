@@ -16,27 +16,25 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Data;
+using DotNetWorkQueue.Validation;
 
-using System;
-using DotNetWorkQueue.Transport.RelationalDatabase;
-
-namespace DotNetWorkQueue.Transport.SQLite.Basic
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.IDateTimeOffsetParser" />
-    public class DateTimeOffsetParser : IDateTimeOffsetParser
+    public class ConnectionHeader<TConnection, TTransaction, TCommand>: IConnectionHeader<TConnection, TTransaction, TCommand>
+        where TConnection : IDbConnection
+        where TTransaction : IDbTransaction
+        where TCommand : IDbCommand
     {
         /// <summary>
-        /// Parses the specified input into a <see cref="T:System.DateTimeOffset" />
+        /// Initializes a new instance of the <see cref="ConnectionHeader{TConnection, TTransaction, TCommand}"/> class.
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <returns></returns>
-        public DateTimeOffset Parse(object input)
+        /// <param name="messageContextDataFactory">The message context data factory.</param>
+        public ConnectionHeader(IMessageContextDataFactory messageContextDataFactory)
         {
-            return DateTimeOffset.Parse((string)input,
-                System.Globalization.CultureInfo.InvariantCulture);
+            Guard.NotNull(() => messageContextDataFactory, messageContextDataFactory);
+            Connection = messageContextDataFactory.Create<IConnectionHolder<TConnection, TTransaction, TCommand>>("Connection", null);
         }
+        public IMessageContextData<IConnectionHolder<TConnection, TTransaction, TCommand>> Connection { get; }
     }
 }

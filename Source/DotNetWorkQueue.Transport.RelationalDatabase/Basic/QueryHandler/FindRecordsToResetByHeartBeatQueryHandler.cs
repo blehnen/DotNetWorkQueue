@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                             {
                                 break;
                             }
-                            results.Add(new MessageToReset(Convert.ToInt64(reader[0]), _readColumn.ReadAsDateTime(CommandStringTypes.GetHeartBeatExpiredMessageIds, 1, reader)));
+                            results.Add(new MessageToReset(_readColumn.ReadAsInt64(CommandStringTypes.GetHeartBeatExpiredMessageIds, 0, reader), _readColumn.ReadAsDateTime(CommandStringTypes.GetHeartBeatExpiredMessageIds, 1, reader)));
                         }
                     }
                 }

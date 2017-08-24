@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 
 using System;
+using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -35,7 +36,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         private readonly ICommandHandler<DeleteStatusTableStatusCommand> _deleteStatusCommandHandler;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
         private readonly ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> _deleteTransactionalMessageCommand;
-        private readonly SqlHeaders _headers;
+        private readonly IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> _headers;
         private readonly ILog _log;
 
         /// <summary>
@@ -50,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         public CommitMessage(QueueConsumerConfiguration configuration, 
             ICommandHandler<DeleteStatusTableStatusCommand> deleteStatusCommandHandler,
             ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
-            SqlHeaders headers, 
+            IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> headers, 
             ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand,
             ILogFactory log)
         {
@@ -77,28 +78,28 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             var connection = context.Get(_headers.Connection);
 
             //if transaction held
-            if (connection.SqlConnection == null || connection.SqlTransaction == null) return;
+            if (connection.Connection == null || connection.Transaction == null) return;
 
             //delete the message, and then commit the transaction
             _deleteTransactionalMessageCommand.Handle(new DeleteTransactionalMessageCommand((long)context.MessageId.Id.Value, context));
 
             try
             {
-                connection.SqlTransaction.Commit();
+                connection.Transaction.Commit();
             }
             catch (Exception e)
             {
                 _log.ErrorException("Failed to commit a transaction; this might be due to a DB timeout", e);
 
                 //don't attempt to use the transaction again at this point.
-                connection.SqlTransaction = null;
+                connection.Transaction = null;
 
                 throw;
             }
 
             //ensure that transaction won't be used anymore
-            connection.SqlTransaction.Dispose();
-            connection.SqlTransaction = null;
+            connection.Transaction.Dispose();
+            connection.Transaction = null;
 
             if (_configuration.Options().EnableStatusTable)
             {

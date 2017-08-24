@@ -70,18 +70,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// Returns the next message, if any.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="connectionHolder">The connection.</param>
         /// <param name="noMessageFoundActon">The no message found action.</param>
         /// <returns>
         /// A message if one is found; null otherwise
         /// </returns>
-        public IReceivedMessageInternal GetMessage(IMessageContext context, Connection connection,
-            Action<Connection> noMessageFoundActon)
+        public IReceivedMessageInternal GetMessage(IMessageContext context, IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand> connectionHolder,
+            Action<IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand>> noMessageFoundActon)
         {
             //if stopping, exit now
             if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
             {
-                noMessageFoundActon(connection);
+                noMessageFoundActon(connectionHolder);
                 return null;
             }
 
@@ -95,13 +95,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
 
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage =
-                _receiveMessage.Handle(new ReceiveMessageQuery<SqlConnection, SqlTransaction>(connection.SqlConnection,
-                    connection.SqlTransaction, messageId, _configuration.Routes));
+                _receiveMessage.Handle(new ReceiveMessageQuery<SqlConnection, SqlTransaction>(connectionHolder.Connection,
+                    connectionHolder.Transaction, messageId, _configuration.Routes));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
             {
-                noMessageFoundActon(connection);
+                noMessageFoundActon(connectionHolder);
                 return null;
             }
 
@@ -129,18 +129,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// Returns the next message, if any.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="connectionHolder">The connection.</param>
         /// <param name="noMessageFoundActon">The no message found action.</param>
         /// <returns>
         /// A message if one is found; null otherwise
         /// </returns>
-        public async Task<IReceivedMessageInternal> GetMessageAsync(IMessageContext context, Connection connection,
-            Action<Connection> noMessageFoundActon)
+        public async Task<IReceivedMessageInternal> GetMessageAsync(IMessageContext context, IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand> connectionHolder,
+            Action<IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand>> noMessageFoundActon)
         {
             //if stopping, exit now
             if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
             {
-                noMessageFoundActon(connection);
+                noMessageFoundActon(connectionHolder);
                 return null;
             }
 
@@ -154,13 +154,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
 
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage = await 
-                _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync<SqlConnection, SqlTransaction>(connection.SqlConnection,
-                    connection.SqlTransaction, messageId, _configuration.Routes)).ConfigureAwait(false);
+                _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync<SqlConnection, SqlTransaction>(connectionHolder.Connection,
+                    connectionHolder.Transaction, messageId, _configuration.Routes)).ConfigureAwait(false);
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
             {
-                noMessageFoundActon(connection);
+                noMessageFoundActon(connectionHolder);
                 return null;
             }
 

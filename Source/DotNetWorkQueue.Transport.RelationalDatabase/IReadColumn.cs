@@ -33,6 +33,34 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
         string ReadAsString(CommandStringTypes command, int column, IDataReader reader);
+
+        /// <summary>
+        /// Reads as int32
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        int ReadAsInt32(CommandStringTypes command, int column, IDataReader reader);
+
+        /// <summary>
+        /// Reads as int64
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        long ReadAsInt64(CommandStringTypes command, int column, IDataReader reader);
+
+        /// <summary>
+        /// Reads as a date time offset
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader);
+
         /// <summary>
         /// Reads as date time.
         /// </summary>
@@ -41,5 +69,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
         DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader);
+
+        /// <summary>
+        /// Reads as byte[]
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        byte[] ReadAsByteArray(CommandStringTypes command, int column, IDataReader reader);
     }
 }

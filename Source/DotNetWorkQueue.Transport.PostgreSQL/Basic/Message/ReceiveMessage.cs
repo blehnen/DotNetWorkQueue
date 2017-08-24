@@ -72,19 +72,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         /// Returns the next message, if any.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="connectionHolder">The connection.</param>
         /// <param name="noMessageFoundActon">The no message found action.</param>
         /// <param name="routes">The routes.</param>
         /// <returns>
         /// A message if one is found; null otherwise
         /// </returns>
-        public IReceivedMessageInternal GetMessage(IMessageContext context, Connection connection,
-            Action<Connection> noMessageFoundActon, List<string> routes )
+        public IReceivedMessageInternal GetMessage(IMessageContext context, IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> connectionHolder,
+            Action<IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>> noMessageFoundActon, List<string> routes )
         {
             //if stopping, exit now
             if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
             {
-                noMessageFoundActon(connection);
+                noMessageFoundActon(connectionHolder);
                 return null;
             }
 
@@ -98,13 +98,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
 
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage =
-                _receiveMessage.Handle(new ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>(connection.NpgsqlConnection,
-                    connection.NpgsqlTransaction, messageId, routes));
+                _receiveMessage.Handle(new ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>(connectionHolder.Connection,
+                    connectionHolder.Transaction, messageId, routes));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
             {
-                noMessageFoundActon(connection);
+                noMessageFoundActon(connectionHolder);
                 return null;
             }
 
@@ -125,19 +125,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         /// Returns the next message, if any.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="connectionHolder">The connection.</param>
         /// <param name="noMessageFoundActon">The no message found action.</param>
         /// <param name="routes">The routes.</param>
         /// <returns>
         /// A message if one is found; null otherwise
         /// </returns>
-        public async Task<IReceivedMessageInternal> GetMessageAsync(IMessageContext context, Connection connection,
-            Action<Connection> noMessageFoundActon, List<string> routes )
+        public async Task<IReceivedMessageInternal> GetMessageAsync(IMessageContext context, IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> connectionHolder,
+            Action<IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>> noMessageFoundActon, List<string> routes )
         {
             //if stopping, exit now
             if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
             {
-                noMessageFoundActon(connection);
+                noMessageFoundActon(connectionHolder);
                 return null;
             }
 
@@ -151,13 +151,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
 
             //ask for the next message, or a specific message if we have a messageID
             var receivedTransportMessage = await 
-                _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>(connection.NpgsqlConnection,
-                    connection.NpgsqlTransaction, messageId, routes)).ConfigureAwait(false);
+                _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>(connectionHolder.Connection,
+                    connectionHolder.Transaction, messageId, routes)).ConfigureAwait(false);
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
             {
-                noMessageFoundActon(connection);
+                noMessageFoundActon(connectionHolder);
                 return null;
             }
 

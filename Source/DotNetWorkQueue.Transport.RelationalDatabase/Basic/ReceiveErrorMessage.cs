@@ -110,7 +110,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 }
                 else
                 {
-                    context.Set(_headers.IncreaseQueueDelay, new QueueDelay(info.Times[retries]));
+                    context.Set(_headers.QueueDelay, new QueueDelay(info.Times[retries]));
                     //note zero based index - use the current count not count +1
                     _commandSetErrorCount.Handle(
                         new SetErrorCountCommand(

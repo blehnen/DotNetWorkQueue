@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -34,13 +35,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     {
         #region Member level Variables
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly IConnectionFactory _connectionFactory;
+        private readonly IConnectionHolderFactory<SqlConnection, SqlTransaction, SqlCommand> _connectionFactory;
         private readonly ICancelWork _cancelWork;
 
         private readonly ReceiveMessage _receiveMessages;
         private readonly HandleMessage _handleMessage;
 
-        private readonly SqlHeaders _sqlHeaders;
+        private readonly IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> _sqlHeaders;
 
         #endregion
 
@@ -48,15 +49,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <summary>
         /// Commits the message, using the information stored in the connection.
         /// </summary>
-        Action<Connection, IMessageContext> _commitConnection;
+        Action<IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand>, IMessageContext> _commitConnection;
         /// <summary>
         /// Roll back the message, using the information stored in the connection.
         /// </summary>
-        Action<Connection, IMessageContext> _rollbackConnection;
+        Action<IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand>, IMessageContext> _rollbackConnection;
         /// <summary>
         /// Calls dispose on the connection
         /// </summary>
-        readonly Action<Connection> _disposeConnection;
+        readonly Action<IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand>> _disposeConnection;
         #endregion
 
         #region Constructor
@@ -70,11 +71,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="receiveMessages">The receive messages.</param>
         /// <param name="sqlHeaders">The SQL headers.</param>
         public SqlServerMessageQueueReceive(QueueConsumerConfiguration configuration,
-            IConnectionFactory connectionFactory,
+            IConnectionHolderFactory<SqlConnection, SqlTransaction, SqlCommand> connectionFactory,
             IQueueCancelWork cancelWork,
             HandleMessage handleMessage,
             ReceiveMessage receiveMessages,
-            SqlHeaders sqlHeaders)
+            IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> sqlHeaders)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => connectionFactory, connectionFactory);
@@ -224,7 +225,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>
-        private Connection GetConnectionAndSetOnContext(IMessageContext context)
+        private IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand> GetConnectionAndSetOnContext(IMessageContext context)
         {
             var connection = _connectionFactory.Create();
             context.Set(_sqlHeaders.Connection, connection);
@@ -310,8 +311,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// Clean up the message context when processing is done
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="connection">The connection.</param>
-        private void ContextCleanup(IMessageContext context, Connection connection)
+        /// <param name="connectionHolder">The connection.</param>
+        private void ContextCleanup(IMessageContext context, IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand> connectionHolder)
         {
             if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
@@ -324,7 +325,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 context.Rollback -= ContextOnRollbackTransaction;
             }
             context.Cleanup -= context_Cleanup;
-            _disposeConnection(connection);
+            _disposeConnection(connectionHolder);
         }
         #endregion
     }

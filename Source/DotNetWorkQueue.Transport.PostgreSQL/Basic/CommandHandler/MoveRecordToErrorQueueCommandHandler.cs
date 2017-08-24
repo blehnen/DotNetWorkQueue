@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         private readonly IConnectionInformation _connectionInformation;
         private readonly IQueryHandler<GetColumnNamesFromTableQuery, List<string>> _columnQuery;
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
-        private readonly SqlHeaders _headers;
+        private readonly IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> _headers;
         private readonly object _buildSqlLocker = new object();
 
         private string _moveRecordSql;
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             IQueryHandler<GetColumnNamesFromTableQuery, List<string>> columnQuery,
             IPostgreSqlMessageQueueTransportOptionsFactory options,
             PostgreSqlCommandStringCache commandCache,
-            SqlHeaders headers)
+            IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> headers)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
@@ -160,8 +160,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                     if (iCount != 1) return;
 
                     //commit the original transaction, which will delete the main meta data record
-                    connHolder.NpgsqlTransaction.Commit();
-                    connHolder.NpgsqlTransaction = null;
+                    connHolder.Transaction.Commit();
+                    connHolder.Transaction.Dispose();
+                    connHolder.Transaction = null;
 
                     if (_options.Value.EnableStatusTable)
                     {
@@ -235,10 +236,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                 i++;
             }
             sb.Append(", @LastException, now() at time zone 'utc' from " + _tableNameHelper.MetaDataName);
-            //if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
-            //{
-            //    sb.Append(" WITH (NOLOCK)"); //perform a dirty read on our own transaction so that we can access the record that we've already deleted
-            //}
             sb.Append(" where queueid = @queueid");
             return sb.ToString();
         }

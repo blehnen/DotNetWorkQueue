@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
     {
         private readonly QueueConsumerConfiguration _configuration;
         private readonly ICommandHandler<RollbackMessageCommand> _rollbackCommand;
-        private readonly SqlHeaders _headers;
+        private readonly IIncreaseQueueDelay _headers;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessage"/> class.
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         /// <param name="headers">The headers.</param>
         public RollbackMessage(QueueConsumerConfiguration configuration,
             ICommandHandler<RollbackMessageCommand> rollbackCommand,
-            SqlHeaders headers)
+            IIncreaseQueueDelay headers)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => rollbackCommand, rollbackCommand);
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
                     lastHeartBeat = context.WorkerNotification.HeartBeat.Status.LastHeartBeatTime.Value;
                 }
 
-                var increaseDelay = context.Get(_headers.IncreaseQueueDelay).IncreaseDelay;
+                var increaseDelay = context.Get(_headers.QueueDelay).IncreaseDelay;
                 _rollbackCommand.Handle(new RollbackMessageCommand(lastHeartBeat,
                     (long)context.MessageId.Id.Value, increaseDelay));
             }

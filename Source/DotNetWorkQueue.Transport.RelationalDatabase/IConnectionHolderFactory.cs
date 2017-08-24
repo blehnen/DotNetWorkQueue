@@ -16,19 +16,24 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
+using System.Data;
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
     /// <summary>
-    /// Converts data from a DB store into a <see cref="DateTimeOffset"/>
+    /// Creates a new instance of <see cref="IConnectionHolder{TConnection, TTransaction, TCommand}"/>
     /// </summary>
-    public interface IDateTimeOffsetParser
+    /// <typeparam name="TConnection">The type of the connection.</typeparam>
+    /// <typeparam name="TTransaction">The type of the transaction.</typeparam>
+    /// <typeparam name="TCommand">The type of the command.</typeparam>
+    public interface IConnectionHolderFactory<TConnection, TTransaction, out TCommand>
+        where TConnection : IDbConnection
+        where TTransaction : IDbTransaction
+        where TCommand : IDbCommand
     {
         /// <summary>
-        /// Parses the specified input into a <see cref="DateTimeOffset"/>
+        /// Creates a new instance of <see cref="IConnectionHolder{TConnection, TTransaction, TCommand}"/>
         /// </summary>
-        /// <param name="input">The input.</param>
         /// <returns></returns>
-        DateTimeOffset Parse(object input);
+        IConnectionHolder<TConnection, TTransaction, TCommand> Create();
     }
 }

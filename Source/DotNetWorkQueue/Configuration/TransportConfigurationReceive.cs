@@ -44,8 +44,8 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="connectionInfo">The connection information.</param>
         /// <param name="queueDelayFactory">The queue delay factory.</param>
         /// <param name="retryDelayFactory">The retry delay factory.</param>
-        public TransportConfigurationReceive(IConnectionInformation connectionInfo, 
-            IQueueDelayFactory queueDelayFactory, 
+        public TransportConfigurationReceive(IConnectionInformation connectionInfo,
+            IQueueDelayFactory queueDelayFactory,
             IRetryDelayFactory retryDelayFactory)
         {
             Guard.NotNull(() => connectionInfo, connectionInfo);
@@ -57,9 +57,11 @@ namespace DotNetWorkQueue.Configuration
             RetryDelayBehavior = retryDelayFactory.Create();
             FatalExceptionDelayBehavior = queueDelayFactory.Create(new List<TimeSpan>());
         }
+
         #endregion
 
         #region Public Properties / Methods
+
         /// <summary>
         /// Gets the connection information.
         /// </summary>
@@ -209,6 +211,7 @@ namespace DotNetWorkQueue.Configuration
         {
             if (_lockFeatures) throw new InvalidOperationException();
         }
+
         /// <summary>
         /// Marks this instance as immutable
         /// </summary>
@@ -216,6 +219,7 @@ namespace DotNetWorkQueue.Configuration
         {
             IsReadOnly = true;
         }
+
         #endregion
     }
 }

@@ -22,13 +22,14 @@ using System.Data.SqlClient;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>
     /// This object holds the state of an item that is in progress. It's used to commit or rollback the work item as needed.
     /// </summary>
-    internal class Connection : IDisposable, IIsDisposed
+    internal class ConnectionHolder : IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand>
     {
         #region Member level variables
         private int _disposeCount;
@@ -39,19 +40,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         #region Constructor
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Connection" /> class.
+        /// Initializes a new instance of the <see cref="ConnectionHolder" /> class.
         /// </summary>
         /// <param name="connectionInfo">The connection information.</param>
         /// <param name="options">The options.</param>
-        public Connection(IConnectionInformation connectionInfo,
+        public ConnectionHolder(IConnectionInformation connectionInfo,
             SqlServerMessageQueueTransportOptions options)
         {
-            SqlConnection = new SqlConnection(connectionInfo.ConnectionString);
-            SqlConnection.Open();
+            _sqlConnection = new SqlConnection(connectionInfo.ConnectionString);
+            _sqlConnection.Open();
 
             if (options.EnableHoldTransactionUntilMessageCommitted)
             {
-                SqlTransaction = SqlConnection.BeginTransaction(IsolationLevel.ReadCommitted);
+                _sqlTransaction = _sqlConnection.BeginTransaction(IsolationLevel.ReadCommitted);
             }
         }
 
@@ -65,7 +66,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <value>
         /// The SQL connection.
         /// </value>
-        public SqlConnection SqlConnection
+        public SqlConnection Connection
         {
             get
             {
@@ -85,7 +86,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <value>
         /// The SQL transaction.
         /// </value>
-        public SqlTransaction SqlTransaction
+        public SqlTransaction Transaction
         {
             get
             {
@@ -107,14 +108,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <returns></returns>
         public SqlCommand CreateCommand()
         {
-            if(SqlConnection == null)
+            if(_sqlConnection == null)
             {
                 throw new DotNetWorkQueueException("An attempt was made to create a SQL command object, but the SQL connection is null");
             }
-            var sqlCommand = SqlConnection.CreateCommand();
-            if (SqlTransaction != null)
+            var sqlCommand = _sqlConnection.CreateCommand();
+            if (_sqlTransaction != null)
             {
-                sqlCommand.Transaction = SqlTransaction;
+                sqlCommand.Transaction = _sqlTransaction;
             }
             return sqlCommand;
         }

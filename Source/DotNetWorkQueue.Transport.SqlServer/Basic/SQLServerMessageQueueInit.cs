@@ -30,6 +30,7 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
@@ -68,7 +69,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<CommandStringCache, SqlServerCommandStringCache>(LifeStyles.Singleton);
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqlServerJobSchema>(LifeStyles.Singleton);
-            container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
 
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<SqlServerMessageQueueTransportOptions>(LifeStyles.Singleton);
 
             container.Register<TableNameHelper>(LifeStyles.Singleton);
-            container.Register<SqlHeaders>(LifeStyles.Singleton);
+            container.Register<IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand>, ConnectionHeader<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
 
             container.Register<ThreadSafeRandom>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             //**receive
             container.Register<IReceiveMessages, SqlServerMessageQueueReceive>(LifeStyles.Transient);
-            container.Register<IConnectionFactory, ConnectionFactory>(LifeStyles.Singleton);
+            container.Register<IConnectionHolderFactory<SqlConnection, SqlTransaction, SqlCommand>, ConnectionHolderFactory>(LifeStyles.Singleton);
             container.Register<CommitMessage>(LifeStyles.Transient);
             container.Register<RollbackMessage>(LifeStyles.Transient);
             container.Register<HandleMessage>(LifeStyles.Transient);
@@ -118,7 +118,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
             container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesError, ReceiveErrorMessage>(LifeStyles.Singleton);
-            container.Register<IIncreaseQueueDelay, SqlHeaders>(LifeStyles.Singleton);
+            container.Register<IIncreaseQueueDelay, IncreaseQueueDelay>(LifeStyles.Singleton);
             //**receive
 
             var target = Assembly.GetAssembly(GetType());
@@ -139,6 +139,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 .Register<IPrepareQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>,
                         QueueStatuses>,
                     DoesJobExistQueryPrepareHandler<SqlConnection, SqlTransaction>>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>,
+                    DeleteTransactionalMessageCommandHandler<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
 
             //explicit registration of options
             container

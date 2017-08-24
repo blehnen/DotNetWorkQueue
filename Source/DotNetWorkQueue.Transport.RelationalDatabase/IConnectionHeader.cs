@@ -16,20 +16,17 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
-using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-
-namespace DotNetWorkQueue.Transport.PostgreSQL
+using System.Data;
+namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
-    /// <summary>
-    /// Creates new instances of <see cref="Connection"/>
-    /// </summary>
-    internal interface IConnectionFactory
+    public interface IConnectionHeader<TConnection, TTransaction, out TCommand>
+        where TConnection : IDbConnection
+        where TTransaction : IDbTransaction
+        where TCommand : IDbCommand
     {
-        /// <summary>
-        /// Creates new instance of <see cref="Connection"/>
-        /// </summary>
-        /// <returns></returns>
-        Connection Create();
+        IMessageContextData<IConnectionHolder<TConnection, TTransaction, TCommand>> Connection
+        {
+            get;
+        }
     }
 }

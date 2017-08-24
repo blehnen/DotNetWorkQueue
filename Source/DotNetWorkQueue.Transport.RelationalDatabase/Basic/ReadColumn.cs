@@ -33,13 +33,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <exception cref="NotImplementedException"></exception>
         public virtual string ReadAsString(CommandStringTypes command, int column, IDataReader reader)
         {
-            switch (command)
-            {
-                case CommandStringTypes.GetColumnNamesFromTable:
-                    return reader.GetString(0);
-                default:
-                    throw new NotImplementedException();
-            }
+            ValidColumn(column, command);          
+            return reader.GetString(column);
         }
 
         /// <summary>
@@ -51,13 +46,66 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <returns></returns>
         public virtual DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader)
         {
-            switch (command)
-            {
-                case CommandStringTypes.GetHeartBeatExpiredMessageIds:
-                    return reader.GetDateTime(column);
-                default:
-                    throw new NotImplementedException();
-            }
+            ValidColumn(column, command);
+            return reader.GetDateTime(column);
+        }
+
+        /// <summary>
+        /// Reads as int32
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        public virtual int ReadAsInt32(CommandStringTypes command, int column, IDataReader reader)
+        {
+            ValidColumn(column, command);
+            return reader.GetInt32(column);
+        }
+
+        /// <summary>
+        /// Reads as int64
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        public virtual long ReadAsInt64(CommandStringTypes command, int column, IDataReader reader)
+        {
+            ValidColumn(column, command);
+            return reader.GetInt32(column);
+        }
+
+        /// <summary>
+        /// Reads as a date time offset
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        public virtual DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader)
+        {
+            ValidColumn(column, command);
+            return (DateTimeOffset)reader[column];
+        }
+
+        /// <summary>
+        /// Reads as byte[]
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        public virtual byte[] ReadAsByteArray(CommandStringTypes command, int column, IDataReader reader)
+        {
+            ValidColumn(column, command);
+            return (byte[])reader[column];
+        }
+
+        protected virtual void ValidColumn(int column, CommandStringTypes command)
+        {
+            if (column == -1)
+                throw new ArgumentException("column is -1; can only be handled in overridden implementations");
         }
     }
 }

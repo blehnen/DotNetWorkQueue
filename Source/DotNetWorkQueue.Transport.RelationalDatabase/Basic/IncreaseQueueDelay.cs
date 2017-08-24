@@ -16,26 +16,23 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.SqlServer.Basic;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.AutoNSubstitute;
-using Xunit;
-namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
-{
-    public class SqlHeadersTests
-    {
-        [Fact]
-        public void Create_Default()
-        {
-            var test = Create();
-            Assert.NotNull(test.Connection);
-            Assert.NotNull(test.IncreaseQueueDelay);
-        }
+using System;
+using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Validation;
 
-        private SqlHeaders Create()
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
+{
+    public class IncreaseQueueDelay: IIncreaseQueueDelay
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueueDelay"/> class.
+        /// </summary>
+        /// <param name="messageContextDataFactory">The message context data factory.</param>
+        public IncreaseQueueDelay(IMessageContextDataFactory messageContextDataFactory)
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return fixture.Create<SqlHeaders>();
+            Guard.NotNull(() => messageContextDataFactory, messageContextDataFactory);
+            QueueDelay = messageContextDataFactory.Create("IncreaseQueueDelay", new QueueDelay(TimeSpan.Zero));
         }
+        public IMessageContextData<QueueDelay> QueueDelay { get; }
     }
 }

@@ -17,39 +17,41 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Validation;
-using NpgsqlTypes;
-using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Validation;
 
-namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 {
     /// <summary>
     /// Deletes a transactional message from the queue
     /// </summary>
-    internal class DeleteTransactionalMessageCommandHandler : ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>
+    public class DeleteTransactionalMessageCommandHandler<TConnection, TTransaction, TCommand> : ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>
+        where TConnection : IDbConnection
+        where TTransaction : IDbTransaction
+        where TCommand : IDbCommand
     {
-        private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
-        private readonly PostgreSqlCommandStringCache _commandCache;
-        private readonly SqlHeaders _headers;
+        private readonly Lazy<ITransportOptions> _options;
+        private readonly IConnectionHeader<TConnection, TTransaction, TCommand> _headers;
+        private readonly IPrepareCommandHandler<DeleteMessageCommand> _prepareCommand;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeleteTransactionalMessageCommandHandler" /> class.
+        /// Initializes a new instance of the <see cref="DeleteTransactionalMessageCommandHandler{TConnection, TTransaction, TCommand}"/> class.
         /// </summary>
         /// <param name="options">The options.</param>
-        /// <param name="commandCache">The command cache.</param>
         /// <param name="headers">The headers.</param>
-        public DeleteTransactionalMessageCommandHandler(IPostgreSqlMessageQueueTransportOptionsFactory options,
-            PostgreSqlCommandStringCache commandCache, SqlHeaders headers)
+        /// <param name="prepareCommand">The prepare command.</param>
+        public DeleteTransactionalMessageCommandHandler(ITransportOptionsFactory options,
+            IConnectionHeader<TConnection, TTransaction, TCommand> headers,
+            IPrepareCommandHandler<DeleteMessageCommand> prepareCommand)
         {
             Guard.NotNull(() => options, options);
-            Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => headers, headers);
+            Guard.NotNull(() => prepareCommand, prepareCommand);
 
-            _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);
-            _commandCache = commandCache;
+            _options = new Lazy<ITransportOptions>(options.Create);
             _headers = headers;
+            _prepareCommand = prepareCommand;
         }
 
         /// <summary>
@@ -62,27 +64,22 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             var connection = command.MessageContext.Get(_headers.Connection);
             using (var commandSql = connection.CreateCommand())
             {
-                //set ID
-                commandSql.Parameters.Add("@QueueID", NpgsqlDbType.Bigint);
-                commandSql.Parameters["@QueueID"].Value = command.QueueId;
-
                 //delete the meta data record
-                commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaData);
+                _prepareCommand.Handle(new DeleteMessageCommand(command.QueueId), commandSql, CommandStringTypes.DeleteFromMetaData);
                 commandSql.ExecuteNonQuery();
 
                 //delete the message body
-                commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromQueue);
+                _prepareCommand.Handle(new DeleteMessageCommand(command.QueueId), commandSql, CommandStringTypes.DeleteFromQueue);
                 commandSql.ExecuteNonQuery();
 
                 //delete any error tracking information
-                commandSql.CommandText =
-                    _commandCache.GetCommand(CommandStringTypes.DeleteFromErrorTracking);
+                _prepareCommand.Handle(new DeleteMessageCommand(command.QueueId), commandSql, CommandStringTypes.DeleteFromErrorTracking);
                 commandSql.ExecuteNonQuery();
 
                 //delete status record
                 if (!_options.Value.EnableStatusTable) return 1;
 
-                commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromStatus);
+                _prepareCommand.Handle(new DeleteMessageCommand(command.QueueId), commandSql, CommandStringTypes.DeleteFromStatus);
                 commandSql.ExecuteNonQuery();
                 return 1;
             }

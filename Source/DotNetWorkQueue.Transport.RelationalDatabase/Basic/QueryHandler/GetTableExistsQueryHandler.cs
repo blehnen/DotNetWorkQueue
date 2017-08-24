@@ -59,8 +59,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     _prepareQuery.Handle(query, command, CommandStringTypes.GetTableExists);
                     using (var reader = command.ExecuteReader())
                     {
-                        var result = reader.Read();
-                        return result;
+                        return reader.Read();
                     }
                 }
             }

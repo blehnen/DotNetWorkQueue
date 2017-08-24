@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -33,7 +34,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         private readonly QueueConsumerConfiguration _configuration;
         private readonly ICommandHandler<RollbackMessageCommand> _rollbackCommand;
         private readonly ICommandHandler<SetStatusTableStatusCommand> _setStatusCommandHandler;
-        private readonly SqlHeaders _headers;
+        private readonly IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> _headers;
+        private readonly IIncreaseQueueDelay _increaseQueueDelay;
         private readonly ILog _log;
 
         /// <summary>
@@ -44,22 +46,26 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// <param name="setStatusCommandHandler">The set status command handler.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="log">The log.</param>
+        /// <param name="increaseQueueDelay">The increase queue delay.</param>
         public RollbackMessage(QueueConsumerConfiguration configuration,
             ICommandHandler<RollbackMessageCommand> rollbackCommand,
             ICommandHandler<SetStatusTableStatusCommand> setStatusCommandHandler,
-            SqlHeaders headers,
-            ILogFactory log)
+            IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> headers,
+            ILogFactory log,
+            IIncreaseQueueDelay increaseQueueDelay)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => rollbackCommand, rollbackCommand);
             Guard.NotNull(() => setStatusCommandHandler, setStatusCommandHandler);
             Guard.NotNull(() => headers, headers);
             Guard.NotNull(() => log, log);
+            Guard.NotNull(() => increaseQueueDelay, increaseQueueDelay);
 
             _configuration = configuration;
             _rollbackCommand = rollbackCommand;
             _setStatusCommandHandler = setStatusCommandHandler;
             _headers = headers;
+            _increaseQueueDelay = increaseQueueDelay;
             _log = log.Create();
         }
         /// <summary>
@@ -70,7 +76,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         {
             var connection = context.Get(_headers.Connection);
             //if transaction open, then just rollback the transaction
-            if (connection.SqlConnection == null || connection.SqlTransaction == null) return;
+            if (connection.Connection == null || connection.Transaction == null) return;
 
             if (_configuration.Options().EnableStatusTable)
             {
@@ -82,21 +88,21 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             }
             try
             {
-                connection.SqlTransaction.Rollback();
+                connection.Transaction.Rollback();
             }
             catch (Exception e)
             {
                 _log.ErrorException("Failed to rollback a transaction; this might be due to a DB timeout", e);
 
                 //don't attempt to use the transaction again at this point.
-                connection.SqlTransaction = null;
+                connection.Transaction = null;
 
                 throw;
             }
 
             //ensure that transaction won't be used anymore
-            connection.SqlTransaction.Dispose();
-            connection.SqlTransaction = null;
+            connection.Transaction.Dispose();
+            connection.Transaction = null;
         }
 
         /// <summary>
@@ -118,7 +124,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
                     lastHeartBeat = context.WorkerNotification.HeartBeat.Status.LastHeartBeatTime.Value;
                 }
 
-                var increaseDelay = context.Get(_headers.IncreaseQueueDelay).IncreaseDelay;
+                var increaseDelay = context.Get(_increaseQueueDelay.QueueDelay).IncreaseDelay;
                 _rollbackCommand.Handle(new RollbackMessageCommand(lastHeartBeat,
                     (long)context.MessageId.Id.Value, increaseDelay));
             }

@@ -17,24 +17,16 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.RelationalDatabase;
-
-namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
+using System.Data;
+namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.IDateTimeOffsetParser" />
-    public class DateTimeOffsetParser : IDateTimeOffsetParser
+    public interface IConnectionHolder<TConnection, TTransaction, out TCommand> : IDisposable, IIsDisposed
+        where TConnection : IDbConnection
+        where TTransaction : IDbTransaction
+        where TCommand: IDbCommand
     {
-        /// <summary>
-        /// Parses the specified input into a <see cref="T:System.DateTimeOffset" />
-        /// </summary>
-        /// <param name="input">The input.</param>
-        /// <returns></returns>
-        public DateTimeOffset Parse(object input)
-        {
-            return new DateTimeOffset(new DateTime(Convert.ToInt64(input), DateTimeKind.Utc));
-        }
+        TConnection Connection { get; set; }
+        TTransaction Transaction { get; set; }
+        TCommand CreateCommand();
     }
 }

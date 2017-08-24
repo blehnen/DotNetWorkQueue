@@ -78,7 +78,6 @@
     </Compile>
     <Compile Include="Basic\Command\CreateQueueTablesAndSaveConfigurationCommandTests.cs" />
     <Compile Include="Basic\Factory\SqlServerMessageQueueTransportOptionsFactoryTests.cs" />
-    <Compile Include="Basic\SqlHeadersTests.cs" />
     <Compile Include="Basic\SqlServerCommandStringCacheTests.cs" />
     <Compile Include="Basic\SqlServerMessageQueueSchemaTests.cs" />
     <Compile Include="Basic\SqlServerMessageQueueTransportOptionsTests.cs" />

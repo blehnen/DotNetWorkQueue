@@ -29,25 +29,25 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     {
         private readonly IPrepareQueryHandler<GetJobLastKnownEventQuery, DateTimeOffset> _prepareQuery;
         private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly IDateTimeOffsetParser _dateTimeOffsetParser;
+        private readonly IReadColumn _readColumn;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetJobLastKnownEventQueryHandler" /> class.
         /// </summary>
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        /// <param name="dateTimeOffsetParser">The date time offset parser.</param>
+        /// <param name="readColumn">The read column.</param>
         public GetJobLastKnownEventQueryHandler(IPrepareQueryHandler<GetJobLastKnownEventQuery, DateTimeOffset> prepareQuery,
             IDbConnectionFactory dbConnectionFactory,
-            IDateTimeOffsetParser dateTimeOffsetParser)
+            IReadColumn readColumn)
         {
             Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => dateTimeOffsetParser, dateTimeOffsetParser);
+            Guard.NotNull(() => readColumn, readColumn);
 
             _prepareQuery = prepareQuery;
             _dbConnectionFactory = dbConnectionFactory;
-            _dateTimeOffsetParser = dateTimeOffsetParser;
+            _readColumn = readColumn;
         }
         /// <summary>
         /// Handles the specified query.
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     _prepareQuery.Handle(query, command, CommandStringTypes.GetJobLastKnownEvent);
                     using (var reader = command.ExecuteReader())
                     {
-                        return !reader.Read() ? default(DateTimeOffset) : _dateTimeOffsetParser.Parse(reader[0]);
+                        return reader.Read() ? _readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetJobLastKnownEvent, 0, reader) : default(DateTimeOffset);
                     }
                 }
             }

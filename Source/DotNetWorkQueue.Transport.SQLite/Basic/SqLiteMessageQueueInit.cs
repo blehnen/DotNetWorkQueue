@@ -74,7 +74,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqliteJobSchema>(LifeStyles.Singleton);
-            container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
 
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
@@ -96,7 +95,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<SqLiteMessageQueueTransportOptions>(LifeStyles.Singleton);
 
             container.Register<TableNameHelper>(LifeStyles.Singleton);
-            container.Register<SqlHeaders>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
 
             container.Register<ISqLiteTransactionFactory, SqLiteTransactionFactory>(LifeStyles.Singleton);
@@ -120,7 +118,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
             container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesError, ReceiveErrorMessage>(LifeStyles.Singleton);
-            container.Register<IIncreaseQueueDelay, SqlHeaders>(LifeStyles.Singleton);
+            container.Register<IIncreaseQueueDelay, IncreaseQueueDelay>(LifeStyles.Singleton);
             //**receive
 
             var target = Assembly.GetAssembly(GetType());

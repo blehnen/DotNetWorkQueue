@@ -30,19 +30,24 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     {
         private readonly IPrepareQueryHandler<GetUtcDateQuery, DateTime> _prepareQuery;
         private readonly IDbConnectionFactory _dbConnectionFactory;
+        private readonly IReadColumn _readColumn;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetUtcDateQueryHandler" /> class.
         /// </summary>
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
+        /// <param name="readColumn">The read column.</param>
         public GetUtcDateQueryHandler(IPrepareQueryHandler<GetUtcDateQuery, DateTime> prepareQuery,
-            IDbConnectionFactory dbConnectionFactory)
+            IDbConnectionFactory dbConnectionFactory,
+            IReadColumn readColumn)
         {
             Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            Guard.NotNull(() => readColumn, readColumn);
             _prepareQuery = prepareQuery;
             _dbConnectionFactory = dbConnectionFactory;
+            _readColumn = readColumn;
         }
 
         /// <summary>
@@ -63,7 +68,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     {
                         if (reader.Read())
                         {
-                            return reader.GetDateTime(0);
+                            return _readColumn.ReadAsDateTime(CommandStringTypes.GetUtcDate, 0, reader);
                         }
                         throw new DotNetWorkQueueException("Failed to obtain the UTC date from the server");
                     }

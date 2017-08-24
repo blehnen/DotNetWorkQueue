@@ -30,6 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     internal class FindExpiredRecordsToDeleteQueryHandler : IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
+        private readonly IReadColumn _readColumn;
         private readonly IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> _prepareQuery;
         private readonly Lazy<ITransportOptions> _options;
 
@@ -38,17 +39,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// </summary>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="options">The options.</param>
+        /// <param name="readColumn">The read column.</param>
         /// <param name="prepareQuery">The prepare query.</param>
         public FindExpiredRecordsToDeleteQueryHandler(
             IDbConnectionFactory dbConnectionFactory,
             ITransportOptionsFactory options, 
+            IReadColumn readColumn,
             IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> prepareQuery)
         {
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
             Guard.NotNull(() => options, options);
             Guard.NotNull(() => prepareQuery, prepareQuery);
+            Guard.NotNull(() => readColumn, readColumn);
 
             _dbConnectionFactory = dbConnectionFactory;
+            _readColumn = readColumn;
             _prepareQuery = prepareQuery;
             _options = new Lazy<ITransportOptions>(options.Create);
         }
@@ -91,7 +96,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                             {
                                 break;
                             }
-                            results.Add(reader.GetInt64(0));
+                            results.Add(_readColumn.ReadAsInt64(commandType, 0, reader));
                         }
                     }
                 }

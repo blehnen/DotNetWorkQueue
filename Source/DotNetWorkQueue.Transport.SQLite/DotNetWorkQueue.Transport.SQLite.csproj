@@ -57,7 +57,6 @@
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
     <Compile Include="Basic\CommandPrepareHandler\ResetHeartBeatCommandPrepareHandler.cs" />
     <Compile Include="Basic\CreationScope.cs" />
-    <Compile Include="Basic\DateTimeOffsetParser.cs" />
     <Compile Include="Basic\DbConnectionFactory.cs" />
     <Compile Include="Basic\Factory\SQLiteTransactionFactory.cs" />
     <Compile Include="Basic\OptionsSerialization.cs" />
@@ -82,7 +81,6 @@
     <Compile Include="Basic\QueryPrepareHandler\FindExpiredRecordsToDeleteQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\FindRecordsToResetByHeartBeatQueryPrepareHandler.cs" />
     <Compile Include="Basic\ReadColumn.cs" />
-    <Compile Include="Basic\SQLHeaders.cs" />
     <Compile Include="Basic\SqliteJobQueueCreation.cs" />
     <Compile Include="Basic\SqliteJobSchedulerLastKnownEvent.cs" />
     <Compile Include="Basic\SqliteSendToJobQueue.cs" />

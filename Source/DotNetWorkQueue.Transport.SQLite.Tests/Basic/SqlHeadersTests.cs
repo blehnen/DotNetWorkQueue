@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
@@ -28,13 +30,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void Create_Default()
         {
             var test = Create();
-            Assert.NotNull(test.IncreaseQueueDelay);
+            Assert.NotNull(test.QueueDelay);
         }
 
-        private SqlHeaders Create()
+        private IIncreaseQueueDelay Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return fixture.Create<SqlHeaders>();
+            return fixture.Create<IncreaseQueueDelay>();
         }
     }
 }

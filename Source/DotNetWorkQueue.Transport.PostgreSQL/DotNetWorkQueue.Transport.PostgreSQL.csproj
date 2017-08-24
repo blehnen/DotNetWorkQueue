@@ -56,7 +56,6 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Basic\CommandHandler\DeleteTransactionalMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SendHeartBeatCommandHandler.cs" />
@@ -65,16 +64,14 @@
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
     <Compile Include="Basic\CommandPrepareHandler\ResetHeartBeatCommandPrepareHandler.cs" />
-    <Compile Include="Basic\Connection.cs" />
-    <Compile Include="Basic\DateTimeOffsetParser.cs" />
+    <Compile Include="Basic\ConnectionHolder.cs" />
     <Compile Include="Basic\DbConnectionFactory.cs" />
-    <Compile Include="Basic\Factory\ConnectionFactory.cs" />
+    <Compile Include="Basic\Factory\ConnectionHolderFactory.cs" />
     <Compile Include="Basic\Factory\SQLServerMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
     <Compile Include="Decorator\GetColumnNamesFromTableQueryPrepareDecorator.cs" />
     <Compile Include="Decorator\GetTableExistsQueryPrepareDecorator.cs" />
     <Compile Include="Decorator\GetTableExistsTransactionQueryPrepareDecorator.cs" />
-    <Compile Include="IConnectionFactory.cs" />
     <Compile Include="IPostgreSQLMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\Message\CommitMessage.cs" />
     <Compile Include="Basic\Message\HandleMessage.cs" />
@@ -87,7 +84,6 @@
     <Compile Include="Basic\QueryPrepareHandler\FindExpiredRecordsToDeleteQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\FindRecordsToResetByHeartBeatQueryPrepareHandler.cs" />
     <Compile Include="Basic\ReadColumn.cs" />
-    <Compile Include="Basic\SQLHeaders.cs" />
     <Compile Include="Basic\PostgreSQLCommandStringCache.cs" />
     <Compile Include="Basic\PostgreSQLJobQueueCreation.cs" />
     <Compile Include="Basic\PostgreSQLJobSchedulerLastKnownEvent.cs" />

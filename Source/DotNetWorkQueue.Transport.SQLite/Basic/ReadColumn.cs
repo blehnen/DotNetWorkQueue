@@ -46,6 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     return base.ReadAsString(command, column, reader);
             }
         }
+
         /// <summary>
         /// Reads as date time.
         /// </summary>
@@ -61,6 +62,26 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     return DateTime.FromBinary(reader.GetInt64(column));
                 default:
                     return base.ReadAsDateTime(command, column, reader);
+            }
+        }
+
+        /// <summary>
+        /// Reads as a date time offset
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <returns></returns>
+        public override DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader)
+        {
+            switch (command)
+            {
+                case CommandStringTypes.DoesJobExist:
+                case CommandStringTypes.GetJobLastKnownEvent:
+                    return DateTimeOffset.Parse(reader.GetString(column),
+                        System.Globalization.CultureInfo.InvariantCulture);
+                default:
+                    return base.ReadAsDateTimeOffset(command, column, reader);
             }
         }
     }

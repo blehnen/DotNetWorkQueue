@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private readonly IConnectionInformation _connectionInformation;
         private readonly IQueryHandler<GetColumnNamesFromTableQuery, List<string>> _columnQuery;
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
-        private readonly SqlHeaders _headers;
+        private readonly IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> _headers;
         private readonly object _buildSqlLocker = new object();
 
         private string _moveRecordSql;
@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             IQueryHandler<GetColumnNamesFromTableQuery, List<string>> columnQuery,
             ISqlServerMessageQueueTransportOptionsFactory options,
             SqlServerCommandStringCache commandCache,
-            SqlHeaders headers)
+            IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> headers)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
@@ -187,8 +187,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             }
 
             //at this point, we commit the transaction since we just moved the record
-            conn.SqlTransaction.Commit();
-            conn.SqlTransaction = null;
+            conn.Transaction.Commit();
+            conn.Transaction.Dispose();
+            conn.Transaction = null;
         }
         
         /// <summary>

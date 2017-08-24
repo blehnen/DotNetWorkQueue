@@ -24,6 +24,7 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic.Message;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
+using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
@@ -34,13 +35,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     {
         #region Member level Variables
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly IConnectionFactory _connectionFactory;
+        private readonly IConnectionHolderFactory<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> _connectionFactory;
         private readonly ICancelWork _cancelWork;
 
         private readonly ReceiveMessage _receiveMessages;
         private readonly HandleMessage _handleMessage;
 
-        private readonly SqlHeaders _sqlHeaders;
+        private readonly IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> _sqlHeaders;
 
         #endregion
 
@@ -48,15 +49,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <summary>
         /// Commits the message, using the information stored in the connection.
         /// </summary>
-        Action<Connection, IMessageContext> _commitConnection;
+        Action<IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>, IMessageContext> _commitConnection;
         /// <summary>
         /// Roll back the message, using the information stored in the connection.
         /// </summary>
-        Action<Connection, IMessageContext> _rollbackConnection;
+        Action<IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>, IMessageContext> _rollbackConnection;
         /// <summary>
         /// Calls dispose on the connection
         /// </summary>
-        readonly Action<Connection> _disposeConnection;
+        readonly Action<IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>> _disposeConnection;
         #endregion
 
         #region Constructor
@@ -70,11 +71,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="receiveMessages">The receive messages.</param>
         /// <param name="sqlHeaders">The SQL headers.</param>
         public PostgreSqlMessageQueueReceive(QueueConsumerConfiguration configuration,
-            IConnectionFactory connectionFactory,
+            IConnectionHolderFactory<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> connectionFactory,
             IQueueCancelWork cancelWork,
             HandleMessage handleMessage,
             ReceiveMessage receiveMessages,
-            SqlHeaders sqlHeaders)
+            IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> sqlHeaders)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => connectionFactory, connectionFactory);
@@ -224,7 +225,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>
-        private Connection GetConnectionAndSetOnContext(IMessageContext context)
+        private IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> GetConnectionAndSetOnContext(IMessageContext context)
         {
             var connection = _connectionFactory.Create();
             context.Set(_sqlHeaders.Connection, connection);
@@ -310,8 +311,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// Clean up the message context when processing is done
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="connection">The connection.</param>
-        private void ContextCleanup(IMessageContext context, Connection connection)
+        /// <param name="connectionHolder">The connection.</param>
+        private void ContextCleanup(IMessageContext context, IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> connectionHolder)
         {
             if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
@@ -324,7 +325,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 context.Rollback -= ContextOnRollbackTransaction;
             }
             context.Cleanup -= context_Cleanup;
-            _disposeConnection(connection);
+            _disposeConnection(connectionHolder);
         }
         #endregion
     }

@@ -22,6 +22,7 @@ using System.Data;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
@@ -29,7 +30,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     /// <summary>
     /// This object holds the state of an item that is in progress. It's used to commit or rollback the work item as needed.
     /// </summary>
-    internal class Connection : IDisposable, IIsDisposed
+    internal class ConnectionHolder : IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>
     {
         #region Member level variables
         private int _disposeCount;
@@ -44,15 +45,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </summary>
         /// <param name="connectionInfo">The connection information.</param>
         /// <param name="options">The options.</param>
-        public Connection(IConnectionInformation connectionInfo,
+        public ConnectionHolder(IConnectionInformation connectionInfo,
             PostgreSqlMessageQueueTransportOptions options)
         {
-            NpgsqlConnection = new NpgsqlConnection(connectionInfo.ConnectionString);
-            NpgsqlConnection.Open();
+            _npgsqlConnection = new NpgsqlConnection(connectionInfo.ConnectionString);
+            _npgsqlConnection.Open();
 
             if (options.EnableHoldTransactionUntilMessageCommitted)
             {
-                NpgsqlTransaction = NpgsqlConnection.BeginTransaction(IsolationLevel.ReadCommitted);
+                _npgsqlTransaction = _npgsqlConnection.BeginTransaction(IsolationLevel.ReadCommitted);
             }
         }
 
@@ -66,7 +67,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <value>
         /// The SQL connection.
         /// </value>
-        public NpgsqlConnection NpgsqlConnection
+        public NpgsqlConnection Connection
         {
             get
             {
@@ -86,7 +87,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <value>
         /// The SQL transaction.
         /// </value>
-        public NpgsqlTransaction NpgsqlTransaction
+        public NpgsqlTransaction Transaction
         {
             get
             {
@@ -108,14 +109,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <returns></returns>
         public NpgsqlCommand CreateCommand()
         {
-            if(NpgsqlConnection == null)
+            if(_npgsqlConnection == null)
             {
                 throw new DotNetWorkQueueException("An attempt was made to create a SQL command object, but the SQL connection is null");
             }
-            var npgsqlCommand = NpgsqlConnection.CreateCommand();
-            if (NpgsqlTransaction != null)
+            var npgsqlCommand = _npgsqlConnection.CreateCommand();
+            if (_npgsqlTransaction != null)
             {
-                npgsqlCommand.Transaction = NpgsqlTransaction;
+                npgsqlCommand.Transaction = _npgsqlTransaction;
             }
             return npgsqlCommand;
         }

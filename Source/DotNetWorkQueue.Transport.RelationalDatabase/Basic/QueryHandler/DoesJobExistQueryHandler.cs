@@ -35,8 +35,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         private readonly TableNameHelper _tableNameHelper;
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly ITransactionFactory _transactionFactory;
-        private readonly IDateTimeOffsetParser _dateTimeOffsetParser;
         private readonly IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses> _prepareQuery;
+        private readonly IReadColumn _readColumn;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DoesJobExistQueryHandler{TConnection, TTransaction}" /> class.
@@ -47,16 +47,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="transactionFactory">The transaction factory.</param>
-        /// <param name="dateTimeOffsetParser">The date time offset parser.</param>
         /// <param name="prepareQuery">The prepare query.</param>
+        /// <param name="readColumn">The read column.</param>
         public DoesJobExistQueryHandler(CommandStringCache commandCache,
             IConnectionInformation connectionInformation,
             IQueryHandler<GetTableExistsQuery, bool> tableExists, 
             TableNameHelper tableNameHelper,
             IDbConnectionFactory dbConnectionFactory,
             ITransactionFactory transactionFactory,
-            IDateTimeOffsetParser dateTimeOffsetParser,
-            IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses> prepareQuery)
+            IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses> prepareQuery,
+            IReadColumn readColumn)
         {
             Guard.NotNull(() => commandCache, commandCache);
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -64,8 +64,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
             Guard.NotNull(() => transactionFactory, transactionFactory);
-            Guard.NotNull(() => dateTimeOffsetParser, dateTimeOffsetParser);
             Guard.NotNull(() => prepareQuery, prepareQuery);
+            Guard.NotNull(() => readColumn, readColumn);
 
             _commandCache = commandCache;
             _connectionInformation = connectionInformation;
@@ -73,8 +73,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _tableNameHelper = tableNameHelper;
             _dbConnectionFactory = dbConnectionFactory;
             _transactionFactory = transactionFactory;
-            _dateTimeOffsetParser = dateTimeOffsetParser;
             _prepareQuery = prepareQuery;
+            _readColumn = readColumn;
         }
 
         /// <summary>
@@ -111,7 +111,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 {
                     if (reader.Read())
                     {
-                        returnStatus = (QueueStatuses) reader.GetInt32(0);
+                        returnStatus =
+                            (QueueStatuses) _readColumn.ReadAsInt32(CommandStringTypes.DoesJobExist, 0, reader);
                     }
                 }
 
@@ -125,7 +126,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     using (var reader = command.ExecuteReader())
                     {
                         if (!reader.Read()) return returnStatus;
-                        var scheduleTime = _dateTimeOffsetParser.Parse(reader[0]);
+                        var scheduleTime =
+                            _readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetJobLastScheduleTime, 0, reader);
                         if (scheduleTime == query.ScheduledTime)
                         {
                             return QueueStatuses.Processed;

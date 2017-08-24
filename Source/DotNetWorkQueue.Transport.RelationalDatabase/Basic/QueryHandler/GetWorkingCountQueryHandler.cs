@@ -27,18 +27,24 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     {
         private readonly IPrepareQueryHandler<GetWorkingCountQuery, long> _prepareQuery;
         private readonly IDbConnectionFactory _connectionFactory;
+        private readonly IReadColumn _readColumn;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GetWorkingCountQueryHandler" /> class.
         /// </summary>
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="connectionFactory">The connection factory.</param>
+        /// <param name="readColumn">The read column.</param>
         public GetWorkingCountQueryHandler(IPrepareQueryHandler<GetWorkingCountQuery, long> prepareQuery,
-            IDbConnectionFactory connectionFactory)
+            IDbConnectionFactory connectionFactory,
+            IReadColumn readColumn)
         {
             Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => connectionFactory, connectionFactory);
+            Guard.NotNull(() => readColumn, readColumn);
             _prepareQuery = prepareQuery;
             _connectionFactory = connectionFactory;
+            _readColumn = readColumn;
         }
         /// <summary>
         /// Handles the specified query.
@@ -58,7 +64,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     {
                         if (reader.Read())
                         {
-                            return reader.GetInt32(0);
+                            return _readColumn.ReadAsInt32(CommandStringTypes.GetWorkingCount, 0, reader);
                         }
                     }
                 }

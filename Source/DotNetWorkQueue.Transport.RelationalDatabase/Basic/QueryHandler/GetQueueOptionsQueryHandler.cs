@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         private readonly IPrepareQueryHandler<GetQueueOptionsQuery<TTransportOptions>, TTransportOptions> _prepareQuery;
         private readonly TableNameHelper _tableNameHelper;
         private readonly IDbConnectionFactory _dbConnectionFactory;
+        private readonly IReadColumn _readColumn;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetQueueOptionsQueryHandler{TTransportOptions}" /> class.
@@ -43,12 +44,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
+        /// <param name="readColumn">The read column.</param>
         public GetQueueOptionsQueryHandler(IInternalSerializer serializer,
                     IQueryHandler<GetTableExistsQuery, bool> tableExists,
                     IConnectionInformation connectionInformation,
                     IPrepareQueryHandler<GetQueueOptionsQuery<TTransportOptions>, TTransportOptions> prepareQuery,
                     TableNameHelper tableNameHelper,
-                    IDbConnectionFactory dbConnectionFactory)
+                    IDbConnectionFactory dbConnectionFactory,
+                    IReadColumn readColumn)
         {
             Guard.NotNull(() => serializer, serializer);
             Guard.NotNull(() => tableExists, tableExists);
@@ -56,6 +59,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            Guard.NotNull(() => readColumn, readColumn);
 
             _serializer = serializer;
             _tableExists = tableExists;
@@ -63,6 +67,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _prepareQuery = prepareQuery;
             _tableNameHelper = tableNameHelper;
             _dbConnectionFactory = dbConnectionFactory;
+            _readColumn = readColumn;
         }
         /// <summary>
         /// Handles the specified query.
@@ -83,7 +88,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     _prepareQuery.Handle(query, command, CommandStringTypes.GetConfiguration);
                     using (var reader = command.ExecuteReader())
                     {
-                        return !reader.Read() ? null : _serializer.ConvertBytesTo<TTransportOptions>((byte[])reader[0]);
+                        return !reader.Read() ? null : _serializer.ConvertBytesTo<TTransportOptions>(_readColumn.ReadAsByteArray(CommandStringTypes.GetConfiguration, 0, reader));
                     }
                 }
             }

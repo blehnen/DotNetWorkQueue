@@ -20,6 +20,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
+using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
 {
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         private readonly ICommandHandler<DeleteStatusTableStatusCommand> _deleteStatusCommandHandler;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
         private readonly ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> _deleteTransactionalMessageCommand;
-        private readonly SqlHeaders _headers;
+        private readonly IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> _headers;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitMessage" /> class.
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         public CommitMessage(QueueConsumerConfiguration configuration, 
             ICommandHandler<DeleteStatusTableStatusCommand> deleteStatusCommandHandler,
             ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
-            SqlHeaders headers, 
+            IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> headers, 
             ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand)
         {
             Guard.NotNull(() => configuration, configuration);
@@ -69,12 +70,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             var connection = context.Get(_headers.Connection);
 
             //if transaction held
-            if (connection.NpgsqlConnection == null || connection.NpgsqlTransaction == null) return;
+            if (connection.Connection == null || connection.Transaction == null) return;
 
             //delete the message, and then commit the transaction
             _deleteTransactionalMessageCommand.Handle(new DeleteTransactionalMessageCommand((long)context.MessageId.Id.Value, context));
-            connection.NpgsqlTransaction.Commit();
-            connection.NpgsqlTransaction = null;
+            connection.Transaction.Commit();
+            connection.Transaction = null;
 
             if (_configuration.Options().EnableStatusTable)
             {

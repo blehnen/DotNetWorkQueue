@@ -31,6 +31,7 @@ using DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
@@ -71,7 +72,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<CommandStringCache, PostgreSqlCommandStringCache>(LifeStyles.Singleton);
             container.Register<IJobSchema, PostgreSqlJobSchema>(LifeStyles.Singleton);
-            container.Register<IDateTimeOffsetParser, DateTimeOffsetParser>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
 
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<PostgreSqlMessageQueueTransportOptions>(LifeStyles.Singleton);
 
             container.Register<TableNameHelper>(LifeStyles.Singleton);
-            container.Register<SqlHeaders>(LifeStyles.Singleton);
+            container.Register<IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>, ConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
 
             container.Register<ThreadSafeRandom>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
@@ -108,7 +108,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //**receive
             container.Register<IReceiveMessages, PostgreSqlMessageQueueReceive>(LifeStyles.Transient);
-            container.Register<IConnectionFactory, ConnectionFactory>(LifeStyles.Singleton);
+            container.Register<IConnectionHolderFactory<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>, ConnectionHolderFactory>(LifeStyles.Singleton);
             container.Register<CommitMessage>(LifeStyles.Transient);
             container.Register<RollbackMessage>(LifeStyles.Transient);
             container.Register<HandleMessage>(LifeStyles.Transient);
@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
             container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
             container.Register<IReceiveMessagesError, ReceiveErrorMessage>(LifeStyles.Singleton);
-            container.Register<IIncreaseQueueDelay, SqlHeaders>(LifeStyles.Singleton);
+            container.Register<IIncreaseQueueDelay, IncreaseQueueDelay>(LifeStyles.Singleton);
             //**receive
 
             var target = Assembly.GetAssembly(GetType());
@@ -155,6 +155,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container
                 .Register<IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>,
                     QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>,
+                    DeleteTransactionalMessageCommandHandler<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
 
             //explicit registration of options
             container
