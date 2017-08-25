@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     {
                         if (reader.Read())
                         {
-                            return _readColumn.ReadAsInt64(CommandStringTypes.GetJobId, 0, reader);
+                            return _readColumn.ReadAsInt64(CommandStringTypes.GetJobId, 0, reader, -1);
                         }
                     }
                 }

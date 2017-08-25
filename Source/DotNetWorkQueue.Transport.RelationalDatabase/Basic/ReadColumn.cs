@@ -31,10 +31,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public virtual string ReadAsString(CommandStringTypes command, int column, IDataReader reader)
+        public virtual string ReadAsString(CommandStringTypes command, int column, IDataReader reader, string noValue = null)
         {
-            ValidColumn(column, command);          
-            return reader.GetString(column);
+            ValidColumn(column, command);
+            return !reader.IsDBNull(column) ? reader.GetString(column) : noValue;
         }
 
         /// <summary>
@@ -44,10 +44,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        public virtual DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader)
+        public virtual DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader, DateTime noValue = default(DateTime))
         {
             ValidColumn(column, command);
-            return reader.GetDateTime(column);
+            return !reader.IsDBNull(column) ? reader.GetDateTime(column) : noValue;
         }
 
         /// <summary>
@@ -57,10 +57,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        public virtual int ReadAsInt32(CommandStringTypes command, int column, IDataReader reader)
+        public virtual int ReadAsInt32(CommandStringTypes command, int column, IDataReader reader, int noValue = 0)
         {
             ValidColumn(column, command);
-            return reader.GetInt32(column);
+            return !reader.IsDBNull(column) ? reader.GetInt32(column) : noValue;
         }
 
         /// <summary>
@@ -70,10 +70,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        public virtual long ReadAsInt64(CommandStringTypes command, int column, IDataReader reader)
+        public virtual long ReadAsInt64(CommandStringTypes command, int column, IDataReader reader, long noValue = 0)
         {
             ValidColumn(column, command);
-            return reader.GetInt32(column);
+            return !reader.IsDBNull(column) ? reader.GetInt64(column) : noValue;
         }
 
         /// <summary>
@@ -83,10 +83,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        public virtual DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader)
+        public virtual DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default(DateTimeOffset))
         {
             ValidColumn(column, command);
-            return (DateTimeOffset)reader[column];
+            if(!reader.IsDBNull(column))
+                return (DateTimeOffset)reader[column];
+            return noValue;
         }
 
         /// <summary>
@@ -96,10 +98,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        public virtual byte[] ReadAsByteArray(CommandStringTypes command, int column, IDataReader reader)
+        public virtual byte[] ReadAsByteArray(CommandStringTypes command, int column, IDataReader reader, byte[] noValue = null)
         {
             ValidColumn(column, command);
-            return (byte[])reader[column];
+            if (!reader.IsDBNull(column))
+                return (byte[])reader[column];
+            return noValue;
         }
 
         protected virtual void ValidColumn(int column, CommandStringTypes command)

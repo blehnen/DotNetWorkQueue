@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        string ReadAsString(CommandStringTypes command, int column, IDataReader reader);
+        string ReadAsString(CommandStringTypes command, int column, IDataReader reader, string noValue = null);
 
         /// <summary>
         /// Reads as int32
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        int ReadAsInt32(CommandStringTypes command, int column, IDataReader reader);
+        int ReadAsInt32(CommandStringTypes command, int column, IDataReader reader, int noValue = 0);
 
         /// <summary>
         /// Reads as int64
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        long ReadAsInt64(CommandStringTypes command, int column, IDataReader reader);
+        long ReadAsInt64(CommandStringTypes command, int column, IDataReader reader, long noValue = 0);
 
         /// <summary>
         /// Reads as a date time offset
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader);
+        DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default(DateTimeOffset));
 
         /// <summary>
         /// Reads as date time.
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader);
+        DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader, DateTime noValue = default(DateTime));
 
         /// <summary>
         /// Reads as byte[]
@@ -77,6 +77,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
         /// <returns></returns>
-        byte[] ReadAsByteArray(CommandStringTypes command, int column, IDataReader reader);
+        byte[] ReadAsByteArray(CommandStringTypes command, int column, IDataReader reader, byte[] noValue = null);
     }
 }

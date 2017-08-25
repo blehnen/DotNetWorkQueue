@@ -34,8 +34,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="command">The command.</param>
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
+        /// <param name="noValue"></param>
         /// <returns></returns>
-        public override DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader)
+        public override DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader, DateTime noValue = default(DateTime))
         {
             switch (command)
             {
@@ -51,8 +52,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="command">The command.</param>
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
+        /// <param name="noValue"></param>
         /// <returns></returns>
-        public override DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader)
+        public override DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default(DateTimeOffset))
         {
             switch (command)
             {
