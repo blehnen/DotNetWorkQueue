@@ -60,6 +60,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             {
                 case CommandStringTypes.DoesJobExist:
                 case CommandStringTypes.GetJobLastKnownEvent:
+                case CommandStringTypes.GetJobLastScheduleTime:
                     return new DateTimeOffset(new DateTime(reader.GetInt64(column), DateTimeKind.Utc));
                 default:
                     return base.ReadAsDateTimeOffset(command, column, reader);

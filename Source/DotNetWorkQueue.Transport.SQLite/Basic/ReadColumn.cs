@@ -81,6 +81,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 case CommandStringTypes.DoesJobExist:
                 case CommandStringTypes.GetJobLastKnownEvent:
+                case CommandStringTypes.GetJobLastScheduleTime:
                     return DateTimeOffset.Parse(reader.GetString(column),
                         System.Globalization.CultureInfo.InvariantCulture);
                 default:
