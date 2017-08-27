@@ -56,7 +56,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
+    <Compile Include="Basic\BuildMoveToErrorQueueSql.cs" />
     <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SendHeartBeatCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SendMessage.cs" />

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
@@ -99,6 +100,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             container.Register<ThreadSafeRandom>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
+
             //**all
 
             //**send
@@ -113,6 +115,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<RollbackMessage>(LifeStyles.Transient);
             container.Register<HandleMessage>(LifeStyles.Transient);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
+            container.Register<IBuildMoveToErrorQueueSql, BuildMoveToErrorQueueSql>(LifeStyles.Singleton);
+            container.Register<IGetColumnsFromTable, GetColumnsFromTable>(LifeStyles.Singleton);
 
             container.Register<IResetHeartBeat, ResetHeartBeat>(LifeStyles.Singleton);
             container.Register<ISendHeartBeat, SendHeartBeat>(LifeStyles.Singleton);
@@ -159,6 +163,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container
                 .Register<ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>,
                     DeleteTransactionalMessageCommandHandler<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandler<MoveRecordToErrorQueueCommand>,
+                    MoveRecordToErrorQueueCommandHandler<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
 
             //explicit registration of options
             container

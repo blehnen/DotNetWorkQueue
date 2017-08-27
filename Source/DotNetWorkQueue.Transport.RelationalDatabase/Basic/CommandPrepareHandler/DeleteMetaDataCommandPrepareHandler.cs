@@ -16,37 +16,31 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
 {
-    public class SetStatusTableStatusCommandPrepareHandler : IPrepareCommandHandler<SetStatusTableStatusCommand>
+    public class DeleteMetaDataCommandPrepareHandler: IPrepareCommandHandler<DeleteMetaDataCommand>
     {
         private readonly CommandStringCache _commandCache;
 
-        public SetStatusTableStatusCommandPrepareHandler(CommandStringCache commandCache)
+        public DeleteMetaDataCommandPrepareHandler(CommandStringCache commandCache)
         {
             Guard.NotNull(() => commandCache, commandCache);
             _commandCache = commandCache;
         }
-        public void Handle(SetStatusTableStatusCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(DeleteMetaDataCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
-            dbCommand.CommandText = _commandCache.GetCommand(commandType);
+            dbCommand.CommandText =
+                _commandCache.GetCommand(CommandStringTypes.DeleteFromMetaData);
 
-            var queueId = dbCommand.CreateParameter();
-            queueId.ParameterName = "@QueueID";
-            queueId.DbType = DbType.Int64;
-            queueId.Value = command.QueueId;
-            dbCommand.Parameters.Add(queueId);
-
-            var status = dbCommand.CreateParameter();
-            status.ParameterName = "@Status";
-            status.DbType = DbType.Int16;
-            status.Value = Convert.ToInt16(command.Status);
-            dbCommand.Parameters.Add(status);
+            var param = dbCommand.CreateParameter();
+            param.ParameterName = "@QueueID";
+            param.DbType = DbType.Int64;
+            param.Value = command.QueueId;
+            dbCommand.Parameters.Add(param);
         }
     }
 }

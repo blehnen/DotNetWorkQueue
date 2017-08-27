@@ -70,6 +70,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
+            container.Register<IBuildMoveToErrorQueueSql, BuildMoveToErrorQueueSql>(LifeStyles.Singleton);
+            container.Register<IGetColumnsFromTable, GetColumnsFromTable>(LifeStyles.Singleton);
 
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
@@ -141,13 +143,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     DoesJobExistQueryPrepareHandler<SqlConnection, SqlTransaction>>(LifeStyles.Singleton);
 
             container
-                .Register<ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>,
-                    DeleteTransactionalMessageCommandHandler<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
+                .Register<ICommandHandler<MoveRecordToErrorQueueCommand>,
+                    MoveRecordToErrorQueueCommandHandler<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
 
             //explicit registration of options
             container
                 .Register<IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions>,
                     GetQueueOptionsQueryHandler<SqlServerMessageQueueTransportOptions>>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>,
+                    DeleteTransactionalMessageCommandHandler<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
 
             container
                 .Register<IPrepareQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>,

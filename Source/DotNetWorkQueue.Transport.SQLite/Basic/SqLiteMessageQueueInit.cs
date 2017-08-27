@@ -25,6 +25,7 @@ using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
@@ -75,6 +76,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqliteJobSchema>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
+            container.Register<IBuildMoveToErrorQueueSql, BuildMoveToErrorQueueSql>(LifeStyles.Singleton);
+            container.Register<IGetColumnsFromTable, GetColumnsFromTable>(LifeStyles.Singleton);
 
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
             container
@@ -93,6 +96,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<MessageDeQueue>(LifeStyles.Singleton);
 
             container.Register<SqLiteMessageQueueTransportOptions>(LifeStyles.Singleton);
+
+            container.Register<IConnectionHeader<SQLiteConnection, SQLiteTransaction, SQLiteCommand>, ConnectionHeader<SQLiteConnection, SQLiteTransaction, SQLiteCommand>>(LifeStyles.Singleton);
 
             container.Register<TableNameHelper>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
@@ -133,6 +138,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     .Register<IPrepareCommandHandler<ResetHeartBeatCommand>,
                         ResetHeartBeatCommandPrepareHandler>(LifeStyles.Singleton);
 
+            container
+                .Register<IPrepareCommandHandler<MoveRecordToErrorQueueCommand>,
+                    MoveRecordToErrorQueueCommandPrepareHandler>(LifeStyles.Singleton);
+
             //explicit registration of our job exists query
             container
                 .Register<IQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>,
@@ -144,6 +153,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 .Register<IPrepareQueryHandler<DoesJobExistQuery<SQLiteConnection, SQLiteTransaction>,
                         QueueStatuses>,
                     DoesJobExistQueryPrepareHandler<SQLiteConnection, SQLiteTransaction>>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandler<MoveRecordToErrorQueueCommand>,
+                    MoveRecordToErrorQueueCommandHandler<SQLiteConnection, SQLiteTransaction, SQLiteCommand>>(LifeStyles.Singleton);
 
             //expired messages
             container
@@ -193,6 +206,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandlerWithOutput<ResetHeartBeatCommand, long>),
                 typeof(ResetHeartBeatCommandDecorator), LifeStyles.Singleton);
+
+            container.RegisterDecorator(
+                typeof(ICommandHandler<MoveRecordToErrorQueueCommand>),
+                typeof(MoveRecordToErrorQueueCommandDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(
                 typeof(IQueryHandler<GetErrorRecordExistsQuery, bool>),

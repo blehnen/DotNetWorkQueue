@@ -53,8 +53,9 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
+    <Compile Include="Basic\BuildMoveToErrorQueueSql.cs" />
     <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
+    <Compile Include="Basic\CommandPrepareHandler\MoveRecordToErrorQueueCommandPrepareHandler.cs" />
     <Compile Include="Basic\CommandPrepareHandler\ResetHeartBeatCommandPrepareHandler.cs" />
     <Compile Include="Basic\CreationScope.cs" />
     <Compile Include="Basic\DbConnectionFactory.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="Basic\Factory\SqLiteMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\GetFileNameFromConnectionString.cs" />
     <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
+    <Compile Include="Decorator\MoveRecordToErrorQueueCommandDecorator.cs" />
     <Compile Include="ISqLiteMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\Message\CommitMessage.cs" />
     <Compile Include="Basic\Message\HandleMessage.cs" />

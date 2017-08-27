@@ -271,7 +271,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Create job tables
         /// </summary>
-        CreateJobTables
+        CreateJobTables,
+        /// <summary>
+        /// Moves a record to the error queue
+        /// </summary>
+        MoveToErrorQueue
     }
 
     /// <summary>
