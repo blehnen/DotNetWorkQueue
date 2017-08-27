@@ -65,7 +65,6 @@
     <Compile Include="Basic\QueryHandler\MessageDeQueue.cs" />
     <Compile Include="Basic\QueryHandler\ReceiveMessage.cs" />
     <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SendHeartBeatCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SendMessage.cs" />
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandler.cs" />
     <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />

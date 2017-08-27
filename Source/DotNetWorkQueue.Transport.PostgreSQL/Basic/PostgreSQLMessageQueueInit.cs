@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
@@ -59,24 +58,20 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             Guard.NotNull(() => container, container);
 
+            var init = new MessageQueueInit();
+            init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
+
             //**all
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<PostgreSqlMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, PostgreSqlMessageQueueCreation>(LifeStyles.Singleton);
-            container.Register<QueueStatusQueries>(LifeStyles.Singleton);
-            container.Register<IQueueStatusProvider, QueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, PostgreSqlJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
-            container.Register<IJobTableCreation, JobTableCreation>(LifeStyles.Singleton);
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<PostgreSqlJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, PostgreSqlSendJobToQueue>(LifeStyles.Singleton);
-            container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<CommandStringCache, PostgreSqlCommandStringCache>(LifeStyles.Singleton);
             container.Register<IJobSchema, PostgreSqlJobSchema>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
-
-            container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
-            container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
 
             container.Register<IGetTime, PostgreSqlTime>(LifeStyles.Singleton);
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
@@ -85,28 +80,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 <IPostgreSqlMessageQueueTransportOptionsFactory, PostgreSqlMessageQueueTransportOptionsFactory>(
                     LifeStyles.Singleton);
 
-            container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
             container.Register<PostgreSqlCommandStringCache>(LifeStyles.Singleton);
-
             container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queue, connection),
-                LifeStyles.Singleton);
-            container.Register<ICorrelationIdFactory, CorrelationIdFactory>(
                 LifeStyles.Singleton);
 
             container.Register<PostgreSqlMessageQueueTransportOptions>(LifeStyles.Singleton);
-
-            container.Register<TableNameHelper>(LifeStyles.Singleton);
             container.Register<IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>, ConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
-
             container.Register<ThreadSafeRandom>(LifeStyles.Singleton);
-            container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
-
             //**all
-
-            //**send
-            container.Register<ISendMessages, SendMessages>(LifeStyles.Singleton);
-            //**send
-
 
             //**receive
             container.Register<IReceiveMessages, PostgreSqlMessageQueueReceive>(LifeStyles.Transient);
@@ -116,22 +97,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<HandleMessage>(LifeStyles.Transient);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
             container.Register<IBuildMoveToErrorQueueSql, BuildMoveToErrorQueueSql>(LifeStyles.Singleton);
-            container.Register<IGetColumnsFromTable, GetColumnsFromTable>(LifeStyles.Singleton);
-
-            container.Register<IResetHeartBeat, ResetHeartBeat>(LifeStyles.Singleton);
-            container.Register<ISendHeartBeat, SendHeartBeat>(LifeStyles.Singleton);
-            container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
-            container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
-            container.Register<IReceiveMessagesError, ReceiveErrorMessage>(LifeStyles.Singleton);
-            container.Register<IIncreaseQueueDelay, IncreaseQueueDelay>(LifeStyles.Singleton);
             //**receive
-
-            var target = Assembly.GetAssembly(GetType());
-            RegisterCommands(container, target);
-
-            var target2 = Assembly.GetAssembly(typeof(ITable));
-            if (target.FullName != target2.FullName)
-                RegisterCommands(container, target2);
 
             //reset heart beat 
             container
@@ -212,41 +178,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 typeof(CreateQueueTablesAndSaveConfigurationDecorator), LifeStyles.Singleton);
         }
 
-        private void RegisterCommands(IContainer container, Assembly target)
-        {
-            //commands and decorators
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandlerWithOutput<T> by their closed interface:
-            container.Register(typeof(ICommandHandlerWithOutput<,>), LifeStyles.Singleton,
-                target);
-
-            //commands and decorators
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandlerWithOutputAsync<T> by their closed interface:
-            container.Register(typeof(ICommandHandlerWithOutputAsync<,>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandler<T> by their closed interface:
-            container.Register(typeof(ICommandHandler<>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of IQueryHandler<T> by their closed interface:
-            container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandler<T> by their closed interface:
-            container.Register(typeof(IPrepareCommandHandler<>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandler<T> by their closed interface:
-            container.Register(typeof(IPrepareQueryHandler<,>), LifeStyles.Singleton,
-                target);
-        }
-
         /// <summary>
         /// Allows the transport to set default configuration settings or other values
         /// </summary>
@@ -255,64 +186,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="connectionType">Type of the connection.</param>
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
         {
-            var factory = container.GetInstance<IPostgreSqlMessageQueueTransportOptionsFactory>();
-            var options = factory.Create();
-            var configurationSend = container.GetInstance<QueueProducerConfiguration>();
-            var configurationReceive = container.GetInstance<QueueConsumerConfiguration>();
-
-            configurationSend.AdditionalConfiguration.SetSetting("PostgreSQLMessageQueueTransportOptions", options);
-            configurationReceive.AdditionalConfiguration.SetSetting("PostgreSQLMessageQueueTransportOptions", options);
-
-            var transportReceive = container.GetInstance<TransportConfigurationReceive>();
-
-
-            transportReceive.HeartBeatSupported = options.EnableHeartBeat && options.EnableStatus &&
-                                                  !options.EnableHoldTransactionUntilMessageCommitted;
-
-            transportReceive.MessageExpirationSupported = options.EnableMessageExpiration ||
-                                                          options.QueueType == QueueTypes.RpcReceive ||
-                                                          options.QueueType == QueueTypes.RpcSend;
-
-            transportReceive.MessageRollbackSupported = options.EnableStatus ||
-                                                        options.EnableHoldTransactionUntilMessageCommitted;
-
-            transportReceive.QueueDelayBehavior.Clear();
-            transportReceive.QueueDelayBehavior.Add(DefaultQueueDelay.GetDefaultQueueDelay());
-            transportReceive.FatalExceptionDelayBehavior.Clear();
-            transportReceive.FatalExceptionDelayBehavior.Add(ExceptionDelay.GetExceptionDelay());
-
-            transportReceive.LockFeatures();
-
-            SetupHeartBeat(container);
-            SetupMessageExpiration(container);
-        }
-
-        /// <summary>
-        /// Setup the heart beat.
-        /// </summary>
-        /// <param name="container">The container.</param>
-        private void SetupHeartBeat(IContainer container)
-        {
-            var heartBeatConfiguration = container.GetInstance<IHeartBeatConfiguration>();
-            if (!heartBeatConfiguration.Enabled) return;
-            heartBeatConfiguration.Time = TimeSpan.FromSeconds(600);
-            heartBeatConfiguration.MonitorTime = TimeSpan.FromSeconds(120);
-            heartBeatConfiguration.Interval = 4;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMax = 1;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMin = 1;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadIdleTimeout = TimeSpan.FromSeconds(220);
-        }
-
-        /// <summary>
-        /// Setup the message expiration.
-        /// </summary>
-        /// <param name="container">The container.</param>
-        private void SetupMessageExpiration(IContainer container)
-        {
-            var configuration = container.GetInstance<IMessageExpirationConfiguration>();
-            if (!configuration.Supported) return;
-            configuration.MonitorTime = TimeSpan.FromMinutes(3);
-            configuration.Enabled = true;
+            var init = new MessageQueueInit();
+            init.SetDefaultsIfNeeded(container, "PostgreSQLMessageQueueTransportOptions", "PostgreSQLMessageQueueTransportOptions");
         }
     }
 }

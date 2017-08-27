@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using System.Data.SqlClient;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
@@ -31,7 +30,6 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
@@ -55,25 +53,21 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             Guard.NotNull(() => container, container);
 
+            var init = new MessageQueueInit();
+            init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
+
             //**all
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<SqlServerMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, SqlServerMessageQueueCreation>(LifeStyles.Singleton);
-            container.Register<QueueStatusQueries>(LifeStyles.Singleton);
-            container.Register<IQueueStatusProvider, QueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, SqlServerJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
-            container.Register<IJobTableCreation, JobTableCreation>(LifeStyles.Singleton);
             container.Register<SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, SqlServerSendJobToQueue>(LifeStyles.Singleton);
-            container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<CommandStringCache, SqlServerCommandStringCache>(LifeStyles.Singleton);
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<IJobSchema, SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
             container.Register<IBuildMoveToErrorQueueSql, BuildMoveToErrorQueueSql>(LifeStyles.Singleton);
-            container.Register<IGetColumnsFromTable, GetColumnsFromTable>(LifeStyles.Singleton);
-
-            container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
 
             container.Register<IGetTime, SqlServerTime>(LifeStyles.Singleton);
@@ -87,22 +81,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<SqlServerCommandStringCache>(LifeStyles.Singleton);
 
             container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queue, connection), LifeStyles.Singleton);
-            container.Register<ICorrelationIdFactory, CorrelationIdFactory>(
-                LifeStyles.Singleton);
 
             container.Register<SqlServerMessageQueueTransportOptions>(LifeStyles.Singleton);
-
-            container.Register<TableNameHelper>(LifeStyles.Singleton);
             container.Register<IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand>, ConnectionHeader<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
 
             container.Register<ThreadSafeRandom>(LifeStyles.Singleton);
-            container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
             //**all
-
-            //**send
-            container.Register<ISendMessages, SendMessages>(LifeStyles.Singleton);
-            //**send
-
 
             //**receive
             container.Register<IReceiveMessages, SqlServerMessageQueueReceive>(LifeStyles.Transient);
@@ -114,21 +98,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<QueryHandler.CreateDequeueStatement>(LifeStyles.Singleton);
             container.Register<QueryHandler.BuildDequeueCommand>(LifeStyles.Singleton);
             container.Register<QueryHandler.ReadMessage>(LifeStyles.Singleton);
-
-            container.Register<IResetHeartBeat, ResetHeartBeat>(LifeStyles.Singleton);
-            container.Register<ISendHeartBeat, SendHeartBeat>(LifeStyles.Singleton);
-            container.Register<IReceiveMessagesFactory, ReceiveMessagesFactory>(LifeStyles.Singleton);
-            container.Register<IReceivePoisonMessage, ReceivePoisonMessage>(LifeStyles.Singleton);
-            container.Register<IReceiveMessagesError, ReceiveErrorMessage>(LifeStyles.Singleton);
-            container.Register<IIncreaseQueueDelay, IncreaseQueueDelay>(LifeStyles.Singleton);
             //**receive
-
-            var target = Assembly.GetAssembly(GetType());
-            RegisterCommands(container, target);
-
-            var target2 = Assembly.GetAssembly(typeof(ITable));
-            if (target.FullName != target2.FullName)
-                RegisterCommands(container, target2);
 
             //explicit registration of our job exists query
             container
@@ -183,41 +153,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 typeof(CreateQueueTablesAndSaveConfigurationDecorator), LifeStyles.Singleton);
         }
 
-        private void RegisterCommands(IContainer container, Assembly target)
-        {
-            //commands and decorators
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandlerWithOutput<T> by their closed interface:
-            container.Register(typeof(ICommandHandlerWithOutput<,>), LifeStyles.Singleton,
-                target);
-
-            //commands and decorators
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandlerWithOutputAsync<T> by their closed interface:
-            container.Register(typeof(ICommandHandlerWithOutputAsync<,>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandler<T> by their closed interface:
-            container.Register(typeof(ICommandHandler<>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of IQueryHandler<T> by their closed interface:
-            container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandler<T> by their closed interface:
-            container.Register(typeof(IPrepareCommandHandler<>), LifeStyles.Singleton,
-                target);
-
-            // Go look in all assemblies and register all implementations
-            // of ICommandHandler<T> by their closed interface:
-            container.Register(typeof(IPrepareQueryHandler<,>), LifeStyles.Singleton,
-                target);
-        }
-
         /// <summary>
         /// Allows the transport to set default configuration settings or other values
         /// </summary>
@@ -226,65 +161,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="connectionType">Type of the connection.</param>
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
         {
-            var factory = container.GetInstance<ISqlServerMessageQueueTransportOptionsFactory>();
-            var options = factory.Create();
-            var configurationSend = container.GetInstance<QueueProducerConfiguration>();
-            var configurationReceive = container.GetInstance<QueueConsumerConfiguration>();
-
-            configurationSend.AdditionalConfiguration.SetSetting("SqlServerMessageQueueTransportOptions", options);
-            configurationReceive.AdditionalConfiguration.SetSetting("SqlServerMessageQueueTransportOptions", options);
-
-            var transportReceive = container.GetInstance<TransportConfigurationReceive>();
-
-
-            transportReceive.HeartBeatSupported = options.EnableHeartBeat && options.EnableStatus &&
-                                                  !options.EnableHoldTransactionUntilMessageCommitted;
-
-            transportReceive.MessageExpirationSupported = options.EnableMessageExpiration ||
-                                                          options.QueueType == QueueTypes.RpcReceive ||
-                                                          options.QueueType == QueueTypes.RpcSend;
-
-            transportReceive.MessageRollbackSupported = options.EnableStatus ||
-                                                        options.EnableHoldTransactionUntilMessageCommitted;
-
-            transportReceive.QueueDelayBehavior.Clear();
-            transportReceive.QueueDelayBehavior.Add(DefaultQueueDelay.GetDefaultQueueDelay());
-            transportReceive.FatalExceptionDelayBehavior.Clear();
-            transportReceive.FatalExceptionDelayBehavior.Add(ExceptionDelay.GetExceptionDelay());
-
-            transportReceive.LockFeatures();
-
-            SetupHeartBeat(container);
-            SetupMessageExpiration(container);
-        }
-
-
-        /// <summary>
-        /// Setup the heart beat.
-        /// </summary>
-        /// <param name="container">The container.</param>
-        private void SetupHeartBeat(IContainer container)
-        {
-            var heartBeatConfiguration = container.GetInstance<IHeartBeatConfiguration>();
-            if (!heartBeatConfiguration.Enabled) return;
-            heartBeatConfiguration.Time = TimeSpan.FromSeconds(600);
-            heartBeatConfiguration.MonitorTime = TimeSpan.FromSeconds(120);
-            heartBeatConfiguration.Interval = 4;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMax = 1;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMin = 1;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadIdleTimeout = TimeSpan.FromSeconds(220);
-        }
-
-        /// <summary>
-        /// Setup the message expiration.
-        /// </summary>
-        /// <param name="container">The container.</param>
-        private void SetupMessageExpiration(IContainer container)
-        {
-            var configuration = container.GetInstance<IMessageExpirationConfiguration>();
-            if (!configuration.Supported) return;
-            configuration.MonitorTime = TimeSpan.FromMinutes(3);
-            configuration.Enabled = true;
+            var init = new MessageQueueInit();
+            init.SetDefaultsIfNeeded(container, "SqlServerMessageQueueTransportOptions", "SqlServerMessageQueueTransportOptions");         
         }
     }
 }
