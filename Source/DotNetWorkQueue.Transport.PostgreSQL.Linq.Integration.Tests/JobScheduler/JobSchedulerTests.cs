@@ -28,9 +28,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
     {
         [Theory]
         [InlineData(true, false),
-         InlineData(false, false),
-         InlineData(true, true),
-         InlineData(false, true)]
+         InlineData(true, true)]
         public void Run(
             bool interceptors,
             bool dynamic)

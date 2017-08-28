@@ -27,17 +27,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerTests
     {
         [Theory]
-        [InlineData(true, false, false),
-         InlineData(false, false, false),
-         InlineData(true, true, false),
-         InlineData(false, true, false),
-
-         InlineData(true, false, true),
-         InlineData(false, false, true),
-         InlineData(true, true, true),
-         InlineData(false, true, true)]
+        [InlineData(false, false),
+         InlineData(true, false),
+         InlineData(false, true),
+         InlineData(true, true)]
         public void Run(
-            bool interceptors,
             bool dynamic,
             bool inMemoryDb)
         {
@@ -52,13 +46,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
                         if (!dynamic)
                         {
                             tests.RunEnqueueTestCompiled<SqLiteMessageQueueInit, SqliteJobQueueCreation>(queueName,
-                                connectionInfo.ConnectionString, interceptors,
+                                connectionInfo.ConnectionString, true,
                                 Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionInfo.ConnectionString));
                         }
                         else
                         {
                             tests.RunEnqueueTestDynamic<SqLiteMessageQueueInit, SqliteJobQueueCreation>(queueName,
-                                connectionInfo.ConnectionString, interceptors,
+                                connectionInfo.ConnectionString, true,
                                 Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionInfo.ConnectionString));
                         }
                     }

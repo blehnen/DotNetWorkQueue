@@ -28,9 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
     {
         [Theory]
         [InlineData(true, false),
-         InlineData(false, false),
-         InlineData(true, true),
-         InlineData(false, true)]
+         InlineData(true, true)]
         public void Run(
             bool interceptors,
             bool dynamic)

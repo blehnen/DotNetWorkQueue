@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Data.SqlClient;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
@@ -34,6 +36,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Validation;
+using DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -111,6 +114,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 .Register<IPrepareQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>,
                         QueueStatuses>,
                     DoesJobExistQueryPrepareHandler<SqlConnection, SqlTransaction>>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandlerWithOutput<SendHeartBeatCommand, DateTime?>,
+                    SendHeartBeatCommandHandler>(LifeStyles.Singleton);
 
             container
                 .Register<ICommandHandler<MoveRecordToErrorQueueCommand>,

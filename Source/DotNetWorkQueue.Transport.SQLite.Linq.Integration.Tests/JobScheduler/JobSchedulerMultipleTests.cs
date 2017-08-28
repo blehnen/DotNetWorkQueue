@@ -27,12 +27,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerMultipleTests
     {
         [Theory]
-        [InlineData(true, 10, false),
-         InlineData(false, 10, false),
-         InlineData(true, 10, true),
-         InlineData(false, 10, true)]
+        [InlineData(10, false),
+         InlineData(10, true)]
         public void Run(
-            bool interceptors,
             int producerCount,
             bool inMemoryDb)
         {
@@ -46,7 +43,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
                     {
                         var tests = new JobSchedulerTestsShared();
                         tests.RunTestMultipleProducers<SqLiteMessageQueueInit, SqliteJobQueueCreation>(queueName,
-                            connectionInfo.ConnectionString, interceptors, producerCount, queueContainer.CreateTimeSync(connectionInfo.ConnectionString));
+                            connectionInfo.ConnectionString, true, producerCount, queueContainer.CreateTimeSync(connectionInfo.ConnectionString));
                     }
                     finally
                     {
