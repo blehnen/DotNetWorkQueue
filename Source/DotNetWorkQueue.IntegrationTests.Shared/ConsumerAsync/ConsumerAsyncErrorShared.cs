@@ -43,6 +43,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
+                var rollBacks = false;
                 var processedCount = new IncrementWrapper();
                 using (
                     var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
@@ -69,6 +70,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                         .CreateConsumerQueueScheduler(
                                             queueName, connectionString, taskFactory))
                             {
+                                rollBacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
                                     heartBeatMonitorTime, route);
                                 SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
@@ -89,7 +91,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                 Thread.Sleep(3000);
                             }
                         }
-                        VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
+
+                        if(rollBacks)
+                            VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
                     }
                 }
             }

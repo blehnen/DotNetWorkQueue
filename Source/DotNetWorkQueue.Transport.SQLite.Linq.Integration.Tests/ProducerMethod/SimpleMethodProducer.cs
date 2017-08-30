@@ -90,14 +90,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                Helpers.GenerateData,
-                               Helpers.Verify, false, id, GenerateMethod.CreateCompiled, 0);
+                               Helpers.Verify, false, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope);
                             }
                             else
                             {
                                 producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
                                connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                Helpers.GenerateData,
-                               Helpers.Verify, false, id, GenerateMethod.CreateDynamic, 0);
+                               Helpers.Verify, false, id, GenerateMethod.CreateDynamic, 0, oCreation.Scope);
                             }
                         }
                     }

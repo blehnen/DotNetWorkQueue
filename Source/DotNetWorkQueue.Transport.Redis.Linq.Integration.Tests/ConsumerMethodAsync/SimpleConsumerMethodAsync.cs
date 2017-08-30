@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                         var producer = new ProducerMethodAsyncShared();
                         producer.RunTestAsync<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
+                            Helpers.Verify, false, runtime, id, linqMethodTypes, null).Wait(timeOut);
 
                         var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                         var producer = new ProducerMethodAsyncShared();
                         producer.RunTestAsync<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
+                            Helpers.Verify, false, runtime, id, linqMethodTypes, null).Wait(timeOut);
 
                         var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                         var producer = new ProducerMethodAsyncShared();
                         producer.RunTestAsync<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
+                            Helpers.Verify, false, runtime, id, linqMethodTypes, null).Wait(timeOut);
 
 
                         var consumer = new ConsumerMethodAsyncShared { Factory = Factory};

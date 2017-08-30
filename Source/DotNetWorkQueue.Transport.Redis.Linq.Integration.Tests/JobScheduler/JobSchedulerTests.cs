@@ -53,13 +53,13 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                     {
                         tests.RunEnqueueTestCompiled<RedisQueueInit, RedisJobQueueCreation>(queueName,
                             connectionString, interceptors,
-                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString));
+                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null);
                     }
                     else
                     {
                         tests.RunEnqueueTestDynamic<RedisQueueInit, RedisJobQueueCreation>(queueName,
                             connectionString, interceptors,
-                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString));
+                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null);
                     }
                 }
                 finally

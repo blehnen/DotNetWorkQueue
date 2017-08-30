@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                         await producer.RunTestAsync<SqlServerMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
-                            Helpers.Verify, false, 0, id, linqMethodTypes).ConfigureAwait(false);
+                            Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope).ConfigureAwait(false);
                     }
                 }
                 finally

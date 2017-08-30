@@ -32,6 +32,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             where TTransportInit : ITransportInit, new()
         {
 
+            var rollbacks = false;
             using (var metrics = new Metrics.Net.Metrics(queueName))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                             heartBeatMonitorTime);
                         SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
-
+                        rollbacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
                         queue.Start();
 
                         var counter = 0;
@@ -71,7 +72,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                         Thread.Sleep(3000);
                     }
 
-                    VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
+                    if(rollbacks)
+                        VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
                 }
             }
         }

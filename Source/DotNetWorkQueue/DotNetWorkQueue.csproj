@@ -101,6 +101,7 @@
     <Compile Include="Factory\WorkerNotificationFactoryNoOp.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="ICachePolicy.cs" />
+    <Compile Include="IClear.cs" />
     <Compile Include="IConsumerBaseQueue.cs" />
     <Compile Include="IConsumerMethodQueue.cs" />
     <Compile Include="IConsumerMethodQueueScheduler.cs" />
@@ -487,6 +488,39 @@
     <Compile Include="TaskScheduling\WorkGroupWithItem.cs" />
     <Compile Include="Time\BaseTime.cs" />
     <Compile Include="Time\LocalMachineTime.cs" />
+    <Compile Include="Transport\Memory\Basic\ClearExpiredMessages.cs" />
+    <Compile Include="Transport\Memory\Basic\CreateJobMetaData.cs" />
+    <Compile Include="Transport\Memory\Basic\CreationScope.cs" />
+    <Compile Include="Transport\Memory\Basic\DataStorage.cs" />
+    <Compile Include="Transport\Memory\Basic\Factory\CorrelationIdFactory.cs" />
+    <Compile Include="Transport\Memory\Basic\Factory\ReceiveMessagesFactory.cs" />
+    <Compile Include="Transport\Memory\Basic\Factory\TransportOptionsFactory.cs" />
+    <Compile Include="Transport\Memory\Basic\GetFirstMessageDeliveryTime.cs" />
+    <Compile Include="Transport\Memory\Basic\JobTableCreation.cs" />
+    <Compile Include="Transport\Memory\Basic\MessageCorrelationId.cs" />
+    <Compile Include="Transport\Memory\Basic\MessageQueueCreation.cs" />
+    <Compile Include="Transport\Memory\Basic\MessageQueueID.cs" />
+    <Compile Include="Transport\Memory\Basic\MessageQueueInit.cs" />
+    <Compile Include="Transport\Memory\Basic\Message\CommitMessage.cs" />
+    <Compile Include="Transport\Memory\Basic\Message\HandleMessage.cs" />
+    <Compile Include="Transport\Memory\Basic\Message\ReceiveMessage.cs" />
+    <Compile Include="Transport\Memory\Basic\Message\RollbackMessage.cs" />
+    <Compile Include="Transport\Memory\Basic\QueueItem.cs" />
+    <Compile Include="Transport\Memory\Basic\QueueStatusProvider.cs" />
+    <Compile Include="Transport\Memory\Basic\ReceiveErrorMessage.cs" />
+    <Compile Include="Transport\Memory\Basic\ReceivePoisonMessage.cs" />
+    <Compile Include="Transport\Memory\Basic\ResetHeartBeat.cs" />
+    <Compile Include="Transport\Memory\Basic\SendHeartBeat.cs" />
+    <Compile Include="Transport\Memory\Basic\SendMessages.cs" />
+    <Compile Include="Transport\Memory\Basic\SendToJobQueue.cs" />
+    <Compile Include="Transport\Memory\Basic\JobSchedulerLastKnownEvent.cs" />
+    <Compile Include="Transport\Memory\Basic\MessageQueueReceive.cs" />
+    <Compile Include="Transport\Memory\Basic\JobQueueCreation.cs" />
+    <Compile Include="Transport\Memory\ConfigurationExtensions.cs" />
+    <Compile Include="Transport\Memory\IDataStorage.cs" />
+    <Compile Include="Transport\Memory\ITransportOptionsFactory.cs" />
+    <Compile Include="Transport\Memory\ConnectionInformation.cs" />
+    <Compile Include="Transport\Memory\TransportOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

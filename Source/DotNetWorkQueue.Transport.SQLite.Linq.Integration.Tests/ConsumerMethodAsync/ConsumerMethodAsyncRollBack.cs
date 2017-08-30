@@ -69,13 +69,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             {
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                    connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                   Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime);
+                                   Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, null);
                             }
                             else
                             {
                                 producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
                                    connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                   Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime);
+                                   Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, null);
                             }
 
                             //process data

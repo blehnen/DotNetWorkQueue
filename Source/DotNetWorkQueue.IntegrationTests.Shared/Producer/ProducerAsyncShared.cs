@@ -36,7 +36,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long> verify, bool sendViaBatch)
+            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
+            ICreationScope scope)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
@@ -58,7 +59,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                             .CreateProducer
                             <TMessage>(queueName, connectionString))
                     {
-                        await RunProducerAsync(queue, queueName, messageCount, generateData, verify, sendViaBatch).ConfigureAwait(false);
+                        await RunProducerAsync(queue, queueName, messageCount, generateData, verify, sendViaBatch, scope).ConfigureAwait(false);
                     }
                     VerifyMetrics.VerifyProducedAsyncCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
@@ -71,12 +72,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                 string queueName,
                 long messageCount,
                 Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-                Action<string, string, QueueProducerConfiguration, long> verify, bool sendViaBatch)
+                Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
+                ICreationScope scope)
             where TMessage : class
         {
             await RunProducerInternalAsync(queue, messageCount, generateData, sendViaBatch).ConfigureAwait(false);
             LoggerShared.CheckForErrors(queueName);
-            verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString, queue.Configuration, messageCount);
+            verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString, queue.Configuration, messageCount, scope);
         }
 
         private async Task RunProducerInternalAsync<TMessage>(

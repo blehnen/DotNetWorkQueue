@@ -68,13 +68,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         {
                             producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime);
+                           Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
                         }
                         else
                         {
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime);
+                           Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
                         }
 
                         var consumer = new ConsumerMethodExpiredMessageShared();

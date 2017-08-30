@@ -49,13 +49,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateRouteData,
-                            Helpers.Verify, false);
+                            Helpers.Verify, false, null);
                     }
                     else
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false);
+                            Helpers.Verify, false, null);
                     }
 
                     var defaultRoute = route ? Helpers.DefaultRoute : null;

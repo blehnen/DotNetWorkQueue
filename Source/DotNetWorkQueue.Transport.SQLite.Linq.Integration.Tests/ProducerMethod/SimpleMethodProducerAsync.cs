@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                             await producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, false, 0, id, linqMethodTypes).ConfigureAwait(false);
+                                Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope).ConfigureAwait(false);
                         }
                     }
                     finally

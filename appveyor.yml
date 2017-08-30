@@ -17,3 +17,6 @@ test:
   - Source\DotNetWorkQueue.Transport.Redis.Tests\bin\Debug\DotNetWorkQueue.Transport.Redis.Tests.dll
   - Source\DotNetWorkQueue.Transport.SQLite.Tests\bin\Debug\DotNetWorkQueue.Transport.SQLite.Tests.dll
   - Source\DotNetWorkQueue.Transport.SqlServer.Tests\bin\Debug\DotNetWorkQueue.Transport.SqlServer.Tests.dll
+  - Source\DotNetWorkQueue.Transport.Memory.Integration.Tests\bin\Debug\DotNetWorkQueue.Transport.Memory.Integration.Tests.dll
+  - Source\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests\bin\Debug\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.dll
+  

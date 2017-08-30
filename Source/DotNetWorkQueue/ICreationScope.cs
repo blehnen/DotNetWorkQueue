@@ -32,5 +32,12 @@ namespace DotNetWorkQueue
         /// <remarks>All objects added here will be disposed of when the scope is disposed</remarks>
         /// <param name="disposable">The disposable.</param>
         void AddScopedObject(IDisposable disposable);
+
+        /// <summary>
+        /// Adds the scoped object
+        /// </summary>
+        /// <remarks>All objects added here will have clear called when the parent is disposed</remarks>
+        /// <param name="clear">The input.</param>
+        void AddScopedObject(IClear clear);
     }
 }

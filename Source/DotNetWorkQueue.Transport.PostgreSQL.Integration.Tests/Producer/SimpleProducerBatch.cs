@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
-                            Helpers.Verify, true);
+                            Helpers.Verify, true, oCreation.Scope);
                     }
                 }
                 finally

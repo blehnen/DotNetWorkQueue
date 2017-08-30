@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false);
+                            Helpers.Verify, false, oCreation.Scope);
 
                         var consumer = new ConsumerShared<FakeMessage>();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

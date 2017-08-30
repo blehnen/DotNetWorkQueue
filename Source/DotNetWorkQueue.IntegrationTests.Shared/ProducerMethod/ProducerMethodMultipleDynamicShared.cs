@@ -36,15 +36,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
            long messageCount,
            ILogProvider logProvider,
            Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-           Action<string, string, QueueProducerConfiguration, long> verify,
+           Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
            bool sendViaBatch, Guid id,
            Func<Guid, int, int, LinqExpressionToRun> generateTestMethod, 
-           int runTime)
+           int runTime, ICreationScope scope)
            where TTransportInit : ITransportInit, new()
         {
             RunTestDynamic<TTransportInit>(queueName, connectionString, addInterceptors, messageCount, logProvider,
                 generateData,
-                verify, sendViaBatch, true, id, generateTestMethod, runTime);
+                verify, sendViaBatch, true, id, generateTestMethod, runTime, scope);
         }
 
         public void RunTestDynamic<TTransportInit>(string queueName,
@@ -53,10 +53,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long> verify,
+            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
             bool sendViaBatch, bool validateMetricCounts, Guid id,
             Func<Guid, int, int, LinqExpressionToRun> generateTestMethod, 
-            int runTime)
+            int runTime, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Net.Metrics(queueName))
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                             .CreateMethodProducer(queueName, connectionString))
                     {
                         RunProducerDynamic(queue, queueName, messageCount, generateData, verify, sendViaBatch, id,
-                            generateTestMethod, runTime);
+                            generateTestMethod, runTime, scope);
                     }
                     if (validateMetricCounts)
                         VerifyMetrics.VerifyProducedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
@@ -90,14 +90,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             string queueName,
             long messageCount,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long> verify,
+            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
             bool sendViaBatch, Guid id,
-            Func<Guid, int, int, LinqExpressionToRun> generateTestMethod, int runTime)
+            Func<Guid, int, int, LinqExpressionToRun> generateTestMethod, int runTime, ICreationScope scope)
         {
             RunProducerDynamicInternal(queue, messageCount, generateData, sendViaBatch, id, generateTestMethod, runTime);
             LoggerShared.CheckForErrors(queueName);
             verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString,
-                queue.Configuration, messageCount);
+                queue.Configuration, messageCount, scope);
         }
 
         private void RunProducerDynamicInternal(

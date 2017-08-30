@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Concurrent;
+
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     /// <summary>
@@ -25,7 +27,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// <seealso cref="DotNetWorkQueue.ICreationScope" />
     public class CreationScope: ICreationScope
     {
-        private System.Collections.Concurrent.ConcurrentBag<IDisposable> _disposables;
+        private ConcurrentBag<IDisposable> _disposables;
+        private ConcurrentBag<IClear> _clears;
 
         /// <summary>
         /// Adds the scoped Disposable object to the scope.
@@ -35,9 +38,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public void AddScopedObject(IDisposable disposable)
         {
             if (_disposables == null)
-                _disposables = new System.Collections.Concurrent.ConcurrentBag<IDisposable>();
+                _disposables = new ConcurrentBag<IDisposable>();
 
             _disposables.Add(disposable);
+        }
+
+        /// <summary>
+        /// Adds the scoped object.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        public void AddScopedObject(IClear input)
+        {
+            if (_clears == null)
+                _clears = new ConcurrentBag<IClear>();
+
+            _clears.Add(input);
         }
 
         #region IDisposable Support

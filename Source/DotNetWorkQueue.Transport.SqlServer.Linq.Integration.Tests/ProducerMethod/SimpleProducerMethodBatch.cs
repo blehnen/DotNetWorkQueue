@@ -99,14 +99,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                             producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                            Helpers.GenerateData,
-                           Helpers.Verify, true, Guid.NewGuid(), GenerateMethod.CreateCompiled, 0);
+                           Helpers.Verify, true, Guid.NewGuid(), GenerateMethod.CreateCompiled, 0, oCreation.Scope);
                         }
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                            Helpers.GenerateData,
-                           Helpers.Verify, true, Guid.NewGuid(), GenerateMethod.CreateDynamic, 0);
+                           Helpers.Verify, true, Guid.NewGuid(), GenerateMethod.CreateDynamic, 0, oCreation.Scope);
                         }
                     }
                 }

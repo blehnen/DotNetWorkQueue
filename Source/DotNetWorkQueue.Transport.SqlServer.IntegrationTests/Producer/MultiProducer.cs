@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
 
-                        RunTest(queueName, 1000, 10, logProvider);
+                        RunTest(queueName, 1000, 10, logProvider, oCreation.Scope);
                         LoggerShared.CheckForErrors(queueName);
                         new VerifyQueueData(queueName, oCreation.Options).Verify(1000*10);
                     }
@@ -69,14 +69,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider)
+        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, ICreationScope scope)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
             {
                 var producer = new ProducerShared();
                 var task = new Task(() => producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName, ConnectionInfo.ConnectionString, false, messageCount,
-                    logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false));
+                    logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, scope));
                 tasks.Add(task); 
             }
             tasks.AsParallel().ForAll(x => x.Start());

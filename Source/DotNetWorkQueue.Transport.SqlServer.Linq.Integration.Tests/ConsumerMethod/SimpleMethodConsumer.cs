@@ -78,13 +78,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         {
                             producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime);
+                            Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
                         }
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime);
+                            Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
                         }
 
                         var consumer = new ConsumerMethodShared();

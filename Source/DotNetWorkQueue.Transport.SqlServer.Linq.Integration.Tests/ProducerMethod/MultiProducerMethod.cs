@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                                     producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                                         ConnectionInfo.ConnectionString, false, messageCount,
                                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateDynamic, runTime)));
+                                        GenerateMethod.CreateDynamic, runTime, null)));
                         break;
                     case LinqMethodTypes.Compiled:
                         tasks.Add(
@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                                     producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
                                         ConnectionInfo.ConnectionString, false, messageCount,
                                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateCompiled, runTime)));
+                                        GenerateMethod.CreateCompiled, runTime, null)));
                         break;
                 }
             }

@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         var producer = new ProducerAsyncShared();
                         producer.RunTestAsync<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false).Wait(timeOut * 1000 / 2);
+                            Helpers.Verify, false, null).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         var producer = new ProducerAsyncShared();
                         producer.RunTestAsync<RedisQueueInit, FakeMessageA>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false).Wait(timeOut * 1000 / 2);
+                            Helpers.Verify, false, null).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         var producer = new ProducerAsyncShared();
                         producer.RunTestAsync<RedisQueueInit, FakeMessageB>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false).Wait(timeOut * 1000 / 2);
+                            Helpers.Verify, false, null).Wait(timeOut * 1000 / 2);
 
 
                         var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};

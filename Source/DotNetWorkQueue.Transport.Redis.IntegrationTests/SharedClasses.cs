@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
     {
         public static string DefaultRoute = "route1";
 
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route)
+        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
         {
             using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration, connectionString))
             {
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             }
         }
 
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
+        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
             using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration, connectionString))
             {
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             }
         }
 
-        public static void Verify(string queueName, string connectionString, long messageCount)
+        public static void Verify(string queueName, string connectionString, long messageCount, ICreationScope scope)
         {
             var connectionInfo = new BaseConnectionInformation(queueName, connectionString);
             var redisNames = new RedisNames(connectionInfo);
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             }
         }
 
-        public static void SetError(string queueName, string connectionString)
+        public static void SetError(string queueName, string connectionString, ICreationScope scope)
         {
             var connectionInfo = new BaseConnectionInformation(queueName, connectionString);
             var conn = new RedisConnection(connectionInfo);

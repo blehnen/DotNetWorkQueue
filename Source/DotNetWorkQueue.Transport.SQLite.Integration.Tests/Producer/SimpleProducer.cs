@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, false);
+                                Helpers.Verify, false, oCreation.Scope);
                         }
                     }
                     finally

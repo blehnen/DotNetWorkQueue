@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                             var result = oCreation.CreateQueue();
                             Assert.True(result.Success, result.ErrorMessage);
 
-                            RunTest(queueName, 100, 10, logProvider, connectionInfo.ConnectionString);
+                            RunTest(queueName, 100, 10, logProvider, connectionInfo.ConnectionString, oCreation.Scope);
                             LoggerShared.CheckForErrors(queueName);
                             new VerifyQueueData(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(100 * 10, null);
                         }
@@ -75,14 +75,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, string connectionString)
+        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, string connectionString, ICreationScope scope)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
             {
                 var producer = new ProducerShared();
                 var task = new Task(() => producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName, connectionString, false, messageCount,
-                    logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false));
+                    logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, scope));
                 tasks.Add(task); 
             }
             tasks.AsParallel().ForAll(x => x.Start());

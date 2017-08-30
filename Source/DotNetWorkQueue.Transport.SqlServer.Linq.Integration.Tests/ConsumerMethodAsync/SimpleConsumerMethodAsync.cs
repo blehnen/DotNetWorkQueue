@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             var producer = new ProducerMethodAsyncShared();
                             producer.RunTestAsync<SqlServerMessageQueueInit>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
+                                Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
 
                             var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             var producer = new ProducerMethodAsyncShared();
                             producer.RunTestAsync<SqlServerMessageQueueInit>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
+                                Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
 
                             var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
@@ -103,7 +103,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             var producer = new ProducerMethodAsyncShared();
                             producer.RunTestAsync<SqlServerMessageQueueInit>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
+                                Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
 
                             var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

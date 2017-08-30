@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
 
-                        RunTest(queueName, 1000, 10, logProvider, Guid.NewGuid(), 0, linqMethodTypes);
+                        RunTest(queueName, 1000, 10, logProvider, Guid.NewGuid(), 0, linqMethodTypes, null);
                         LoggerShared.CheckForErrors(queueName);
                         new VerifyQueueData(queueName, oCreation.Options).Verify(1000*10, null);
                     }
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, Guid id, int runTime, LinqMethodTypes linqMethodTypes)
+        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, Guid id, int runTime, LinqMethodTypes linqMethodTypes, ICreationScope scope)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                                     producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                                         ConnectionInfo.ConnectionString, false, messageCount,
                                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateDynamic, runTime)));
+                                        GenerateMethod.CreateDynamic, runTime, scope)));
                         break;
                     case LinqMethodTypes.Compiled:
                         tasks.Add(
@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                                     producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueName,
                                         ConnectionInfo.ConnectionString, false, messageCount,
                                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateCompiled, runTime)));
+                                        GenerateMethod.CreateCompiled, runTime, scope)));
                         break;
                 }
             }

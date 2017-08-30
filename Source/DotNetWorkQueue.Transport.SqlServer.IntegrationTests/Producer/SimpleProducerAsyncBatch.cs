@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
                         await producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
-                            Helpers.Verify, true).ConfigureAwait(false);
+                            Helpers.Verify, true, oCreation.Scope).ConfigureAwait(false);
                     }
                 }
                 finally

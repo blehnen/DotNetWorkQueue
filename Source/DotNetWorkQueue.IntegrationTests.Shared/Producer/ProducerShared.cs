@@ -36,13 +36,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long> verify,
-            bool sendViaBatch)
+            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
+            bool sendViaBatch,
+            ICreationScope scope)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
             RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors, messageCount, logProvider, generateData,
-                verify, sendViaBatch, true);
+                verify, sendViaBatch, true, scope);
         }
 
         public void RunTest<TTransportInit, TMessage>(string queueName,
@@ -51,8 +52,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long> verify,
-            bool sendViaBatch, bool validateMetricCounts)
+            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
+            bool sendViaBatch, bool validateMetricCounts,
+            ICreationScope scope)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
@@ -73,7 +75,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                             .CreateProducer
                             <TMessage>(queueName, connectionString))
                     {
-                        RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch);
+                        RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch, scope);
                     }
 
                     if (validateMetricCounts)
@@ -88,13 +90,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                 string queueName, 
                 long messageCount,
                 Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-                Action<string, string, QueueProducerConfiguration, long> verify,
-                bool sendViaBatch)
+                Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
+                bool sendViaBatch,
+                ICreationScope scope)
             where TMessage: class
         {   
             RunProducerInternal(queue, messageCount, generateData, sendViaBatch);
             LoggerShared.CheckForErrors(queueName);
-            verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString, queue.Configuration, messageCount);
+            verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString, queue.Configuration, messageCount, scope);
         }
 
         private void RunProducerInternal<TMessage>(

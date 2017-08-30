@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 var producer = new ProducerMethodAsyncShared();
                                 producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
+                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                                 consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 var producer = new ProducerMethodAsyncShared();
                                 producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
+                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                                 consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 var producer = new ProducerMethodAsyncShared();
                                 producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes).Wait(timeOut);
+                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                                 consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,

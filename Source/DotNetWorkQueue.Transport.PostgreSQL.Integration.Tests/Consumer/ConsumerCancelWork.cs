@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false);
+                            Helpers.Verify, false, oCreation.Scope);
 
                         var consumer = new ConsumerCancelWorkShared<PostgreSqlMessageQueueInit, FakeMessage>();
                         consumer.RunConsumer(queueName, ConnectionInfo.ConnectionString, false, logProvider,

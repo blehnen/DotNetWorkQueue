@@ -38,6 +38,16 @@ namespace DotNetWorkQueue.Queue
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Adds the scoped object.
+        /// </summary>
+        /// <param name="disposable">The disposable.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public void AddScopedObject(IClear disposable)
+        {
+            throw new NotImplementedException();
+        }
+
         #region IDisposable Support
         private bool _disposedValue; // To detect redundant calls
         /// <summary>

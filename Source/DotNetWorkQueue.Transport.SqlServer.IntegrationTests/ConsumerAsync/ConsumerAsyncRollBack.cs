@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                         var producer = new ProducerShared();
                         producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false);
+                            Helpers.Verify, false, oCreation.Scope);
 
                         //process data
                         var consumer = new ConsumerAsyncRollBackShared<FakeMessage>();

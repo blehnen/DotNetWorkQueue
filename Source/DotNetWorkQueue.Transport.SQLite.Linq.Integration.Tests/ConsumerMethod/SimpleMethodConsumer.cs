@@ -70,13 +70,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             {
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime);
+                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
                             }
                             else
                             {
                                 producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime);
+                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
                             }
 
                             var consumer = new ConsumerMethodShared();

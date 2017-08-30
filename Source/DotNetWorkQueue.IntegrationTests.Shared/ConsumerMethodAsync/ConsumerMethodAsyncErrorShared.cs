@@ -47,6 +47,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                     )
                 {
 
+                    var rollback = false;
                     using (var schedulerCreator =
                         new SchedulerContainer(
                             // ReSharper disable once AccessToDisposedClosure
@@ -70,6 +71,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
                                     heartBeatMonitorTime);
                                 SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+                                rollback = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
                                 queue.Start();
                                 var counter = 0;
                                 while (counter < timeOut)
@@ -86,7 +88,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                 Thread.Sleep(3000);
                             }
                         }
-                        VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
+                        if(rollback)
+                            VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 3, 2);
                     }
                 }
             }

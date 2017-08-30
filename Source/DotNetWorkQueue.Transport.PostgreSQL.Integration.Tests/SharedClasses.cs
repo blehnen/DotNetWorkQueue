@@ -27,17 +27,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
 {
     public static class Helpers
     {
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route)
+        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
         {
             new VerifyQueueData(queueName, queueProducerConfiguration.Options()).Verify(messageCount, route);
         }
 
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
+        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
             new VerifyQueueData(queueName, queueProducerConfiguration.Options()).Verify(messageCount, null);
         }
 
-        public static void Verify(string queueName, string connectionString, long messageCount)
+        public static void Verify(string queueName, string connectionString, long messageCount, ICreationScope scope)
         {
             var connection = new SqlConnectionInformation(queueName, connectionString);
             var helper = new TableNameHelper(connection);
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             }
         }
 
-        public static void SetError(string queueName, string connectionString)
+        public static void SetError(string queueName, string connectionString, ICreationScope scope)
         {
             var connection = new SqlConnectionInformation(queueName, connectionString);
             var helper = new TableNameHelper(connection);
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             }
         }
 
-        public static void NoVerification(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount)
+        public static void NoVerification(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
             
         }

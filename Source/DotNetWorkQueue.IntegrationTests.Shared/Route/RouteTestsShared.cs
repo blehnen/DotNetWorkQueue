@@ -35,14 +35,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
            int messageCount,
            ILogProvider logProvider,
            Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-           Action<string, string, QueueProducerConfiguration, long, string> verify,
+           Action<string, string, QueueProducerConfiguration, long, string, ICreationScope> verify,
            bool sendViaBatch, 
            List<string> routes,
            int runTime, 
            int timeOut,
            int readerCount,
            TimeSpan heartBeatTime,
-           TimeSpan heartBeatMonitorTime)
+           TimeSpan heartBeatMonitorTime,
+           ICreationScope scope)
            where TTransportInit : ITransportInit, new()
            where TMessage : class
         {
@@ -50,7 +51,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
             foreach(var route in routes)
             {
                 RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors,
-                    messageCount, logProvider, generateData, verify, sendViaBatch, route);
+                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope);
             }
 
             //run a consumer for each route
@@ -81,9 +82,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long, string> verify,
+            Action<string, string, QueueProducerConfiguration, long, string, ICreationScope> verify,
             bool sendViaBatch,
-            string route)
+            string route,
+            ICreationScope scope)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
@@ -95,9 +97,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 messageCount,
                 logProvider,
                 (g) => GenerateDataWithRoute(generateData, g, route),
-                (a, b, c, d) => VerifyRoutes(verify, a, b, c, d, route),
+                (a, b, c, d, e) => VerifyRoutes(verify, a, b, c, d, route, scope),
                 sendViaBatch,
-                false);
+                false,
+                scope);
         }
 
         private AdditionalMessageData GenerateDataWithRoute(Func<QueueProducerConfiguration, AdditionalMessageData> generateData, QueueProducerConfiguration config, string route)
@@ -107,9 +110,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
             return data;
         }
 
-        private void VerifyRoutes(Action<string, string, QueueProducerConfiguration, long, string> verify, string arg1, string arg2, QueueProducerConfiguration arg3, long arg4, string route)
+        private void VerifyRoutes(Action<string, string, QueueProducerConfiguration, long, string, ICreationScope> verify, string arg1, string arg2, QueueProducerConfiguration arg3, long arg4, string route, ICreationScope scope)
         {
-            verify(arg1, arg2, arg3, arg4, route);
+            verify(arg1, arg2, arg3, arg4, route, scope);
         }
     }
 }

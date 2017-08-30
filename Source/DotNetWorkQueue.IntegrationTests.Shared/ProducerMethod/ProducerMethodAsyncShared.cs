@@ -37,7 +37,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long> verify, bool sendViaBatch, int runTime, Guid id, LinqMethodTypes linqMethodTypes)
+            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch, int runTime, Guid id, LinqMethodTypes linqMethodTypes,
+            ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -59,7 +60,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     {
                         await
                             RunProducerAsync(queue, queueName, messageCount, generateData, verify, sendViaBatch, runTime, id,
-                                linqMethodTypes).ConfigureAwait(false);
+                                linqMethodTypes, scope).ConfigureAwait(false);
                     }
                     VerifyMetrics.VerifyProducedAsyncCount(queueName, metrics.GetCurrentMetrics(), messageCount);
                 }
@@ -72,11 +73,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 string queueName,
                 long messageCount,
                 Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-                Action<string, string, QueueProducerConfiguration, long> verify, bool sendViaBatch, int runTime, Guid id, LinqMethodTypes type)
+                Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch, int runTime, Guid id, LinqMethodTypes type, ICreationScope scope)
         {
             await RunProducerInternalAsync(queue, messageCount, generateData, sendViaBatch, runTime, id, type).ConfigureAwait(false);
             LoggerShared.CheckForErrors(queueName);
-            verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString, queue.Configuration, messageCount);
+            verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString, queue.Configuration, messageCount, scope);
         }
 
         private async Task RunProducerInternalAsync(
