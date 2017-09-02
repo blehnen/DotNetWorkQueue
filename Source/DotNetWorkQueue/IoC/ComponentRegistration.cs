@@ -72,10 +72,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<SchedulerMessageHandler, SchedulerMessageHandler>(LifeStyles.Singleton);
             container.Register<ITaskSchedulerFactory, TaskSchedulerFactory>(LifeStyles.Singleton);
             container.Register<ITaskFactoryFactory, TaskFactoryFactory>(LifeStyles.Singleton);
-            container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
-            container.Register<IPolicies, Policies.Policies>(LifeStyles.Singleton);
-            container.Register<PolicyRegistry>(LifeStyles.Singleton);
-            container.Register<PolicyDefinitions>(LifeStyles.Singleton);
+            container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);         
         }
 
         /// <summary>
@@ -150,12 +147,6 @@ namespace DotNetWorkQueue.IoC
 
             container.Register<IGenerateReceivedMessage, GenerateReceivedMessage>(LifeStyles.Singleton);
             container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
-
-
-            container.Register<IPolicies, Policies.Policies>(LifeStyles.Singleton);
-            container.Register<PolicyDefinitions>(LifeStyles.Singleton);
-            container.Register<PolicyRegistry>(LifeStyles.Singleton);
-
 
             //implementations required to send messages
             if ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
@@ -314,6 +305,10 @@ namespace DotNetWorkQueue.IoC
 
             container.Register<IInterceptorFactory, InterceptorFactory>(LifeStyles.Singleton);
             container.RegisterCollection<IMessageInterceptor>(Enumerable.Empty<Type>());
+
+            container.Register<IPolicies, Policies.Policies>(LifeStyles.Singleton);
+            container.Register<PolicyRegistry>(LifeStyles.Singleton);
+            container.Register<PolicyDefinitions>(LifeStyles.Singleton);
 
             RegisterMetricDecorators(container);
             RegisterPolicyDecorators(container);
