@@ -31,15 +31,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.RpcMethod
     public class SimpleMethodRpc
     {
         [Theory]
-        [InlineData(50, 1, 200, 3, false, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 1, 180, 3, true, false, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 3, false, false, LinqMethodTypes.Dynamic),
-         InlineData(50, 1, 200, 3, true, true, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 3, false, false, LinqMethodTypes.Compiled),
-         InlineData(50, 1, 200, 3, false, true, LinqMethodTypes.Compiled),
-         InlineData(10, 1, 180, 3, true, true, LinqMethodTypes.Compiled),
-         InlineData(30, 0, 240, 3, true, false, LinqMethodTypes.Compiled)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool async, LinqMethodTypes linqMethodTypes)
+        [InlineData(50, 1, 200, 3, false, LinqMethodTypes.Dynamic),
+         InlineData(10, 1, 180, 3, true, LinqMethodTypes.Dynamic),
+         InlineData(10, 1, 180, 3, true, LinqMethodTypes.Compiled),
+         InlineData(30, 0, 240, 3, false, LinqMethodTypes.Compiled)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool async, LinqMethodTypes linqMethodTypes)
         {
             var queueNameSend = GenerateQueueName.Create();
             var queueNameReceive = GenerateQueueName.Create();
@@ -65,9 +61,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.RpcMethod
                         {
 
                             oCreationReceive.Options.EnableDelayedProcessing = true;
-                            oCreationReceive.Options.EnableHeartBeat = !useTransactions;
-                            oCreationReceive.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
-                            oCreationReceive.Options.EnableStatus = !useTransactions;
+                            oCreationReceive.Options.EnableHeartBeat = true;
+                            oCreationReceive.Options.EnableHoldTransactionUntilMessageCommitted = false;
+                            oCreationReceive.Options.EnableStatus = true;
                             oCreationReceive.Options.EnableStatusTable = true;
                             oCreationReceive.Options.QueueType = QueueTypes.RpcReceive;
 
@@ -81,9 +77,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.RpcMethod
                                 )
                             {
                                 oCreation.Options.EnableDelayedProcessing = true;
-                                oCreation.Options.EnableHeartBeat = !useTransactions;
-                                oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
-                                oCreation.Options.EnableStatus = !useTransactions;
+                                oCreation.Options.EnableHeartBeat = true;
+                                oCreation.Options.EnableHoldTransactionUntilMessageCommitted = false;
+                                oCreation.Options.EnableStatus = true;
                                 oCreation.Options.EnableStatusTable = true;
                                 oCreation.Options.QueueType = QueueTypes.RpcSend;
 
