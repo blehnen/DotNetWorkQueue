@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
             Guard.NotNull(() => command, command);
             if (_policy == null)
             {
-                _policies.Registry.TryGet(TransportPolicyDefinitions.RetryCommandHandler, out _policy);
+                _policies.Registry.TryGet(TransportPolicyDefinitions.RetryCommandHandlerAsync, out _policy);
             }
             if (_policy != null)
             {

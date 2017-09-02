@@ -30,10 +30,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.rpc
     public class SimpleRpc
     {
         [Theory]
-        [InlineData(50, 1, 200, 3, true, false),
-         InlineData(30, 0, 240, 3, false, false),
-         InlineData(50, 1, 200, 3, true, true),
-         InlineData(30, 0, 240, 3, false, true)]
+        [InlineData(50, 1, 90, 3, false, false),
+         InlineData(30, 0, 90, 3, false, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool async)
         {
             var queueNameSend = GenerateQueueName.Create();

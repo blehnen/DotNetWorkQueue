@@ -36,6 +36,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public static string RetryCommandHandler => "PostgreSQLRetryCommandHandler";
 
         /// <summary>
+        /// A policy for retrying a failed command
+        /// </summary>
+        /// <value>
+        /// A policy for retrying a failed command
+        /// </value>
+        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        public static string RetryCommandHandlerAsync => "PostgreSQLRetryCommandHandlerAsync";
+
+        /// <summary>
         /// A policy for retrying a failed query
         /// </summary>
         /// <value>

@@ -36,6 +36,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public static string RetryCommandHandler => "SqlServerRetryCommandHandler";
 
         /// <summary>
+        /// A policy for retrying a failed command
+        /// </summary>
+        /// <value>
+        /// A policy for retrying a failed command
+        /// </value>
+        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        public static string RetryCommandHandlerAsync => "SqlServerRetryCommandHandlerAsync";
+
+        /// <summary>
         /// A policy for retrying a failed query
         /// </summary>
         /// <value>

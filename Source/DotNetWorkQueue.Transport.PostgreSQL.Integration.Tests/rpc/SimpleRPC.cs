@@ -31,10 +31,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.rpc
     {
         [Theory]
         [InlineData(50, 1, 200, 3, false, false),
-         InlineData(10, 1, 180, 3, false, false),
-         InlineData(30, 0, 240, 3, false, false),
-         InlineData(50, 1, 200, 3, false, true),
-         InlineData(10, 1, 180, 3, false, true),
          InlineData(30, 0, 240, 3, false, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool async)
         {

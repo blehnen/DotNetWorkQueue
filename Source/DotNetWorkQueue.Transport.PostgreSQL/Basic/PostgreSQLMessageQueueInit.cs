@@ -196,6 +196,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                         log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
                     });
 
+            var retrySqlAsync = Policy
+                .Handle<PostgresException>(ex => RetryablePostGreErrors.Errors.Contains(ex.SqlState))
+                .WaitAndRetryAsync(
+                    RetryConstants.RetryCount,
+                    retryAttempt => TimeSpan.FromSeconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                    (exception, timeSpan, retryCount, context) =>
+                    {
+                        log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
+                    });
 
             //RetryCommandHandler
             policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandler,
@@ -205,6 +214,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     "PostGres server errors, such as deadlocks, and retries the command" +
                     "after a short pause"));
             policies.Registry[TransportPolicyDefinitions.RetryCommandHandler] = retrySql;
+
+
+            //RetryCommandHandlerAsync
+            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandlerAsync,
+                new TransportPolicyDefinition(
+                    TransportPolicyDefinitions.RetryCommandHandler,
+                    "A policy for retrying a failed command. This checks specific" +
+                    "PostGres server errors, such as deadlocks, and retries the command" +
+                    "after a short pause"));
+            policies.Registry[TransportPolicyDefinitions.RetryCommandHandlerAsync] = retrySqlAsync;
 
             //RetryQueryHandler
             policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryQueryHandler,
