@@ -16,12 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Interceptors;
+using NSubstitute;
 using Xunit;
+
 namespace DotNetWorkQueue.Tests.Interceptors
 {
     public class InterceptionTest
@@ -38,7 +41,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
                         Convert.FromBase64String("aaaaaaaaaaa=")))
             };
             
-            IMessageInterceptorRegistrar register = new MessageInterceptors(list, new InterceptorFactory(NSubstitute.Substitute.For<IContainerFactory>()));
+            IMessageInterceptorRegistrar register = new MessageInterceptors(list, new InterceptorFactory(Substitute.For<IContainerFactory>()));
 
             var r = new Random();
             foreach (var body in Helpers.RandomStrings(100000, 1000000, 10, r))
@@ -50,7 +53,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
         public void Interceptor_Single_Interceptors()
         {
             var list = new List<IMessageInterceptor> {new GZipMessageInterceptor(new GZipMessageInterceptorConfiguration())};
-            IMessageInterceptorRegistrar register = new MessageInterceptors(list, new InterceptorFactory(NSubstitute.Substitute.For<IContainerFactory>()));
+            IMessageInterceptorRegistrar register = new MessageInterceptors(list, new InterceptorFactory(Substitute.For<IContainerFactory>()));
             var r = new Random();
             foreach (var body in Helpers.RandomStrings(100000, 1000000, 10, r))
             {
@@ -61,7 +64,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
         [Fact]
         public void Interceptor_Zero_Interceptors()
         {
-            IMessageInterceptorRegistrar register = new MessageInterceptors(new List<IMessageInterceptor>(), new InterceptorFactory(NSubstitute.Substitute.For<IContainerFactory>()));
+            IMessageInterceptorRegistrar register = new MessageInterceptors(new List<IMessageInterceptor>(), new InterceptorFactory(Substitute.For<IContainerFactory>()));
 
             var r = new Random();
             foreach (var body in Helpers.RandomStrings(100000, 1000000, 10, r))

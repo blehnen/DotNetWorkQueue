@@ -16,13 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Threading;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
-using System;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 {
@@ -30,13 +31,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, true),
+        [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, false),
         InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Linux, true),
         InlineData(100, 0, 20, 5, ConnectionInfoTypes.Windows, true),
-        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Windows, true),
-        InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, false),
-        InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Linux, false),
-        InlineData(100, 0, 20, 5, ConnectionInfoTypes.Windows, false),
         InlineData(10000, 0, 120, 5, ConnectionInfoTypes.Windows, false)
             ]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type, bool route)

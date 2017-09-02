@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
 {
     /// <summary>
@@ -44,6 +46,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
 			Type = type;
             Nullable = @null;
 		}
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
         /// </summary>
@@ -56,6 +59,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         {
 			Length = length;
 		}
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
         /// </summary>
@@ -379,6 +383,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// Supported since PostgreSQL 9.4.
         /// See http://www.postgresql.org/docs/current/static/datatype-json.html
         /// </remarks>
-        Jsonb = 36,
+        Jsonb = 36
     }
 }

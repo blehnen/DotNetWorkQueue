@@ -16,15 +16,16 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    /// <summary>
-    /// Caches SQL command strings
-    /// </summary>
+    /// <inheritdoc />
     public class PostgreSqlCommandStringCache: CommandStringCache
     {
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgreSqlCommandStringCache" /> class.
         /// </summary>
@@ -33,9 +34,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
         }
 
-        /// <summary>
-        /// Builds the commands.
-        /// </summary>
+        /// <inheritdoc />
         protected override void BuildCommands()
         {
             CommandCache.Add(CommandStringTypes.DeleteFromErrorTracking,

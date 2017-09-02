@@ -16,11 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Gets the current error record count
     /// </summary>
@@ -45,11 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _redisNames = redisNames;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Handle(GetErrorCountQuery query)
         {
             var db = _connection.Connection.GetDatabase();

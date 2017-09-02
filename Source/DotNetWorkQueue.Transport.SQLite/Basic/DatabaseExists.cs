@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.IO;
+
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     /// <summary>
@@ -32,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public static bool Exists(string connectionString)
         {
             var fileName = GetFileNameFromConnectionString.GetFileName(connectionString);
-            return fileName.IsInMemory || System.IO.File.Exists(fileName.FileName);
+            return fileName.IsInMemory || File.Exists(fileName.FileName);
         }
     }
 }

@@ -16,11 +16,16 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Deletes the meta data for a message
+    /// </summary>
     public class DeleteMetaDataCommandHandler : ICommandHandler<DeleteMetaDataCommand>
     {
         private readonly IPrepareCommandHandler<DeleteMetaDataCommand> _prepareCommand;
@@ -37,6 +42,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             _prepareCommand = prepareCommand;
         }
 
+        /// <inheritdoc />
         public void Handle(DeleteMetaDataCommand command)
         {
             using (

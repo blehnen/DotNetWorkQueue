@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
+    /// <inheritdoc />
     /// <summary>
     /// Number of records in the error table
     /// </summary>

@@ -17,12 +17,12 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Threading.Tasks;
 using DotNetWorkQueue.TaskScheduling;
 using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
+
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
     public class MessageHandlerTests
@@ -48,8 +48,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
 
             var factory = Substitute.For<ITaskFactory>();
             factory.Scheduler.Returns(Substitute.For<ATaskScheduler>());
-            Task blah;
-            factory.TryStartNew(null, null, null, out blah).ReturnsForAnyArgs(TryStartNewResult.Added);
+            factory.TryStartNew(null, null, null, out _).ReturnsForAnyArgs(TryStartNewResult.Added);
 
             var test = Create();
             test.HandleAsync(null, Substitute.For<IReceivedMessage<FakeMessage>>(),

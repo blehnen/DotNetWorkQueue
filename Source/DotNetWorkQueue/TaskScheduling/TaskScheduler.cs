@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -250,8 +251,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="id">The client identifier.</param>
         public override void UnSubscribe(int id)
         {
-            int temp;
-            if (_clients.TryRemove(id, out temp))
+            if (_clients.TryRemove(id, out _))
             {
                 _clientCounter.Decrement(1);
             }
@@ -265,8 +265,7 @@ namespace DotNetWorkQueue.TaskScheduling
         {
             ThrowIfDisposed();
 
-            var information = task.AsyncState as StateInformation;
-            if (information != null)
+            if (task.AsyncState is StateInformation information)
             {
                 var state = information;
                 if (state.Group != null)
@@ -395,8 +394,7 @@ namespace DotNetWorkQueue.TaskScheduling
         private void PostExecuteWorkItemCallback(IWorkItemResult wir)
         {
             var possibleState = wir.GetResult();
-            var information = possibleState as StateInformation;
-            if (information != null) //if not null, this is a work group
+            if (possibleState is StateInformation information) //if not null, this is a work group
             {
                 var state = information;
                 DecrementCounter();

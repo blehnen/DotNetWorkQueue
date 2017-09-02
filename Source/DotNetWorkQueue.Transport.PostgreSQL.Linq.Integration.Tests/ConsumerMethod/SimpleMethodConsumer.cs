@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
@@ -31,20 +32,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     {
         [Theory]
         [InlineData(1000, 0, 240, 5, false, LinqMethodTypes.Compiled),
-       InlineData(50, 5, 200, 10, false, LinqMethodTypes.Compiled),
-       InlineData(10, 15, 180, 7, false, LinqMethodTypes.Compiled),
-       InlineData(1000, 0, 240, 25, false, LinqMethodTypes.Compiled),
-       InlineData(1000, 0, 240, 25, true, LinqMethodTypes.Compiled),
-       InlineData(1000, 0, 240, 5, true, LinqMethodTypes.Compiled),
-       InlineData(50, 5, 200, 10, true, LinqMethodTypes.Compiled),
        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled),
-            InlineData(1000, 0, 240, 5, false, LinqMethodTypes.Dynamic),
-       InlineData(50, 5, 200, 10, false, LinqMethodTypes.Dynamic),
-       InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic),
-       InlineData(1000, 0, 240, 25, false, LinqMethodTypes.Dynamic),
-       InlineData(1000, 0, 240, 25, true, LinqMethodTypes.Dynamic),
-       InlineData(1000, 0, 240, 5, true, LinqMethodTypes.Dynamic),
-       InlineData(50, 5, 200, 10, true, LinqMethodTypes.Dynamic),
+       InlineData(1000, 0, 240, 5, false, LinqMethodTypes.Dynamic),
        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Dynamic)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {

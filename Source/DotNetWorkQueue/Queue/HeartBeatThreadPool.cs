@@ -16,13 +16,16 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Validation;
 using ThreadPool = DotNetWorkQueue.TaskScheduling.ThreadPool;
+
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>
@@ -140,7 +143,7 @@ namespace DotNetWorkQueue.Queue
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "_threadPool", Justification = "not needed")]
+        [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "_threadPool", Justification = "not needed")]
         public void Dispose()
         {
             if (Interlocked.Increment(ref _disposeCount) == 1)

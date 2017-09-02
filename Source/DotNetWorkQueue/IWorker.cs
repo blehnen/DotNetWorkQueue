@@ -18,9 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue
 {
-    /// <summary>
-    /// A worker class. Used by the queue to process messages.
-    /// </summary>
+    /// <inheritdoc />
     public interface IWorker : IWorkerBase
     {
         /// <summary>

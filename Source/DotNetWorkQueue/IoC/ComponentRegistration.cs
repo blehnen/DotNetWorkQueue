@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Linq;
 using System.Runtime.Caching;
 using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
+using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.JobScheduler;
 using DotNetWorkQueue.LinqCompile;
 using DotNetWorkQueue.LinqCompile.Decorator;
@@ -30,15 +32,19 @@ using DotNetWorkQueue.Logging.Decorator;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Metrics.Decorator;
 using DotNetWorkQueue.Metrics.NoOp;
+using DotNetWorkQueue.Policies;
+using DotNetWorkQueue.Policies.Decorator;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.QueueStatus;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Time;
 using DotNetWorkQueue.Validation;
-using ClearExpiredMessagesDecorator = DotNetWorkQueue.Metrics.Decorator.ClearExpiredMessagesDecorator;
-using ReceivePoisonMessageDecorator = DotNetWorkQueue.Metrics.Decorator.ReceivePoisonMessageDecorator;
-using ResetHeartBeatDecorator = DotNetWorkQueue.Metrics.Decorator.ResetHeartBeatDecorator;
+using Polly;
+using Polly.Registry;
+using ClearExpiredMessagesDecorator = DotNetWorkQueue.Logging.Decorator.ClearExpiredMessagesDecorator;
+using ReceivePoisonMessageDecorator = DotNetWorkQueue.Logging.Decorator.ReceivePoisonMessageDecorator;
+using ResetHeartBeatDecorator = DotNetWorkQueue.Logging.Decorator.ResetHeartBeatDecorator;
 using RollbackMessageDecorator = DotNetWorkQueue.Metrics.Decorator.RollbackMessageDecorator;
 
 namespace DotNetWorkQueue.IoC
@@ -67,6 +73,9 @@ namespace DotNetWorkQueue.IoC
             container.Register<ITaskSchedulerFactory, TaskSchedulerFactory>(LifeStyles.Singleton);
             container.Register<ITaskFactoryFactory, TaskFactoryFactory>(LifeStyles.Singleton);
             container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
+            container.Register<IPolicies, Policies.Policies>(LifeStyles.Singleton);
+            container.Register<PolicyRegistry>(LifeStyles.Singleton);
+            container.Register<PolicyDefinitions>(LifeStyles.Singleton);
         }
 
         /// <summary>
@@ -104,7 +113,7 @@ namespace DotNetWorkQueue.IoC
 
             //created outside of the queue as part of setup, this must be a singleton.
             //all queues created from the setup class share the same message interceptors
-            container.Register<IMessageInterceptorRegistrar, Interceptors.MessageInterceptors>(LifeStyles.Singleton);
+            container.Register<IMessageInterceptorRegistrar, MessageInterceptors>(LifeStyles.Singleton);
 
             container.Register<MessageProcessingMode>(LifeStyles.Singleton);
 
@@ -141,6 +150,11 @@ namespace DotNetWorkQueue.IoC
 
             container.Register<IGenerateReceivedMessage, GenerateReceivedMessage>(LifeStyles.Singleton);
             container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
+
+
+            container.Register<IPolicies, Policies.Policies>(LifeStyles.Singleton);
+            container.Register<PolicyDefinitions>(LifeStyles.Singleton);
+            container.Register<PolicyRegistry>(LifeStyles.Singleton);
 
 
             //implementations required to send messages
@@ -256,7 +270,7 @@ namespace DotNetWorkQueue.IoC
             //NOTE - we don't bother to tell the difference between RPC / duplex
             //so it's possible these are registered, but never actually used.
             if ((registrationType & RegistrationTypes.Receive) == RegistrationTypes.Receive &&
-                ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send))
+                (registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
             {
                 container.Register<IRpcMethodQueue, RpcMethodQueue>(LifeStyles.Singleton);
 
@@ -302,6 +316,7 @@ namespace DotNetWorkQueue.IoC
             container.RegisterCollection<IMessageInterceptor>(Enumerable.Empty<Type>());
 
             RegisterMetricDecorators(container);
+            RegisterPolicyDecorators(container);
             RegisterLoggerDecorators(container);
 
             //register the linq cache decorator
@@ -339,6 +354,33 @@ namespace DotNetWorkQueue.IoC
         }
 
         /// <summary>
+        /// Setup the default policies.
+        /// </summary>
+        /// <param name="container">The container.</param>
+        /// <param name="registrationType">Type of the registration.</param>
+        public static void SetupDefaultPolicies(IContainer container, RegistrationTypes registrationType)
+        {
+            var policies = container.GetInstance<IPolicies>();
+            var noOp = Policy.NoOp(); //thread safe - can be re-used
+            var noOpAsync = Policy.NoOpAsync();
+
+            //ReceiveMessageFromTransport
+            policies.Registry[policies.Definition.ReceiveMessageFromTransport] = noOp;
+            //SendHeartBeat
+            policies.Registry[policies.Definition.SendHeartBeat] = noOp;
+            //SendMessage
+            policies.Registry[policies.Definition.SendMessage] = noOp;
+
+
+            //ReceiveMessageFromTransportASync
+            policies.Registry[policies.Definition.ReceiveMessageFromTransportAsync] = noOpAsync;
+            //SendHeartBeatAsync
+            policies.Registry[policies.Definition.SendHeartBeatAsync] = noOpAsync;
+            //SendMessageAsync
+            policies.Registry[policies.Definition.SendMessageAsync] = noOpAsync;
+        }
+
+        /// <summary>
         /// Registers the fall backs for generic types
         /// </summary>
         /// <param name="container">The container.</param>
@@ -354,7 +396,7 @@ namespace DotNetWorkQueue.IoC
             }
 
             if ((registrationType & RegistrationTypes.Receive) == RegistrationTypes.Receive &&
-            ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send))
+            (registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
             {
                 container.RegisterConditional(typeof(IProducerQueueRpc<>), typeof(ProducerQueueRpc<>), LifeStyles.Singleton);
                 container.RegisterConditional(typeof(IRpcQueue<,>), typeof(RpcQueue<,>), LifeStyles.Singleton);
@@ -373,10 +415,16 @@ namespace DotNetWorkQueue.IoC
         {
             container.RegisterDecorator<IAbortWorkerThread, AbortWorkerThreadDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IRollbackMessage, RollbackMessageDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IClearExpiredMessages, Logging.Decorator.ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IResetHeartBeat, Logging.Decorator.ResetHeartBeatDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IReceivePoisonMessage, Logging.Decorator.ReceivePoisonMessageDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IClearExpiredMessages, ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IResetHeartBeat, ResetHeartBeatDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IReceivePoisonMessage, ReceivePoisonMessageDecorator>(LifeStyles.Singleton);
         }
+
+        private static void RegisterPolicyDecorators(IContainer container)
+        {
+            container.RegisterDecorator<IReceiveMessages, ReceiveMessagesPolicyDecorator>(LifeStyles.Transient);
+        }
+
         /// <summary>
         /// Registers the decorator metrics.
         /// </summary>
@@ -388,16 +436,16 @@ namespace DotNetWorkQueue.IoC
             container.RegisterDecorator<IQueueCreation, QueueCreationDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IMessageHandler, MessageHandlerDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IMessageHandlerAsync, MessageHandlerAsyncDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IResetHeartBeat, ResetHeartBeatDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IResetHeartBeat, Metrics.Decorator.ResetHeartBeatDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IInternalSerializer, InternalSerializerDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<ISendHeartBeat, SendHeartBeatDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<ISendMessages, SendMessagesDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IReceiveMessages, ReceiveMessagesDecorator>(LifeStyles.Transient);
             container.RegisterDecorator<IReceiveMessagesError, ReceiveMessagesErrorDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IReceivePoisonMessage, ReceivePoisonMessageDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IReceivePoisonMessage, Metrics.Decorator.ReceivePoisonMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<ICommitMessage, CommitMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IRollbackMessage, RollbackMessageDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IClearExpiredMessages, ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IClearExpiredMessages, Metrics.Decorator.ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IExpressionSerializer, ExpressionSerializerDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IMessageMethodHandling, MessageMethodHandlingDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<ILinqCompiler, LinqCompilerDecorator>(LifeStyles.Singleton);

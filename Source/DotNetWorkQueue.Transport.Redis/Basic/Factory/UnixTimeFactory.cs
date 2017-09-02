@@ -16,15 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Redis.Basic.Time;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
 {
-    /// <summary>
-    /// Creates new instances of <see cref="IUnixTime"/>
-    /// </summary>
+    /// <inheritdoc />
     internal class UnixTimeFactory : IUnixTimeFactory
     {
         private readonly IContainerFactory _container;
@@ -43,11 +42,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
             _options = options;
         }
 
-        /// <summary>
-        /// Returns an instance of <see cref="IUnixTime" />
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException"></exception>
+        /// <inheritdoc />
         public IUnixTime Create()
         {
             switch (_options.TimeServer)

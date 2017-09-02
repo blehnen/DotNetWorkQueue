@@ -22,11 +22,8 @@ using System.Data.SqlClient;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Factory;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Message;
-using DotNetWorkQueue.Transport.SqlServer.Basic.Time;
-using DotNetWorkQueue.Transport.SqlServer.Decorator;
-using CommitMessage = DotNetWorkQueue.Transport.SqlServer.Basic.Message.CommitMessage;
+using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Policies;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -35,8 +32,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
-using DotNetWorkQueue.Validation;
 using DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler;
+using DotNetWorkQueue.Transport.SqlServer.Basic.Factory;
+using DotNetWorkQueue.Transport.SqlServer.Basic.Message;
+using DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler;
+using DotNetWorkQueue.Transport.SqlServer.Basic.Time;
+using DotNetWorkQueue.Transport.SqlServer.Decorator;
+using DotNetWorkQueue.Validation;
+using Polly;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -87,8 +90,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             container.Register<SqlServerMessageQueueTransportOptions>(LifeStyles.Singleton);
             container.Register<IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand>, ConnectionHeader<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
-
-            container.Register<ThreadSafeRandom>(LifeStyles.Singleton);
             //**all
 
             //**receive
@@ -98,9 +99,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<RollbackMessage>(LifeStyles.Transient);
             container.Register<HandleMessage>(LifeStyles.Transient);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
-            container.Register<QueryHandler.CreateDequeueStatement>(LifeStyles.Singleton);
-            container.Register<QueryHandler.BuildDequeueCommand>(LifeStyles.Singleton);
-            container.Register<QueryHandler.ReadMessage>(LifeStyles.Singleton);
+            container.Register<CreateDequeueStatement>(LifeStyles.Singleton);
+            container.Register<BuildDequeueCommand>(LifeStyles.Singleton);
+            container.Register<ReadMessage>(LifeStyles.Singleton);
             //**receive
 
             //explicit registration of our job exists query
@@ -169,7 +170,44 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
         {
             var init = new MessageQueueInit();
-            init.SetDefaultsIfNeeded(container, "SqlServerMessageQueueTransportOptions", "SqlServerMessageQueueTransportOptions");         
+            init.SetDefaultsIfNeeded(container, "SqlServerMessageQueueTransportOptions", "SqlServerMessageQueueTransportOptions");
+
+            SetupPolicy(container);
+        }
+
+        private void SetupPolicy(IContainer container)
+        {
+            var policies = container.GetInstance<IPolicies>();
+            var log = container.GetInstance<ILogFactory>().Create();
+
+            var retrySql = Policy
+                .Handle<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
+                .WaitAndRetry(
+                    RetryConstants.RetryCount,
+                    retryAttempt => TimeSpan.FromSeconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                    (exception, timeSpan, retryCount, context) =>
+                    {
+                        log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
+                    });
+
+
+            //RetryCommandHandler
+            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandler,
+                new TransportPolicyDefinition(
+                    TransportPolicyDefinitions.RetryCommandHandler,
+                    "A policy for retrying a failed command. This checks specific" +
+                    "SQL server errors, such as deadlocks, and retries the command" +
+                    "after a short pause"));
+            policies.Registry[TransportPolicyDefinitions.RetryCommandHandler] = retrySql;
+
+            //RetryQueryHandler
+            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryQueryHandler,
+                new TransportPolicyDefinition(
+                    TransportPolicyDefinitions.RetryQueryHandler,
+                    "A policy for retrying a failed query. This checks specific" +
+                    "SQL server errors, such as deadlocks, and retries the query" +
+                    "after a short pause"));
+            policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql;
         }
     }
 }

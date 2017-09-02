@@ -16,31 +16,29 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue.Queue
 {
+    /// <inheritdoc cref="IHeartBeatMonitor" />
     /// <summary>
     /// A no operation heart beat monitor
     /// </summary>
     public class HeartBeatMonitorNoOp : IHeartBeatMonitor, INoOperation
     {
-        /// <summary>
-        /// Stops the monitor process.
-        /// </summary>
+        /// <inheritdoc />
         public void Stop()
         {
         }
-        /// <summary>
-        /// Starts the monitor process.
-        /// </summary>
+        /// <inheritdoc />
         public void Start()
         {
 
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        /// <inheritdoc />
+
         public void Dispose()
         {
             Dispose(true);
@@ -59,12 +57,7 @@ namespace DotNetWorkQueue.Queue
             }
         }
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed { get; private set; }
     }
 }

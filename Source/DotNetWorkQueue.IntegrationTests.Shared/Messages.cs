@@ -16,13 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
-using Tynamix.ObjectFiller;
 using System.Threading;
 using DotNetWorkQueue.Messages;
+using Tynamix.ObjectFiller;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
@@ -231,7 +232,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             if (MethodIncrementWrapper.HasRollBack(queueId, (Guid)message.CorrelationId.Id.Value))
             {
                 var counter = runTime / 3;
-                for (int i = 0; i < counter; i++)
+                for (var i = 0; i < counter; i++)
                 {
                     if (notification.WorkerStopping.StopWorkToken.IsCancellationRequested || notification.WorkerStopping.CancelWorkToken.IsCancellationRequested)
                     {
@@ -245,7 +246,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             else
             {
                 var counter = runTime/2;
-                for (int i = 0; i < counter; i++)
+                for (var i = 0; i < counter; i++)
                 {
                     Thread.Sleep(1000);
                 }

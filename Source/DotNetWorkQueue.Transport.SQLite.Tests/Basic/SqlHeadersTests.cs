@@ -18,10 +18,10 @@
 // ---------------------------------------------------------------------
 
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.SQLite.Basic;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
     public class SqlHeadersTests

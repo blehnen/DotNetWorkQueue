@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.IntegrationTests.Shared;
@@ -31,8 +32,6 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
         [Theory]
         [InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Linux),
         InlineData(50, 2, 400, 1, 3, ConnectionInfoTypes.Linux),
-        InlineData(10, 2, 400, 1, 3, ConnectionInfoTypes.Linux),
-        InlineData(50, 2, 400, 1, 2, ConnectionInfoTypes.Windows),
         InlineData(10, 2, 400, 1, 5, ConnectionInfoTypes.Windows),
         InlineData(100, 0, 180, 1, 2, ConnectionInfoTypes.Windows)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
@@ -86,7 +85,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
             var data = new List<string>();
             for (var i = seed; i < routeCount + seed; i++)
             {
-                data.Add("Route" + i.ToString());
+                data.Add("Route" + i);
             }
             return data;
         }

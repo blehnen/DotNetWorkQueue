@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
-    /// <summary>
-    /// Returns the first possible message delivery time
-    /// </summary>
+    /// <inheritdoc />
     internal class GetFirstMessageDeliveryTime: IGetFirstMessageDeliveryTime
     {
         private readonly IGetTimeFactory _getTime;
@@ -33,14 +33,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             _getTime = getTime;
         }
+
+        /// <inheritdoc />
         public DateTime GetTime(IMessage message, IAdditionalMessageData data)
         {
             var delay = data.GetDelay();
-            return delay.HasValue 
-                ? 
-                    _getTime.Create().GetCurrentUtcDate().Add(delay.Value) 
-                : 
-                    _getTime.Create().GetCurrentUtcDate();
+            return delay.HasValue
+                ? _getTime.Create().GetCurrentUtcDate().Add(delay.Value)
+                : _getTime.Create().GetCurrentUtcDate();
         }
     }
 }

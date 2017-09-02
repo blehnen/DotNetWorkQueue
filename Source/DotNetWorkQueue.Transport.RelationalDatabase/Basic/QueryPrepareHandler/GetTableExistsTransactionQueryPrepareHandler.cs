@@ -16,17 +16,27 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Prepares to run the get table exists query
+    /// </summary>
     public class GetTableExistsTransactionQueryPrepareHandler : IPrepareQueryHandler<GetTableExistsTransactionQuery, bool>
     {
         private readonly CommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetTableExistsTransactionQueryPrepareHandler"/> class.
+        /// </summary>
+        /// <param name="commandCache">The command cache.</param>
+        /// <param name="connectionInformation">The connection information.</param>
         public GetTableExistsTransactionQueryPrepareHandler(CommandStringCache commandCache,
             IConnectionInformation connectionInformation)
         {
@@ -35,6 +45,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             _connectionInformation = connectionInformation;
         }
 
+        /// <inheritdoc />
         public void Handle(GetTableExistsTransactionQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);

@@ -16,13 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data.SQLite;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
-
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         protected override bool JobAlreadyExistsError(Exception error)
         {
             var message = error.Message.Replace(Environment.NewLine, " ");
-            return (message.Contains("constraint failed UNIQUE constraint failed:") && message.Contains("JobName")) ||
+            return message.Contains("constraint failed UNIQUE constraint failed:") && message.Contains("JobName") ||
                     message.Contains("Failed to insert record - the job has already been queued or processed");
         }
 

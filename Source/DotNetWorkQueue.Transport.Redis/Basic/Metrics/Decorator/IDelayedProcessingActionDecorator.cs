@@ -16,11 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Threading;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator
 {
+    /// <inheritdoc />
     internal class DelayedProcessingActionDecorator: IDelayedProcessingAction
     {
         private readonly IDelayedProcessingAction _handler;
@@ -45,12 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator
             _counter = metrics.Counter($"{connectionInformation.QueueName}.{name}.RunCounter", Units.Items);
             _handler = handler;
         }
-
-        /// <summary>
-        /// Runs the action
-        /// </summary>
-        /// <param name="token">The cancel token.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Run(CancellationToken token)
         {
             using (_timer.NewContext())

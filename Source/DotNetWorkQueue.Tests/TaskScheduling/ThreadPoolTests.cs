@@ -16,13 +16,16 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using DotNetWorkQueue.TaskScheduling;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
 using ThreadPool = DotNetWorkQueue.TaskScheduling.ThreadPool;
+
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
@@ -37,7 +40,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Disposed_Instance_Sets_IsDisposed()
         {
@@ -48,7 +51,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Dispose_Can_Be_Called_Multiple_Times()
         {
@@ -58,7 +61,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Default_IsShuttingDown_True_After_dispose()
         {
@@ -69,7 +72,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Default_ActiveThreads_0_After_dispose()
         {

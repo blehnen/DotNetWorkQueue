@@ -18,16 +18,13 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.Redis.Basic.MessageID
 {
+    /// <inheritdoc />
     /// <summary>
     /// Returns a new ID will no value; this will tell the LUA script to generate an ID
     /// </summary>
     internal class GetRedisIncrId: IGetMessageId
     {
-        /// <summary>
-        /// Gets a new instance of <see cref="IMessageId" />
-        /// </summary>
-        /// <returns></returns>
-        /// <remarks>The ID will have no value; LUA scripting will generate an Id when the record is added</remarks>
+        /// <inheritdoc />
         public IMessageId Create()
         {
             return new RedisQueueId(string.Empty);

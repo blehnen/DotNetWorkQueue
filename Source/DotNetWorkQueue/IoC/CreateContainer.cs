@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
@@ -23,6 +24,7 @@ using DotNetWorkQueue.JobScheduler;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
 using SimpleInjector;
+
 namespace DotNetWorkQueue.IoC
 {
     internal static class ContainerLocker
@@ -137,6 +139,9 @@ namespace DotNetWorkQueue.IoC
                 //verify the container configuration.
                 container.Verify();
 
+                //default polices
+                ComponentRegistration.SetupDefaultPolicies(containerWrapper, type);
+
                 //allow the transport to set defaults if needed
                 register.SetDefaultsIfNeeded(containerWrapper, type, connectionType);
 
@@ -175,7 +180,7 @@ namespace DotNetWorkQueue.IoC
         private RegistrationTypes GetRegistrationType(ITransportInit registration)
         {
             if (registration is ITransportInitDuplex ||
-                (registration is ITransportInitReceive && registration is ITransportInitSend))
+                registration is ITransportInitReceive && registration is ITransportInitSend)
             {
                 return RegistrationTypes.Send | RegistrationTypes.Receive;
             }

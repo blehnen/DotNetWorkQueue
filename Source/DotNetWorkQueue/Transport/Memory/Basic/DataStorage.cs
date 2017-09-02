@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -27,31 +28,28 @@ using DotNetWorkQueue.Serialization;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.Memory.IDataStorage" />
+    /// <inheritdoc />
     public class DataStorage: IDataStorage
     {
         //next item to de-queue
-        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentQueue<Guid>> _queues;
+        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentQueue<Guid>> Queues;
        
         //actual data
-        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> _queueData;
+        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueData;
 
         //jobs
-        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>> _jobs;
+        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>> Jobs;
 
         //working set
-        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> _queueWorking;
+        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueWorking;
 
         //error count per queue
-        private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> _errorCounts;
+        private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> ErrorCounts;
 
         //dequeue count
-        private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> _dequeueCounts;
+        private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> DequeueCounts;
 
-        private static readonly MemoryCache _jobLastEventCache;
+        private static readonly MemoryCache JobLastEventCache;
 
         private readonly ICompositeSerialization _serializer;
         private readonly IHeaders _headers;
@@ -83,46 +81,46 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             _receivedMessageFactory = receivedMessageFactory;
             _messageFactory = messageFactory;
 
-            if (!_queues.ContainsKey(_connectionInformation))
+            if (!Queues.ContainsKey(_connectionInformation))
             {
-                _queues.TryAdd(_connectionInformation, new ConcurrentQueue<Guid>());
+                Queues.TryAdd(_connectionInformation, new ConcurrentQueue<Guid>());
             }
 
-            if (!_queueData.ContainsKey(_connectionInformation))
+            if (!QueueData.ContainsKey(_connectionInformation))
             {
-                _queueData.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
+                QueueData.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
             }
 
-            if (!_errorCounts.ContainsKey(_connectionInformation))
+            if (!ErrorCounts.ContainsKey(_connectionInformation))
             {
-                _errorCounts.TryAdd(_connectionInformation, new IncrementWrapper());
+                ErrorCounts.TryAdd(_connectionInformation, new IncrementWrapper());
             }
 
-            if (!_dequeueCounts.ContainsKey(_connectionInformation))
+            if (!DequeueCounts.ContainsKey(_connectionInformation))
             {
-                _dequeueCounts.TryAdd(_connectionInformation, new IncrementWrapper());
+                DequeueCounts.TryAdd(_connectionInformation, new IncrementWrapper());
             }
 
-            if (!_jobs.ContainsKey(_connectionInformation))
+            if (!Jobs.ContainsKey(_connectionInformation))
             {
-                _jobs.TryAdd(_connectionInformation, new ConcurrentDictionary<string, Guid>());
+                Jobs.TryAdd(_connectionInformation, new ConcurrentDictionary<string, Guid>());
             }
 
-            if (!_queueWorking.ContainsKey(_connectionInformation))
+            if (!QueueWorking.ContainsKey(_connectionInformation))
             {
-                _queueWorking.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
+                QueueWorking.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
             }
         }
 
         static DataStorage()
         {
-            _queues = new ConcurrentDictionary<IConnectionInformation, ConcurrentQueue<Guid>>();
-            _queueData = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
-            _errorCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
-            _dequeueCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
-            _jobs = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>>();
-            _queueWorking = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
-            _jobLastEventCache = new MemoryCache("DataStorage");
+            Queues = new ConcurrentDictionary<IConnectionInformation, ConcurrentQueue<Guid>>();
+            QueueData = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
+            ErrorCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
+            DequeueCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
+            Jobs = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>>();
+            QueueWorking = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
+            JobLastEventCache = new MemoryCache("DataStorage");
         }
 
         /// <summary>
@@ -164,12 +162,12 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     JobName = jobName,
                     JobScheduledTime = scheduledTime
                 };
-                _queueData[_connectionInformation].TryAdd(newItem.Id, newItem);
-                _queues[_connectionInformation].Enqueue(newItem.Id);
+                QueueData[_connectionInformation].TryAdd(newItem.Id, newItem);
+                Queues[_connectionInformation].Enqueue(newItem.Id);
 
                 if (!string.IsNullOrWhiteSpace(jobName))
                 {
-                    _jobs[_connectionInformation].TryAdd(jobName, newItem.Id);
+                    Jobs[_connectionInformation].TryAdd(jobName, newItem.Id);
                 }
 
                 return newItem.Id;
@@ -197,7 +195,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public void MoveToErrorQueue(Exception exception, Guid id, IMessageContext context)
         {
             //we don't want to store all this in memory, so just keep track of the number
-            Interlocked.Increment(ref _errorCounts[_connectionInformation].ProcessedCount);
+            Interlocked.Increment(ref ErrorCounts[_connectionInformation].ProcessedCount);
 
             //if we did want to store this, we would need to:
 
@@ -215,8 +213,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if(routes != null && routes.Count > 0)
                 throw new NotSupportedException("The in-memory transport does not support routes");
 
-            if (!_queues[_connectionInformation].TryDequeue(out Guid id)) return null;
-            if (!_queueData[_connectionInformation].TryRemove(id, out QueueItem item)) return null;
+            if (!Queues[_connectionInformation].TryDequeue(out var id)) return null;
+            if (!QueueData[_connectionInformation].TryRemove(id, out var item)) return null;
 
             var hasError = false;
             try
@@ -229,10 +227,10 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
                 if (!string.IsNullOrEmpty(item.JobName))
                 {
-                    _jobLastEventCache.Add(GenerateKey(item.JobName), item.JobEventTime, DateTimeOffset.UtcNow.AddDays(1));
+                    JobLastEventCache.Add(GenerateKey(item.JobName), item.JobEventTime, DateTimeOffset.UtcNow.AddDays(1));
                 }
 
-                Interlocked.Increment(ref _dequeueCounts[_connectionInformation].ProcessedCount);
+                Interlocked.Increment(ref DequeueCounts[_connectionInformation].ProcessedCount);
 
                 return _receivedMessageFactory.Create(newMessage,
                     new MessageQueueId(id),
@@ -250,7 +248,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             finally
             {
                 if (!hasError)
-                    _queueWorking[_connectionInformation].TryAdd(item.Id, item);
+                    QueueWorking[_connectionInformation].TryAdd(item.Id, item);
             }
         }
         /// <summary>
@@ -272,11 +270,11 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public void DeleteMessage(Guid id)
         {
             //remove data - if id is still in queue, it will fall out eventually
-            _queueData[_connectionInformation].TryRemove(id, out QueueItem item);
+            QueueData[_connectionInformation].TryRemove(id, out var item);
             if(item == null)
-                _queueWorking[_connectionInformation].TryRemove(id, out item);
+                QueueWorking[_connectionInformation].TryRemove(id, out item);
             if (item != null)
-                _jobs[_connectionInformation].TryRemove(item.JobName, out Guid jobId);
+                Jobs[_connectionInformation].TryRemove(item.JobName, out _);
         }
 
         /// <summary>
@@ -287,8 +285,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public DateTimeOffset GetJobLastKnownEvent(string jobName)
         {
             var key = GenerateKey(jobName);
-            if (_jobLastEventCache.Contains(key))
-                return (DateTimeOffset)_jobLastEventCache.Get(key);
+            if (JobLastEventCache.Contains(key))
+                return (DateTimeOffset)JobLastEventCache.Get(key);
 
             return default(DateTimeOffset);
         }
@@ -299,9 +297,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="jobName">Name of the job.</param>
         public void DeleteJob(string jobName)
         {
-            if (_jobs[_connectionInformation].TryRemove(jobName, out Guid id))
+            if (Jobs[_connectionInformation].TryRemove(jobName, out var id))
             {
-                _queueData[_connectionInformation].TryRemove(id, out QueueItem item);
+                QueueData[_connectionInformation].TryRemove(id, out _);
             }
         }
         /// <summary>
@@ -312,20 +310,17 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <returns></returns>
         public QueueStatuses DoesJobExist(string jobName, DateTimeOffset scheduledTime)
         {
-            if (_jobs[_connectionInformation].TryGetValue(jobName, out Guid id))
+            if (Jobs[_connectionInformation].TryGetValue(jobName, out var id))
             {
-                if (_queueData[_connectionInformation].TryGetValue(id, out QueueItem item))
+                if (QueueData[_connectionInformation].TryGetValue(id, out var item))
                 {
                     if (item.JobScheduledTime == scheduledTime)
                     {
                         return QueueStatuses.Waiting;
                     }
-                    else
-                    {
-                        return QueueStatuses.Processed;
-                    }
+                    return QueueStatuses.Processed;
                 }
-                if (_queueWorking[_connectionInformation].TryGetValue(id, out item))
+                if (QueueWorking[_connectionInformation].TryGetValue(id, out item))
                 {
                     if (item.JobScheduledTime == scheduledTime)
                     {
@@ -341,7 +336,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <value>
         /// The record count.
         /// </value>
-        public long RecordCount => _queueData[_connectionInformation].Count;
+        public long RecordCount => QueueData[_connectionInformation].Count;
 
         /// <summary>
         /// Gets the error count.
@@ -349,7 +344,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <returns></returns>
         public long GetErrorCount()
         {
-            return Interlocked.CompareExchange(ref _errorCounts[_connectionInformation].ProcessedCount, 0, 0);
+            return Interlocked.CompareExchange(ref ErrorCounts[_connectionInformation].ProcessedCount, 0, 0);
         }
 
         /// <summary>
@@ -358,7 +353,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <returns></returns>
         public long GetDequeueCount()
         {
-            return Interlocked.CompareExchange(ref _dequeueCounts[_connectionInformation].ProcessedCount, 0, 0);
+            return Interlocked.CompareExchange(ref DequeueCounts[_connectionInformation].ProcessedCount, 0, 0);
         }
 
         /// <summary>
@@ -366,14 +361,14 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// </summary>
         public void Clear()
         {
-            if (_queues.ContainsKey(_connectionInformation))
+            if (Queues.ContainsKey(_connectionInformation))
             {
-                while (_queues[_connectionInformation].TryDequeue(out Guid id))
+                while (Queues[_connectionInformation].TryDequeue(out var id))
                 {
-                    _queueData[_connectionInformation].TryRemove(id, out QueueItem item);
+                    QueueData[_connectionInformation].TryRemove(id, out _);
                 }
-                _jobs[_connectionInformation].Clear();
-                _queueWorking[_connectionInformation].Clear();
+                Jobs[_connectionInformation].Clear();
+                QueueWorking[_connectionInformation].Clear();
             }
         }
 

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -23,6 +24,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Moves a record from the meta table to the error table
     /// </summary>
@@ -79,10 +81,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             _headers = headers;
             _setStatusNoTransactionCommandHandler = setCommandHandler;
         }
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
+        /// <inheritdoc />
         public void Handle(MoveRecordToErrorQueueCommand command)
         {
             if (_options.Value.EnableHoldTransactionUntilMessageCommitted)

@@ -16,11 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using DotNetWorkQueue.Configuration;
+
 namespace DotNetWorkQueue.Tests
 {
     public static class Helpers
@@ -103,25 +105,12 @@ namespace DotNetWorkQueue.Tests
                 _headers.Add(property.Name, value);
         }
 
-
-        /// <summary>
-        /// Sets a setting.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="value">The value.</param>
+        /// <inheritdoc />
         public void SetSetting(string name, object value)
         {
             _settings[name] = value;
         }
-
-        /// <summary>
-        /// Tries to get a setting
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>
-        /// true if the setting was found
-        /// </returns>
+        /// <inheritdoc />
         public bool TryGetSetting(string name, out object value)
         {
             return _settings.TryGetValue(name, out value);

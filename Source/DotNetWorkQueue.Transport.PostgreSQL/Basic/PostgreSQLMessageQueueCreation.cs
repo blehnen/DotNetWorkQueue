@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -26,9 +27,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    /// <summary>
-    /// A class that will create the queue tables if needed. No support for updating existing tables is provided.
-    /// </summary>
+    /// <inheritdoc />
     public class PostgreSqlMessageQueueCreation : IQueueCreation
     {
         #region Member level variables
@@ -94,49 +93,25 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </value>
         public PostgreSqlMessageQueueTransportOptions Options => _options.Value;
 
-        /// <summary>
-        /// Gets the connection information for the queue.
-        /// </summary>
-        /// <value>
-        /// The connection information.
-        /// </value>
+        /// <inheritdoc />
         public IConnectionInformation ConnectionInfo { get; }
 
-        /// <summary>
-        /// Gets a disposable creation scope
-        /// </summary>
-        /// <value>
-        /// The scope.
-        /// </value>
-        /// <remarks>This is used to prevent queues from going out of scope before you have finished working with them. Generally
-        /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.</remarks>
+        /// <inheritdoc />
         public ICreationScope Scope { get; }
 
-        /// <summary>
-        /// Creates the queue if needed.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public QueueCreationResult CreateQueue()
         {
             return !QueueExists ? CreateQueueInternal() : new QueueCreationResult(QueueCreationStatus.AlreadyExists);
         }
 
-        /// <summary>
-        /// Attempts to delete an existing queue
-        /// </summary>
-        /// <remarks>Any data in the queue will be lost. Will cause exceptions in any producer/consumer that is connected</remarks>
-        /// <returns></returns>
+        /// <inheritdoc />
         public QueueRemoveResult RemoveQueue()
         {
             return QueueExists ? RemoveQueueInternal() : new QueueRemoveResult(QueueRemoveStatus.DoesNotExist);
         }
 
-        /// <summary>
-        /// Returns true if the queue exists in the transport
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [queue exists]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool QueueExists => _queryTableExists.Handle(new GetTableExistsQuery(ConnectionInfo.ConnectionString,
             ConnectionInfo.QueueName));
 
@@ -155,9 +130,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
 
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);
@@ -178,12 +151,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
 
         #endregion

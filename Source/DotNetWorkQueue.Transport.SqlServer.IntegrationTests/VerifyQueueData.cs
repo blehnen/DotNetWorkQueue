@@ -19,6 +19,7 @@
 #region Using
 
 using System.Data.SqlClient;
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
@@ -99,8 +100,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             }
         }
 
-        // ReSharper disable once UnusedParameter.Local
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyCount(long messageCount, string route)
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))
@@ -124,7 +125,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyPriority()
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))
@@ -145,7 +146,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyDelayedProcessing()
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))
@@ -166,7 +167,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyMessageExpiration()
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))
@@ -186,7 +187,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyStatus()
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))
@@ -206,7 +207,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyStatusTable()
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))
@@ -245,8 +246,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             AllTablesRecordCount(recordCount, ignoreMeta, ignoreErrorTracking);
         }
 
-        // ReSharper disable once UnusedParameter.Local
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void AllTablesRecordCount(int recordCount, bool ignoreMeta, bool ignoreErrorTracking)
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))
@@ -317,7 +318,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             _tableNameHelper = new TableNameHelper(_connection);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         public void Verify(long messageCount, int errorCount)
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))

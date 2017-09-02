@@ -16,15 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class JobTableCreation: IJobTableCreation
     {
         private readonly IJobSchema _createSchema;
@@ -62,19 +61,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             _tableNameHelper = tableNameHelper;
         }
 
-        /// <summary>
-        /// Returns true if the job table already exists in the transport
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [queue exists]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool JobTableExists => _queryTableExists.Handle(new GetTableExistsQuery(_connection.ConnectionString,
             _tableNameHelper.JobTableName));
 
-        /// <summary>
-        /// Creates the job storage table if needed
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public QueueCreationResult CreateJobTable()
         {
             return !JobTableExists ? CreateTable() : new QueueCreationResult(QueueCreationStatus.AlreadyExists);

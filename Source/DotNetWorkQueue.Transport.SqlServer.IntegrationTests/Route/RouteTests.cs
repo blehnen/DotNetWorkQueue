@@ -16,11 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
-using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
@@ -29,15 +30,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
     public class RouteTests
     {
         [Theory]
-        [InlineData(10, 1, 60, 1, false, 1),
-         InlineData(100, 1, 400, 1, false, 2),
-         InlineData(50, 5, 200, 1, false, 3),
-         InlineData(10, 5, 180, 1, false, 4),
-         InlineData(100, 1, 400, 1, true, 2),
-         InlineData(50, 5, 200, 1, true, 2),
-         InlineData(10, 5, 180, 1, true, 10),
-         InlineData(100, 0, 180, 1, false, 2),
-         InlineData(100, 0, 180, 1, true, 2)]
+        [InlineData(10, 5, 180, 1, false, 4),
+         InlineData(10, 5, 180, 1, true, 10)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
            bool useTransactions, int routeCount)
         {
@@ -90,9 +84,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
         private List<string> GenerateRoutes(int routeCount)
         {
             var data = new List<string>();
-            for(int i = 1; i <= routeCount; i++)
+            for(var i = 1; i <= routeCount; i++)
             {
-                data.Add("Route" + i.ToString());
+                data.Add("Route" + i);
             }
             return data;
         }

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Threading;
 using DotNetWorkQueue.Logging;
@@ -46,14 +47,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                     var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
                     )
                 {
-
-                    var rollback = false;
                     using (var schedulerCreator =
                         new SchedulerContainer(
                             // ReSharper disable once AccessToDisposedClosure
                             serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton)))
                     {
-
+                        bool rollback;
                         using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
                         {
                             taskScheduler.Configuration.MaximumThreads = workerCount;

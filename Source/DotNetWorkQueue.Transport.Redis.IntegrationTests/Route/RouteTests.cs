@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.IntegrationTests.Shared;
@@ -30,13 +31,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
     {
         [Theory]
         [InlineData(10, 1, 60, 1, 1, ConnectionInfoTypes.Windows, false),
-         InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Windows, false),
-         InlineData(50, 5, 200, 1, 3, ConnectionInfoTypes.Windows, false),
-         InlineData(10, 5, 180, 1, 4, ConnectionInfoTypes.Windows, false),
-         InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Windows, false),
+         InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Windows, true),
          InlineData(50, 5, 200, 1, 2, ConnectionInfoTypes.Linux, false),
-         InlineData(10, 5, 180, 1, 10, ConnectionInfoTypes.Linux, false),
-         InlineData(100, 0, 180, 1, 2, ConnectionInfoTypes.Linux, false),
          InlineData(500, 0, 180, 1, 2, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
            int routeCount, ConnectionInfoTypes type, bool batch)
@@ -87,9 +83,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
         private List<string> GenerateRoutes(int routeCount)
         {
             var data = new List<string>();
-            for(int i = 1; i <= routeCount; i++)
+            for(var i = 1; i <= routeCount; i++)
             {
-                data.Add("Route" + i.ToString());
+                data.Add("Route" + i);
             }
             return data;
         }

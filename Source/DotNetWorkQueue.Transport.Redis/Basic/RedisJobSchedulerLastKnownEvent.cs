@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Globalization;
 using DotNetWorkQueue.Exceptions;
@@ -23,9 +24,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
-    /// <summary>
-    /// Gets and sets the last event time for scheduled jobs
-    /// </summary>
+    /// <inheritdoc />
     /// <seealso cref="DotNetWorkQueue.IJobSchedulerLastKnownEvent" />
     public class RedisJobSchedulerLastKnownEvent : IJobSchedulerLastKnownEvent
     {
@@ -49,11 +48,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _redisNames = redisNames;
         }
 
-        /// <summary>
-        /// Gets the last known event time for the specified job.
-        /// </summary>
-        /// <param name="jobName">Name of the job.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public DateTimeOffset Get(string jobName)
         {
             var db = _connection.Connection.GetDatabase();

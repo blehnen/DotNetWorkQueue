@@ -1,4 +1,23 @@
-﻿using System;
+﻿// ---------------------------------------------------------------------
+//This file is part of DotNetWorkQueue
+//Copyright © 2017 Brian Lehnen
+//
+//This library is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This library is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// ---------------------------------------------------------------------
+
+using System;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Queue;
@@ -7,8 +26,16 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
+    /// <summary>
+    /// Sets default implementions in the container
+    /// </summary>
     public class MessageQueueInit
     {
+        /// <summary>
+        /// Registers the standard implementations.
+        /// </summary>
+        /// <param name="container">The container.</param>
+        /// <param name="caller">The caller.</param>
         public void RegisterStandardImplementations(IContainer container, Assembly caller)
         {
             Guard.NotNull(() => container, container);
@@ -46,6 +73,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             RegisterCommands(container, Assembly.GetAssembly(GetType()));
         }
 
+        /// <summary>
+        /// Sets the defaults if needed.
+        /// </summary>
+        /// <param name="container">The container.</param>
+        /// <param name="configurationSendName">Name of the configuration send.</param>
+        /// <param name="configurationReceiveName">Name of the configuration receive.</param>
         public void SetDefaultsIfNeeded(IContainer container, string configurationSendName, string configurationReceiveName)
         {
             var factory = container.GetInstance<ITransportOptionsFactory>();

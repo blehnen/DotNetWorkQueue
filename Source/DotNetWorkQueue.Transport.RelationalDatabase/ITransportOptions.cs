@@ -18,6 +18,9 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
+    /// <summary>
+    /// Defines what options the relational transports might support
+    /// </summary>
     public interface ITransportOptions
     {
         #region Options

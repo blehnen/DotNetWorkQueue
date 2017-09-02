@@ -16,12 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Dequeues the next record for a Rpc
     /// </summary>
@@ -32,6 +35,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         private readonly QueueConsumerConfiguration _configuration;
         private readonly object _routeInit = new object();
 
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="DequeueRpcLua"/> class.
         /// </summary>

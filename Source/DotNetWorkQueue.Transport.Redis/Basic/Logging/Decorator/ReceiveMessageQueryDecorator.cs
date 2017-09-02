@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
 {
+    /// <inheritdoc />
     internal class ReceiveMessageQueryDecorator : IQueryHandler<ReceiveMessageQuery, RedisMessage>
     {
         private readonly IQueryHandler<ReceiveMessageQuery, RedisMessage> _handler;
@@ -42,11 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
             _handler = handler;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public RedisMessage Handle(ReceiveMessageQuery query)
         {
             var result = _handler.Handle(query);

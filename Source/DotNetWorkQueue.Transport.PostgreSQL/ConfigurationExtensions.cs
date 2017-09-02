@@ -16,10 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL
 {
     /// <summary>
@@ -43,8 +45,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// <returns></returns>
         public static TimeSpan? GetDelay(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("PostgreSQLMessageQueueDelay", out value) ? value : null;
+            return data.TryGetSetting("PostgreSQLMessageQueueDelay", out dynamic value) ? value : null;
         }
         /// <summary>
         /// Sets the message expiration.
@@ -62,8 +63,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// <returns></returns>
         public static TimeSpan? GetExpiration(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("PostgreSQLMessageQueueExpiration", out value) ? value : null;
+            return data.TryGetSetting("PostgreSQLMessageQueueExpiration", out dynamic value) ? value : null;
         }
         /// <summary>
         /// Sets the priority.
@@ -91,8 +91,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// </remarks>
         public static ushort? GetPriority(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("PostgreSQLMessageQueuePriority", out value) ? value : 128;
+            return data.TryGetSetting("PostgreSQLMessageQueuePriority", out dynamic value) ? value : 128;
         }
     }
 
@@ -109,8 +108,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// </value>
         public static PostgreSqlMessageQueueTransportOptions Options(this QueueConfigurationReceive configuration)
         {
-            dynamic options;
-            if (configuration.AdditionalConfiguration.TryGetSetting("PostgreSQLMessageQueueTransportOptions", out options))
+            if (configuration.AdditionalConfiguration.TryGetSetting("PostgreSQLMessageQueueTransportOptions", out dynamic options))
             {
                 return options;
             }
@@ -132,8 +130,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// </value>
         public static PostgreSqlMessageQueueTransportOptions Options(this QueueConfigurationSend configuration)
         {
-            dynamic options;
-            if (configuration.AdditionalConfiguration.TryGetSetting("PostgreSQLMessageQueueTransportOptions", out options))
+            if (configuration.AdditionalConfiguration.TryGetSetting("PostgreSQLMessageQueueTransportOptions", out dynamic options))
             {
                 return options;
             }

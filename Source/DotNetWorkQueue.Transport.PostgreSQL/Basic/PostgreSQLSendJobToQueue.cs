@@ -16,8 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 
+using System;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -26,10 +26,7 @@ using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.ISendJobToQueue" />
+    /// <inheritdoc />
     public class PostgreSqlSendJobToQueue : ASendJobToQueue
     {
         private readonly IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> _doesJobExist;
@@ -37,6 +34,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
 
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgreSqlSendJobToQueue" /> class.
         /// </summary>
@@ -58,50 +56,26 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             _createJobMetaData = createJobMetaData;
         }
 
-        /// <summary>
-        /// Returns the status of the job based on name and scheduled time.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="scheduledTime">The scheduled time.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         protected override QueueStatuses DoesJobExist(string name, DateTimeOffset scheduledTime)
         {
             return _doesJobExist.Handle(new DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>(name, scheduledTime));
         }
 
-        /// <summary>
-        /// Deletes the job based on the job name.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <inheritdoc />
         protected override void DeleteJob(string name)
         {
             _deleteMessageCommand.Handle(new DeleteMessageCommand(_getJobId.Handle(new GetJobIdQuery(name))));
         }
 
-        /// <summary>
-        /// Return true if the exception indicates that the job already exists.
-        /// </summary>
-        /// <param name="error">The error.</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        /// <remarks>
-        /// Used to determine if we should return specific error messages
-        /// </remarks>
+        /// <inheritdoc />
         protected override bool JobAlreadyExistsError(Exception error)
         {
             var message = error.Message.Replace(Environment.NewLine, " ");
-            return (message.Contains("duplicate key value violates unique constraint") && message.Contains("jobname")) || message.Contains("Failed to insert record - the job has already been queued or processed");
+            return message.Contains("duplicate key value violates unique constraint") && message.Contains("jobname") || message.Contains("Failed to insert record - the job has already been queued or processed");
         }
 
-        /// <summary>
-        /// Sets the specified meta data on the messageData context
-        /// </summary>
-        /// <param name="jobName">Name of the job.</param>
-        /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="eventTime">The event time.</param>
-        /// <param name="route">The route. May be null.</param>
-        /// <param name="messageData">The message data.</param>
+        /// <inheritdoc />
         protected override void SetMetaDataForJob(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
             string route, IAdditionalMessageData messageData)
         {

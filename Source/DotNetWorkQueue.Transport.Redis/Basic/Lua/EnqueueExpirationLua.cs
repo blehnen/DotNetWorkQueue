@@ -16,16 +16,20 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Threading.Tasks;
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Enqueues a message with expiration
     /// </summary>
     internal class EnqueueExpirationLua : BaseLua
     {
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="EnqueueExpirationLua"/> class.
         /// </summary>
@@ -126,7 +130,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 signalID = Convert.ToInt32(rpc),
                 IDKey = (RedisKey)RedisNames.Id,
                 StatusKey = (RedisKey)RedisNames.Status,
-                RouteIDKey = (RedisKey)RedisNames.Route,
+                RouteIDKey = (RedisKey)RedisNames.Route
             };
         }
     }

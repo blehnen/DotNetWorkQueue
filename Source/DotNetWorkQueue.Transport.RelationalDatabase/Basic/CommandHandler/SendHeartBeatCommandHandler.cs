@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Sends a heart beat for a queue record
     /// </summary>
@@ -46,11 +48,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             _prepareCommand = prepareCommand;
             _connectionFactory = connectionFactory;
         }
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public DateTime? Handle(SendHeartBeatCommand command)
         {
             using (var conn = _connectionFactory.Create())

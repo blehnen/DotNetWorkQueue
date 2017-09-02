@@ -16,10 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
+
 namespace DotNetWorkQueue.Transport.SqlServer
 {
     /// <summary>
@@ -43,8 +45,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// <returns></returns>
         public static TimeSpan? GetDelay(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("SqlServerMessageQueueDelay", out value) ? value : null;
+            return data.TryGetSetting("SqlServerMessageQueueDelay", out dynamic value) ? value : null;
         }
         /// <summary>
         /// Sets the message expiration.
@@ -62,8 +63,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// <returns></returns>
         public static TimeSpan? GetExpiration(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("SqlServerMessageQueueExpiration", out value) ? value : null;
+            return data.TryGetSetting("SqlServerMessageQueueExpiration", out dynamic value) ? value : null;
         }
         /// <summary>
         /// Sets the priority.
@@ -91,8 +91,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// </remarks>
         public static ushort? GetPriority(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("SqlServerMessageQueuePriority", out value) ? value : 128;
+            return data.TryGetSetting("SqlServerMessageQueuePriority", out dynamic value) ? value : 128;
         }
     }
 
@@ -109,8 +108,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// </value>
         public static SqlServerMessageQueueTransportOptions Options(this QueueConfigurationReceive configuration)
         {
-            dynamic options;
-            if (configuration.AdditionalConfiguration.TryGetSetting("SqlServerMessageQueueTransportOptions", out options))
+            if (configuration.AdditionalConfiguration.TryGetSetting("SqlServerMessageQueueTransportOptions", out dynamic options))
             {
                 return options;
             }
@@ -132,8 +130,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// </value>
         public static SqlServerMessageQueueTransportOptions Options(this QueueConfigurationSend configuration)
         {
-            dynamic options;
-            if (configuration.AdditionalConfiguration.TryGetSetting("SqlServerMessageQueueTransportOptions", out options))
+            if (configuration.AdditionalConfiguration.TryGetSetting("SqlServerMessageQueueTransportOptions", out dynamic options))
             {
                 return options;
             }

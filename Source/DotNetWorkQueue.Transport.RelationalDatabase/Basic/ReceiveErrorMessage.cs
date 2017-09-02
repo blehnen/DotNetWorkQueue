@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
@@ -26,9 +27,7 @@ using QueueDelay = DotNetWorkQueue.Queue.QueueDelay;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// Error handling related to a unit of work
-    /// </summary>
+    /// <inheritdoc />
     public class ReceiveErrorMessage : IReceiveMessagesError
     {
         #region Member Level Variables
@@ -73,12 +72,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         #endregion
 
         #region IReceiveMessagesError
-        /// <summary>
-        /// Invoked when a message has failed to process.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="context">The context.</param>
-        /// <param name="exception">The exception.</param>
+        /// <inheritdoc />
         public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
             //message failed to process

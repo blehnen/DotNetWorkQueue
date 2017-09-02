@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
-using System;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
 {
     [Collection("SqlServer")]
@@ -29,8 +31,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
     {
         [Theory]
         [InlineData(1, 20, 1, false),
-         InlineData(10, 30, 5, false),
-         InlineData(1, 20, 1, true),
          InlineData(10, 30, 5, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions)
         {

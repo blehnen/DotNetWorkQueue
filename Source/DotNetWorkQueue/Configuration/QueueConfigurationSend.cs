@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Configuration
@@ -33,20 +34,24 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="headerNames">The header names.</param>
         /// <param name="configuration">The configuration.</param>
         /// <param name="timeConfiguration">The time configuration.</param>
+        /// <param name="policies">The policies.</param>
         public QueueConfigurationSend(TransportConfigurationSend transportConfiguration, 
             IHeaders headerNames,
             IConfiguration configuration,
-            BaseTimeConfiguration timeConfiguration)
+            BaseTimeConfiguration timeConfiguration,
+            IPolicies policies)
         {
             Guard.NotNull(() => transportConfiguration, transportConfiguration);
             Guard.NotNull(() => headerNames, headerNames);
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => timeConfiguration, timeConfiguration);
+            Guard.NotNull(() => policies, policies);
 
             TransportConfiguration = transportConfiguration;
             HeaderNames = headerNames;
             AdditionalConfiguration = configuration;
             TimeConfiguration = timeConfiguration;
+            Policies = policies;
         }
         #endregion
 
@@ -58,6 +63,14 @@ namespace DotNetWorkQueue.Configuration
         /// The transport configuration.
         /// </value>
         public TransportConfigurationSend TransportConfiguration { get; }
+
+        /// <summary>
+        /// Gets the policies.
+        /// </summary>
+        /// <value>
+        /// The policies.
+        /// </value>
+        public IPolicies Policies { get; }
 
         /// <summary>
         /// Gets the header names.

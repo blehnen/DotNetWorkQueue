@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
@@ -47,10 +48,40 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             ErrorQueryHandler = errorQueryHandler;
         }
 
+        /// <summary>
+        /// Gets the pending query handler.
+        /// </summary>
+        /// <value>
+        /// The pending query handler.
+        /// </value>
         public IQueryHandler<GetPendingCountQuery, long> PendingQueryHandler { get;}
+        /// <summary>
+        /// Gets the pending exclude delay query handler.
+        /// </summary>
+        /// <value>
+        /// The pending exclude delay query handler.
+        /// </value>
         public IQueryHandler<GetPendingExcludeDelayCountQuery, long> PendingExcludeDelayQueryHandler { get; }
+        /// <summary>
+        /// Gets the pending delayed query handler.
+        /// </summary>
+        /// <value>
+        /// The pending delayed query handler.
+        /// </value>
         public IQueryHandler<GetPendingDelayedCountQuery, long> PendingDelayedQueryHandler { get;  }
+        /// <summary>
+        /// Gets the working query handler.
+        /// </summary>
+        /// <value>
+        /// The working query handler.
+        /// </value>
         public IQueryHandler<GetWorkingCountQuery, long> WorkingQueryHandler { get;  }
+        /// <summary>
+        /// Gets the error query handler.
+        /// </summary>
+        /// <value>
+        /// The error query handler.
+        /// </value>
         public IQueryHandler<GetErrorCountQuery, long> ErrorQueryHandler { get; }
     }
 }

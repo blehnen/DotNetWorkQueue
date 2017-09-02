@@ -16,11 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Policies;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -31,10 +35,13 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.SQLite.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.SQLite.Basic.Factory;
 using DotNetWorkQueue.Transport.SQLite.Basic.Message;
-using CommitMessage = DotNetWorkQueue.Transport.SQLite.Basic.Message.CommitMessage;
 using DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
 using DotNetWorkQueue.Validation;
+using Polly;
+using FindExpiredRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler;
+using FindRecordsToResetByHeartBeatQueryPrepareHandler = DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler;
+using ReceiveMessage = DotNetWorkQueue.Transport.SQLite.Basic.Message.ReceiveMessage;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -101,7 +108,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<CommitMessage>(LifeStyles.Transient);
             container.Register<RollbackMessage>(LifeStyles.Transient);
             container.Register<HandleMessage>(LifeStyles.Transient);
-            container.Register<Message.ReceiveMessage>(LifeStyles.Transient);
+            container.Register<ReceiveMessage>(LifeStyles.Transient);
             //**receive
 
             //reset heart beat 
@@ -132,12 +139,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             //expired messages
             container
                 .Register<IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>,
-                    QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
+                    FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
 
             //heartbeat
             container
                 .Register<IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>,
-                    QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
+                    FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
 
             //explicit registration of options
             container
@@ -226,6 +233,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             var init = new MessageQueueInit();
             init.SetDefaultsIfNeeded(container, "SQLiteMessageQueueTransportOptions", "SQLiteMessageQueueTransportOptions");
 
+            SetupPolicy(container);
+
             //create in memory hold
             var connection = container.GetInstance<IConnectionInformation>();
             var fileName = GetFileNameFromConnectionString.GetFileName(connection.ConnectionString);
@@ -234,6 +243,32 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             var holder = new SqLiteHoldConnection();
             holder.AddConnectionIfNeeded(connection);
             scope.AddScopedObject(holder);
+        }
+
+        private void SetupPolicy(IContainer container)
+        {
+            var policies = container.GetInstance<IPolicies>();
+            var log = container.GetInstance<ILogFactory>().Create();
+
+            var retrySql = Policy
+                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.ErrorCode))
+                .WaitAndRetry(
+                    RetryConstants.RetryCount,
+                    retryAttempt => TimeSpan.FromSeconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                    (exception, timeSpan, retryCount, context) =>
+                    {
+                        log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
+                    });
+
+
+            //BeginTransaction
+            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.BeginTransaction,
+                new TransportPolicyDefinition(
+                    TransportPolicyDefinitions.BeginTransaction,
+                    "A policy for retrying a BeginTransaction command. Sqlite will fail to start" +
+                    "a transaction if another one is in progress. This behavior lets us wait a little" +
+                    "bit and try agian"));
+            policies.Registry[TransportPolicyDefinitions.BeginTransaction] = retrySql;
         }
     }
 }

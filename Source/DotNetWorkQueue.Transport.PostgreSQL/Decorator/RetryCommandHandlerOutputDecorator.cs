@@ -16,77 +16,50 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Linq;
-using System.Threading;
-using DotNetWorkQueue.Logging;
+
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
-using Npgsql;
+using Polly;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
 {
+    /// <inheritdoc />
     internal class RetryCommandHandlerOutputDecorator<TCommand, TOutput> : ICommandHandlerWithOutput<TCommand, TOutput>
     {
         private readonly ICommandHandlerWithOutput<TCommand, TOutput> _decorated;
-        private readonly ThreadSafeRandom _threadSafeRandom;
-        private readonly ILog _log;
+        private readonly IPolicies _policies;
+        private Policy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RetryCommandHandlerOutputDecorator{TCommand,TOutput}" /> class.
         /// </summary>
         /// <param name="decorated">The decorated.</param>
-        /// <param name="log">The log.</param>
-        /// <param name="threadSafeRandom">The random.</param>
+        /// <param name="policies">The policies.</param>
         public RetryCommandHandlerOutputDecorator(ICommandHandlerWithOutput<TCommand, TOutput> decorated,
-            ILogFactory log, 
-            ThreadSafeRandom threadSafeRandom)
+            IPolicies policies)
         {
             Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => threadSafeRandom, threadSafeRandom);
+            Guard.NotNull(() => policies, policies);
 
             _decorated = decorated;
-            _log = log.Create();
-            _threadSafeRandom = threadSafeRandom;
+            _policies = policies;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public TOutput Handle(TCommand command)
         {
             Guard.NotNull(() => command, command);
-            return HandleWithCountDown(command, RetryConstants.RetryCount);
-        }
 
-        /// <summary>
-        ///  Handles the specified command, retrying up to count for specific errors
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="count">The count.</param>
-        /// <returns></returns>
-        private TOutput HandleWithCountDown(TCommand command, int count)
-        {
-            try
+            if (_policy == null)
             {
-                return _decorated.Handle(command);
+                _policies.Registry.TryGet(TransportPolicyDefinitions.RetryCommandHandler, out _policy);
             }
-            catch (PostgresException sqlEx)
-            {
-                if (!RetryablePostGreErrors.Errors.Contains(sqlEx.SqlState))
-                    throw;
-
-                if (count <= 0)
-                    throw;
-
-                var wait = _threadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait);
-                _log.WarnException($"An error has occurred; we will try to re-run the transaction in {wait} ms", sqlEx);
-                Thread.Sleep(wait);
-
-                return HandleWithCountDown(command, count - 1);
-            }
+            if (_policy == null) return _decorated.Handle(command);
+            var result = _policy.ExecuteAndCapture(() => _decorated.Handle(command));
+            if (result.FinalException != null)
+                throw result.FinalException;
+            return result.Result;
         }
     }
 }

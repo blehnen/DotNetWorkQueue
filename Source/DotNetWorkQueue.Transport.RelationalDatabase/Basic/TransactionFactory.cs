@@ -16,20 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Data;
+
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.ITransactionFactory" />
+    /// <inheritdoc />
     public class TransactionFactory : ITransactionFactory
     {
-        /// <summary>
-        /// Creates a new instance of <seealso cref="T:DotNetWorkQueue.Transport.RelationalDatabase.ITransactionWrapper" />
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public ITransactionWrapper Create(IDbConnection connection)
         {
             return new TransactionWrapper(connection);

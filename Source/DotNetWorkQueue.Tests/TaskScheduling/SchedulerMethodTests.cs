@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Queue;
@@ -40,7 +42,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Disposed_Instance_Sets_IsDisposed()
         {
@@ -114,7 +116,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             var fixture2 = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture2.Inject(queue);
 
-            ITaskFactoryFactory factoryFactory = fixture2.Create<ITaskFactoryFactory>();
+            var factoryFactory = fixture2.Create<ITaskFactoryFactory>();
             fixture2.Inject(factoryFactory);
 
             IConsumerQueueScheduler scheduler = fixture2.Create<Scheduler>();

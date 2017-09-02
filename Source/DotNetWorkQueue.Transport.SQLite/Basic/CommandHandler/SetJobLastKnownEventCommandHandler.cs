@@ -16,8 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Data;
 using System.Data.SQLite;
+using System.Globalization;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -55,10 +57,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 commandSql.Parameters["@JobName"].Value = command.JobName;
                 commandSql.Parameters.Add("@JobEventTime", DbType.String);
                 commandSql.Parameters["@JobEventTime"].Value =
-                    command.JobEventTime.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    command.JobEventTime.ToString(CultureInfo.InvariantCulture);
                 commandSql.Parameters.Add("@JobScheduledTime", DbType.String);
                 commandSql.Parameters["@JobScheduledTime"].Value =
-                    command.JobScheduledTime.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    command.JobScheduledTime.ToString(CultureInfo.InvariantCulture);
                 commandSql.ExecuteNonQuery();
             }
         }

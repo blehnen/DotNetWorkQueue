@@ -16,13 +16,24 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
+    /// <summary>
+    /// Returns the message expiration timespan, if any, for a new message
+    /// </summary>
     public static class MessageExpiration
     {
+        /// <summary>
+        /// Gets the message expiration.
+        /// </summary>
+        /// <param name="commandSend">The command send.</param>
+        /// <param name="headers">The headers.</param>
+        /// <param name="getExpirationFromMessageData">The get expiration from message data.</param>
+        /// <returns></returns>
         public static TimeSpan GetExpiration(SendMessageCommand commandSend, 
             IHeaders headers, Func<IAdditionalMessageData, TimeSpan?> getExpirationFromMessageData)
         {

@@ -16,10 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Rpc;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using System;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.rpc
@@ -29,12 +30,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.rpc
     {
         [Theory]
         [InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux),
-         InlineData(30, 0, 240, 5, false, ConnectionInfoTypes.Linux),
-         InlineData(10, 1, 180, 5, true, ConnectionInfoTypes.Linux),
          InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux),
-            InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Windows),
          InlineData(30, 0, 240, 5, false, ConnectionInfoTypes.Windows),
-         InlineData(10, 1, 180, 5, true, ConnectionInfoTypes.Windows),
          InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Windows)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool async, ConnectionInfoTypes type)
         {

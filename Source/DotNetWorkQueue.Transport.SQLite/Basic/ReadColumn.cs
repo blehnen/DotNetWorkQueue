@@ -16,8 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data;
+using System.Globalization;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
@@ -44,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 case CommandStringTypes.GetColumnNamesFromTable:
                     return reader.GetString(1); //sqlite puts column name in column 1, not 0
                 default:
-                    return base.ReadAsString(command, column, reader);
+                    return base.ReadAsString(command, column, reader, noValue);
             }
         }
 
@@ -63,7 +65,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 case CommandStringTypes.GetHeartBeatExpiredMessageIds:
                     return DateTime.FromBinary(reader.GetInt64(column));
                 default:
-                    return base.ReadAsDateTime(command, column, reader);
+                    return base.ReadAsDateTime(command, column, reader, noValue);
             }
         }
 
@@ -83,9 +85,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 case CommandStringTypes.GetJobLastKnownEvent:
                 case CommandStringTypes.GetJobLastScheduleTime:
                     return DateTimeOffset.Parse(reader.GetString(column),
-                        System.Globalization.CultureInfo.InvariantCulture);
+                        CultureInfo.InvariantCulture);
                 default:
-                    return base.ReadAsDateTimeOffset(command, column, reader);
+                    return base.ReadAsDateTimeOffset(command, column, reader, noValue);
             }
         }
     }

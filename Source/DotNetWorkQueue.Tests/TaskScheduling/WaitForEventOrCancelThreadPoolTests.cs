@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.TaskScheduling;
@@ -24,6 +26,7 @@ using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
+
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
@@ -38,7 +41,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Disposed_Instance_Sets_IsDisposed()
         {
@@ -49,7 +52,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Dispose_Can_Be_Called_Multiple_Times()
         {

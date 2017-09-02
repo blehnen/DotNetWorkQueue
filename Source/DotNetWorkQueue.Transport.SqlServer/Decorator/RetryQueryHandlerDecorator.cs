@@ -16,77 +16,52 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Data.SqlClient;
-using System.Threading;
-using DotNetWorkQueue.Logging;
+
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Validation;
+using Polly;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Decorator
 {
+    /// <inheritdoc />
     internal class RetryQueryHandlerDecorator<TQuery, TResult> : IQueryHandler<TQuery, TResult> where TQuery : IQuery<TResult>
     {
         private readonly IQueryHandler<TQuery, TResult> _decorated;
-        private readonly ThreadSafeRandom _threadSafeRandom;
-        private readonly ILog _log;
+        private readonly IPolicies _policies;
+        private Policy _policy;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DotNetWorkQueue.Transport.SqlServer.Decorator.RetryQueryHandlerDecorator{TQuery,TResult}" /> class.
+        /// Initializes a new instance of the <see cref="RetryQueryHandlerDecorator{TQuery,TResult}" /> class.
         /// </summary>
         /// <param name="decorated">The decorated.</param>
-        /// <param name="log">The log.</param>
-        /// <param name="threadSafeRandom">The random.</param>
+        /// <param name="policies">The policies.</param>
         public RetryQueryHandlerDecorator(IQueryHandler<TQuery, TResult> decorated, 
-            ILogFactory log, 
-            ThreadSafeRandom threadSafeRandom)
+            IPolicies policies)
         {
             Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => threadSafeRandom, threadSafeRandom);
+            Guard.NotNull(() => policies, policies);
 
             _decorated = decorated;
-            _log = log.Create();
-            _threadSafeRandom = threadSafeRandom;
+            _policies = policies;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public TResult Handle(TQuery query)
         {
             Guard.NotNull(() => query, query);
-            return HandleWithCountDown(query, RetryConstants.RetryCount);
-        }
-
-        /// <summary>
-        /// Handles the specified query, retrying up to count for specific errors
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <param name="count">The count.</param>
-        /// <returns></returns>
-        private TResult HandleWithCountDown(TQuery query, int count)
-        {
-            try
+            if (_policy == null)
             {
-                return _decorated.Handle(query);
+                _policies.Registry.TryGet(TransportPolicyDefinitions.RetryQueryHandler, out _policy);
             }
-            catch (SqlException sqlEx)
+            if (_policy != null)
             {
-                if (!Enum.IsDefined(typeof(RetryableSqlErrors), sqlEx.Number))
-                    throw;
-
-                if (count <= 0)
-                    throw;
-
-                var wait = _threadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait);
-                _log.WarnException($"An error has occurred; we will try to re-run the transaction in {wait} ms", sqlEx);
-                Thread.Sleep(wait);
-
-                return HandleWithCountDown(query, count - 1);
+                var result = _policy.ExecuteAndCapture(() => _decorated.Handle(query));
+                if (result.FinalException != null)
+                    throw result.FinalException;
+                return result.Result;
             }
+            return _decorated.Handle(query);
         }
     }
 }

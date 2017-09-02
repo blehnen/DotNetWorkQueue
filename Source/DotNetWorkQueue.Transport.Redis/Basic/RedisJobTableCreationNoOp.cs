@@ -16,26 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <remarks>Redis creates the schema automatically</remarks>
-    /// <seealso cref="DotNetWorkQueue.IJobTableCreation" />
+    /// <inheritdoc />
     internal class RedisJobTableCreationNoOp: IJobTableCreation
     {
-        /// <summary>
-        /// Returns true if the job table already exists in the transport
-        /// </summary>
+        /// <inheritdoc />
         public bool JobTableExists => true;
 
-        /// <summary>
-        /// Creates the job storage table if needed
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <inheritdoc />
         public QueueCreationResult CreateJobTable()
         {
             return new QueueCreationResult(QueueCreationStatus.Success);

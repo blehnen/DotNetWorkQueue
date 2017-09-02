@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
@@ -23,9 +24,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Moves delayed messages into the pending queue
-    /// </summary>
+    /// <inheritdoc />
     internal class MoveDelayedRecordsCommandHandler : ICommandHandlerWithOutput<MoveDelayedRecordsCommand, long>
     {
         private readonly MoveDelayedToPendingLua _moveDelayedToPendingLua;
@@ -57,18 +56,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _rpcQueue = queueContext.Context == QueueContexts.RpcQueue;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Handle(MoveDelayedRecordsCommand command)
         {
-            return command.Token.IsCancellationRequested 
-                ? 
-                    0 
-                :
-                    _moveDelayedToPendingLua.Execute(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds(), _options.MoveDelayedMessagesBatchLimit, _rpcQueue);
+            return command.Token.IsCancellationRequested
+                ? 0
+                : _moveDelayedToPendingLua.Execute(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds(),
+                    _options.MoveDelayedMessagesBatchLimit, _rpcQueue);
         }
     }
 }

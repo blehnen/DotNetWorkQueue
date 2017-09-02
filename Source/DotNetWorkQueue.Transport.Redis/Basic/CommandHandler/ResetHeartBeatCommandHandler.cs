@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
@@ -23,9 +24,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// resets records based on the heartbeat having expired
-    /// </summary>
+    /// <inheritdoc />
     internal class ResetHeartBeatCommandHandler : ICommandHandlerWithOutput<ResetHeartBeatCommand, long>
     {
         private readonly IHeartBeatConfiguration _configuration;
@@ -61,11 +60,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _rpcQueue = queueContext.Context == QueueContexts.RpcQueue;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Handle(ResetHeartBeatCommand command)
         {
             return _resetHeartbeatLua.Execute(_unixTimeFactory.Create().GetSubtractDifferenceMilliseconds(_configuration.Time), _options.ResetHeartBeatBatchLimit, _rpcQueue);

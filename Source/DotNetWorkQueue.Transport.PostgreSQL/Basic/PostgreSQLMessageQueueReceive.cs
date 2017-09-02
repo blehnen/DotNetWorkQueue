@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,9 +29,7 @@ using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    /// <summary>
-    /// Handles receive of messages, and passing them back to the caller
-    /// </summary>
+    /// <inheritdoc />
     internal class PostgreSqlMessageQueueReceive : IReceiveMessages
     {
         #region Member level Variables
@@ -97,14 +96,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
         #region IReceiveMessages
 
-        /// <summary>
-        /// Returns a message to process.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <returns>
-        /// A message to process or null if there are no messages to process
-        /// </returns>
-        /// <exception cref="ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
+        /// <inheritdoc />
         public IReceivedMessageInternal ReceiveMessage(IMessageContext context)
         {
             if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
@@ -157,14 +149,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
 
-        /// <summary>
-        /// Returns a message to process.
-        /// </summary>
-        /// <param name="context">The message context.</param>
-        /// <returns>
-        /// A message to process or null if there are no messages to process
-        /// </returns>
-        /// <exception cref="ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
+        /// <inheritdoc />
         public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
         {
             if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)

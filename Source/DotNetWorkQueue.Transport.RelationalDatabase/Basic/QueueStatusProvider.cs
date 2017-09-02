@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.QueueStatus;
@@ -23,15 +24,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// Returns status information about the current queue
-    /// </summary>
+    /// <inheritdoc />
     public class QueueStatusProvider : QueueStatusProviderBase
     {
         private readonly Lazy<ITransportOptions> _options;
         private readonly IInternalSerializer _serializer;
         private readonly QueueStatusQueries _queries;
 
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueStatusProvider" /> class.
         /// </summary>
@@ -51,10 +51,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             _options = new Lazy<ITransportOptions>(optionsFactory.Create);
         }
 
-        /// <summary>
-        /// Gets the data.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         protected override IEnumerable<SystemEntry> GetData()
         {
             yield return GetPendingCount();
@@ -84,7 +81,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     return new SystemEntry(name, error.ToString());
                 }
             }
-            else if (_options.Value.EnableStatusTable)
+            if (_options.Value.EnableStatusTable)
             {
                 try
                 {

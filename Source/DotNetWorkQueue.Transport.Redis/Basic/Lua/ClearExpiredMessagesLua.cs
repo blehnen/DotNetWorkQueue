@@ -16,9 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Clears expired messages from the queue
     /// </summary>
@@ -113,7 +116,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 JobIDKey = (RedisKey)RedisNames.JobIdNames,
                 Statuskey = (RedisKey)RedisNames.Status,
                 RouteIDKey = (RedisKey)RedisNames.Route,
-                limit = count,
+                limit = count
             };
         }
     }

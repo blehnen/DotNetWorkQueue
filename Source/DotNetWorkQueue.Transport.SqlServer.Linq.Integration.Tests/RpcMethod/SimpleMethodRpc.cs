@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.RpcMethod;
@@ -31,17 +32,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.RpcMethod
     {
         [Theory]
         [InlineData(50, 1, 200, 3, false, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 1, 180, 3, false, false, LinqMethodTypes.Dynamic),
+         InlineData(10, 1, 180, 3, true, false, LinqMethodTypes.Dynamic),
          InlineData(30, 0, 240, 3, false, false, LinqMethodTypes.Dynamic),
-         InlineData(50, 1, 200, 3, false, true, LinqMethodTypes.Dynamic),
-         InlineData(10, 1, 180, 3, false, true, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 3, false, true, LinqMethodTypes.Dynamic),
-            InlineData(50, 1, 200, 3, false, false, LinqMethodTypes.Compiled),
-         InlineData(10, 1, 180, 3, false, false, LinqMethodTypes.Compiled),
+         InlineData(50, 1, 200, 3, true, true, LinqMethodTypes.Dynamic),
          InlineData(30, 0, 240, 3, false, false, LinqMethodTypes.Compiled),
          InlineData(50, 1, 200, 3, false, true, LinqMethodTypes.Compiled),
-         InlineData(10, 1, 180, 3, false, true, LinqMethodTypes.Compiled),
-         InlineData(30, 0, 240, 3, false, true, LinqMethodTypes.Compiled)]
+         InlineData(10, 1, 180, 3, true, true, LinqMethodTypes.Compiled),
+         InlineData(30, 0, 240, 3, true, false, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool async, LinqMethodTypes linqMethodTypes)
         {
             var queueNameSend = GenerateQueueName.Create();

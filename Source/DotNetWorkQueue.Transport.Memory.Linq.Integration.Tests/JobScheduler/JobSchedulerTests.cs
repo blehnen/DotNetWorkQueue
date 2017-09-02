@@ -27,8 +27,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerTests
     {
         [Theory]
-        [InlineData(false),
-         InlineData(true)]
+        [InlineData(true)]
         public void Run(
             bool dynamic)
         {

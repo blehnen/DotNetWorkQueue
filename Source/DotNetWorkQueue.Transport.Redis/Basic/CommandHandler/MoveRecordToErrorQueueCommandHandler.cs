@@ -16,15 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Moves a record to the error queue
-    /// </summary>
+    /// <inheritdoc />
     internal class MoveRecordToErrorQueueCommandHandler : ICommandHandler<MoveRecordToErrorQueueCommand>
     {
         private readonly ErrorLua _errorLua;
@@ -39,10 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _errorLua = errorLua;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
+        /// <inheritdoc />
         public void Handle(MoveRecordToErrorQueueCommand command)
         {
             _errorLua.Execute(command.QueueId.Id.Value.ToString());

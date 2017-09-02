@@ -16,13 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
-    /// <summary>
-    /// Creates a job queue in a redis server 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.IJobQueueCreation" />
+    /// <inheritdoc />
     public class RedisJobQueueCreation : IJobQueueCreation
     {
         private readonly RedisQueueCreation _creation;
@@ -35,47 +34,19 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             _creation = creation;
         }
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed => _creation.IsDisposed;
 
-        /// <summary>
-        /// Gets a disposable creation scope
-        /// </summary>
-        /// <value>
-        /// The scope.
-        /// </value>
-        /// <remarks>
-        /// This is used to prevent queues from going out of scope before you have finished working with them. Generally
-        /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.
-        /// </remarks>
+        /// <inheritdoc />
         public ICreationScope Scope => _creation.Scope;
 
-        /// <summary>
-        /// Tells the transport to setup and create a queue for handling re-occurring jobs.
-        /// </summary>
-        /// <param name="registerService">The additional registrations.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="enableRoute">if set to <c>true</c> [enable route].</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <inheritdoc />
         public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, bool enableRoute = false)
         {
             return _creation.CreateQueue();
         }
 
-        /// <summary>
-        /// Attempts to delete an existing queue
-        /// </summary>
-        /// <returns></returns>
-        /// <remarks>
-        /// May not be supported by all transports. Any data in the queue will be lost.
-        /// </remarks>
+        /// <inheritdoc />
         public QueueRemoveResult RemoveQueue()
         {
             return _creation.RemoveQueue();
@@ -99,9 +70,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 _disposedValue = true;
             }
         }
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.

@@ -16,13 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
- 
-using DotNetWorkQueue.Validation;
+
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 {
@@ -70,8 +70,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 var routeCounter = 1;
                 foreach (var route in routes)
                 {
-                    selectCommand.Parameters.Add("@Route" + routeCounter.ToString(), SqlDbType.VarChar);
-                    selectCommand.Parameters["@Route" + routeCounter.ToString()].Value = route;
+                    selectCommand.Parameters.Add("@Route" + routeCounter, SqlDbType.VarChar);
+                    selectCommand.Parameters["@Route" + routeCounter].Value = route;
                     routeCounter++;
                 }
             }

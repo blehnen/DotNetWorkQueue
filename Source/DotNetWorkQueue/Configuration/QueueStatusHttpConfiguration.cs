@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.QueueStatus;
@@ -61,8 +62,7 @@ namespace DotNetWorkQueue.Configuration
         public static QueueStatusHttpConfiguration Options(this IQueueStatus queueStatus)
         {
             Guard.NotNull(() => queueStatus, queueStatus);
-            dynamic options;
-            if (queueStatus.Configuration.TryGetSetting("QueueStatusHttpConfiguration", out options))
+            if (queueStatus.Configuration.TryGetSetting("QueueStatusHttpConfiguration", out dynamic options))
             {
                 return options;
             }

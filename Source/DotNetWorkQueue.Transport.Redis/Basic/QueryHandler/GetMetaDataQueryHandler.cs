@@ -16,14 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
-    /// <summary>
-    /// Returns a records meta data from the transport
-    /// </summary>
+    /// <inheritdoc />
     internal class GetMetaDataQueryHandler : IQueryHandler<GetMetaDataQuery, RedisMetaData>
     {
         private readonly IRedisConnection _connection;
@@ -50,11 +49,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _internalSerializer = internalSerializer;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public RedisMetaData Handle(GetMetaDataQuery query)
         {
             var db = _connection.Connection.GetDatabase();

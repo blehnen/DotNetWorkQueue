@@ -16,8 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -142,7 +144,7 @@ namespace DotNetWorkQueue.QueueStatus
                 // ReSharper disable once UncatchableException
                 catch (ObjectDisposedException ex)
                 {
-                    if ((ex.ObjectName == _httpListener.GetType().FullName) && (_httpListener.IsListening == false))
+                    if (ex.ObjectName == _httpListener.GetType().FullName && _httpListener.IsListening == false)
                     {
                         return; // listener is closed/disposed
                     }
@@ -150,8 +152,7 @@ namespace DotNetWorkQueue.QueueStatus
                 }
                 catch (Exception ex)
                 {
-                    var listenerException = ex as HttpListenerException;
-                    if (listenerException == null || listenerException.ErrorCode != 995)// IO operation aborted
+                    if (!(ex is HttpListenerException listenerException) || listenerException.ErrorCode != 995)// IO operation aborted
                     {
                         _log.ErrorException("Error processing HTTP request", ex);
                     }
@@ -337,8 +338,8 @@ namespace DotNetWorkQueue.QueueStatus
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "_cancelTokenSource", Justification = "not needed")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "_httpListener", Justification = "not needed")]
+        [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "_cancelTokenSource", Justification = "not needed")]
+        [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "_httpListener", Justification = "not needed")]
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
@@ -351,8 +352,7 @@ namespace DotNetWorkQueue.QueueStatus
             {
                 while (!_queueStatusProviders.IsEmpty)
                 {
-                    IQueueStatusProvider item;
-                    _queueStatusProviders.TryTake(out item);
+                    _queueStatusProviders.TryTake(out _);
                 }
             }
 

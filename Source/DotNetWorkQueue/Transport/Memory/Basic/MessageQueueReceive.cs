@@ -16,12 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Memory.Basic.Message;
 using DotNetWorkQueue.Validation;
 
@@ -33,12 +32,10 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     internal class MessageQueueReceive : IReceiveMessages
     {
         #region Member level Variables
-        private readonly QueueConsumerConfiguration _configuration;
         private readonly ICancelWork _cancelWork;
 
         private readonly ReceiveMessage _receiveMessages;
         private readonly HandleMessage _handleMessage;
-        private readonly ILog _log;
 
         #endregion
 
@@ -46,25 +43,18 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageQueueReceive" /> class.
         /// </summary>
-        /// <param name="configuration">The configuration.</param>
         /// <param name="cancelWork">The cancel work.</param>
         /// <param name="handleMessage">The handle message.</param>
         /// <param name="receiveMessages">The receive messages.</param>
-        /// <param name="log">The log.</param>
-        public MessageQueueReceive(QueueConsumerConfiguration configuration,
+        public MessageQueueReceive(
             IQueueCancelWork cancelWork,
             HandleMessage handleMessage,
-            ReceiveMessage receiveMessages,
-            ILogFactory log)
+            ReceiveMessage receiveMessages)
         {
-            Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => cancelWork, cancelWork);
             Guard.NotNull(() => handleMessage, handleMessage);
             Guard.NotNull(() => receiveMessages, receiveMessages);
-            Guard.NotNull(() => log, log);
 
-            _log = log.Create();
-            _configuration = configuration;
             _cancelWork = cancelWork;
             _handleMessage = handleMessage;
             _receiveMessages = receiveMessages;

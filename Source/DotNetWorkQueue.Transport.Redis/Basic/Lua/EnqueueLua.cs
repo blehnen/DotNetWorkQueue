@@ -16,11 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Enqueues a message
     /// </summary>
@@ -29,6 +33,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         private const string DateTimeFormat = "MM/dd/yyyy hh:mm:ss.fff tt";
         private const string DateTimeScheduler = "MM/dd/yyyy hh:mm:ss tt";
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EnqueueLua"/> class.
+        /// </summary>
+        /// <param name="connection">The connection.</param>
+        /// <param name="redisNames">The redis names.</param>
         public EnqueueLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
@@ -152,8 +162,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 JobEventKey = (RedisKey)RedisNames.JobEvent,
                 RouteIDKey = (RedisKey)RedisNames.Route,
                 JobNameScheduled = string.Concat(jobName, "|scheduled"),
-                ScheduledTime = scheduledTime.ToString(DateTimeScheduler, System.Globalization.CultureInfo.InvariantCulture),
-                EventTime = eventTime.ToString(DateTimeFormat, System.Globalization.CultureInfo.InvariantCulture)
+                ScheduledTime = scheduledTime.ToString(DateTimeScheduler, CultureInfo.InvariantCulture),
+                EventTime = eventTime.ToString(DateTimeFormat, CultureInfo.InvariantCulture)
             };
         }
     }

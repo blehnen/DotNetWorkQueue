@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Factory;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Redis.Basic.Message;
@@ -29,7 +31,6 @@ using DotNetWorkQueue.Transport.Redis.Basic.MessageID;
 using DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Redis.Basic.Time;
-using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic

@@ -16,17 +16,21 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Data;
 using System.Linq;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
 {
+    /// <inheritdoc />
     public class CreateQueueTablesAndSaveConfigurationCommandPrepareHandler: IPrepareCommandHandler<CreateQueueTablesAndSaveConfigurationCommand<ITable>>
     {
+        /// <inheritdoc />
         public void Handle(CreateQueueTablesAndSaveConfigurationCommand<ITable> command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
-            dbCommand.CommandText = command.Tables.Aggregate(string.Empty, (current, table) => current + (table.Script() + System.Environment.NewLine));
+            dbCommand.CommandText = command.Tables.Aggregate(string.Empty, (current, table) => current + table.Script() + Environment.NewLine);
         }
     }
 }

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -23,7 +24,8 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-   public class SendHeartBeat : ISendHeartBeat 
+    /// <inheritdoc />
+    public class SendHeartBeat : ISendHeartBeat 
     {
         #region Member Level Variables
         private readonly ICommandHandlerWithOutput<SendHeartBeatCommand, DateTime?> _commandHandler;
@@ -42,10 +44,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         #endregion
 
         #region ISendHeartBeat
-        /// <summary>
-        /// Updates the heart beat for a record context
-        /// </summary>
-        /// <param name="context">The context.</param>
+        /// <inheritdoc />
         public IHeartBeatStatus Send(IMessageContext context)
         {
             var command = new SendHeartBeatCommand((long)context.MessageId.Id.Value);

@@ -16,20 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.ICorrelationIdFactory" />
+    /// <inheritdoc />
     public class CorrelationIdFactory : ICorrelationIdFactory
     {
-        /// <summary>
-        /// Creates a new instance of <see cref="T:DotNetWorkQueue.ICorrelationId" />
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public ICorrelationId Create()
         {
             return new MessageCorrelationId(Guid.NewGuid());

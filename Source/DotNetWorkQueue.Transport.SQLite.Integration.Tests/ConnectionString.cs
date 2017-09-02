@@ -16,13 +16,16 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
+    [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
     public class IntegrationConnectionInfo: IDisposable
     {
         private readonly string _fileName;
@@ -46,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             get;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
+        [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public void Dispose()
         {
             if (!string.IsNullOrWhiteSpace(_fileName))
@@ -57,7 +60,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
                 }
                 catch
                 {
-                    System.Threading.Thread.Sleep(3000);
+                    Thread.Sleep(3000);
                     try
                     {
                         File.Delete(_fileName);

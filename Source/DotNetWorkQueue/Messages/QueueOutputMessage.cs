@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue.Messages
 {
-    /// <summary>
-    /// Results of a send request
-    /// </summary>
+    /// <inheritdoc />
     public class QueueOutputMessage : IQueueOutputMessage
     {
         /// <summary>
@@ -45,28 +45,13 @@ namespace DotNetWorkQueue.Messages
             SentMessage = sentMessage;
         }
 
-        /// <summary>
-        /// Gets the sent message.
-        /// </summary>
-        /// <value>
-        /// The sent message.
-        /// </value>
+        /// <inheritdoc />
         public ISentMessage SentMessage { get; }
 
-        /// <summary>
-        /// Gets the sending exception.
-        /// </summary>
-        /// <value>
-        /// The sending exception.
-        /// </value>
+        /// <inheritdoc />
         public Exception SendingException { get; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this instance has failed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance has error; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool HasError => SendingException != null || SentMessage == null || !SentMessage.MessageId.HasValue;
     }
 }

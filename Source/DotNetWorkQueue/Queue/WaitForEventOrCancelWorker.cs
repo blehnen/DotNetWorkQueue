@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Queue
 {
+    /// <inheritdoc cref="IWaitForEventOrCancelWorker" />
     /// <summary>
     /// A worker wait/event handle
     /// </summary>

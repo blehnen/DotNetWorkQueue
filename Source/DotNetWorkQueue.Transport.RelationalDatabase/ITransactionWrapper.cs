@@ -16,12 +16,28 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Data;
+
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
+    /// <summary>
+    /// Wraps a transaction to allow for custom interception
+    /// </summary>
+    /// <remarks>Since we can't really use IoC to directly create our transactions</remarks>
     public interface ITransactionWrapper
     {
+        /// <summary>
+        /// Gets or sets the connection.
+        /// </summary>
+        /// <value>
+        /// The connection.
+        /// </value>
         IDbConnection Connection { get; set; }
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
+        /// <returns></returns>
         IDbTransaction BeginTransaction();
     }
 }

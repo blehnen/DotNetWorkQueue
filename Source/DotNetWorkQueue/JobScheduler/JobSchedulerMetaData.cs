@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue.JobScheduler
 {
     /// <summary>
@@ -48,8 +50,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <returns></returns>
         public DateTimeOffset GetScheduledTime(IAdditionalMessageData messageData)
         {
-            object value;
-            if (messageData.TryGetSetting("JobScheduledTime", out value))
+            if (messageData.TryGetSetting("JobScheduledTime", out var value))
             {
                 return (DateTimeOffset) value;
             }
@@ -63,8 +64,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <returns></returns>
         public DateTimeOffset GetEventTime(IAdditionalMessageData messageData)
         {
-            object value;
-            if (messageData.TryGetSetting("JobEventTime", out value))
+            if (messageData.TryGetSetting("JobEventTime", out var value))
             {
                 return (DateTimeOffset)value;
             }
@@ -78,8 +78,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <returns></returns>
         public string GetJobName(IAdditionalMessageData messageData)
         {
-            object value;
-            if (messageData.TryGetSetting("JobName", out value))
+            if (messageData.TryGetSetting("JobName", out var value))
             {
                 return (string)value;
             }

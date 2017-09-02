@@ -16,73 +16,44 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
+    /// <inheritdoc />
     public class ReadColumn : IReadColumn
     {
-        /// <summary>
-        /// Reads data as a string
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
-        /// <param name="reader">The reader.</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <inheritdoc />
         public virtual string ReadAsString(CommandStringTypes command, int column, IDataReader reader, string noValue = null)
         {
             ValidColumn(column, command);
             return !reader.IsDBNull(column) ? reader.GetString(column) : noValue;
         }
 
-        /// <summary>
-        /// Reads as date time.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
-        /// <param name="reader">The reader.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public virtual DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader, DateTime noValue = default(DateTime))
         {
             ValidColumn(column, command);
             return !reader.IsDBNull(column) ? reader.GetDateTime(column) : noValue;
         }
 
-        /// <summary>
-        /// Reads as int32
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
-        /// <param name="reader">The reader.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public virtual int ReadAsInt32(CommandStringTypes command, int column, IDataReader reader, int noValue = 0)
         {
             ValidColumn(column, command);
             return !reader.IsDBNull(column) ? reader.GetInt32(column) : noValue;
         }
 
-        /// <summary>
-        /// Reads as int64
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
-        /// <param name="reader">The reader.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public virtual long ReadAsInt64(CommandStringTypes command, int column, IDataReader reader, long noValue = 0)
         {
             ValidColumn(column, command);
             return !reader.IsDBNull(column) ? reader.GetInt64(column) : noValue;
         }
 
-        /// <summary>
-        /// Reads as a date time offset
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
-        /// <param name="reader">The reader.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public virtual DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default(DateTimeOffset))
         {
             ValidColumn(column, command);
@@ -91,13 +62,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             return noValue;
         }
 
-        /// <summary>
-        /// Reads as byte[]
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
-        /// <param name="reader">The reader.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public virtual byte[] ReadAsByteArray(CommandStringTypes command, int column, IDataReader reader, byte[] noValue = null)
         {
             ValidColumn(column, command);
@@ -106,6 +71,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             return noValue;
         }
 
+        /// <summary>
+        /// Validates that the column can be used.
+        /// </summary>
+        /// <param name="column">The column.</param>
+        /// <param name="command">The command.</param>
+        /// <exception cref="ArgumentException">column is -1; can only be handled in overridden implementations</exception>
         protected virtual void ValidColumn(int column, CommandStringTypes command)
         {
             if (column == -1)

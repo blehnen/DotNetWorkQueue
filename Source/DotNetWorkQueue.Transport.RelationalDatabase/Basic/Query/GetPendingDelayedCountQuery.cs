@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
+    /// <inheritdoc />
     /// <summary>
     /// How many delayed pending records are present
     /// </summary>

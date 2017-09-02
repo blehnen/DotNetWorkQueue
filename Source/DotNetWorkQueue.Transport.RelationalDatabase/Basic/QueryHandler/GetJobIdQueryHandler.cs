@@ -16,14 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class GetJobIdQueryHandler : IQueryHandler<GetJobIdQuery, long>
     {
         private readonly IPrepareQueryHandler<GetJobIdQuery, long> _prepareQuery;
@@ -49,11 +48,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _readColumn = readColumn;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Handle(GetJobIdQuery query)
         {
             using (var connection = _dbConnectionFactory.Create())

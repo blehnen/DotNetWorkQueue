@@ -16,15 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Clears expired messages from the transport
-    /// </summary>
+    /// <inheritdoc />
     internal class ClearExpiredMessagesCommandHandler : ICommandHandlerWithOutput<ClearExpiredMessagesCommand, long>
     {
         private readonly ClearExpiredMessagesLua _clearExpiredMessagesLua;
@@ -50,11 +49,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _options = options;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Handle(ClearExpiredMessagesCommand command)
         {
             return _clearExpiredMessagesLua.Execute(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds(), _options.ClearExpiredMessagesBatchLimit);

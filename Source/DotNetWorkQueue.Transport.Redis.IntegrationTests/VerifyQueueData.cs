@@ -16,13 +16,16 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
+    [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
     public class VerifyQueueData: IDisposable
     {
         private readonly QueueProducerConfiguration _configuration;
@@ -54,7 +57,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             }
         }
 
-        // ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private void VerifyCount(long messageCount, string route)
         {
             var db = _connection.Connection.GetDatabase();
@@ -62,9 +65,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             Assert.Equal(messageCount, records);
         }
 
-        // ReSharper disable once UnusedParameter.Local
-        private void VerifyStatus(long messageCount, 
-            // ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        private void VerifyStatus(long messageCount,
+            // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             int expectedStatus, string route)
         {
             var db = _connection.Connection.GetDatabase();
@@ -78,7 +81,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             }
         }
 
-        // ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private void VerifyDelayedProcessing(long messageCount)
         {
             var db = _connection.Connection.GetDatabase();
@@ -86,7 +89,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             Assert.Equal(messageCount, records);
         }
 
-        // ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private void VerifyMessageExpiration(long messageCount)
         {
             var db = _connection.Connection.GetDatabase();
@@ -94,14 +97,14 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             Assert.Equal(messageCount, records);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
+        [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public void Dispose()
         {
             _connection.Dispose();
         }
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
+    [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
     public class VerifyQueueRecordCount : IDisposable
     {
         private readonly RedisNames _redisNames;
@@ -119,7 +122,6 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             AllTablesRecordCount(recordCount, ignoreErrorTracking, expectedStatus);
         }
 
-        // ReSharper disable once UnusedParameter.Local
         private void AllTablesRecordCount(int recordCount, bool ignoreErrorTracking, int expectedStatus)
         {
             long records;
@@ -137,9 +139,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             VerifyStatus(recordCount, expectedStatus);
         }
 
-        // ReSharper disable once UnusedParameter.Local
-        private void VerifyStatus(long messageCount, 
-            // ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        private void VerifyStatus(long messageCount,
+            // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             int expectedStatus)
         {
             var db = _connection.Connection.GetDatabase();
@@ -153,13 +155,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
+        [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public void Dispose()
         {
             _connection.Dispose();
         }
     }
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
+    [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
     public class VerifyErrorCounts : IDisposable
     {
         private readonly RedisNames _redisNames;
@@ -179,7 +181,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             Assert.Equal(messageCount, records);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
+        [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public void Dispose()
         {
             _connection.Dispose();

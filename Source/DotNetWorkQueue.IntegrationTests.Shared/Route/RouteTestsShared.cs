@@ -16,14 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Messages;
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
+using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Route
 {
@@ -66,7 +67,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
 
                 //spin up and process each route
-                Parallel.ForEach(routes, (route) =>
+                Parallel.ForEach(routes, route =>
                 {
                     var consumer = new ConsumerAsyncShared<TMessage> {Factory = taskFactory};
 
@@ -96,7 +97,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 addInterceptors,
                 messageCount,
                 logProvider,
-                (g) => GenerateDataWithRoute(generateData, g, route),
+                g => GenerateDataWithRoute(generateData, g, route),
                 (a, b, c, d, e) => VerifyRoutes(verify, a, b, c, d, route, scope),
                 sendViaBatch,
                 false,

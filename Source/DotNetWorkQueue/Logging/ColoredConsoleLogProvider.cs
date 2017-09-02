@@ -16,10 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+
 namespace DotNetWorkQueue.Logging
 {
     /// <summary>
@@ -57,8 +59,7 @@ namespace DotNetWorkQueue.Logging
                     return true; // All log levels are enabled except for trace
                 }
 
-                ConsoleColor consoleColor;
-                if (Colors.TryGetValue(logLevel, out consoleColor))
+                if (Colors.TryGetValue(logLevel, out var consoleColor))
                 {
                     var originalForeground = Console.ForegroundColor;
                     try

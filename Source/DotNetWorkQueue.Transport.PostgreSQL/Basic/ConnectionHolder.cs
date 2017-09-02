@@ -16,9 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data;
-
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
@@ -103,10 +103,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Creates a SQL command object from the current connection and sets the transaction if one is present.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public NpgsqlCommand CreateCommand()
         {
             if(_npgsqlConnection == null)
@@ -122,9 +119,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         }
 
         #region Dispose
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);
@@ -152,12 +147,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             _npgsqlConnection.Dispose();
             _npgsqlConnection = null;
         }
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
 
         /// <summary>

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Rpc;
@@ -30,16 +31,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.rpc
     {
         [Theory]
         [InlineData(50, 1, 200, 3, false, true),
-         InlineData(10, 1, 180, 3, false, true),
-         InlineData(30, 0, 240, 3, false, true),
          InlineData(50, 1, 200, 3, true, true),
-         InlineData(10, 1, 180, 3, true, true),
-         InlineData(30, 0, 240, 3, true, true),
-         InlineData(50, 1, 200, 3, false, false),
-         InlineData(10, 1, 180, 3, false, false),
          InlineData(30, 0, 240, 3, false, false),
-         InlineData(50, 1, 200, 3, true, false),
-         InlineData(10, 1, 180, 3, true, false),
          InlineData(30, 0, 240, 3, true, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool async, bool inMemoryDb)
         {

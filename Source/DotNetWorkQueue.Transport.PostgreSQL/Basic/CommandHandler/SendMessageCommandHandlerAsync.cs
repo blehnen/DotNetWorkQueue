@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
-
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -32,6 +32,7 @@ using NpgsqlTypes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Sends a message to the queue
     /// </summary>
@@ -96,12 +97,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             _getTime = getTimeFactory.Create();
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="commandSend">The command.</param>
-        /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException">Failed to insert record - the ID of the new record returned by the server was 0</exception>
+        /// <inheritdoc />
         public async Task<long> HandleAsync(SendMessageCommand commandSend)
         {
             if (!_messageExpirationEnabled.HasValue)
@@ -152,7 +148,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 var expiration = TimeSpan.Zero;
                                 if (_messageExpirationEnabled.Value)
                                 {
-                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, (data) => data.GetExpiration());
+                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, data => data.GetExpiration());
                                 }
 
                                 await
@@ -182,11 +178,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                             return id;
                         }
                     }
-                    else
-                    {
-                        throw new DotNetWorkQueueException(
-                                "Failed to insert record - the job has already been queued or processed");
-                    }
+                    throw new DotNetWorkQueueException(
+                        "Failed to insert record - the job has already been queued or processed");
                 }
             }
         }

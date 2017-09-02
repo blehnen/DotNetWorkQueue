@@ -16,15 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.ITransportOptionsFactory" />
+    /// <inheritdoc />
     public class TransportOptionsFactory : ITransportOptionsFactory
     {
         private readonly IPostgreSqlMessageQueueTransportOptionsFactory _factory;
@@ -37,10 +35,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             Guard.NotNull(() => factory, factory);
             _factory = factory;
         }
-        /// <summary>
-        /// Returns the options class
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public ITransportOptions Create()
         {
             return _factory.Create();

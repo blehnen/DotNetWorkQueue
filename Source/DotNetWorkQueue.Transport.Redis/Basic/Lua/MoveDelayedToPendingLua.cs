@@ -16,15 +16,24 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Moves delayed records to the pending queue
     /// </summary>
     internal class MoveDelayedToPendingLua: BaseLua
     {
+        /// <inheritdoc />
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MoveDelayedToPendingLua"/> class.
+        /// </summary>
+        /// <param name="connection">The connection.</param>
+        /// <param name="redisNames">The redis names.</param>
         public MoveDelayedToPendingLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
@@ -86,7 +95,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 channel = RedisNames.Notification,
                 limit = count,
                 RouteIDKey = (RedisKey)RedisNames.Route,
-                signalID = Convert.ToInt32(rpc),
+                signalID = Convert.ToInt32(rpc)
             };
         }
     }

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
@@ -30,8 +31,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
     {
         [Theory]
         [InlineData(1, 60, 1, 1, 0, true),
-        InlineData(25, 200, 20, 1, 5, true),
-        InlineData(1, 60, 1, 1, 0, false),
         InlineData(25, 200, 20, 1, 5, false)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, bool inMemoryDb)
         {

@@ -16,9 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
+    /// <inheritdoc />
     internal class GetFirstMessageDeliveryTime: IGetFirstMessageDeliveryTime
     {
         private readonly IGetTimeFactory _getTime;
@@ -30,12 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             _getTime = getTime;
         }
-        /// <summary>
-        /// Gets the first possible delivery time for a message in UTC format.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="data">The additional message data.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public DateTime GetTime(IMessage message, IAdditionalMessageData data)
         {
             var delay = data.GetDelay();

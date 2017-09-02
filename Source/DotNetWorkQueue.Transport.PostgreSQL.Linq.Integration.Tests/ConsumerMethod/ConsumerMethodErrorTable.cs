@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
@@ -30,16 +31,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodErrorTable
     {
         [Theory]
-        [InlineData(1, 10, 1, false, LinqMethodTypes.Dynamic),
-         InlineData(100, 60, 20, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 40, 5, false, LinqMethodTypes.Dynamic),
-         InlineData(1, 10, 1, true, LinqMethodTypes.Dynamic),
+        [InlineData(100, 60, 20, false, LinqMethodTypes.Dynamic),
          InlineData(100, 60, 20, true, LinqMethodTypes.Dynamic),
          InlineData(10, 40, 5, true, LinqMethodTypes.Dynamic),
-            InlineData(1, 10, 1, false, LinqMethodTypes.Compiled),
-         InlineData(100, 60, 20, false, LinqMethodTypes.Compiled),
-         InlineData(10, 40, 5, false, LinqMethodTypes.Compiled),
-         InlineData(1, 10, 1, true, LinqMethodTypes.Compiled),
          InlineData(100, 60, 20, true, LinqMethodTypes.Compiled),
          InlineData(10, 40, 5, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)

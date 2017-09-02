@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
@@ -32,13 +33,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
 
         [Theory]
         [InlineData(50, 5, 200, 10, false, LinqMethodTypes.Compiled),
-        InlineData(10, 15, 180, 7, false, LinqMethodTypes.Compiled),
-        InlineData(50, 5, 200, 10, true, LinqMethodTypes.Compiled),
         InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled),
-        InlineData(50, 5, 200, 10, false, LinqMethodTypes.Dynamic),
-        InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic),
         InlineData(50, 5, 200, 10, true, LinqMethodTypes.Dynamic),
-        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Dynamic)]
+        InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();

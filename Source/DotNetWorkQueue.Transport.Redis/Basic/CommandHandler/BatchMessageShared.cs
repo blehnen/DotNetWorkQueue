@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -79,7 +80,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
                 var serialized = serializer.Serializer.MessageToBytes(new MessageBody { Body = m.Message.Body });
                 m.Message.SetHeader(redisHeaders.Headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
-                messagesToSend.Add(new EnqueueBatchLua.MessageToSend()
+                messagesToSend.Add(new EnqueueBatchLua.MessageToSend
                 {
                     Message = serialized.Output,
                     Headers = serializer.InternalSerializer.ConvertToBytes(m.Message.Headers),

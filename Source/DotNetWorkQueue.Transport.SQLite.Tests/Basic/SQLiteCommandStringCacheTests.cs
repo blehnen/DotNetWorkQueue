@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -39,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void GetSet_Key()
         {
             var test = Create();
-            var command = new CommandString("testing", new System.Collections.Generic.List<string>());
+            var command = new CommandString("testing", new List<string>());
             test.Add("test", command);
             Assert.True(test.Contains("test"));
             Assert.Equal(command, test.Get("test"));

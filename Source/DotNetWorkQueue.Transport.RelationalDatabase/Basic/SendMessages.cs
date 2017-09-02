@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -28,9 +29,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// Sends a new message to an existing queue
-    /// </summary>
+    /// <inheritdoc />
     public class SendMessages : ISendMessages
     {
         #region Member Level Variables
@@ -61,15 +60,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         #endregion
 
         #region ISendMessages
-        /// <summary>
-        /// Sends a new message to an existing queue
-        /// </summary>
-        /// <param name="messageToSend">The message to send.</param>
-        /// <param name="data">The additional data.</param>
-        /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException"></exception>
-        /// <exception cref="System.Exception">Failed to insert record</exception>
-        /// <exception cref="System.ApplicationException"></exception>
+        /// <inheritdoc />
         public IQueueOutputMessage Send(IMessage messageToSend, IAdditionalMessageData data)
         {
             try
@@ -85,11 +76,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         }
         #endregion
 
-        /// <summary>
-        /// Sends a new message to an existing queue
-        /// </summary>
-        /// <param name="messages"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
             try
@@ -120,13 +107,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             }
         }
 
-        /// <summary>
-        /// Sends a new message to an existing queue
-        /// </summary>
-        /// <param name="messageToSend">The message to send.</param>
-        /// <param name="data">The data.</param>
-        /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException">An error occurred while sending a message</exception>
+        /// <inheritdoc />
         public async Task<IQueueOutputMessage> SendAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
             try
@@ -141,12 +122,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             }
         }
 
-        /// <summary>
-        /// Sends new messages to an existing queue
-        /// </summary>
-        /// <param name="messages">The messages.</param>
-        /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException">An error occurred while sending a message</exception>
+        /// <inheritdoc />
         public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
             try

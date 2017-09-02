@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -23,6 +24,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Deletes a transactional message from the queue
     /// </summary>
@@ -54,11 +56,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             _prepareCommand = prepareCommand;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Handle(DeleteTransactionalMessageCommand command)
         {
             var connection = command.MessageContext.Get(_headers.Connection);

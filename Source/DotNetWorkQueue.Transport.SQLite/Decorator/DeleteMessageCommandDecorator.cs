@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -23,9 +24,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class DeleteMessageCommandDecorator : ICommandHandlerWithOutput<DeleteMessageCommand, long>
     {
         private readonly IConnectionInformation _connectionInformation;
@@ -43,11 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             _connectionInformation = connectionInformation;
             _decorated = decorated;
         }
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Handle(DeleteMessageCommand command)
         {
             return !DatabaseExists.Exists(_connectionInformation.ConnectionString) ? 0 : _decorated.Handle(command);

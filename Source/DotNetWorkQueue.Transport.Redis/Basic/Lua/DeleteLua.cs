@@ -16,14 +16,18 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Deletes a message from the queue
     /// </summary>
     internal class DeleteLua: BaseLua
     {
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteLua"/> class.
         /// </summary>
@@ -84,7 +88,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 JobKey = (RedisKey)RedisNames.JobNames,
                 JobIDKey = (RedisKey)RedisNames.JobIdNames,
                 StatusKey = (RedisKey)RedisNames.Status,
-                RouteIDKey = (RedisKey)RedisNames.Route,
+                RouteIDKey = (RedisKey)RedisNames.Route
             };
         }
     }

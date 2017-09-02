@@ -16,26 +16,17 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.IReadColumn" />
+    /// <inheritdoc />
     public class ReadColumn : RelationalDatabase.Basic.ReadColumn
     {
-        /// <summary>
-        /// Reads as date time.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
-        /// <param name="reader">The reader.</param>
-        /// <param name="noValue"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public override DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader, DateTime noValue = default(DateTime))
         {
             switch (command)
@@ -43,17 +34,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 case CommandStringTypes.GetHeartBeatExpiredMessageIds:
                     return DateTime.FromBinary(reader.GetInt64(column));
                 default:
-                    return base.ReadAsDateTime(command, column, reader);
+                    return base.ReadAsDateTime(command, column, reader, noValue);
             }
         }
-        /// <summary>
-        /// Reads as a date time offset
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
-        /// <param name="reader">The reader.</param>
-        /// <param name="noValue"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public override DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default(DateTimeOffset))
         {
             switch (command)
@@ -63,7 +47,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 case CommandStringTypes.GetJobLastScheduleTime:
                     return new DateTimeOffset(new DateTime(reader.GetInt64(column), DateTimeKind.Utc));
                 default:
-                    return base.ReadAsDateTimeOffset(command, column, reader);
+                    return base.ReadAsDateTimeOffset(command, column, reader, noValue);
             }
         }
     }

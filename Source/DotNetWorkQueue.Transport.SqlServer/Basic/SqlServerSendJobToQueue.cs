@@ -16,13 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data.SqlClient;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
-
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             var exception = error as SqlException;
             var message = error.Message.Replace(Environment.NewLine, " ");
-            return (exception?.Class == 14 && exception.Number == 2627) ||
+            return exception?.Class == 14 && exception.Number == 2627 ||
                     message.Contains("Failed to insert record - the job has already been queued or processed");
         }
 

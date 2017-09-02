@@ -16,13 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Threading.Tasks;
-using StackExchange.Redis;
+
 using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
+using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Dequeues the next record
     /// </summary>
@@ -32,6 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         private int _nextRoute;
         private readonly QueueConsumerConfiguration _configuration;
         private readonly object _routeInit = new object();
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="DequeueLua" /> class.
         /// </summary>
@@ -162,7 +165,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 valueskey = (RedisKey)RedisNames.Values,
                 headerskey = (RedisKey)RedisNames.Headers,
                 expirekey = (RedisKey)RedisNames.Expiration,
-                StatusKey = (RedisKey)RedisNames.Status,
+                StatusKey = (RedisKey)RedisNames.Status
             };
         }
     }

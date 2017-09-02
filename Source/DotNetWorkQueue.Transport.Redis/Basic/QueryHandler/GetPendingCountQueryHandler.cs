@@ -16,14 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
-    /// <summary>
-    /// Returns the current pending count
-    /// </summary>
+    /// <inheritdoc />
     internal class GetPendingCountQueryHandler: IQueryHandler<GetPendingCountQuery, long>
     {
         private readonly IRedisConnection _connection;
@@ -45,11 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _redisNames = redisNames;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Handle(GetPendingCountQuery query)
         {
             var db = _connection.Connection.GetDatabase();

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data;
 using System.Data.SqlClient;
@@ -27,7 +28,6 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
- 
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                                 var expiration = TimeSpan.Zero;
                                 if (_messageExpirationEnabled.Value)
                                 {
-                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, (data) => data.GetExpiration());
+                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, data => data.GetExpiration());
                                 }
 
                                 await
@@ -177,11 +177,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                             return id;
                         }
                     }
-                    else
-                    {
-                        throw new DotNetWorkQueueException(
-                                "Failed to insert record - the job has already been queued or processed");
-                    }
+                    throw new DotNetWorkQueueException(
+                        "Failed to insert record - the job has already been queued or processed");
                 }
             }
         }

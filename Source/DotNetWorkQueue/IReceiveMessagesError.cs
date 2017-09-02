@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -55,6 +57,6 @@ namespace DotNetWorkQueue
         /// <summary>
         /// The message is flagged as being in an error status and will not be retried without intervention
         /// </summary>
-        Error = 3,
+        Error = 3
     }
 }

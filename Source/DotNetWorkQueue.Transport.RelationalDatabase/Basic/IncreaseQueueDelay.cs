@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
+    /// <inheritdoc />
     public class IncreaseQueueDelay: IIncreaseQueueDelay
     {
         /// <summary>
@@ -33,6 +35,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             Guard.NotNull(() => messageContextDataFactory, messageContextDataFactory);
             QueueDelay = messageContextDataFactory.Create("IncreaseQueueDelay", new QueueDelay(TimeSpan.Zero));
         }
+        /// <inheritdoc />
         public IMessageContextData<QueueDelay> QueueDelay { get; }
     }
 }

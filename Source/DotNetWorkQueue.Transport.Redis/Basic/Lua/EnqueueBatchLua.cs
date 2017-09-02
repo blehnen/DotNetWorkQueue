@@ -16,21 +16,24 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using MsgPack;
 using MsgPack.Serialization;
 using StackExchange.Redis;
-using System.Linq;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Enqueues multiple records at once
     /// </summary>
     public class EnqueueBatchLua: BaseLua
     {
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="EnqueueBatchLua"/> class.
         /// </summary>
@@ -194,7 +197,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                     delaykey = (RedisKey)RedisNames.Delayed,
                     expirekey = (RedisKey)RedisNames.Expiration,
                     StatusKey = (RedisKey)RedisNames.Status,
-                    RouteIDKey = (RedisKey)RedisNames.Route,
+                    RouteIDKey = (RedisKey)RedisNames.Route
                 };
                 return rc;
             }

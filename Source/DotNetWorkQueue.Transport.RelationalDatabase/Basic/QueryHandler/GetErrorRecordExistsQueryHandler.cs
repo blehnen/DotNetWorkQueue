@@ -16,11 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Determines if an error record for a message already exists with the specific exception type
     /// </summary>
@@ -44,12 +47,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _prepareQuery = prepareQuery;
             _connectionFactory = connectionFactory;
         }
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
+        /// <inheritdoc />
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         public bool Handle(GetErrorRecordExistsQuery query)
         {
             using (var connection = _connectionFactory.Create())

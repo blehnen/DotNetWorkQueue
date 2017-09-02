@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
@@ -29,9 +29,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Sends multiple messages to the transport
-    /// </summary>
+    /// <inheritdoc />
     internal class SendMessageCommandBatchHandlerAsync :
         ICommandHandlerWithOutput<SendMessageCommandBatch, Task<QueueOutputMessages>>
     {
@@ -79,11 +77,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _unixTimeFactory = unixTimeFactory;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="commandSend">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<QueueOutputMessages> Handle(SendMessageCommandBatch commandSend)
         {
             var rc = new ConcurrentBag<IQueueOutputMessage>();
@@ -108,7 +102,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="messages">The messages.</param>
         /// <param name="meta">The meta.</param>
         /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException"></exception>
         private async Task<IEnumerable<QueueOutputMessage>> SendMessagesAsync(IReadOnlyCollection<QueueMessage<IMessage, IAdditionalMessageData>> messages, byte[] meta)
         {
             var messagesToSend = BatchMessageShared.CreateMessagesToSend(_redisHeaders, messages, meta,

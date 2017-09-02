@@ -30,8 +30,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
          InlineData(100, 0, 30, 10, 5, 0)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize)
         {
-            SchedulerContainer schedulerContainer;
-            var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out schedulerContainer);
+            var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out var schedulerContainer);
             using (schedulerContainer)
             {
                 using (factory.Scheduler)

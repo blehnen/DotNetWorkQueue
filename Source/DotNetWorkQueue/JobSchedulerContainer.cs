@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using DotNetWorkQueue.IoC;
@@ -86,8 +87,7 @@ namespace DotNetWorkQueue
 
             while (!_containers.IsEmpty)
             {
-                IDisposable item;
-                if (_containers.TryTake(out item))
+                if (_containers.TryTake(out var item))
                 {
                     item?.Dispose();
                 }

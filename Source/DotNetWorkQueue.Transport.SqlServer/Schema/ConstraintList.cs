@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Exceptions;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Schema
@@ -24,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
     /// <summary>
     /// A collection of <seealso cref="Constraint"/>
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable", Justification = "Not supported by children")]
+    [SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable", Justification = "Not supported by children")]
     public class ConstraintList : Dictionary<string, Constraint>
     {
         /// <summary>

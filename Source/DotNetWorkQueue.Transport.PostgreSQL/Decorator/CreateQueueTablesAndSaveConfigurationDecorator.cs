@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -24,15 +25,21 @@ using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
 {
+    /// <inheritdoc />
     internal class CreateQueueTablesAndSaveConfigurationDecorator : ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult>
     {
         private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> _decorated;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateQueueTablesAndSaveConfigurationDecorator"/> class.
+        /// </summary>
+        /// <param name="decorated">The decorated.</param>
         public CreateQueueTablesAndSaveConfigurationDecorator(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> decorated)
         {
             Guard.NotNull(() => decorated, decorated);
             _decorated = decorated;
         }
+        /// <inheritdoc />
         public QueueCreationResult Handle(CreateQueueTablesAndSaveConfigurationCommand<ITable> command)
         {
             try

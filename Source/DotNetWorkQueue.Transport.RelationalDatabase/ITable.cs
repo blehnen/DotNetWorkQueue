@@ -18,8 +18,15 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
+    /// <summary>
+    /// Defines a table in a schema
+    /// </summary>
     public interface ITable
     {
+        /// <summary>
+        /// Returns a script that can be executed to create this table.
+        /// </summary>
+        /// <returns></returns>
         string Script();
     }
 }

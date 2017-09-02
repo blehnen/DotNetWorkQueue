@@ -16,12 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Updates the error count for a record
     /// </summary>
@@ -50,11 +53,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             _dbConnectionFactory = dbConnectionFactory;
             _prepareCommand = prepareCommand;
         }
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
+        /// <inheritdoc />
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         public void Handle(SetErrorCountCommand command)
         {
             using (var connection = _dbConnectionFactory.Create())

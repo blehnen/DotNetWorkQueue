@@ -21,6 +21,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Debug\DotNetWorkQueue.Transport.RelationalDatabase.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +31,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Release\DotNetWorkQueue.Transport.RelationalDatabase.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -114,6 +118,7 @@
     <Compile Include="Basic\QueryPrepareHandler\GetTableExistsTransactionQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\GetUtcDateQueryPrepareHandler.cs" />
     <Compile Include="Basic\QueryPrepareHandler\GetWorkingCountQueryPrepareHandler.cs" />
+    <Compile Include="Basic\ThreadSafeRandom.cs" />
     <Compile Include="IBuildMoveToErrorQueueSql.cs" />
     <Compile Include="IConnectionHeader.cs" />
     <Compile Include="IConnectionHolder.cs" />
@@ -202,6 +207,7 @@
     <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
       <Link>DotNetWorkQueue.licenseheader</Link>
     </None>
+    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

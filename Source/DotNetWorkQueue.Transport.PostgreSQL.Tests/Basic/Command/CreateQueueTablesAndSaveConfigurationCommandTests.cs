@@ -16,10 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.Command
 {
     public class CreateQueueTablesAndSaveConfigurationCommandTests

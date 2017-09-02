@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
+    /// <inheritdoc />
     /// <summary>
     /// Gets the queue options
     /// </summary>

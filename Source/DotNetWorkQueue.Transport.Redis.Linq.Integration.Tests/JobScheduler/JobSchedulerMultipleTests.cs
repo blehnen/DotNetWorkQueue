@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
@@ -27,12 +28,9 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerMultipleTests
     {
         [Theory]
-        [InlineData(true, 10, ConnectionInfoTypes.Linux),
-      InlineData(false, 10, ConnectionInfoTypes.Linux),
-      InlineData(true, 10, ConnectionInfoTypes.Windows),
-      InlineData(false, 10, ConnectionInfoTypes.Windows)]
+        [InlineData(10, ConnectionInfoTypes.Linux),
+      InlineData(10, ConnectionInfoTypes.Windows)]
         public void RunMultiple(
-           bool interceptors,
            int producerCount,
            ConnectionInfoTypes type)
         {
@@ -45,7 +43,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                 {
                     var tests = new JobSchedulerTestsShared();
                     tests.RunTestMultipleProducers<RedisQueueInit, RedisJobQueueCreation>(queueName,
-                        connectionString, interceptors, producerCount, queueContainer.CreateTimeSync(connectionString));
+                        connectionString, true, producerCount, queueContainer.CreateTimeSync(connectionString));
                 }
                 finally
                 {

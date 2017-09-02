@@ -16,8 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
-using System.Data.OleDb;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -31,17 +31,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodAsyncRollBack
     {
         [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Dynamic),
-         InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 5, 180, 7, 1, 1, false, LinqMethodTypes.Dynamic),
-         InlineData(100, 1, 400, 5, 5, 5, true, LinqMethodTypes.Dynamic),
-         InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Dynamic),
+        [InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Dynamic),
          InlineData(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Dynamic),
-            InlineData(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Compiled),
          InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Compiled),
-         InlineData(10, 5, 180, 7, 1, 1, false, LinqMethodTypes.Compiled),
-         InlineData(100, 1, 400, 5, 5, 5, true, LinqMethodTypes.Compiled),
-         InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled),
          InlineData(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes)

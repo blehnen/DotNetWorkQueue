@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
@@ -31,17 +32,9 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     {
         [Theory]
         [InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-        InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
         InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
 
-            InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-        InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-        InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-        InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-        InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+        InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
         InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, 
             int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)

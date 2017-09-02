@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -111,7 +112,7 @@ namespace DotNetWorkQueue.JobScheduler
                     // check if we actually want to run the first event right away
                     var prev = Schedule.Previous();
                     lastKnownEvent = lastKnownEvent.AddSeconds(1); // add a second for good measure
-                    if (prev > lastKnownEvent && prev > (new DateTimeOffset(_getTime.GetCurrentUtcDate()) - window))
+                    if (prev > lastKnownEvent && prev > new DateTimeOffset(_getTime.GetCurrentUtcDate()) - window)
                     {
                         firstEvent = prev;
                         firstEventSet = true;

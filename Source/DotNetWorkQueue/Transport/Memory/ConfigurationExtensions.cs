@@ -16,9 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
+
 namespace DotNetWorkQueue.Transport.Memory
 {
     /// <summary>
@@ -42,8 +44,7 @@ namespace DotNetWorkQueue.Transport.Memory
         /// <returns></returns>
         public static TimeSpan? GetDelay(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("MemoryMessageQueueDelay", out value) ? value : null;
+            return data.TryGetSetting("MemoryMessageQueueDelay", out dynamic value) ? value : null;
         }    
     }
 

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue
 {
+    /// <inheritdoc />
     /// <summary>
     /// Clears the expired messages from an RPC queue
     /// </summary>

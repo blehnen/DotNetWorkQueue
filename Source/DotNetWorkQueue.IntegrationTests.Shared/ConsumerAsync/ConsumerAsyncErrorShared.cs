@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Threading;
 using DotNetWorkQueue.Logging;
@@ -43,7 +44,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                 }
 
-                var rollBacks = false;
                 var processedCount = new IncrementWrapper();
                 using (
                     var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                             // ReSharper disable once AccessToDisposedClosure
                             serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton)))
                     {
-
+                        bool rollBacks;
                         using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
                         {
                             taskScheduler.Configuration.MaximumThreads = workerCount;

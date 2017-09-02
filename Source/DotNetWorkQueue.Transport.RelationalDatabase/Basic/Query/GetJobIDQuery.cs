@@ -18,9 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class GetJobIdQuery : IQuery<long>
     {
         /// <summary>

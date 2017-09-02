@@ -18,9 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Configuration
 {
-    /// <summary>
-    /// Configuration for a queue that produces messages
-    /// </summary>
+    /// <inheritdoc cref="QueueConfigurationSend" />
     public class QueueProducerConfiguration : QueueConfigurationSend, IReadonly, ISetReadonly 
     {
         private bool _isReadonly;
@@ -32,11 +30,13 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="headers">The headers.</param>
         /// <param name="additionalConfiguration">The additional configuration.</param>
         /// <param name="timeConfiguration">The time configuration.</param>
+        /// <param name="sendPolicies">The send policies.</param>
         public QueueProducerConfiguration(TransportConfigurationSend transportConfiguration, 
             IHeaders headers, 
             IConfiguration additionalConfiguration,
-            BaseTimeConfiguration timeConfiguration)
-            : base(transportConfiguration, headers, additionalConfiguration, timeConfiguration)
+            BaseTimeConfiguration timeConfiguration,
+            IPolicies sendPolicies)
+            : base(transportConfiguration, headers, additionalConfiguration, timeConfiguration, sendPolicies)
         {
 
         }

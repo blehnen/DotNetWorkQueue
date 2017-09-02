@@ -16,17 +16,17 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
+
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// Deletes expired messages from the queue
-    /// </summary>
+    /// <inheritdoc />
     public class ClearExpiredMessages: IClearExpiredMessages
     {
         #region Member Level Variables
@@ -59,18 +59,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
         #region IClearExpiredMessages
 
-        /// <summary>
-        /// Clears the expired messages from the queue
-        /// </summary>
-        /// <param name="cancelToken">The cancel token. If fired, stop processing</param>
+        /// <inheritdoc />
         public long ClearMessages(CancellationToken cancelToken)
         {
-            return string.IsNullOrEmpty(_connectionInfo?.ConnectionString) 
-                ? 
-                    0 
-                : 
-                    _findExpiredMessagesQueryHandler.Handle(new FindExpiredMessagesToDeleteQuery(cancelToken)).Aggregate<long, long>
-                        (0, (current, queueId) => current + _deleteMessageCommandHandler.Handle(new DeleteMessageCommand(queueId)));
+            return string.IsNullOrEmpty(_connectionInfo?.ConnectionString)
+                ? 0
+                : _findExpiredMessagesQueryHandler.Handle(new FindExpiredMessagesToDeleteQuery(cancelToken))
+                    .Aggregate<long, long>
+                    (0,
+                        (current, queueId) =>
+                            current + _deleteMessageCommandHandler.Handle(new DeleteMessageCommand(queueId)));
         }
 
         #endregion

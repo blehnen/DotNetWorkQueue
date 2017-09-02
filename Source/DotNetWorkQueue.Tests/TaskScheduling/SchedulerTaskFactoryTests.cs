@@ -16,13 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
-using System.Threading.Tasks;
 using DotNetWorkQueue.TaskScheduling;
 using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
+
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
@@ -42,12 +43,11 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         {
             var test = Create();
 
-            Task temp;
             Assert.Throws<ArgumentNullException>(
                 delegate
                 {
                     test.TryStartNew(null, new StateInformation(Substitute.For<IWorkGroup>()), x => { },
-                        out temp);
+                        out _);
                 });
         }
 
@@ -55,10 +55,8 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         public void TryStartNew()
         {
             var test = Create();
-            Task temp;
-
             test.TryStartNew(x => { }, new StateInformation(Substitute.For<IWorkGroup>()), x => { },
-                out temp);
+                out _);
         }
 
         private SchedulerTaskFactory Create(ATaskScheduler scheduler)

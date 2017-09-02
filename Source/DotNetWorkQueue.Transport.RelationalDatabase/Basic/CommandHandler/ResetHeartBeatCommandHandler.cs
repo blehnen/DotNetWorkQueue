@@ -16,11 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Resets the status for a specific record
     /// </summary>
@@ -48,12 +51,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             _connectionFactory = connectionFactory;
             _prepareCommand = prepareCommand;
         }
-        /// <summary>
-        /// Resets the status for a specific record, if the status is currently 1
-        /// </summary>
-        /// <param name="inputCommand">The input command.</param>
-        /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
+        /// <inheritdoc />
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         public long Handle(ResetHeartBeatCommand inputCommand)
         {
             using (var connection = _connectionFactory.Create())

@@ -16,21 +16,21 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using System;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 {
     [Collection("postgresql")]
     public class ConsumerAsyncErrorTable
     {
         [Theory]
-        [InlineData(1, 15, 1, 1, 0, false),
-        InlineData(25, 120, 20, 1, 5, false),
-        InlineData(1, 15, 1, 1, 0, true),
+        [InlineData(25, 120, 20, 1, 5, false),
         InlineData(25, 120, 20, 1, 5, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, bool useTransactions)
         {

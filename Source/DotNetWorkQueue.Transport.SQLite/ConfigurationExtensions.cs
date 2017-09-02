@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
@@ -44,8 +45,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// <returns></returns>
         public static TimeSpan? GetDelay(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("SQLiteMessageQueueDelay", out value) ? value : null;
+            return data.TryGetSetting("SQLiteMessageQueueDelay", out dynamic value) ? value : null;
         }
         /// <summary>
         /// Sets the message expiration.
@@ -63,8 +63,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// <returns></returns>
         public static TimeSpan? GetExpiration(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("SQLiteMessageQueueExpiration", out value) ? value : null;
+            return data.TryGetSetting("SQLiteMessageQueueExpiration", out dynamic value) ? value : null;
         }
         /// <summary>
         /// Sets the priority.
@@ -92,8 +91,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// </remarks>
         public static ushort? GetPriority(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("SQLiteMessageQueuePriority", out value) ? value : 128;
+            return data.TryGetSetting("SQLiteMessageQueuePriority", out dynamic value) ? value : 128;
         }
     }
 
@@ -110,8 +108,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// </value>
         public static SqLiteMessageQueueTransportOptions Options(this QueueConfigurationReceive configuration)
         {
-            dynamic options;
-            if (configuration.AdditionalConfiguration.TryGetSetting("SQLiteMessageQueueTransportOptions", out options))
+            if (configuration.AdditionalConfiguration.TryGetSetting("SQLiteMessageQueueTransportOptions", out dynamic options))
             {
                 return options;
             }
@@ -133,8 +130,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// </value>
         public static SqLiteMessageQueueTransportOptions Options(this QueueConfigurationSend configuration)
         {
-            dynamic options;
-            if (configuration.AdditionalConfiguration.TryGetSetting("SQLiteMessageQueueTransportOptions", out options))
+            if (configuration.AdditionalConfiguration.TryGetSetting("SQLiteMessageQueueTransportOptions", out dynamic options))
             {
                 return options;
             }

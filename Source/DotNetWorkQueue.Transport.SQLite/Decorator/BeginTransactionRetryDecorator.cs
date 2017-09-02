@@ -16,68 +16,55 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Data.SQLite;
-using DotNetWorkQueue.Logging;
-using System.Threading;
-using System;
+
 using System.Data;
+using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
+using Polly;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
 {
+    /// <inheritdoc />
     internal class BeginTransactionRetryDecorator : ISqLiteTransactionWrapper
     {
         private readonly ISqLiteTransactionWrapper _decorated;
-        private readonly ThreadSafeRandom _threadSafeRandom;
-        private readonly ILog _log;
+        private readonly IPolicies _policies;
+        private Policy _policy;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BeginTransactionRetryDecorator"/> class.
+        /// </summary>
+        /// <param name="decorated">The decorated.</param>
+        /// <param name="policies">The policies.</param>
         public BeginTransactionRetryDecorator(ISqLiteTransactionWrapper decorated,
-            ILogFactory log,
-            ThreadSafeRandom threadSafeRandom)
+            IPolicies policies)
         {
             Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => threadSafeRandom, threadSafeRandom);
+            Guard.NotNull(() => policies, policies);
 
             _decorated = decorated;
-            _log = log.Create();
-            _threadSafeRandom = threadSafeRandom;
+            _policies = policies;
         }
+
+        /// <inheritdoc />
         public IDbConnection Connection
         {
             get => _decorated.Connection;
             set => _decorated.Connection = value;
         }
 
+        /// <inheritdoc />
         public IDbTransaction BeginTransaction()
         {
-            return BeginTransactionWithCountDown(RetryConstants.RetryCount);
-        }
-        /// <summary>
-        /// Handles the specified command, retrying up to count for specific errors
-        /// </summary>
-        /// <param name="count">The count.</param>
-        /// <returns></returns>
-        private IDbTransaction BeginTransactionWithCountDown(int count)
-        {
-            try
+            if (_policy == null)
             {
-                return _decorated.BeginTransaction();
+                _policies.Registry.TryGet(TransportPolicyDefinitions.BeginTransaction, out _policy);
             }
-            catch (SQLiteException sqlEx)
-            {
-                if (!Enum.IsDefined(typeof(RetryableSqlErrors), sqlEx.ErrorCode))
-                    throw;
-
-                if (count <= 0)
-                    throw;
-
-                var wait = _threadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait);
-                _log.WarnException($"An error has occured; we will try to re-run the transaction in {wait} ms", sqlEx);
-                Thread.Sleep(wait);
-
-                return BeginTransactionWithCountDown(count - 1);
-            }
+            if (_policy == null) return _decorated.BeginTransaction();
+            var result = _policy.ExecuteAndCapture(() => _decorated.BeginTransaction());
+            if (result.FinalException != null)
+                throw result.FinalException;
+            return result.Result;
         }
     }
 }

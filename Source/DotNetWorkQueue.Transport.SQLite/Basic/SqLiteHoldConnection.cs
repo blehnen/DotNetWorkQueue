@@ -16,18 +16,20 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Collections.Concurrent;
 using System.Data.SQLite;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     internal class SqLiteHoldConnection : IDisposable
     {
-        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, SQLiteConnection> _connections;
+        private readonly ConcurrentDictionary<string, SQLiteConnection> _connections;
 
         public SqLiteHoldConnection()
         {
-            _connections = new System.Collections.Concurrent.ConcurrentDictionary<string, SQLiteConnection>();
+            _connections = new ConcurrentDictionary<string, SQLiteConnection>();
         }
 
         public void AddConnectionIfNeeded(IConnectionInformation connection)

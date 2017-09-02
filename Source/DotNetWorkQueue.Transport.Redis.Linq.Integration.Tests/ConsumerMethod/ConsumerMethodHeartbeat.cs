@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
@@ -31,9 +32,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     {
         [Theory]
         [InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(7, 15, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-            InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(7, 15, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
+         InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {

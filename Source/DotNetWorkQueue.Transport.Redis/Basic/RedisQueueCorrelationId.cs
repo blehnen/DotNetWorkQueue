@@ -16,8 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Messages;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
@@ -42,9 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public Guid Id { get; set; }
     }
 
-    /// <summary>
-    /// A correlation id for redis
-    /// </summary>
+    /// <inheritdoc />
     public class RedisQueueCorrelationId: ICorrelationId
     {
         private Guid _id;
@@ -74,31 +74,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 Id = new Setting<Guid>(_id);
             }
         }
-        /// <summary>
-        /// Gets or sets the identifier.
-        /// </summary>
-        /// <value>
-        /// The identifier.
-        /// </value>
+        /// <inheritdoc />
         public ISetting Id
         {
             get;
             set;
         }
-        /// <summary>
-        /// Gets a value indicating whether <see cref="Id" /> has a non-null/non-empty value.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if the <see cref="Id" /> is not null/empty, otherwise <c>false</c>.
-        /// </value>
+
+        /// <inheritdoc />
         public bool HasValue => _id != Guid.Empty;
 
-        /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
-        /// </returns>
+        /// <inheritdoc />
         public override string ToString()
         {
             return _id.ToString();

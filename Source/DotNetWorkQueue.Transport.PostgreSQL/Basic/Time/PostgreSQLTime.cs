@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
@@ -26,11 +27,13 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Time
 {
+    /// <inheritdoc />
     internal class PostgreSqlTime: BaseTime
     {
         private readonly IQueryHandler<GetUtcDateQuery, DateTime> _queryHandler;
         private readonly IConnectionInformation _connectionInformation;
 
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgreSqlTime" /> class.
         /// </summary>
@@ -49,18 +52,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Time
             _connectionInformation = connectionInformation;
         }
 
-        /// <summary>
-        /// Gets the name of the time provider
-        /// </summary>
-        /// <value>
-        /// The name.
-        /// </value>
+        /// <inheritdoc />
         public override string Name => "Postgre";
 
-        /// <summary>
-        /// Gets the time.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         protected override DateTime GetTime()
         {
             return _queryHandler.Handle(new GetUtcDateQuery(_connectionInformation.ConnectionString));

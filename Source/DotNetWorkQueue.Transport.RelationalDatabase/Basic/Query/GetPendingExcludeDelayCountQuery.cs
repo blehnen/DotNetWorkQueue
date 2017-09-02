@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
+    /// <inheritdoc />
     /// <summary>
     /// Gets the current pending count, not including any records that have a delay time in the future
     /// </summary>

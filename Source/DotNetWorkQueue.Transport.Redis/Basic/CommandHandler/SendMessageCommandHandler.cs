@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
@@ -25,9 +26,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Sends a message to the queue
-    /// </summary>
+    /// <inheritdoc />
     internal class SendMessageCommandHandler : ICommandHandlerWithOutput<SendMessageCommand, string>
     {
         private readonly ICompositeSerialization _serializer;
@@ -85,11 +84,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _enqueueExpirationLua = enqueueExpirationLua;
         }
 
-        /// <summary>
-        /// Handles the command.
-        /// </summary>
-        /// <param name="commandSend">The command send.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public string Handle(SendMessageCommand commandSend)
         {
             TimeSpan? delay = null;

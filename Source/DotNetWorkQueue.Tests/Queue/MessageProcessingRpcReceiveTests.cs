@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
@@ -23,6 +24,7 @@ using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
 using Xunit;
+
 namespace DotNetWorkQueue.Tests.Queue
 {
     public class MessageProcessingRpcReceiveTests
@@ -60,7 +62,7 @@ namespace DotNetWorkQueue.Tests.Queue
         public MessageProcessingRpcReceive<FakeMessage> Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            IReceiveMessagesFactory receiveMessages = fixture.Create<IReceiveMessagesFactory>();
+            var receiveMessages = fixture.Create<IReceiveMessagesFactory>();
             fixture.Inject(receiveMessages);
             var fakeMessage = fixture.Create<IMessage>();
             fakeMessage.Body.Returns(new FakeMessage());
@@ -70,7 +72,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             IReceivedMessageInternal message = fixture.Create<ReceivedMessageInternal>();
 
-            IMessageHandlerRegistration messageHandlerRegistration = fixture.Create<IMessageHandlerRegistration>();
+            var messageHandlerRegistration = fixture.Create<IMessageHandlerRegistration>();
             messageHandlerRegistration.GenerateMessage(message)
                    .Returns(new ReceivedMessage<FakeMessage>(message));
             fixture.Inject(messageHandlerRegistration);

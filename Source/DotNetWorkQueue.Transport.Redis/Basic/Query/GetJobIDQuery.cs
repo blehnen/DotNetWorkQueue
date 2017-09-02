@@ -18,9 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.Redis.Basic.Query
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class GetJobIdQuery : IQuery<string>
     {
         /// <summary>

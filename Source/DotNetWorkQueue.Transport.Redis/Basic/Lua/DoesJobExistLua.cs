@@ -16,17 +16,17 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Globalization;
 using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.Redis.Basic.Lua.BaseLua" />
+    /// <inheritdoc />
     public class DoesJobExistLua: BaseLua
     {
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="DoesJobExistLua"/> class.
         /// </summary>
@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 StatusKey = (RedisKey) RedisNames.Status,
                 JobEventKey = (RedisKey) RedisNames.JobEvent,
                 JobNameScheduled = string.Concat(jobName, "|scheduled"),
-                ScheduledTime = scheduledTime.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                ScheduledTime = scheduledTime.ToString(CultureInfo.InvariantCulture)
             };
         }
     }

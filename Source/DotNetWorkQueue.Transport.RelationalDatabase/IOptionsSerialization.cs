@@ -18,8 +18,15 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
+    /// <summary>
+    /// Serilizes a transports options to a byte array
+    /// </summary>
     public interface IOptionsSerialization
     {
+        /// <summary>
+        /// Returns the transport options as byte[]
+        /// </summary>
+        /// <returns></returns>
         byte[] ConvertToBytes();
     }
 }

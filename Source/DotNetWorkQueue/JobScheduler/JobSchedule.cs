@@ -16,16 +16,19 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using Schyntax;
+
 namespace DotNetWorkQueue.JobScheduler
 {
     internal class JobSchedule: IJobSchedule
     {
-        private readonly Schyntax.Schedule _schedule;
+        private readonly Schedule _schedule;
 
         public JobSchedule(string schedule, Func<DateTimeOffset> getCurrentOffset )
         {
-            _schedule = new Schyntax.Schedule(schedule, getCurrentOffset);
+            _schedule = new Schedule(schedule, getCurrentOffset);
         }
         public string OriginalText => _schedule.OriginalText;
 

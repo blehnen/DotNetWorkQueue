@@ -16,13 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Finds records that are outside of the heartbeat window.
     /// </summary>
@@ -55,12 +57,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _prepareQuery = prepareQuery;
             _readColumn = readColumn;
         }
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
+        /// <inheritdoc />
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         public IEnumerable<MessageToReset> Handle(FindMessagesToResetByHeartBeatQuery query)
         {
             var results = new List<MessageToReset>();

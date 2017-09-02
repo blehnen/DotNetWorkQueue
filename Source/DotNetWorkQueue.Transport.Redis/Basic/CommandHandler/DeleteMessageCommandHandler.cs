@@ -16,15 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Deletes a message from a queue
-    /// </summary>
+    /// <inheritdoc />
     internal class DeleteMessageCommandHandler : ICommandHandlerWithOutput<DeleteMessageCommand, bool>
     {
         private readonly DeleteLua _deleteLua;
@@ -39,11 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _deleteLua = deleteLua;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public bool Handle(DeleteMessageCommand command)
         {
             var result = _deleteLua.Execute(command.Id.Id.Value.ToString());

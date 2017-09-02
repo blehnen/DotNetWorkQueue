@@ -16,15 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Redis.Basic.MessageID;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
 {
-    /// <summary>
-    /// Creates new instances of <see cref="IGetMessageId"/>
-    /// </summary>
+    /// <inheritdoc />
     internal class GetMessageIdFactory : IGetMessageIdFactory
     {
         private readonly IContainerFactory _container;
@@ -42,11 +41,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
             _container = container;
             _options = options;
         }
-        /// <summary>
-        /// Creates new instance of <see cref="IGetMessageId"/>
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException"></exception>
+        /// <inheritdoc />
         public IGetMessageId Create()
         {
             switch (_options.MessageIdLocation)

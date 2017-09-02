@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Messages;
 using FluentAssertions;
 using Xunit;
+
 // ReSharper disable AccessToDisposedClosure
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
@@ -279,10 +281,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             }
         }
         private void ValidateEnqueue(string queueName, string connectionString, Action<string, string, long, ICreationScope> verify,
-            // ReSharper disable once UnusedParameter.Local
+            // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             long enqueued, 
             Exception error,
-            // ReSharper disable once UnusedParameter.Local
+            // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             long nonFatal, 
             long expectedEnqueue, ICreationScope scope)
         {
@@ -294,9 +296,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Assert.Equal(0, nonFatal);
             verify(queueName, connectionString, expectedEnqueue, scope);
         }
-        // ReSharper disable once UnusedParameter.Local
-        private void ValidateEnqueueMultipleProducer(long enqueued, Exception error, 
-            // ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        private void ValidateEnqueueMultipleProducer(long enqueued, Exception error,
+            // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             long expectedEnqueue)
         {
             if (error != null)
@@ -306,9 +308,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Assert.Equal(expectedEnqueue, enqueued);
         }
         private void ValidateNonFatalError(string queueName, string connectionString, Action<string, string, long, ICreationScope> verify,
-            // ReSharper disable once UnusedParameter.Local
-            long enqueued, Exception error, 
-            // ReSharper disable once UnusedParameter.Local
+            // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+            long enqueued, Exception error,
+            // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             long nonFatal, long inQueueCount, ICreationScope scope)
         {
             Assert.Equal(0, enqueued);

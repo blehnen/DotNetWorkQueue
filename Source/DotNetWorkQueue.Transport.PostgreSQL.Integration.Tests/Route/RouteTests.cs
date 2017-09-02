@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.IntegrationTests.Shared;
@@ -90,9 +91,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
         private List<string> GenerateRoutes(int routeCount)
         {
             var data = new List<string>();
-            for(int i = 1; i <= routeCount; i++)
+            for(var i = 1; i <= routeCount; i++)
             {
-                data.Add("Route" + i.ToString());
+                data.Add("Route" + i);
             }
             return data;
         }

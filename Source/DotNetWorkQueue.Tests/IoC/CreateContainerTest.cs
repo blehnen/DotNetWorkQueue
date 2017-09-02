@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,7 @@ using NSubstitute;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;
 using Xunit;
+
 namespace DotNetWorkQueue.Tests.IoC
 {
     [Collection("IoC")]
@@ -297,11 +299,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 return null;
             }
-            /// <summary>
-            /// Sends a new message to an existing queue
-            /// </summary>
-            /// <param name="messages"></param>
-            /// <returns></returns>
+            /// <inheritdoc />
             public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
             {
                 return null;

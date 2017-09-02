@@ -16,12 +16,21 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
+
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
+    /// <summary>
+    /// Gets the standard default queue delay for a realational transport
+    /// </summary>
     public static class DefaultQueueDelay
     {
+        /// <summary>
+        /// Gets the default queue delay.
+        /// </summary>
+        /// <returns></returns>
         public static IEnumerable<TimeSpan> GetDefaultQueueDelay()
         {
             var rc = new List<TimeSpan>(21)

@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.Threading;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
+    /// <inheritdoc />
     /// <summary>
     /// Allows deleting redis queues; creation is a no-op, as redis queues do not need to be pre-created.
     /// </summary>
@@ -58,20 +60,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         #endregion
 
-        /// <summary>
-        /// Gets the connection information for the queue.
-        /// </summary>
-        /// <value>
-        /// The connection information.
-        /// </value>
+        /// <inheritdoc />
         public IConnectionInformation ConnectionInfo { get; }
 
-        /// <summary>
-        /// Returns true if the queue exists in the transport
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [queue exists]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool QueueExists
         {
             get
@@ -89,19 +81,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             }
         }
 
-        /// <summary>
-        /// Gets a disposable creation scope
-        /// </summary>
-        /// <value>
-        /// The scope.
-        /// </value>
-        /// <remarks>This is used to prevent queues from going out of scope before you have finished working with them. Generally
-        /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.</remarks>
+        /// <inheritdoc />
         public ICreationScope Scope { get; }
 
-        /// <summary>
-        /// Creates the queue if needed.
-        /// </summary>
+        /// <inheritdoc />
         /// <remarks>This does nothing for the Redis transport, as pre-creating the queue is not necessary.</remarks>
         /// <returns></returns>
         public QueueCreationResult CreateQueue()
@@ -109,20 +92,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             return new QueueCreationResult(QueueCreationStatus.NoOp);
         }
 
-        /// <summary>
-        /// Attempts to delete an existing queue
-        /// </summary>
-        /// <remarks>Any data in the queue will be lost. Will cause exceptions in any producer/consumer that is connected</remarks>
-        /// <returns></returns>
+        /// <inheritdoc />
         public QueueRemoveResult RemoveQueue()
         {
             return QueueExists ? RemoveQueueInternal() : new QueueRemoveResult(QueueRemoveStatus.DoesNotExist);
         }
 
         #region IDisposable, IsDisposed
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             if (Interlocked.Increment(ref _disposeCount) == 1)
@@ -131,12 +108,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             }
         }
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
 
         #endregion

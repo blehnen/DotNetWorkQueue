@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
@@ -23,9 +24,7 @@ using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class ConnectionHolderFactory : IConnectionHolderFactory<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>
     {
         private readonly IConnectionInformation _connectionInfo;
@@ -45,10 +44,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
             _connectionInfo = connectionInfo;
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);
         }
-        /// <summary>
-        /// Creates a new instance of <see cref="T:DotNetWorkQueue.Transport.RelationalDatabase.IConnectionHolder`3" />
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> Create()
         {
             return new ConnectionHolder(_connectionInfo, _options.Value);

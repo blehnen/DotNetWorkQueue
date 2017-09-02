@@ -16,8 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Threading.Tasks;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
     [Collection("Redis")]
@@ -26,16 +28,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
         [Theory]
         [InlineData(250, 1, 400, 10, 5, 5, ConnectionInfoTypes.Linux),
          InlineData(35, 5, 200, 10, 1, 2, ConnectionInfoTypes.Linux),
-         InlineData(10, 8, 180, 7, 1, 1, ConnectionInfoTypes.Linux),
-         InlineData(100, 0, 180, 10, 5, 0, ConnectionInfoTypes.Linux),
-           InlineData(250, 1, 400, 10, 5, 5, ConnectionInfoTypes.Windows),
-         InlineData(35, 5, 200, 10, 1, 2, ConnectionInfoTypes.Windows),
          InlineData(10, 8, 180, 7, 1, 1, ConnectionInfoTypes.Windows),
          InlineData(100, 0, 180, 10, 5, 0, ConnectionInfoTypes.Windows)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
         {
-            SchedulerContainer schedulerContainer;
-            var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out schedulerContainer);
+            var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out var schedulerContainer);
             using (schedulerContainer)
             {
                 using (factory.Scheduler)

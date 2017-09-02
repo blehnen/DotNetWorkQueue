@@ -16,15 +16,19 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Threading.Tasks;
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Enqueues a message that is both delayed and has expiration
     /// </summary>
     internal class EnqueueDelayedAndExpirationLua : BaseLua
     {
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="EnqueueDelayedAndExpirationLua"/> class.
         /// </summary>
@@ -121,7 +125,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 timestampexpire = expireTime,
                 IDKey = (RedisKey)RedisNames.Id,
                 StatusKey = (RedisKey)RedisNames.Status,
-                RouteIDKey = (RedisKey)RedisNames.Route,
+                RouteIDKey = (RedisKey)RedisNames.Route
             };
         }
     }

@@ -16,14 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Saves the meta data for a message
-    /// </summary>
+    /// <inheritdoc />
     internal class SaveMetaDataCommandHandler : ICommandHandler<SaveMetaDataCommand>
     {
         private readonly IInternalSerializer _internalSerializer;
@@ -49,10 +48,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _connection = connection;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
+        /// <inheritdoc />
         public void Handle(SaveMetaDataCommand command)
         {
             var db = _connection.Connection.GetDatabase();

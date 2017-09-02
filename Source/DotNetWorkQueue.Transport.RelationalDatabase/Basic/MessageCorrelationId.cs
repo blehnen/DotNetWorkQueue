@@ -16,15 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// The correlation ID for the SQLite queue
-    /// <remarks>A GUID is used, since this needs to be different across queues</remarks>
-    /// </summary>
+    /// <inheritdoc />
     public class MessageCorrelationId: ICorrelationId
     {
         private Guid _id;
@@ -37,31 +35,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             _id = id;
             Id = new Setting<Guid>(id);
         }
-        /// <summary>
-        /// Gets or sets the identifier.
-        /// </summary>
-        /// <value>
-        /// The identifier.
-        /// </value>
+        /// <inheritdoc />
         public ISetting Id
         {
             get;
             set;
         }
-        /// <summary>
-        /// Gets a value indicating whether <see cref="Id" /> has a non-null/non-empty value.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if the <see cref="Id" /> is not null/empty, otherwise <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool HasValue => _id != Guid.Empty;
 
-        /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
-        /// </returns>
+        /// <inheritdoc />
         public override string ToString()
         {
             return _id.ToString();

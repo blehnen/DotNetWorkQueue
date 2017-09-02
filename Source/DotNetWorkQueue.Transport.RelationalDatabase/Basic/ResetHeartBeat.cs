@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -26,9 +27,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// Searches for and updates work items that are outside of the heart beat window
-    /// </summary>
+    /// <inheritdoc />
     public class ResetHeartBeat : IResetHeartBeat
     {
         #region Member Level Variables
@@ -60,9 +59,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
         #region IResetHeartBeat
 
-        /// <summary>
-        /// Used to find and reset work items that are out of the heart beat window
-        /// </summary>
+        /// <inheritdoc />
         public long Reset(CancellationToken cancelToken)
         {
             if (!_configuration.HeartBeat.Enabled)

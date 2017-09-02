@@ -16,11 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
+
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
     public static class MethodIncrementWrapper
@@ -35,12 +37,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         public static void Clear(Guid queueId)
         {
-            ConcurrentDictionary<Guid, bool> temp;
-            RollBacks.TryRemove(queueId, out temp);
+            RollBacks.TryRemove(queueId, out var temp);
             temp?.Clear();
 
-            IncrementWrapper temp2;
-            Counters.TryRemove(queueId, out temp2);
+            Counters.TryRemove(queueId, out _);
         }
         public static void SetRollback(Guid queueId, Guid id)
         {

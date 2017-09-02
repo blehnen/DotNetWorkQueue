@@ -19,6 +19,7 @@
 #region Using
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using Xunit;
 
@@ -31,9 +32,9 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
         public void Verify(ICreationScope scope, int recordCount, bool existingCount)
         {
             var realScope = (CreationScope)scope;
-            if (realScope.ContainedClears.TryPeek(out IClear dataStorage))
+            if (realScope.ContainedClears.TryPeek(out var dataStorage))
             {
-                var data = (IDataStorage)(dataStorage);
+                var data = (IDataStorage)dataStorage;
                 AllTablesRecordCount(data, recordCount, existingCount);
             }
             else
@@ -42,8 +43,8 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
             }
         }
 
-        // ReSharper disable once UnusedParameter.Local
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query Ok")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query Ok")]
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private void AllTablesRecordCount(IDataStorage dataStorage, int recordCount, bool existingCount)
         {
             if (existingCount)
@@ -60,13 +61,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
     }
     public class VerifyErrorCounts
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         public void Verify(ICreationScope scope, long messageCount, int errorCount)
         {
             var realScope = (CreationScope)scope;
-            if (realScope.ContainedClears.TryPeek(out IClear dataStorage))
+            if (realScope.ContainedClears.TryPeek(out var dataStorage))
             {
-                var data = (IDataStorage)(dataStorage);
+                var data = (IDataStorage)dataStorage;
                 var errors = data.GetErrorCount();
                 Assert.Equal(messageCount, errors);
             }

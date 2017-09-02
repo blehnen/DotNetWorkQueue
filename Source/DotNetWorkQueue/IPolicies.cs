@@ -16,19 +16,39 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-namespace DotNetWorkQueue.Transport.SqlServer.Decorator
+
+using System.Collections.Concurrent;
+using DotNetWorkQueue.Policies;
+using Polly.Registry;
+
+namespace DotNetWorkQueue
 {
-    internal class ThreadSafeRandom
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface IPolicies
     {
-        private readonly Random _random;
-        public ThreadSafeRandom()
-        {
-            _random = new Random();
-        }
-        public int Next(int min, int max)
-        {
-            lock (_random) return _random.Next(min, max);
-        }
+        /// <summary>
+        /// Gets the registry.
+        /// </summary>
+        /// <value>
+        /// The registry.
+        /// </value>
+        PolicyRegistry Registry { get; }
+        /// <summary>
+        /// Gets the definition.
+        /// </summary>
+        /// <value>
+        /// The definition.
+        /// </value>
+        PolicyDefinitions Definition { get; }
+
+        /// <summary>
+        /// Transport specific policies
+        /// </summary>
+        /// <value>
+        /// The transport definition.
+        /// </value>
+        ConcurrentDictionary<string, TransportPolicyDefinition> TransportDefinition { get; }
     }
 }

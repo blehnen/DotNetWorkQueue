@@ -30,9 +30,9 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
         public static void Verify(string notused1, string notused2, QueueProducerConfiguration config, long recordCount, ICreationScope scope)
         {
             var realScope = (CreationScope) scope;
-            if (realScope.ContainedClears.TryPeek(out IClear dataStorage))
+            if (realScope.ContainedClears.TryPeek(out var dataStorage))
             {
-                var data = (IDataStorage)(dataStorage);
+                var data = (IDataStorage)dataStorage;
                 var messageCount = data.RecordCount;
                 Assert.Equal(recordCount, messageCount);
             }

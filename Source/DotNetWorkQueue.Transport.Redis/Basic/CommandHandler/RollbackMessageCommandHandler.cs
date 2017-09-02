@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
@@ -24,9 +25,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Moves a message from the working queue back into the pending queue
-    /// </summary>
+    /// <inheritdoc />
     internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand>
     {
         private readonly RollbackLua _rollbackLua;
@@ -57,11 +56,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _rpcQueue = queueContext.Context == QueueContexts.RpcQueue;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public void Handle(RollbackMessageCommand command)
         {
             if (command.IncreaseQueueDelay.HasValue && command.IncreaseQueueDelay.Value != TimeSpan.Zero)

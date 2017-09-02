@@ -16,14 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Globalization;
 using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    /// <summary>
-    /// The primary ID for a message in the transport
-    /// </summary>
+    /// <inheritdoc />
     public class MessageQueueId: IMessageId
     {
         private readonly long _id;
@@ -36,27 +35,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             _id = id;
             Id = new Setting<long>(id);
         }
-        /// <summary>
-        /// Gets the identifier.
-        /// </summary>
-        /// <value>
-        /// The identifier.
-        /// </value>
+        /// <inheritdoc />
         public ISetting Id { get; }
-        /// <summary>
-        /// Gets a value indicating if <see cref="Id" /> is not null / not empty
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if <see cref="Id" /> has value; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool HasValue => _id > 0;
-
-        /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
-        /// </returns>
+        /// <inheritdoc />
         public override string ToString()
         {
             return _id.ToString(CultureInfo.InvariantCulture);

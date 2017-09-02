@@ -16,12 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Threading;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
-    /// <summary>
-    /// Clears expired messages from the queue
-    /// </summary>
+    /// <inheritdoc />
     internal class RedisQueueClearExpiredMessages: IClearExpiredMessages
     {
         private readonly ICommandHandlerWithOutput<ClearExpiredMessagesCommand, long> _commandReset;
@@ -35,11 +36,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _commandReset = commandReset;
         }
 
-        /// <summary>
-        /// Clears the messages.
-        /// </summary>
-        /// <param name="cancelToken">The cancel token.</param>
-        public long ClearMessages(System.Threading.CancellationToken cancelToken)
+        /// <inheritdoc />
+        public long ClearMessages(CancellationToken cancelToken)
         {
             var counter = _commandReset.Handle(new ClearExpiredMessagesCommand());
             var total = counter;

@@ -16,19 +16,31 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
-namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
+using System.Threading;
+
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
-    internal class ThreadSafeRandom
+    /// <summary>
+    /// A thread safe random 
+    /// </summary>
+    public static class ThreadSafeRandom
     {
-        private readonly Random _random;
-        public ThreadSafeRandom()
+        private static int _seed = Environment.TickCount;
+
+        private static readonly ThreadLocal<Random> Random =
+            new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref _seed)));
+
+        /// <summary>
+        ///  Returns a random integer that is within a specified range.
+        /// </summary>
+        /// <param name="min">The inclusive lower bound of the random number returned.</param>
+        /// <param name="max">The exclusive upper bound of the random number returned. maxValue must be greater than or equal to minValue.</param>
+        /// <returns></returns>
+        public static int Next(int min, int max)
         {
-            _random = new Random();
-        }
-        public int Next(int min, int max)
-        {
-            lock (_random) return _random.Next(min, max);
+            return Random.Value.Next(min, max);
         }
     }
 }

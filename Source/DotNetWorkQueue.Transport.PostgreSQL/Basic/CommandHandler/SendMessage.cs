@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
     internal static class SendMessage
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         internal static void BuildStatusCommand(NpgsqlCommand command,
             TableNameHelper tableNameHelper,
             IHeaders headers,
@@ -66,7 +68,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             AddHeaderColumnParams(command, message, headers);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         internal static void BuildMetaCommand(NpgsqlCommand command, 
             TableNameHelper tableNameHelper,
             IHeaders headers,

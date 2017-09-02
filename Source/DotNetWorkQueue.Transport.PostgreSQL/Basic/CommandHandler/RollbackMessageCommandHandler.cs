@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Text;
@@ -27,6 +28,7 @@ using NpgsqlTypes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
+    /// <inheritdoc />
     internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand>
     {
         private readonly IGetTimeFactory _getUtcDateQuery;
@@ -58,10 +60,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             _commandCache = commandCache;
             _rollbackDictionary = new ConcurrentDictionary<string, string>();
         }
-        /// <summary>
-        /// Handles the specified rollback command.
-        /// </summary>
-        /// <param name="rollBackCommand">The rollBackCommand.</param>
+        /// <inheritdoc />
         public void Handle(RollbackMessageCommand rollBackCommand)
         {
             SetupSql();

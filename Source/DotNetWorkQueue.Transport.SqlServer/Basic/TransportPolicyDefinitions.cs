@@ -16,19 +16,31 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-namespace DotNetWorkQueue.Transport.SQLite.Decorator
+
+using Polly;
+
+namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
-    internal class ThreadSafeRandom
+    /// <summary>
+    /// 
+    /// </summary>
+    public static class TransportPolicyDefinitions
     {
-        private readonly Random _random;
-        public ThreadSafeRandom()
-        {
-            _random = new Random();
-        }
-        public int Next(int min, int max)
-        {
-            lock (_random) return _random.Next(min, max);
-        }
+        /// <summary>
+        /// A policy for retrying a failed command
+        /// </summary>
+        /// <value>
+        /// A policy for retrying a failed command
+        /// </value>
+        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        public static string RetryCommandHandler => "SqlServerRetryCommandHandler";
+
+        /// <summary>
+        /// A policy for retrying a failed query
+        /// </summary>
+        /// <value>
+        /// The retry query handler.
+        /// </value>
+        public static string RetryQueryHandler => "SqlServerRetryQueryHandler";
     }
 }

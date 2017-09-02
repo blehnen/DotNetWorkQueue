@@ -16,15 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    /// <summary>
-    /// Connection settings for Rpc
-    /// </summary>
+    /// <inheritdoc />
     public class PostgreSqlRpcConnection: BaseRpcConnection
     {
         private readonly string _sendConnection;
@@ -52,11 +51,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             _receiveQueue = receiveQueue;
         }
 
-        /// <summary>
-        /// Gets the connection.
-        /// </summary>
-        /// <param name="connectionType">Type of the connection.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public override IConnectionInformation GetConnection(ConnectionTypes connectionType)
         {
             switch (connectionType)

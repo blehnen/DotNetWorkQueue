@@ -16,8 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
+using NSubstitute;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
 {
     public class SendMessageCommandTests
@@ -25,8 +28,8 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
         [Fact]
         public void Create_Default()
         {
-            var message = NSubstitute.Substitute.For<IMessage>();
-            var data = NSubstitute.Substitute.For<IAdditionalMessageData>();
+            var message = Substitute.For<IMessage>();
+            var data = Substitute.For<IAdditionalMessageData>();
             var test = new SendMessageCommand(message, data);
             Assert.Equal(message, test.MessageToSend);
             Assert.Equal(data, test.MessageData);

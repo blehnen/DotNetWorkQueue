@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -76,7 +77,6 @@ namespace DotNetWorkQueue.TaskScheduling
                     return null;
                 }
 
-                Task start;
                 if (taskFactory.TryStartNew(state => { WrappedFunction(message, notifications, functionToRun); }, new StateInformation(workGroup), task =>
                 {
                     if (task.IsFaulted && task.Exception?.InnerException is OperationCanceledException)
@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.TaskScheduling
                         //need to throw it
                         throw new DotNetWorkQueueException("Message processing exception", task.Exception.InnerException);
                     }
-                }, out start).Success())
+                }, out var start).Success())
                 {
                     try
                     {

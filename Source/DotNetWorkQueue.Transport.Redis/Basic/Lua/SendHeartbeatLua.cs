@@ -16,15 +16,19 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Sends a heartbeat for a single message
     /// </summary>
     /// <remarks>client does not support options of 'zadd'; we are using LUA script to work around this</remarks>
     internal class SendHeartbeatLua: BaseLua
     {
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="SendHeartbeatLua"/> class.
         /// </summary>
@@ -61,7 +65,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             {
                 workingkey = (RedisKey)RedisNames.Working,
                 timestamp = unixTime,
-                uuid = messageId,
+                uuid = messageId
             };
         }
 

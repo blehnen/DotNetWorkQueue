@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,10 +27,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
 {
-    /// <summary>
-    /// Contains a collection of <see cref="IWorker"/>
-    /// </summary>
-    /// <remarks>Does not contain <see cref="IPrimaryWorker"/></remarks>
+    /// <inheritdoc />
     public class WorkerCollection : IWorkerCollection
     {
         private readonly IWorkerConfiguration _workerConfiguration;
@@ -79,21 +77,25 @@ namespace DotNetWorkQueue.Queue
             _log = log.Create();
             _workerPause = workerPause;
         }
-        /// <summary>
-        /// Starts all workers.
-        /// </summary>
-        /// <exception cref="DotNetWorkQueueException">Start must only be called once</exception>
+
+        /// <inheritdoc />
         public void Start()
         {
-            if (_workers != null && _workers.Count > 0)
+            lock (_workerLock)
             {
-                throw new DotNetWorkQueueException("Start must only be called once");
+                if (_workers != null && _workers.Count > 0)
+                {
+                    throw new DotNetWorkQueueException("Start must only be called once");
+                }
             }
 
             _log.InfoFormat("Initializing with {0} workers", _workerConfiguration.WorkerCount);
             CreateWorkers();
 
-            if (_workers == null || _workers.Count <= 0) return;
+            lock (_workerLock)
+            {
+                if (_workers == null || _workers.Count <= 0) return;
+            }
 
             lock (_workerLock)
             {
@@ -101,45 +103,34 @@ namespace DotNetWorkQueue.Queue
             }
         }
 
-        /// <summary>
-        /// Stops all workers.
-        /// </summary>
+        /// <inheritdoc />
         public void Stop()
         {
             //stop all workers
-            if (_workers == null || _workers.Count == 0)
-                return;
-
             lock (_workerLock)
             {
+                if (_workers == null || _workers.Count == 0)
+                    return;
+
                 _workers.AsParallel().ForAll(w => w.Stop());
                 _stopWorker.Stop(_workers);
                 _workers.Clear();
             }
         }
 
-        /// <summary>
-        /// Pauses all workers. Call <seealso cref="ResumeWorkers"/> to resume looking for work.
-        /// </summary>
+        /// <inheritdoc />
         public void PauseWorkers()
         {
             _workerPause.Reset();
         }
 
-        /// <summary>
-        /// Resumes all workers. Call <seealso cref="PauseWorkers"/> to pause looking for work
-        /// </summary>
+        /// <inheritdoc />
         public void ResumeWorkers()
         {
             _workerPause.Set();
         }
 
-        /// <summary>
-        /// Returns true if every worker in the collection is set as idle
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [all workers are idle]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool AllWorkersAreIdle
         {
             get
@@ -153,26 +144,13 @@ namespace DotNetWorkQueue.Queue
                 }
             }
         }
-
-        /// <summary>
-        /// Gets the configuration.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
+        /// <inheritdoc />
         public IWorkerConfiguration Configuration => _workerConfiguration;
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);

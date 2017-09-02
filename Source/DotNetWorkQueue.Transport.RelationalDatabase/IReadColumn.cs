@@ -23,6 +23,9 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
+    /// <summary>
+    /// Allows reading data from the data store, without knowing what type of database is being used.
+    /// </summary>
     public interface IReadColumn
     {
         /// <summary>
@@ -31,6 +34,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="command">The command.</param>
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
+        /// <param name="noValue">What to return if no value is found</param>
         /// <returns></returns>
         string ReadAsString(CommandStringTypes command, int column, IDataReader reader, string noValue = null);
 
@@ -40,6 +44,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="command">The command.</param>
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
+        /// <param name="noValue">What to return if no value is found</param>
         /// <returns></returns>
         int ReadAsInt32(CommandStringTypes command, int column, IDataReader reader, int noValue = 0);
 
@@ -49,6 +54,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="command">The command.</param>
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
+        /// <param name="noValue">What to return if no value is found</param>
         /// <returns></returns>
         long ReadAsInt64(CommandStringTypes command, int column, IDataReader reader, long noValue = 0);
 
@@ -58,6 +64,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="command">The command.</param>
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
+        /// <param name="noValue">What to return if no value is found</param>
         /// <returns></returns>
         DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default(DateTimeOffset));
 
@@ -67,6 +74,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="command">The command.</param>
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
+        /// <param name="noValue">What to return if no value is found</param>
         /// <returns></returns>
         DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader, DateTime noValue = default(DateTime));
 
@@ -76,6 +84,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="command">The command.</param>
         /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
         /// <param name="reader">The reader.</param>
+        /// <param name="noValue">What to return if no value is found</param>
         /// <returns></returns>
         byte[] ReadAsByteArray(CommandStringTypes command, int column, IDataReader reader, byte[] noValue = null);
     }

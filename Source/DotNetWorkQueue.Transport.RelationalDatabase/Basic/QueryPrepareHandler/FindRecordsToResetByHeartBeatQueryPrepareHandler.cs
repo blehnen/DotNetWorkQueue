@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -25,11 +26,17 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
+    /// <inheritdoc />
     public class FindRecordsToResetByHeartBeatQueryPrepareHandler : IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
     {
         private readonly CommandStringCache _commandCache;
         private readonly QueueConsumerConfiguration _configuration;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatQueryPrepareHandler"/> class.
+        /// </summary>
+        /// <param name="commandCache">The command cache.</param>
+        /// <param name="configuration">The configuration.</param>
         public FindRecordsToResetByHeartBeatQueryPrepareHandler(CommandStringCache commandCache,
             QueueConsumerConfiguration configuration)
         {
@@ -38,6 +45,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             _commandCache = commandCache;
             _configuration = configuration;
         }
+        /// <inheritdoc />
         public void Handle(FindMessagesToResetByHeartBeatQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText =

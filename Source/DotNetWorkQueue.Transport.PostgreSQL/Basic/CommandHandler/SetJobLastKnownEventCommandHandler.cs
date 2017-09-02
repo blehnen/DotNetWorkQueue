@@ -16,18 +16,17 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Validation;
-using Npgsql;
-using NpgsqlTypes;
+
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Validation;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>>
     {
         private readonly PostgreSqlCommandStringCache _commandCache;
@@ -46,10 +45,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             _commandCache = commandCache;
             _connectionInformation = connectionInformation;
         }
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
+        /// <inheritdoc />
         public void Handle(SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction> command)
         {
             using (var conn = new NpgsqlConnection(_connectionInformation.ConnectionString))

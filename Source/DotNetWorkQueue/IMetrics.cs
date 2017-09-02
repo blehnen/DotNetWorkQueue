@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -445,7 +447,7 @@ namespace DotNetWorkQueue
         ///  window reservoir produces quantiles which are representative of the past
         ///  N measurements.
         /// </summary>
-        SlidingWindow = 2,
+        SlidingWindow = 2
     }
 
     /// <summary>
@@ -480,7 +482,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// days
         /// </summary>
-        Days = 6,
+        Days = 6
     }
     /// <summary>
     /// Unit of Measure
@@ -538,6 +540,6 @@ namespace DotNetWorkQueue
         /// <summary>
         /// The threads
         /// </summary>
-        Threads = 12,
+        Threads = 12
     }
 }

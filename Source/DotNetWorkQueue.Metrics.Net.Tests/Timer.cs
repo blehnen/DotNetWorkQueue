@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Threading;
 using Metrics;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
@@ -52,7 +54,7 @@ namespace DotNetWorkQueue.Metrics.Net.Tests
             var metric = Metric.Timer(name, Unit.Bytes);
             var test = Create(metric);
             dynamic dyn = metric;
-            void Action() => System.Threading.Thread.Sleep(30);
+            void Action() => Thread.Sleep(30);
             test.Time(Action);
             Assert.Equal(1, dyn.Value.Rate.Count);
         }
@@ -76,7 +78,7 @@ namespace DotNetWorkQueue.Metrics.Net.Tests
             dynamic dyn = metric;
             using (test.NewContext())
             {
-                System.Threading.Thread.Sleep(100);
+                Thread.Sleep(100);
             }
             Assert.Equal(1, dyn.Value.Rate.Count);
         }

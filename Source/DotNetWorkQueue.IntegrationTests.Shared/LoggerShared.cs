@@ -16,12 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using DotNetWorkQueue.Logging;
 using FluentAssertions;
 using Xunit;
+
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
     public static class LoggerShared
@@ -41,7 +44,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     AppDomain.CurrentDomain.BaseDirectory + $"\\Logs\\{queueName}.txt", logLevel, initText);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         public static void ShouldHaveErrors(string queueName)
         {
             if (File.Exists(AppDomain.CurrentDomain.BaseDirectory +
@@ -63,7 +66,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 Assert.False(true, $"No error file was found; errors should have occurred for queue {queueName}");
             }
         }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         public static void CheckForErrors(string queueName)
         {
             if (File.Exists(AppDomain.CurrentDomain.BaseDirectory +
@@ -91,6 +94,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         private readonly LogLevel _logLevel;
 
         // ReSharper disable once UnusedParameter.Local
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TextFileLogProvider"/> class.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="logLevel">The log level.</param>
+        /// <param name="initText">The initialize text.</param>
         public TextFileLogProvider(string fileName, LogLevel logLevel, string initText)
         {
             _fileName = fileName;
@@ -102,13 +111,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             //    FileWriteLineOther($"{DateTime.UtcNow} | {LogLevel.Trace} | Init | {initText}");
             //}
         }
-        /// <summary>
-        /// Gets the specified named logger.
-        /// </summary>
-        /// <param name="name">Name of the logger.</param>
-        /// <returns>
-        /// The logger reference.
-        /// </returns>
+        /// <inheritdoc />
         public Logger GetLogger(string name)
         {
             return (logLevel, messageFunc, exception, formatParameters) =>
@@ -199,31 +202,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
-        /// <summary>
-        /// Opens a nested diagnostics context. Not supported in EntLib logging.
-        /// </summary>
-        /// <param name="message">The message to add to the diagnostics context.</param>
-        /// <returns>
-        /// A disposable that when disposed removes the message from the context.
-        /// </returns>
+        /// <inheritdoc />
         public IDisposable OpenNestedContext(string message)
         {
             return NullDisposable.Instance;
         }
-
-        /// <summary>
-        /// Opens a mapped diagnostics context. Not supported in EntLib logging.
-        /// </summary>
-        /// <param name="key">A key.</param>
-        /// <param name="value">A value.</param>
-        /// <returns>
-        /// A disposable that when disposed removes the map from the context.
-        /// </returns>
+        /// <inheritdoc />
         public IDisposable OpenMappedContext(string key, string value)
         {
             return NullDisposable.Instance;
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// A 'null' object that won't complain if dispose is called
         /// </summary>
@@ -231,9 +221,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             internal static readonly IDisposable Instance = new NullDisposable();
 
-            /// <summary>
-            /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-            /// </summary>
+            /// <inheritdoc />
             public void Dispose()
             { }
         }

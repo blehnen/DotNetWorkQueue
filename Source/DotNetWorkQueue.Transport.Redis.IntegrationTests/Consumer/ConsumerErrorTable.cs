@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using System;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 {
     [Collection("Redis")]
@@ -29,17 +31,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     {
         [Theory]
         [InlineData(1, 40, 1, ConnectionInfoTypes.Linux, false),
-        InlineData(100, 120, 20, ConnectionInfoTypes.Linux, false),
-        InlineData(10, 60, 5, ConnectionInfoTypes.Linux, false),
-            InlineData(1, 40, 1, ConnectionInfoTypes.Windows, false),
-        InlineData(100, 120, 20, ConnectionInfoTypes.Windows, false),
-        InlineData(10, 60, 5, ConnectionInfoTypes.Windows, false),
-            InlineData(1, 40, 1, ConnectionInfoTypes.Linux, true),
         InlineData(100, 120, 20, ConnectionInfoTypes.Linux, true),
-        InlineData(10, 60, 5, ConnectionInfoTypes.Linux, true),
-            InlineData(1, 40, 1, ConnectionInfoTypes.Windows, true),
         InlineData(100, 120, 20, ConnectionInfoTypes.Windows, true),
-        InlineData(10, 60, 5, ConnectionInfoTypes.Windows, true)]
+        InlineData(10, 60, 5, ConnectionInfoTypes.Windows, false)]
         public void Run(int messageCount, int timeOut, int workerCount, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();

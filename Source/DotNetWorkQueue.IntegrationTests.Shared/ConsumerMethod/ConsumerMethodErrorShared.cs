@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Threading;
 using DotNetWorkQueue.Logging;
@@ -31,8 +32,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id)
             where TTransportInit : ITransportInit, new()
         {
-
-            var rollbacks = false;
             using (var metrics = new Metrics.Net.Metrics(queueName))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
@@ -45,7 +44,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
                     )
                 {
-
+                    bool rollbacks;
                     using (
                         var queue =
                             creator.CreateMethodConsumer(queueName,

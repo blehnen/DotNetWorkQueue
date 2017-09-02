@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.TaskScheduling
 {
+    /// <inheritdoc />
     /// <summary>
     /// A NoOp work group
     /// </summary>

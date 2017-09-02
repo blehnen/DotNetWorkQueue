@@ -16,15 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class DoesJobExistQueryHandler : IQueryHandler<DoesJobExistQuery, QueueStatuses>
     {
         private readonly DoesJobExistLua _lua;
@@ -39,11 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _lua = lua;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public QueueStatuses Handle(DoesJobExistQuery query)
         {
             return _lua.Execute(query.JobName, query.ScheduledTime);

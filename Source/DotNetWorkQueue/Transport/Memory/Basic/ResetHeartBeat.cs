@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 
 using System.Threading;
+
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
     /// <summary>

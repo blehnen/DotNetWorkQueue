@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -23,6 +24,7 @@ using Amib.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 using Action = System.Action;
+
 namespace DotNetWorkQueue.TaskScheduling
 {
     /// <summary>

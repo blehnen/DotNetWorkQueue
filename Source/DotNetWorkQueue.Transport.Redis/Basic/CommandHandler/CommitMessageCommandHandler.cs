@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
+    /// <inheritdoc />
     internal class CommitMessageCommandHandler : ICommandHandlerWithOutput<CommitMessageCommand, bool>
     {
         private readonly CommitLua _commitLua;
@@ -36,11 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _commitLua = commitLua;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public bool Handle(CommitMessageCommand command)
         {
             var result = _commitLua.Execute(command.Id.Id.Value.ToString());

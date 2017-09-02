@@ -16,9 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
@@ -26,7 +28,6 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
- 
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -96,7 +97,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="commandSend">The command.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to insert record - the ID of the new record returned by SQL server was 0</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         public long Handle(SendMessageCommand commandSend)
         {
             if (!_messageExpirationEnabled.HasValue)
@@ -147,7 +148,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                                 var expiration = TimeSpan.Zero;
                                 if (_messageExpirationEnabled.Value)
                                 {
-                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, (data) => data.GetExpiration());
+                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, data => data.GetExpiration());
                                 }
 
                                 CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration, connection, id,
@@ -173,11 +174,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                             return id;
                         }
                     }
-                    else
-                    {
-                        throw new DotNetWorkQueueException(
-                            "Failed to insert record - the job has already been queued or processed");
-                    }
+                    throw new DotNetWorkQueueException(
+                        "Failed to insert record - the job has already been queued or processed");
                 }
             }
         }

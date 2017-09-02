@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using System;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 {
     [Collection("postgresql")]
@@ -31,11 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 
         [Theory]
         [InlineData(500, 1, 400, 10, 5, 5, false, 1),
-         InlineData(50, 5, 200, 10, 1, 2, false, 1),
-         InlineData(10, 5, 180, 7, 1, 1, false, 1),
          InlineData(500, 1, 400, 10, 5, 5, true, 1),
-         InlineData(50, 5, 200, 10, 1, 1, true, 1),
-         InlineData(10, 5, 180, 7, 1, 2, true, 1),
          InlineData(500, 0, 180, 10, 5, 0, false, 1),
          InlineData(500, 0, 180, 10, 5, 0, true, 1)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,

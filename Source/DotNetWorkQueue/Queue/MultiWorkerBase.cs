@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Threading;
 using DotNetWorkQueue.Validation;
 
@@ -58,7 +59,7 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         ///   <c>true</c> if running; otherwise, <c>false</c>.
         /// </value>
-        public override bool Running => (WorkerThread != null && WorkerThread.IsAlive) || (MessageProcessing !=null && MessageProcessing.AsyncTaskCount > 0);
+        public override bool Running => WorkerThread != null && WorkerThread.IsAlive || MessageProcessing !=null && MessageProcessing.AsyncTaskCount > 0;
 
         /// <summary>
         /// Tries to force terminate the thread if needed

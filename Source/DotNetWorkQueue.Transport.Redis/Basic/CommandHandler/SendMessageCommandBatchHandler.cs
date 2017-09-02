@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -29,9 +30,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Sends multiple messages to the transport
-    /// </summary>
+    /// <inheritdoc />
     internal class SendMessageCommandBatchHandler :
         ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>
     {
@@ -79,11 +78,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _unixTimeFactory = unixTimeFactory;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="commandSend">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public QueueOutputMessages Handle(SendMessageCommandBatch commandSend)
         {
             var rc = new ConcurrentBag<IQueueOutputMessage>();

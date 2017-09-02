@@ -16,11 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Validation;
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>

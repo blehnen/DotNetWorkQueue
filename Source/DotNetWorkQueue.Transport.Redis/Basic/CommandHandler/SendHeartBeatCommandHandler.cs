@@ -16,15 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
-    /// <summary>
-    /// Updates the heart beat for a work in progress item
-    /// </summary>
+    /// <inheritdoc />
     internal class SendHeartBeatCommandHandler: ICommandHandlerWithOutput<SendHeartBeatCommand, long>
     {
         private readonly SendHeartbeatLua _sendHeartbeatLua;
@@ -45,11 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _unixTimeFactory = unixTimeFactory;
         }
 
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long Handle(SendHeartBeatCommand command)
         {
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();

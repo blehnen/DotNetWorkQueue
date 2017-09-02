@@ -18,9 +18,7 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Configuration
 {
-    /// <summary>
-    /// Defines a connection to a queue
-    /// </summary>
+    /// <inheritdoc />
     public class BaseConnectionInformation : IConnectionInformation
     {
         private readonly string _connectionString;

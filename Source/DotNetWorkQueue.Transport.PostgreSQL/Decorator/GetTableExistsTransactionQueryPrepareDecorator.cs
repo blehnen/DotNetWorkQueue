@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -24,9 +25,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class GetTableExistsTransactionQueryPrepareDecorator : IPrepareQueryHandler<GetTableExistsTransactionQuery, bool>
     {
         private readonly IPrepareQueryHandler<GetTableExistsTransactionQuery, bool> _decorated;
@@ -42,16 +41,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
             _decorated = decorated;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <param name="dbCommand">The database command.</param>
-        /// <param name="commandType">Type of the command.</param>
+        /// <inheritdoc />
         public void Handle(GetTableExistsTransactionQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
+            //table name needs to be lower case
             _decorated.Handle(new GetTableExistsTransactionQuery(query.Connection,
-                query.Trans, query.TableName), dbCommand, commandType );
+                query.Trans, query.TableName.ToLowerInvariant()), dbCommand, commandType );
         }
     }
 }

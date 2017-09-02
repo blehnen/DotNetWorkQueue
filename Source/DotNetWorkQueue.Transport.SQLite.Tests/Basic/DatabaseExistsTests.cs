@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.IO;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using Xunit;
 
@@ -37,7 +39,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         [Fact]
         public void DatabaseDoesExist()
         {
-            var fileName = System.IO.Path.GetTempFileName();
+            var fileName = Path.GetTempFileName();
             var connectionString = $"Data Source={fileName};Version=3;";
             try
             {
@@ -45,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             }
             finally
             {
-                System.IO.File.Delete(fileName);
+                File.Delete(fileName);
             }
         }
         [Fact]

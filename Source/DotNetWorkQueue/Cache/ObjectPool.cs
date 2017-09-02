@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using DotNetWorkQueue.Validation;
@@ -64,8 +65,7 @@ namespace DotNetWorkQueue.Cache
         /// </returns>
         public T GetObject()
         {
-            T value;
-            return _objects.TryTake(out value) ? value : Factory();
+            return _objects.TryTake(out var value) ? value : Factory();
         }
 
         /// <summary>
@@ -98,8 +98,7 @@ namespace DotNetWorkQueue.Cache
             {
                 if (disposing)
                 {
-                    T value;
-                    _objects.TryTake(out value);
+                    _objects.TryTake(out var value);
                     while (value != null)
                     {
                         var disposable = value as IDisposable;

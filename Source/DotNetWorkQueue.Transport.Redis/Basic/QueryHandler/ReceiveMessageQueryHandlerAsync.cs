@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -29,9 +30,7 @@ using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
-    /// <summary>
-    /// Dequeues a message.
-    /// </summary>
+    /// <inheritdoc />
     internal class ReceiveMessageQueryHandlerAsync : IQueryHandler<ReceiveMessageQueryAsync, Task<RedisMessage>>
     {
         private readonly ICompositeSerialization _serializer;
@@ -82,12 +81,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _messageFactory = messageFactory;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
-        /// <exception cref="PoisonMessageException">An error has occurred trying to re-assemble a message de-queued from the transport</exception>
+        /// <inheritdoc />
         public async Task<RedisMessage> Handle(ReceiveMessageQueryAsync query)
         {
             byte[] message = null;
@@ -108,7 +102,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                     result = await _dequeueLua.ExecuteAsync(unixTimestamp).ConfigureAwait(false);
                 }
 
-                if (result == null || (result.Length == 1 && !result[0].HasValue) || !result[0].HasValue)
+                if (result == null || result.Length == 1 && !result[0].HasValue || !result[0].HasValue)
                 {
                     return null;
                 }
@@ -128,8 +122,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                     headers = result[2];
                     if (result[3].HasValue)
                     {
-                        long messageExpiration;
-                        if (result[3].TryParse(out messageExpiration))
+                        if (result[3].TryParse(out long messageExpiration))
                         {
                             if (messageExpiration - unixTimestamp < 0)
                             {

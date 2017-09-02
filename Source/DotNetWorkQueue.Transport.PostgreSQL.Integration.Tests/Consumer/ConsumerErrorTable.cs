@@ -16,22 +16,21 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using System;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
 {
     [Collection("postgresql")]
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(1, 10, 1, false),
-         InlineData(100, 60, 20, false),
-         InlineData(10, 40, 5, false),
-         InlineData(1, 10, 1, true),
+        [InlineData(100, 60, 20, false),
          InlineData(100, 60, 20, true),
          InlineData(10, 40, 5, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions)

@@ -16,13 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    /// <inheritdoc />
     public class DoesJobExistQuery<TConnection, TTransaction> : IQuery<QueueStatuses>
         where TConnection : class
         where TTransaction : class
@@ -35,44 +34,44 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <param name="connection">The connection.</param>
         /// <param name="transaction">The transaction.</param>
         public DoesJobExistQuery(string jobName, DateTimeOffset scheduledTime, TConnection connection = null,
-        TTransaction transaction = null)
-    {
-        JobName = jobName;
-        ScheduledTime = scheduledTime;
-        Connection = connection;
-        Transaction = transaction;
-    }
+            TTransaction transaction = null)
+        {
+            JobName = jobName;
+            ScheduledTime = scheduledTime;
+            Connection = connection;
+            Transaction = transaction;
+        }
 
-    /// <summary>
-    /// Gets the name of the job.
-    /// </summary>
-    /// <value>
-    /// The name of the job.
-    /// </value>
-    public string JobName { get; }
+        /// <summary>
+        /// Gets the name of the job.
+        /// </summary>
+        /// <value>
+        /// The name of the job.
+        /// </value>
+        public string JobName { get; }
 
-    /// <summary>
-    /// Gets the scheduled time.
-    /// </summary>
-    /// <value>
-    /// The scheduled time.
-    /// </value>
-    public DateTimeOffset ScheduledTime { get; }
+        /// <summary>
+        /// Gets the scheduled time.
+        /// </summary>
+        /// <value>
+        /// The scheduled time.
+        /// </value>
+        public DateTimeOffset ScheduledTime { get; }
 
-    /// <summary>
-    /// Gets the connection.
-    /// </summary>
-    /// <value>
-    /// The connection.
-    /// </value>
-    public TConnection Connection { get; }
+        /// <summary>
+        /// Gets the connection.
+        /// </summary>
+        /// <value>
+        /// The connection.
+        /// </value>
+        public TConnection Connection { get; }
 
-    /// <summary>
-    /// Gets the transaction.
-    /// </summary>
-    /// <value>
-    /// The transaction.
-    /// </value>
-    public TTransaction Transaction { get; }
+        /// <summary>
+        /// Gets the transaction.
+        /// </summary>
+        /// <value>
+        /// The transaction.
+        /// </value>
+        public TTransaction Transaction { get; }
     }
 }

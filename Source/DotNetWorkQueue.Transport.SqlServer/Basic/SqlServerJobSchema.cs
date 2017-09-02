@@ -16,10 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
 using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.SqlServer.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.SqlServer.Schema;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {

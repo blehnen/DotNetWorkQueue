@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
-
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -31,9 +31,7 @@ using NpgsqlTypes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
 {
-    /// <summary>
-    /// Dequeues a message.
-    /// </summary>
+    /// <inheritdoc />
     internal class ReceiveMessageQueryHandlerAsync : IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>>
     {
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
@@ -83,13 +81,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             _serialization = serialization;
             _getTime = getTimeFactory.Create();
         }
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
-        /// <exception cref="PoisonMessageException">An error has occurred trying to re-assemble a message de-queued from the server</exception>
-        /// <exception cref="MessageQueueId"></exception>
+        /// <inheritdoc />
         public async Task<IReceivedMessageInternal> Handle(ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction> query)
         {
             using (var selectCommand = query.Connection.CreateCommand())
@@ -116,8 +108,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                     var routeCounter = 1;
                     foreach (var route in query.Routes)
                     {
-                        selectCommand.Parameters.Add("@Route" + routeCounter.ToString(), NpgsqlDbType.Varchar);
-                        selectCommand.Parameters["@Route" + routeCounter.ToString()].Value = route;
+                        selectCommand.Parameters.Add("@Route" + routeCounter, NpgsqlDbType.Varchar);
+                        selectCommand.Parameters["@Route" + routeCounter].Value = route;
                         routeCounter++;
                     }
                 }

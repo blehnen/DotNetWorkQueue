@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Transport.Redis.Basic;
+using NSubstitute;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
@@ -32,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
         [Fact]
         public void Create_Message()
         {
-            var message = NSubstitute.Substitute.For<IReceivedMessageInternal>();
+            var message = Substitute.For<IReceivedMessageInternal>();
             var test = new RedisMessage("1", message, false);
             Assert.Equal(message, test.Message);
             Assert.Equal("1", test.MessageId);

@@ -35,6 +35,9 @@
     <DocumentationFile>bin\Release\DotNetWorkQueue.Transport.SqlServer.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Polly, Version=5.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Polly.5.3.1\lib\net45\Polly.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Transactions" />
@@ -60,6 +63,7 @@
     <Compile Include="Basic\Factory\ConnectionHolderFactory.cs" />
     <Compile Include="Basic\Factory\SQLServerMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
+    <Compile Include="Basic\TransportPolicyDefinitions.cs" />
     <Compile Include="ISQLServerMessageQueueTransportOptionsFactory.cs" />
     <Compile Include="Basic\Message\CommitMessage.cs" />
     <Compile Include="Basic\Message\HandleMessage.cs" />
@@ -91,7 +95,6 @@
     <Compile Include="Decorator\RetryCommandHandlerOutputDecorator.cs" />
     <Compile Include="Decorator\RetryCommandHandlerOutputDecoratorAsync.cs" />
     <Compile Include="Decorator\RetryConstants.cs" />
-    <Compile Include="Decorator\ThreadSafeRandom.cs" />
     <Compile Include="Decorator\RetryableSqlErrors.cs" />
     <Compile Include="Decorator\RetryQueryHandlerDecorator.cs" />
     <Compile Include="GlobalSuppressions.cs" />
@@ -122,6 +125,7 @@
       <Link>DotNetWorkQueue.licenseheader</Link>
     </None>
     <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

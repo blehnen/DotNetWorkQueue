@@ -17,10 +17,13 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 #region Using
+
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
 using Xunit;
+
 #endregion
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
@@ -67,8 +70,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             }
         }
 
-        // ReSharper disable once UnusedParameter.Local
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyCount(long messageCount, string route)
         {
             using (var conn = new NpgsqlConnection(_connection.ConnectionString))
@@ -92,7 +95,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyPriority()
         {
             using (var conn = new NpgsqlConnection(_connection.ConnectionString))
@@ -113,7 +116,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyDelayedProcessing()
         {
             using (var conn = new NpgsqlConnection(_connection.ConnectionString))
@@ -134,7 +137,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyMessageExpiration()
         {
             using (var conn = new NpgsqlConnection(_connection.ConnectionString))
@@ -154,7 +157,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyStatus()
         {
             using (var conn = new NpgsqlConnection(_connection.ConnectionString))
@@ -174,7 +177,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyStatusTable()
         {
             using (var conn = new NpgsqlConnection(_connection.ConnectionString))
@@ -213,8 +216,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             AllTablesRecordCount(recordCount, ignoreMeta, ignoreErrorTracking);
         }
 
-        // ReSharper disable once UnusedParameter.Local
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void AllTablesRecordCount(int recordCount, bool ignoreMeta, bool ignoreErrorTracking)
         {
             using (var conn = new NpgsqlConnection(_connection.ConnectionString))
@@ -285,7 +288,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             _tableNameHelper = new TableNameHelper(_connection);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         public void Verify(long messageCount, int errorCount)
         {
             using (var conn = new NpgsqlConnection(_connection.ConnectionString))

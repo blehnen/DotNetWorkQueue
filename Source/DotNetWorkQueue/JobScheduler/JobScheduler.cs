@@ -16,10 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
@@ -283,7 +285,7 @@ namespace DotNetWorkQueue.JobScheduler
                     job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queue, connection, producerConfiguration), expressionToRun, _getTime.Create(), route)
                     {
                         Window = window,
-                        IsAttached = true,
+                        IsAttached = true
                     };
                     _tasks.Add(name, job);
                 }
@@ -292,7 +294,7 @@ namespace DotNetWorkQueue.JobScheduler
                     job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queue, connection, producerConfiguration), actionToRun, _getTime.Create(), route)
                     {
                         Window = window,
-                        IsAttached = true,
+                        IsAttached = true
                     };
                     _tasks.Add(name, job);
                 }
@@ -356,7 +358,7 @@ namespace DotNetWorkQueue.JobScheduler
                     job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queue, connection, producerConfiguration), expressionToRun, _getTime.Create(), route)
                     {
                         Window = window,
-                        IsAttached = true,
+                        IsAttached = true
                     };
                     _tasks.Add(name, job);
                 }
@@ -365,7 +367,7 @@ namespace DotNetWorkQueue.JobScheduler
                     job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queue, connection, producerConfiguration), actionToRun, _getTime.Create(), route)
                     {
                         Window = window,
-                        IsAttached = true,
+                        IsAttached = true
                     };
                     _tasks.Add(name, job);
                 }
@@ -445,8 +447,7 @@ namespace DotNetWorkQueue.JobScheduler
                 if (IsShuttingDown)
                     throw new JobSchedulerException("Cannot remove a task from after Shutdown has been called.");
 
-                ScheduledJob task;
-                if (!_tasks.TryGetValue(name, out task))
+                if (!_tasks.TryGetValue(name, out var task))
                     return false;
 
                 if (task.IsScheduleRunning)
@@ -559,7 +560,7 @@ namespace DotNetWorkQueue.JobScheduler
                         if (allStopped)
                             return;
 
-                        System.Threading.Thread.Sleep(10); // wait 10 milliseconds, then check again
+                        Thread.Sleep(10); // wait 10 milliseconds, then check again
                     }
                 }
                 _disposedValue = true;

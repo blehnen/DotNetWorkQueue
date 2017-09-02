@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -37,6 +38,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
          InlineData(100, false, true, false, true, true, false, true, false, true),
          InlineData(100, false, true, true, true, true, true, true, false, true),
          InlineData(100, true, true, true, false, false, true, false, true, true),
+
          InlineData(100, true, true, true, false, false, true, false, false, false),
          InlineData(100, false, true, true, false, false, true, false, false, false),
          InlineData(100, false, false, false, false, false, false, false, false, false),

@@ -16,19 +16,19 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Configuration;
 using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL
 {
-    /// <summary>
-    /// Contains connection information for a queue
-    /// </summary>
+    /// <inheritdoc />
     public class SqlConnectionInformation: BaseConnectionInformation
     {
         private string _server;
 
         #region Constructor
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlConnectionInformation"/> class.
         /// </summary>
@@ -41,33 +41,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// Gets the server.
-        /// </summary>
-        /// <value>
-        /// The server.
-        /// </value>
+        /// <inheritdoc />
         public override string Server => _server;
 
-        /// <summary>
-        /// Gets the container.
-        /// </summary>
-        /// <value>
-        /// The container.
-        /// </value>
-        /// <remarks>
-        /// The name of the container for the queue
-        /// </remarks>
+        /// <inheritdoc />
         public override string Container => Server;
         #endregion
 
         #region IClone
-        /// <summary>
-        /// Creates a new object that is a copy of the current instance.
-        /// </summary>
-        /// <returns>
-        /// A new object that is a copy of this instance.
-        /// </returns>
+        /// <inheritdoc />
         public override IConnectionInformation Clone()
         {
             return new SqlConnectionInformation(QueueName, ConnectionString);

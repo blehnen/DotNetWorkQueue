@@ -16,6 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
+using System.Data.SQLite;
+
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     /// <summary>
@@ -30,13 +34,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <returns></returns>
         public static ConnectionStringInfo GetFileName(string connectionString)
         {
-            System.Data.SQLite.SQLiteConnectionStringBuilder builder;
+            SQLiteConnectionStringBuilder builder;
             try
             {
-                 builder = new System.Data.SQLite.SQLiteConnectionStringBuilder(connectionString);
+                 builder = new SQLiteConnectionStringBuilder(connectionString);
             }
             // ReSharper disable once UncatchableException
-            catch (System.ArgumentException) //bad format - return a connection string info that isn't valid
+            catch (ArgumentException) //bad format - return a connection string info that isn't valid
             {
                 return new ConnectionStringInfo(false, string.Empty);
             }

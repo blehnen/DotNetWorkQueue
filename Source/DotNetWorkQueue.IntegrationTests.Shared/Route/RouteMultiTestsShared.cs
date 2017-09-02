@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -73,7 +74,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
 
                 //spin up and process each route
                 var running = new List<List<string>> {routes1, routes2};
-                Parallel.ForEach(running, (route) =>
+                Parallel.ForEach(running, route =>
                 {
                     var consumer = new ConsumerAsyncShared<TMessage> { Factory = taskFactory };
 
@@ -103,7 +104,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 addInterceptors,
                 messageCount,
                 logProvider,
-                (g) => GenerateDataWithRoute(generateData, g, route),
+                g => GenerateDataWithRoute(generateData, g, route),
                 (a, b, c, d, e) => VerifyRoutes(verify, a, b, c, d, route, scope),
                 sendViaBatch,
                 false,

@@ -16,43 +16,39 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Policies;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic.Message;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic.Time;
 using DotNetWorkQueue.Transport.PostgreSQL.Decorator;
-using CommitMessage = DotNetWorkQueue.Transport.PostgreSQL.Basic.Message.CommitMessage;
-using DotNetWorkQueue.Queue;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Validation;
 using Npgsql;
+using Polly;
+using FindExpiredRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler;
+using FindRecordsToResetByHeartBeatQueryPrepareHandler = DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    /// <summary>
-    /// Registers the implementations for the queue into the IoC container.
-    /// </summary>
+    /// <inheritdoc />
     public class PostgreSqlMessageQueueInit : TransportInitDuplex
     {
-        /// <summary>
-        /// Registers the implementations.
-        /// </summary>
-        /// <param name="container">The container.</param>
-        /// <param name="registrationType">Type of the registration.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="queue">The queue.</param>
+        /// <inheritdoc />
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
             string connection, string queue)
         {
@@ -87,7 +83,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             container.Register<PostgreSqlMessageQueueTransportOptions>(LifeStyles.Singleton);
             container.Register<IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>, ConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
-            container.Register<ThreadSafeRandom>(LifeStyles.Singleton);
             //**all
 
             //**receive
@@ -120,12 +115,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //expired messages
             container
                 .Register<IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>,
-                    QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
+                    FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
 
             //heartbeat
             container
                 .Register<IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>,
-                    QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
+                    FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
 
             container
                 .Register<ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>,
@@ -178,17 +173,47 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     QueueCreationResult>),
                 typeof(CreateQueueTablesAndSaveConfigurationDecorator), LifeStyles.Singleton);
         }
-
-        /// <summary>
-        /// Allows the transport to set default configuration settings or other values
-        /// </summary>
-        /// <param name="container">The container.</param>
-        /// <param name="registrationType">Type of the registration.</param>
-        /// <param name="connectionType">Type of the connection.</param>
+        /// <inheritdoc />
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
         {
             var init = new MessageQueueInit();
             init.SetDefaultsIfNeeded(container, "PostgreSQLMessageQueueTransportOptions", "PostgreSQLMessageQueueTransportOptions");
+            SetupPolicy(container);
+        }
+
+        private void SetupPolicy(IContainer container)
+        {
+            var policies = container.GetInstance<IPolicies>();
+            var log = container.GetInstance<ILogFactory>().Create();
+
+            var retrySql = Policy
+                .Handle<PostgresException>(ex => RetryablePostGreErrors.Errors.Contains(ex.SqlState))
+                .WaitAndRetry(
+                    RetryConstants.RetryCount,
+                    retryAttempt => TimeSpan.FromSeconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                    (exception, timeSpan, retryCount, context) =>
+                    {
+                        log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
+                    });
+
+
+            //RetryCommandHandler
+            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandler,
+                new TransportPolicyDefinition(
+                    TransportPolicyDefinitions.RetryCommandHandler,
+                    "A policy for retrying a failed command. This checks specific" +
+                    "PostGres server errors, such as deadlocks, and retries the command" +
+                    "after a short pause"));
+            policies.Registry[TransportPolicyDefinitions.RetryCommandHandler] = retrySql;
+
+            //RetryQueryHandler
+            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryQueryHandler,
+                new TransportPolicyDefinition(
+                    TransportPolicyDefinitions.RetryQueryHandler,
+                    "A policy for retrying a failed query. This checks specific" +
+                    "PostGres server errors, such as deadlocks, and retries the query" +
+                    "after a short pause"));
+            policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql;
         }
     }
 }

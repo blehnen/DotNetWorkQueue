@@ -16,14 +16,23 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using StackExchange.Redis;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
+    /// <inheritdoc />
     /// <summary>
     /// Sends a message from the working queue into the delay queue
     /// </summary>
     internal class RollbackDelayLua : BaseLua
     {
+        /// <inheritdoc />
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RollbackDelayLua"/> class.
+        /// </summary>
+        /// <param name="connection">The connection.</param>
+        /// <param name="redisNames">The redis names.</param>
         public RollbackDelayLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
@@ -57,7 +66,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 uuid = messageId,
                 delaykey = (RedisKey)RedisNames.Delayed,
                 timestamp = unixTime,
-                StatusKey = (RedisKey)RedisNames.Status,
+                StatusKey = (RedisKey)RedisNames.Status
             };
         }
     }

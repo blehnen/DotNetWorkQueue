@@ -16,9 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.SQLite;
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -49,8 +52,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             _receivedMessageFactory = receivedMessageFactory;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        internal IReceivedMessageInternal HandleMessage(SQLiteConnection connection, SQLiteTransaction transaction, System.Data.Common.DbDataReader reader, CommandString commandString)
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
+        internal IReceivedMessageInternal HandleMessage(SQLiteConnection connection, SQLiteTransaction transaction, DbDataReader reader, CommandString commandString)
         {
             if (!reader.Read())
             {

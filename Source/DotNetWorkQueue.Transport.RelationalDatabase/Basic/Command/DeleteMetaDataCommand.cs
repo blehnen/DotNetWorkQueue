@@ -21,6 +21,9 @@ using System.Data;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
 {
+    /// <summary>
+    /// A command for deleting the metadata for a message
+    /// </summary>
     public class DeleteMetaDataCommand
     {
         /// <summary>
@@ -46,8 +49,20 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
         public long QueueId { get; }
 
 
+        /// <summary>
+        /// Gets the transaction.
+        /// </summary>
+        /// <value>
+        /// The transaction.
+        /// </value>
         public IDbTransaction Transaction { get; }
 
+        /// <summary>
+        /// Gets the connection.
+        /// </summary>
+        /// <value>
+        /// The connection.
+        /// </value>
         public IDbConnection Connection { get; }
     }
 }

@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue.Metrics.Net
 {
-    /// <summary>
-    /// Disposable instance used to measure time. 
-    /// </summary>
+    /// <inheritdoc />
     internal class TimerContext: ITimerContext
     {
         private global::Metrics.TimerContext _timerContext;
@@ -35,14 +35,10 @@ namespace DotNetWorkQueue.Metrics.Net
             _timerContext = timerContext;
         }
 
-        /// <summary>
-        /// Provides the currently elapsed time from when the instance has been created
-        /// </summary>
+        /// <inheritdoc />
         public TimeSpan Elapsed => _timerContext.Elapsed;
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             _timerContext.Dispose();

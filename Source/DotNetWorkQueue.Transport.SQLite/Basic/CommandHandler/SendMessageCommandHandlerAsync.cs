@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Data;
 using System.Data.SQLite;
@@ -26,7 +27,6 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
-
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 var expiration = TimeSpan.Zero;
                 if (_messageExpirationEnabled.Value)
                 {
-                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, (data) => data.GetExpiration());
+                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, data => data.GetExpiration());
                 }
 
                 var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);

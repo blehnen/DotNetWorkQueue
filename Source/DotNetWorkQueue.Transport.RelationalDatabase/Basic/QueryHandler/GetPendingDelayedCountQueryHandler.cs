@@ -16,14 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
-    /// <summary>
-    /// Number of pending delayed records
-    /// </summary>
+    /// <inheritdoc />
     internal class GetPendingDelayedCountQueryHandler : IQueryHandler<GetPendingDelayedCountQuery, long>
     {
         private readonly IPrepareQueryHandler<GetPendingDelayedCountQuery, long> _prepareQuery;
@@ -35,6 +35,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// </summary>
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="connectionFactory">The connection factory.</param>
+        /// <param name="readColumn">The read column.</param>
         public GetPendingDelayedCountQueryHandler(IPrepareQueryHandler<GetPendingDelayedCountQuery, long> prepareQuery,
             IDbConnectionFactory connectionFactory,
             IReadColumn readColumn)
@@ -46,12 +47,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _connectionFactory = connectionFactory;
             _readColumn = readColumn;
         }
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        /// <inheritdoc />
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         public long Handle(GetPendingDelayedCountQuery query)
         {
             using (var connection = _connectionFactory.Create())

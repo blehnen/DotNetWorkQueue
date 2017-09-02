@@ -16,10 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
 {
+    /// <inheritdoc />
     internal class GetRedisTimeFactory : IGetTimeFactory
     {
         private readonly IUnixTimeFactory _unixTimeFactory;
@@ -33,10 +35,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
             Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
             _unixTimeFactory = unixTimeFactory;
         }
-        /// <summary>
-        /// Returns instance of <see cref="IGetTime" />
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IGetTime Create()
         {
             return _unixTimeFactory.Create();

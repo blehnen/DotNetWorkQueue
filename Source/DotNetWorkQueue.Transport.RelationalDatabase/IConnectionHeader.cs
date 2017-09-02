@@ -16,14 +16,28 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Data;
+
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
+    /// <summary>
+    /// Defines how to return a <see cref="IMessageContextData{T}"></see> that contains for a connection holder
+    /// </summary>
+    /// <typeparam name="TConnection">The type of the connection.</typeparam>
+    /// <typeparam name="TTransaction">The type of the transaction.</typeparam>
+    /// <typeparam name="TCommand">The type of the command.</typeparam>
     public interface IConnectionHeader<TConnection, TTransaction, out TCommand>
         where TConnection : IDbConnection
         where TTransaction : IDbTransaction
         where TCommand : IDbCommand
     {
+        /// <summary>
+        /// Gets the connection.
+        /// </summary>
+        /// <value>
+        /// The connection.
+        /// </value>
         IMessageContextData<IConnectionHolder<TConnection, TTransaction, TCommand>> Connection
         {
             get;

@@ -16,11 +16,20 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
+
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
+    /// <summary>
+    /// Returns the schema for the jobs as a list of <see cref="ITable"/>
+    /// </summary>
     public interface IJobSchema
     {
+        /// <summary>
+        /// Returns the schema for the jobs as a list of <see cref="ITable"/>
+        /// </summary>
+        /// <returns></returns>
         List<ITable> GetSchema();
     }
 }

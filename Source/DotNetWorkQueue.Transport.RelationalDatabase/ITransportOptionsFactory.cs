@@ -18,6 +18,9 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
+    /// <summary>
+    /// Creates the <see cref="ITransportOptions"/>
+    /// </summary>
     public interface ITransportOptionsFactory
     {
         /// <summary>

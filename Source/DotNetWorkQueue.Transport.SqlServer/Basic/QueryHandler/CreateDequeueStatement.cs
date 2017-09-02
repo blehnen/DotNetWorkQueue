@@ -16,12 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Validation;
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 {
@@ -238,10 +239,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             { //TODO - cache based on route
                 return sb.ToString();
             }
-            else
-            {
-                return _commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, sb.ToString());
-            }
+            return _commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, sb.ToString());
         }
     }
 }

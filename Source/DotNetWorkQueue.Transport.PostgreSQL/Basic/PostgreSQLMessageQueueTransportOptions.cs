@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Text;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
@@ -25,9 +26,7 @@ using NpgsqlTypes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
-    /// <summary>
-    /// Transport options. Generally speaking, this controls the feature set of the transport.
-    /// </summary>
+    /// <inheritdoc cref="ITransportOptions" />
     public class PostgreSqlMessageQueueTransportOptions: ITransportOptions, IReadonly, ISetReadonly
     {
         private bool _enableStatusTable;
@@ -83,12 +82,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         #endregion
 
         #region Options
-        /// <summary>
-        /// Gets or sets a value indicating whether [enable priority].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [enable priority]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool EnablePriority
         {
             get => _enablePriority;
@@ -98,12 +92,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 _enablePriority = value;
             }
         }
-        /// <summary>
-        /// If true, a transaction will be held until the message is finished processing.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if [enable hold transaction until message committed]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool EnableHoldTransactionUntilMessageCommitted
         {
             get => _enableHoldTransactionUntilMessageCommitted;
@@ -113,12 +102,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 _enableHoldTransactionUntilMessageCommitted = value;
             }
         }
-        /// <summary>
-        /// Gets or sets a value indicating whether [enable status].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [enable status]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool EnableStatus
         {
             get => _enableStatus;
@@ -128,12 +112,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 _enableStatus = value;
             }
         }
-        /// <summary>
-        /// Gets or sets a value indicating whether [enable heart beat].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [enable heart beat]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool EnableHeartBeat
         {
             get => _enableHeartBeat;
@@ -143,12 +122,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 _enableHeartBeat = value;
             }
         }
-        /// <summary>
-        /// Gets or sets a value indicating whether [enable delayed processing].
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if [enable delayed processing]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool EnableDelayedProcessing
         {
             get => _enableDelayedProcessing;
@@ -159,12 +133,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether routing is enabled.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [enable route]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool EnableRoute
         {
             get => _enableRoute;
@@ -175,12 +144,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether [enable status table].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [enable status table]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool EnableStatusTable
         {
             get => _enableStatusTable || AdditionalColumns.Count > 0;
@@ -191,12 +155,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
 
-        /// <summary>
-        /// Gets or sets the type of the queue.
-        /// </summary>
-        /// <value>
-        /// The type of the queue.
-        /// </value>
+        /// <inheritdoc />
         public QueueTypes QueueType
         {
             get => _queueType;
@@ -207,12 +166,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether [enable message expiration].
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if [enable message expiration]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool EnableMessageExpiration
         {
             get => _enableMessageExpiration;
@@ -261,12 +215,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         }
         #endregion
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is read only.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is read only; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsReadOnly { get; protected set; }
 
         /// <summary>
@@ -278,9 +227,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             if (IsReadOnly) throw new InvalidOperationException();
         }
 
-        /// <summary>
-        /// Marks this instance as immutable
-        /// </summary>
+        /// <inheritdoc />
         public void SetReadOnly()
         {
             IsReadOnly = true;

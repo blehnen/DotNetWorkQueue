@@ -16,10 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Text;
 using DotNetWorkQueue.Validation;
 using JsonNet.PrivateSettersContractResolvers;
 using Newtonsoft.Json;
+
 namespace DotNetWorkQueue.Serialization
 {
     /// <summary>
@@ -59,7 +61,7 @@ namespace DotNetWorkQueue.Serialization
             var serializerSettings = new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Auto,
-                ContractResolver = new PrivateSetterContractResolver(),
+                ContractResolver = new PrivateSetterContractResolver()
             };
             return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes), serializerSettings);
         }

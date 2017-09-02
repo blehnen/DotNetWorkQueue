@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using System;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
     [Collection("Redis")]
@@ -29,17 +31,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     {
         [Theory]
         [InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, false),
-        InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Linux, false),
-        InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Linux, false),
-        InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Windows, false),
-        InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Windows, false),
-        InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Windows, false),
-            InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, true),
         InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Linux, true),
-        InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Linux, true),
-        InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Windows, true),
         InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Windows, true),
-        InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Windows, true)]
+        InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Windows, false)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();

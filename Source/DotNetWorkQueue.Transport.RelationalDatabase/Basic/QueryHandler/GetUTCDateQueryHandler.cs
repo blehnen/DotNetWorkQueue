@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -23,6 +24,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
+    /// <inheritdoc />
     /// <summary>
     /// Gets the current UTC date from the server
     /// </summary>
@@ -50,12 +52,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _readColumn = readColumn;
         }
 
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException">Failed to obtain the UTC date from the server</exception>
+        /// <inheritdoc />
         public DateTime Handle(GetUtcDateQuery query)
         {
             using (var connection = _dbConnectionFactory.Create())

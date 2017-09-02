@@ -16,13 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
 {
-    /// <summary>
-    /// Creates new instance of <see cref="IRedisQueueWorkSub"/>
-    /// </summary>
+    /// <inheritdoc />
     internal class RedisQueueWorkSubFactory : IRedisQueueWorkSubFactory
     {
         private readonly IRedisConnection _connection;
@@ -47,11 +46,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
             _redisNames = redisNames;
             _cancelWork = cancelWork;
         }
-        /// <summary>
-        /// Creates new instance of <see cref="IRedisQueueWorkSub" /> that will only respond if the specified ID is sent
-        /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IRedisQueueWorkSub Create(IMessageId id)
         {
             if (id == null || !id.HasValue)
@@ -63,10 +58,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
             return new RedisQueueWorkSubRpc(_connection, _redisNames, _cancelWork, id);
         }
 
-        /// <summary>
-        /// Creates new instance of <see cref="IRedisQueueWorkSub" />
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IRedisQueueWorkSub Create()
         {
             return new RedisQueueWorkSub(_connection, _redisNames, _cancelWork);

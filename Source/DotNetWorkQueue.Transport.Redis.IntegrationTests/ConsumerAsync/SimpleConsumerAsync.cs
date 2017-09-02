@@ -16,12 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using System;
 using Xunit;
+
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
     [Collection("Redis")]
@@ -32,10 +34,6 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
         [Theory]
         [InlineData(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Linux),
          InlineData(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Linux),
-         InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Linux),
-         InlineData(500, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Linux),
-            InlineData(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Windows),
-         InlineData(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Windows),
          InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Windows),
          InlineData(500, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Windows)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Exceptions;
@@ -29,9 +30,7 @@ using NpgsqlTypes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
 {
-    /// <summary>
-    /// Dequeues a message.
-    /// </summary>
+    /// <inheritdoc />
     internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal>
     {
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
@@ -82,12 +81,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             _serialization = serialization;
             _getTime = getTimeFactory.Create();
         }
-        /// <summary>
-        /// Handles the specified query.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
-        /// <exception cref="PoisonMessageException">An error has occurred trying to re-assemble a message de-queued from the server</exception>
+        /// <inheritdoc />
         public IReceivedMessageInternal Handle(ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction> query)
         {
             using (var selectCommand = query.Connection.CreateCommand())
@@ -114,8 +108,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                     var routeCounter = 1;
                     foreach (var route in query.Routes)
                     {
-                        selectCommand.Parameters.Add("@Route" + routeCounter.ToString(), NpgsqlDbType.Varchar);
-                        selectCommand.Parameters["@Route" + routeCounter.ToString()].Value = route;
+                        selectCommand.Parameters.Add("@Route" + routeCounter, NpgsqlDbType.Varchar);
+                        selectCommand.Parameters["@Route" + routeCounter].Value = route;
                         routeCounter++;
                     }
                 }

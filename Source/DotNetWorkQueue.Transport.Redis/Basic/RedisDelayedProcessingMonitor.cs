@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Threading;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
@@ -24,12 +25,11 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
-    /// <summary>
-    /// Moves delayed records into the pending keyset
-    /// </summary>
+    /// <inheritdoc cref="IDelayedProcessingMonitor" />
     internal class RedisDelayedProcessingMonitor : BaseMonitor, IDelayedProcessingMonitor
     {
         #region Constructor
+        /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisDelayedProcessingMonitor"/> class.
         /// </summary>
@@ -44,9 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         #endregion
     }
 
-    /// <summary>
-    /// Executes the move delayed records command
-    /// </summary>
+    /// <inheritdoc />
     internal class DelayedProcessingAction: IDelayedProcessingAction
     {
         private readonly ICommandHandlerWithOutput<MoveDelayedRecordsCommand, long> _moveRecords;
@@ -61,10 +59,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _moveRecords = moveRecords;
         }
 
-        /// <summary>
-        /// Runs delayed action command
-        /// </summary>
-        /// <param name="token">The token.</param>
+        /// <inheritdoc />
         public long Run(CancellationToken token)
         {
             var records = _moveRecords.Handle(new MoveDelayedRecordsCommand(token));

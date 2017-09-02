@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using DotNetWorkQueue.Validation;
@@ -27,8 +28,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     /// </summary>
     public abstract class CommandStringCache
     {
+        /// <summary>
+        /// The command cache
+        /// </summary>
         protected readonly Dictionary<CommandStringTypes, string> CommandCache;
         private readonly ConcurrentDictionary<string, CommandString> _commandCacheRunTime;
+        /// <summary>
+        /// The table name helper
+        /// </summary>
         protected readonly TableNameHelper TableNameHelper;
         private bool _commandsBuilt;
         private readonly object _commandBuilder = new object();
@@ -112,7 +119,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <returns></returns>
         public CommandString Get(string key)
         {
-            return _commandCacheRunTime.TryGetValue(key, out CommandString value) ? value : null;
+            return _commandCacheRunTime.TryGetValue(key, out var value) ? value : null;
         }
 
         /// <summary>

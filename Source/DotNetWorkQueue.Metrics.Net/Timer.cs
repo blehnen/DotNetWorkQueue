@@ -16,10 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using Metrics;
+
 namespace DotNetWorkQueue.Metrics.Net
 {
+    /// <inheritdoc />
     internal class Timer : ITimer
     {
         private readonly global::Metrics.Timer _timer;
@@ -32,58 +35,25 @@ namespace DotNetWorkQueue.Metrics.Net
             _timer = timer;
         }
 
-        /// <summary>
-        /// Manually record timer value
-        /// </summary>
-        /// <param name="time">The value representing the manually measured time.</param>
-        /// <param name="unit">Unit for the value.</param>
-        /// <param name="userValue">A custom user value that will be associated to the results.
-        /// Useful for tracking (for example) for which id the max or min value was recorded.</param>
+        /// <inheritdoc />
         public void Record(long time, TimeUnits unit, string userValue = null)
         {
             _timer.Record(time, (TimeUnit)unit, userValue);
         }
 
-        /// <summary>
-        /// Runs the <paramref name="action" /> and records the time it took.
-        /// </summary>
-        /// <param name="action">Action to run and record time for.</param>
-        /// <param name="userValue">A custom user value that will be associated to the results.
-        /// Useful for tracking (for example) for which id the max or min value was recorded.</param>
+        /// <inheritdoc />
         public void Time(Action action, string userValue = null)
         {
             _timer.Time(action, userValue);
         }
 
-        /// <summary>
-        /// Runs the <paramref name="action" /> returning the result and records the time it took.
-        /// </summary>
-        /// <typeparam name="T">Type of the value returned by the action</typeparam>
-        /// <param name="action">Action to run and record time for.</param>
-        /// <param name="userValue">A custom user value that will be associated to the results.
-        /// Useful for tracking (for example) for which id the max or min value was recorded.</param>
-        /// <returns>
-        /// The result of the <paramref name="action" />
-        /// </returns>
+        /// <inheritdoc />
         public T Time<T>(Func<T> action, string userValue = null)
         {
             return _timer.Time(action, userValue);
         }
 
-        /// <summary>
-        /// Creates a new disposable instance and records the time it takes until the instance is disposed.
-        /// <code>
-        /// using(timer.NewContext())
-        /// {
-        /// ExecuteMethodThatNeedsMonitoring();
-        /// }
-        /// </code>
-        /// </summary>
-        /// <param name="userValue">A custom user value that will be associated to the results.
-        /// Useful for tracking (for example) for which id the max or min value was recorded.</param>
-        /// <returns>
-        /// A disposable instance that will record the time passed until disposed.
-        /// </returns>
+        /// <inheritdoc />
         public ITimerContext NewContext(string userValue = null)
         {
             return new TimerContext(_timer.NewContext(userValue));

@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
+
 namespace DotNetWorkQueue.Messages
 {
-    /// <summary>
-    /// Defines the timeout for a RPC
-    /// </summary>
+    /// <inheritdoc />
     public class RpcTimeout: IRpcTimeout
     {
         /// <summary>
@@ -32,15 +32,7 @@ namespace DotNetWorkQueue.Messages
         {
             Timeout = timeout;
         }
-        /// <summary>
-        /// Gets the timeout.
-        /// </summary>
-        /// <value>
-        /// The timeout.
-        /// </value>
-        /// <remarks>
-        /// How long to wait for a response
-        /// </remarks>
+        /// <inheritdoc />
         public TimeSpan Timeout { get; }
     }
 }

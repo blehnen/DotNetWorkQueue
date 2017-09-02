@@ -19,15 +19,10 @@
 using System;
 namespace DotNetWorkQueue.Transport.Redis.Basic.MessageID
 {
-    /// <summary>
-    /// Returns a new GUID id
-    /// </summary>
+    /// <inheritdoc />
     internal class GetUuidMessageId: IGetMessageId
     {
-        /// <summary>
-        /// Gets a new instance of <see cref="IMessageId" />
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IMessageId Create()
         {
             return new RedisQueueId(Guid.NewGuid().ToString());

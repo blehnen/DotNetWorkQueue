@@ -16,9 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System.Collections.Generic;
-using System.Data.SQLite;
 using System.Data;
+using System.Data.SQLite;
+using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Validation;
 
@@ -32,7 +34,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             Guard.NotNull(() => getTimeFactory, getTimeFactory);
             _getTime = getTimeFactory.Create();
         }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         internal void BuildCommand(SQLiteCommand selectCommand, IMessageId messageId, CommandString commandString,
             SqLiteMessageQueueTransportOptions options, List<string> routes )
         {
@@ -58,8 +60,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 var routeCounter = 1;
                 foreach (var route in routes)
                 {
-                    selectCommand.Parameters.Add("@Route" + routeCounter.ToString(), DbType.AnsiString);
-                    selectCommand.Parameters["@Route" + routeCounter.ToString()].Value = route;
+                    selectCommand.Parameters.Add("@Route" + routeCounter, DbType.AnsiString);
+                    selectCommand.Parameters["@Route" + routeCounter].Value = route;
                     routeCounter++;
                 }
             }

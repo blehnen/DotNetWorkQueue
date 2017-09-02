@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -153,10 +154,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             { //TODO - cache based on route
                 return command;
             }
-            else
-            {
-                return _commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, command);
-            }
+            return _commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, command);
         }
     }
 }

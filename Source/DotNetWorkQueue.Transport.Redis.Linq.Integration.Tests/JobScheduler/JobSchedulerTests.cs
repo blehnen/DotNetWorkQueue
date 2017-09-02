@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
@@ -27,17 +28,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerTests
     {
         [Theory]
-        [InlineData(true, false, ConnectionInfoTypes.Linux),
-         InlineData(false, false, ConnectionInfoTypes.Linux),
-         InlineData(true, true, ConnectionInfoTypes.Linux),
-         InlineData(false, true, ConnectionInfoTypes.Linux),
-
-         InlineData(true, false, ConnectionInfoTypes.Windows),
-         InlineData(false, false, ConnectionInfoTypes.Windows),
-         InlineData(true, true, ConnectionInfoTypes.Windows),
-         InlineData(false, true, ConnectionInfoTypes.Windows)]
+        [InlineData(false, ConnectionInfoTypes.Linux),
+         InlineData(true, ConnectionInfoTypes.Linux),
+         InlineData(false, ConnectionInfoTypes.Windows),
+         InlineData(true, ConnectionInfoTypes.Windows)]
         public void Run(
-            bool interceptors,
             bool dynamic,
             ConnectionInfoTypes type)
         {
@@ -52,13 +47,13 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                     if (!dynamic)
                     {
                         tests.RunEnqueueTestCompiled<RedisQueueInit, RedisJobQueueCreation>(queueName,
-                            connectionString, interceptors,
+                            connectionString, true,
                             Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null);
                     }
                     else
                     {
                         tests.RunEnqueueTestDynamic<RedisQueueInit, RedisJobQueueCreation>(queueName,
-                            connectionString, interceptors,
+                            connectionString, true,
                             Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null);
                     }
                 }

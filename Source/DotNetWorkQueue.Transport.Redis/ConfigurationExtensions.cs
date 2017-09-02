@@ -16,10 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Redis.Basic;
+
 namespace DotNetWorkQueue.Transport.Redis
 {
 
@@ -45,8 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <returns></returns>
         public static TimeSpan? GetDelay(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("RedisQueueDelay", out value) ? value : null;
+            return data.TryGetSetting("RedisQueueDelay", out dynamic value) ? value : null;
         }
 
         /// <summary>
@@ -66,8 +67,7 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <returns></returns>
         public static TimeSpan? GetExpiration(this IAdditionalMessageData data)
         {
-            dynamic value;
-            return data.TryGetSetting("RedisQueueExpiration", out value) ? value : null;
+            return data.TryGetSetting("RedisQueueExpiration", out dynamic value) ? value : null;
         }
     }
 
@@ -84,8 +84,7 @@ namespace DotNetWorkQueue.Transport.Redis
         /// </value>
         public static RedisQueueTransportOptions Options(this QueueConfigurationReceive configuration)
         {
-            dynamic options;
-            if (configuration.AdditionalConfiguration.TryGetSetting("RedisQueueTransportOptions", out options))
+            if (configuration.AdditionalConfiguration.TryGetSetting("RedisQueueTransportOptions", out dynamic options))
             {
                 return options;
             }
@@ -107,8 +106,7 @@ namespace DotNetWorkQueue.Transport.Redis
         /// </value>
         public static RedisQueueTransportOptions Options(this QueueConfigurationSend configuration)
         {
-            dynamic options;
-            if (configuration.AdditionalConfiguration.TryGetSetting("RedisQueueTransportOptions", out options))
+            if (configuration.AdditionalConfiguration.TryGetSetting("RedisQueueTransportOptions", out dynamic options))
             {
                 return options;
             }

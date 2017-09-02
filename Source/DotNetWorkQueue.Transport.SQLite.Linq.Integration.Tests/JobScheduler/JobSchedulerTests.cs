@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
@@ -29,8 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
         [Theory]
         [InlineData(false, false),
          InlineData(true, false),
-         InlineData(false, true),
-         InlineData(true, true)]
+         InlineData(false, true)]
         public void Run(
             bool dynamic,
             bool inMemoryDb)
