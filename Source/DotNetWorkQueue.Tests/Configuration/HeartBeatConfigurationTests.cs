@@ -51,22 +51,12 @@ namespace DotNetWorkQueue.Tests.Configuration
             Assert.Equal(TimeSpan.FromSeconds(value), configuration.Time);
         }
         [Theory, AutoData]
-        public void SetAndGet_HeartBeatInterval(int value)
+        public void SetAndGet_HeartBeatUpdateTime(string value)
         {
             var configuration = GetConfiguration();
-            configuration.Interval = value;
+            configuration.UpdateTime = value;
 
-            Assert.Equal(value, configuration.Interval);
-        }
-        [Fact]
-        public void Get_HeartBeatCheckTime()
-        {
-            var configuration = GetConfiguration();
-
-            configuration.Time = TimeSpan.FromSeconds(600);
-            configuration.Interval = 60;
-
-            Assert.Equal(10, configuration.CheckTime.Seconds);
+            Assert.Equal(value, configuration.UpdateTime);
         }
         [Fact]
         public void Test_DefaultNotReadOnly()
@@ -114,7 +104,7 @@ namespace DotNetWorkQueue.Tests.Configuration
               });
         }
         [Theory, AutoData]
-        public void Set_HeartBeatInterval_WhenReadOnly_Fails(int value)
+        public void Set_HeartBeatUpdateTime_WhenReadOnly_Fails(string value)
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
@@ -122,16 +112,8 @@ namespace DotNetWorkQueue.Tests.Configuration
             Assert.Throws<InvalidOperationException>(
               delegate
               {
-                  configuration.Interval = value;
+                  configuration.UpdateTime = value;
               });
-        }
-        [Fact]
-        public void Get_HeartBeatCheckTime_WhenIntervalZero_Returns_0()
-        {
-            var configuration = GetConfiguration();
-            configuration.Interval = 0;
-            var test = configuration.CheckTime;
-            Assert.Equal(TimeSpan.Zero, test);
         }
 
         private HeartBeatConfiguration GetConfiguration(bool heartBeatSupported = false)

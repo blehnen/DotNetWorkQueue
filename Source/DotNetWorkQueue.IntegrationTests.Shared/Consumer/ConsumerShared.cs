@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                                 connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime);
+                            heartBeatMonitorTime, updateTime);
                         var waitForFinish = new ManualResetEventSlim(false);
                         waitForFinish.Reset();
                         //start looking for work

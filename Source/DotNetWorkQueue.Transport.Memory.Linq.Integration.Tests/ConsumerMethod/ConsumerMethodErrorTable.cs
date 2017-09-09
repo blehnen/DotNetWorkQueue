@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
-                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
+                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
                             ValidateErrorCounts(oCreation.Scope, messageCount);
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
                         }

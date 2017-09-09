@@ -32,6 +32,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             int runTime, int messageCount,
             int workerCount, int timeOut,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
+            string updateTime,
             Guid id)
             where TTransportInit : ITransportInit, new()
         {
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                                 connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime);
+                            heartBeatMonitorTime, updateTime);
                         queue.Configuration.MessageExpiration.Enabled = true;
                         queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(8);
                         queue.Start();

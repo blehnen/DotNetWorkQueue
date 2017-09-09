@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
 
         public void Run(string queueNameReceive, string queueNameSend, string connectionStringReceive, string connectionStringSend, ILogProvider logProviderReceive, ILogProvider logProviderSend,
             int runtime, int messageCount, int workerCount, int timeOut, bool async, TTConnectionSettings rpcConnection,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime)
         {
             using(_creator = new QueueContainer<TTransportInit>())
             {
@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                 var task1 = Task.Factory.StartNew(() =>
                     RunRpcReceive(queueNameSend, connectionStringSend, logProviderSend,
                         runtime, processedCount, messageCount,
-                        waitForFinish, workerCount, timeOut, heartBeatTime, heartBeatMonitorTime));
+                        waitForFinish, workerCount, timeOut, heartBeatTime, heartBeatMonitorTime, updateTime));
 
                 RunRpcSend(logProviderSend, messageCount, async, rpcConnection);
 
@@ -176,7 +176,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
             ILogProvider logProvider,
             int runTime, IncrementWrapper processedCount, int messageCount, ManualResetEventSlim waitForFinish,
             int workerCount, int timeOut,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime)
         {
 
             using (var metrics = new Metrics.Net.Metrics(queueName))
@@ -190,7 +190,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                             creator.CreateConsumer(queueName, connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime);
+                            heartBeatMonitorTime, updateTime);
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Clear();
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Add(TimeSpan.FromMilliseconds(100));
                         queue.Configuration.Worker.SingleWorkerWhenNoWorkFound = false;

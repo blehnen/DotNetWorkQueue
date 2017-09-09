@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
         [Theory]
         [InlineData(7, 15, 90, 3, true, LinqMethodTypes.Dynamic),
         InlineData(7, 15, 90, 3, false, LinqMethodTypes.Dynamic),
-            InlineData(7, 15, 90, 3, true, LinqMethodTypes.Compiled),
+        InlineData(7, 15, 90, 3, true, LinqMethodTypes.Compiled),
         InlineData(7, 15, 90, 3, false, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 false,
                                 logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
+                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                             GenerateMethod.ClearCancel(id);

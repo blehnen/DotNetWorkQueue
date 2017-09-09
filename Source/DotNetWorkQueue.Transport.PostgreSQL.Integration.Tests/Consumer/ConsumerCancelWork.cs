@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                         var consumer = new ConsumerCancelWorkShared<PostgreSqlMessageQueueInit, FakeMessage>();
                         consumer.RunConsumer(queueName, ConnectionInfo.ConnectionString, false, logProvider,
                             runtime, messageCount,
-                            workerCount, timeOut, x => { }, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                            workerCount, timeOut, x => { }, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Queue
         #region Member level Variables
 
         private readonly ILog _logger;
-        private readonly TimeSpan _checkTimespan;
+        private readonly string _checkTime;
         private readonly ISendHeartBeat _sendHeartbeat;
         private readonly IMessageContext _context;
         private CancellationTokenSource _cancel;
@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(() => heartBeatNotificationFactory, heartBeatNotificationFactory);
 
             _context = context;
-            _checkTimespan = configuration.CheckTime;
+            _checkTime = configuration.UpdateTime;
             _sendHeartbeat = sendHeartBeat;
             _scheduler = scheduler;
             _logger = log.Create();
@@ -103,10 +103,10 @@ namespace DotNetWorkQueue.Queue
 
             lock (_runningLocker)
             {
-                if (_checkTimespan.TotalSeconds > 0)
+                if (!string.IsNullOrWhiteSpace(_checkTime))
                 {
                     _job = _scheduler.AddUpdateJob(
-                        string.Concat("heartbeat-", _context.MessageId.ToString(), "-", Guid.NewGuid().ToString()), "second(* % " + Math.Floor(Math.Abs(_checkTimespan.TotalSeconds)) + ")", (message, notification) => SendHeartBeatInternal());
+                        string.Concat("heartbeat-", _context.MessageId.ToString(), "-", Guid.NewGuid().ToString()), _checkTime, (message, notification) => SendHeartBeatInternal());
                 }
             }
         }

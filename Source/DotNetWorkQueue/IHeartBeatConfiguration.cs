@@ -48,7 +48,7 @@ namespace DotNetWorkQueue
         bool Enabled { get; }
 
         /// <summary>
-        /// Gets or sets the heart beat time. See also <see cref="Interval"/>
+        /// Gets or sets the heart beat time. \
         /// </summary>
         /// <remarks>This controls how long before a record is considered 'dead' because the heartbeat is out side of this window. The status will be reset, allowing re-processing</remarks>
         /// <value>
@@ -60,33 +60,8 @@ namespace DotNetWorkQueue
         /// How often the heartbeat will be updated.
         /// </summary>
         /// <remarks>
-        /// This is <see cref="Time"/> / <see cref="Interval"/>
+        /// This is expected to be in schyntax format - https://github.com/schyntax/cs-schyntax
         /// </remarks>
-        /// <value>
-        /// The heart beat check time.
-        /// </value>
-        TimeSpan CheckTime { get; }
-
-        /// <summary>
-        /// Gets or sets the heart beat interval. See also <see cref="Time"/>
-        /// </summary>
-        /// <remarks>
-        /// 
-        /// How often the heart beat is updated. Should be at least 2; Default depends on the transport
-        /// 
-        /// Say the heart beat time is 600 seconds. If the interval is 4, the heartbeat will be updated about every 150 seconds or so.
-        /// 
-        /// Higher values are somewhat safer, but increase writes to the transport. Lower values are risky - if the system is having trouble updating the heartbeat
-        /// It's possible for multiple workers to get the same record. A value of 2 really means that the heartbeat may only make 1 attempt to be set before getting reset
-        /// depending on timing.
-        /// 
-        /// Lower values are really only risky if using aggressive heartbeat windows.  A heart beat time of 4 seconds and an interval of 2 would give a very narrow
-        /// window; a transport under heavy load may struggle to keep the heartbeat updated.
-        /// 
-        /// </remarks>
-        /// <value>
-        /// The heart beat interval.
-        /// </value>
-        int Interval { get; set; }
+        string UpdateTime { get; set; }
     }
 }

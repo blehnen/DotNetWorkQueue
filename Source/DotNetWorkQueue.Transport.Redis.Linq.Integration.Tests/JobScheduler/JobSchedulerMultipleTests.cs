@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
@@ -43,7 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                 {
                     var tests = new JobSchedulerTestsShared();
                     tests.RunTestMultipleProducers<RedisQueueInit, RedisJobQueueCreation>(queueName,
-                        connectionString, true, producerCount, queueContainer.CreateTimeSync(connectionString));
+                        connectionString, true, producerCount, queueContainer.CreateTimeSync(connectionString), LoggerShared.Create(queueName, GetType().Name));
                 }
                 finally
                 {

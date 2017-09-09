@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
         private int _workerCount;
         private TimeSpan _heartBeatTime;
         private TimeSpan _heartBeatMonitorTime;
+        private string _updatetime;
         private IConsumerMethodQueue _queue;
         private QueueContainer<TTransportInit> _badQueueContainer;
         private Action<IContainer> _badQueueAdditions;
@@ -41,12 +42,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, Guid id)
         {
             _queueName = queueName;
             _connectionString = connectionString;
             _workerCount = workerCount;
             _badQueueAdditions = badQueueAdditions;
+            _updatetime = updateTime;
 
             _heartBeatTime = heartBeatTime;
             _heartBeatMonitorTime = heartBeatMonitorTime;
@@ -57,7 +59,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
             //run consumer
             RunConsumerInternal(queueName, connectionString, addInterceptors, logProvider, runTime,
-                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, id);
+                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, id, updateTime);
         }
 
 
@@ -65,7 +67,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, IDisposable queueBad,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime)
         {
 
             using (var metrics = new Metrics.Net.Metrics(queueName))
@@ -86,7 +88,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                                 connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime);
+                            heartBeatMonitorTime, updateTime);
                         queue.Start();
 
                         var time = runTime*1000/2;
@@ -126,7 +128,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 _badQueueContainer.CreateMethodConsumer(_queueName,
                     _connectionString);
  
-                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime, _heartBeatMonitorTime);
+                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime, _heartBeatMonitorTime, _updatetime);
                 return queue;        
         }
 

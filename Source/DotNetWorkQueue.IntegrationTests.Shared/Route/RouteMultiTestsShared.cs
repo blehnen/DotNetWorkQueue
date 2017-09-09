@@ -45,7 +45,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
            int readerCount,
            TimeSpan heartBeatTime,
            TimeSpan heartBeatMonitorTime,
-           ICreationScope scope)
+           ICreationScope scope,
+           string updateTime)
            where TTransportInit : ITransportInit, new()
            where TMessage : class
         {
@@ -79,7 +80,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                     var consumer = new ConsumerAsyncShared<TMessage> { Factory = taskFactory };
 
                     consumer.RunConsumer<TTransportInit>(queueName, connectionString, addInterceptors,
-                        logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, route);
+                        logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, route);
                 });
             }
         }

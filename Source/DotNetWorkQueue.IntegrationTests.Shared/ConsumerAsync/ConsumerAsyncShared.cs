@@ -43,6 +43,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 int readerCount,
                 TimeSpan heartBeatTime, 
                 TimeSpan heartBeatMonitorTime,
+                string updateTime,
                 List<string> routes = null)
             where TTransportInit : ITransportInit, new()
         {
@@ -74,7 +75,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                     queueName, connectionString, Factory))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                            heartBeatMonitorTime);
+                            heartBeatMonitorTime, updateTime);
 
                         if(routes != null)
                             queue.Configuration.Routes.AddRange(routes);

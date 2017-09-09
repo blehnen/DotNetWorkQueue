@@ -122,8 +122,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             var heartBeatConfiguration = container.GetInstance<IHeartBeatConfiguration>();
             if (!heartBeatConfiguration.Enabled) return;
             heartBeatConfiguration.Time = TimeSpan.FromSeconds(600);
-            heartBeatConfiguration.MonitorTime = TimeSpan.FromSeconds(120);
-            heartBeatConfiguration.Interval = 4;
+            heartBeatConfiguration.MonitorTime = TimeSpan.FromMinutes(3);
+            heartBeatConfiguration.UpdateTime = "min(*%2)";
             heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMax = 1;
             heartBeatConfiguration.ThreadPoolConfiguration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
         }

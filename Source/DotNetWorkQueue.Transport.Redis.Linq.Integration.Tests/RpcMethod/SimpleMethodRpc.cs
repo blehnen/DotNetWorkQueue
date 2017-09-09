@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.RpcMethod
                     rpc.Run(queueNameSend, queueNameSend, connectionString,
                         connectionString, logProviderSend, logProviderSend,
                         runtime, messageCount, workerCount, timeOut, async,
-                        new RedisQueueRpcConnection(connectionString, queueNameSend), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, linqMethodTypes);
+                        new RedisQueueRpcConnection(connectionString, queueNameSend), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, linqMethodTypes, "second(*%3)");
 
                     using (var count = new VerifyQueueRecordCount(queueNameSend, connectionString))
                     {

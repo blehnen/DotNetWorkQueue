@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
@@ -55,7 +56,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                                         connectionInfo.ConnectionString, true,
                                         Helpers.Verify, Helpers.SetError,
                                         queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
-                                            oCreation.Scope);
+                                            oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                                 }
                                 else
                                 {
@@ -64,7 +65,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                                         connectionInfo.ConnectionString, true,
                                         Helpers.Verify, Helpers.SetError,
                                         queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
-                                            oCreation.Scope);
+                                            oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                                 }
                             }
                             finally

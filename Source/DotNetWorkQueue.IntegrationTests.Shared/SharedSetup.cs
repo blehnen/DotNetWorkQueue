@@ -122,11 +122,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
 
         public static void SetupDefaultConsumerQueue(QueueConsumerConfiguration configuration, int workerCount, 
-            TimeSpan heartbeatTime, TimeSpan heartbeatMonitorTime, string route = null)
+            TimeSpan heartbeatTime, TimeSpan heartbeatMonitorTime, string updateTime, string route = null)
         {
             configuration.HeartBeat.Time = heartbeatTime;
             configuration.HeartBeat.MonitorTime = heartbeatMonitorTime;
+            configuration.HeartBeat.UpdateTime = updateTime;
             configuration.HeartBeat.ThreadPoolConfiguration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
+            configuration.HeartBeat.ThreadPoolConfiguration.ThreadsMax = 2;
             configuration.Worker.WorkerCount = workerCount;
             configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
             configuration.Worker.TimeToWaitForWorkersToCancel = TimeSpan.FromSeconds(10);

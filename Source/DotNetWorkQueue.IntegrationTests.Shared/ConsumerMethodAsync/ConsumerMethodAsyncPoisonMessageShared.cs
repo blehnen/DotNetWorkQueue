@@ -36,7 +36,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             int queueSize,
             long messageCount,
             TimeSpan heartBeatTime, 
-            TimeSpan heartBeatMonitorTime)
+            TimeSpan heartBeatMonitorTime,
+            string updatetime)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -69,7 +70,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                             queueName, connectionString, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime);
+                                    heartBeatMonitorTime, updatetime);
                                 queue.Start();
                                 for (var i = 0; i < timeOut; i++)
                                 {

@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route
                                 connectionInfo.ConnectionString,
                                 true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
                                 GenerateRoutes(routeCount, 1), GenerateRoutes(routeCount, routeCount + 1), runtime,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope);
+                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)");
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

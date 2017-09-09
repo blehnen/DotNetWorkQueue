@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.RpcMethod
                                         runtime, messageCount, workerCount, timeOut, async,
                                         new SqLiteRpcConnection(connectionInfo.ConnectionString, queueNameSend,
                                             connectionInfo.ConnectionString, queueNameReceive),
-                                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, linqMethodTypes);
+                                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, linqMethodTypes, "second(*%10)");
 
                                     new VerifyQueueRecordCount(queueNameSend, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                                     new VerifyQueueRecordCount(queueNameReceive, connectionInfo.ConnectionString, oCreationReceive.Options).Verify(0, false,

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
@@ -58,7 +59,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
                                     queueName,
                                     ConnectionInfo.ConnectionString, interceptors,
                                     Helpers.Verify, Helpers.SetError,
-                                    queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope);
+                                    queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                             }
                             else
                             {
@@ -66,7 +67,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
                                     queueName,
                                     ConnectionInfo.ConnectionString, interceptors,
                                     Helpers.Verify, Helpers.SetError,
-                                    queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope);
+                                    queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                             }
                         }
                         finally

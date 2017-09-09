@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             int messageCount, int workerCount, int timeOut,
             int queueSize, int readerCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
-            Guid id)
+            Guid id, string updateTime)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                             queueName, connectionString, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime);
+                                    heartBeatMonitorTime, updateTime);
                                 SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
                                 rollback = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
                                 queue.Start();

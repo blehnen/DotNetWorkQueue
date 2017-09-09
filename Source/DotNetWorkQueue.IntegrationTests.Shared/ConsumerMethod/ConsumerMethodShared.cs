@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                                 connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime);
+                            heartBeatMonitorTime, updateTime);
                         queue.Start();
                         var counter = 0;
                         while (counter < timeOut)

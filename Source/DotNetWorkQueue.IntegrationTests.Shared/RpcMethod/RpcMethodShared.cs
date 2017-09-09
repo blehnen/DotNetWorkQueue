@@ -39,12 +39,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
         public void Run(string queueNameReceive, string queueNameSend, string connectionStringReceive,
             string connectionStringSend, ILogProvider logProviderReceive, ILogProvider logProviderSend,
             int runtime, int messageCount, int workerCount, int timeOut, bool async, TTConnectionSettings rpcConnection,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, LinqMethodTypes linqMethodTypes)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, LinqMethodTypes linqMethodTypes, string updateTime)
         {
             var task1 = Task.Factory.StartNew(() =>
                 RunRpcReceive(queueNameSend, connectionStringSend, logProviderSend,
                     runtime, messageCount,
-                    workerCount, timeOut, heartBeatTime, heartBeatMonitorTime, id));
+                    workerCount, timeOut, heartBeatTime, heartBeatMonitorTime, updateTime, id));
 
             RunRpcSend(logProviderSend, messageCount, async, rpcConnection, runtime, id, linqMethodTypes);
 
@@ -262,7 +262,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
             // ReSharper disable once UnusedParameter.Local
             int runTime, int messageCount,
             int workerCount, int timeOut,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, Guid id)
         {
 
             using (var metrics = new Metrics.Net.Metrics(queueName))
@@ -276,7 +276,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
                             creator.CreateMethodConsumer(queueName, connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime);
+                            heartBeatMonitorTime, updateTime);
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Clear();
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Add(TimeSpan.FromMilliseconds(100));
                         queue.Configuration.Worker.SingleWorkerWhenNoWorkFound = false;

@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             false,
                             logProvider,
                             runtime, messageCount,
-                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
+                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

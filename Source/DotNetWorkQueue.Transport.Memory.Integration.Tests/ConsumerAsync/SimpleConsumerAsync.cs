@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                                 consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35));
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
                             }
                             else if (messageType == 2)
                             {
@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                                 consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35));
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
                             }
                             else if (messageType == 3)
                             {
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount,
-                                    TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35));
+                                    TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
                             }
 
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);

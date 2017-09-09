@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                             logProvider,
                             runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
                     }
                     else if (messageType == 2)
                     {
@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                             logProvider,
                             runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
                     }
                     else if (messageType == 3)
                     {
@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                             logProvider,
                             runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
                     }
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))

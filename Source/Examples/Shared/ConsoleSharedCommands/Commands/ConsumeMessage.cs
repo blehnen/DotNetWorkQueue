@@ -180,18 +180,16 @@ namespace ConsoleSharedCommands.Commands
             return new ConsoleExecuteResult($"worker configuration set for {queueName}");
         }
 
-        public ConsoleExecuteResult SetHeartBeatConfiguration(string queueName, 
-            int interval = 2, 
+        public ConsoleExecuteResult SetHeartBeatConfiguration(string queueName,
+            string updateTime = "min(*%1)",
             TimeSpan? monitorTime = null,
             TimeSpan? deadTime = null,
-            int heartbeatThreadsMax = 1,
-            int heartbeatThreadsMin = 1,
-            TimeSpan? threadIdle = null
+            int heartbeatThreadsMax = 1
             )
         {
             var valid = ValidateQueue(queueName);
             if (valid != null) return valid;
-            Queues[queueName].Configuration.HeartBeat.Interval = interval;
+            Queues[queueName].Configuration.HeartBeat.UpdateTime = updateTime;
             if (deadTime.HasValue)
             {
                 Queues[queueName].Configuration.HeartBeat.Time = deadTime.Value;
@@ -201,11 +199,6 @@ namespace ConsoleSharedCommands.Commands
                 Queues[queueName].Configuration.HeartBeat.MonitorTime = monitorTime.Value;
             }
             Queues[queueName].Configuration.HeartBeat.ThreadPoolConfiguration.ThreadsMax = heartbeatThreadsMax;
-            Queues[queueName].Configuration.HeartBeat.ThreadPoolConfiguration.ThreadsMin = heartbeatThreadsMin;
-            if (threadIdle.HasValue)
-            {
-                Queues[queueName].Configuration.HeartBeat.ThreadPoolConfiguration.ThreadIdleTimeout = threadIdle.Value;
-            }
 
             return new ConsoleExecuteResult($"heartbeat configuration set for {queueName}");
         }

@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     var consumer = new ConsumerMethodAsyncErrorShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         logProvider,
-                        messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
+                        messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
                     ValidateErrorCounts(queueName, messageCount, connectionString);
                     using (
                         var count = new VerifyQueueRecordCount(queueName, connectionString))

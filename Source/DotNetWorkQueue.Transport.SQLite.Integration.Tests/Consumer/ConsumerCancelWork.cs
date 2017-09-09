@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                             var consumer = new ConsumerCancelWorkShared<SqLiteMessageQueueInit, FakeMessage>();
                             consumer.RunConsumer(queueName, connectionInfo.ConnectionString, false, logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, x => { }, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35));
+                                workerCount, timeOut, x => { }, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

@@ -31,6 +31,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             int runTime, int messageCount,
             int workerCount, int timeOut,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
+            string updateTime,
             string route = null)
             where TTransportInit : ITransportInit, new()
         {
@@ -44,13 +45,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             typeof (TripleDesMessageInterceptor) //encryption
                         }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                 Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton),
-                    heartBeatTime, heartBeatMonitorTime, route);
+                    heartBeatTime, heartBeatMonitorTime, updateTime, route);
             }
             else
             {
                 queue.RunConsumer(queueName, connectionString, false, logProvider, runTime, messageCount, workerCount, timeOut,
                     serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton),
-                    heartBeatTime, heartBeatMonitorTime, route);
+                    heartBeatTime, heartBeatMonitorTime, updateTime, route);
             }
         }
 

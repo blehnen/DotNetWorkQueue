@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     var consumer = new ConsumerShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false, logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

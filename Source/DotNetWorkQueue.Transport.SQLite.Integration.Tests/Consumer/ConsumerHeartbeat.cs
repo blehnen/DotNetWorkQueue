@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                                 false,
                                 logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35));
+                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

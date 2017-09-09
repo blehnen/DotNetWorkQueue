@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                                 false,
                                 logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
+                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
 
                             new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                         }

@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 workerCount, logProvider, timeOut, runtime, messageCount,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", id);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                             GenerateMethod.ClearRollback(id);

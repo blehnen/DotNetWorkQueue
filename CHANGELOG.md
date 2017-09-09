@@ -12,6 +12,8 @@
 
 * The heart beat workers now use an internal job scheduler backed by the in-memory queue, instead of an instance of SmartThreadPool
 
+* **Breaking Change** The hearbest configuration has been changed to use Schyntax format instead of a timespan. The interval has also been removed - you'll need to excplitly indicate how often you want to run the hearbeat - at least slightly less than 1/2 of your dead record time is a good rule of thumb.
+
 ###0.1.10 2017-03-19
 * Add route support to SQLServer, SQLite, Redis and PostgreSQL transports. Routes allow messages to be picked up for processing by specific consumer(s). A message can have at most 0 or 1 routes. A consumer can look for messages with 0 routes or N routes.
 

@@ -39,7 +39,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             int messageCount,
             TimeSpan heartBeatTime, 
             TimeSpan heartBeatMonitorTime,
-            Guid id)
+            Guid id,
+            string updateTime)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Net.Metrics(queueName))
@@ -72,7 +73,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                             queueName, connectionString, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime);
+                                    heartBeatMonitorTime, updateTime);
                                 queue.Start();
                                 var counter = 0;
                                 while (counter < timeOut)

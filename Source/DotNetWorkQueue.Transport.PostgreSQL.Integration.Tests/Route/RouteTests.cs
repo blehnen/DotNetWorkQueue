@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
                         var routeTest = new RouteTestsShared();
                         routeTest.RunTest<PostgreSqlMessageQueueInit, FakeMessageA>(queueName, ConnectionInfo.ConnectionString,
                             true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
-                            GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope);
+                            GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)");
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

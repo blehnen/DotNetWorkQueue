@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
                             workerCount,
-                            logProvider, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                            logProvider, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
 
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, true);

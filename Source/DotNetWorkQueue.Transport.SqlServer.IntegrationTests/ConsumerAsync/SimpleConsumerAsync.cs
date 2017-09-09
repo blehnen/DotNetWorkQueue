@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                                 false, logProvider,
                                 runtime, messageCount,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
                         }
                         else if (messageType == 2)
                         {
@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                                 false, logProvider,
                                 runtime, messageCount,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
                         }
                         else if (messageType == 3)
                         {
@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                                 false, logProvider,
                                 runtime, messageCount,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%10)");
                         }
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);

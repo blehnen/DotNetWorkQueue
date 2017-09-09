@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.rpc
                                     ConnectionInfo.ConnectionString, logProviderReceive, logProviderSend,
                                     runtime, messageCount, workerCount, timeOut, async,
                                     new SqlServerRpcConnection(ConnectionInfo.ConnectionString, queueNameSend,
-                                        ConnectionInfo.ConnectionString, queueNameReceive), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12));
+                                        ConnectionInfo.ConnectionString, queueNameReceive), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
 
                                 new VerifyQueueRecordCount(queueNameSend, oCreation.Options).Verify(0, false, false);
                                 new VerifyQueueRecordCount(queueNameReceive, oCreationReceive.Options).Verify(0, false,

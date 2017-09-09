@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sendHeartBeat.Send(context).Throws(new ArgumentOutOfRangeException());
 
-            using (var test = Create(TimeSpan.FromSeconds(5), 2, context, sendHeartBeat))
+            using (var test = Create(TimeSpan.FromSeconds(5), "sec(*%2)", context, sendHeartBeat))
             {
                 test.Start();
                 Thread.Sleep(7000);
@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();
             var context = Substitute.For<IMessageContext>();
-            using (var test = Create(TimeSpan.FromSeconds(seconds), 2, context, sendHeartBeat))
+            using (var test = Create(TimeSpan.FromSeconds(seconds), "sec(*%2)", context, sendHeartBeat))
             {
                 test.Start();
                 Thread.Sleep(1100);
@@ -134,11 +134,11 @@ namespace DotNetWorkQueue.Tests.Queue
         private HeartBeatWorker Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return Create(TimeSpan.Zero, 1, fixture.Create<IMessageContext>(), fixture.Create<ISendHeartBeat>());
+            return Create(TimeSpan.Zero, "sec(*%59)", fixture.Create<IMessageContext>(), fixture.Create<ISendHeartBeat>());
         }
 
 
-        private HeartBeatWorker Create(TimeSpan checkSpan, int interval, IMessageContext context, ISendHeartBeat sendHeartBeat)
+        private HeartBeatWorker Create(TimeSpan checkSpan, string updateTime, IMessageContext context, ISendHeartBeat sendHeartBeat)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture.Inject(context);
@@ -148,7 +148,7 @@ namespace DotNetWorkQueue.Tests.Queue
             fixture.Inject(threadPoolConfiguration);
             IHeartBeatConfiguration configuration = fixture.Create<HeartBeatConfiguration>();
             configuration.Time = checkSpan;
-            configuration.Interval = interval;
+            configuration.UpdateTime = updateTime;
             fixture.Inject(configuration);
             IHeartBeatScheduler threadpool = fixture.Create<IHeartBeatScheduler>();
             fixture.Inject(threadpool);

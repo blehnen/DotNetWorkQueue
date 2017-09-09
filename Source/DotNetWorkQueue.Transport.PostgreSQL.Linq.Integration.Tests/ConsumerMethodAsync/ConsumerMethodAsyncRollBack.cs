@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
                             workerCount, logProvider,
-                            timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
+                            timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
                         LoggerShared.CheckForErrors(queueName);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                         GenerateMethod.ClearRollback(id);

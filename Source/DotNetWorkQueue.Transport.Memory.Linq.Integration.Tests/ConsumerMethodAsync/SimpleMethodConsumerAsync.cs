@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
                             }
                             else if (messageType == 2)
                             {
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
                             }
                             else if (messageType == 3)
                             {
@@ -103,7 +103,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id);
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
                             }
 
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);

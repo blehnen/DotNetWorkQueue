@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     //process data
                     var consumer = new ConsumerMethodRollBackShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
-                        workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id);
+                        workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id);
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

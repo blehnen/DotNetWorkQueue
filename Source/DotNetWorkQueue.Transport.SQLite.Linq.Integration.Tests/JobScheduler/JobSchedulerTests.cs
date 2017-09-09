@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
@@ -29,8 +30,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
     {
         [Theory]
         [InlineData(false, false),
-         InlineData(true, false),
-         InlineData(false, true)]
+        InlineData(true, false),
+        InlineData(false, true)]
         public void Run(
             bool dynamic,
             bool inMemoryDb)
@@ -59,7 +60,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
                                         connectionInfo.ConnectionString, true,
                                         Helpers.Verify, Helpers.SetError,
                                         queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
-                                            oCreation.Scope);
+                                            oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                                 }
                                 else
                                 {
@@ -68,7 +69,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
                                         connectionInfo.ConnectionString, true,
                                         Helpers.Verify, Helpers.SetError,
                                         queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
-                                            oCreation.Scope);
+                                            oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                                 }
                             }
                             finally

@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                                 logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35));
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
 
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);
                         }

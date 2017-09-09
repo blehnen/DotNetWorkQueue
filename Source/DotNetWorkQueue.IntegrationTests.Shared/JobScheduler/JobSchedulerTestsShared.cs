@@ -21,6 +21,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Interceptors;
+using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using FluentAssertions;
 using Xunit;
@@ -37,17 +38,20 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         private bool _queueStarted;
         private readonly object _queueStartLocker = new object();
         private IGetTimeFactory _timeFactory;
+        private ILogProvider _logProvider;
 
         public void RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(string queueName,
             string connectionString,
             bool addInterceptors,
             Action<string, string, long, ICreationScope> verify,
             Action<string, string, ICreationScope> setErrorFlag,
-            IGetTimeFactory timeFactory, ICreationScope scope)
+            IGetTimeFactory timeFactory, ICreationScope scope,
+            ILogProvider logProvider)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
             _timeFactory = timeFactory;
+            _logProvider = logProvider;
             RunEnqueueTest<TTransportInit>(queueName, connectionString, addInterceptors, verify,
                 setErrorFlag,
                 (x, name) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueName, connectionString,
@@ -56,7 +60,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                 (x, name, time) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueName, connectionString,
                     "min(*)",
-                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null,  config => { }, true, time), timeFactory, scope
+                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null,  config => { }, true, time), timeFactory, scope, logProvider
 
                 );
         }
@@ -66,11 +70,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             bool addInterceptors,
             Action<string, string, long, ICreationScope> verify,
             Action<string, string, ICreationScope> setErrorFlag,
-            IGetTimeFactory timeFactory, ICreationScope scope)
+            IGetTimeFactory timeFactory, ICreationScope scope,
+            ILogProvider logProvider)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
             _timeFactory = timeFactory;
+            _logProvider = logProvider;
             using (var jobQueueCreation =
                 new JobQueueCreationContainer<TTransportInit>())
             {
@@ -91,7 +97,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                 "min(*)",
                                 new LinqExpressionToRun(
                                     "(message, workerNotification) => Console.WriteLine(DateTime.Now.Ticks)"), null, null, true,
-                                time), timeFactory, scope
+                                time), timeFactory, scope, logProvider
                         );
                 }
             }
@@ -102,13 +108,16 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                 string connectionString,
                 bool addInterceptors,
                 long producerCount,
-                IGetTimeFactory timeFactory)
+                IGetTimeFactory timeFactory,
+                ILogProvider logProvider)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
             var enqueued = 0;
             Exception lastError = null;
             _queueStarted = false;
+            _timeFactory = timeFactory;
+            _logProvider = logProvider;
 
             using (var jobQueueCreation =
                                 new JobQueueCreationContainer<TTransportInit>())
@@ -189,9 +198,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Action<string, string, ICreationScope> setErrorFlag,
             Func<IJobScheduler, string, IScheduledJob> enqueue,
             Func<IJobScheduler, string, TimeSpan, IScheduledJob> enqueueWindow,
-            IGetTimeFactory timeFactory, ICreationScope scope)
+            IGetTimeFactory timeFactory, ICreationScope scope,
+            ILogProvider logProvider)
             where TTransportInit : ITransportInit, new()
         {
+            _timeFactory = timeFactory;
+            _logProvider = logProvider;
+
             using (var jobContainer = new JobSchedulerContainer(RegisterService))
             {
                 using (var scheduler = CreateScheduler(jobContainer, addInterceptors))
@@ -356,6 +369,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                         new TripleDesMessageInterceptorConfiguration(
                             Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                             Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton);
+
+            container.Register(() => _logProvider, LifeStyles.Singleton);
         }
     }
 }
