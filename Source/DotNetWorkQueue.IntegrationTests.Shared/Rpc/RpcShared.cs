@@ -190,7 +190,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                             creator.CreateConsumer(queueName, connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime);
+                            heartBeatMonitorTime, updateTime, null);
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Clear();
                         queue.Configuration.TransportConfiguration.QueueDelayBehavior.Add(TimeSpan.FromMilliseconds(100));
                         queue.Configuration.Worker.SingleWorkerWhenNoWorkFound = false;

@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                     queueName, connectionString, Factory))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime);
+                            heartBeatMonitorTime, updateTime, null);
 
                         if(routes != null)
                             queue.Configuration.Routes.AddRange(routes);

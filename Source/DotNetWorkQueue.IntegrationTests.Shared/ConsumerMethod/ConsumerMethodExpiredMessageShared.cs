@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                                 connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime);
+                            heartBeatMonitorTime, updateTime, null);
                         queue.Configuration.MessageExpiration.Enabled = true;
                         queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(8);
                         queue.Start();

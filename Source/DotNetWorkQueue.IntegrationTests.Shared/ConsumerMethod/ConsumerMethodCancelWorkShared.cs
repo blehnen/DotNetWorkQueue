@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                                 connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime);
+                            heartBeatMonitorTime, updateTime, null);
                         queue.Start();
 
                         var time = runTime*1000/2;
@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 _badQueueContainer.CreateMethodConsumer(_queueName,
                     _connectionString);
  
-                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime, _heartBeatMonitorTime, _updatetime);
+                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime, _heartBeatMonitorTime, _updatetime, null);
                 return queue;        
         }
 

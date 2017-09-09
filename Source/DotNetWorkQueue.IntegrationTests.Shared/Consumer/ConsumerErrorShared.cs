@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
             ILogProvider logProvider,
             int workerCount, int timeOut, int messageCount,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string route = null)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route = null)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                         rollBacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
 
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, route);
+                            heartBeatMonitorTime, updateTime, route);
                         SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
                         var waitForFinish = new ManualResetEventSlim(false);

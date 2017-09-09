@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                             queueName, connectionString, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime, updateTime);
+                                    heartBeatMonitorTime, updateTime, null);
                                 SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
                                 rollback = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
                                 queue.Start();

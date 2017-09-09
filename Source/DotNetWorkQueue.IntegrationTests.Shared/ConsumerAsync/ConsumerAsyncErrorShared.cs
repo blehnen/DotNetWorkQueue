@@ -32,6 +32,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             int messageCount, int workerCount, int timeOut,
             int queueSize, int readerCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
+            string updateTime,
             string route = null)
             where TTransportInit : ITransportInit, new()
         {
@@ -72,7 +73,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                             {
                                 rollBacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime, route);
+                                    heartBeatMonitorTime, updateTime, route);
                                 SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
                                 var waitForFinish = new ManualResetEventSlim(false);

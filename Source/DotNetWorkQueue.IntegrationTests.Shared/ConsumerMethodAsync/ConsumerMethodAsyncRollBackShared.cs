@@ -73,7 +73,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                             queueName, connectionString, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime, updateTime);
+                                    heartBeatMonitorTime, updateTime, null);
                                 queue.Start();
                                 var counter = 0;
                                 while (counter < timeOut)

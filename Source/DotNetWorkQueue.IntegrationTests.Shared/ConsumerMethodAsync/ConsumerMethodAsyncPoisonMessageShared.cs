@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                             queueName, connectionString, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime, updatetime);
+                                    heartBeatMonitorTime, updatetime, null);
                                 queue.Start();
                                 for (var i = 0; i < timeOut; i++)
                                 {

@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             _heartBeatTime = heartBeatTime;
             _heartBeatMonitorTime = heartBeatMonitorTime;
 
-            _queue = CreateConsumerInternalThread(route);
+            _queue = CreateConsumerInternalThread(updateTime, route);
             var t = new Thread(RunBadQueue);
             t.Start();
 
@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             }
         }
 
-        private IConsumerQueue CreateConsumerInternalThread(string route)
+        private IConsumerQueue CreateConsumerInternalThread(string updateTime, string route)
         {
             _badQueueContainer = SharedSetup.CreateCreator<TTransportInit>(_badQueueAdditions);
 
@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                     _connectionString);
 
             SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime,
-                _heartBeatMonitorTime, route);
+                _heartBeatMonitorTime, updateTime, route);
             return queue;
         }
 

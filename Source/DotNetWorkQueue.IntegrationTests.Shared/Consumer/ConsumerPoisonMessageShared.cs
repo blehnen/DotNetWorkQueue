@@ -36,6 +36,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             long messageCount,
             TimeSpan heartBeatTime, 
             TimeSpan heartBeatMonitorTime,
+            string updateTime,
             string route = null)
             where TTransportInit : ITransportInit, new()
         {
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                                 connectionString))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, route);
+                            heartBeatMonitorTime, updateTime, route);
 
                         var waitForFinish = new ManualResetEventSlim(false);
                         waitForFinish.Reset();

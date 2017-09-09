@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     var consumer = new ConsumerCancelWorkShared<RedisQueueInit, FakeMessage>();
                     consumer.RunConsumer(queueName, connectionString, false, logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, x => { }, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), defaultRoute);
+                        workerCount, timeOut, x => { }, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute);
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {
