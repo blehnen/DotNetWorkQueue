@@ -490,8 +490,6 @@ This library uses multiple 3rd party libaries, listed below.
 
 * [Newtonsoft.Json ](http://www.newtonsoft.com/json)
 
-* [SmartThreadPool ](https://github.com/amibar/SmartThreadPool)
-
 * [JpLabs.DynamicCode ](http://jp-labs.blogspot.com/2008/11/dynamic-lambda-expressions-using.html)
 
 * [JsonNet.PrivateSetterContractResolvers ](https://github.com/danielwertheim/jsonnet-privatesetterscontractresolvers)
@@ -501,6 +499,8 @@ This library uses multiple 3rd party libaries, listed below.
 * [Schtick](https://github.com/schyntax/cs-schtick)
 
 * [Schyntax ](https://github.com/schyntax/cs-schyntax)
+
+* [Polly ](https://github.com/App-vNext/Polly)
 
 *A fork of this module was created and thread saftey changes made. This is the version that is being used. It can be found here [Expression-JSON-Serializer ](https://github.com/blehnen/expression-json-serializer)
 

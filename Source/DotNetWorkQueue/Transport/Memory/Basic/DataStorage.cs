@@ -142,21 +142,11 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
             if (string.IsNullOrWhiteSpace(jobName) || DoesJobExist(jobName, scheduledTime) == QueueStatuses.NotQueued)
             {
-                var serialization =
-                    _serializer.Serializer.MessageToBytes(new MessageBody
-                    {
-                        Body = message.Body
-                    });
-
-                message.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph,
-                    serialization.Graph);
-                var headers = _serializer.InternalSerializer.ConvertToBytes(message.Headers);
-
                 var newItem = new QueueItem
                 {
-                    Body = serialization.Output,
+                    Body = message.Body,
                     CorrelationId = (Guid) inputData.CorrelationId.Id.Value,
-                    Headers = headers,
+                    Headers = message.Headers,
                     Id = Guid.NewGuid(),
                     JobEventTime = eventTime,
                     JobName = jobName,
@@ -219,11 +209,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             var hasError = false;
             try
             {
-                var headers = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(item.Headers);
-                var messageGraph =
-                    (MessageInterceptorsGraph) headers[_headers.StandardHeaders.MessageInterceptorGraph.Name];
-                var message = _serializer.Serializer.BytesToMessage<MessageBody>(item.Body, messageGraph).Body;
-                var newMessage = _messageFactory.Create(message, headers);
+                var newMessage = _messageFactory.Create(item.Body, item.Headers);
 
                 if (!string.IsNullOrEmpty(item.JobName))
                 {

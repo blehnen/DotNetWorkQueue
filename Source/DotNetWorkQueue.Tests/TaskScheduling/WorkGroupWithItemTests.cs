@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
-using Amib.Threading;
 using DotNetWorkQueue.TaskScheduling;
 using NSubstitute;
 using Ploeh.AutoFixture;
@@ -33,25 +32,11 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var group = fixture.Create<IWorkGroup>();
-            var threadGroup = fixture.Create<IWorkItemsGroup>();
             var counter = fixture.Create<ICounter>();
             group.ConcurrencyLevel.Returns(5);
             group.MaxQueueSize.Returns(1);
             fixture.Inject(group);
-            fixture.Inject(threadGroup);
             fixture.Inject(counter);
-
-            var test = fixture.Create<WorkGroupWithItem>();
-
-            Assert.Equal(group, test.GroupInfo);
-            Assert.Equal(threadGroup, test.Group);
-            Assert.Equal(counter, test.MetricCounter);
-            Assert.Equal(group.ConcurrencyLevel + group.MaxQueueSize, test.MaxWorkItems);
-            test.CurrentWorkItems = 0;
-            Assert.Equal(0, test.CurrentWorkItems);
-
-            test.CurrentWorkItems = 2;
-            Assert.Equal(2, test.CurrentWorkItems);
         }
     }
 }

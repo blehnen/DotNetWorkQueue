@@ -16,9 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
-using Amib.Threading;
 using DotNetWorkQueue.Validation;
+using Polly.Bulkhead;
 
 namespace DotNetWorkQueue.TaskScheduling
 {
@@ -33,7 +32,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="sourceGroup">The source group.</param>
         /// <param name="threadGroup">The thread group.</param>
         /// <param name="metricCounter">A counter for tracking how many items are being processed</param>
-        public WorkGroupWithItem(IWorkGroup sourceGroup, IWorkItemsGroup threadGroup, ICounter metricCounter)
+        public WorkGroupWithItem(IWorkGroup sourceGroup, BulkheadPolicy threadGroup, ICounter metricCounter)
         {
             Guard.NotNull(() => sourceGroup, sourceGroup);
             Guard.NotNull(() => threadGroup, threadGroup);
@@ -57,7 +56,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <value>
         /// The group.
         /// </value>
-        public IWorkItemsGroup Group { get;  }
+        public BulkheadPolicy Group { get;  }
         /// <summary>
         /// How many work items are being processed and are also in the queue
         /// </summary>

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -39,14 +40,14 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <value>
         /// The body.
         /// </value>
-        public byte[] Body { get; set; }
+        public dynamic Body { get; set; }
         /// <summary>
         /// Gets or sets the headers.
         /// </summary>
         /// <value>
         /// The headers.
         /// </value>
-        public byte[] Headers { get; set; }
+        public IDictionary<string, object> Headers { get; set; }
         /// <summary>
         /// Gets or sets the queued date time.
         /// </summary>

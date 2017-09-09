@@ -16,9 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
@@ -27,15 +25,12 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
 {
-    /// <summary>
-    /// A class that will update the heart beat field for a work item
-    /// </summary>
+    /// <inheritdoc />
     public class HeartBeatWorker : IHeartBeatWorker
     {
         #region Member level Variables
 
         private readonly ILog _logger;
-        private Timer _timer;
         private readonly TimeSpan _checkTimespan;
         private readonly ISendHeartBeat _sendHeartbeat;
         private readonly IMessageContext _context;
@@ -46,7 +41,10 @@ namespace DotNetWorkQueue.Queue
         private bool _stopped;
         private volatile bool _started;
         private readonly object _runningLocker = new object();
-        private readonly IHeartBeatThreadPool _smartThreadPool;
+
+        private readonly IHeartBeatScheduler _scheduler;
+
+        private IScheduledJob _job;
 
         private readonly object _runningLock = new object();
         private readonly object _stoppedLock = new object();
@@ -63,27 +61,27 @@ namespace DotNetWorkQueue.Queue
         /// <param name="configuration">The configuration.</param>
         /// <param name="context">The context.</param>
         /// <param name="sendHeartBeat">The send heart beat.</param>
-        /// <param name="threadPool">The thread pool.</param>
+        /// <param name="scheduler">The scheduler.</param>
         /// <param name="log">The log.</param>
         /// <param name="heartBeatNotificationFactory">The heart beat notification factory.</param>
         public HeartBeatWorker(IHeartBeatConfiguration configuration, 
             IMessageContext context,
             ISendHeartBeat sendHeartBeat,
-            IHeartBeatThreadPool threadPool,
+            IHeartBeatScheduler scheduler,
             ILogFactory log,
             IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => context, context);
             Guard.NotNull(() => sendHeartBeat, sendHeartBeat);
-            Guard.NotNull(() => threadPool, threadPool);
+            Guard.NotNull(() => scheduler, scheduler);
             Guard.NotNull(() => log, log);
             Guard.NotNull(() => heartBeatNotificationFactory, heartBeatNotificationFactory);
 
             _context = context;
             _checkTimespan = configuration.CheckTime;
             _sendHeartbeat = sendHeartBeat;
-            _smartThreadPool = threadPool;
+            _scheduler = scheduler;
             _logger = log.Create();
 
             _cancel = new CancellationTokenSource();
@@ -92,9 +90,7 @@ namespace DotNetWorkQueue.Queue
 
         #endregion
 
-        /// <summary>
-        /// Starts this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Start()
         {
             ThrowIfDisposed();
@@ -109,18 +105,13 @@ namespace DotNetWorkQueue.Queue
             {
                 if (_checkTimespan.TotalSeconds > 0)
                 {
-                    _timer = new Timer(_ => SendHeartBeat(), null, _checkTimespan, Timeout.InfiniteTimeSpan);
+                    _job = _scheduler.AddUpdateJob(
+                        string.Concat("heartbeat-", _context.MessageId.ToString(), "-", Guid.NewGuid().ToString()), "second(* % " + Math.Floor(Math.Abs(_checkTimespan.TotalSeconds)) + ")", (message, notification) => SendHeartBeatInternal());
                 }
             }
         }
 
-        /// <summary>
-        /// Stops this instance.
-        /// </summary>
-        /// <remarks>
-        /// Stop is explicitly called when an error occurs, so that we can preserve the last heartbeat value.
-        /// Implementations MUST ensure that stop blocks and does not return if the heartbeat is in the middle of updating.
-        /// </remarks>
+        /// <inheritdoc />
         public void Stop()
         {
             lock (_runningLocker) //this will block if we are currently updating the heart beat
@@ -131,12 +122,7 @@ namespace DotNetWorkQueue.Queue
 
         #region IDisposable
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
 
         /// <summary>
@@ -152,9 +138,7 @@ namespace DotNetWorkQueue.Queue
             }
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);
@@ -165,7 +149,6 @@ namespace DotNetWorkQueue.Queue
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "_timer", Justification = "not needed")]
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
@@ -175,7 +158,15 @@ namespace DotNetWorkQueue.Queue
             lock (_runningLocker)
             {
                 Stopped = true;
-                _timer?.Dispose();
+                _job?.StopSchedule();
+                if (_job != null)
+                {
+                    var removed = _scheduler?.RemoveJob(_job.Name);
+                    if (removed.HasValue && !removed.Value)
+                    {
+                        _logger.WarnFormat("Failed to remove job {0} from the heartbeat scheduler", _job.Name);
+                    }
+                }
                 lock (_cancelLocker)
                 {
                     if (_cancel == null) return;
@@ -185,26 +176,6 @@ namespace DotNetWorkQueue.Queue
             }
         }
         #endregion
-
-        /// <summary>
-        /// Sends the heart beat.
-        /// </summary>
-        private void SendHeartBeat()
-        {
-            if (IsDisposed)
-                return;
-
-            if (Running)
-                return;
-
-            if (Stopped)
-                return;
-
-            if (!_smartThreadPool.IsShuttingDown && !_smartThreadPool.IsDisposed)
-            {
-                _smartThreadPool.QueueWorkItem(SendHeartBeatInternal);
-            }
-        }
 
         /// <summary>
         /// Sends the heart beat.
@@ -280,12 +251,6 @@ namespace DotNetWorkQueue.Queue
             finally
             {
                 Running = false;
-            }
-
-            if (IsDisposed || Stopped) return;
-            lock (_runningLocker)
-            {
-                _timer.Change(_checkTimespan, Timeout.InfiniteTimeSpan);
             }
         }
 

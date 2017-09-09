@@ -35,15 +35,6 @@ namespace DotNetWorkQueue
         int MaximumThreads { get; set; }
 
         /// <summary>
-        /// The minimum amount of threads to keep alive. If no work is present, and a thread has reached <see cref="ThreadIdleTimeout"/> the thread may be removed 
-        /// from the thread pool. It will be re-created as needed.
-        /// </summary>
-        /// <value>
-        /// The minimum threads.
-        /// </value>
-        int MinimumThreads { get; set; }
-
-        /// <summary>
         /// The maximum amount of items to hold in memory, after the threads are all in a work state. 
         /// </summary>
         /// <remarks>
@@ -64,15 +55,6 @@ namespace DotNetWorkQueue
         /// The maximum size of the queue.
         /// </value>
         int MaxQueueSize { get; set; }
-
-        /// <summary>
-        /// If a worker thread has been idle for this amount of time and the current thread count is greater than <see cref="MinimumThreads"/>
-        /// the thread will be removed from the thread pool.
-        /// </summary>
-        /// <value>
-        /// The thread idle timeout.
-        /// </value>
-        TimeSpan ThreadIdleTimeout { get; set; }
 
         /// <summary>
         /// How long to wait for thread pool threads to exit when shutting down

@@ -39,24 +39,13 @@ namespace DotNetWorkQueue
         int ThreadsMax { get; set; }
 
         /// <summary>
-        /// The minimum amount of threads in the thread pool for updating the heartbeat
+        /// The maximum amount of items to hold in memory, after the threads are all in a work state. 
         /// </summary>
-        /// <remarks>
-        /// The thread pool is used to notify the worker that a heart beat needs updating. However, a dedicated thread pool is used for
-        /// the actual updating, to reduce how long we require the usage of threads from the built in thread pool.
-        /// </remarks>
-        /// <value>
-        /// The min heart beat threads.
-        /// </value>
-        int ThreadsMin { get; set; }
+        int QueueMax { get; set; }
 
         /// <summary>
-        /// How long before a heart beat worker thread idle time out due to inactivity.
+        /// How long to wait for thread pool threads to exit when shutting down
         /// </summary>
-        /// <remarks>This only applies if the concurrent thread count is greater than the min</remarks>
-        /// <value>
-        /// The heart beat thread idle timeout.
-        /// </value>
-        TimeSpan ThreadIdleTimeout { get; set; }
+        TimeSpan WaitForThreadPoolToFinish { get; set; }
     }
 }

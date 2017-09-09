@@ -73,6 +73,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             switch (receivedMessage.Body.PayLoad)
             {
                 case MessageExpressionPayloads.Action:
+                case MessageExpressionPayloads.ActionRaw:
                     using (_runMethodCompiledCodeTimer.NewContext())
                     {
                         _handler.HandleExecution(receivedMessage, workerNotification);

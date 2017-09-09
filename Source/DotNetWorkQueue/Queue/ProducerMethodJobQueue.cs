@@ -28,10 +28,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
 {
-    /// <summary>
-    /// Sends jobs to a transport
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.IProducerMethodJobQueue" />
+    /// <inheritdoc />
     public class ProducerMethodJobQueue : IProducerMethodJobQueue
     {
         private readonly ISendJobToQueue _sendJobToQueue;
@@ -61,9 +58,7 @@ namespace DotNetWorkQueue.Queue
             _createJobQueue = createJobQueue;
         }
 
-        /// <summary>
-        /// Starts this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Start()
         {
             if (!_createJobQueue.JobTableExists)
@@ -72,51 +67,29 @@ namespace DotNetWorkQueue.Queue
             }
             _started = true;
         }
-        /// <summary>
-        /// Gets the last known event.
-        /// </summary>
+        /// <inheritdoc />
         public IJobSchedulerLastKnownEvent LastKnownEvent { get; }
 
-        /// <summary>
-        /// Gets the queue specific logger.
-        /// </summary>
-        /// <value>
-        /// The logger.
-        /// </value>
+        /// <inheritdoc />
         public ILog Logger { get; }
 
-        /// <summary>
-        /// Sends the specified dynamic linqExpression to be executed.
-        /// </summary>
-        /// <param name="job">The job.</param>
-        /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="linqExpression">The linqExpression to execute.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression)
         {
             if(!_started) throw new DotNetWorkQueueException("Start must be called before sending jobs");
             return await _sendJobToQueue.SendAsync(job, scheduledTime, linqExpression).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Sends the specified linqExpression to be executed.
-        /// </summary>
-        /// <param name="job">The job.</param>
-        /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="method">The linqExpression to execute.</param>
-        /// <returns></returns>
-        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method)
+        /// <inheritdoc />
+        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime,
+            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method,
+            bool rawExpression = false)
         {
             if (!_started) throw new DotNetWorkQueueException("Start must be called before sending jobs");
-            return await _sendJobToQueue.SendAsync(job, scheduledTime, method).ConfigureAwait(false);
+            return await _sendJobToQueue.SendAsync(job, scheduledTime, method, rawExpression).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// The configuration settings for the queue.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
+        /// <inheritdoc />
         public QueueProducerConfiguration Configuration => _sendJobToQueue.Configuration;
 
         #region IDisposable Support

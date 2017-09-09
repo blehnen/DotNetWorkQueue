@@ -19,7 +19,7 @@
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Creates new instances of <see cref="IHeartBeatWorker"/>
+    /// Creates new instances of <see cref="T:DotNetWorkQueue.IHeartBeatWorker" />
     /// </summary>
     public interface IHeartBeatWorkerFactory
     {

@@ -19,27 +19,31 @@
 
 using System;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Polly.Bulkhead;
 
 namespace DotNetWorkQueue.TaskScheduling
 {
-    /// <summary>
-    /// Extends the standard task factory to allow for trying to add a new task, but failing to do so.
-    /// </summary>
+    /// <inheritdoc />
     public class SchedulerTaskFactory : ITaskFactory
     {
         private readonly Lazy<ATaskScheduler> _scheduler;
         private readonly Lazy<TaskFactory> _factory;
+        private readonly ILog _log;
         private readonly object _tryStartNewLocker = new object();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchedulerTaskFactory" /> class.
         /// </summary>
         /// <param name="schedulerFactory">The scheduler factory.</param>
-        public SchedulerTaskFactory(ITaskSchedulerFactory schedulerFactory)
+        /// <param name="log">The log.</param>
+        public SchedulerTaskFactory(ITaskSchedulerFactory schedulerFactory,
+            ILogFactory log)
         {
             Guard.NotNull(() => schedulerFactory, schedulerFactory);
             _scheduler = new Lazy<ATaskScheduler>(schedulerFactory.Create);
+            _log = log.Create();
             _factory = new Lazy<TaskFactory>(() =>
             {
                 lock (_tryStartNewLocker)
@@ -49,19 +53,7 @@ namespace DotNetWorkQueue.TaskScheduling
             });
         }
 
-        /// <summary>
-        /// Tries to add a new task to the task factory
-        /// </summary>
-        /// <param name="action">The action.</param>
-        /// <param name="state">The state.</param>
-        /// <param name="continueWith">The continue with action.</param>
-        /// <param name="task">The task.</param>
-        /// <returns>
-        /// <see cref="TryStartNewResult"/>
-        /// </returns>
-        /// <remarks>
-        /// The factory may reject the request if it's too busy.
-        /// </remarks>
+        /// <inheritdoc />
         public TryStartNewResult TryStartNew(Action<object> action, StateInformation state, Action<Task> continueWith, out Task task)
         {
             Guard.NotNull(() => action, action);
@@ -72,20 +64,26 @@ namespace DotNetWorkQueue.TaskScheduling
                 {
                     if (SchedulerHasRoom(state))
                     {
-                        task = _factory.Value.StartNew(action, state).ContinueWith(continueWith);
-                        return TryStartNewResult.Added;
+                        try
+                        {
+                            task = _factory.Value.StartNew(action, state).ContinueWith(continueWith);
+                            return TryStartNewResult.Added;
+                        }
+                        catch (BulkheadRejectedException e)
+                        {
+                            //TODO - metrics
+                            _log.WarnException("Failed to enqueue task", e);
+
+                            task = null;
+                            return TryStartNewResult.Rejected;
+                        }
                     }
                 }
             }
             task = null;
             return TryStartNewResult.Rejected;
         }
-        /// <summary>
-        /// Gets the task scheduler.
-        /// </summary>
-        /// <value>
-        /// The scheduler.
-        /// </value>
+        /// <inheritdoc />
         public ATaskScheduler Scheduler => _scheduler.Value;
 
         /// <summary>

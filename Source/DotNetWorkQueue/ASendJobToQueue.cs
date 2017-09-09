@@ -25,10 +25,7 @@ using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue
 {
-    /// <summary>
-    /// Base class for sending jobs to transports
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.ISendJobToQueue" />
+    /// <inheritdoc />
     public abstract class ASendJobToQueue: ISendJobToQueue
     {
         /// <summary>
@@ -52,20 +49,10 @@ namespace DotNetWorkQueue
             GetTimeFactory = getTimeFactory;
         }
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed => Queue.IsDisposed;
 
-        /// <summary>
-        /// The configuration settings for the queue.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
+        /// <inheritdoc />
         public QueueProducerConfiguration Configuration => Queue.Configuration;
 
         /// <summary>
@@ -101,35 +88,23 @@ namespace DotNetWorkQueue
         protected abstract void SetMetaDataForJob(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime,
             string route, IAdditionalMessageData messageData);
 
-        /// <summary>
-        /// Sends the specified action to the specified queue.
-        /// </summary>
-        /// <param name="job">The job.</param>
-        /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="actionToRun">The action to run.</param>
-        /// <returns></returns>
-        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun)
+        /// <inheritdoc />
+        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun, bool rawExpression = false)
         {
             var messageData = new AdditionalMessageData();
             var data = StartSend(job, scheduledTime, messageData);
             if (data != null)
                 return data;
 
-            var message = await Queue.SendAsync(actionToRun, messageData).ConfigureAwait(false);
+            var message = await Queue.SendAsync(actionToRun, messageData, rawExpression).ConfigureAwait(false);
             var result = ProcessResult(job, scheduledTime, message);
             if (result != null) return result;
             //try one more time
-            result = ProcessResult(job, scheduledTime, await Queue.SendAsync(actionToRun, messageData).ConfigureAwait(false));
+            result = ProcessResult(job, scheduledTime, await Queue.SendAsync(actionToRun, messageData, rawExpression).ConfigureAwait(false));
             return result ?? new JobQueueOutputMessage(JobQueuedStatus.Failed);
         }
 
-        /// <summary>
-        /// Sends the specified action to the specified queue.
-        /// </summary>
-        /// <param name="job">The job.</param>
-        /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="expressionToRun">The expression to run.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun expressionToRun)
         {
             var messageData = new AdditionalMessageData();

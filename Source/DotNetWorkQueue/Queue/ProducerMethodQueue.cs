@@ -28,10 +28,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
 {
-    /// <summary>
-    /// Sends linq methods to be executed.
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.IProducerMethodQueue" />
+    /// <inheritdoc />
     public class ProducerMethodQueue : IProducerMethodQueue
     {
         private readonly IProducerQueue<MessageExpression> _queue;
@@ -56,85 +53,76 @@ namespace DotNetWorkQueue.Queue
             _serializer = serializer;
             _compositeSerialization = compositeSerialization;
         }
-
-        /// <summary>
-        /// The configuration settings for the queue.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
+        /// <inheritdoc />
         public QueueProducerConfiguration Configuration => _queue.Configuration;
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed => _queue.IsDisposed;
 
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The methods to execute.</param>
-        /// <returns></returns>
-        public IQueueOutputMessages Send(List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>, IAdditionalMessageData>> methods)
+        /// <inheritdoc />
+        public IQueueOutputMessages Send(List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>, IAdditionalMessageData>> methods, bool rawExpression = false)
         {
             var messages = new List<QueueMessage<MessageExpression, IAdditionalMessageData>>(methods.Count);
             foreach (var method in methods)
             {
-                var message = new MessageExpression(MessageExpressionPayloads.Action,  _serializer.ConvertMethodToBytes(method.Message));
-                messages.Add(new QueueMessage<MessageExpression, IAdditionalMessageData>(message, method.MessageData));
+                if (rawExpression)
+                {
+                    var message = new MessageExpression(MessageExpressionPayloads.ActionRaw, method.Message);
+                    messages.Add(new QueueMessage<MessageExpression, IAdditionalMessageData>(message, method.MessageData));
+                }
+                else
+                {
+                    var message = new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method.Message));
+                    messages.Add(new QueueMessage<MessageExpression, IAdditionalMessageData>(message, method.MessageData));
+                }
             }
             return _queue.Send(messages);
         }
 
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The methods to execute.</param>
-        /// <returns></returns>
-        public IQueueOutputMessages Send(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods)
+        /// <inheritdoc />
+        public IQueueOutputMessages Send(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods, bool rawExpression = false)
         {
             var messages = new List<MessageExpression>(methods.Count);
-            messages.AddRange(methods.Select(method => new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method))));
+            messages.AddRange(rawExpression
+                ? methods.Select(method => new MessageExpression(MessageExpressionPayloads.ActionRaw, method))
+                : methods.Select(method =>
+                    new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method))));
             return _queue.Send(messages);
         }
 
-        /// <summary>
-        /// Sends the specified linqExpression to be executed. Additional message meta data is optional.
-        /// </summary>
-        /// <param name="method">The linqExpression to execute.</param>
-        /// <param name="data">The optional additional message data.</param>
-        /// <returns></returns>
-        public IQueueOutputMessage Send(Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, IAdditionalMessageData data = null)
+        /// <inheritdoc />
+        public IQueueOutputMessage Send(Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, IAdditionalMessageData data = null, bool rawExpression = false)
         {
-            var message = new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method));
-            return _queue.Send(message, data);
+            if (rawExpression)
+            {
+                var message = new MessageExpression(MessageExpressionPayloads.ActionRaw,
+                    method);
+                return _queue.Send(message, data);
+            }
+            else
+            {
+                var message = new MessageExpression(MessageExpressionPayloads.Action,
+                    _serializer.ConvertMethodToBytes(method));
+                return _queue.Send(message, data);
+            }
         }
 
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The messages.</param>
-        /// <returns></returns>
-        public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>, IAdditionalMessageData>> methods)
+        /// <inheritdoc />
+        public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>, IAdditionalMessageData>> methods, bool rawExpression = false)
         {
             var messages = new List<QueueMessage<MessageExpression, IAdditionalMessageData>>(methods.Count);
-            foreach (var method in methods)
+            if (rawExpression)
             {
-                var message = new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method.Message));
-                messages.Add(new QueueMessage<MessageExpression, IAdditionalMessageData>(message, method.MessageData));
+                messages.AddRange(from method in methods let message = new MessageExpression(MessageExpressionPayloads.ActionRaw, method.Message) select new QueueMessage<MessageExpression, IAdditionalMessageData>(message, method.MessageData));
+            }
+            else
+            {
+                messages.AddRange(from method in methods let message = new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method.Message)) select new QueueMessage<MessageExpression, IAdditionalMessageData>(message, method.MessageData));
             }
             return await _queue.SendAsync(messages).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Sends the specified linqExpression to be executed. Additional message meta data is optional.
-        /// </summary>
-        /// <param name="linqExpression">The linqExpression to execute.</param>
-        /// <param name="data">The optional additional message data.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IQueueOutputMessage Send(LinqExpressionToRun linqExpression, IAdditionalMessageData data = null)
         {
             var message = new MessageExpression(MessageExpressionPayloads.ActionText,
@@ -142,11 +130,7 @@ namespace DotNetWorkQueue.Queue
             return _queue.Send(message, data);
         }
 
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The methods to execute.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IQueueOutputMessages Send(List<LinqExpressionToRun> methods)
         {
             var messages = new List<MessageExpression>(methods.Count);
@@ -154,11 +138,7 @@ namespace DotNetWorkQueue.Queue
             return _queue.Send(messages);
         }
 
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The methods to execute.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IQueueOutputMessages Send(List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>> methods)
         {
             var messages = new List<QueueMessage<MessageExpression, IAdditionalMessageData>>(methods.Count);
@@ -170,23 +150,14 @@ namespace DotNetWorkQueue.Queue
             return _queue.Send(messages);
         }
 
-        /// <summary>
-        /// Sends the specified linqExpression to be executed. Additional message meta data is optional.
-        /// </summary>
-        /// <param name="linqExpression">The linqExpression to execute.</param>
-        /// <param name="data">The optional additional message data.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<IQueueOutputMessage> SendAsync(LinqExpressionToRun linqExpression, IAdditionalMessageData data = null)
         {
             var message = new MessageExpression(MessageExpressionPayloads.ActionText, _compositeSerialization.InternalSerializer.ConvertToBytes(linqExpression));
             return await _queue.SendAsync(message, data).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The messages.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<IQueueOutputMessages> SendAsync(List<LinqExpressionToRun> methods)
         {
             var messages = new List<MessageExpression>(methods.Count);
@@ -194,11 +165,7 @@ namespace DotNetWorkQueue.Queue
             return await _queue.SendAsync(messages).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The messages.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>> methods)
         {
             var messages = new List<QueueMessage<MessageExpression, IAdditionalMessageData>>(methods.Count);
@@ -210,28 +177,30 @@ namespace DotNetWorkQueue.Queue
             return await _queue.SendAsync(messages).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The messages.</param>
-        /// <returns></returns>
-        public async Task<IQueueOutputMessages> SendAsync(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods)
+        /// <inheritdoc />
+        public async Task<IQueueOutputMessages> SendAsync(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods, bool rawExpression = false)
         {
             var messages = new List<MessageExpression>(methods.Count);
-            messages.AddRange(methods.Select(method => new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method))));
+            messages.AddRange(rawExpression
+                ? methods.Select(method => new MessageExpression(MessageExpressionPayloads.ActionRaw, method))
+                : methods.Select(method =>
+                    new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method))));
             return await _queue.SendAsync(messages).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Sends the specified linqExpression to be executed. Additional message meta data is optional.
-        /// </summary>
-        /// <param name="method">The linqExpression to execute.</param>
-        /// <param name="data">The optional additional message data.</param>
-        /// <returns></returns>
-        public async Task<IQueueOutputMessage> SendAsync(Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, IAdditionalMessageData data = null)
+        /// <inheritdoc />
+        public async Task<IQueueOutputMessage> SendAsync(Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, IAdditionalMessageData data = null, bool rawExpression = false)
         {
-            var message = new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method));
-            return await _queue.SendAsync(message, data).ConfigureAwait(false);
+            if (rawExpression)
+            {
+                var message = new MessageExpression(MessageExpressionPayloads.ActionRaw, method);
+                return await _queue.SendAsync(message, data).ConfigureAwait(false);
+            }
+            else
+            {
+                var message = new MessageExpression(MessageExpressionPayloads.Action, _serializer.ConvertMethodToBytes(method));
+                return await _queue.SendAsync(message, data).ConfigureAwait(false);
+            }
         }
 
         #region IDisposable Support

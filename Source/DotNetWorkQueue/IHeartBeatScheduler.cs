@@ -16,17 +16,37 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
+using System.Linq.Expressions;
+using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue
 {
     /// <inheritdoc cref="IDisposable" />
+    /// <inheritdoc cref="IIsDisposed" />
     /// <summary>
-    /// An internal thread pool
+    /// Handles scheduling and processing heartbeat requests
     /// </summary>
-    public interface IThreadPool: IDisposable, IIsDisposed
+    public interface IHeartBeatScheduler : IDisposable, IIsDisposed
     {
+        /// <summary>
+        /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.
+        /// </summary>
+        /// <param name="jobName">Name of the job.</param>
+        /// <param name="schedule">The schedule.</param>
+        /// <param name="job">The job.</param>
+        /// <returns></returns>
+        IScheduledJob AddUpdateJob(string jobName,
+            string schedule,
+            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> job);
+
+        /// <summary>
+        /// Removes the job from the scheduler
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+        bool RemoveJob(string name);
+
         /// <summary>
         /// Gets a value indicating whether this instance is shutting down.
         /// </summary>
@@ -34,28 +54,5 @@ namespace DotNetWorkQueue
         /// <c>true</c> if this instance is shutting down; otherwise, <c>false</c>.
         /// </value>
         bool IsShuttingDown { get; }
-        /// <summary>
-        /// Queues a work item.
-        /// </summary>
-        /// <param name="action">The work item to queue.</param>
-        void QueueWorkItem(Action action);
-        /// <summary>
-        /// Gets the active threads count.
-        /// </summary>
-        /// <value>
-        /// The active threads.
-        /// </value>
-        int ActiveThreads { get; }
-        /// <summary>
-        /// Gets a value indicating whether this instance is started.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is started; otherwise, <c>false</c>.
-        /// </value>
-        bool IsStarted { get; }
-        /// <summary>
-        /// Starts this instance.
-        /// </summary>
-        void Start();
     }
 }

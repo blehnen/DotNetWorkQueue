@@ -57,23 +57,6 @@ namespace DotNetWorkQueue.Tests.Configuration
             Assert.Equal(value, configuration.MaximumThreads);
         }
         [Theory, AutoData]
-        public void SetAndGet_MinimumThreads(int value)
-        {
-            var configuration = GetConfiguration();
-            configuration.MinimumThreads = value;
-
-            Assert.Equal(value, configuration.MinimumThreads);
-        }
-        [Theory, AutoData]
-        public void SetAndGet_ThreadIdleTimeout(TimeSpan value)
-        {
-            var configuration = GetConfiguration();
-            configuration.ThreadIdleTimeout = value;
-
-            Assert.Equal(value, configuration.ThreadIdleTimeout);
-        }
-
-        [Theory, AutoData]
         public void SetAndGet_WaitForThreadPoolToFinish(TimeSpan value)
         {
             var configuration = GetConfiguration();
@@ -95,18 +78,6 @@ namespace DotNetWorkQueue.Tests.Configuration
               });
         }
         [Theory, AutoData]
-        public void Set_MinimumThreads_WhenReadOnly_Fails(int value)
-        {
-            var configuration = GetConfiguration();
-            configuration.SetReadOnly();
-
-            Assert.Throws<InvalidOperationException>(
-              delegate
-              {
-                  configuration.MinimumThreads = value;
-              });
-        }
-        [Theory, AutoData]
         public void Set_MaxQueueSize_WhenReadOnly_Fails(int value)
         {
             var configuration = GetConfiguration();
@@ -116,18 +87,6 @@ namespace DotNetWorkQueue.Tests.Configuration
               delegate
               {
                   configuration.MaxQueueSize = value;
-              });
-        }
-        [Theory, AutoData]
-        public void Set_ThreadIdleTimeout_WhenReadOnly_Fails(TimeSpan value)
-        {
-            var configuration = GetConfiguration();
-            configuration.SetReadOnly();
-
-            Assert.Throws<InvalidOperationException>(
-              delegate
-              {
-                  configuration.ThreadIdleTimeout = value;
               });
         }
         [Theory, AutoData]

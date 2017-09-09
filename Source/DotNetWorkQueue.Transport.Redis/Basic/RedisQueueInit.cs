@@ -243,8 +243,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             heartBeatConfiguration.MonitorTime = TimeSpan.FromSeconds(120);
             heartBeatConfiguration.Interval = 3;
             heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMax = 1;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMin = 1;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadIdleTimeout = TimeSpan.FromSeconds(45);
+            heartBeatConfiguration.ThreadPoolConfiguration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
         }
         /// <summary>
         /// Setup the message expiration.

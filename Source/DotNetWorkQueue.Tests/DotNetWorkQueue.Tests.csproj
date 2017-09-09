@@ -58,10 +58,6 @@
     <Reference Include="SimpleInjector, Version=4.0.8.0, Culture=neutral, PublicKeyToken=984cb50dea722e99, processorArchitecture=MSIL">
       <HintPath>..\packages\SimpleInjector.4.0.8\lib\net45\SimpleInjector.dll</HintPath>
     </Reference>
-    <Reference Include="SmartThreadPool, Version=2.2.4.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
-      <HintPath>..\packages\SmartThreadPool.dll.2.2.4\lib\net45\SmartThreadPool.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -116,7 +112,6 @@
     <Compile Include="Exceptions\ReceiveMessageExceptionTests.cs" />
     <Compile Include="Exceptions\SerializationExceptionTests.cs" />
     <Compile Include="Factory\GetTimeFactoryNoOpTests.cs" />
-    <Compile Include="Factory\HeartBeatThreadPoolFactoryTests.cs" />
     <Compile Include="Factory\HeartBeatWorkerFactoryTests.cs" />
     <Compile Include="Factory\MessageContextDataFactoryTests.cs" />
     <Compile Include="Factory\MessageContextFactoryTests.cs" />
@@ -194,7 +189,6 @@
     <Compile Include="Queue\HeartBeatMonitorNoOpTests.cs" />
     <Compile Include="Queue\HeartBeatMonitorTests.cs" />
     <Compile Include="Queue\HeartBeatStatusTests.cs" />
-    <Compile Include="Queue\HeartBeatThreadPoolTests.cs" />
     <Compile Include="Queue\HeartBeatWorkerNoOpTests.cs" />
     <Compile Include="Queue\HeartBeatWorkerTests.cs" />
     <Compile Include="Queue\MessageExceptionHandlerTests.cs" />
@@ -234,7 +228,6 @@
     <Compile Include="TaskScheduling\SmartThreadPoolTaskSchedulerTests.cs" />
     <Compile Include="TaskScheduling\StateInformationTests.cs" />
     <Compile Include="TaskScheduling\ThreadPoolConfigurationTests.cs" />
-    <Compile Include="TaskScheduling\ThreadPoolTests.cs" />
     <Compile Include="TaskScheduling\WaitForEventOrCancelThreadPoolTests.cs" />
     <Compile Include="TaskScheduling\WorkGroupTests.cs" />
     <Compile Include="TaskScheduling\WorkGroupWithItemTests.cs" />

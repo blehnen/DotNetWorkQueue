@@ -125,8 +125,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             heartBeatConfiguration.MonitorTime = TimeSpan.FromSeconds(120);
             heartBeatConfiguration.Interval = 4;
             heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMax = 1;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMin = 1;
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadIdleTimeout = TimeSpan.FromSeconds(220);
+            heartBeatConfiguration.ThreadPoolConfiguration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
         }
 
         /// <summary>

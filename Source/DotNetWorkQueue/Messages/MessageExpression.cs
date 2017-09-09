@@ -16,6 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
+using System.Linq.Expressions;
+
 namespace DotNetWorkQueue.Messages
 {
     /// <summary>
@@ -26,7 +30,13 @@ namespace DotNetWorkQueue.Messages
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageExpression"/> class.
         /// </summary>
-        /// <remarks>Required for serialization</remarks>
+        /// <remarks>
+        /// 
+        /// Required for serialization
+        /// 
+        /// NOTE - look at <see cref="PayLoad"/> to determine which property will be non-null.
+        /// 
+        /// </remarks>
         public MessageExpression()
         {
         }
@@ -41,6 +51,16 @@ namespace DotNetWorkQueue.Messages
             PayLoad = payload;
         }
         /// <summary>
+        /// Initializes a new instance of the <see cref="MessageExpression" /> class.
+        /// </summary>
+        /// <param name="payload">The type of payload.</param>
+        /// <param name="method">The method.</param>
+        public MessageExpression(MessageExpressionPayloads payload, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method)
+        {
+            Method = method;
+            PayLoad = payload;
+        }
+        /// <summary>
         /// Gets or sets the serialized expression.
         /// </summary>
         /// <value>
@@ -48,6 +68,13 @@ namespace DotNetWorkQueue.Messages
         /// </value>
         /// <remarks>This is the LINQ expression, converted to a byte array</remarks>
         public byte[] SerializedExpression { get; set; }
+        /// <summary>
+        /// Gets or sets the method.
+        /// </summary>
+        /// <value>
+        /// The method.
+        /// </value>
+        public Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> Method { get; set; }
         /// <summary>
         /// Gets or sets the pay load.
         /// </summary>
@@ -79,6 +106,11 @@ namespace DotNetWorkQueue.Messages
         /// A linq action expression, specified as a string to be compiled. This should be a func that returns an <seealso cref="object"/>
         /// </summary>
         /// <remarks>Used for RPC; otherwise everything else should be an <seealso cref="ActionText"/></remarks>
-        FunctionText
+        FunctionText,
+        /// <summary>
+        /// A linq action expression; not serialized and passed around the queues as-is
+        /// </summary>
+        /// <remarks>Only suitable for the in-memory queue</remarks>
+        ActionRaw,
     }
 }

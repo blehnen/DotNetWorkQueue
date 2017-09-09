@@ -21,25 +21,14 @@ using System;
 
 namespace DotNetWorkQueue.Configuration
 {
-    /// <summary>
-    /// Heart beat thread pool configuration module
-    /// </summary>
+    /// <inheritdoc />
     public class HeartBeatThreadPoolConfiguration: IHeartBeatThreadPoolConfiguration
     {
         private int _threadsMax;
-        private int _threadsMin;
-        private TimeSpan _threadIdleTimeout;
+        private int _queueMax;
+        private TimeSpan _waitForThreadPoolToFinish;
 
-        /// <summary>
-        /// How many threads will be used to update the heartbeats.
-        /// </summary>
-        /// <remarks>
-        /// The thread pool is used to notify the worker that a heart beat needs updating. However, a dedicated thread pool is used for
-        /// the actual updating, to reduce how long we require the usage of threads from the built in thread pool.
-        /// </remarks>
-        /// <value>
-        /// The max heart beat threads.
-        /// </value>
+        /// <inheritdoc />
         public int ThreadsMax
         {
             get => _threadsMax;
@@ -50,40 +39,25 @@ namespace DotNetWorkQueue.Configuration
             }
         }
 
-        /// <summary>
-        /// How long before a heart beat worker thread idle time out due to inactivity.
-        /// </summary>
-        /// <remarks>This only applies if the concurrent thread count is greater than the min</remarks>
-        /// <value>
-        /// The heart beat thread idle timeout.
-        /// </value>
-        public TimeSpan ThreadIdleTimeout
+        /// <inheritdoc />
+        public int QueueMax
         {
-            get => _threadIdleTimeout;
+            get => _queueMax;
             set
             {
                 FailIfReadOnly();
-                _threadIdleTimeout = value;
+                _queueMax = value;
             }
         }
 
-        /// <summary>
-        /// The minimum amount of threads in the thread pool for updating the heartbeat
-        /// </summary>
-        /// <remarks>
-        /// The thread pool is used to notify the worker that a heart beat needs updating. However, a dedicated thread pool is used for
-        /// the actual updating, to reduce how long we require the usage of threads from the built in thread pool.
-        /// </remarks>
-        /// <value>
-        /// The min heart beat threads.
-        /// </value>
-        public int ThreadsMin
+        /// <inheritdoc />
+        public TimeSpan WaitForThreadPoolToFinish
         {
-            get => _threadsMin;
+            get => _waitForThreadPoolToFinish;
             set
             {
                 FailIfReadOnly();
-                _threadsMin = value;
+                _waitForThreadPoolToFinish = value;
             }
         }
 

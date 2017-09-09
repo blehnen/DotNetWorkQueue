@@ -59,10 +59,6 @@
     <Reference Include="SimpleInjector, Version=4.0.8.0, Culture=neutral, PublicKeyToken=984cb50dea722e99, processorArchitecture=MSIL">
       <HintPath>..\packages\SimpleInjector.4.0.8\lib\net45\SimpleInjector.dll</HintPath>
     </Reference>
-    <Reference Include="SmartThreadPool, Version=2.2.4.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
-      <HintPath>..\packages\SmartThreadPool.dll.2.2.4\lib\net45\SmartThreadPool.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Caching" />
@@ -111,6 +107,7 @@
     <Compile Include="IContainerFactory.cs" />
     <Compile Include="ICreationScope.cs" />
     <Compile Include="IExpressionSerializer.cs" />
+    <Compile Include="IHeartBeatScheduler.cs" />
     <Compile Include="IIncreaseQueueDelay.cs" />
     <Compile Include="IJobQueueCreation.cs" />
     <Compile Include="IJobQueueOutputMessage.cs" />
@@ -237,6 +234,7 @@
     <Compile Include="Queue\ConsumerMethodQueue.cs" />
     <Compile Include="Queue\CreationScopeNoOp.cs" />
     <Compile Include="Queue\GenerateMessageHeaders.cs" />
+    <Compile Include="Queue\HeartBeatScheduler.cs" />
     <Compile Include="Queue\MessageErrorEventArgs.cs" />
     <Compile Include="Queue\MessageProcessingMode.cs" />
     <Compile Include="Queue\ProducerMethodJobQueue.cs" />
@@ -262,7 +260,6 @@
     <Compile Include="Exceptions\InterceptorException.cs" />
     <Compile Include="Exceptions\PoisonMessageException.cs" />
     <Compile Include="Exceptions\SerializationException.cs" />
-    <Compile Include="Factory\HeartBeatThreadPoolFactory.cs" />
     <Compile Include="Factory\HeartBeatWorkerFactory.cs" />
     <Compile Include="Factory\MessageProcessingFactory.cs" />
     <Compile Include="Factory\RetryInformationFactory.cs" />
@@ -282,7 +279,6 @@
     <Compile Include="IHeaders.cs" />
     <Compile Include="IHeartBeatConfiguration.cs" />
     <Compile Include="IHeartBeatThreadPoolConfiguration.cs" />
-    <Compile Include="IHeartBeatThreadPoolFactory.cs" />
     <Compile Include="IIsDisposed.cs" />
     <Compile Include="IMessageExpirationConfiguration.cs" />
     <Compile Include="IMessageHandlerRegistrationAsync.cs" />
@@ -375,7 +371,6 @@
     <Compile Include="ICorrelationIDFactory.cs" />
     <Compile Include="IHeartBeatMonitor.cs" />
     <Compile Include="IHeartBeatStatus.cs" />
-    <Compile Include="IHeartBeatThreadPool.cs" />
     <Compile Include="IHeartBeatWorker.cs" />
     <Compile Include="IHeartBeatWorkerFactory.cs" />
     <Compile Include="IInternalSerializer.cs" />
@@ -395,7 +390,6 @@
     <Compile Include="IResponseIDFactory.cs" />
     <Compile Include="IConsumerQueueScheduler.cs" />
     <Compile Include="ITaskScheduler.cs" />
-    <Compile Include="IThreadPool.cs" />
     <Compile Include="IWaitForEventOrCancel.cs" />
     <Compile Include="ICancelWork.cs" />
     <Compile Include="IWorkerBase.cs" />
@@ -462,7 +456,6 @@
     <Compile Include="Queue\ConsumerQueueAsync.cs" />
     <Compile Include="Queue\HeartBeatMonitor.cs" />
     <Compile Include="Queue\HeartBeatStatus.cs" />
-    <Compile Include="Queue\HeartBeatThreadPool.cs" />
     <Compile Include="Queue\HeartBeatWorker.cs" />
     <Compile Include="IWorker.cs" />
     <Compile Include="Queue\MessageExceptionHandler.cs" />
@@ -491,7 +484,6 @@
     <Compile Include="Serialization\JsonSerializerInternal.cs" />
     <Compile Include="TaskScheduling\Scheduler.cs" />
     <Compile Include="TaskScheduling\TaskScheduler.cs" />
-    <Compile Include="TaskScheduling\ThreadPool.cs" />
     <Compile Include="TaskScheduling\WorkGroup.cs" />
     <Compile Include="Queue\WorkerNotifications.cs" />
     <Compile Include="TaskScheduling\WorkGroupNoOp.cs" />
@@ -556,7 +548,6 @@
       <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.dll" />
       <MergeAssemblies Include="$(OutputPath)\Newtonsoft.Json.dll" />
       <MergeAssemblies Include="$(OutputPath)\SimpleInjector.dll" />
-      <MergeAssemblies Include="$(OutputPath)\SmartThreadPool.dll" />
       <MergeAssemblies Include="$(OutputPath)\Aq.ExpressionJsonSerializer.dll" />
       <MergeAssemblies Include="$(OutputPath)\JpLabs.DynamicCode.dll" />
       <MergeAssemblies Include="$(OutputPath)\Microsoft.IO.RecyclableMemoryStream.dll" />

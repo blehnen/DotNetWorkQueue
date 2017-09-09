@@ -27,9 +27,7 @@ namespace DotNetWorkQueue.Configuration
     public class TaskSchedulerConfiguration : ITaskSchedulerConfiguration
     {
         private int _maximumThreads;
-        private int _minimumThreads;
         private int _maxQueueSize;
-        private TimeSpan _threadIdleTimeout;
         private TimeSpan _waitForThreadPoolToFinish;
 
         /// <summary>
@@ -38,9 +36,7 @@ namespace DotNetWorkQueue.Configuration
         public TaskSchedulerConfiguration()
         {
             MaximumThreads = Environment.ProcessorCount;
-            MinimumThreads = 0;
             MaxQueueSize = 0;
-            ThreadIdleTimeout = TimeSpan.FromSeconds(60);
             WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
         }
         /// <summary>
@@ -56,22 +52,6 @@ namespace DotNetWorkQueue.Configuration
             {
                 FailIfReadOnly();
                 _maximumThreads = value;
-            }
-        }
-        /// <summary>
-        /// The minimum amount of threads to keep alive. If no work is present, and a thread has reached <see cref="ThreadIdleTimeout"/> the thread may be removed 
-        /// from the thread pool. It will be re-created as needed.
-        /// </summary>
-        /// <value>
-        /// The minimum threads.
-        /// </value>
-        public int MinimumThreads
-        {
-            get => _minimumThreads;
-            set
-            {
-                FailIfReadOnly();
-                _minimumThreads = value;
             }
         }
         /// <summary>
@@ -101,22 +81,6 @@ namespace DotNetWorkQueue.Configuration
             {
                 FailIfReadOnly();
                 _maxQueueSize = value;
-            }
-        }
-        /// <summary>
-        /// If a worker thread has been idle for this amount of time and the current thread count is greater than <see cref="MinimumThreads"/>
-        /// the thread will be removed from the thread pool.
-        /// </summary>
-        /// <value>
-        /// The thread idle timeout.
-        /// </value>
-        public TimeSpan ThreadIdleTimeout
-        {
-            get => _threadIdleTimeout;
-            set
-            {
-                FailIfReadOnly();
-                _threadIdleTimeout = value;
             }
         }
 

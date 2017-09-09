@@ -25,11 +25,11 @@ using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue
 {
+    /// <inheritdoc cref="IDisposable" />
+    /// <inheritdoc cref="IIsDisposed" />
     /// <summary>
     /// A reoccurring job scheduler.
     /// </summary>
-    /// <seealso cref="System.IDisposable" />
-    /// <seealso cref="DotNetWorkQueue.IIsDisposed" />
     public interface IJobScheduler : IDisposable, IIsDisposed
     {
         /// <summary>
@@ -106,6 +106,7 @@ namespace DotNetWorkQueue
         /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
         IScheduledJob AddUpdateJob<TTransportInit, TQueue>(string jobName,
             string queue,
@@ -115,7 +116,8 @@ namespace DotNetWorkQueue
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan))
+            TimeSpan window = default(TimeSpan),
+            bool rawExpression = false)
                 where TTransportInit : ITransportInit, new()
                 where TQueue : class, IJobQueueCreation;
 
@@ -133,6 +135,7 @@ namespace DotNetWorkQueue
         /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
         IScheduledJob AddUpdateJob<TTransportInit>(IJobQueueCreation queueCreator,
             string jobName,
@@ -143,7 +146,8 @@ namespace DotNetWorkQueue
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan))
+            TimeSpan window = default(TimeSpan),
+            bool rawExpression = false)
             where TTransportInit : ITransportInit, new();
 
         /// <summary>

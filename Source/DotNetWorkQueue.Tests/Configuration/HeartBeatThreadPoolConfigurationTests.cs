@@ -38,22 +38,16 @@ namespace DotNetWorkQueue.Tests.Configuration
             Assert.Equal(true, configuration.IsReadOnly);
         }
         [Theory, AutoData]
-        public void SetAndGet_HeartBeatThreadIdleTimeout(HeartBeatThreadPoolConfiguration configuration, int value)
+        public void SetAndGet_QueueMax(HeartBeatThreadPoolConfiguration configuration, int value)
         {
-            configuration.ThreadIdleTimeout = TimeSpan.FromSeconds(value);
-            Assert.Equal(TimeSpan.FromSeconds(value), configuration.ThreadIdleTimeout);
+            configuration.QueueMax = value;
+            Assert.Equal(value, configuration.QueueMax);
         }
         [Theory, AutoData]
         public void SetAndGet_HeartBeatThreadsMax(HeartBeatThreadPoolConfiguration configuration, int value)
         {
             configuration.ThreadsMax = value;
             Assert.Equal(value, configuration.ThreadsMax);
-        }
-        [Theory, AutoData]
-        public void SetAndGet_HeartBeatThreadsMin(HeartBeatThreadPoolConfiguration configuration, int value)
-        {
-            configuration.ThreadsMin = value;
-            Assert.Equal(value, configuration.ThreadsMin);
         }
         [Theory, AutoData]
         public void Set_HeartBeatThreadsMax_WhenReadOnly_Fails(HeartBeatThreadPoolConfiguration configuration, int value)
@@ -67,25 +61,25 @@ namespace DotNetWorkQueue.Tests.Configuration
               });
         }
         [Theory, AutoData]
-        public void Set_HeartBeatThreadsMin_WhenReadOnly_Fails(HeartBeatThreadPoolConfiguration configuration, int value)
+        public void Set_HeartBeatQueueMax_WhenReadOnly_Fails(HeartBeatThreadPoolConfiguration configuration, int value)
         {
             configuration.SetReadOnly();
 
             Assert.Throws<InvalidOperationException>(
               delegate
               {
-                  configuration.ThreadsMin = value;
+                  configuration.QueueMax = value;
               });
         }
         [Theory, AutoData]
-        public void Set_HeartBeatThreadIdleTimeout_WhenReadOnly_Fails(HeartBeatThreadPoolConfiguration configuration, int value)
+        public void Set_WaitForThreadPoolToFinish_WhenReadOnly_Fails(HeartBeatThreadPoolConfiguration configuration, int value)
         {
             configuration.SetReadOnly();
 
             Assert.Throws<InvalidOperationException>(
               delegate
               {
-                  configuration.ThreadIdleTimeout = TimeSpan.FromSeconds(value);
+                  configuration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(value);
               });
         }
     }

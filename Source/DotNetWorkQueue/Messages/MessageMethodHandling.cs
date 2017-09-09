@@ -27,10 +27,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Messages
 {
-    /// <summary>
-    /// Handles processing of linq expression tree messages.
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.IMessageMethodHandling" />
+    /// <inheritdoc />
     public class MessageMethodHandling: IMessageMethodHandling
     {
         private readonly IExpressionSerializer _serializer;
@@ -72,11 +69,7 @@ namespace DotNetWorkQueue.Messages
             _rpcQueues = new Dictionary<IConnectionInformation, IProducerQueueRpc<object>>();
         }
 
-        /// <summary>
-        /// Handles processing of linq expression tree messages.
-        /// </summary>
-        /// <param name="receivedMessage">The received message.</param>
-        /// <param name="workerNotification">The worker notification.</param>
+        /// <inheritdoc />
         public void HandleExecution(IReceivedMessage<MessageExpression> receivedMessage, IWorkerNotification workerNotification)
         {
             ThrowIfDisposed();
@@ -87,6 +80,9 @@ namespace DotNetWorkQueue.Messages
             {
                 case MessageExpressionPayloads.Action:
                     HandleAction(receivedMessage, workerNotification);
+                    break;
+                case MessageExpressionPayloads.ActionRaw:
+                    HandleRawAction(receivedMessage, workerNotification);
                     break;
                 case MessageExpressionPayloads.Function:
                     HandleFunction(receivedMessage, workerNotification);
@@ -138,6 +134,28 @@ namespace DotNetWorkQueue.Messages
             }
         }
 
+        /// <summary>
+        /// Runs a compiled linq expression.
+        /// </summary>
+        /// <param name="receivedMessage">The received message.</param>
+        /// <param name="workerNotification">The worker notification.</param>
+        private void HandleRawAction(IReceivedMessage<MessageExpression> receivedMessage,
+            IWorkerNotification workerNotification)
+        {
+            try
+            {
+                HandleAction(receivedMessage.Body.Method.Compile(), receivedMessage, workerNotification);
+            }
+            catch (Exception error) //throw the real exception if needed
+            {
+                if (error.Message == "Exception has been thrown by the target of an invocation." &&
+                    error.InnerException != null)
+                {
+                    throw error.InnerException;
+                }
+                throw;
+            }
+        }
         /// <summary>
         /// De-serializes and runs a compiled linq expression.
         /// </summary>

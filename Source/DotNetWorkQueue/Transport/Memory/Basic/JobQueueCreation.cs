@@ -22,7 +22,7 @@ using System;
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
     /// <summary>
-    /// Creates a job queue in a SQL server DB
+    /// Creates a job queue in memory
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IJobQueueCreation" />
     public class JobQueueCreation : IJobQueueCreation

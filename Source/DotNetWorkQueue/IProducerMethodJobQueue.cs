@@ -43,8 +43,9 @@ namespace DotNetWorkQueue
         /// <param name="job">The job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="method">The linqExpression to execute.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
-        Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method);
+        Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, bool rawExpression = false);
 
         /// <summary>
         /// Sends the specified dynamic linqExpression to be executed.

@@ -25,6 +25,8 @@ using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue
 {
+    /// <inheritdoc cref="IDisposable" />
+    /// <inheritdoc cref="IIsDisposed" />
     /// <summary>
     /// Sends a job to a queue
     /// </summary>
@@ -44,8 +46,9 @@ namespace DotNetWorkQueue
         /// <param name="job">The job.</param>
         /// <param name="scheduledTime">The scheduled time.</param>
         /// <param name="actionToRun">The action to run.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
-        Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun);
+        Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun, bool rawExpression = false);
 
         /// <summary>
         /// The configuration settings for the queue.

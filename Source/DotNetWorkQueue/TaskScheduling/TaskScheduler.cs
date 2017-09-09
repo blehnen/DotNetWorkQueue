@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -25,20 +24,19 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Amib.Threading;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
+using Polly;
+using Polly.Bulkhead;
 
 namespace DotNetWorkQueue.TaskScheduling
 {
-    /// <summary>
-    /// A task scheduler for <see cref="IConsumerQueueScheduler"/>
-    /// <remarks>This uses <see cref="SmartThreadPool"/> https://github.com/amibar/SmartThreadPool to handle the threads internally</remarks>
-    /// </summary>
+    /// <inheritdoc />
     public class SmartThreadPoolTaskScheduler : ATaskScheduler
     {
         private readonly ITaskSchedulerConfiguration _configuration;
-        private SmartThreadPool _smartThreadPool;
+        private BulkheadPolicy _smartThreadPool;
         private readonly ConcurrentDictionary<IWorkGroup, WorkGroupWithItem> _groups;
         private readonly ConcurrentDictionary<int, int> _clients;
         private readonly IWaitForEventOrCancelThreadPool _waitForFreeThread;
@@ -75,18 +73,10 @@ namespace DotNetWorkQueue.TaskScheduling
             _clientCounter = metrics.Counter($"{name}.ClientCounter", Units.Items);
         }
 
-        /// <summary>
-        /// Gets the configuration.
-        /// </summary>
-        /// <value>
-        /// The configuration.
-        /// </value>
+        /// <inheritdoc />
         public override ITaskSchedulerConfiguration Configuration { get { ThrowIfDisposed(); return _configuration; } }
 
-        /// <summary>
-        /// Starts this instance.
-        /// </summary>
-        /// <exception cref="DotNetWorkQueueException">Start must only be called 1 time</exception>
+        /// <inheritdoc />
         public override void Start()
         {
             ThrowIfDisposed();
@@ -97,36 +87,22 @@ namespace DotNetWorkQueue.TaskScheduling
             {
                 throw new DotNetWorkQueueException("Start must only be called 1 time");    
             }
-          
-            var stpStartInfo = new STPStartInfo
-            {
-                IdleTimeout = Convert.ToInt32(_configuration.ThreadIdleTimeout.TotalMilliseconds),
-                MaxWorkerThreads = _configuration.MaximumThreads,
-                MinWorkerThreads = _configuration.MinimumThreads,
-                PostExecuteWorkItemCallback = PostExecuteWorkItemCallback
-            };
-            _smartThreadPool = new SmartThreadPool(stpStartInfo);
+
+            _smartThreadPool = Policy.Bulkhead(_configuration.MaximumThreads,
+                _configuration.MaxQueueSize, OnBulkheadRejected);
+
             Configuration.SetReadOnly();
         }
 
-        /// <summary>
-        /// Gets a value indicating whether this <see cref="ATaskScheduler"/> is started.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if started; otherwise, <c>false</c>.
-        /// </value>
+        private void OnBulkheadRejected(Context context)
+        {
+            //log me
+        }
+
+        /// <inheritdoc />
         public override bool Started => _smartThreadPool != null;
 
-        /// <summary>
-        /// If true, the task scheduler has room for another task.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [room for new task]; otherwise, <c>false</c>.
-        /// </value>
-        /// <exception cref="DotNetWorkQueueException">Start must be called on the scheduler before adding tasks</exception>
-        /// <remarks>
-        /// This could mean that a thread is free, or that an in memory queue has room.
-        /// </remarks>
+        /// <inheritdoc />
         [SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification = "need to throw exception if scheduler is not running")]
         public override RoomForNewTaskResult RoomForNewTask
         {
@@ -140,7 +116,10 @@ namespace DotNetWorkQueue.TaskScheduling
 
                 if (HaveRoomForTask)
                 {
-                    return CurrentTaskCount > _smartThreadPool.MaxThreads ? RoomForNewTaskResult.RoomInQueue : RoomForNewTaskResult.RoomForTask;
+                    if (_smartThreadPool.BulkheadAvailableCount > 0)
+                        return RoomForNewTaskResult.RoomForTask;
+                    if (_smartThreadPool.QueueAvailableCount > 0)
+                        return RoomForNewTaskResult.RoomInQueue;
                 }
                 return RoomForNewTaskResult.No;
             }
@@ -206,11 +185,7 @@ namespace DotNetWorkQueue.TaskScheduling
             Interlocked.Decrement(ref _groups[group].CurrentWorkItems);
         }
 
-        /// <summary>
-        /// If true, the task scheduler has room for the specified work group task
-        /// </summary>
-        /// <param name="group">The group.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public override RoomForNewTaskResult RoomForNewWorkGroupTask(IWorkGroup group)
         {
             if (IsDisposed)
@@ -223,18 +198,14 @@ namespace DotNetWorkQueue.TaskScheduling
             return RoomForNewTaskResult.No;
         }
 
-        /// <summary>
-        /// Adds a new task to the scheduler.
-        /// </summary>
+        /// <inheritdoc />
         /// <param name="task">The task.</param>
         public override void AddTask(Task task)
         {
             QueueTask(task);
         }
 
-        /// <summary>
-        /// Informs the scheduler that it has another client connected
-        /// </summary>
+        /// <inheritdoc />
         public override int Subscribe()
         {
             var id = Interlocked.Increment(ref _nextClientId);
@@ -245,10 +216,7 @@ namespace DotNetWorkQueue.TaskScheduling
             return id;
         }
 
-        /// <summary>
-        /// Informs the scheduler that a client has disconnected
-        /// </summary>
-        /// <param name="id">The client identifier.</param>
+        /// <inheritdoc />
         public override void UnSubscribe(int id)
         {
             if (_clients.TryRemove(id, out _))
@@ -257,10 +225,7 @@ namespace DotNetWorkQueue.TaskScheduling
             }
         }
 
-        /// <summary>
-        /// Queues a <see cref="T:System.Threading.Tasks.Task" /> to the scheduler.
-        /// </summary>
-        /// <param name="task">The <see cref="T:System.Threading.Tasks.Task" /> to be queued.</param>
+        /// <inheritdoc />
         protected sealed override void QueueTask(Task task)
         {
             ThrowIfDisposed();
@@ -275,14 +240,16 @@ namespace DotNetWorkQueue.TaskScheduling
                     _groups[state.Group].MetricCounter.Increment(1);
                     _taskCounter.Increment(1);
                     SetWaitHandle(state.Group);
-                    _groups[state.Group].Group.QueueWorkItem(() => TryExecuteTaskWrapped(task, state));
+                    Task.Factory.StartNew(() => { _groups[state.Group].Group.Execute(() => TryExecuteTaskWrapped(task, state)); })
+                        .ContinueWith(PostExecuteWorkItemCallback, state);
                 }
                 else
                 {
                     IncrementCounter();
                     _taskCounter.Increment(1);
                     SetWaitHandle(null);
-                    _smartThreadPool.QueueWorkItem(() => TryExecuteTask(task));
+                    Task.Factory.StartNew(() => { _smartThreadPool.Execute(() => TryExecuteTask(task)); })
+                        .ContinueWith(PostExecuteWorkItemCallback, state);
                 }
             }
             else
@@ -290,7 +257,7 @@ namespace DotNetWorkQueue.TaskScheduling
                 IncrementCounter();
                 _taskCounter.Increment(1);
                 SetWaitHandle(null);
-                _smartThreadPool.QueueWorkItem(() => TryExecuteTask(task));
+                Task.Factory.StartNew(() => { _smartThreadPool.Execute(() => TryExecuteTask(task)); }).ContinueWith(PostExecuteWorkItemCallback, null);
             }
         }
 
@@ -326,7 +293,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <summary>
         /// Indicates the maximum concurrency level this <see cref="T:System.Threading.Tasks.TaskScheduler" /> is able to support.
         /// </summary>
-        public sealed override int MaximumConcurrencyLevel => _smartThreadPool.MaxThreads + _configuration.MaxQueueSize;
+        public sealed override int MaximumConcurrencyLevel => _configuration.MaximumThreads + _configuration.MaxQueueSize;
 
         /// <summary>
         /// Adds a new work group.
@@ -358,11 +325,7 @@ namespace DotNetWorkQueue.TaskScheduling
             var group = new WorkGroup(name, concurrencyLevel, maxQueueSize);
             if (_groups.ContainsKey(group)) return _groups[group].GroupInfo;
 
-            var startInfo = new WIGStartInfo
-            {
-                PostExecuteWorkItemCallback = PostExecuteWorkItemCallback
-            };
-            var groupWithItem = new WorkGroupWithItem(group, _smartThreadPool.CreateWorkItemsGroup(concurrencyLevel, startInfo), _metrics.Counter(
+            var groupWithItem = new WorkGroupWithItem(group, Policy.Bulkhead(concurrencyLevel, maxQueueSize, OnBulkheadRejected), _metrics.Counter(
                 $"work group {name}", Units.Items));
             _groups.TryAdd(group, groupWithItem);
             return groupWithItem.GroupInfo;
@@ -390,17 +353,18 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <summary>
         /// Fires after each task is complete.
         /// </summary>
+        /// <param name="t">The t.</param>
         /// <param name="wir">The work item results</param>
-        private void PostExecuteWorkItemCallback(IWorkItemResult wir)
+        private void PostExecuteWorkItemCallback(Task t, object wir)
         {
-            var possibleState = wir.GetResult();
-            if (possibleState is StateInformation information) //if not null, this is a work group
+            var possibleState = wir;
+            if (possibleState is StateInformation information && information.Group != null) //if not null, this is a work group
             {
                 var state = information;
                 DecrementCounter();
                 DecrementGroup(state.Group);
                 _groups[state.Group].MetricCounter.Decrement(1);
-                _taskCounter.Decrement(_groups[state.Group].Group.Name, 1);
+                _taskCounter.Decrement(_groups[state.Group].GroupInfo.Name, 1);
                 SetWaitHandle(state.Group);   
             }
             else //is null, so this is not a work group item
@@ -463,8 +427,8 @@ namespace DotNetWorkQueue.TaskScheduling
 
             if (_smartThreadPool != null)
             {
-                _smartThreadPool.WaitForIdle(_configuration.WaitForThreadPoolToFinish);
-                _smartThreadPool.Shutdown();
+                WaitForDelegate.Wait(() => _smartThreadPool.BulkheadAvailableCount != _configuration.MaximumThreads,
+                    _configuration.WaitForThreadPoolToFinish);
                 _smartThreadPool.Dispose();
                 _smartThreadPool = null;
             }

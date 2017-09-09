@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             configuration.HeartBeat.Time = heartbeatTime;
             configuration.HeartBeat.MonitorTime = heartbeatMonitorTime;
-            configuration.HeartBeat.ThreadPoolConfiguration.ThreadIdleTimeout = TimeSpan.FromSeconds(5);
+            configuration.HeartBeat.ThreadPoolConfiguration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
             configuration.Worker.WorkerCount = workerCount;
             configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
             configuration.Worker.TimeToWaitForWorkersToCancel = TimeSpan.FromSeconds(10);

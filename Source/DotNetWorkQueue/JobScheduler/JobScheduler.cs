@@ -31,10 +31,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.JobScheduler
 {
-    /// <summary>
-    /// A reoccurring job scheduler.
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.IJobScheduler" />
+    /// <inheritdoc />
     public class JobScheduler: IJobScheduler
     {
         private readonly object _lockTasks = new object();
@@ -42,12 +39,7 @@ namespace DotNetWorkQueue.JobScheduler
         private readonly object _lockHeap = new object();
         private readonly PendingEventHeap _eventHeap = new PendingEventHeap();
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is shutting down.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is shutting down; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsShuttingDown { get; private set; }
 
         /// <summary>
@@ -82,12 +74,7 @@ namespace DotNetWorkQueue.JobScheduler
             _logFactory = logFactory;
         }
 
-        /// <summary>
-        /// Starts this instance.
-        /// </summary>
-        /// <remarks>
-        /// No jobs will be ran until start is called
-        /// </remarks>
+        /// <inheritdoc />
         public void Start()
         {
             //log task time (from time factory) and local machine time to show differences..
@@ -97,22 +84,7 @@ namespace DotNetWorkQueue.JobScheduler
 
             Task.Run(PollAsync);
         }
-        /// <summary>
-        /// Adds a scheduled task to this instance of the scheduler
-        /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
-        /// <typeparam name="TQueue">The type of the queue.</typeparam>
-        /// <param name="jobname">A unique name for this task.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="schedule">A Schyntax schedule string.</param>
-        /// <param name="actionToRun">The action to run.</param>
-        /// <param name="route">The route.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
-        /// <param name="autoRun">If true, Start() will be called on the task automatically.</param>
-        /// <param name="window">The period of time after an event should have run where it would still be appropriate to run it.
-        /// See Task Windows documentation for more details.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit, TQueue>(
             string jobname,
             string queue,
@@ -130,25 +102,10 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
                "The job name length must be 255 characters or less");
 
-            return AddTaskImpl<TTransportInit, TQueue>(jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, producerConfiguration);
+            return AddTaskImpl<TTransportInit, TQueue>(jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, false, producerConfiguration);
         }
 
-        /// <summary>
-        /// Adds a scheduled task to this instance of the scheduler
-        /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
-        /// <param name="jobQueueCreation">The job queue creation.</param>
-        /// <param name="jobname">A unique name for this task.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="schedule">A Schyntax schedule string.</param>
-        /// <param name="actionToRun">The action to run.</param>
-        /// <param name="route">The route.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
-        /// <param name="autoRun">If true, Start() will be called on the task automatically.</param>
-        /// <param name="window">The period of time after an event should have run where it would still be appropriate to run it.
-        /// See Task Windows documentation for more details.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit>(
             IJobQueueCreation jobQueueCreation,
             string jobname,
@@ -166,24 +123,10 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
                "The job name length must be 255 characters or less");
 
-            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, producerConfiguration);
+            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, false, producerConfiguration);
         }
-        /// <summary>
-        /// Adds a scheduled task to this instance of the scheduler
-        /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
-        /// <typeparam name="TQueue">The type of the queue.</typeparam>
-        /// <param name="jobName">The jobName.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="schedule">A Schyntax schedule string.</param>
-        /// <param name="actionToRun">The action to run.</param>
-        /// <param name="route">The route.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
-        /// <param name="autoRun">If true, Start() will be called on the task automatically.</param>
-        /// <param name="window">The period of time after an event should have run where it would still be appropriate to run it.
-        /// See Task Windows documentation for more details.</param>
-        /// <returns></returns>
+
+        /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit, TQueue>(
             string jobName,
             string queue,
@@ -193,30 +136,17 @@ namespace DotNetWorkQueue.JobScheduler
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan))
+            TimeSpan window = default(TimeSpan),
+            bool rawExpression = false)
              where TTransportInit : ITransportInit, new()
              where TQueue : class, IJobQueueCreation
         {
             Guard.NotNullOrEmpty(() => schedule, schedule);
             Guard.IsValid(() => jobName, jobName, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit, TQueue>(jobName, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, producerConfiguration);
+            return AddTaskImpl<TTransportInit, TQueue>(jobName, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, rawExpression, producerConfiguration);
         }
-        /// <summary>
-        /// Adds a scheduled task to this instance of the scheduler
-        /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
-        /// <param name="jobQueueCreation">The job queue creation.</param>
-        /// <param name="jobname">The jobname.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="schedule">The schedule.</param>
-        /// <param name="actionToRun">The action to run.</param>
-        /// <param name="route">The route.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
-        /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
-        /// <param name="window">The window.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit>(
             IJobQueueCreation jobQueueCreation,
             string jobname,
@@ -227,13 +157,14 @@ namespace DotNetWorkQueue.JobScheduler
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan))
+            TimeSpan window = default(TimeSpan),
+            bool rawExpression = false)
              where TTransportInit : ITransportInit, new()
         {
             Guard.NotNullOrEmpty(() => schedule, schedule);
             Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, producerConfiguration);
+            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, rawExpression, producerConfiguration);
         }
         /// <summary>
         /// Adds the task
@@ -249,6 +180,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <param name="actionToRun">The action to run.</param>
         /// <param name="expressionToRun">The expression to run.</param>
         /// <param name="route">The route.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
         /// <exception cref="JobSchedulerException">Cannot add a task after Shutdown has been called.</exception>
@@ -262,6 +194,7 @@ namespace DotNetWorkQueue.JobScheduler
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
             LinqExpressionToRun expressionToRun,
             string route,
+            bool rawExpression,
             Action<QueueProducerConfiguration> producerConfiguration = null)
                 where TTransportInit : ITransportInit, new()
                 where TQueue : class, IJobQueueCreation
@@ -291,7 +224,7 @@ namespace DotNetWorkQueue.JobScheduler
                 }
                 else
                 {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queue, connection, producerConfiguration), actionToRun, _getTime.Create(), route)
+                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queue, connection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
                     {
                         Window = window,
                         IsAttached = true
@@ -323,6 +256,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <param name="actionToRun">The action to run.</param>
         /// <param name="expressionToRun">The expression to run.</param>
         /// <param name="route">The route.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
         /// <exception cref="JobSchedulerException">Cannot add a task after Shutdown has been called.</exception>
@@ -337,6 +271,7 @@ namespace DotNetWorkQueue.JobScheduler
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
             LinqExpressionToRun expressionToRun,
             string route,
+            bool rawExpression,
             Action<QueueProducerConfiguration> producerConfiguration = null)
                 where TTransportInit : ITransportInit, new()
         {
@@ -364,7 +299,7 @@ namespace DotNetWorkQueue.JobScheduler
                 }
                 else
                 {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queue, connection, producerConfiguration), actionToRun, _getTime.Create(), route)
+                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queue, connection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
                     {
                         Window = window,
                         IsAttached = true

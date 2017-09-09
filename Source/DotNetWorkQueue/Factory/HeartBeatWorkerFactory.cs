@@ -23,14 +23,12 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Factory
 {
-    /// <summary>
-    /// Creates new instances of <see cref="IHeartBeatWorker"/>
-    /// </summary>
+    /// <inheritdoc />
     public class HeartBeatWorkerFactory : IHeartBeatWorkerFactory
     {
         private readonly IHeartBeatConfiguration _configuration;
         private readonly ISendHeartBeat _sendHeartBeat;
-        private readonly IHeartBeatThreadPoolFactory _threadPool;
+        private readonly IHeartBeatScheduler _scheduler;
         private readonly ILogFactory _logFactory;
         private readonly IWorkerHeartBeatNotificationFactory _heartBeatNotificationFactory;
 
@@ -39,39 +37,36 @@ namespace DotNetWorkQueue.Factory
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="sendHeartBeat">The send heart beat module.</param>
-        /// <param name="threadPool">The thread pool.</param>
+        /// <param name="scheduler">The scheduler.</param>
         /// <param name="logFactory">The log factory.</param>
         /// <param name="heartBeatNotificationFactory">The heart beat notification factory.</param>
         public HeartBeatWorkerFactory(IHeartBeatConfiguration configuration,
             ISendHeartBeat sendHeartBeat,
-            IHeartBeatThreadPoolFactory threadPool,
+            IHeartBeatScheduler scheduler,
             ILogFactory logFactory,
             IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => sendHeartBeat, sendHeartBeat);
-            Guard.NotNull(() => threadPool, threadPool);
+            Guard.NotNull(() => scheduler, scheduler);
             Guard.NotNull(() => logFactory, logFactory);
             Guard.NotNull(() => heartBeatNotificationFactory, heartBeatNotificationFactory);
 
             _configuration = configuration;
             _sendHeartBeat = sendHeartBeat;
-            _threadPool = threadPool;
+            _scheduler = scheduler;
             _logFactory = logFactory;
             _heartBeatNotificationFactory = heartBeatNotificationFactory;
         }
 
-        /// <summary>
-        /// Creates a new instance of a <see cref="IHeartBeatWorker" /> and starts it.
-        /// </summary>
-        /// <param name="context">The message context that should receive heartbeat updates.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IHeartBeatWorker Create(IMessageContext context)
         {
             IHeartBeatWorker hb;
             if (_configuration.Enabled)
             {
-                hb = new HeartBeatWorker(_configuration, context, _sendHeartBeat, _threadPool.Create(), _logFactory, _heartBeatNotificationFactory);
+                hb = new HeartBeatWorker(_configuration, context, _sendHeartBeat, _scheduler, _logFactory,
+                    _heartBeatNotificationFactory);
             }
             else
             {

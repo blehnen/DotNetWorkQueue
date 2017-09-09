@@ -98,36 +98,6 @@ namespace DotNetWorkQueue.Tests.Queue
         }
 
         [Fact]
-        public void Test_Send()
-        {
-            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
-            var context = Substitute.For<IMessageContext>();
-            using (var test = Create(TimeSpan.FromSeconds(5), 2, context, sendHeartBeat, true))
-            {
-                test.Start();
-                Thread.Sleep(7000);
-            }
-            sendHeartBeat.Received(2).Send(context);
-        }
-
-        [Fact]
-        public void Test_Send_Return_Value()
-        {
-            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
-            var context = Substitute.For<IMessageContext>();
-
-            sendHeartBeat.Send(context)
-                .Returns(new HeartBeatStatus(Substitute.For<IMessageId>(), DateTime.UtcNow));
-
-            using (var test = Create(TimeSpan.FromSeconds(5), 2, context, sendHeartBeat, true))
-            {
-                test.Start();
-                Thread.Sleep(7000);
-            }
-            sendHeartBeat.Received(2).Send(context);
-        }
-
-        [Fact]
         public void Test_Send_Exception()
         {
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();
@@ -135,43 +105,52 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sendHeartBeat.Send(context).Throws(new ArgumentOutOfRangeException());
 
-            using (var test = Create(TimeSpan.FromSeconds(5), 2, context, sendHeartBeat, true))
+            using (var test = Create(TimeSpan.FromSeconds(5), 2, context, sendHeartBeat))
             {
                 test.Start();
                 Thread.Sleep(7000);
             }
         }
 
+        [Theory]
+        [InlineData(5),
+         InlineData(59),
+         InlineData(65),
+         InlineData(600),
+         InlineData(6000),
+         InlineData(60000),
+         InlineData(600000)]
+        public void Test_SendDiff(int seconds)
+        {
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var context = Substitute.For<IMessageContext>();
+            using (var test = Create(TimeSpan.FromSeconds(seconds), 2, context, sendHeartBeat))
+            {
+                test.Start();
+                Thread.Sleep(1100);
+            }
+        }
+
         private HeartBeatWorker Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return Create(TimeSpan.Zero, 1, fixture.Create<IMessageContext>(), fixture.Create<ISendHeartBeat>(), false);
+            return Create(TimeSpan.Zero, 1, fixture.Create<IMessageContext>(), fixture.Create<ISendHeartBeat>());
         }
 
 
-        private HeartBeatWorker Create(TimeSpan checkSpan, int interval, IMessageContext context, ISendHeartBeat sendHeartBeat, bool useThreadPool)
+        private HeartBeatWorker Create(TimeSpan checkSpan, int interval, IMessageContext context, ISendHeartBeat sendHeartBeat)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture.Inject(context);
             fixture.Inject(sendHeartBeat);
             var threadPoolConfiguration = fixture.Create<IHeartBeatThreadPoolConfiguration>();
             threadPoolConfiguration.ThreadsMax.Returns(1);
-            threadPoolConfiguration.ThreadsMin.Returns(1);
             fixture.Inject(threadPoolConfiguration);
             IHeartBeatConfiguration configuration = fixture.Create<HeartBeatConfiguration>();
             configuration.Time = checkSpan;
             configuration.Interval = interval;
             fixture.Inject(configuration);
-            IHeartBeatThreadPool threadpool;
-            if (!useThreadPool)
-            {
-                threadpool = fixture.Create<IHeartBeatThreadPool>();
-            }
-            else
-            {
-                threadpool = fixture.Create<HeartBeatThreadPool>();
-                threadpool.Start();
-            }
+            IHeartBeatScheduler threadpool = fixture.Create<IHeartBeatScheduler>();
             fixture.Inject(threadpool);
             return fixture.Create<HeartBeatWorker>();
         }

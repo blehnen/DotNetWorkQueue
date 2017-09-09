@@ -50,6 +50,7 @@ namespace DotNetWorkQueue.JobScheduler
         public DateTimeOffset PrevEvent { get; private set; }
         public ILog Logger => _queue.Logger;
         public string Route { get; }
+        public bool RawExpression { get; }
 
         public event Action<IScheduledJob, Exception> OnException;
         public event Action<IScheduledJob, IJobQueueOutputMessage> OnNonFatalFailureEnQueue;
@@ -82,7 +83,8 @@ namespace DotNetWorkQueue.JobScheduler
             IProducerMethodJobQueue queue,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
             IGetTime time,
-            string route)
+            string route,
+            bool rawExpression)
         {
             _scheduler = scheduler;
             Name = name;
@@ -91,6 +93,7 @@ namespace DotNetWorkQueue.JobScheduler
             _actionToRun = actionToRun;
             _getTime = time;
             Route = route;
+            RawExpression = rawExpression;
         }
 
         public void StartSchedule()
@@ -202,7 +205,7 @@ namespace DotNetWorkQueue.JobScheduler
                 {
                     try
                     {
-                        var result = _expressionToRun != null ? await _queue.SendAsync(this, eventTime, _expressionToRun).ConfigureAwait(false) : await _queue.SendAsync(this, eventTime, _actionToRun).ConfigureAwait(false);
+                        var result = _expressionToRun != null ? await _queue.SendAsync(this, eventTime, _expressionToRun).ConfigureAwait(false) : await _queue.SendAsync(this, eventTime, _actionToRun, RawExpression).ConfigureAwait(false);
                         if (result.Status == JobQueuedStatus.Success || result.Status == JobQueuedStatus.RequeuedDueToErrorStatus)
                         {
                             RaiseEnQueue(result);

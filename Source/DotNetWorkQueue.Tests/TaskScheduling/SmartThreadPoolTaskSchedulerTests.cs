@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         [Fact]
         public void Calling_Start_With_Max_Zero_Exception()
         {
-            using (var test = Create(0, 0, TimeSpan.MaxValue, TimeSpan.MaxValue))
+            using (var test = Create(0, TimeSpan.MaxValue))
             {
                 Assert.Throws<ArgumentException>(
                     delegate
@@ -275,15 +275,13 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         }
 
 
-        private SmartThreadPoolTaskScheduler Create(int max, int min, TimeSpan idle, TimeSpan wait)
+        private SmartThreadPoolTaskScheduler Create(int max, TimeSpan wait)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var config = fixture.Create<ITaskSchedulerConfiguration>();
 
             config.MaximumThreads.Returns(max);
             config.MaxQueueSize.Returns(0);
-            config.MinimumThreads.Returns(min);
-            config.ThreadIdleTimeout.Returns(idle);
             config.WaitForThreadPoolToFinish.Returns(wait);
             fixture.Inject(config);
 
@@ -292,7 +290,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
 
         private SmartThreadPoolTaskScheduler Create()
         {
-            return Create(1, 1, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+            return Create(1, TimeSpan.FromSeconds(5));
         }
     }
 }

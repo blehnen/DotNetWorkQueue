@@ -35,45 +35,50 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="method">The linqExpression to execute.</param>
         /// <param name="data">The optional additional message data.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
-        IQueueOutputMessage Send(Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, IAdditionalMessageData data = null);
+        IQueueOutputMessage Send(Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, IAdditionalMessageData data = null, bool rawExpression = false);
 
         /// <summary>
         /// Sends the specified methods to be executed.
         /// </summary>
         /// <param name="methods">The methods to execute.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
-        IQueueOutputMessages Send(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods);
+        IQueueOutputMessages Send(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods, bool rawExpression = false);
 
         /// <summary>
         /// Sends the specified methods to be executed.
         /// </summary>
         /// <param name="methods">The methods to execute.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
-        IQueueOutputMessages Send(List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>, IAdditionalMessageData>> methods);
+        IQueueOutputMessages Send(List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>, IAdditionalMessageData>> methods, bool rawExpression = false);
 
         /// <summary>
         /// Sends the specified linqExpression to be executed. Additional message meta data is optional.
         /// </summary>
         /// <param name="method">The linqExpression to execute.</param>
         /// <param name="data">The optional additional message data.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
-        Task<IQueueOutputMessage> SendAsync(Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, IAdditionalMessageData data = null);
+        Task<IQueueOutputMessage> SendAsync(Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, IAdditionalMessageData data = null, bool rawExpression = false);
 
         /// <summary>
         /// Sends the specified methods to be executed.
         /// </summary>
         /// <param name="methods">The messages.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
-        Task<IQueueOutputMessages> SendAsync(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods);
+        Task<IQueueOutputMessages> SendAsync(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods, bool rawExpression = false);
 
         /// <summary>
         /// Sends the specified methods to be executed.
         /// </summary>
         /// <param name="methods">The messages.</param>
+        /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
-        Task<IQueueOutputMessages> SendAsync(List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>, IAdditionalMessageData>> methods);
-
+        Task<IQueueOutputMessages> SendAsync(List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>, IAdditionalMessageData>> methods, bool rawExpression = false);
 
         /// <summary>
         /// Sends the specified linqExpression to be executed. Additional message meta data is optional.
