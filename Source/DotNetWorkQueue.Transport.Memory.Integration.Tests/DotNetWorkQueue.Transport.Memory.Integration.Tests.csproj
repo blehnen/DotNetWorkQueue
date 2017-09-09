@@ -56,11 +56,9 @@
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ConsumerAsync\ConsumerAsyncErrorTable.cs" />
-    <Compile Include="ConsumerAsync\ConsumerAsyncPoisonMessage.cs" />
     <Compile Include="ConsumerAsync\MultiConsumerAsync.cs" />
     <Compile Include="ConsumerAsync\SimpleConsumerAsync.cs" />
     <Compile Include="Consumer\ConsumerErrorTable.cs" />
-    <Compile Include="Consumer\ConsumerPoisonMessage.cs" />
     <Compile Include="Consumer\SimpleConsumer.cs" />
     <Compile Include="GenerateQueueName.cs" />
     <Compile Include="IntegrationConnectionInfo.cs" />

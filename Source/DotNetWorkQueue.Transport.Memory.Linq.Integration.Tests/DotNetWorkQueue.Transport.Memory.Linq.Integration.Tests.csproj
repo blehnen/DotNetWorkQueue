@@ -59,11 +59,9 @@
       <Link>GenerateQueueName.cs</Link>
     </Compile>
     <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncErrorTable.cs" />
-    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncPoisonMessage.cs" />
     <Compile Include="ConsumerMethodAsync\SimpleMethodConsumerAsync.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodErrorTable.cs" />
     <Compile Include="ConsumerMethod\ConsumerMethodMultipleDynamic.cs" />
-    <Compile Include="ConsumerMethod\ConsumerMethodPoisonMessage.cs" />
     <Compile Include="ConsumerMethod\SimpleMethodConsumer.cs" />
     <Compile Include="IntegrationConnectionInfo.cs" />
     <Compile Include="JobScheduler\JobSchedulerTests.cs" />
