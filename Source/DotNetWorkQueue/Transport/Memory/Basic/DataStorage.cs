@@ -267,7 +267,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     {
                         return QueueStatuses.Waiting;
                     }
-                    return QueueStatuses.Processed;
                 }
                 if (QueueWorking[_connectionInformation].TryGetValue(id, out item))
                 {
