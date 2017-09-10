@@ -256,28 +256,25 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 QueueData[_connectionInformation].TryRemove(id, out _);
             }
         }
+
         /// <inheritdoc />
         public QueueStatuses DoesJobExist(string jobName, DateTimeOffset scheduledTime)
         {
             if (Jobs[_connectionInformation].TryGetValue(jobName, out var id))
             {
-                if (QueueData[_connectionInformation].TryGetValue(id, out var item))
+                if (QueueData[_connectionInformation].TryGetValue(id, out _))
                 {
-                    if (item.JobScheduledTime == scheduledTime)
-                    {
-                        return QueueStatuses.Waiting;
-                    }
+                    return QueueStatuses.Waiting;
                 }
-                if (QueueWorking[_connectionInformation].TryGetValue(id, out item))
+                if (QueueWorking[_connectionInformation].TryGetValue(id, out _))
                 {
-                    if (item.JobScheduledTime == scheduledTime)
-                    {
-                        return QueueStatuses.Processing;
-                    }
+                    return QueueStatuses.Processing;
                 }
             }
-            return QueueStatuses.NotQueued;
+            var time = GetJobLastKnownEvent(jobName);
+            return time == scheduledTime ? QueueStatuses.Processed : QueueStatuses.NotQueued;
         }
+
         /// <inheritdoc />
         public long RecordCount => QueueData[_connectionInformation].Count;
 
