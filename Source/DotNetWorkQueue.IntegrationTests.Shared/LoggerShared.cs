@@ -155,6 +155,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     {
                         FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
                     }
+                    else
+                    {
+                        WriteMessageConsole(logLevel, name, messageFunc, formatParameters, exception);
+                    }
                     //else if(_logEverything)
                     //{
                     //    FileWriteLineOther($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
@@ -170,6 +174,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     if (logLevel >= _logLevel)
                     {
                         FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
+                    }
+                    else
+                    {
+                        WriteMessageConsole(logLevel, name, messageFunc, formatParameters, exception);
                     }
                     //else if (_logEverything)
                     //{
@@ -193,6 +201,40 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
+        /// <summary>
+        /// Writes the message.
+        /// </summary>
+        /// <param name="logLevel">The log level.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="messageFunc">The message function.</param>
+        /// <param name="formatParameters">The format parameters.</param>
+        /// <param name="exception">The exception.</param>
+        private static void WriteMessageConsole(
+            LogLevel logLevel,
+            string name,
+            Func<string> messageFunc,
+            object[] formatParameters,
+            Exception exception)
+        {
+            if (formatParameters == null || formatParameters.Length == 0)
+            {
+                var message = messageFunc();
+                if (exception != null)
+                {
+                    message = message + "|" + exception;
+                }
+                Console.WriteLine("{0} | {1} | {2} | {3}", DateTime.UtcNow, logLevel, name, message);
+            }
+            else
+            {
+                var message = string.Format(CultureInfo.InvariantCulture, messageFunc(), formatParameters);
+                if (exception != null)
+                {
+                    message = message + "|" + exception;
+                }
+                Console.WriteLine("{0} | {1} | {2} | {3}", DateTime.UtcNow, logLevel, name, message);
+            }
+        }
         // ReSharper disable once UnusedMember.Local
         private void FileWriteLineOther(string message)
         {
