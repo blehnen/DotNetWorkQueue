@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.Memory
@@ -67,6 +68,14 @@ namespace DotNetWorkQueue.Transport.Memory
         /// </summary>
         /// <param name="id">The identifier.</param>
         void DeleteMessage(Guid id);
+
+        /// <summary>
+        /// Used to inform consumers if work has been added to the queue
+        /// </summary>
+        /// <value>
+        /// The signal.
+        /// </value>
+        AutoResetEvent Signal { get; }
 
         /// <summary>
         /// Gets the job last known event.

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -61,25 +62,30 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         /// </returns>
         public IReceivedMessageInternal GetMessage(IMessageContext context)
         {
-            //if stopping, exit now
-            if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
+            while (true)
             {
-                return null;
+                //if stopping, exit now
+                if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
+                {
+                    return null;
+                }
+
+                //ask for the next message
+                var receivedTransportMessage = _dataStorage.GetNextMessage(_configuration.Routes);
+
+                //if no message (null) run the no message action and return
+                if (receivedTransportMessage == null)
+                {
+                    var wasSet = _dataStorage.Signal.WaitOne(TimeSpan.FromSeconds(5));
+                    if (wasSet) continue;
+                    return null;
+                }
+
+                //set the message ID on the context for later usage
+                context.MessageId = receivedTransportMessage.MessageId;
+
+                return receivedTransportMessage;
             }
-
-            //ask for the next message
-            var receivedTransportMessage = _dataStorage.GetNextMessage(_configuration.Routes);
-
-            //if no message (null) run the no message action and return
-            if (receivedTransportMessage == null)
-            {
-                return null;
-            }
-
-            //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MessageId;
-            
-            return receivedTransportMessage;
         }
 
         /// <summary>

@@ -124,20 +124,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
         private IEnumerable<TimeSpan> GetQueueDelay()
         {
-            var rc = new List<TimeSpan>(10)
-            {
-                TimeSpan.FromMilliseconds(0),
-                TimeSpan.FromMilliseconds(0),
-                TimeSpan.FromMilliseconds(0),
-                TimeSpan.FromMilliseconds(0),
-                TimeSpan.FromMilliseconds(0),
-                TimeSpan.FromMilliseconds(0),
-                TimeSpan.FromMilliseconds(30),
-                TimeSpan.FromMilliseconds(30),
-                TimeSpan.FromMilliseconds(30),
-                TimeSpan.FromMilliseconds(100)
-            };
-            return rc;
+            return new List<TimeSpan>(0);
         }
     }
 }

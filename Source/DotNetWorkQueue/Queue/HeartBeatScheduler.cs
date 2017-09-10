@@ -28,6 +28,7 @@ namespace DotNetWorkQueue.Queue
     public class HeartBeatScheduler : IHeartBeatScheduler
     {
         private readonly IHeartBeatThreadPoolConfiguration _configuration;
+        private readonly IGetTimeFactory _timeFactory;
         private JobSchedulerContainer _container;
         private IJobScheduler _scheduler;
 
@@ -45,11 +46,14 @@ namespace DotNetWorkQueue.Queue
         /// <summary>
         /// Initializes a new instance of the <see cref="HeartBeatScheduler"/> class.
         /// </summary>
-        public HeartBeatScheduler(IHeartBeatThreadPoolConfiguration configuration)
+        public HeartBeatScheduler(IHeartBeatThreadPoolConfiguration configuration,
+            IGetTimeFactory timeFactory)
         {
             Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(() => timeFactory, timeFactory);
 
             _configuration = configuration;
+            _timeFactory = timeFactory;
         }
 
         /// <inheritdoc />
@@ -93,7 +97,8 @@ namespace DotNetWorkQueue.Queue
             lock (_startup)
             {
                 if (_consumer != null) return;
-                _container = new JobSchedulerContainer();
+                _container = new JobSchedulerContainer(container =>
+                    container.Register(() => _timeFactory, LifeStyles.Singleton));
                 _scheduler = _container.CreateJobScheduler();
                 _scheduler.Start();
 

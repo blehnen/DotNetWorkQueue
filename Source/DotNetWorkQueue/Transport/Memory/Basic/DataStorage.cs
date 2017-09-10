@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -24,7 +23,6 @@ using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Serialization;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -51,8 +49,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
         private static readonly MemoryCache JobLastEventCache;
 
-        private readonly ICompositeSerialization _serializer;
-        private readonly IHeaders _headers;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
         private readonly IConnectionInformation _connectionInformation;
         private readonly IReceivedMessageFactory _receivedMessageFactory;
@@ -61,21 +57,16 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <summary>
         /// Initializes a new instance of the <see cref="DataStorage" /> class.
         /// </summary>
-        /// <param name="serializer">The serializer.</param>
-        /// <param name="headers">The headers.</param>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="receivedMessageFactory">The received message factory.</param>
         /// <param name="messageFactory">The message factory.</param>
-        public DataStorage(ICompositeSerialization serializer,
-            IHeaders headers,
+        public DataStorage(
             IJobSchedulerMetaData jobSchedulerMetaData,
             IConnectionInformation connectionInformation,
             IReceivedMessageFactory receivedMessageFactory,
             IMessageFactory messageFactory)
         {
-            _serializer = serializer;
-            _headers = headers;
             _jobSchedulerMetaData = jobSchedulerMetaData;
             _connectionInformation = connectionInformation;
             _receivedMessageFactory = receivedMessageFactory;
@@ -110,8 +101,13 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             {
                 QueueWorking.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
             }
+
+            Signal = new AutoResetEvent(false);
         }
 
+        /// <summary>
+        /// Initializes the <see cref="DataStorage"/> class.
+        /// </summary>
         static DataStorage()
         {
             Queues = new ConcurrentDictionary<IConnectionInformation, ConcurrentQueue<Guid>>();
@@ -123,12 +119,10 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             JobLastEventCache = new MemoryCache("DataStorage");
         }
 
-        /// <summary>
-        /// Sends the message.
-        /// </summary>
-        /// <param name="message">The message to send.</param>
-        /// <param name="inputData">The data.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
+        public AutoResetEvent Signal { get; }
+
+        /// <inheritdoc />
         public Guid SendMessage(IMessage message, IAdditionalMessageData inputData)
         {
             var jobName = _jobSchedulerMetaData.GetJobName(inputData);
@@ -160,28 +154,20 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     Jobs[_connectionInformation].TryAdd(jobName, newItem.Id);
                 }
 
+                //data added
+                Signal.Set();
                 return newItem.Id;
             }
             throw new DotNetWorkQueueException(
                 "Failed to insert record - the job has already been queued or processed");
         }
 
-        /// <summary>
-        /// Sends the message asynchronous.
-        /// </summary>
-        /// <param name="messageToSend">The message to send.</param>
-        /// <param name="data">The data.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<Guid> SendMessageAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
             return await Task.Run(() => SendMessage(messageToSend, data)).ConfigureAwait(false);
         }
-        /// <summary>
-        /// Moves to error queue.
-        /// </summary>
-        /// <param name="exception">The exception.</param>
-        /// <param name="id">The identifier.</param>
-        /// <param name="context">The context.</param>
+        /// <inheritdoc />
         public void MoveToErrorQueue(Exception exception, Guid id, IMessageContext context)
         {
             //we don't want to store all this in memory, so just keep track of the number
@@ -193,11 +179,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             //2) Move the work item into an error queue on error
             //3) Delete the work item when a delete message call is received
         }
-        /// <summary>
-        /// Gets the next message.
-        /// </summary>
-        /// <param name="routes">The routes.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IReceivedMessageInternal GetNextMessage(List<string> routes)
         {
             if(routes != null && routes.Count > 0)
@@ -237,11 +219,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     QueueWorking[_connectionInformation].TryAdd(item.Id, item);
             }
         }
-        /// <summary>
-        /// Gets the next message asynchronous.
-        /// </summary>
-        /// <param name="routes">The routes.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<IReceivedMessageInternal> GetNextMessageAsync(List<string> routes)
         {
             if (routes != null && routes.Count > 0)
@@ -249,10 +227,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
             return await Task.Run(() => GetNextMessage(routes)).ConfigureAwait(false);
         }
-        /// <summary>
-        /// Deletes the message.
-        /// </summary>
-        /// <param name="id">The identifier.</param>
+        /// <inheritdoc />
         public void DeleteMessage(Guid id)
         {
             //remove data - if id is still in queue, it will fall out eventually
@@ -263,11 +238,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 Jobs[_connectionInformation].TryRemove(item.JobName, out _);
         }
 
-        /// <summary>
-        /// Gets the job last known event.
-        /// </summary>
-        /// <param name="jobName">Name of the job.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public DateTimeOffset GetJobLastKnownEvent(string jobName)
         {
             var key = GenerateKey(jobName);
@@ -277,10 +248,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             return default(DateTimeOffset);
         }
 
-        /// <summary>
-        /// Deletes the job.
-        /// </summary>
-        /// <param name="jobName">Name of the job.</param>
+        /// <inheritdoc />
         public void DeleteJob(string jobName)
         {
             if (Jobs[_connectionInformation].TryRemove(jobName, out var id))
@@ -288,12 +256,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 QueueData[_connectionInformation].TryRemove(id, out _);
             }
         }
-        /// <summary>
-        /// Does the job exist.
-        /// </summary>
-        /// <param name="jobName">Name of the job.</param>
-        /// <param name="scheduledTime">The scheduled time.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public QueueStatuses DoesJobExist(string jobName, DateTimeOffset scheduledTime)
         {
             if (Jobs[_connectionInformation].TryGetValue(jobName, out var id))
@@ -316,37 +279,26 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
             return QueueStatuses.NotQueued;
         }
-        /// <summary>
-        /// Gets the record count.
-        /// </summary>
-        /// <value>
-        /// The record count.
-        /// </value>
+        /// <inheritdoc />
         public long RecordCount => QueueData[_connectionInformation].Count;
 
-        /// <summary>
-        /// Gets the error count.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long GetErrorCount()
         {
             return Interlocked.CompareExchange(ref ErrorCounts[_connectionInformation].ProcessedCount, 0, 0);
         }
 
-        /// <summary>
-        /// Gets the dequeue count.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public long GetDequeueCount()
         {
             return Interlocked.CompareExchange(ref DequeueCounts[_connectionInformation].ProcessedCount, 0, 0);
         }
 
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Clear()
         {
+            Signal.Set();
+            Signal.Dispose();
             if (Queues.ContainsKey(_connectionInformation))
             {
                 while (Queues[_connectionInformation].TryDequeue(out var id))
