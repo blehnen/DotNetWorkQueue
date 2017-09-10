@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     var defaultRoute = route ? Helpers.DefaultRoute : null;
                     var consumer = new ConsumerRollBackShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
-                        workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), defaultRoute);
+                        workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute);
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

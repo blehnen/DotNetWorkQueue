@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             int queueSize, int readerCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
             string updateTime,
-            string route = null)
+            string route)
             where TTransportInit : ITransportInit, new()
         {
 

@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route = null)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route)
         {
             _queueName = queueName;
             _connectionString = connectionString;

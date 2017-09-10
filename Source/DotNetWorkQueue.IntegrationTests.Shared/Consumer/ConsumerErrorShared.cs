@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
             ILogProvider logProvider,
             int workerCount, int timeOut, int messageCount,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route = null)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route)
             where TTransportInit : ITransportInit, new()
         {
 
