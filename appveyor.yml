@@ -4,7 +4,7 @@ branches:
   - master
 image: Visual Studio 2017
 before_build:
-- cmd: nuget restore Source\DotNetWorkQueue.sln
+- cmd: dotnet restore Source\DotNetWorkQueue.sln
 build:
   project: Source\DotNetWorkQueue.sln
   verbosity: minimal
