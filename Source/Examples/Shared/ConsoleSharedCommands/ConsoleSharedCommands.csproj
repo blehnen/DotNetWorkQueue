@@ -31,13 +31,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetWorkQueue, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\MergedBuild\DotNetWorkQueue.dll</HintPath>
+    <Reference Include="DotNetWorkQueue">
+      <HintPath>..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetWorkQueue.Metrics.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\MergedBuild\DotNetWorkQueue.Metrics.Net.dll</HintPath>
+    <Reference Include="DotNetWorkQueue.Metrics.Net">
+      <HintPath>..\..\..\DotNetWorkQueue.Metrics.Net\bin\Debug\net452\DotNetWorkQueue.Metrics.Net.dll</HintPath>
     </Reference>
     <Reference Include="JpLabs.DynamicCode">
       <HintPath>..\..\..\..\Lib\JpLabs.DynamicCode.dll</HintPath>

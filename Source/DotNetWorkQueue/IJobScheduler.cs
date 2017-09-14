@@ -38,6 +38,7 @@ namespace DotNetWorkQueue
         /// <remarks>No jobs will be scheduled until start is called</remarks>
         void Start();
 
+#if NETFULL
         /// <summary>
         /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.
         /// </summary>
@@ -91,6 +92,7 @@ namespace DotNetWorkQueue
             bool autoRun = true,
             TimeSpan window = default(TimeSpan))
             where TTransportInit : ITransportInit, new();
+#endif
 
         /// <summary>
         /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.

@@ -32,9 +32,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     {
         [Theory]
         [InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+#if NETFULL
+         InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+#endif
+        InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -56,13 +58,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, null);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, null);
                     }
-
+#endif
                     //process data
                     var consumer = new ConsumerMethodAsyncErrorShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,

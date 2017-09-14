@@ -31,9 +31,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodAsyncRollBack
     {
         [Theory]
-        [InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Dynamic),
+        [InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Dynamic),
          InlineData(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Dynamic),
-         InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Compiled),
+#endif
          InlineData(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes)
@@ -71,13 +73,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, oCreation.Scope);
                         }
-
+#endif
                         //process data
                         var consumer = new ConsumerMethodAsyncRollBackShared();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

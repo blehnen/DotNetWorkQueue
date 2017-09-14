@@ -16,12 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
@@ -48,7 +46,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             var processedCount = new IncrementWrapper();
             var haveIProcessedYouBefore = new ConcurrentDictionary<string, int>();
 
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)

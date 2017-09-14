@@ -31,10 +31,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class SimpleMethodConsumer
     {
         [Theory]
-        [InlineData(1000, 0, 240, 5, false, LinqMethodTypes.Compiled),
-       InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled),
-       InlineData(1000, 0, 240, 5, false, LinqMethodTypes.Dynamic),
-       InlineData(10, 15, 180, 7, true, LinqMethodTypes.Dynamic)]
+        [InlineData(100, 0, 240, 5, false, LinqMethodTypes.Compiled),
+#if NETFULL
+       InlineData(100, 0, 240, 5, false, LinqMethodTypes.Dynamic),
+       InlineData(10, 15, 180, 7, true, LinqMethodTypes.Dynamic),
+#endif
+         InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -69,13 +71,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
                         }
-
+#endif
                         var consumer = new ConsumerMethodShared();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,

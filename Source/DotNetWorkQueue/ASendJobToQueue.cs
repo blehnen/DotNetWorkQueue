@@ -104,6 +104,7 @@ namespace DotNetWorkQueue
             return result ?? new JobQueueOutputMessage(JobQueuedStatus.Failed);
         }
 
+#if NETFULL
         /// <inheritdoc />
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun expressionToRun)
         {
@@ -120,7 +121,7 @@ namespace DotNetWorkQueue
                 await Queue.SendAsync(expressionToRun, messageData).ConfigureAwait(false));
             return result ?? new JobQueueOutputMessage(JobQueuedStatus.Failed);
         }
-
+#endif
         /// <summary>
         /// Begins the send process, if possible
         /// </summary>
@@ -182,7 +183,7 @@ namespace DotNetWorkQueue
             }
         }
 
-        #region IDisposable Support
+#region IDisposable Support
         private bool _disposedValue; // To detect redundant calls
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
@@ -208,6 +209,6 @@ namespace DotNetWorkQueue
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
-        #endregion
+#endregion
     }
 }

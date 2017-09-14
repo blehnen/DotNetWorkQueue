@@ -17,16 +17,18 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+#if NETFULL
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Xunit;
+#endif
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
 {
+#if NETFULL
     public class ConsumerMethodMultipleDynamic
     {
         [Theory]
@@ -88,4 +90,5 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
             }
         }
     }
+#endif
 }

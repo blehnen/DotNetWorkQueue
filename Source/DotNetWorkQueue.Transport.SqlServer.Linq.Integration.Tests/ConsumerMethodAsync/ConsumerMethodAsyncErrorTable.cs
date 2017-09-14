@@ -31,8 +31,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncErrorTable
     {
         [Theory]
+#if NETFULL
         [InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Dynamic),
-            InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Compiled)]
+        InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int timeOut, int workerCount, 
             int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
@@ -70,13 +74,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                           Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                           Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope);
                         }
-
+#endif
                         //process data
                         var consumer = new ConsumerMethodAsyncErrorShared();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

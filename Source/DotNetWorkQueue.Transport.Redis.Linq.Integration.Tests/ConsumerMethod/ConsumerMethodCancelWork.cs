@@ -32,9 +32,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     {
         [Theory]
         [InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(7, 5, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-            InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(7, 5, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
+#if NETFULL
+          InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(7, 5, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+#endif
+         InlineData(7, 5, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
@@ -55,12 +57,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, null);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, null);
                     }
+#endif
 
                     var consumer = new ConsumerMethodCancelWorkShared<RedisQueueInit>();
                     consumer.RunConsumer(queueName, connectionString, false, logProvider,

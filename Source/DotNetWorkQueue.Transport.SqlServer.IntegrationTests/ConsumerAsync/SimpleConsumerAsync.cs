@@ -125,7 +125,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
             }
         }
 
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType, ITaskFactory factory)
         {
             Factory = factory;

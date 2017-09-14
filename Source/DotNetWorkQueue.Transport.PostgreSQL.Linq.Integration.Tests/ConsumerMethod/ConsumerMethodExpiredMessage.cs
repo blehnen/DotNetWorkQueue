@@ -31,8 +31,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled),
+#if NETFULL
+          [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled),
         InlineData(100, 5, 20, 5, true, LinqMethodTypes.Dynamic)]
+#else
+        [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -69,13 +73,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
                         }
-
+#endif
                         var consumer = new ConsumerMethodExpiredMessageShared();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,

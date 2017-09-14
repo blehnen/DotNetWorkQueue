@@ -28,18 +28,18 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
     public class SimpleProducerAsync
     {
         [Theory]
-        [InlineData(1000, true, false, ConnectionInfoTypes.Linux),
-        InlineData(1000, false, false, ConnectionInfoTypes.Linux),
-        InlineData(2500, true, false, ConnectionInfoTypes.Linux),
-        InlineData(2500, false, false, ConnectionInfoTypes.Linux),
-        InlineData(1000, true, true, ConnectionInfoTypes.Linux),
-        InlineData(1000, false, true, ConnectionInfoTypes.Linux),
-            InlineData(1000, true, false, ConnectionInfoTypes.Windows),
-        InlineData(1000, false, false, ConnectionInfoTypes.Windows),
-        InlineData(2500, true, false, ConnectionInfoTypes.Windows),
-        InlineData(2500, false, false, ConnectionInfoTypes.Windows),
-        InlineData(1000, true, true, ConnectionInfoTypes.Windows),
-        InlineData(1000, false, true, ConnectionInfoTypes.Windows)]
+        [InlineData(100, true, false, ConnectionInfoTypes.Linux),
+        InlineData(100, false, false, ConnectionInfoTypes.Linux),
+        InlineData(250, true, false, ConnectionInfoTypes.Linux),
+        InlineData(200, false, false, ConnectionInfoTypes.Linux),
+        InlineData(100, true, true, ConnectionInfoTypes.Linux),
+        InlineData(100, false, true, ConnectionInfoTypes.Linux),
+            InlineData(100, true, false, ConnectionInfoTypes.Windows),
+        InlineData(100, false, false, ConnectionInfoTypes.Windows),
+        InlineData(250, true, false, ConnectionInfoTypes.Windows),
+        InlineData(250, false, false, ConnectionInfoTypes.Windows),
+        InlineData(100, true, true, ConnectionInfoTypes.Windows),
+        InlineData(100, false, true, ConnectionInfoTypes.Windows)]
         public async void Run(
            int messageCount,
            bool interceptors,

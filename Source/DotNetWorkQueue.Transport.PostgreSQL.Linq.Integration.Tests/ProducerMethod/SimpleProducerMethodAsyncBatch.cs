@@ -31,24 +31,26 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
     public class SimpleProducerMethodAsyncBatch
     {
         [Theory]
-        [InlineData(1000, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, false, false, false, false, true, false, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, false, false, false, true, true, false, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Dynamic),
-            InlineData(1000, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled),
-         InlineData(1000, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled),
-         InlineData(1000, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, false, false, false, false, true, false, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, false, false, false, true, true, false, LinqMethodTypes.Compiled),
-         InlineData(1000, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Compiled),
-         InlineData(1000, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Compiled),
-         InlineData(1000, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Compiled)]
+        [InlineData(100, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled),
+#if NETFULL
+         InlineData(100, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic),
+         InlineData(100, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic),
+         InlineData(100, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic),
+         InlineData(100, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic),
+         InlineData(100, false, false, false, false, false, false, false, true, false, LinqMethodTypes.Dynamic),
+         InlineData(100, false, false, false, false, false, false, true, true, false, LinqMethodTypes.Dynamic),
+         InlineData(100, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Dynamic),
+         InlineData(100, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Dynamic),
+         InlineData(100, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Dynamic),
+#endif    
+         InlineData(100, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled),
+         InlineData(100, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled),
+         InlineData(100, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled),
+         InlineData(100, false, false, false, false, false, false, false, true, false, LinqMethodTypes.Compiled),
+         InlineData(100, false, false, false, false, false, false, true, true, false, LinqMethodTypes.Compiled),
+         InlineData(100, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Compiled),
+         InlineData(100, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Compiled),
+         InlineData(100, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Compiled)]
         public async void Run(
             int messageCount,
             bool interceptors,

@@ -129,7 +129,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
             }
         }
 
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, bool inMemoryDb, ITaskFactory factory)
         {
             Factory = factory;

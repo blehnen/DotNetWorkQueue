@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
+#if NETFULL
 using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
@@ -33,10 +33,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
         public class SimpleMethodConsumer
         {
            [Theory]
-           [InlineData(1000, 0, 240, 5, false),
-           InlineData(2000, 0, 240, 25, false),
-           InlineData(2000, 0, 240, 25, true),
-           InlineData(1000, 0, 240, 5, true)]
+           [InlineData(100, 0, 240, 5, false),
+           InlineData(200, 0, 240, 25, false),
+           InlineData(200, 0, 240, 25, true),
+           InlineData(100, 0, 240, 5, true)]
             public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions)
             {
                 var queueName = GenerateQueueName.Create();
@@ -95,3 +95,4 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
         }
     }
 }
+#endif

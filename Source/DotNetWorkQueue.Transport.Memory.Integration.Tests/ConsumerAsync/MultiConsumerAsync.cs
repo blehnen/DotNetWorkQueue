@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
            int messageType, ITaskFactory factory)
         {
             var queue = new SimpleConsumerAsync();
-            queue.Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, factory);
+            queue.RunWithFactory(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, factory);
         }
     }
 }

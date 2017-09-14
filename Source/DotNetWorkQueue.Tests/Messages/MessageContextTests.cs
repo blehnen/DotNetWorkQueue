@@ -67,6 +67,7 @@ namespace DotNetWorkQueue.Tests.Messages
             var headerData3 = test.Get(property);
             Assert.Equal(headerData2, headerData3);
         }
+
         [Fact]
         public void Commit_Fires()
         {
@@ -77,6 +78,7 @@ namespace DotNetWorkQueue.Tests.Messages
             test.RaiseCommit();
             test.ShouldRaise(value);
         }
+
         [Fact]
         public void Rollback_Fires()
         {
@@ -87,6 +89,8 @@ namespace DotNetWorkQueue.Tests.Messages
             test.RaiseRollback();
             test.ShouldRaise(value);
         }
+
+
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
         [Fact]
         public void Cleanup_Fires_Only_Once()
@@ -100,6 +104,7 @@ namespace DotNetWorkQueue.Tests.Messages
             var list = test.ShouldRaise(value).ToList();
             Assert.Equal(1, list.Count);
         }
+
         [Fact]
         public void WorkerNotification_NotNull()
         {
@@ -107,6 +112,7 @@ namespace DotNetWorkQueue.Tests.Messages
             var test = fixture.Create<MessageContext>();
             Assert.NotNull(test.WorkerNotification);
         }
+
         [Fact]
         public void Cleanup_Fires()
         {
@@ -117,6 +123,7 @@ namespace DotNetWorkQueue.Tests.Messages
             test.Dispose();
             test.ShouldRaise(value);
         }
+
         [Fact]
         public void IsDisposed_False_By_Default()
         {

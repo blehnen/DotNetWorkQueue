@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
            bool useTransactions, int messageType, ITaskFactory factory)
         {
             var queue = new SimpleConsumerAsync();
-            queue.Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, useTransactions, messageType, factory);
+            queue.RunWithFactory(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, useTransactions, messageType, factory);
         }
     }
 }

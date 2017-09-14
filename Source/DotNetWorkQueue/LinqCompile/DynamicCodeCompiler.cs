@@ -68,12 +68,7 @@ namespace DotNetWorkQueue.LinqCompile
             return _compiler.ParseLambdaExpr<Func<object, object, object>>(linqExpression.Linq).Compile();
         }
 
-        /// <summary>
-        /// Resets the state of the instance before re-adding it to the pool
-        /// </summary>
-        /// <remarks>
-        /// There is no guarantee that this method is called for instances not being added to the pool
-        /// </remarks>
+        /// <inheritdoc />
         public void ResetState()
         {
             if (_compiler.DynamicAssembliesCount < MaxAssemblyCount) return;

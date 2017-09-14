@@ -32,36 +32,54 @@ namespace DotNetWorkQueue.Tests.Queue
         public void If_Abort_Disabled_Return_Failure()
         {
             var test = Create(false);
-            Assert.Equal(test.Abort(null), false);
+            Assert.False(test.Abort(null));
         }
         [Fact]
         public void Abort_Allows_Null_Thread()
         {
             var test = Create(true);
-            Assert.Equal(test.Abort(null), true);
+            Assert.True(test.Abort(null));
         }
 
         [Fact]
         public void Abort_Allows_Stopped_Thread()
         {
             var test = Create(true);
-            var t = new Thread(DoSomeWork);
-            Assert.Equal(test.Abort(t), true);
+            var t = new Thread((time) => DoSomeWork(100000));
+            Assert.True(test.Abort(t));
         }
 
+#if NETFULL
         [Fact]
-        public void Abort_Thread()
+        public void Abort_ThreadFullFrameWork()
         {
             var test = Create(true);
 
-            var t = new Thread(DoSomeWork);
+            var t = new Thread((time) => DoSomeWork(100000));
             t.Start();
 
-            Assert.Equal(test.Abort(t), true);
+            Assert.True(test.Abort(t));
             Thread.Sleep(500);
-            Assert.Equal(t.IsAlive, false);
+            Assert.False(t.IsAlive);
         }
+#endif
 
+#if NETSTANDARD2_0
+        [Fact]
+        public void Abort_ThreadFullCore()
+        {
+            var test = Create(true);
+
+            var t = new Thread((time) => DoSomeWork(5000));
+            t.Start();
+
+            Assert.False(test.Abort(t));
+            Thread.Sleep(1000);
+            Assert.True(t.IsAlive);
+            Thread.Sleep(5000);
+            Assert.False(t.IsAlive);
+        }
+#endif
         private IAbortWorkerThread Create(bool enableAbort)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -71,9 +89,9 @@ namespace DotNetWorkQueue.Tests.Queue
             return fixture.Create<AbortWorkerThread>();
         }
 
-        private void DoSomeWork()
+        private void DoSomeWork(int time)
         {
-            Thread.Sleep(100000);
+            Thread.Sleep(time);
         }
     }
 }

@@ -24,8 +24,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
@@ -179,7 +179,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime)
         {
 
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 using (
                     var creator = SharedSetup.CreateCreator<TTransportInit>(InterceptorAdding.Yes, logProvider, metrics)

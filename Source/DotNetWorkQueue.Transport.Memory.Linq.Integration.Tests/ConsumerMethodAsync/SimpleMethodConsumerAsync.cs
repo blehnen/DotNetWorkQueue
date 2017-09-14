@@ -22,7 +22,6 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethodAsync
@@ -32,8 +31,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
         private ITaskFactory Factory { get; set; }
 
         [Theory]
+#if NETFULL
         [InlineData(10, 15, 60, 7, 1, 1, 1, LinqMethodTypes.Dynamic),
          InlineData(10, 5, 60, 10, 1, 2, 1, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(10, 5, 60, 10, 1, 2, 1, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, int readerCount, int queueSize,
            int messageType, LinqMethodTypes linqMethodTypes)
@@ -124,7 +127,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
             }
         }
 
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ITaskFactory factory, LinqMethodTypes linqMethodTypes)
         {
             Factory = factory;

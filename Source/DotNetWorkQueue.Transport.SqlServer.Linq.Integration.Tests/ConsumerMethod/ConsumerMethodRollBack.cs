@@ -33,9 +33,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
 
         [Theory]
         [InlineData(50, 5, 200, 10, false, LinqMethodTypes.Compiled),
-        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled),
+#if NETFULL
         InlineData(50, 5, 200, 10, true, LinqMethodTypes.Dynamic),
-        InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic)]
+        InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic),
+#endif
+        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -72,13 +74,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, oCreation.Scope);
                         }
-
+#endif
                         //process data
                         var consumer = new ConsumerMethodRollBackShared();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

@@ -31,9 +31,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncRollBack
     {
         [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Dynamic),
+        [InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled),
+#if NETFULL
+         InlineData(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Dynamic),
          InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Dynamic),
-         InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled),
+#endif
          InlineData(10, 5, 180, 7, 1, 1, false, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes)
@@ -71,13 +73,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, oCreation.Scope);
                         }
-
+#endif
                         //process data
                         var consumer = new ConsumerMethodAsyncRollBackShared();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

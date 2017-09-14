@@ -49,6 +49,7 @@ namespace DotNetWorkQueue
         /// <remarks>Your expression must return a type of object, or the JSON serializer may throw casting errors</remarks>
         Task<IReceivedMessage<object>> SendAsync(Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> method, TimeSpan timeOut, IAdditionalMessageData data = null);
 
+#if NETFULL
         /// <summary>
         /// Sends the specified linqExpression for execution.
         /// </summary>
@@ -68,5 +69,6 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         /// <remarks>Your expression must return a type of object, or the JSON serializer may throw casting errors</remarks>
         Task<IReceivedMessage<object>> SendAsync(LinqExpressionToRun linqExpression, TimeSpan timeOut, IAdditionalMessageData data = null);
+#endif
     }
 }

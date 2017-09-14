@@ -23,9 +23,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
@@ -49,6 +49,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 verify, sendViaBatch, true, id, generateTestMethod, runTime, scope);
         }
 
+#if NETFULL
         public void RunTestDynamic<TTransportInit>(string queueName,
            string connectionString,
            bool addInterceptors,
@@ -65,6 +66,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 generateData,
                 verify, sendViaBatch, true, id, generateTestMethod, runTime, scope);
         }
+#endif
 
         public void RunTestCompiled<TTransportInit>(string queueName,
             string connectionString,
@@ -78,7 +80,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 generateTestMethod, int runTime, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 var addInterceptorProducer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -103,6 +105,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             }
         }
 
+#if NETFULL
         public void RunTestDynamic<TTransportInit>(string queueName,
             string connectionString,
             bool addInterceptors,
@@ -114,7 +117,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             Func<Guid, int, LinqExpressionToRun> generateTestMethod, int runTime, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 var addInterceptorProducer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -138,6 +141,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 }
             }
         }
+#endif
 
         private void RunProducerCompiled(
             IProducerMethodQueue
@@ -156,6 +160,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 queue.Configuration, messageCount, scope);
         }
 
+#if NETFULL
         private void RunProducerDynamic(
             IProducerMethodQueue
                 queue,
@@ -171,6 +176,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString,
                 queue.Configuration, messageCount, scope);
         }
+#endif
 
         private void RunProducerCompiledInternal(
             IProducerMethodQueue
@@ -242,6 +248,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             }
         }
 
+#if NETFULL
         private void RunProducerDynamicInternal(
             IProducerMethodQueue
                 queue, long messageCount, Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
@@ -302,5 +309,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 });
             }
         }
+#endif
     }
 }

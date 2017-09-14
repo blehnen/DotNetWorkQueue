@@ -29,6 +29,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
     public class JobSchedulerTests
     {
         [Theory]
+#if NETFULL
+
+#else
+
+#endif
         [InlineData(true, false),
          InlineData(true, true)]
         public void Run(
@@ -61,6 +66,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
                                     Helpers.Verify, Helpers.SetError,
                                     queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                             }
+#if NETFULL
                             else
                             {
                                 tests.RunEnqueueTestDynamic<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(
@@ -69,6 +75,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
                                     Helpers.Verify, Helpers.SetError,
                                     queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                             }
+#endif
                         }
                         finally
                         {

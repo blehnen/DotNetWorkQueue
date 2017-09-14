@@ -19,9 +19,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
+using CacheManager.Core;
 using DotNetWorkQueue.Exceptions;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         //dequeue count
         private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> DequeueCounts;
 
-        private static readonly MemoryCache JobLastEventCache;
+        private static readonly ICacheManager<object> JobLastEventCache;
 
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
         private readonly IConnectionInformation _connectionInformation;
@@ -116,7 +116,15 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             DequeueCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
             Jobs = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>>();
             QueueWorking = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
-            JobLastEventCache = new MemoryCache("DataStorage");
+
+            JobLastEventCache = CacheFactory.Build("DotNetWorkQueueCache", settings =>
+            {
+#if NETFULL
+                settings.WithSystemRuntimeCacheHandle("DataStore");
+#else
+                settings.WithMicrosoftMemoryCacheHandle("DataStore");
+#endif
+            });
         }
 
         /// <inheritdoc />
@@ -195,7 +203,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
                 if (!string.IsNullOrEmpty(item.JobName))
                 {
-                    JobLastEventCache.Add(GenerateKey(item.JobName), item.JobEventTime, DateTimeOffset.UtcNow.AddDays(1));
+                    var key = GenerateKey(item.JobName);
+                    JobLastEventCache.Add(key, item.JobEventTime);
+                    JobLastEventCache.Expire(key, DateTimeOffset.UtcNow.AddDays(1));
                 }
 
                 Interlocked.Increment(ref DequeueCounts[_connectionInformation].ProcessedCount);
@@ -242,7 +252,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public DateTimeOffset GetJobLastKnownEvent(string jobName)
         {
             var key = GenerateKey(jobName);
-            if (JobLastEventCache.Contains(key))
+            if (JobLastEventCache.Exists(key))
                 return (DateTimeOffset)JobLastEventCache.Get(key);
 
             return default(DateTimeOffset);

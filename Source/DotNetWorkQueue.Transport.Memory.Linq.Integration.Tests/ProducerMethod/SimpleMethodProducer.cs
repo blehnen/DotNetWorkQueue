@@ -21,7 +21,6 @@ using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
@@ -29,8 +28,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducer
     {
         [Theory]
+#if NETFULL
         [InlineData(1000, LinqMethodTypes.Dynamic),
          InlineData(100, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(100, LinqMethodTypes.Compiled)]
+#endif
         public void Run(
             int messageCount,
             LinqMethodTypes linqMethodTypes)
@@ -64,6 +67,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                                Helpers.GenerateData,
                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope);
                             }
+#if NETFULL
                             else
                             {
                                 producer.RunTestDynamic<MessageQueueInit>(queueName,
@@ -71,6 +75,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                                Helpers.GenerateData,
                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, 0, oCreation.Scope);
                             }
+#endif
                         }
                     }
                     finally

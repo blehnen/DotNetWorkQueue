@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DotNetWorkQueue.Exceptions;
-using Metrics.MetricData;
+using DotNetWorkQueue.IntegrationTests.Metrics;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
@@ -37,9 +37,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 foreach (
                     var metric in
                         data.Meters.Where(
-                            counter => counter.Name.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                            counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    count = count + metric.Value.Count;
+                    count = count + metric.Value.Value;
                     break;
                 }
             }
@@ -60,9 +60,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 foreach (
                     var metric in
                         data.Counters.Where(
-                            counter => counter.Name.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                            counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    count = count + metric.Value.Count;
+                    count = count + metric.Value.Value;
                     break;
                 }
             }
@@ -78,9 +78,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             var found = false;
             const string name = "RollbackMessage.RollbackCounter";
             const string retryName = "MessageFailedProcessingRetryMeter";
-            foreach (var metric in data.Counters.Where(counter => counter.Name.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+            foreach (var metric in data.Counters.Where(counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.Equal(messageCount * rollbackCount, metric.Value.Count);
+                Assert.Equal(messageCount * rollbackCount, metric.Value.Value);
                 found = true;
                 break;
             }
@@ -95,9 +95,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 foreach (
                     var metric in
                         data.Meters.Where(
-                            counter => counter.Name.EndsWith(retryName, StringComparison.InvariantCultureIgnoreCase)))
+                            counter => counter.Key.EndsWith(retryName, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    Assert.Equal(messageCount*failedCount, metric.Value.Count);
+                    Assert.Equal(messageCount*failedCount, metric.Value.Value);
                     found = true;
                     break;
                 }
@@ -111,9 +111,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             var found = false;
             var name = "SendMessagesMeter";
-            foreach (var meter in data.Meters.Where(timer => timer.Name.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+            foreach (var meter in data.Meters.Where(timer => timer.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.Equal(messageCount, meter.Value.Count);
+                Assert.Equal(messageCount, meter.Value.Value);
                 found = true;
                 break;
             }
@@ -126,9 +126,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             var found = false;
             var name = "SendMessagesMeter";
-            foreach (var meter in data.Meters.Where(timer => timer.Name.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+            foreach (var meter in data.Meters.Where(timer => timer.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.Equal(messageCount, meter.Value.Count);
+                Assert.Equal(messageCount, meter.Value.Value);
                 found = true;
                 break;
             }
@@ -141,9 +141,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             var found = false;
             const string name = "CommitMessage.CommitCounter";
-            foreach (var counter in data.Counters.Where(counter => counter.Name.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+            foreach (var counter in data.Counters.Where(counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.Equal(messageCount, counter.Value.Count);
+                Assert.Equal(messageCount, counter.Value.Value);
                 found = true;
                 break;
             }

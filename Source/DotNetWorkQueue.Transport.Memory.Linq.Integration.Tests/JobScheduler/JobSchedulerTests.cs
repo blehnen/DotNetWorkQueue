@@ -20,7 +20,6 @@
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
@@ -28,7 +27,11 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerTests
     {
         [Theory]
+#if NETFULL
         [InlineData(true)]
+#else
+        [InlineData(false)]
+#endif
         public void Run(
             bool dynamic)
         {
@@ -58,6 +61,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                                         queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
                                             oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                                 }
+#if NETFULL
                                 else
                                 {
                                     tests.RunEnqueueTestDynamic<MessageQueueInit, JobQueueCreation>(
@@ -67,6 +71,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                                         queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
                                             oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                                 }
+#endif
                             }
                             finally
                             {

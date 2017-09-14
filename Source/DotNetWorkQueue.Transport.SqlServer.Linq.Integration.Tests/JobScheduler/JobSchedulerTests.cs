@@ -29,8 +29,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
     public class JobSchedulerTests
     {
         [Theory]
+#if NETFULL
         [InlineData(true, false),
          InlineData(true, true)]
+#else
+        [InlineData(true, false)]
+#endif
         public void Run(
             bool interceptors,
             bool dynamic)
@@ -48,12 +52,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
                             ConnectionInfo.ConnectionString, interceptors,
                             Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), null, LoggerShared.Create(queueName, GetType().Name));
                     }
+#if NETFULL
                     else
                     {
                         tests.RunEnqueueTestDynamic<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueName,
                             ConnectionInfo.ConnectionString, interceptors,
                             Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), null, LoggerShared.Create(queueName, GetType().Name));
                     }
+#endif
                 }
                 finally
                 {

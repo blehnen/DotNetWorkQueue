@@ -34,14 +34,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotNetWorkQueue">
-      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Metrics.Net">
-      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Metrics.Net.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue.Metrics.Net\bin\Debug\net452\DotNetWorkQueue.Metrics.Net.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetWorkQueue.Transport.PostgreSQL, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.PostgreSQL.dll</HintPath>
+    <Reference Include="DotNetWorkQueue.Transport.PostgreSQL">
+      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.PostgreSQL\bin\Debug\net452\DotNetWorkQueue.Transport.PostgreSQL.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

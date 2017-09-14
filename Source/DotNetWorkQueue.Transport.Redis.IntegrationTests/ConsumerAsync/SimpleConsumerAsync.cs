@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
             }
         }
 
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ITaskFactory factory, ConnectionInfoTypes type)
         {
             Factory = factory;

@@ -1,153 +1,40 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4E0C6F9D-0B43-4989-BE8B-93174A42636A}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DotNetWorkQueue.Transport.SqlServer</RootNamespace>
-    <AssemblyName>DotNetWorkQueue.Transport.SqlServer</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Debug\DotNetWorkQueue.Transport.SqlServer.xml</DocumentationFile>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Release\DotNetWorkQueue.Transport.SqlServer.xml</DocumentationFile>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net452|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <DefineConstants>NETSTANDARD2_0;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
+    <DefineConstants>NETFULL</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Polly, Version=5.3.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Polly.5.3.1\lib\net45\Polly.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
+  </ItemGroup>
+  
   <ItemGroup>
-    <Compile Include="..\..\SharedAssemblyInfo.cs">
-      <Link>SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="Basic\BuildMoveToErrorQueueSql.cs" />
-    <Compile Include="Basic\CommandHandler\RollbackMessageCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SendHeartBeatCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SendMessage.cs" />
-    <Compile Include="Basic\CommandHandler\SendMessageCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SendMessageCommandHandlerAsync.cs" />
-    <Compile Include="Basic\CommandHandler\SetJobLastKnownEventCommandHandler.cs" />
-    <Compile Include="Basic\ConnectionHolder.cs" />
-    <Compile Include="Basic\DbConnectionFactory.cs" />
-    <Compile Include="Basic\Factory\ConnectionHolderFactory.cs" />
-    <Compile Include="Basic\Factory\SQLServerMessageQueueTransportOptionsFactory.cs" />
-    <Compile Include="Basic\GetFirstMessageDeliveryTime.cs" />
-    <Compile Include="Basic\TransportPolicyDefinitions.cs" />
-    <Compile Include="ISQLServerMessageQueueTransportOptionsFactory.cs" />
-    <Compile Include="Basic\Message\CommitMessage.cs" />
-    <Compile Include="Basic\Message\HandleMessage.cs" />
-    <Compile Include="Basic\Message\ReceiveMessage.cs" />
-    <Compile Include="Basic\Message\RollbackMessage.cs" />
-    <Compile Include="Basic\OptionsSerialization.cs" />
-    <Compile Include="Basic\QueryHandler\BuildDequeueCommand.cs" />
-    <Compile Include="Basic\QueryHandler\CreateDequeueStatement.cs" />
-    <Compile Include="Basic\QueryHandler\ReadMessage.cs" />
-    <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\ReceiveMessageQueryHandlerAsync.cs" />
-    <Compile Include="Basic\SqlServerCommandStringCache.cs" />
-    <Compile Include="Basic\SqlServerJobQueueCreation.cs" />
-    <Compile Include="Basic\SqlServerJobSchedulerLastKnownEvent.cs" />
-    <Compile Include="Basic\SqlServerJobSchema.cs" />
-    <Compile Include="Basic\SQLServerMessageQueueCreation.cs" />
-    <Compile Include="Basic\SQLServerMessageQueueInit.cs" />
-    <Compile Include="Basic\SQLServerMessageQueueReceive.cs" />
-    <Compile Include="Basic\SQLServerMessageQueueSchema.cs" />
-    <Compile Include="Basic\SQLServerMessageQueueTransportOptions.cs" />
-    <Compile Include="Basic\SqlServerRpcConnection.cs" />
-    <Compile Include="Basic\SqlServerSendJobToQueue.cs" />
-    <Compile Include="Basic\Time\SqlServerTime.cs" />
-    <Compile Include="Basic\TransportOptionsFactory.cs" />
-    <Compile Include="ConfigurationExtensions.cs" />
-    <Compile Include="Decorator\CreateJobTablesCommandDecorator.cs" />
-    <Compile Include="Decorator\CreateQueueTablesAndSaveConfigurationDecorator.cs" />
-    <Compile Include="Decorator\RetryCommandHandlerDecorator.cs" />
-    <Compile Include="Decorator\RetryCommandHandlerOutputDecorator.cs" />
-    <Compile Include="Decorator\RetryCommandHandlerOutputDecoratorAsync.cs" />
-    <Compile Include="Decorator\RetryConstants.cs" />
-    <Compile Include="Decorator\RetryableSqlErrors.cs" />
-    <Compile Include="Decorator\RetryQueryHandlerDecorator.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Schema\Column.cs" />
-    <Compile Include="Schema\ColumnList.cs" />
-    <Compile Include="Schema\Columns.cs" />
-    <Compile Include="Schema\Constraint.cs" />
-    <Compile Include="Schema\ConstraintList.cs" />
-    <Compile Include="Schema\Default.cs" />
-    <Compile Include="Schema\Identity.cs" />
-    <Compile Include="Schema\Table.cs" />
-    <Compile Include="Schema\TableInfo.cs" />
-    <Compile Include="SQLConnectionInformation.cs" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj">
-      <Project>{b5c21f35-5f81-438c-b27f-a32c0c730581}</Project>
-      <Name>DotNetWorkQueue.Transport.RelationalDatabase</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj">
-      <Project>{26e740da-e63d-497a-bf5b-fbbf28c8846f}</Project>
-      <Name>DotNetWorkQueue</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
-      <Link>DotNetWorkQueue.licenseheader</Link>
-    </None>
-    <None Include="app.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <Target Name="AfterBuild">
-    <!-- sql transport -->
-    <ItemGroup>
-      <MergeAssemblies Include="$(OutputPath)\DotNetWorkQueue.Transport.SqlServer.dll" />
-    </ItemGroup>
-    <PropertyGroup>
-      <OutputAssembly>$(SolutionDir)\..\MergedBuild\DotNetWorkQueue.Transport.SqlServer.dll</OutputAssembly>
-      <Merger Condition="('$(OS)' == 'Windows_NT')">"$(SolutionDir)\packages\ilmerge.2.14.1208\Tools\ILMerge.exe"</Merger>
-    </PropertyGroup>
-    <Message Text="MERGING: @(MergeAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
-    <Exec Command="$(Merger) /internalize /out:&quot;$(OutputAssembly)&quot; @(MergeAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
-    <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.SqlServer.xml" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
-    <Copy SourceFiles="$(OutputPath)\DotNetWorkQueue.Transport.RelationalDatabase.dll" DestinationFolder="$(SolutionDir)\..\MergedBuild\" ContinueOnError="true" />
-  </Target>
+
 </Project>

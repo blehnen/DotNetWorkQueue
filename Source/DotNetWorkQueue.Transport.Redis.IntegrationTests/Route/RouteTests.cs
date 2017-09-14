@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
         [InlineData(10, 1, 60, 1, 1, ConnectionInfoTypes.Windows, false),
          InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Windows, true),
          InlineData(50, 5, 200, 1, 2, ConnectionInfoTypes.Linux, false),
-         InlineData(500, 0, 180, 1, 2, ConnectionInfoTypes.Linux, true)]
+         InlineData(100, 0, 180, 1, 2, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
            int routeCount, ConnectionInfoTypes type, bool batch)
         {

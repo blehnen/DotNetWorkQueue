@@ -22,9 +22,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 var addInterceptorProducer = InterceptorAdding.No;
                 if (addInterceptors)

@@ -47,6 +47,7 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, bool rawExpression = false);
 
+#if NETFULL
         /// <summary>
         /// Sends the specified dynamic linqExpression to be executed.
         /// </summary>
@@ -55,6 +56,7 @@ namespace DotNetWorkQueue
         /// <param name="linqExpression">The linqExpression to execute.</param>
         /// <returns></returns>
         Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression);
+#endif
 
         /// <summary>
         /// Gets the last known event.

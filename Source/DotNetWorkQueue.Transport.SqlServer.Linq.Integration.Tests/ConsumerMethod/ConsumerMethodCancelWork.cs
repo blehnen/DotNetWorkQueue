@@ -31,8 +31,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodCancelWork
     {
         [Theory]
+#if NETFULL
         [InlineData(7, 15, 90, 3, LinqMethodTypes.Compiled),
-            InlineData(7, 15, 90, 3, LinqMethodTypes.Dynamic)]
+        InlineData(7, 15, 90, 3, LinqMethodTypes.Dynamic)]
+#else
+        [InlineData(7, 15, 90, 3, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -68,13 +72,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                           Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                           Helpers.Verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, oCreation.Scope);
                         }
-
+#endif
                         var consumer = new ConsumerMethodCancelWorkShared<SqlServerMessageQueueInit>();
                         consumer.RunConsumer(queueName, ConnectionInfo.ConnectionString, false, logProvider,
                             runtime, messageCount,

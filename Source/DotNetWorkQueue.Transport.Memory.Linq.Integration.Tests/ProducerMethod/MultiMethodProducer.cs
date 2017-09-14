@@ -25,7 +25,6 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
@@ -33,8 +32,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class MultiMethodProducer
     {
         [Theory]
+#if NETFULL
         [InlineData(LinqMethodTypes.Dynamic),
         InlineData(LinqMethodTypes.Compiled)]
+#else
+        [InlineData(LinqMethodTypes.Compiled)]
+#endif
         public void Run(LinqMethodTypes linqMethodTypes)
         {
             using (var connectionInfo = new IntegrationConnectionInfo())
@@ -88,11 +91,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                     tasks.Add(new Task(() => producer.RunTestCompiled<MessageQueueInit>(queueName, connectionString, false, messageCount,
                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateCompiled, 0, scope)));
                 }
+#if NETFULL
                 else
                 {
                     tasks.Add(new Task(() => producer.RunTestDynamic<MessageQueueInit>(queueName, connectionString, false, messageCount,
                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateDynamic, 0, scope)));
                 }
+#endif
             }
             tasks.AsParallel().ForAll(x => x.Start());
             Task.WaitAll(tasks.ToArray());

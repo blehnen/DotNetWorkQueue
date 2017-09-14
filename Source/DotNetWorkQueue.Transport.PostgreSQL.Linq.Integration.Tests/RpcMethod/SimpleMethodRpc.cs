@@ -31,8 +31,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.RpcMethod
     public class SimpleMethodRpc
     {
         [Theory]
-        [InlineData(50, 1, 200, 3, false, false, LinqMethodTypes.Dynamic),
+#if NETFULL
+         [InlineData(50, 1, 200, 3, false, false, LinqMethodTypes.Dynamic),
          InlineData(30, 0, 240, 3, false, true, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(30, 0, 240, 3, false, true, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool async, LinqMethodTypes linqMethodTypes)
         {
             var queueNameSend = GenerateQueueName.Create();

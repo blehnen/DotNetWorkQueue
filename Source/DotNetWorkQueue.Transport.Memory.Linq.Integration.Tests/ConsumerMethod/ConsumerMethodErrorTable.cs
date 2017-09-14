@@ -22,7 +22,6 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
@@ -30,8 +29,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [Theory]
+#if NETFULL
         [InlineData(10, 40, 5, LinqMethodTypes.Dynamic),
          InlineData(1, 10, 1, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(1, 10, 1, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {
             using (var connectionInfo = new IntegrationConnectionInfo())
@@ -63,6 +66,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope);
                             }
+#if NETFULL
                             else
                             {
                                 producer.RunTestDynamic<MessageQueueInit>(queueName,
@@ -70,7 +74,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                   Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope);
 
                             }
-
+#endif
                             //process data
                             var consumer = new ConsumerMethodErrorShared();
                             consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,

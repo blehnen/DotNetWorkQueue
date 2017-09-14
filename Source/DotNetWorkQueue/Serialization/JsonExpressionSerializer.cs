@@ -28,11 +28,7 @@ using Newtonsoft.Json;
 
 namespace DotNetWorkQueue.Serialization
 {
-    /// <summary>
-    /// Serializes a LINQ expression tree to JSON
-    /// </summary>
-    /// <remarks>The implementation library is not thread safe; thus, this library blocks on multiple calls...</remarks>
-    /// <seealso cref="DotNetWorkQueue.IExpressionSerializer" />
+    /// <inheritdoc />
     public class JsonExpressionSerializer : IExpressionSerializer
     {
         private readonly JsonSerializerSettings _serializerSettings;
@@ -47,11 +43,7 @@ namespace DotNetWorkQueue.Serialization
                 new ExpressionJsonConverter(Assembly.GetAssembly(typeof(JsonExpressionSerializer))));
         }
 
-        /// <summary>
-        /// Converts the bytes to an action method.
-        /// </summary>
-        /// <param name="bytes">The bytes.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> ConvertBytesToMethod(
             byte[] bytes)
         {
@@ -62,11 +54,7 @@ namespace DotNetWorkQueue.Serialization
                         Encoding.UTF8.GetString(bytes), _serializerSettings);
         }
 
-        /// <summary>
-        /// Converts the action method to bytes.
-        /// </summary>
-        /// <param name="method">The method.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public byte[] ConvertMethodToBytes(
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method)
         {
@@ -74,23 +62,15 @@ namespace DotNetWorkQueue.Serialization
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(method, _serializerSettings));
         }
 
-        /// <summary>
-        /// Converts the function to bytes.
-        /// </summary>
-        /// <param name="method">The method.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public byte[] ConvertFunctionToBytes(
             Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> method)
         {
             Guard.NotNull(() => method, method);
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(method, _serializerSettings));
         }
-
-        /// <summary>
-        /// Converts the bytes back to the function.
-        /// </summary>
-        /// <param name="bytes">The bytes.</param>
-        /// <returns></returns>
+        
+        /// <inheritdoc />
         public Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> ConvertBytesToFunction
             (byte[] bytes)
         {

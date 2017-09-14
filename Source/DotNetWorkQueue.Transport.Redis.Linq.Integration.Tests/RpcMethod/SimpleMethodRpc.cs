@@ -30,12 +30,13 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.RpcMethod
     public class SimpleMethodRpc
     {
         [Theory]
-        [InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+        [InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(10, 1, 180, 5, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
          InlineData(30, 0, 240, 5, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-
-            InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+#endif
          InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
          InlineData(10, 1, 180, 5, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
          InlineData(30, 0, 240, 5, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]

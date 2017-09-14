@@ -17,18 +17,21 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+#if NETFULL
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
+#endif
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
 {
+#if NETFULL
     public class ProducerMethodMultipleDynamicShared
     {
         public void RunTestDynamic<TTransportInit>(string queueName,
@@ -60,7 +63,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             int runTime, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 var addInterceptorProducer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -163,4 +166,5 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             }
         }
     }
+#endif
 }

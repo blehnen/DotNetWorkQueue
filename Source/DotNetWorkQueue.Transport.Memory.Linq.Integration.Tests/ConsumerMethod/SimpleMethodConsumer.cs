@@ -22,7 +22,6 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
@@ -30,8 +29,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumer
     {
         [Theory]
+#if NETFULL
         [InlineData(100, 0, 30, 5, LinqMethodTypes.Dynamic),
         InlineData(10, 15, 60, 7, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(10, 15, 60, 7, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {
@@ -63,13 +66,14 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
                             }
+#if NETFULL
                             else
                             {
                                 producer.RunTestDynamic<MessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
                             }
-
+#endif
                             var consumer = new ConsumerMethodShared();
                             consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,

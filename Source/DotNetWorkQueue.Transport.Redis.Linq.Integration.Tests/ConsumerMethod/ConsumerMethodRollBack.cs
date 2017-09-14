@@ -32,8 +32,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     {
 
         [Theory]
-        [InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+#if NETFULL
+          [InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(10, 15, 180, 7, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(10, 15, 180, 7, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -56,13 +60,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, null);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, null);
                     }
-
+#endif
                     //process data
                     var consumer = new ConsumerMethodRollBackShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,

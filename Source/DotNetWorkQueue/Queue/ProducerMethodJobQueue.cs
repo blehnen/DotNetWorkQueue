@@ -74,12 +74,13 @@ namespace DotNetWorkQueue.Queue
         public ILog Logger { get; }
 
         /// <inheritdoc />
+#if NETFULL
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression)
         {
             if(!_started) throw new DotNetWorkQueueException("Start must be called before sending jobs");
             return await _sendJobToQueue.SendAsync(job, scheduledTime, linqExpression).ConfigureAwait(false);
         }
-
+#endif
         /// <inheritdoc />
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method,
@@ -92,7 +93,7 @@ namespace DotNetWorkQueue.Queue
         /// <inheritdoc />
         public QueueProducerConfiguration Configuration => _sendJobToQueue.Configuration;
 
-        #region IDisposable Support
+#region IDisposable Support
         private bool _disposedValue; // To detect redundant calls
 
         /// <summary>
@@ -127,7 +128,7 @@ namespace DotNetWorkQueue.Queue
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
-        #endregion
+#endregion
 
     }
 }

@@ -31,8 +31,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodHeartbeat
     {
         [Theory]
-        [InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+#if NETFULL
+         [InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
          InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+#else
+        [InlineData(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
@@ -54,13 +58,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, null);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, null);
                     }
-
+#endif
                     var consumer = new ConsumerMethodHeartBeatShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         logProvider,

@@ -62,10 +62,16 @@ namespace DotNetWorkQueue.Queue
                 return false;
             }
 
+            //we can only abort threads in the full framework
+#if NETFULL
             //abort the thread... :(
             workerThread.Abort();
             
             return true;
+#else
+            return false;
+#endif
+
         }
     }
 }

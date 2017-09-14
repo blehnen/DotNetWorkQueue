@@ -32,9 +32,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     {
         [Theory]
         [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled),
-        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Dynamic),
         InlineData(100, 0, 20, 5, false, LinqMethodTypes.Dynamic),
-        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Dynamic)]
+#endif
+        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -71,13 +73,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
                         }
-
+#endif
                         var consumer = new ConsumerMethodExpiredMessageShared();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,

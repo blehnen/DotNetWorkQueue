@@ -1,265 +1,46 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props" Condition="Exists('..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props')" />
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AC39352F-4B30-4D33-AC24-25829F3EFE4C}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DotNetWorkQueue.Tests</RootNamespace>
-    <AssemblyName>DotNetWorkQueue.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>netcoreapp2.0;net452</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net452|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.0|AnyCPU'">
+    <DefineConstants>NETSTANDARD2_0;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
+    <DefineConstants>NETFULL</DefineConstants>
+  </PropertyGroup>
+  
   <ItemGroup>
-    <Reference Include="FluentAssertions, Version=4.19.4.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentAssertions.4.19.4\lib\net45\FluentAssertions.dll</HintPath>
-    </Reference>
-    <Reference Include="FluentAssertions.Core, Version=4.19.4.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentAssertions.4.19.4\lib\net45\FluentAssertions.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="NSubstitute, Version=2.0.3.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca, processorArchitecture=MSIL">
-      <HintPath>..\packages\NSubstitute.2.0.3\lib\net45\NSubstitute.dll</HintPath>
-    </Reference>
-    <Reference Include="Ploeh.AutoFixture, Version=3.50.0.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoFixture.3.50.6\lib\net40\Ploeh.AutoFixture.dll</HintPath>
-    </Reference>
-    <Reference Include="Ploeh.AutoFixture.AutoNSubstitute, Version=3.50.0.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoFixture.AutoNSubstitute.3.50.6\lib\net40\Ploeh.AutoFixture.AutoNSubstitute.dll</HintPath>
-    </Reference>
-    <Reference Include="Ploeh.AutoFixture.Xunit2, Version=3.50.0.0, Culture=neutral, PublicKeyToken=b24654c590009d4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoFixture.Xunit2.3.50.6\lib\net45\Ploeh.AutoFixture.Xunit2.dll</HintPath>
-    </Reference>
-    <Reference Include="SimpleInjector, Version=4.0.8.0, Culture=neutral, PublicKeyToken=984cb50dea722e99, processorArchitecture=MSIL">
-      <HintPath>..\packages\SimpleInjector.4.0.8\lib\net45\SimpleInjector.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
+    <PackageReference Include="AutoFixture" Version="3.50.6" />
+    <PackageReference Include="AutoFixture.AutoNSubstitute" Version="3.50.6" />
+    <PackageReference Include="AutoFixture.Xunit2" Version="3.50.6" />
+    <PackageReference Include="FluentAssertions" Version="5.0.0-beta0001" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="NSubstitute" Version="2.0.3" />
+    <PackageReference Include="xunit" Version="2.3.0-beta5-build3769" />
+    <PackageReference Include="xunit.MSBuild" Version="2.0.0" />
+    <PackageReference Include="xunit.runner.console" Version="2.3.0-beta5-build3769" />
+    <PackageReference Include="xunit.runner.msbuild" Version="2.3.0-beta5-build3769" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0-beta5-build3769" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="xunit.assert, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.assert.2.1.0\lib\dotnet\xunit.assert.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.core, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.extensibility.core.2.1.0\lib\dotnet\xunit.core.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.execution.desktop, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.extensibility.execution.2.1.0\lib\net45\xunit.execution.desktop.dll</HintPath>
-    </Reference>
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\SharedAssemblyInfo.cs">
-      <Link>SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="Configuration\BaseConnectionInformationTests.cs" />
-    <Compile Include="Configuration\HeartBeatConfigurationTests.cs" />
-    <Compile Include="Configuration\HeartBeatThreadPoolConfigurationTests.cs" />
-    <Compile Include="Configuration\MessageExpirationConfigurationTests.cs" />
-    <Compile Include="Configuration\QueueConfigurationReceiveTests.cs" />
-    <Compile Include="Configuration\QueueConfigurationRPCTests.cs" />
-    <Compile Include="Configuration\QueueConfigurationSendTests.cs" />
-    <Compile Include="Configuration\QueueConsumerConfigurationTests.cs" />
-    <Compile Include="Configuration\QueueDelayTests.cs" />
-    <Compile Include="Configuration\QueueProducerConfigurationTests.cs" />
-    <Compile Include="Configuration\QueueRpcConfigurationTests.cs" />
-    <Compile Include="Configuration\RetryDelayTests.cs" />
-    <Compile Include="Configuration\TaskSchedulerConfigurationTests.cs" />
-    <Compile Include="Configuration\TransportConfigurationReceiveTests.cs" />
-    <Compile Include="Configuration\TransportConfigurationSendTests.cs" />
-    <Compile Include="Configuration\WorkerConfigurationTests.cs" />
-    <Compile Include="CreateQueueStatusTests.cs" />
-    <Compile Include="Exceptions\CommitExceptionTests.cs" />
-    <Compile Include="Exceptions\DotNetWorkQueueExceptionTests.cs" />
-    <Compile Include="Exceptions\InterceptorExceptionTests.cs" />
-    <Compile Include="Exceptions\MessageExceptionTests.cs" />
-    <Compile Include="Exceptions\PoisonMessageExceptionTests.cs" />
-    <Compile Include="Exceptions\ReceiveMessageExceptionTests.cs" />
-    <Compile Include="Exceptions\SerializationExceptionTests.cs" />
-    <Compile Include="Factory\GetTimeFactoryNoOpTests.cs" />
-    <Compile Include="Factory\HeartBeatWorkerFactoryTests.cs" />
-    <Compile Include="Factory\MessageContextDataFactoryTests.cs" />
-    <Compile Include="Factory\MessageContextFactoryTests.cs" />
-    <Compile Include="Factory\MessageFactoryTests.cs" />
-    <Compile Include="Factory\MessageProcessingFactoryTests.cs" />
-    <Compile Include="Factory\QueueDelayFactoryTests.cs" />
-    <Compile Include="Factory\QueueWaitFactoryTests.cs" />
-    <Compile Include="Factory\ReceivedMessageFactoryTests.cs" />
-    <Compile Include="Factory\ResponseIdFactoryTests.cs" />
-    <Compile Include="Factory\RetryDelayFactoryTests.cs" />
-    <Compile Include="Factory\RetryInformationFactoryTests.cs" />
-    <Compile Include="Factory\RpcContextFactoryTests.cs" />
-    <Compile Include="Factory\RpcTimeoutFactoryTests.cs" />
-    <Compile Include="Factory\SentMessageFactoryTests.cs" />
-    <Compile Include="Factory\WaitForEventOrCancelFactoryTests.cs" />
-    <Compile Include="Factory\WorkerFactoryTests.cs" />
-    <Compile Include="Factory\WorkerHeartBeatNotificationFactoryTests.cs" />
-    <Compile Include="Factory\WorkerNameFactoryTests.cs" />
-    <Compile Include="Factory\WorkerNotificationFactoryTests.cs" />
-    <Compile Include="Helpers.cs" />
-    <Compile Include="Interceptors\GzipInterceptorTest.cs" />
-    <Compile Include="Interceptors\InterceptionTest.cs" />
-    <Compile Include="Interceptors\TripleDESInterceptorTest.cs" />
-    <Compile Include="IoC\CreateContainerTest.cs" />
-    <Compile Include="Logging\ColoredConsoleLogProviderTests.cs" />
-    <Compile Include="Logging\LogFactoryTests.cs" />
-    <Compile Include="Logging\NullLoggerProviderTests.cs" />
-    <Compile Include="Messages\AdditionalMessageDataTests.cs" />
-    <Compile Include="Messages\AdditionalMetaDataTests.cs" />
-    <Compile Include="Messages\CustomHeadersTests.cs" />
-    <Compile Include="Messages\GenerateReceivedMessageTests.cs" />
-    <Compile Include="Messages\HeadersTests.cs" />
-    <Compile Include="Messages\MessageContextDataTests.cs" />
-    <Compile Include="Messages\MessageContextTests.cs" />
-    <Compile Include="Messages\MessageHandlerAsyncTests.cs" />
-    <Compile Include="Messages\MessageHandlerRegistrationAsyncTests.cs" />
-    <Compile Include="Messages\MessageHandlerRegistrationTests.cs" />
-    <Compile Include="Messages\MessageHandlerTests.cs" />
-    <Compile Include="Messages\MessageMethodHandlingTests.cs" />
-    <Compile Include="QueueCreationResultTests.cs" />
-    <Compile Include="QueueCreatorTests.cs" />
-    <Compile Include="QueueRemoveResultTests.cs" />
-    <Compile Include="QueueStatus\QueueInformationErrorTests.cs" />
-    <Compile Include="QueueStatus\QueueInformationTests.cs" />
-    <Compile Include="QueueStatus\QueueStatusHttpTests.cs" />
-    <Compile Include="QueueStatus\QueueStatusProviderErrorTests.cs" />
-    <Compile Include="QueueStatus\QueueStatusProviderNoOpTests.cs" />
-    <Compile Include="QueueStatus\QueueStatusTests.cs" />
-    <Compile Include="QueueStatus\SystemEntryTests.cs" />
-    <Compile Include="Queue\ConsumerMethodQueueTests.cs" />
-    <Compile Include="Queue\MessageErrorEventArgsTests.cs" />
-    <Compile Include="Queue\MessageProcessingRpcReceiveTests.cs" />
-    <Compile Include="Messages\MessageTests.cs" />
-    <Compile Include="Messages\ReceivedMessageInternalTests.cs" />
-    <Compile Include="Messages\ReceivedMessageTests.cs" />
-    <Compile Include="Messages\RegisterMessagesAsyncTests.cs" />
-    <Compile Include="Messages\RegisterMessagesTests.cs" />
-    <Compile Include="Messages\ResponseIdTests.cs" />
-    <Compile Include="Messages\RpcContextTests.cs" />
-    <Compile Include="Messages\RpcTimeoutTests.cs" />
-    <Compile Include="Messages\SentMessageTests.cs" />
-    <Compile Include="Messages\SettingTests.cs" />
-    <Compile Include="Messages\StandardHeadersTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Queue\AbortWorkerThreadTests.cs" />
-    <Compile Include="Queue\BaseMonitorTests.cs" />
-    <Compile Include="Queue\BaseQueueTests.cs" />
-    <Compile Include="Queue\ClearExpiredMessagesMonitorNoOpTests.cs" />
-    <Compile Include="Queue\ClearExpiredMessagesMonitorTests.cs" />
-    <Compile Include="Queue\ClearExpiredMessagesRpcMonitorNoOpTests.cs" />
-    <Compile Include="Queue\ClearExpiredMessagesRpcMonitorTests.cs" />
-    <Compile Include="Queue\CommitMessageTests.cs" />
-    <Compile Include="Queue\ConsumerQueueAsyncTests.cs" />
-    <Compile Include="Queue\ConsumerQueueTests.cs" />
-    <Compile Include="Queue\HeartBeatMonitorNoOpTests.cs" />
-    <Compile Include="Queue\HeartBeatMonitorTests.cs" />
-    <Compile Include="Queue\HeartBeatStatusTests.cs" />
-    <Compile Include="Queue\HeartBeatWorkerNoOpTests.cs" />
-    <Compile Include="Queue\HeartBeatWorkerTests.cs" />
-    <Compile Include="Queue\MessageExceptionHandlerTests.cs" />
-    <Compile Include="Queue\MessageProcessingAsyncTests.cs" />
-    <Compile Include="Queue\MessageProcessingRpcSendTests.cs" />
-    <Compile Include="Queue\MessageProcessingTests.cs" />
-    <Compile Include="Queue\ProducerMethodQueueTests.cs" />
-    <Compile Include="Queue\ProducerQueueRpcTests.cs" />
-    <Compile Include="Queue\ProducerQueueTests.cs" />
-    <Compile Include="Queue\QueueCancelWorkTests.cs" />
-    <Compile Include="Queue\QueueMonitorTests.cs" />
-    <Compile Include="Queue\QueueWaitNoOpTests.cs" />
-    <Compile Include="Queue\QueueWaitTests.cs" />
-    <Compile Include="Queue\RpcMethodQueueTests.cs" />
-    <Compile Include="Queue\RpcQueueTests.cs" />
-    <Compile Include="Queue\StopWorkerTests.cs" />
-    <Compile Include="Queue\WaitForDelegateTests.cs" />
-    <Compile Include="Queue\WaitForEventOrCancelTests.cs" />
-    <Compile Include="Queue\WaitForThreadToFinishTests.cs" />
-    <Compile Include="Queue\WaitOnAsyncTaskTests.cs" />
-    <Compile Include="Queue\WorkerCollectionTests.cs" />
-    <Compile Include="Queue\WorkerErrorEventArgsTests.cs" />
-    <Compile Include="Queue\WorkerHeartBeatNotificationNoOpTests.cs" />
-    <Compile Include="Queue\WorkerHeartBeatNotificationTests.cs" />
-    <Compile Include="Queue\WorkerNotificationTests.cs" />
-    <Compile Include="Queue\WorkerTests.cs" />
-    <Compile Include="Queue\WorkerWaitForEventOrCancelTests.cs" />
-    <Compile Include="SchedulerCreatorTests.cs" />
-    <Compile Include="Serialization\JsonExpressionSerializerTests.cs" />
-    <Compile Include="Serialization\JsonSerializerInternalTests.cs" />
-    <Compile Include="Serialization\JsonSerializerTests.cs" />
-    <Compile Include="TaskScheduling\MessageHandlerTests.cs" />
-    <Compile Include="TaskScheduling\SchedulerInitTests.cs" />
-    <Compile Include="TaskScheduling\SchedulerMethodTests.cs" />
-    <Compile Include="TaskScheduling\SchedulerTaskFactoryTests.cs" />
-    <Compile Include="TaskScheduling\SchedulerTests.cs" />
-    <Compile Include="TaskScheduling\SmartThreadPoolTaskSchedulerTests.cs" />
-    <Compile Include="TaskScheduling\StateInformationTests.cs" />
-    <Compile Include="TaskScheduling\ThreadPoolConfigurationTests.cs" />
-    <Compile Include="TaskScheduling\WaitForEventOrCancelThreadPoolTests.cs" />
-    <Compile Include="TaskScheduling\WorkGroupTests.cs" />
-    <Compile Include="TaskScheduling\WorkGroupWithItemTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
-      <Link>DotNetWorkQueue.licenseheader</Link>
-    </None>
-    <None Include="app.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj">
-      <Project>{26e740da-e63d-497a-bf5b-fbbf28c8846f}</Project>
-      <Name>DotNetWorkQueue</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+ 
 </Project>

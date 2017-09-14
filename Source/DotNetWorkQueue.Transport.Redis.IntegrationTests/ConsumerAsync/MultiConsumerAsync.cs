@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
            int messageType, ITaskFactory factory, ConnectionInfoTypes type)
         {
             var queue = new SimpleConsumerAsync();
-            queue.Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, factory, type);
+            queue.RunWithFactory(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, factory, type);
         }
     }
 }

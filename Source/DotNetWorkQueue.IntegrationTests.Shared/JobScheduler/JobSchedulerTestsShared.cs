@@ -65,6 +65,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                 );
         }
 
+#if NETFULL
         public void RunEnqueueTestDynamic<TTransportInit, TJobQueueCreator>(string queueName,
             string connectionString,
             bool addInterceptors,
@@ -102,6 +103,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                 }
             }
         }
+#endif
 
         public
             void RunTestMultipleProducers<TTransportInit, TJobQueueCreator>(string queueName,

@@ -31,10 +31,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodErrorTable
     {
         [Theory]
-        [InlineData(100, 60, 20, false, LinqMethodTypes.Dynamic),
+        [InlineData(100, 60, 20, true, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(100, 60, 20, false, LinqMethodTypes.Dynamic),
          InlineData(100, 60, 20, true, LinqMethodTypes.Dynamic),
          InlineData(10, 40, 5, true, LinqMethodTypes.Dynamic),
-         InlineData(100, 60, 20, true, LinqMethodTypes.Compiled),
+#endif
          InlineData(10, 40, 5, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
@@ -71,13 +73,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope);
                         }
-
+#endif
                         //process data
                         var consumer = new ConsumerMethodErrorShared();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
            int messageType, bool inMemoryDb, ITaskFactory factory)
         {
             var queue = new SimpleConsumerAsync();
-            queue.Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, inMemoryDb, factory);
+            queue.RunWithFactory(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, inMemoryDb, factory);
         }
     }
 }

@@ -21,60 +21,25 @@ using System;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="DotNetWorkQueue.IQueueStatusProvider" />
+    /// <inheritdoc />
     public class QueueStatusProvider : IQueueStatusProvider
     {
-        /// <summary>
-        /// Gets the name.
-        /// </summary>
-        /// <value>
-        /// The name.
-        /// </value>
-        /// <exception cref="NotImplementedException"></exception>
-        public string Name => throw new NotImplementedException();
+        /// <inheritdoc />
+        public string Name => string.Empty;
 
-        /// <summary>
-        /// Gets the server.
-        /// </summary>
-        /// <value>
-        /// The server.
-        /// </value>
-        /// <exception cref="NotImplementedException"></exception>
-        public string Server => throw new NotImplementedException();
+        /// <inheritdoc />
+        public string Server => string.Empty;
 
-        /// <summary>
-        /// Gets the last error that occurred, if any.
-        /// </summary>
-        /// <value>
-        /// The error.
-        /// </value>
-        /// <exception cref="NotImplementedException"></exception>
-        public Exception Error => throw new NotImplementedException();
+        // <inheritdoc />
+        public Exception Error => null;
 
-        /// <summary>
-        /// Gets the current queue status / information
-        /// </summary>
-        /// <value>
-        /// The current queue information
-        /// </value>
-        /// <exception cref="NotImplementedException"></exception>
-        public IQueueInformation Current => throw new NotImplementedException();
+        // <inheritdoc />
+        public IQueueInformation Current => null;
 
-        /// <summary>
-        /// Handles custom URL paths
-        /// </summary>
-        /// <param name="path">The path.</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        /// <remarks>
-        /// Optional. Return null to indicate that this path is not handled by this provider. Otherwise, return any serializable object
-        /// </remarks>
+        // <inheritdoc />
         public object HandlePath(string path)
         {
-            throw new NotImplementedException();
+            return null;
         }
     }
 }

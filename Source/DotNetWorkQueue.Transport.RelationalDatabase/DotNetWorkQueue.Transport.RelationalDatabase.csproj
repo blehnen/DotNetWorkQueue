@@ -1,214 +1,27 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B5C21F35-5F81-438C-B27F-A32C0C730581}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DotNetWorkQueue.Transport.RelationalDatabase</RootNamespace>
-    <AssemblyName>DotNetWorkQueue.Transport.RelationalDatabase</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Debug\DotNetWorkQueue.Transport.RelationalDatabase.xml</DocumentationFile>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Release\DotNetWorkQueue.Transport.RelationalDatabase.xml</DocumentationFile>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net452|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <DefineConstants>NETSTANDARD2_0;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
+    <DefineConstants>NETFULL</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\SharedAssemblyInfo.cs">
-      <Link>SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="Basic\CommandHandler\CreateJobTablesCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\CreateQueueTablesAndSaveConfigurationCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\DeleteMessageCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\DeleteMetaDataCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\DeleteQueueTablesCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\DeleteStatusTableStatusCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\DeleteTransactionalMessageCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\MoveRecordToErrorQueueCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\ResetHeartBeatCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SendHeartBeatCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SetErrorCountCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SetStatusTableStatusCommandHandler.cs" />
-    <Compile Include="Basic\CommandHandler\SetStatusTableStatusTransactionCommandHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\CreateJobTablesCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\CreateQueueTablesAndSaveConfigurationCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\DeleteMessageCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\DeleteMetaDataCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\DeleteStatusTableStatusCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\DeleteTableCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\MoveRecordToErrorQueueCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\SendHeartBeatCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\SetStatusTableStatusTransactionCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\ResetHeartBeatCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\SaveQueueConfigurationCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\SetErrorCountCommandPrepareHandler.cs" />
-    <Compile Include="Basic\CommandPrepareHandler\SetStatusTableStatusCommandPrepareHandler.cs" />
-    <Compile Include="Basic\Command\CreateJobTablesCommand.cs" />
-    <Compile Include="Basic\Command\CreateQueueTablesAndSaveConfigurationCommand.cs" />
-    <Compile Include="Basic\Command\DeleteMessageCommand.cs" />
-    <Compile Include="Basic\Command\DeleteMetaDataCommand.cs" />
-    <Compile Include="Basic\Command\DeleteQueueTablesCommand.cs" />
-    <Compile Include="Basic\Command\DeleteStatusTableStatusCommand.cs" />
-    <Compile Include="Basic\Command\DeleteTableCommand.cs" />
-    <Compile Include="Basic\Command\DeleteTransactionalMessageCommand.cs" />
-    <Compile Include="Basic\Command\MoveRecordToErrorQueueCommand.cs" />
-    <Compile Include="Basic\Command\ResetHeartBeatCommand.cs" />
-    <Compile Include="Basic\Command\RollbackMessageCommand.cs" />
-    <Compile Include="Basic\Command\SaveQueueConfigurationCommand.cs" />
-    <Compile Include="Basic\Command\SendHeartBeatCommand.cs" />
-    <Compile Include="Basic\Command\SendMessageCommand.cs" />
-    <Compile Include="Basic\Command\SetErrorCountCommand.cs" />
-    <Compile Include="Basic\Command\SetJobLastKnownEventCommand.cs" />
-    <Compile Include="Basic\Command\SetStatusTableStatusCommand.cs" />
-    <Compile Include="Basic\Command\SetStatusTableStatusTransactionCommand.cs" />
-    <Compile Include="Basic\ConnectionHeader.cs" />
-    <Compile Include="Basic\CorrelationIdFactory.cs" />
-    <Compile Include="Basic\CreateJobMetaData.cs" />
-    <Compile Include="Basic\DefaultQueueDelay.cs" />
-    <Compile Include="Basic\ExceptionDelay.cs" />
-    <Compile Include="Basic\Factory\ReceiveMessagesFactory.cs" />
-    <Compile Include="Basic\GetColumnsFromTable.cs" />
-    <Compile Include="Basic\IncreaseQueueDelay.cs" />
-    <Compile Include="Basic\MessageQueueInit.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\DoesJobExistQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\FindExpiredRecordsToDeleteQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\FindRecordsToResetByHeartBeatQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetColumnNamesFromTableQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetErrorCountQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetErrorRecordExistsQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetErrorRetryCountQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetJobIdQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetJobLastKnownEventQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetPendingCountQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetPendingDelayedCountQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetPendingExcludeDelayCountQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetQueueOptionsQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetTableExistsQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetTableExistsTransactionQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetUtcDateQueryPrepareHandler.cs" />
-    <Compile Include="Basic\QueryPrepareHandler\GetWorkingCountQueryPrepareHandler.cs" />
-    <Compile Include="Basic\ThreadSafeRandom.cs" />
-    <Compile Include="IBuildMoveToErrorQueueSql.cs" />
-    <Compile Include="IConnectionHeader.cs" />
-    <Compile Include="IConnectionHolder.cs" />
-    <Compile Include="IConnectionHolderFactory.cs" />
-    <Compile Include="IGetColumnsFromTable.cs" />
-    <Compile Include="IPrepareCommandHandlerWithOutput.cs" />
-    <Compile Include="IPrepareQueryHandler.cs" />
-    <Compile Include="Basic\MessageExpiration.cs" />
-    <Compile Include="Basic\CommandStringCache.cs" />
-    <Compile Include="Basic\QueryHandler\DoesJobExistQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\FindExpiredRecordsToDeleteQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\FindRecordsToResetByHeartBeatQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetColumnNamesFromTableQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetErrorRecordExistsQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetJobLastKnownEventQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetQueueOptionsQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetTableExistsQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetTableExistsTransactionQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetUTCDateQueryHandler.cs" />
-    <Compile Include="Basic\Query\GetTableExistsTransactionQuery.cs" />
-    <Compile Include="Basic\ReadColumn.cs" />
-    <Compile Include="Basic\ReceiveErrorMessage.cs" />
-    <Compile Include="Basic\QueueStatusQueries.cs" />
-    <Compile Include="Basic\QueueStatusProvider.cs" />
-    <Compile Include="Basic\QueryHandler\GetErrorCountQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetErrorRetryCountQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetJobIdQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetPendingCountQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetPendingDelayedCountQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetPendingExcludeDelayCountQueryHandler.cs" />
-    <Compile Include="Basic\QueryHandler\GetWorkingCountQueryHandler.cs" />
-    <Compile Include="Basic\Query\DoesJobExistQuery.cs" />
-    <Compile Include="Basic\Query\FindExpiredMessagesToDeleteQuery.cs" />
-    <Compile Include="Basic\Query\FindMessagesToResetByHeartBeatQuery.cs" />
-    <Compile Include="Basic\Query\GetColumnNamesFromTableQuery.cs" />
-    <Compile Include="Basic\Query\GetErrorCountQuery.cs" />
-    <Compile Include="Basic\Query\GetErrorRecordExistsQuery.cs" />
-    <Compile Include="Basic\Query\GetErrorRetryCountQuery.cs" />
-    <Compile Include="Basic\Query\GetJobIDQuery.cs" />
-    <Compile Include="Basic\Query\GetJobLastKnownEventQuery.cs" />
-    <Compile Include="Basic\Query\GetPendingCountQuery.cs" />
-    <Compile Include="Basic\Query\GetPendingDelayedCountQuery.cs" />
-    <Compile Include="Basic\Query\GetPendingExcludeDelayCountQuery.cs" />
-    <Compile Include="Basic\Query\GetQueueOptionsQuery.cs" />
-    <Compile Include="Basic\Query\GetTableExistsQuery.cs" />
-    <Compile Include="Basic\Query\GetUTCDateQuery.cs" />
-    <Compile Include="Basic\Query\GetWorkingCountQuery.cs" />
-    <Compile Include="Basic\Query\MessageToReset.cs" />
-    <Compile Include="Basic\Query\ReceiveMessageQuery.cs" />
-    <Compile Include="Basic\Query\ReceiveMessageQueryAsync.cs" />
-    <Compile Include="Basic\MessageQueueID.cs" />
-    <Compile Include="Basic\MessageCorrelationId.cs" />
-    <Compile Include="Basic\SendHeartBeat.cs" />
-    <Compile Include="Basic\ResetHeartBeat.cs" />
-    <Compile Include="Basic\ClearExpiredMessages.cs" />
-    <Compile Include="Basic\ReceivePoisonMessage.cs" />
-    <Compile Include="Basic\SendMessages.cs" />
-    <Compile Include="Basic\JobTableCreation.cs" />
-    <Compile Include="Basic\TableNameHelper.cs" />
-    <Compile Include="Basic\TransactionFactory.cs" />
-    <Compile Include="Basic\TransactionWrapper.cs" />
-    <Compile Include="ICommandHandler.cs" />
-    <Compile Include="ICommandHandlerWithOutput.cs" />
-    <Compile Include="ICommandHandlerWithOutputAsync.cs" />
-    <Compile Include="IDbConnectionFactory.cs" />
-    <Compile Include="IJobSchema.cs" />
-    <Compile Include="IOptionsSerialization.cs" />
-    <Compile Include="IPrepareCommandHandler.cs" />
-    <Compile Include="IQuery.cs" />
-    <Compile Include="IQueryHandler.cs" />
-    <Compile Include="IReadColumn.cs" />
-    <Compile Include="ITransactionWrapper.cs" />
-    <Compile Include="ITransactionFactory.cs" />
-    <Compile Include="ITable.cs" />
-    <Compile Include="ITransportOptions.cs" />
-    <Compile Include="ITransportOptionsFactory.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj">
-      <Project>{26e740da-e63d-497a-bf5b-fbbf28c8846f}</Project>
-      <Name>DotNetWorkQueue</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
-      <Link>DotNetWorkQueue.licenseheader</Link>
-    </None>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

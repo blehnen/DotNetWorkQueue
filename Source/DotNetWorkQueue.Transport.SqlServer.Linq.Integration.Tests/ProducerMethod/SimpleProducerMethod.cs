@@ -31,7 +31,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
     public class SimpleProducerMethod
     {
         [Theory]
-        [InlineData(1000, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic),
+        [InlineData(1000, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(1000, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic),
          InlineData(1000, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic),
          InlineData(1000, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic),
          InlineData(1000, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic),
@@ -40,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
          InlineData(1000, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Dynamic),
          InlineData(1000, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Dynamic),
          InlineData(1000, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Dynamic),
-            InlineData(1000, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled),
+#endif
          InlineData(1000, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled),
          InlineData(1000, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled),
          InlineData(1000, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled),
@@ -103,6 +105,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                             Helpers.GenerateData,
                             Helpers.Verify, false, Guid.NewGuid(), GenerateMethod.CreateCompiled, 0, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
@@ -110,6 +113,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                             Helpers.GenerateData,
                             Helpers.Verify, false, Guid.NewGuid(), GenerateMethod.CreateDynamic, 0, oCreation.Scope);
                         }
+#endif
                     }
                 }
                 finally

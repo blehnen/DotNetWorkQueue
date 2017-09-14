@@ -20,7 +20,6 @@
 using System;
 using System.Threading;
 using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
@@ -71,7 +70,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route)
         {
 
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 var processedCount = new IncrementWrapper();
                 var addInterceptorConsumer = InterceptorAdding.No;

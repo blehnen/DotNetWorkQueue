@@ -100,6 +100,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 .Register<IPrepareCommandHandler<ResetHeartBeatCommand>,
                     ResetHeartBeatCommandPrepareHandler>(LifeStyles.Singleton);
 
+            //delete table - need lower case
+            container
+                .Register<IPrepareCommandHandler<DeleteTableCommand>,
+                    DeleteTableCommandPrepareHandler>(LifeStyles.Singleton);
+
             //explicit registration of our job exists query
             container
                 .Register<IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>,

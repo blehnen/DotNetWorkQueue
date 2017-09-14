@@ -20,7 +20,6 @@
 using System;
 using System.Threading;
 using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
@@ -45,7 +44,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             where TTransportInit : ITransportInit, new()
         {
 
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)

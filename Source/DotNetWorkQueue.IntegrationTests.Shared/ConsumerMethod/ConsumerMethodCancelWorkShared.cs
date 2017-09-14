@@ -19,8 +19,8 @@
 
 using System;
 using System.Threading;
+using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime)
         {
 
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)

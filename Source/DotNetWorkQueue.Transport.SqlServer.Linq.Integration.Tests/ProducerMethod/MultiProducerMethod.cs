@@ -34,8 +34,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
     public class MultiProducerMethod
     {
         [Theory]
+#if NETFULL
         [InlineData(LinqMethodTypes.Dynamic),
          InlineData(LinqMethodTypes.Compiled)]
+#else
+        [InlineData(LinqMethodTypes.Compiled)]
+#endif
         public void Run(LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -83,6 +87,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                 var producer = new ProducerMethodShared();
                 switch (linqMethodTypes)
                 {
+#if NETFULL
                     case LinqMethodTypes.Dynamic:
                         tasks.Add(
                             new Task(
@@ -92,6 +97,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
                                         GenerateMethod.CreateDynamic, runTime, null)));
                         break;
+#endif
                     case LinqMethodTypes.Compiled:
                         tasks.Add(
                             new Task(

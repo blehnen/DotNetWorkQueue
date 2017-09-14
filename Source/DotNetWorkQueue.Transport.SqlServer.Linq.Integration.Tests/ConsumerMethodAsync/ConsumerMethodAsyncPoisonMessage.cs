@@ -31,10 +31,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 30, 5, 1, 0, true, LinqMethodTypes.Dynamic),
-         InlineData(10, 30, 5, 1, 0, true, LinqMethodTypes.Compiled),
-         InlineData(50, 40, 20, 2, 2, false, LinqMethodTypes.Compiled)]
+        [InlineData(10, 30, 5, 1, 0, true, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Dynamic),
+        InlineData(10, 30, 5, 1, 0, true, LinqMethodTypes.Dynamic),
+#endif
+        InlineData(50, 40, 20, 2, 2, false, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
@@ -71,13 +73,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope);
                         }
-
+#endif
                         //process data
                         var consumer = new ConsumerMethodAsyncPoisonMessageShared();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

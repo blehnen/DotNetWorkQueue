@@ -132,7 +132,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
             }
         }
 
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, bool inMemoryDb, ITaskFactory factory, LinqMethodTypes linqMethodTypes)
         {
             Factory = factory;

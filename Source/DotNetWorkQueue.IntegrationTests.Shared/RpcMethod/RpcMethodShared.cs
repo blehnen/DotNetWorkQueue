@@ -25,9 +25,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
@@ -97,6 +97,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
                     SendMultipleMessages(queue, jobs);
                 }
                 break;
+#if NETFULL
                 case LinqMethodTypes.Dynamic:
                 {
                         var numberOfJobs = number;
@@ -105,9 +106,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
                         SendMultipleMessages(queue, jobs);
                     }
                 break;
+#endif
             }
         }
 
+#if NETFULL
         private static void SendMultipleMessages(IRpcMethodQueue queue,
             IEnumerable<LinqExpressionToRun> jobs)
         {
@@ -138,6 +141,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
                 }
             });
         }
+#endif
 
         private static void SendMultipleMessages(IRpcMethodQueue queue,
            IEnumerable<Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>>> jobs)
@@ -182,6 +186,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
                         await SendMultipleMessagesAsync(queue, jobs).ConfigureAwait(false);
                     }
                     break;
+#if NETFULL
                 case LinqMethodTypes.Dynamic:
                     {
                         var numberOfJobs = number;
@@ -190,6 +195,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
                         await SendMultipleMessagesAsync(queue, jobs).ConfigureAwait(false);
                     }
                     break;
+#endif
             }
         }
 
@@ -225,6 +231,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
             });
         }
 
+#if NETFULL
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private static async Task SendMultipleMessagesAsync(IRpcMethodQueue queue, IEnumerable<LinqExpressionToRun> jobs)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -256,6 +263,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
                 }
             });
         }
+#endif
 
         private void RunRpcReceive(string queueName, string connectionString,
             ILogProvider logProvider,
@@ -265,7 +273,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.RpcMethod
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, Guid id)
         {
 
-            using (var metrics = new Metrics.Net.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueName))
             {
                 using (
                     var creator = SharedSetup.CreateCreator<TTransportInit>(InterceptorAdding.Yes, logProvider, metrics)

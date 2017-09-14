@@ -31,8 +31,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+#if NETFULL
+         [InlineData(1, 20, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(1, 20, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(1, 20, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int timeOut, 
             int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
@@ -55,13 +59,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, null);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, null);
                     }
-
+#endif
                     //process data
                     var consumer = new ConsumerMethodPoisonMessageShared();
 

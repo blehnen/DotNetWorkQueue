@@ -31,9 +31,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodErrorTable
     {
         [Theory]
-        [InlineData(1, 10, 1, false, LinqMethodTypes.Dynamic),
-         InlineData(100, 60, 20, true, LinqMethodTypes.Dynamic),
-         InlineData(100, 60, 20, true, LinqMethodTypes.Compiled),
+        [InlineData(100, 60, 20, true, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(1, 10, 1, false, LinqMethodTypes.Dynamic),
+        InlineData(100, 60, 20, true, LinqMethodTypes.Dynamic),
+#endif
          InlineData(10, 40, 5, false, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
@@ -70,13 +72,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope);
                         }
-
+#endif
                         //process data
                         var consumer = new ConsumerMethodErrorShared();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

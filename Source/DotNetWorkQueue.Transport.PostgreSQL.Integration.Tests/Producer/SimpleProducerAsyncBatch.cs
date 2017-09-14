@@ -29,14 +29,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
     public class SimpleProducerAsyncBatch
     {
         [Theory]
-        [InlineData(1000, true, true, true, false, false, false, true, false, false),
-         InlineData(1000, false, true, true, false, false, false, true, false, false),
-         InlineData(1000, false, false, false, false, false, false, false, false, false),
-         InlineData(1000, true, false, false, false, false, false, false, false, false),
-         InlineData(1000, false, false, false, false, false, false, false, true, false),
-         InlineData(1000, false, false, false, false, false, false, true, true, false),
-         InlineData(1000, false, true, false, true, true, true, false, true, false),
-         InlineData(1000, false, true, true, false, true, true, true, true, false),
+        [InlineData(500, true, true, true, false, false, false, true, false, false),
+         InlineData(500, false, true, true, false, false, false, true, false, false),
+         InlineData(500, false, false, false, false, false, false, false, false, false),
+         InlineData(500, true, false, false, false, false, false, false, false, false),
+         InlineData(500, false, false, false, false, false, false, false, true, false),
+         InlineData(500, false, false, false, false, false, false, true, true, false),
+         InlineData(500, false, true, false, true, true, true, false, true, false),
+         InlineData(500, false, true, true, false, true, true, true, true, false),
             InlineData(1000, true, true, true, false, false, false, true, false, true)]
         public async void Run(
             int messageCount,

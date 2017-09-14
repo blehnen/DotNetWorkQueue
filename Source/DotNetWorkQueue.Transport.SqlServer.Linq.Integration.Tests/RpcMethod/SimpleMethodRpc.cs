@@ -31,10 +31,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.RpcMethod
     public class SimpleMethodRpc
     {
         [Theory]
-        [InlineData(50, 1, 200, 3, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 1, 180, 3, true, LinqMethodTypes.Dynamic),
-         InlineData(10, 1, 180, 3, true, LinqMethodTypes.Compiled),
-         InlineData(30, 0, 240, 3, false, LinqMethodTypes.Compiled)]
+        [InlineData(10, 1, 180, 3, true, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(50, 1, 200, 3, false, LinqMethodTypes.Dynamic),
+        InlineData(10, 1, 180, 3, true, LinqMethodTypes.Dynamic),
+#endif
+        InlineData(10, 1, 180, 3, false, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool async, LinqMethodTypes linqMethodTypes)
         {
             var queueNameSend = GenerateQueueName.Create();

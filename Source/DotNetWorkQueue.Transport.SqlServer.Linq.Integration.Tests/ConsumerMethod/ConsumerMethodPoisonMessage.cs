@@ -31,9 +31,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, false, LinqMethodTypes.Dynamic),
+        [InlineData(1, 20, 1, true, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(1, 20, 1, false, LinqMethodTypes.Dynamic),
          InlineData(10, 30, 5, true, LinqMethodTypes.Dynamic),
-         InlineData(1, 20, 1, true, LinqMethodTypes.Compiled),
+#endif
          InlineData(10, 30, 5, false, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
         {
@@ -69,13 +71,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope);
                         }
-
+#endif
                         //process data
                         var consumer = new ConsumerMethodPoisonMessageShared();
 

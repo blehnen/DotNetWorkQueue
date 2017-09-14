@@ -33,20 +33,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetWorkQueue, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.dll</HintPath>
+    <Reference Include="DotNetWorkQueue">
+      <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetWorkQueue.Metrics.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Metrics.Net.dll</HintPath>
+    <Reference Include="DotNetWorkQueue.Metrics.Net">
+      <HintPath>..\..\..\..\DotNetWorkQueue.Metrics.Net\bin\Debug\net452\DotNetWorkQueue.Metrics.Net.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.RelationalDatabase">
-      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.RelationalDatabase\bin\Debug\net452\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetWorkQueue.Transport.SqlServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\MergedBuild\DotNetWorkQueue.Transport.SqlServer.dll</HintPath>
+    <Reference Include="DotNetWorkQueue.Transport.SqlServer">
+      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.SqlServer\bin\Debug\net452\DotNetWorkQueue.Transport.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />

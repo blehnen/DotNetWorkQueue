@@ -19,7 +19,7 @@
 
 using System;
 using System.Linq;
-using System.Runtime.Caching;
+using CacheManager.Core;
 using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
@@ -100,7 +100,14 @@ namespace DotNetWorkQueue.IoC
             RegisterSharedDefaults(container);
 
             //object cache
-            container.Register<ObjectCache>(() => new MemoryCache("DotNetWorkQueueCache"), LifeStyles.Singleton);
+            container.Register(() => CacheFactory.Build("DotNetWorkQueueCache", settings =>
+            {
+#if NETFULL
+                settings.WithSystemRuntimeCacheHandle("LinqCache");
+#else
+                settings.WithMicrosoftMemoryCacheHandle("LinqCache");
+#endif
+            }), LifeStyles.Singleton);
 
             //object pool for linq 
             container.Register<IObjectPool<DynamicCodeCompiler>>(
@@ -275,15 +282,15 @@ namespace DotNetWorkQueue.IoC
 
         private static void RegisterSharedDefaults(IContainer container)
         {
-            #region Singletons
+#region Singletons
 
             container.Register<IContainerFactory, ContainerFactory>(LifeStyles.Singleton);
 
             //register the generic configuration container
             container.Register<IConfiguration, AdditionalConfiguration>(LifeStyles.Singleton);
-            #endregion
+#endregion
 
-            #region Logging
+#region Logging
 
 #if (DEBUG)
             container.Register<ILogProvider, ColoredConsoleLogProvider>(LifeStyles.Singleton);
@@ -292,7 +299,7 @@ namespace DotNetWorkQueue.IoC
 #endif
             container.Register<ILogFactory, LogFactory>(LifeStyles.Singleton);
 
-            #endregion
+#endregion
 
             container.Register<IQueueStatus, QueueStatusHttp>(LifeStyles.Singleton);
             container.Register<BaseTimeConfiguration>(LifeStyles.Singleton);

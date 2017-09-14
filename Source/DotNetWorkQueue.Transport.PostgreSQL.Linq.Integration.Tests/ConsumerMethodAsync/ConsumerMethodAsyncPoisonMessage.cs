@@ -31,9 +31,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Dynamic),
+        [InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Dynamic),
          InlineData(50, 40, 20, 2, 2, true, LinqMethodTypes.Dynamic),
-         InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Compiled),
+#endif
          InlineData(50, 40, 20, 2, 2, true, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes)
@@ -71,13 +73,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope);
                         }
-
+#endif
                         //process data
                         var consumer = new ConsumerMethodAsyncPoisonMessageShared();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

@@ -34,9 +34,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
 
         [Theory]
         [InlineData(100, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+#if NETFULL
          InlineData(100, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
+         InlineData(100, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+#endif
+         InlineData(10, 5, 180, 7, 1, 1, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
@@ -116,7 +118,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
             }
         }
 
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ITaskFactory factory, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             Factory = factory;

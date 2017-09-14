@@ -32,9 +32,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     {
         [Theory]
         [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-            InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
+#if NETFULL
+         InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+#endif
+         InlineData(10, 5, 180, 7, 1, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -56,12 +58,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, null);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, null);
                     }
+#endif
 
                     //process data
                     var consumer = new ConsumerMethodAsyncRollBackShared();

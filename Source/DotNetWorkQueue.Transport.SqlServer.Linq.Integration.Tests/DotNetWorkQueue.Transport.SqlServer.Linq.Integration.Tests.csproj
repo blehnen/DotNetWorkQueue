@@ -1,134 +1,49 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{965C9CB4-403F-4B66-BBFD-1901905BC2BB}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests</RootNamespace>
-    <AssemblyName>DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>netcoreapp2.0;net452</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net452|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.0|AnyCPU'">
+    <DefineConstants>NETSTANDARD2_0;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
+    <DefineConstants>NETFULL</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
+    <PackageReference Include="AutoFixture" Version="3.50.6" />
+    <PackageReference Include="AutoFixture.AutoNSubstitute" Version="3.50.6" />
+    <PackageReference Include="AutoFixture.Xunit2" Version="3.50.6" />
+    <PackageReference Include="FluentAssertions" Version="5.0.0-beta0001" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="NSubstitute" Version="2.0.3" />
+    <PackageReference Include="xunit" Version="2.3.0-beta5-build3769" />
+    <PackageReference Include="xunit.MSBuild" Version="2.0.0" />
+    <PackageReference Include="xunit.runner.console" Version="2.3.0-beta5-build3769" />
+    <PackageReference Include="xunit.runner.msbuild" Version="2.3.0-beta5-build3769" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0-beta5-build3769" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SqlServer.IntegrationTests\DotNetWorkQueue.Transport.SqlServer.IntegrationTests.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SqlServer\DotNetWorkQueue.Transport.SqlServer.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.assert, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.assert.2.1.0\lib\dotnet\xunit.assert.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.core, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.extensibility.core.2.1.0\lib\dotnet\xunit.core.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.execution.desktop, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.extensibility.execution.2.1.0\lib\net45\xunit.execution.desktop.dll</HintPath>
-    </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\SharedAssemblyInfo.cs">
-      <Link>SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="..\DotNetWorkQueue.Transport.SqlServer.IntegrationTests\ConnectionString.cs">
-      <Link>ConnectionString.cs</Link>
-    </Compile>
-    <Compile Include="..\DotNetWorkQueue.Transport.SqlServer.IntegrationTests\GenerateQueueName.cs">
-      <Link>GenerateQueueName.cs</Link>
-    </Compile>
-    <Compile Include="..\DotNetWorkQueue.Transport.SqlServer.IntegrationTests\SharedClasses.cs">
-      <Link>SharedClasses.cs</Link>
-    </Compile>
-    <Compile Include="..\DotNetWorkQueue.Transport.SqlServer.IntegrationTests\VerifyQueueData.cs">
-      <Link>VerifyQueueData.cs</Link>
-    </Compile>
-    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncErrorTable.cs" />
-    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncPoisonMessage.cs" />
-    <Compile Include="ConsumerMethodAsync\ConsumerMethodAsyncRollBack.cs" />
-    <Compile Include="ConsumerMethodAsync\SimpleConsumerMethodAsync.cs" />
-    <Compile Include="ConsumerMethod\ConsumerMethodCancelWork.cs" />
-    <Compile Include="ConsumerMethod\ConsumerMethodErrorTable.cs" />
-    <Compile Include="ConsumerMethod\ConsumerMethodExpiredMessage.cs" />
-    <Compile Include="ConsumerMethod\ConsumerMethodHeartbeat.cs" />
-    <Compile Include="ConsumerMethod\ConsumerMethodMultipleDynamic.cs" />
-    <Compile Include="ConsumerMethod\ConsumerMethodPoisonMessage.cs" />
-    <Compile Include="ConsumerMethod\ConsumerMethodRollBack.cs" />
-    <Compile Include="ConsumerMethod\SimpleMethodConsumer.cs" />
-    <Compile Include="JobScheduler\JobSchedulerMultipleTests.cs" />
-    <Compile Include="JobScheduler\JobSchedulerTests.cs" />
-    <Compile Include="ProducerMethod\MultiProducerMethod.cs" />
-    <Compile Include="ProducerMethod\SimpleProducerMethod.cs" />
-    <Compile Include="ProducerMethod\SimpleProducerMethodAsync.cs" />
-    <Compile Include="ProducerMethod\SimpleProducerMethodAsyncBatch.cs" />
-    <Compile Include="ProducerMethod\SimpleProducerMethodBatch.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RpcMethod\SimpleMethodRpc.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj">
-      <Project>{3c5a2726-36c2-41fa-8840-91d2fd74f872}</Project>
-      <Name>DotNetWorkQueue.IntegrationTests.Shared</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj">
-      <Project>{b5c21f35-5f81-438c-b27f-a32c0c730581}</Project>
-      <Name>DotNetWorkQueue.Transport.RelationalDatabase</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DotNetWorkQueue.Transport.SqlServer\DotNetWorkQueue.Transport.SqlServer.csproj">
-      <Project>{4e0c6f9d-0b43-4989-be8b-93174a42636a}</Project>
-      <Name>DotNetWorkQueue.Transport.SqlServer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj">
-      <Project>{26e740da-e63d-497a-bf5b-fbbf28c8846f}</Project>
-      <Name>DotNetWorkQueue</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader">
-      <Link>DotNetWorkQueue.licenseheader</Link>
-    </None>
-    <None Include="app.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

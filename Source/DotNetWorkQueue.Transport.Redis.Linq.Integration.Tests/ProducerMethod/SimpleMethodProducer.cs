@@ -30,55 +30,52 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducer
     {
         [Theory]
-        [InlineData(1000, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(5000, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(5000, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(5000, true, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(5000, false, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, true, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, true, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, false, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, false, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1000, true, true, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1000, false, true, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-
-         InlineData(1000, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(5000, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(5000, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(1000, true, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(5000, true, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(5000, false, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(1000, true, true, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(1000, false, true, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(1000, true, false, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(1000, true, false, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(1000, false, false, false, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(1000, true, true, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(1000, false, true, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+        [InlineData(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, true, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(100, false, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(500, true, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(500, false, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(100, true, true, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(100, false, true, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(100, true, false, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(100, false, false, false, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(100, true, false, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(100, true, true, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+         InlineData(100, false, true, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+#endif
+         InlineData(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         InlineData(100, true, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(100, false, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(500, true, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(500, false, false, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(100, true, true, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(100, false, true, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(100, true, false, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(100, false, false, false, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(100, true, false, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(100, true, true, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
+         InlineData(100, false, true, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
         public void Run(
             int messageCount,
             bool interceptors,
@@ -110,6 +107,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                                 Helpers.GenerateDelayExpiredData,
                                 Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<RedisQueueInit>(queueName,
@@ -117,6 +115,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                                Helpers.GenerateDelayExpiredData,
                                Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null);
                         }
+#endif
                     }
                     else if (enableDelay)
                     {
@@ -126,12 +125,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                                 connectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
                                 Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<RedisQueueInit>(queueName,
                                connectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
                                Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null);
                         }
+#endif
                     }
                     else if (enableExpiration)
                     {
@@ -141,12 +142,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                                 connectionString, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
                                 Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<RedisQueueInit>(queueName,
                                connectionString, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
                                Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null);
                         }
+#endif
                     }
                     else
                     {
@@ -156,12 +159,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                                 connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null);
                         }
+#if NETFULL
                         else
                         {
                             producer.RunTestDynamic<RedisQueueInit>(queueName,
                                connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
                                Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null);
                         }
+#endif
                     }
                 }
                 finally

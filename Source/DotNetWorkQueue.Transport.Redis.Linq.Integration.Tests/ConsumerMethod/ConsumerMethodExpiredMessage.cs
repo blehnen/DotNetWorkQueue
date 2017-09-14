@@ -32,8 +32,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-        InlineData(1000, 0, 120, 5, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
+#if NETFULL
+         [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+        InlineData(100, 0, 120, 5, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic)]
+#else
+        [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
@@ -55,13 +59,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                             connectionString, false, messageCount, logProvider, Helpers.GenerateExpiredData,
                             Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, null);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                            connectionString, false, messageCount, logProvider, Helpers.GenerateExpiredData,
                            Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, null);
                     }
-
+#endif
                     Thread.Sleep(2000);
 
                     var consumer = new ConsumerMethodExpiredMessageShared();

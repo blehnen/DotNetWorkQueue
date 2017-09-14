@@ -30,9 +30,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
     {
         [Theory]
         [InlineData(false, ConnectionInfoTypes.Linux),
+#if NETFULL
          InlineData(true, ConnectionInfoTypes.Linux),
-         InlineData(false, ConnectionInfoTypes.Windows),
-         InlineData(true, ConnectionInfoTypes.Windows)]
+         InlineData(true, ConnectionInfoTypes.Windows),
+#endif
+         InlineData(false, ConnectionInfoTypes.Windows)]
         public void Run(
             bool dynamic,
             ConnectionInfoTypes type)
@@ -51,12 +53,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                             connectionString, true,
                             Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null, LoggerShared.Create(queueName, GetType().Name));
                     }
+#if NETFULL
                     else
                     {
                         tests.RunEnqueueTestDynamic<RedisQueueInit, RedisJobQueueCreation>(queueName,
                             connectionString, true,
                             Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null, LoggerShared.Create(queueName, GetType().Name));
                     }
+#endif
                 }
                 finally
                 {

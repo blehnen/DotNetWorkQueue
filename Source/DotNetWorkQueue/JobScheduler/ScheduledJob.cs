@@ -205,7 +205,11 @@ namespace DotNetWorkQueue.JobScheduler
                 {
                     try
                     {
+#if NETFULL
                         var result = _expressionToRun != null ? await _queue.SendAsync(this, eventTime, _expressionToRun).ConfigureAwait(false) : await _queue.SendAsync(this, eventTime, _actionToRun, RawExpression).ConfigureAwait(false);
+#else
+                        var result = await _queue.SendAsync(this, eventTime, _actionToRun, RawExpression).ConfigureAwait(false);
+#endif
                         if (result.Status == JobQueuedStatus.Success || result.Status == JobQueuedStatus.RequeuedDueToErrorStatus)
                         {
                             RaiseEnQueue(result);

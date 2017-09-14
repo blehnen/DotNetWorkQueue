@@ -33,9 +33,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [InlineData(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Dynamic),
+        [InlineData(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Dynamic),
          InlineData(10, 5, 180, 7, 1, 2, true, 1, LinqMethodTypes.Dynamic),
-         InlineData(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Compiled),
+#endif
          InlineData(10, 5, 180, 7, 1, 2, true, 1, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType, LinqMethodTypes linqMethodTypes)
@@ -126,7 +128,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
             }
         }
 
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType, ITaskFactory factory, LinqMethodTypes linqMethodTypes)
         {
             Factory = factory;

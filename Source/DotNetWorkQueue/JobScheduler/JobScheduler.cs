@@ -84,7 +84,21 @@ namespace DotNetWorkQueue.JobScheduler
 
             Task.Run(PollAsync);
         }
-        /// <inheritdoc />
+        /// <summary>
+        /// Adds a new job or updates an existing job.
+        /// </summary>
+        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
+        /// <typeparam name="TQueue">The type of the queue.</typeparam>
+        /// <param name="jobname">The jobname.</param>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <param name="schedule">The schedule.</param>
+        /// <param name="actionToRun">The action to run.</param>
+        /// <param name="route">The route.</param>
+        /// <param name="producerConfiguration">The producer configuration.</param>
+        /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
+        /// <param name="window">The window.</param>
+        /// <returns></returns>
         public IScheduledJob AddUpdateJob<TTransportInit, TQueue>(
             string jobname,
             string queue,
@@ -105,7 +119,21 @@ namespace DotNetWorkQueue.JobScheduler
             return AddTaskImpl<TTransportInit, TQueue>(jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, false, producerConfiguration);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Adds a new job or updates an existing job.
+        /// </summary>
+        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
+        /// <param name="jobQueueCreation">The job queue creation.</param>
+        /// <param name="jobname">The jobname.</param>
+        /// <param name="queue">The queue.</param>
+        /// <param name="connection">The connection.</param>
+        /// <param name="schedule">The schedule.</param>
+        /// <param name="actionToRun">The action to run.</param>
+        /// <param name="route">The route.</param>
+        /// <param name="producerConfiguration">The producer configuration.</param>
+        /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
+        /// <param name="window">The window.</param>
+        /// <returns></returns>
         public IScheduledJob AddUpdateJob<TTransportInit>(
             IJobQueueCreation jobQueueCreation,
             string jobname,

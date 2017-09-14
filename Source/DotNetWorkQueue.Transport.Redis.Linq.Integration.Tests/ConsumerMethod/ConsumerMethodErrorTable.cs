@@ -31,8 +31,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [Theory]
+#if NETFULL
         [InlineData(10, 60, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(1, 40, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(1, 40, 1, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+#endif
         public void Run(int messageCount, int timeOut, 
             int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
@@ -55,13 +59,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, null);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, null);
                     }
-
+#endif
                     //process data
                     var consumer = new ConsumerMethodErrorShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,

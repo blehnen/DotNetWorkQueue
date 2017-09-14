@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Metrics.Net;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
@@ -54,7 +53,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 metricName = routes.Aggregate(metricName, (current, route) => current + route + "|-|");
             }
 
-            using (var metrics = new Metrics.Net.Metrics(metricName))
+            using (var metrics = new Metrics.Metrics(metricName))
             {
                 var processedCount = new IncrementWrapper();
                 var addInterceptorConsumer = InterceptorAdding.No;

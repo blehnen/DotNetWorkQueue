@@ -31,8 +31,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
     {
         [Theory]
         [InlineData(50, 5, 200, 10, false),
-        InlineData(2000, 0, 240, 25, false),
-        InlineData(2000, 0, 240, 25, true),
+        InlineData(200, 0, 240, 25, false),
+        InlineData(200, 0, 240, 25, true),
         InlineData(50, 5, 200, 10, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions)
         {

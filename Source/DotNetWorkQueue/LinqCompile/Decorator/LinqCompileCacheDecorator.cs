@@ -18,8 +18,8 @@
 // ---------------------------------------------------------------------
 
 using System;
-using System.Runtime.Caching;
 using System.Text;
+using CacheManager.Core;
 using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.LinqCompile.Decorator
@@ -31,8 +31,8 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
     public class LinqCompileCacheDecorator: ILinqCompiler
     {
         private readonly ILinqCompiler _handler;
-        private readonly ObjectCache _cache;
-        private readonly CacheItemPolicy _itemPolicy;
+        private readonly ICacheManager<object> _cache;
+        private readonly ICachePolicy<ILinqCompiler> _itemPolicy;
 
         private readonly ICounter _counterActionCacheHit;
         private readonly ICounter _counterActionCacheMiss;
@@ -52,14 +52,14 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
         /// <param name="connectionInformation">The connection information.</param>
         public LinqCompileCacheDecorator(
             ILinqCompiler handler,
-            ObjectCache cache,
+            ICacheManager<object> cache,
             ICachePolicy<ILinqCompiler> cachePolicy,
             IMetrics metrics,
              IConnectionInformation connectionInformation)
         {
             _handler = handler;
             _cache = cache;
-            _itemPolicy = new CacheItemPolicy {SlidingExpiration = cachePolicy.SlidingExpiration};
+            _itemPolicy = cachePolicy;
             var name = handler.GetType().Name;
 
             _counterActionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheHitCounter", Units.Items);
@@ -95,10 +95,11 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
             }
 
             result = _handler.CompileAction(linqExpression);
-            if (!_cache.Contains(key))
+            if (!_cache.Exists(key))
             {
                 _counterActionCacheMiss.Increment(key);
-                _cache.Add(key, result, _itemPolicy);
+                _cache.Add(key, result);
+                _cache.Expire(key, ExpirationMode.Sliding, _itemPolicy.SlidingExpiration);
             }
 
             return result;
@@ -127,10 +128,11 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
             }
 
             result = _handler.CompileFunction(linqExpression);
-            if (!_cache.Contains(key))
+            if (!_cache.Exists(key))
             {
                 _counterFunctionCacheMiss.Increment(key);
-                _cache.Add(key, result, _itemPolicy);
+                _cache.Add(key, result);
+                _cache.Expire(key, _itemPolicy.SlidingExpiration);
             }
 
             return result;

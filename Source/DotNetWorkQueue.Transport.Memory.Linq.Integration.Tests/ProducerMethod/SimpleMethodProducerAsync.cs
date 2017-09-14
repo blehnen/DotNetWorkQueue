@@ -21,7 +21,6 @@ using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
@@ -30,8 +29,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerAsync
     {
         [Theory]
+#if NETFULL
         [InlineData(1000, LinqMethodTypes.Dynamic),
          InlineData(1000, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(1000, LinqMethodTypes.Compiled)]
+#endif
         public async void Run(
             int messageCount,
             LinqMethodTypes linqMethodTypes)

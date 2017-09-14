@@ -31,10 +31,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     public class ConsumerMethodAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+        [InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+#if NETFULL
+        InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-
-        InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+#endif
         InlineData(50, 40, 20, 2, 2, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, 
             int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
@@ -58,13 +59,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, null);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, null);
                     }
-
+#endif
                     //process data
                     var consumer = new ConsumerMethodAsyncPoisonMessageShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
