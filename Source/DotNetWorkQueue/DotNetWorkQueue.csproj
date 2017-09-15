@@ -40,12 +40,6 @@
     </Reference>
   </ItemGroup>
   
-  <ItemGroup>
-    <Reference Include="JpLabs.DynamicCode">
-      <HintPath>..\..\Lib\JpLabs.DynamicCode.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Extensions.Caching.Memory">
       <Version>2.0.0</Version>
@@ -56,6 +50,12 @@
     </Reference>
     <Reference Include="Aq.ExpressionJsonSerializer">
       <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\netstandard2.0\Aq.ExpressionJsonSerializer.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="JpLabs.DynamicCode">
+      <HintPath>..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
