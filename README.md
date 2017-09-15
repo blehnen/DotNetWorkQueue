@@ -440,19 +440,9 @@ To consume / process scheduled jobs, a [Linq Consumer ](https://github.com/blehn
 Building the source
 ---------------------
 
-To build the assembles run one of the following
+You'll need VS2017 (any version) and you'll also need to install the dot net core 2.0 SDK
 
-```
-build-debug
-```
-
-or
-
-```
-build-release
-```
-
-ILMerge is used to merge dependanices into a final assembly. These merged assemblies can be found in \MergedBuild
+All references are either in NuGet or the \lib folder - building from Visual studio should restore any needed files.
 
 License
 --------
@@ -477,8 +467,6 @@ along with this program.  If not, see [http://www.gnu.org/licenses/](http://www.
 This library uses multiple 3rd party libaries, listed below.
 
 [**DotNetWorkQueue**]
-
-* [ILMerge ](http://research.microsoft.com/en-us/people/mbarnett/ILMerge.aspx)
 
 * [LibLog ](https://github.com/damianh/LibLog)
 
@@ -508,11 +496,10 @@ This library uses multiple 3rd party libaries, listed below.
 
 * [GuerrillaNTP ](https://bitbucket.org/robertvazan/guerrillantp)
 
-* [MsgPack-CLI* ](https://github.com/msgpack/msgpack-cli)
+* [MsgPack-CLI ](https://github.com/msgpack/msgpack-cli)
 
 * [StackExchange.Redis ](https://github.com/StackExchange/StackExchange.Redis)
 
-*This module cannot be merged via ILMerge - causes serialization failures
 
 [**DotNetWorkQueue.Transport.SqlServer**]
 
