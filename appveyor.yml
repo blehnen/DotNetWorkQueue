@@ -4,19 +4,7 @@ branches:
   - master
 image: Visual Studio 2017
 before_build:
-- cmd: dotnet restore Source
-build:
-- cmd: dotnet build Source
-  verbosity: minimal
-test:
-  assemblies:
-  - Source\DotNetWorkQueue.Tests\bin\Debug\DotNetWorkQueue.Tests.dll
-  - Source\DotNetWorkQueue.Metrics.Net.Tests\bin\Debug\DotNetWorkQueue.Metrics.Net.Tests.dll
-  - Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\bin\Debug\DotNetWorkQueue.Transport.RelationalDatabase.Tests.dll
-  - Source\DotNetWorkQueue.Transport.PostgreSQL.Tests\bin\Debug\DotNetWorkQueue.Transport.PostgreSQL.Tests.dll
-  - Source\DotNetWorkQueue.Transport.Redis.Tests\bin\Debug\DotNetWorkQueue.Transport.Redis.Tests.dll
-  - Source\DotNetWorkQueue.Transport.SQLite.Tests\bin\Debug\DotNetWorkQueue.Transport.SQLite.Tests.dll
-  - Source\DotNetWorkQueue.Transport.SqlServer.Tests\bin\Debug\DotNetWorkQueue.Transport.SqlServer.Tests.dll
-  - Source\DotNetWorkQueue.Transport.Memory.Integration.Tests\bin\Debug\DotNetWorkQueue.Transport.Memory.Integration.Tests.dll
-  - Source\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests\bin\Debug\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.dll
+- appveyor-retry dotnet restore -v Minimal
+build_script:
+- dotnet build "Source\DotNetWorkQueue" -c Debug
   
