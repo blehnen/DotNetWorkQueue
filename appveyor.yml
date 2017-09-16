@@ -10,7 +10,7 @@ build_script:
 test_script:	
 - dotnet test "Source\DotNetWorkQueue.Tests\DotNetWorkQueue.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Metrics.Net.Tests\DotNetWorkQueue.Metrics.Net.Tests.csproj"
-- dotnet test "Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\DDotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.PostgreSQL.Tests\DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.Redis.Tests\DotNetWorkQueue.Transport.Redis.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.SQLite.Tests\DotNetWorkQueue.Transport.SQLite.Tests.csproj"
