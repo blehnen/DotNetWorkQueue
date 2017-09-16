@@ -4,7 +4,16 @@ branches:
   - master
 image: Visual Studio 2017
 before_build:
-- appveyor-retry dotnet restore "Source\DotNetWorkQueue\DotNetWorkQueue.csproj"
+- appveyor-retry dotnet restore "Source\DotNetWorkQueue\DotNetWorkQueue.sln"
 build_script:
-- dotnet build "Source\DotNetWorkQueue\DotNetWorkQueue.csproj" -c Debug
-  
+- dotnet build "Source\DotNetWorkQueue\DotNetWorkQueue.sln" -c Debug
+-test:	
+- dotnet test "Source\DotNetWorkQueue.Tests\DotNetWorkQueue.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Metrics.Net.Tests\DotNetWorkQueue.Metrics.Net.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\DDotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Transport.PostgreSQL.Tests\DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Transport.Redis.Tests\DotNetWorkQueue.Transport.Redis.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Transport.SQLite.Tests\DotNetWorkQueue.Transport.SQLite.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Transport.SqlServer.Tests\DotNetWorkQueue.Transport.SqlServer.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Transport.Memory.Integration.Tests\DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj"
