@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
-            Assert.True(tables.Any(item => item.Name == tableName.StatusName));
+            Assert.Contains(tables, item => item.Name == tableName.StatusName);
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.StatusName);
-            Assert.True(statusTable.Columns.Items.Any(item => item.Name == "testing"));
+            Assert.Contains(statusTable.Columns.Items, item => item.Name == "testing");
         }
 
         [Fact]
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.StatusName);
-            Assert.True(statusTable.Constraints.Any(item => item.Name == "ix_testing"));
+            Assert.Contains(statusTable.Constraints, item => item.Name == "ix_testing");
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.True(statusTable.Columns.Items.Any(item => item.Name == "Priority"));
+            Assert.Contains(statusTable.Columns.Items, item => item.Name == "Priority");
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.True(statusTable.Columns.Items.Any(item => item.Name == "Status"));
+            Assert.Contains(statusTable.Columns.Items, item => item.Name == "Status");
         }
 
         [Fact]
@@ -114,7 +114,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.True(statusTable.Columns.Items.Any(item => item.Name == "QueueProcessTime"));
+            Assert.Contains(statusTable.Columns.Items, item => item.Name == "QueueProcessTime");
         }
 
         [Fact]
@@ -127,7 +127,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.True(statusTable.Columns.Items.Any(item => item.Name == "HeartBeat"));
+            Assert.Contains(statusTable.Columns.Items, item => item.Name == "HeartBeat");
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.True(statusTable.Columns.Items.Any(item => item.Name == "ExpirationTime"));
+            Assert.Contains(statusTable.Columns.Items, item => item.Name == "ExpirationTime");
         }
 
         [Fact]
@@ -153,7 +153,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.True(statusTable.Columns.Items.Any(item => item.Name == "SourceQueueID"));
+            Assert.Contains(statusTable.Columns.Items, item => item.Name == "SourceQueueID");
         }
 
         [Fact]

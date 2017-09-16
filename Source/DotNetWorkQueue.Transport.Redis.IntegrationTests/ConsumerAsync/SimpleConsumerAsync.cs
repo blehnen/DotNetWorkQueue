@@ -115,7 +115,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
             }
         }
 
+#pragma warning disable xUnit1013 // Public method should be marked as test
         public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+#pragma warning restore xUnit1013 // Public method should be marked as test
             int messageType, ITaskFactory factory, ConnectionInfoTypes type)
         {
             Factory = factory;

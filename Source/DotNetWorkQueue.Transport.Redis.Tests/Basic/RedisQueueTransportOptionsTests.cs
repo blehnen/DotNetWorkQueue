@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
         {
             var configuration = new RedisQueueTransportOptions(new SntpTimeConfiguration(),
                 new DelayedProcessingConfiguration());
-            Assert.Equal(false, configuration.IsReadOnly);
+            Assert.False(configuration.IsReadOnly);
         }
         [Fact]
         public void Set_Readonly()
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var configuration = new RedisQueueTransportOptions(new SntpTimeConfiguration(),
                new DelayedProcessingConfiguration());
             configuration.SetReadOnly();
-            Assert.Equal(true, configuration.IsReadOnly);
+            Assert.True(configuration.IsReadOnly);
         }
         [Fact]
         public void Create_Default()

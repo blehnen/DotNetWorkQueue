@@ -1,6 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net452</TargetFramework>
+    <Version>0.2.0</Version>
+    <Authors>Brian Lehnen</Authors>
+    <Company>Brian Lehnen</Company>
+    <Description>SQLite transport for https://github.com/blehnen/DotNetWorkQueue</Description>
+    <Copyright>Copyright © Brian Lehnen 2017</Copyright>
+    <PackageLicenseUrl>http://www.gnu.org/licenses/lgpl-2.1.html</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>See change log
+
+https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net452|AnyCPU'">
@@ -9,6 +21,12 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
     <DefineConstants>NETFULL</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <DocumentationFile>bin\Release\net452\DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

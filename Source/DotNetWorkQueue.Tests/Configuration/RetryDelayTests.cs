@@ -35,21 +35,21 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void DefaultCreation_IsEmpty()
         {
             var test  = GetConfiguration();
-            Assert.Equal(0, test.RetryTypes.Count);
+            Assert.Empty(test.RetryTypes);
         }
 
         [Fact]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.Equal(false, configuration.IsReadOnly);
+            Assert.False(configuration.IsReadOnly);
         }
         [Fact]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.Equal(true, configuration.IsReadOnly);
+            Assert.True(configuration.IsReadOnly);
         }
         [Fact]
         public void Add_Null_Fails()
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void Get_MissingException_TimeList_Empty()
         {
             var test = GetConfiguration();
-            Assert.Equal(0, test.GetRetryAmount(new ArgumentException()).Times.Count);
+            Assert.Empty(test.GetRetryAmount(new ArgumentException()).Times);
         }
 
         [Theory, AutoData]

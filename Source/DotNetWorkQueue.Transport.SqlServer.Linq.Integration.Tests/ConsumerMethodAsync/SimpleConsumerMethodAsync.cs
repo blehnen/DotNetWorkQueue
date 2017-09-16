@@ -128,7 +128,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
             }
         }
 
+#pragma warning disable xUnit1013 // Public method should be marked as test
         public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+#pragma warning restore xUnit1013 // Public method should be marked as test
             bool useTransactions, int messageType, ITaskFactory factory, LinqMethodTypes linqMethodTypes)
         {
             Factory = factory;

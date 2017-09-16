@@ -73,8 +73,8 @@ namespace DotNetWorkQueue.Queue
         /// <inheritdoc />
         public ILog Logger { get; }
 
-        /// <inheritdoc />
 #if NETFULL
+        /// <inheritdoc />
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression)
         {
             if(!_started) throw new DotNetWorkQueueException("Start must be called before sending jobs");

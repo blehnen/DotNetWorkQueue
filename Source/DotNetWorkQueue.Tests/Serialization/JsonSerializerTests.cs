@@ -48,6 +48,7 @@ namespace DotNetWorkQueue.Tests.Serialization
            });
         }
 
+        [Fact]
         public void Test_Serialization()
         {
             var test = Create();

@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Tests.QueueStatus
             var providers = new List<IQueueStatusProvider> {fixture.Create<QueueStatusProviderNoOp>()};
             fixture.Inject(providers);
             var test = fixture.Create<DotNetWorkQueue.QueueStatus.QueueStatus>();
-            Assert.NotEqual(0, test.Queues.Count());
+            Assert.NotEmpty(test.Queues);
         }
     }
 }

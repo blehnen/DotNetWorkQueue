@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Tests.Factory
         {
             var factory = Create();
             var test = factory.Create<Data>(value, null);
-            Assert.Equal(test.Default, null);
+            Assert.Null(test.Default);
         }
         private IMessageContextDataFactory Create()
         {

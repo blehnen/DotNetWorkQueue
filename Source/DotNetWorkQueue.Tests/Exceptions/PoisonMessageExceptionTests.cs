@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Tests.Exceptions
         public void Create_Empty()
         {
             var e = new PoisonMessageException();
-            Assert.Equal(e.Message, "Exception of type 'DotNetWorkQueue.Exceptions.PoisonMessageException' was thrown.");
+            Assert.Equal("Exception of type 'DotNetWorkQueue.Exceptions.PoisonMessageException' was thrown.", e.Message);
             Assert.Null(e.HeaderPayload);
             Assert.Null(e.MessagePayload);
         }
@@ -39,19 +39,19 @@ namespace DotNetWorkQueue.Tests.Exceptions
         public void Create()
         {
             var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null);
-            Assert.Equal(e.Message, "error");
+            Assert.Equal("error", e.Message);
         }
         [Fact]
         public void Create_Format()
         {
             var e = new PoisonMessageException(Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, "error {0}", 1);
-            Assert.Equal(e.Message, "error 1");
+            Assert.Equal("error 1", e.Message);
         }
         [Fact]
         public void Create_Inner()
         {
             var e = new PoisonMessageException("error", new Exception(), Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null);
-            Assert.Equal(e.Message, "error");
+            Assert.Equal("error", e.Message);
             Assert.NotNull(e.InnerException);
         }
 

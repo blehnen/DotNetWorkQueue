@@ -2,6 +2,18 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
+    <Version>0.2.0</Version>
+    <Description>PostgreSQL transport for https://github.com/blehnen/DotNetWorkQueue</Description>
+    <Authors>Brian Lehnen</Authors>
+    <Company>Brian Lehnen</Company>
+    <Copyright>Copyright © Brian Lehnen 2017</Copyright>
+    <PackageLicenseUrl>http://www.gnu.org/licenses/lgpl-2.1.html</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
+    <PackageReleaseNotes>See change log
+
+https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
@@ -14,6 +26,9 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
     <DefineConstants>NETSTANDARD2_0;</DefineConstants>
+    <DocumentationFile>bin\Release\netstandard2.0\DotNetWorkQueue.Transport.PostgreSQL.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">

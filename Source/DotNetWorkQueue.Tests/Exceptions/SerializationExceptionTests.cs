@@ -29,25 +29,25 @@ namespace DotNetWorkQueue.Tests.Exceptions
         public void Create_Empty()
         {
             var e = new SerializationException();
-            Assert.Equal(e.Message, "Exception of type 'DotNetWorkQueue.Exceptions.SerializationException' was thrown.");
+            Assert.Equal("Exception of type 'DotNetWorkQueue.Exceptions.SerializationException' was thrown.", e.Message);
         }
         [Fact]
         public void Create()
         {
             var e = new SerializationException("error");
-            Assert.Equal(e.Message, "error");
+            Assert.Equal("error", e.Message);
         }
         [Fact]
         public void Create_Format()
         {
             var e = new SerializationException("error {0}", 1);
-            Assert.Equal(e.Message, "error 1");
+            Assert.Equal("error 1", e.Message);
         }
         [Fact]
         public void Create_Inner()
         {
             var e = new SerializationException("error", new Exception());
-            Assert.Equal(e.Message, "error");
+            Assert.Equal("error", e.Message);
             Assert.NotNull(e.InnerException);
         }
     }

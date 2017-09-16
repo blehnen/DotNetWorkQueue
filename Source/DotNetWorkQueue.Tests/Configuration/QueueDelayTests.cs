@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DotNetWorkQueue.Configuration;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
@@ -34,23 +35,20 @@ namespace DotNetWorkQueue.Tests.Configuration
         {
             var test = GetConfiguration();
             test.Add(TimeSpan.MaxValue);
-            foreach (var o in test)
-            {
-                Assert.NotNull(o);
-            }
+            Assert.True(test.Count() == 1);
         }
         [Fact]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.Equal(false, configuration.IsReadOnly);
+            Assert.False(configuration.IsReadOnly);
         }
         [Fact]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.Equal(true, configuration.IsReadOnly);
+            Assert.True(configuration.IsReadOnly);
         }
         [Theory, AutoData]
         public void Set_Add_WhenReadOnly_Fails(TimeSpan value)

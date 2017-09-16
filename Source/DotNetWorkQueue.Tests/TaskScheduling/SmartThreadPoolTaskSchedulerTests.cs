@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         {
             using (var test = Create())
             {
-                Assert.Equal(test.IsDisposed, false);
+                Assert.False(test.IsDisposed);
             }
         }
 
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             using (var test = Create())
             {
                 test.Dispose();
-                Assert.Equal(test.IsDisposed, true);
+                Assert.True(test.IsDisposed);
             }
         }
 

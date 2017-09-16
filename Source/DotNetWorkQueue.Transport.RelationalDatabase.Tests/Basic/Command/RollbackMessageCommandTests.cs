@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
             const int id = 19334;
             var test = new RollbackMessageCommand(null, id, null);
             Assert.Equal(id, test.QueueId);
-            Assert.Equal(null, test.IncreaseQueueDelay);
-            Assert.Equal(null, test.LastHeartBeat);
+            Assert.Null(test.IncreaseQueueDelay);
+            Assert.Null(test.LastHeartBeat);
         }
     }
 }

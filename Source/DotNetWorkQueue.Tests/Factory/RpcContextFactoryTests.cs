@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Tests.Factory
             var info = factory.Create(messageId, null);
 
             Assert.Equal(info.MessageId, messageId);
-            Assert.Equal(info.Timeout, null);
+            Assert.Null(info.Timeout);
         }
         [Fact]
         public void Create_Null_Params_Fails()

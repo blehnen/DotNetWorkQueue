@@ -49,11 +49,11 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Factory
             options.MessageIdLocation = MessageIdLocations.RedisIncr;
             var test = new GetMessageIdFactory(factory, options);
             var result = test.Create();
-            Assert.IsAssignableFrom(typeof(GetRedisIncrId), result);
+            Assert.IsAssignableFrom<GetRedisIncrId>(result);
 
             options.MessageIdLocation = MessageIdLocations.Uuid;
             result = test.Create();
-            Assert.IsAssignableFrom(typeof(GetUuidMessageId), result);
+            Assert.IsAssignableFrom<GetUuidMessageId>(result);
 
             options.MessageIdLocation = MessageIdLocations.Custom;
             test.Create();

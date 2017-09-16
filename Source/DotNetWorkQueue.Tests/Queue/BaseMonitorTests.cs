@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Tests.Queue
         public void IsDisposed_False_By_Default()
         {
             var test = CreateMonitor();
-            Assert.Equal(test.IsDisposed, false);
+            Assert.False(test.IsDisposed);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = CreateMonitor();
             test.Dispose();
-            Assert.Equal(test.IsDisposed, true);
+            Assert.True(test.IsDisposed);
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]

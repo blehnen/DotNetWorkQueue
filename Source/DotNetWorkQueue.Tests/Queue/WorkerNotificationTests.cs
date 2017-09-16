@@ -55,6 +55,7 @@ namespace DotNetWorkQueue.Tests.Queue
             Assert.NotNull(test.HeaderNames);
         }
 
+        [Fact]  
         public void Log_NotNull()
         {
             var test = Create();

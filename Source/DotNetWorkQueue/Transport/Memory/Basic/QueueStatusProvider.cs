@@ -30,13 +30,13 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public string Server => string.Empty;
 
-        // <inheritdoc />
+        /// <inheritdoc />
         public Exception Error => null;
 
-        // <inheritdoc />
+        /// <inheritdoc />
         public IQueueInformation Current => null;
 
-        // <inheritdoc />
+        /// <inheritdoc />
         public object HandlePath(string path)
         {
             return null;

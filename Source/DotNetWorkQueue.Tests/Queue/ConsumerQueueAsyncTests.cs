@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Tests.Queue
         public void IsDisposed_False_By_Default()
         {
             var test = CreateQueue(1);
-            Assert.Equal(test.IsDisposed, false);
+            Assert.False(test.IsDisposed);
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = CreateQueue(1);
             test.Dispose();
-            Assert.Equal(test.IsDisposed, true);
+            Assert.True(test.IsDisposed);
         }
 
 
@@ -89,6 +89,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
+        [Fact]
         public void Calling_Worker_Count_Greater_Than_One_Exception()
         {
             using (var test = CreateQueue(2))

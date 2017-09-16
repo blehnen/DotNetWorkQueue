@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Tests.Queue
         public void IsDisposed_False_By_Default()
         {
             var test = CreateQueue();
-            Assert.Equal(test.IsDisposed, false);
+            Assert.False(test.IsDisposed);
         }
 
         [Fact]
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = CreateQueue();
             test.Dispose();
-            Assert.Equal(test.IsDisposed, true);
+            Assert.True(test.IsDisposed);
         }
 
         [Fact]
@@ -64,6 +64,7 @@ namespace DotNetWorkQueue.Tests.Queue
             Assert.Equal(false, test.ShouldWorkPublic);
         }
 
+        [Fact]
         public void Disposed_Instance_Set_Started_Exception()
         {
             var test = CreateQueue();

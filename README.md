@@ -19,6 +19,7 @@ High level features
 * Re-occurring job scheduler
 
 See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for more indepth documention
+
 Installation
 -------------
 

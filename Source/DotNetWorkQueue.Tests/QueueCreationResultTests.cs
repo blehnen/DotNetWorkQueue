@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Tests
         public void Create_Ok()
         {
             var test = new QueueCreationResult(QueueCreationStatus.None, null);
-            Assert.Equal(test.Status, QueueCreationStatus.None);
+            Assert.Equal(QueueCreationStatus.None, test.Status);
         }
         [Fact]
         public void GetSet_Status()

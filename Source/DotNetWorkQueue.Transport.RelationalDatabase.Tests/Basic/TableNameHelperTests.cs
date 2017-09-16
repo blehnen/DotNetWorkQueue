@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         public void ValidNames()
         {
             var test = Create(true);
-            Assert.Equal(test.QueueName, "testQueue");
+            Assert.Equal("testQueue", test.QueueName);
             Assert.StartsWith("testQueue", test.MetaDataName);
             Assert.StartsWith("testQueue", test.StatusName);
             Assert.StartsWith("testQueue", test.ConfigurationName);
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         public void InValidNames()
         {
             var test = Create(false);
-            Assert.Equal(test.QueueName, "");
+            Assert.Equal("", test.QueueName);
             Assert.Equal("Error-Name-Not-Set", test.MetaDataName);
             Assert.Equal("Error-Name-Not-Set", test.StatusName);
             Assert.Equal("Error-Name-Not-Set", test.ConfigurationName);

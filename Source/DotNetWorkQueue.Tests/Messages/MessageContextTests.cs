@@ -129,7 +129,7 @@ namespace DotNetWorkQueue.Tests.Messages
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageContext>();
-            Assert.Equal(test.IsDisposed, false);
+            Assert.False(test.IsDisposed);
         }
 
         [Fact]
@@ -138,7 +138,7 @@ namespace DotNetWorkQueue.Tests.Messages
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageContext>();
             test.Dispose();
-            Assert.Equal(test.IsDisposed, true);
+            Assert.True(test.IsDisposed);
         }
 
         [Fact]

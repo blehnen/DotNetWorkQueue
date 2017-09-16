@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Tests.Messages
         {
             var input = new Data();
             IAdditionalMetaData data = new AdditionalMetaData<Data>("test", input);
-            Assert.Equal(data.Name, "test");
+            Assert.Equal("test", data.Name);
         }
 
         private class Data

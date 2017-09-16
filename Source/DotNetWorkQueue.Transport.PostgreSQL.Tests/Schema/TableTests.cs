@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Schema
             var c = new Column("testing", ColumnTypes.Bigint, true);
             var test = new Table("test");
             test.Columns.Add(c);
-            Assert.True(test.Columns.Items.Any(item => item.Name == "testing"));
+            Assert.Contains(test.Columns.Items, item => item.Name == "testing");
         }
         [Fact]
         public void Create_Script()

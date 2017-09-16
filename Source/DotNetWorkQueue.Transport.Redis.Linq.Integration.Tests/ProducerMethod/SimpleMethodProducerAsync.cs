@@ -34,12 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
 #if NETFULL
         InlineData(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(100, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(100, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-        InlineData(100, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
         InlineData(100, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
         InlineData(100, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
         InlineData(100, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),

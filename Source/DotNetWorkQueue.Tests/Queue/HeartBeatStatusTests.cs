@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var messageId = fixture.Create<IMessageId>();
             var test = new HeartBeatStatus(messageId, null);
-            Assert.Equal(null, test.LastHeartBeatTime);
+            Assert.Null(test.LastHeartBeatTime);
         }
     }
 }
