@@ -7,7 +7,7 @@ before_build:
 - appveyor-retry dotnet restore "Source\DotNetWorkQueue\DotNetWorkQueue.sln"
 build_script:
 - dotnet build "Source\DotNetWorkQueue\DotNetWorkQueue.sln" -c Debug
--test:	
+test:	
 - dotnet test "Source\DotNetWorkQueue.Tests\DotNetWorkQueue.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Metrics.Net.Tests\DotNetWorkQueue.Metrics.Net.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\DDotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj"
