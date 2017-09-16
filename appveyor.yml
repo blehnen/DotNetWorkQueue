@@ -4,7 +4,7 @@ branches:
   - master
 image: Visual Studio 2017
 before_build:
-- appveyor-retry dotnet restore -v Minimal
+- appveyor-retry dotnet restore "Source\DotNetWorkQueue\DotNetWorkQueue.csproj"
 build_script:
-- dotnet build "Source\DotNetWorkQueue" -c Debug
+- dotnet build "Source\DotNetWorkQueue\DotNetWorkQueue.csproj" -c Debug
   
