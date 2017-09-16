@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Tests.Configuration
             var configuration = GetConfiguration();
             configuration.AbortWorkerThreadsWhenStopping = true;
 
-            Assert.Equal(true, configuration.AbortWorkerThreadsWhenStopping);
+            Assert.True(configuration.AbortWorkerThreadsWhenStopping);
         }
         [Fact]
         public void SetAndGet_SingleWorkerWhenNoWorkFound()
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Tests.Configuration
             var configuration = GetConfiguration();
             configuration.SingleWorkerWhenNoWorkFound = true;
 
-            Assert.Equal(true, configuration.SingleWorkerWhenNoWorkFound);
+            Assert.True(configuration.SingleWorkerWhenNoWorkFound);
         }
         [Theory, AutoData]
         public void SetAndGet_TimeToWaitForWorkersToCancel(TimeSpan value)
@@ -72,14 +72,14 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.Equal(false, configuration.IsReadOnly);
+            Assert.False(configuration.IsReadOnly);
         }
         [Fact]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.Equal(true, configuration.IsReadOnly);
+            Assert.True(configuration.IsReadOnly);
         }
         [Fact]
         public void Set_AbortWorkerThreadsWhenStopping_WhenReadOnly_Fails()

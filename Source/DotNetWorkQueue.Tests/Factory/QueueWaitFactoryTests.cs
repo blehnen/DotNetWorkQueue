@@ -29,17 +29,6 @@ namespace DotNetWorkQueue.Tests.Factory
     public class QueueWaitFactoryTests
     {
         [Fact]
-        public void Create_Enabled()
-        {
-            var factory = Create(true);
-            var test1 = factory.CreateQueueDelay();
-            var test2 = factory.CreateFatalErrorDelay();
-
-            Assert.IsNotType<INoOperation>(test1);
-            Assert.IsNotType<INoOperation>(test2);
-        }
-
-        [Fact]
         public void Create_Disabled()
         {
             var factory = Create(false);

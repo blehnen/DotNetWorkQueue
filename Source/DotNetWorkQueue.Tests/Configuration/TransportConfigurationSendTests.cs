@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.Equal(false, configuration.IsReadOnly);
+            Assert.False(configuration.IsReadOnly);
         }
         [Fact]
         public void Set_Readonly()

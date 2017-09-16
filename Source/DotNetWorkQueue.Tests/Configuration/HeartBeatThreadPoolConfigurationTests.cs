@@ -29,13 +29,13 @@ namespace DotNetWorkQueue.Tests.Configuration
         [Theory, AutoData]
         public void Test_DefaultNotReadOnly(HeartBeatThreadPoolConfiguration configuration)
         {
-            Assert.Equal(false, configuration.IsReadOnly);
+            Assert.False(configuration.IsReadOnly);
         }
         [Theory, AutoData]
         public void Set_Readonly(HeartBeatThreadPoolConfiguration configuration)
         {
             configuration.SetReadOnly();
-            Assert.Equal(true, configuration.IsReadOnly);
+            Assert.True(configuration.IsReadOnly);
         }
         [Theory, AutoData]
         public void SetAndGet_QueueMax(HeartBeatThreadPoolConfiguration configuration, int value)

@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
             var c = new Column("testing", ColumnTypes.Bigint, true, null);
             var test = new Table("dbo", "test");
             test.Columns.Add(c);
-            Assert.True(test.Columns.Items.Any(item => item.Name == "testing"));
+            Assert.Contains(test.Columns.Items, item => item.Name == "testing");
         }
         [Fact]
         public void Create_Script()

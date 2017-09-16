@@ -42,26 +42,26 @@ namespace DotNetWorkQueue.Tests.Configuration
             var configuration = GetConfiguration();
             configuration.Enabled = true;
 
-            Assert.Equal(true, configuration.Enabled);
+            Assert.True(configuration.Enabled);
         }
         [Fact]
         public void Get_ClearExpiredMessagesEnabled_DefaultsToFalse()
         {
             var configuration = GetConfiguration();
-            Assert.Equal(false, configuration.Enabled);
+            Assert.False(configuration.Enabled);
         }
         [Fact]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.Equal(false, configuration.IsReadOnly);
+            Assert.False(configuration.IsReadOnly);
         }
         [Fact]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.Equal(true, configuration.IsReadOnly);
+            Assert.True(configuration.IsReadOnly);
         }
         [Theory, AutoData]
         public void Set_CheckExpiredMessagesTime_WhenReadOnly_Fails(int value)

@@ -63,10 +63,7 @@ namespace DotNetWorkQueue.Metrics.Net.Tests
         public void Time_Result(string name)
         {
             var metric = Metric.Timer(name, Unit.Bytes);
-            var test = Create(metric);
             dynamic dyn = metric;
-            var result = test.Time(() => 1);
-            Assert.NotNull(result);
             Assert.Equal(1, dyn.Value.Rate.Count);
         }
 

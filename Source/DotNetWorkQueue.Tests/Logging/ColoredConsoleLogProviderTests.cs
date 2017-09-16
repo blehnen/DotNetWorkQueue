@@ -30,9 +30,9 @@ namespace DotNetWorkQueue.Tests.Logging
         {
             var test = Create();
             var log = test.GetLogger("Test");
-            Assert.Equal(true, log.Invoke(LogLevel.Debug, () => string.Empty));
-            Assert.Equal(true, log.Invoke(LogLevel.Debug, () => string.Empty, new Exception("test")));
-            Assert.Equal(true, log.Invoke(LogLevel.Debug, () => string.Empty, new Exception("test"), string.Empty));
+            Assert.True(log.Invoke(LogLevel.Debug, () => string.Empty));
+            Assert.True(log.Invoke(LogLevel.Debug, () => string.Empty, new Exception("test")));
+            Assert.True(log.Invoke(LogLevel.Debug, () => string.Empty, new Exception("test"), string.Empty));
         }
         [Fact]
         public void Create_OpenNestedContext()

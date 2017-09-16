@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.Tests.Messages
             test.Dispose();
             test.Dispose();
             var list = test.ShouldRaise(value).ToList();
-            Assert.Equal(1, list.Count);
+            Assert.Single(list);
         }
 
         [Fact]

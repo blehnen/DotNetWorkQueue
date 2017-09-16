@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = CreateQueue();
             test.Dispose();
-            Assert.Equal(false, test.ShouldWorkPublic);
+            Assert.False(test.ShouldWorkPublic);
         }
 
         [Fact]
@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = CreateQueue();
             test.Dispose();
-            Assert.Equal(false, test.StartedPublic);
+            Assert.False(test.StartedPublic);
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
@@ -97,18 +97,18 @@ namespace DotNetWorkQueue.Tests.Queue
         public void SetGet_Started()
         {
             var test = CreateQueue();
-            Assert.Equal(false, test.StartedPublic);
+            Assert.False(test.StartedPublic);
             test.StartedPublic = true;
-            Assert.Equal(true, test.StartedPublic);
+            Assert.True(test.StartedPublic);
         }
 
         [Fact]
         public void SetGet_ShouldWork()
         {
             var test = CreateQueue();
-            Assert.Equal(false, test.ShouldWorkPublic);
+            Assert.False(test.ShouldWorkPublic);
             test.ShouldWorkPublic = true;
-            Assert.Equal(true, test.ShouldWorkPublic);
+            Assert.True(test.ShouldWorkPublic);
         }
 
         private BaseQueueTest CreateQueue()

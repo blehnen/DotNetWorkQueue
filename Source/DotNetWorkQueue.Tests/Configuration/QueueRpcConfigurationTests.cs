@@ -31,14 +31,14 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.Equal(false, configuration.IsReadOnly);
+            Assert.False(configuration.IsReadOnly);
         }
         [Fact]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.Equal(true, configuration.IsReadOnly);
+            Assert.True(configuration.IsReadOnly);
         }
 
         [Fact]
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.Equal(true, configuration.TransportConfigurationReceive.IsReadOnly);
+            Assert.True(configuration.TransportConfigurationReceive.IsReadOnly);
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.Equal(true, configuration.TransportConfigurationSend.IsReadOnly);
+            Assert.True(configuration.TransportConfigurationSend.IsReadOnly);
         }
 
         private QueueRpcConfiguration GetConfiguration()

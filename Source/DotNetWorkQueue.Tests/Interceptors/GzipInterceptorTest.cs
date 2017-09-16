@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
             var gzip = new GZipMessageInterceptor(configuration);
 
             var serialization = gzip.MessageToBytes(Encoding.UTF8.GetBytes(body));
-            Assert.Equal(false, serialization.AddToGraph);
+            Assert.False(serialization.AddToGraph);
             Assert.Equal(body, Encoding.UTF8.GetString(serialization.Output));
         }
     }

@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Tests.Queue
                 test.Start();
                 Thread.Sleep(2000);
             }
-            Assert.Equal(1, action.ReceivedCalls().Count());
+            Assert.Single(action.ReceivedCalls());
         }
 
         [Fact]
@@ -135,7 +135,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = CreateMonitor();
             test.Dispose();
-            Assert.Equal(false, test.RunningPublic);
+            Assert.False(test.RunningPublic);
         }
 
         [Fact]

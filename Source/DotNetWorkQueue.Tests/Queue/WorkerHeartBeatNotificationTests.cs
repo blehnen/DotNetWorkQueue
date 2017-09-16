@@ -55,13 +55,6 @@ namespace DotNetWorkQueue.Tests.Queue
             Assert.Equal(status, test.Status);
         }
 
-        [Fact]
-        public void ExceptionHasOccured_Default_NotNull()
-        {
-            var test = Create();
-            Assert.NotNull(test.ExceptionHasOccured);
-        }
-
         private IWorkerHeartBeatNotification Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());

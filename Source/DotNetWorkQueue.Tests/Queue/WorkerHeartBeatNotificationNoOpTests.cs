@@ -29,12 +29,6 @@ namespace DotNetWorkQueue.Tests.Queue
     public class WorkerHeartBeatNotificationNoOpTests
     {
         [Fact]
-        public void ExceptionHasOccured_Is_Null()
-        {
-            var test = Create();
-            Assert.NotNull(test.ExceptionHasOccured);
-        }
-        [Fact]
         public void Error_Is_Null()
         {
             var test = Create();

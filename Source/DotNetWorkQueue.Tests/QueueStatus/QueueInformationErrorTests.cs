@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Tests.QueueStatus
             Assert.Equal(server, test.Server);
             Assert.Equal(DateTime.MinValue, test.CurrentDateTime);
             Assert.Equal(string.Empty, test.DateTimeProvider);
-            Assert.Equal(1, test.Data.Count());
+            Assert.Single(test.Data);
             var systemEntries = test.Data.ToList();
             Assert.Contains(error.ToString(), systemEntries[0].Value);
             Assert.Contains("Error", systemEntries[0].Name);

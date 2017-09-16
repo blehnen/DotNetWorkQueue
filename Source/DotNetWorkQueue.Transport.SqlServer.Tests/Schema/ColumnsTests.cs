@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
         {
             var test = new Columns();
             test.Add(new Column("testing", ColumnTypes.Bigint, true, null));
-            Assert.True(test.Items.Any(item => item.Name == "testing"));
+            Assert.Contains(test.Items, item => item.Name == "testing");
         }
         [Fact]
         public void Remove_Column()
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
             var column = new Column("testing", ColumnTypes.Bigint, true, null);
             test.Add(column);
             test.Remove(column);
-            Assert.False(test.Items.Any(item => item.Name == "testing"));
+            Assert.DoesNotContain(test.Items, item => item.Name == "testing");
         }
         [Fact]
         public void Script()

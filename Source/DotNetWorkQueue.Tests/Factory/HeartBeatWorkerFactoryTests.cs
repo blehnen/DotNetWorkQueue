@@ -28,13 +28,6 @@ namespace DotNetWorkQueue.Tests.Factory
     public class HeartBeatWorkerFactoryTests
     {
         [Fact]
-        public void Create_Enabled()
-        {
-            var factory = Create(true);
-            var monitor = factory.Create(Substitute.For<IMessageContext>());
-            Assert.IsNotType<INoOperation>(monitor);
-        }
-        [Fact]
         public void Create_Disabled()
         {
             var factory = Create(false);
