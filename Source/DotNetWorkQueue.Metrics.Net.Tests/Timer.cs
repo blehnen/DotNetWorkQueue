@@ -60,14 +60,6 @@ namespace DotNetWorkQueue.Metrics.Net.Tests
         }
 
         [Theory, AutoData]
-        public void Time_Result(string name)
-        {
-            var metric = Metric.Timer(name, Unit.Bytes);
-            dynamic dyn = metric;
-            Assert.Equal(1, dyn.Value.Rate.Count);
-        }
-
-        [Theory, AutoData]
         public void NewContext(string name)
         {
             var metric = Metric.Timer(name, Unit.Bytes);
