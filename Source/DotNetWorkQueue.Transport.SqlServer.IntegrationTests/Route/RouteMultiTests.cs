@@ -31,7 +31,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
     {
         [Theory]
         [InlineData(100, 1, 400, 1, false, 2),
-        InlineData(100, 1, 400, 1, true, 2),
         InlineData(10, 2, 400, 1, true, 5)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
           bool useTransactions, int routeCount)

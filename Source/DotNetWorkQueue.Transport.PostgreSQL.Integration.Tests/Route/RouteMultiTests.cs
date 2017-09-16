@@ -30,14 +30,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
     public class RouteMultiTests
     {
         [Theory]
-        [InlineData(100, 1, 400, 1, false, 2),
-        InlineData(50, 2, 400, 1, false, 3),
-        InlineData(10, 2, 400, 1, false, 3),
-        InlineData(100, 1, 400, 1, true, 2),
-        InlineData(50, 2, 400, 1, true, 2),
-        InlineData(10, 2, 400, 1, true, 5),
-        InlineData(100, 0, 180, 1, false, 2),
-        InlineData(100, 0, 180, 1, true, 2)]
+        [InlineData(100, 1, 400, 1, true, 2),
+        InlineData(100, 0, 180, 1, false, 2)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
           bool useTransactions, int routeCount)
         {
