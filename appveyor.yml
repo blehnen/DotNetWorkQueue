@@ -4,9 +4,9 @@ branches:
   - master
 image: Visual Studio 2017
 before_build:
-- cmd: dotnet restore Source\DotNetWorkQueue.sln
+- cmd: dotnet restore Source
 build:
-  project: Source\DotNetWorkQueue.sln
+- cmd: dotnet build Source
   verbosity: minimal
 test:
   assemblies:
