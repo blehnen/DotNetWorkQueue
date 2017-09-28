@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Tests.Queue
         public void Abort_Allows_Stopped_Thread()
         {
             var test = Create(true);
-            var t = new Thread((time) => DoSomeWork(100000));
+            var t = new Thread(time => DoSomeWork(100000));
             Assert.True(test.Abort(t));
         }
 
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = Create(true);
 
-            var t = new Thread((time) => DoSomeWork(5000));
+            var t = new Thread(time => DoSomeWork(5000));
             t.Start();
 
             Assert.False(test.Abort(t));

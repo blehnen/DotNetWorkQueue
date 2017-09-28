@@ -150,7 +150,7 @@ namespace DotNetWorkQueue.Tests.Queue
             configuration.Time = checkSpan;
             configuration.UpdateTime = updateTime;
             fixture.Inject(configuration);
-            IHeartBeatScheduler threadpool = fixture.Create<IHeartBeatScheduler>();
+            var threadpool = fixture.Create<IHeartBeatScheduler>();
             fixture.Inject(threadpool);
             return fixture.Create<HeartBeatWorker>();
         }

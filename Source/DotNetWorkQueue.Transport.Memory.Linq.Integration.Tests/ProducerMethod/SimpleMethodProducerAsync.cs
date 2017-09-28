@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
                 using (
                     var queueCreator =
-                        new QueueCreationContainer<MessageQueueInit>(
+                        new QueueCreationContainer<MemoryMessageQueueInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     try
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
 
                             var producer = new ProducerMethodAsyncShared();
                             var id = Guid.NewGuid();
-                            await producer.RunTestAsync<MessageQueueInit>(queueName,
+                            await producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, true, messageCount, logProvider,
                                 Helpers.GenerateData,
                                 Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope).ConfigureAwait(false);

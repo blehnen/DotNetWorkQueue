@@ -23,6 +23,8 @@ using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
+using DotNetWorkQueue.Transport.SQLite.Shared;
+using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using Xunit;
 
 #endregion
@@ -38,7 +40,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         public VerifyQueueData(string queueName, string connectionString, SqLiteMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqliteConnectionInformation(queueName, connectionString);
+            _connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
             _tableNameHelper = new TableNameHelper(_connection);
         }
         public void Verify(long expectedMessageCount, string route)
@@ -208,7 +210,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         public VerifyQueueRecordCount(string queueName, string connectionString, SqLiteMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqliteConnectionInformation(queueName, connectionString);
+            _connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
             _tableNameHelper = new TableNameHelper(_connection);
         }
 
@@ -285,7 +287,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 
         public VerifyErrorCounts(string queueName, string connectionString)
         {
-            _connection = new SqliteConnectionInformation(queueName, connectionString);
+            _connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
             _tableNameHelper = new TableNameHelper(_connection);
         }
 

@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 #region Using
 
-using System.Linq;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
 using Xunit;
 

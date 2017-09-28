@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
                 using (var queueCreator =
-                    new QueueCreationContainer<MessageQueueInit>(
+                    new QueueCreationContainer<MemoryMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     try
@@ -54,13 +54,13 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
 
                             //create data
                             var producer = new ProducerShared();
-                            producer.RunTest<MessageQueueInit, FakeMessage>(queueName,
+                            producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope);
 
                             //process data
                             var consumer = new ConsumerErrorShared<FakeMessage>();
-                            consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
                                 workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null);

@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.SQLite.Basic;
+using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route

@@ -19,9 +19,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using DotNetWorkQueue.Messages;
-using FluentAssertions;
 using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoNSubstitute;
@@ -69,59 +67,11 @@ namespace DotNetWorkQueue.Tests.Messages
         }
 
         [Fact]
-        public void Commit_Fires()
-        {
-            const string value = "Commit";
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var test = fixture.Create<MessageContext>();
-            test.MonitorEvents();
-            test.RaiseCommit();
-            test.ShouldRaise(value);
-        }
-
-        [Fact]
-        public void Rollback_Fires()
-        {
-            const string value = "Rollback";
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var test = fixture.Create<MessageContext>();
-            test.MonitorEvents();
-            test.RaiseRollback();
-            test.ShouldRaise(value);
-        }
-
-
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
-        public void Cleanup_Fires_Only_Once()
-        {
-            const string value = "Cleanup";
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var test = fixture.Create<MessageContext>();
-            test.MonitorEvents();
-            test.Dispose();
-            test.Dispose();
-            var list = test.ShouldRaise(value).ToList();
-            Assert.Single(list);
-        }
-
-        [Fact]
         public void WorkerNotification_NotNull()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageContext>();
             Assert.NotNull(test.WorkerNotification);
-        }
-
-        [Fact]
-        public void Cleanup_Fires()
-        {
-            const string value = "Cleanup";
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var test = fixture.Create<MessageContext>();
-            test.MonitorEvents();
-            test.Dispose();
-            test.ShouldRaise(value);
         }
 
         [Fact]

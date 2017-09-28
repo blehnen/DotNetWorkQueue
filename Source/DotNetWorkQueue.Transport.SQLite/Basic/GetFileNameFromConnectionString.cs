@@ -19,20 +19,22 @@
 
 using System;
 using System.Data.SQLite;
+using DotNetWorkQueue.Transport.SQLite.Shared;
+using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     /// <summary>
     /// Determines the full path and file name of a Sqlite DB, based on the connection string.
     /// </summary>
-    public static class GetFileNameFromConnectionString
+    public class GetFileNameFromConnectionString: IGetFileNameFromConnectionString
     {
         /// <summary>
         /// Gets the full path and file name of a DB. In memory databases will instead set the <seealso cref="ConnectionStringInfo.IsInMemory"/> flag to true.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <returns></returns>
-        public static ConnectionStringInfo GetFileName(string connectionString)
+        public ConnectionStringInfo GetFileName(string connectionString)
         {
             SQLiteConnectionStringBuilder builder;
             try
@@ -48,52 +50,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             var dataSource = builder.DataSource.ToLowerInvariant();
             var inMemory = dataSource.Contains(":memory:") || dataSource.Contains("mode=memory");
 
-            if (inMemory || string.IsNullOrWhiteSpace(builder.FullUri))
+            if (inMemory || string.IsNullOrWhiteSpace(builder.ConnectionString))
                 return new ConnectionStringInfo(inMemory, builder.DataSource);
 
-            var uri = builder.FullUri.ToLowerInvariant();
+            var uri = builder.ConnectionString.ToLowerInvariant();
             inMemory = uri.Contains(":memory:") || uri.Contains("mode=memory");
 
             return new ConnectionStringInfo(inMemory, builder.DataSource);
         }
-    }
-    /// <summary>
-    /// Contains location information for a Sqlite DB.
-    /// </summary>
-    public class ConnectionStringInfo
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionStringInfo"/> class.
-        /// </summary>
-        /// <param name="inMemory">if set to <c>true</c> [in memory].</param>
-        /// <param name="fileName">Name of the file.</param>
-        public ConnectionStringInfo(bool inMemory, string fileName)
-        {
-            IsInMemory = inMemory;
-            FileName = fileName;
-        }
-        /// <summary>
-        /// Gets a value indicating whether this instance is in memory.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is in memory; otherwise, <c>false</c>.
-        /// </value>
-        /// <remarks>If true, <seealso cref="FileName"/> will be empty </remarks>
-        public bool IsInMemory { get; }
-        /// <summary>
-        /// Gets the name of the file.
-        /// </summary>
-        /// <value>
-        /// The name of the file.
-        /// </value>
-        public string FileName { get; }
-
-        /// <summary>
-        /// Returns true if the filename is valid or this is an in-memory database
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
-        /// </value>
-        public bool IsValid => IsInMemory || !string.IsNullOrWhiteSpace(FileName);
     }
 }

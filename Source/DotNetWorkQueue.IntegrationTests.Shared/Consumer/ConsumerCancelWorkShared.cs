@@ -130,10 +130,17 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         private void RunBadQueue()
         {
             //start looking for work
-            _queue.Start<TMessage>((message, notifications) =>
+            try
             {
-                MessageHandlingShared.HandleFakeMessagesThreadAbort(_runTime * 1000 / 2);
-            });
+                _queue.Start<TMessage>((message, notifications) =>
+                {
+                    MessageHandlingShared.HandleFakeMessagesThreadAbort(_runTime * 1000 / 2);
+                });
+            }
+            catch
+            {
+               //bad queue failing is weird, but doesn't really need to be handled right here
+            }
         }
     }
 }

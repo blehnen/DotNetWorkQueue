@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 
 using System;
-using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Configuration

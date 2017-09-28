@@ -6,13 +6,14 @@
 * **Breaking Change** A Typo with an internal redis property was fixed. This might prevent new code from reading the correlation Id for items saved inbetween versions. The queues should be drained before upgrading.
 
 * **Breaking Change** SmartThreadPool has been replaced with Task->StartNew and Polly Bulkheads. However, this invalided the following configuration properties; they have been removed
-
-1) MinimumThreads - this was a specific SmartThreadPool feature.
-2) ThreadIdleTimeout - this was a specific SmartThreadPool feature.
+	* MinimumThreads - this was a specific SmartThreadPool feature.
+	* ThreadIdleTimeout - this was a specific SmartThreadPool feature.
 
 * The heart beat workers now use an internal job scheduler backed by the in-memory queue, instead of an instance of SmartThreadPool
 
 * **Breaking Change** The hearbest configuration has been changed to use Schyntax format instead of a timespan. The interval has also been removed - you'll need to excplitly indicate how often you want to run the hearbeat - at least slightly less than 1/2 of your dead record time is a good rule of thumb.
+
+* Added a new SQLite transport that uses the microsoft driver. This allows for dot net standard 2.0 support. Most of the logic lives in a module that is shared between the two implementations.
 
 ###0.1.10 2017-03-19
 * Add route support to SQLServer, SQLite, Redis and PostgreSQL transports. Routes allow messages to be picked up for processing by specific consumer(s). A message can have at most 0 or 1 routes. A consumer can look for messages with 0 routes or N routes.

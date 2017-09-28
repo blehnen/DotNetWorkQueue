@@ -83,8 +83,7 @@ namespace ConsoleView
             {
                 while (!_messages.IsEmpty)
                 {
-                    string message;
-                    if (_messages.TryDequeue(out message))
+                    if (_messages.TryDequeue(out string message))
                     {
                         //don't use begin invoke here, or the data will be out of order
                         textBoxMessage.AppendText(message);

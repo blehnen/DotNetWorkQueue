@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             Guard.NotNull(() => container, container);
 
-            var init = new MessageQueueInit();
+            var init = new RelationalDatabaseMessageQueueInit();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
 
             //**all
@@ -169,7 +169,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="connectionType">Type of the connection.</param>
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
         {
-            var init = new MessageQueueInit();
+            var init = new RelationalDatabaseMessageQueueInit();
             init.SetDefaultsIfNeeded(container, "SqlServerMessageQueueTransportOptions", "SqlServerMessageQueueTransportOptions");
 
             SetupPolicy(container);

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Linq.Expressions;
 using DotNetWorkQueue.Messages;
@@ -35,7 +36,7 @@ namespace DotNetWorkQueue.Queue
         private SchedulerContainer _consumerContainer;
         private ATaskScheduler _consumerScheduler;
         private ITaskFactory _taskFactory;
-        private QueueContainer<MessageQueueInit> _queueContainer;
+        private QueueContainer<MemoryMessageQueueInit> _queueContainer;
         private IConsumerMethodQueueScheduler _consumer;
 
         private const string QueueName = "HeartBeatWorkers";
@@ -71,7 +72,7 @@ namespace DotNetWorkQueue.Queue
             if (_consumer == null)
                 CreateScheduler();
 
-            return _scheduler.AddUpdateJob<MessageQueueInit, JobQueueCreation>(jobName, QueueName, Connection, schedule, job, null, null, true, default(TimeSpan), true);
+            return _scheduler.AddUpdateJob<MemoryMessageQueueInit, JobQueueCreation>(jobName, QueueName, Connection, schedule, job, null, null, true, default(TimeSpan), true);
         }
 
         /// <inheritdoc />
@@ -112,7 +113,7 @@ namespace DotNetWorkQueue.Queue
                 _taskFactory.Scheduler.Configuration.WaitForThreadPoolToFinish =
                     _configuration.WaitForThreadPoolToFinish;
                 _taskFactory.Scheduler.Start();
-                _queueContainer = new QueueContainer<MessageQueueInit>();
+                _queueContainer = new QueueContainer<MemoryMessageQueueInit>();
                 _consumer = _queueContainer.CreateConsumerMethodQueueScheduler(QueueName, Connection,
                     _taskFactory);
                 _consumer.Start();

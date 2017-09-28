@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 #region Using
 
-using System.Linq;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using Xunit;
 

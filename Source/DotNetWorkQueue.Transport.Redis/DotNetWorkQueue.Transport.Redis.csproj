@@ -50,7 +50,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
   <ItemGroup>
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.2.2" />
-    <PackageReference Include="MsgPack.Cli" Version="0.9.1" />
+    <PackageReference Include="MsgPack.Cli" Version="0.9.2" />
     <PackageReference Include="StackExchange.Redis" Version="1.2.6" />
   </ItemGroup>
 

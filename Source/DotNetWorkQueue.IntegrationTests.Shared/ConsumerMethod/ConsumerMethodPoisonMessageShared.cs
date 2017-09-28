@@ -19,8 +19,8 @@
 
 using System;
 using System.Threading;
-using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
+
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
     public class ConsumerMethodPoisonMessageShared

@@ -51,8 +51,7 @@ namespace ConsoleShared
                     result = inputValue;
                     break;
                 case TypeCode.Int16:
-                    short number16;
-                    if (short.TryParse(inputValue, out number16))
+                    if (short.TryParse(inputValue, out var number16))
                     {
                         result = number16;
                     }
@@ -62,8 +61,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.Int32:
-                    int number32;
-                    if (int.TryParse(inputValue, out number32))
+                    if (int.TryParse(inputValue, out var number32))
                     {
                         result = number32;
                     }
@@ -73,8 +71,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.Int64:
-                    long number64;
-                    if (long.TryParse(inputValue, out number64))
+                    if (long.TryParse(inputValue, out var number64))
                     {
                         result = number64;
                     }
@@ -84,8 +81,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.Boolean:
-                    bool trueFalse;
-                    if (bool.TryParse(inputValue, out trueFalse))
+                    if (bool.TryParse(inputValue, out var trueFalse))
                     {
                         result = trueFalse;
                     }
@@ -95,8 +91,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.Byte:
-                    byte byteValue;
-                    if (byte.TryParse(inputValue, out byteValue))
+                    if (byte.TryParse(inputValue, out var byteValue))
                     {
                         result = byteValue;
                     }
@@ -106,8 +101,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.Char:
-                    char charValue;
-                    if (char.TryParse(inputValue, out charValue))
+                    if (char.TryParse(inputValue, out var charValue))
                     {
                         result = charValue;
                     }
@@ -117,8 +111,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.DateTime:
-                    DateTime dateValue;
-                    if (DateTime.TryParse(inputValue, out dateValue))
+                    if (DateTime.TryParse(inputValue, out var dateValue))
                     {
                         result = dateValue;
                     }
@@ -128,8 +121,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.Decimal:
-                    decimal decimalValue;
-                    if (decimal.TryParse(inputValue, out decimalValue))
+                    if (decimal.TryParse(inputValue, out var decimalValue))
                     {
                         result = decimalValue;
                     }
@@ -139,8 +131,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.Double:
-                    double doubleValue;
-                    if (double.TryParse(inputValue, out doubleValue))
+                    if (double.TryParse(inputValue, out var doubleValue))
                     {
                         result = doubleValue;
                     }
@@ -150,8 +141,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.Single:
-                    float singleValue;
-                    if (float.TryParse(inputValue, out singleValue))
+                    if (float.TryParse(inputValue, out var singleValue))
                     {
                         result = singleValue;
                     }
@@ -161,8 +151,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.UInt16:
-                    ushort uInt16Value;
-                    if (ushort.TryParse(inputValue, out uInt16Value))
+                    if (ushort.TryParse(inputValue, out var uInt16Value))
                     {
                         result = uInt16Value;
                     }
@@ -172,8 +161,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.UInt32:
-                    uint uInt32Value;
-                    if (uint.TryParse(inputValue, out uInt32Value))
+                    if (uint.TryParse(inputValue, out var uInt32Value))
                     {
                         result = uInt32Value;
                     }
@@ -183,8 +171,7 @@ namespace ConsoleShared
                     }
                     break;
                 case TypeCode.UInt64:
-                    ulong uInt64Value;
-                    if (ulong.TryParse(inputValue, out uInt64Value))
+                    if (ulong.TryParse(inputValue, out var uInt64Value))
                     {
                         result = uInt64Value;
                     }
@@ -200,8 +187,7 @@ namespace ConsoleShared
                         var output = new List<TimeSpan>();
                         foreach (var ts in timespan)
                         {
-                            TimeSpan timespanValue;
-                            if (TimeSpan.TryParse(ts, out timespanValue))
+                            if (TimeSpan.TryParse(ts, out TimeSpan timespanValue))
                             {
                                 output.Add(timespanValue);
                             }
@@ -224,8 +210,7 @@ namespace ConsoleShared
                 default:
                     if (isTimeSpan)
                     {
-                        TimeSpan timespanValue;
-                        if (TimeSpan.TryParse(inputValue, out timespanValue))
+                        if (TimeSpan.TryParse(inputValue, out TimeSpan timespanValue))
                         {
                             result = timespanValue;
                         }

@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
+  </PropertyGroup>
+
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <DefineConstants>NETSTANDARD2_0;</DefineConstants>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <Compile Include="..\DotNetWorkQueue.Transport.SQLite.Integration.Tests\GenerateQueueName.cs" Link="GenerateQueueName.cs" />
+    <Compile Include="..\DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests\ConnectionString.cs" Link="ConnectionString.cs" />
+    <Compile Include="..\DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests\SharedClasses.cs" Link="SharedClasses.cs" />
+    <Compile Include="..\DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests\VerifyQueueData.cs" Link="VerifyQueueData.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoFixture" Version="3.50.7" />
+    <PackageReference Include="AutoFixture.AutoNSubstitute" Version="3.50.7" />
+    <PackageReference Include="AutoFixture.Xunit2" Version="3.50.7" />
+    <PackageReference Include="CompareNETObjects" Version="3.9.0" />
+    <PackageReference Include="FluentAssertions" Version="5.0.0-beta0002" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0-preview-20170923-02" />
+    <PackageReference Include="NSubstitute" Version="2.0.3" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.0.0" />
+    <PackageReference Include="Tynamix.ObjectFiller" Version="1.5.4.1" />
+    <PackageReference Include="xunit" Version="2.3.0-beta5-build3769" />
+    <PackageReference Include="xunit.runner.console" Version="2.3.0-beta5-build3769" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0-beta5-build3769" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite.Microsoft\DotNetWorkQueue.Transport.SQLite.Microsoft.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite.Shared\DotNetWorkQueue.Transport.SQLite.Shared.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
+  </ItemGroup>
+</Project>

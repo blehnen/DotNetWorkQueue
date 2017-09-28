@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Xunit;

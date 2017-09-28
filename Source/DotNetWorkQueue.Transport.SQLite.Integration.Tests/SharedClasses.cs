@@ -22,6 +22,8 @@ using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.SQLite.Basic;
+using DotNetWorkQueue.Transport.SQLite.Shared;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
@@ -40,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 
         public static void Verify(string queueName, string connectionString, long messageCount, ICreationScope scope)
         {
-            var connection = new SqliteConnectionInformation(queueName, connectionString);
+            var connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
             var helper = new TableNameHelper(connection);
             using (var conn = new SQLiteConnection(connectionString))
             {
@@ -60,7 +62,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 
         public static void SetError(string queueName, string connectionString, ICreationScope scope)
         {
-            var connection = new SqliteConnectionInformation(queueName, connectionString);
+            var connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
             var helper = new TableNameHelper(connection);
             using (var conn = new SQLiteConnection(connectionString))
             {

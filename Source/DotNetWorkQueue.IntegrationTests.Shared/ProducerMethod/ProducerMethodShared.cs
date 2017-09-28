@@ -23,7 +23,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Xunit;

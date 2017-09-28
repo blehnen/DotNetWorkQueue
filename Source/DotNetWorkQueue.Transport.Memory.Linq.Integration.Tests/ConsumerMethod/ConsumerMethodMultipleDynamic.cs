@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
                 using (
                     var queueCreator =
-                        new QueueCreationContainer<MessageQueueInit>(
+                        new QueueCreationContainer<MemoryMessageQueueInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     try
@@ -58,13 +58,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
 
                             var producer = new ProducerMethodMultipleDynamicShared();
                             var id = Guid.NewGuid();
-                            producer.RunTestDynamic<MessageQueueInit>(queueName,
+                            producer.RunTestDynamic<MemoryMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider,
                                 Helpers.GenerateData,
                                 Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope);
 
                             var consumer = new ConsumerMethodShared();
-                            consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
                                 runtime, messageCount,

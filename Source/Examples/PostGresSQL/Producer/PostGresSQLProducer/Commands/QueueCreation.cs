@@ -180,8 +180,7 @@ namespace PostGresSQLProducer.Commands
 
         public ConsoleExecuteResult AddColumn(string queueName, string name, string type, bool @null = true)
         {
-            ColumnTypes columnType;
-            if (Enum.TryParse(type, true, out columnType))
+            if (Enum.TryParse(type, true, out ColumnTypes columnType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalColumns.Add(new Column(name, columnType, @null));
@@ -192,8 +191,7 @@ namespace PostGresSQLProducer.Commands
 
         public ConsoleExecuteResult AddColumnWithLength(string queueName, string name, string type, int length, bool @null = true)
         {
-            ColumnTypes columnType;
-            if (Enum.TryParse(type, true, out columnType))
+            if (Enum.TryParse(type, true, out ColumnTypes columnType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalColumns.Add(new Column(name, columnType, length, @null));
@@ -204,8 +202,7 @@ namespace PostGresSQLProducer.Commands
 
         public ConsoleExecuteResult AddColumnWithPrecision(string queueName, string name, string type, byte precision, int scale, bool @null = true)
         {
-            ColumnTypes columnType;
-            if (Enum.TryParse(type, true, out columnType))
+            if (Enum.TryParse(type, true, out ColumnTypes columnType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalColumns.Add(new Column(name, columnType, precision, scale, @null));
@@ -227,8 +224,7 @@ namespace PostGresSQLProducer.Commands
 
         public ConsoleExecuteResult AddConstraintManyColumns(string queueName, string name, string type, params string[] columns)
         {
-            ConstraintType constraintType;
-            if (Enum.TryParse(type, true, out constraintType))
+            if (Enum.TryParse(type, true, out ConstraintType constraintType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalConstraints.Add(new Constraint(name, constraintType, columns.ToList()));

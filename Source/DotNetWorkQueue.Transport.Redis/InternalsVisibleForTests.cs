@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.Redis.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.Redis.Integration.Tests")]

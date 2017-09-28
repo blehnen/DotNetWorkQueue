@@ -157,7 +157,7 @@ namespace DotNetWorkQueue.Configuration
         /// <summary>
         /// Marks this instance as immutable
         /// </summary>
-        public void SetReadOnly()
+        public virtual void SetReadOnly()
         {
             IsReadOnly = true;
         }

@@ -5,12 +5,15 @@ DotNetWorkQueue
 [![Build status](https://ci.appveyor.com/api/projects/status/vqqq9m0j9xodbfof/branch/master?svg=true)](https://ci.appveyor.com/project/blehnen/dotnetworkqueue/branch/master)
 [![Coverity status](https://scan.coverity.com/projects/10126/badge.svg)](https://scan.coverity.com/projects/blehnen-dotnetworkqueue)
 
-A producer / distributed consumer library for dot net applications. Available transports are:
+A producer / distributed consumer library for dot net applications. Dot net 4.52 and Dot net standard 2.0 are supported
 
-* SQL Server
-* SQLite
-* Redis
-* PostGreSQL
+| Transport 									| 4.52 			| Standard 2.0 |
+| ------------- 								| ------------- |------------- |
+| DotNetWorkQueue.Transport.SqlServer  			| Yes  			| Yes		   |
+| DotNetWorkQueue.Transport.PostgreSQL 			| Yes  			| Yes 		   |
+| DotNetWorkQueue.Transport.Redis 				| Yes  			| Yes		   |
+| DotNetWorkQueue.Transport.SQLite 				| Yes  			| No		   |
+| DotNetWorkQueue.Transport.SQLite.Microsoft 	| No  			| Yes		   |
 
 High level features
 
@@ -28,14 +31,27 @@ Base
 
 Transports
 
-* NuGet package [DotNetWorkQueue.Transports.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/)
-* NuGet package [DotNetWorkQueue.Transports.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/)
-* NuGet package [DotNetWorkQueue.Transports.SQLite](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/)
-* NuGet package [DotNetWorkQueue.Transports.PostgreSQL](https://www.nuget.org/packages/DotNetWorkQueue.Transport.PostgreSQL/)
+* NuGet package [DotNetWorkQueue.Transport.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/)
+* NuGet package [DotNetWorkQueue.Transport.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/)
+* NuGet package [DotNetWorkQueue.Transport.SQLite](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/)
+* NuGet package [DotNetWorkQueue.Transport.SQLite.Microsoft](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite.Microsoft/)
+* NuGet package [DotNetWorkQueue.Transport.PostgreSQL](https://www.nuget.org/packages/DotNetWorkQueue.Transport.PostgreSQL/)
 
 Metrics
 
 * NuGet package [DotNetWorkQueue.Metrics.Net](https://www.nuget.org/packages/DotNetWorkQueue.Metrics.Net/)
+
+Metrics implemtnation only supports dot net 4.52 until metrics.net is updated to support dot net standard.
+
+Differences between versions
+------------
+
+Dot net standard 2.0 is missing the following features from the full framework versions
+
+- No support for aborting threads when stopping the consumer queues
+- No support for dynamic linq statements
+- The SQLite transport uses the microsoft driver for SQlite instead of System.Data.SQLite. The microsoft diver is limited to a single conncurent connection. This is because it doesn't handle multiple threads accessing the database file as well as the System.Data driver. At the moment, this lock is per process, and not system wide.
+- The metrics.net implemetnation for metric reporting only supports dot net 4.52. Once the metrics library has been updated to support dot net standard, this implementation will be updated as well.
 
 Usage - POCO
 ------
@@ -483,19 +499,19 @@ This library uses multiple 3rd party libaries, listed below.
 
 * [JsonNet.PrivateSetterContractResolvers ](https://github.com/danielwertheim/jsonnet-privatesetterscontractresolvers)
 
-* [Expression-JSON-Serializer ](https://github.com/aquilae/expression-json-serializer)*
+* [Expression-JSON-Serializer ](https://github.com/blehnen/expression-json-serializer)
 
 * [Schtick](https://github.com/schyntax/cs-schtick)
 
-* [Schyntax ](https://github.com/schyntax/cs-schyntax)
+* [Schyntax ](https://github.com/blehnen/cs-schyntax)
 
 * [Polly ](https://github.com/App-vNext/Polly)
 
-*A fork of this module was created and thread saftey changes made. This is the version that is being used. It can be found here [Expression-JSON-Serializer ](https://github.com/blehnen/expression-json-serializer)
+* [CacheManager ](https://github.com/MichaCo/CacheManager)
 
 [**DotNetWorkQueue.Transport.Redis**]
 
-* [GuerrillaNTP ](https://bitbucket.org/robertvazan/guerrillantp)
+* [GuerrillaNTP ](https://github.com/blehnen/GuerrillaNtp)
 
 * [MsgPack-CLI ](https://github.com/msgpack/msgpack-cli)
 
@@ -504,11 +520,15 @@ This library uses multiple 3rd party libaries, listed below.
 
 [**DotNetWorkQueue.Transport.SqlServer**]
 
-None
+* None
 
 [**DotNetWorkQueue.Transport.SQLite**]
 
-* [SQLite ](https://www.sqlite.org/)
+* [System.Data.SQLite ](https://www.sqlite.org/)
+
+[**DotNetWorkQueue.Transport.SQLite.Microsoft**]
+
+* [Microsoft.Data.Sqlite ](https://github.com/aspnet/Microsoft.Data.Sqlite)
 
 [**DotNetWorkQueue.Transport.PostgreSQL**]
 

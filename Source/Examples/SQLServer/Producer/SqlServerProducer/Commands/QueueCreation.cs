@@ -179,8 +179,7 @@ namespace SqlServerProducer.Commands
 
         public ConsoleExecuteResult AddColumn(string queueName, string name, string type, bool @null = true)
         {
-            ColumnTypes columnType;
-            if (Enum.TryParse(type, true, out columnType))
+            if (Enum.TryParse(type, true, out ColumnTypes columnType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalColumns.Add(new Column(name, columnType, @null, null));
@@ -191,8 +190,7 @@ namespace SqlServerProducer.Commands
 
         public ConsoleExecuteResult AddColumnWithLength(string queueName, string name, string type, int length, bool @null = true)
         {
-            ColumnTypes columnType;
-            if (Enum.TryParse(type, true, out columnType))
+            if (Enum.TryParse(type, true, out ColumnTypes columnType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalColumns.Add(new Column(name, columnType, length, @null, null));
@@ -203,8 +201,7 @@ namespace SqlServerProducer.Commands
 
         public ConsoleExecuteResult AddColumnWithPrecision(string queueName, string name, string type, byte precision, int scale, bool @null = true)
         {
-            ColumnTypes columnType;
-            if (Enum.TryParse(type, true, out columnType))
+            if (Enum.TryParse(type, true, out ColumnTypes columnType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalColumns.Add(new Column(name, columnType, precision, scale, @null,

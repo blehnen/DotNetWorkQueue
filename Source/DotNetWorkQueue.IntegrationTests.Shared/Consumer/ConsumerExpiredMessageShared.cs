@@ -19,7 +19,6 @@
 
 using System;
 using System.Threading;
-using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using Xunit;
 

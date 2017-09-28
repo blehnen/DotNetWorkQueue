@@ -18,10 +18,12 @@
 // ---------------------------------------------------------------------
 
 using System.Data.SQLite;
+using System.IO;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
-using DotNetWorkQueue.Transport.SQLite.Basic;
+using DotNetWorkQueue.Transport.SQLite.Shared;
+using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
@@ -30,21 +32,32 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     {
         private readonly IConnectionInformation _connectionInformation;
         private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> _decorated;
+        private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
+        private readonly DatabaseExists _databaseExists;
 
         public CreateQueueTablesAndSaveConfigurationDecorator(IConnectionInformation connectionInformation, 
-            ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> decorated)
+            ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> decorated,
+            IGetFileNameFromConnectionString getFileNameFromConnection,
+            DatabaseExists databaseExists)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => decorated, decorated);
+            Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
+            Guard.NotNull(() => databaseExists, databaseExists);
+
             _connectionInformation = connectionInformation;
             _decorated = decorated;
+            _getFileNameFromConnection = getFileNameFromConnection;
+            _databaseExists = databaseExists;
         }
         public QueueCreationResult Handle(CreateQueueTablesAndSaveConfigurationCommand<ITable> command)
         {
-            if (!DatabaseExists.Exists(_connectionInformation.ConnectionString))
+            if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
             { //no db file, create
-                var fileName = GetFileNameFromConnectionString.GetFileName(_connectionInformation.ConnectionString);
-                SQLiteConnection.CreateFile(fileName.FileName);
+                var fileName = _getFileNameFromConnection.GetFileName(_connectionInformation.ConnectionString);
+                using (File.Create(fileName.FileName))
+                {
+                }
             }
 
             try

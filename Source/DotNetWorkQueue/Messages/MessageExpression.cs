@@ -111,6 +111,6 @@ namespace DotNetWorkQueue.Messages
         /// A linq action expression; not serialized and passed around the queues as-is
         /// </summary>
         /// <remarks>Only suitable for the in-memory queue</remarks>
-        ActionRaw,
+        ActionRaw
     }
 }

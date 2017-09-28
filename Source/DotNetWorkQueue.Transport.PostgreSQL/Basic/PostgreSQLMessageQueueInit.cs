@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             Guard.NotNull(() => container, container);
 
-            var init = new MessageQueueInit();
+            var init = new RelationalDatabaseMessageQueueInit();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
 
             //**all
@@ -181,7 +181,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
         {
-            var init = new MessageQueueInit();
+            var init = new RelationalDatabaseMessageQueueInit();
             init.SetDefaultsIfNeeded(container, "PostgreSQLMessageQueueTransportOptions", "PostgreSQLMessageQueueTransportOptions");
             SetupPolicy(container);
         }

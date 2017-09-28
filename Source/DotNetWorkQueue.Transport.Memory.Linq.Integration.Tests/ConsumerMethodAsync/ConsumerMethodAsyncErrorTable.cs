@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
                 using (
                     var queueCreator =
-                        new QueueCreationContainer<MessageQueueInit>(
+                        new QueueCreationContainer<MemoryMessageQueueInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     try
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             var id = Guid.NewGuid();
                             if (linqMethodTypes == LinqMethodTypes.Compiled)
                             {
-                                producer.RunTestCompiled<MessageQueueInit>(queueName,
+                                producer.RunTestCompiled<MemoryMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider,
                                     Helpers.GenerateData,
                                     Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope);
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
 #if NETFULL
                             else
                             {
-                                producer.RunTestDynamic<MessageQueueInit>(queueName,
+                                producer.RunTestDynamic<MemoryMessageQueueInit>(queueName,
                                    connectionInfo.ConnectionString, false, messageCount, logProvider,
                                    Helpers.GenerateData,
                                    Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope);
@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
 #endif
                             //process data
                             var consumer = new ConsumerMethodAsyncErrorShared();
-                            consumer.RunConsumer<MessageQueueInit>(queueName,connectionInfo.ConnectionString,
+                            consumer.RunConsumer<MemoryMessageQueueInit>(queueName,connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
                                 messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");

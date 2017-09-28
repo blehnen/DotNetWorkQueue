@@ -20,7 +20,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using Xunit;
 

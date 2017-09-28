@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Version>0.2.0</Version>
+    <Description>Microsoft SQlite transport for https://github.com/blehnen/DotNetWorkQueue</Description>
+    <Authors>Brian Lehnen</Authors>
+    <Company>Brian Lehnen</Company>
+    <Copyright>Copyright © Brian Lehnen 2017</Copyright>
+    <PackageLicenseUrl>http://www.gnu.org/licenses/lgpl-2.1.html</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
+    <PackageReleaseNotes>
+      See change log
+
+      https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md
+    </PackageReleaseNotes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
+  </PropertyGroup>
+
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <DefineConstants>NETSTANDARD2_0;</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite.Shared\DotNetWorkQueue.Transport.SQLite.Shared.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
+  </ItemGroup>
+
+</Project>

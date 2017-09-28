@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
                 using (var queueCreator =
-                    new QueueCreationContainer<MessageQueueInit>(
+                    new QueueCreationContainer<MemoryMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     try
@@ -88,13 +88,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                 var producer = new ProducerMethodShared();
                 if (linqMethodTypes == LinqMethodTypes.Compiled)
                 {
-                    tasks.Add(new Task(() => producer.RunTestCompiled<MessageQueueInit>(queueName, connectionString, false, messageCount,
+                    tasks.Add(new Task(() => producer.RunTestCompiled<MemoryMessageQueueInit>(queueName, connectionString, false, messageCount,
                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateCompiled, 0, scope)));
                 }
 #if NETFULL
                 else
                 {
-                    tasks.Add(new Task(() => producer.RunTestDynamic<MessageQueueInit>(queueName, connectionString, false, messageCount,
+                    tasks.Add(new Task(() => producer.RunTestDynamic<MemoryMessageQueueInit>(queueName, connectionString, false, messageCount,
                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateDynamic, 0, scope)));
                 }
 #endif

@@ -22,6 +22,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.SQLite.Basic;
+using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
@@ -30,8 +31,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class SimpleConsumer
     {
         [Theory]
-        [InlineData(1000, 0, 240, 5, true),
-        InlineData(10, 45, 280, 5, false)]
+        [InlineData(1000, 0, 60, 5, true),
+        InlineData(10, 45, 120, 5, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

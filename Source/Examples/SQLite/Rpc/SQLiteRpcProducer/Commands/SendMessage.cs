@@ -35,8 +35,9 @@ using ConsoleSharedCommands.Commands;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Messages;
-using DotNetWorkQueue.Transport.SQLite;
 using DotNetWorkQueue.Transport.SQLite.Basic;
+using DotNetWorkQueue.Transport.SQLite.Shared;
+using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using ExampleMessage;
 
 namespace SQLiteRpcProducer.Commands
@@ -327,12 +328,12 @@ namespace SQLiteRpcProducer.Commands
                     case ConsumerQueueTypes.Poco:
                         _queues.Add(queueNameReceive,
                           _queueContainer.Value.CreateRpc<SimpleResponse, SimpleMessage, SqLiteRpcConnection>(
-                              new SqLiteRpcConnection(connection, queueNameReceive, connection, queueNameResponse)));
+                              new SqLiteRpcConnection(connection, queueNameReceive, connection, queueNameResponse, new DbDataSource())));
                         break;
                     case ConsumerQueueTypes.Method:
                         _queues.Add(queueNameReceive,
                           _queueContainer.Value.CreateMethodRpc(
-                              new SqLiteRpcConnection(connection, queueNameReceive, connection, queueNameResponse)));
+                              new SqLiteRpcConnection(connection, queueNameReceive, connection, queueNameResponse, new DbDataSource())));
                         break;
                 }
 

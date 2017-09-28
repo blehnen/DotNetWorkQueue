@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
                 using (var queueCreator =
-                    new QueueCreationContainer<MessageQueueInit>(
+                    new QueueCreationContainer<MemoryMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     try
@@ -70,12 +70,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             {
                                 var id = Guid.NewGuid();
                                 var producer = new ProducerMethodAsyncShared();
-                                producer.RunTestAsync<MessageQueueInit>(queueName,
+                                producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
-                                consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
@@ -84,12 +84,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             {
                                 var id = Guid.NewGuid();
                                 var producer = new ProducerMethodAsyncShared();
-                                producer.RunTestAsync<MessageQueueInit>(queueName,
+                                producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
-                                consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
@@ -98,12 +98,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             {
                                 var id = Guid.NewGuid();
                                 var producer = new ProducerMethodAsyncShared();
-                                producer.RunTestAsync<MessageQueueInit>(queueName,
+                                producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
-                                consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");

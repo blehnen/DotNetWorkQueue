@@ -22,7 +22,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Logging;
+#if NETFULL
 using DotNetWorkQueue.Messages;
+#endif
 using FluentAssertions;
 using Xunit;
 

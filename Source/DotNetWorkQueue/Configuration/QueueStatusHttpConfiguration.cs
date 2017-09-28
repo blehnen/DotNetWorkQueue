@@ -62,9 +62,9 @@ namespace DotNetWorkQueue.Configuration
         public static QueueStatusHttpConfiguration Options(this IQueueStatus queueStatus)
         {
             Guard.NotNull(() => queueStatus, queueStatus);
-            if (queueStatus.Configuration.TryGetSetting("QueueStatusHttpConfiguration", out dynamic options))
+            if (queueStatus.Configuration.TryGetSetting("QueueStatusHttpConfiguration", out var options))
             {
-                return options;
+                return (QueueStatusHttpConfiguration)options;
             }
             throw new DotNetWorkQueueException("Failed to obtain the options"); 
         }

@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Validation
     /// </summary>
     ///	<nuget id="netfx-Guard" />
     [DebuggerStepThrough]
-    [ExcludeFromCodeCoverageAttribute]
+    [ExcludeFromCodeCoverage]
     public static class Guard
     {
         /// <summary>
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Validation
         /// <exception cref="System.ArgumentException">The <paramref name="value"/> is null or an empty string.</exception>
         public static void NotNullOrEmpty(Expression<Func<string>> reference, string value)
         {
-            NotNull<string>(reference, value);
+            NotNull(reference, value);
             if (value.Length == 0)
                 throw new ArgumentException("Parameter cannot be empty.", GetParameterName(reference));
         }

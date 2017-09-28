@@ -17,12 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoFixture" Version="3.50.6" />
-    <PackageReference Include="AutoFixture.AutoNSubstitute" Version="3.50.6" />
-    <PackageReference Include="AutoFixture.Xunit2" Version="3.50.6" />
+    <PackageReference Include="AutoFixture" Version="3.50.7" />
+    <PackageReference Include="AutoFixture.AutoNSubstitute" Version="3.50.7" />
+    <PackageReference Include="AutoFixture.Xunit2" Version="3.50.7" />
     <PackageReference Include="CompareNETObjects" Version="3.9.0" />
-    <PackageReference Include="FluentAssertions" Version="5.0.0-beta0001" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0-preview-20170914-09" />
+    <PackageReference Include="FluentAssertions" Version="5.0.0-beta0002" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0-preview-20170923-02" />
     <PackageReference Include="NSubstitute" Version="2.0.3" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.105.2" />
     <PackageReference Include="Tynamix.ObjectFiller" Version="1.5.4.1" />
@@ -35,6 +35,7 @@
     <ProjectReference Include="..\DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite.Integration.Tests\DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite.Shared\DotNetWorkQueue.Transport.SQLite.Shared.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>

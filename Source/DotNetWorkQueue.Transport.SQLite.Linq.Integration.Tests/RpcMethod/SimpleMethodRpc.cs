@@ -23,6 +23,7 @@ using DotNetWorkQueue.IntegrationTests.Shared.RpcMethod;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
+using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.RpcMethod
@@ -96,7 +97,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.RpcMethod
                                         connectionInfo.ConnectionString, logProviderReceive, logProviderSend,
                                         runtime, messageCount, workerCount, timeOut, async,
                                         new SqLiteRpcConnection(connectionInfo.ConnectionString, queueNameSend,
-                                            connectionInfo.ConnectionString, queueNameReceive),
+                                            connectionInfo.ConnectionString, queueNameReceive, new DbDataSource()),
                                         TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, linqMethodTypes, "second(*%10)");
 
                                     new VerifyQueueRecordCount(queueNameSend, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);

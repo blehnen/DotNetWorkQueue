@@ -35,8 +35,8 @@ using ConsoleSharedCommands.Commands;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Messages;
-using DotNetWorkQueue.Transport.SQLite;
 using DotNetWorkQueue.Transport.SQLite.Basic;
+using DotNetWorkQueue.Transport.SQLite.Shared;
 using ExampleMessage;
 
 namespace SQLiteProducer.Commands

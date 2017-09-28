@@ -25,7 +25,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Xunit;

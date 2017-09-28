@@ -33,7 +33,8 @@ using ConsoleShared;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using DotNetWorkQueue.Transport.SQLite.Schema;
+using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
+using DotNetWorkQueue.Transport.SQLite.Shared.Schema;
 
 namespace SQLiteProducer.Commands
 {
@@ -170,8 +171,7 @@ namespace SQLiteProducer.Commands
 
         public ConsoleExecuteResult AddColumn(string queueName, string name, string type, bool @null = true)
         {
-            ColumnTypes columnType;
-            if (Enum.TryParse(type, true, out columnType))
+            if (Enum.TryParse(type, true, out ColumnTypes columnType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalColumns.Add(new Column(name, columnType, @null, null));
@@ -182,8 +182,7 @@ namespace SQLiteProducer.Commands
 
         public ConsoleExecuteResult AddColumnWithLength(string queueName, string name, string type, int length, bool @null = true)
         {
-            ColumnTypes columnType;
-            if (Enum.TryParse(type, true, out columnType))
+            if (Enum.TryParse(type, true, out ColumnTypes columnType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalColumns.Add(new Column(name, columnType, length, @null, null));
@@ -194,8 +193,7 @@ namespace SQLiteProducer.Commands
 
         public ConsoleExecuteResult AddColumnWithPrecision(string queueName, string name, string type, byte precision, int scale, bool @null = true)
         {
-            ColumnTypes columnType;
-            if (Enum.TryParse(type, true, out columnType))
+            if (Enum.TryParse(type, true, out ColumnTypes columnType))
             {
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.AdditionalColumns.Add(new Column(name, columnType, precision, scale, @null,

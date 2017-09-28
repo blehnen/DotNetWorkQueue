@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
             {
                 var queueName = GenerateQueueName.Create();
                 using (var queueCreator =
-                    new QueueCreationContainer<MessageQueueInit>())
+                    new QueueCreationContainer<MemoryMessageQueueInit>())
                 {
                     using (
                         var oCreation =
@@ -47,14 +47,14 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                                 connectionInfo.ConnectionString)
                     )
                     {
-                        using (var queueContainer = new QueueContainer<MessageQueueInit>(x => { }))
+                        using (var queueContainer = new QueueContainer<MemoryMessageQueueInit>(x => { }))
                         {
                             try
                             {
                                 var tests = new JobSchedulerTestsShared();
                                 if (!dynamic)
                                 {
-                                    tests.RunEnqueueTestCompiled<MessageQueueInit, JobQueueCreation>(
+                                    tests.RunEnqueueTestCompiled<MemoryMessageQueueInit, JobQueueCreation>(
                                         queueName,
                                         connectionInfo.ConnectionString, true,
                                         Helpers.Verify, Helpers.SetError,
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
 #if NETFULL
                                 else
                                 {
-                                    tests.RunEnqueueTestDynamic<MessageQueueInit, JobQueueCreation>(
+                                    tests.RunEnqueueTestDynamic<MemoryMessageQueueInit, JobQueueCreation>(
                                         queueName,
                                         connectionInfo.ConnectionString, true,
                                         Helpers.Verify, Helpers.SetError,

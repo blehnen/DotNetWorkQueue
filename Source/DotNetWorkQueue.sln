@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.15
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue", "DotNetWorkQueue\DotNetWorkQueue.csproj", "{212ACD0D-8042-4DB4-A37C-D6786950681B}"
 EndProject
@@ -37,23 +37,31 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.R
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.PostgreSQL", "DotNetWorkQueue.Transport.PostgreSQL\DotNetWorkQueue.Transport.PostgreSQL.csproj", "{7AA5EDFE-3D5D-4CF6-84A3-A1A5F1207FD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Metrics.Net.Tests", "DotNetWorkQueue.Metrics.Net.Tests\DotNetWorkQueue.Metrics.Net.Tests.csproj", "{1EB58B6D-E88D-449F-9331-F4DC9169EF9B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Metrics.Net.Tests", "DotNetWorkQueue.Metrics.Net.Tests\DotNetWorkQueue.Metrics.Net.Tests.csproj", "{1EB58B6D-E88D-449F-9331-F4DC9169EF9B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.RelationalDatabase.Tests", "DotNetWorkQueue.Transport.RelationalDatabase.Tests\DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj", "{BC265AFB-8038-4AC6-8296-1B1A032FC116}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.RelationalDatabase.Tests", "DotNetWorkQueue.Transport.RelationalDatabase.Tests\DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj", "{BC265AFB-8038-4AC6-8296-1B1A032FC116}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.PostgreSQL.Tests", "DotNetWorkQueue.Transport.PostgreSQL.Tests\DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj", "{A70B26AC-C800-49F6-8024-6AECF3A1B301}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.PostgreSQL.Tests", "DotNetWorkQueue.Transport.PostgreSQL.Tests\DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj", "{A70B26AC-C800-49F6-8024-6AECF3A1B301}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests", "DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests\DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj", "{84D48F6A-41B1-4E09-8A64-D2113E077332}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests", "DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests\DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj", "{84D48F6A-41B1-4E09-8A64-D2113E077332}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests", "DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests\DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj", "{0EBBA52F-B1BB-4F55-882E-F730210AC474}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests", "DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests\DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj", "{0EBBA52F-B1BB-4F55-882E-F730210AC474}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SQLite", "DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj", "{AFF668C7-E803-44C6-9FFE-27069A19F9A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite", "DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj", "{AFF668C7-E803-44C6-9FFE-27069A19F9A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SQLite.Tests", "DotNetWorkQueue.Transport.SQLite.Tests\DotNetWorkQueue.Transport.SQLite.Tests.csproj", "{620CCADD-5E61-4BFD-B576-09EF7B822F50}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite.Integration.Tests", "DotNetWorkQueue.Transport.SQLite.Integration.Tests\DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj", "{E5EA6BBF-CE55-4AB6-8C46-6114360D7ADD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SQLite.Integration.Tests", "DotNetWorkQueue.Transport.SQLite.Integration.Tests\DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj", "{E5EA6BBF-CE55-4AB6-8C46-6114360D7ADD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests", "DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests\DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj", "{D9E6AC57-5A8D-4B4C-ACAD-2B1ECFA4E99E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests", "DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests\DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj", "{D9E6AC57-5A8D-4B4C-ACAD-2B1ECFA4E99E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite.Shared", "DotNetWorkQueue.Transport.SQLite.Shared\DotNetWorkQueue.Transport.SQLite.Shared.csproj", "{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite.Microsoft", "DotNetWorkQueue.Transport.SQLite.Microsoft\DotNetWorkQueue.Transport.SQLite.Microsoft.csproj", "{14148354-0A86-4919-8230-0289766C0036}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests", "DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests\DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.csproj", "{8E61EF37-E196-4157-8B66-16C08E7610CC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests", "DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests\DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.csproj", "{7C62CBBD-A23A-4B5D-A132-EB0CCAFFAD1D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite.Shared.Tests", "DotNetWorkQueue.Transport.SQLite.Shared.Tests\DotNetWorkQueue.Transport.SQLite.Shared.Tests.csproj", "{51AB5D68-A562-45E6-9426-AE4A89BFCED4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,10 +161,6 @@ Global
 		{AFF668C7-E803-44C6-9FFE-27069A19F9A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFF668C7-E803-44C6-9FFE-27069A19F9A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFF668C7-E803-44C6-9FFE-27069A19F9A9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{620CCADD-5E61-4BFD-B576-09EF7B822F50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{620CCADD-5E61-4BFD-B576-09EF7B822F50}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{620CCADD-5E61-4BFD-B576-09EF7B822F50}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{620CCADD-5E61-4BFD-B576-09EF7B822F50}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E5EA6BBF-CE55-4AB6-8C46-6114360D7ADD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E5EA6BBF-CE55-4AB6-8C46-6114360D7ADD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5EA6BBF-CE55-4AB6-8C46-6114360D7ADD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -165,6 +169,26 @@ Global
 		{D9E6AC57-5A8D-4B4C-ACAD-2B1ECFA4E99E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9E6AC57-5A8D-4B4C-ACAD-2B1ECFA4E99E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9E6AC57-5A8D-4B4C-ACAD-2B1ECFA4E99E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14148354-0A86-4919-8230-0289766C0036}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14148354-0A86-4919-8230-0289766C0036}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14148354-0A86-4919-8230-0289766C0036}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14148354-0A86-4919-8230-0289766C0036}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E61EF37-E196-4157-8B66-16C08E7610CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E61EF37-E196-4157-8B66-16C08E7610CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E61EF37-E196-4157-8B66-16C08E7610CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E61EF37-E196-4157-8B66-16C08E7610CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C62CBBD-A23A-4B5D-A132-EB0CCAFFAD1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C62CBBD-A23A-4B5D-A132-EB0CCAFFAD1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C62CBBD-A23A-4B5D-A132-EB0CCAFFAD1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C62CBBD-A23A-4B5D-A132-EB0CCAFFAD1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51AB5D68-A562-45E6-9426-AE4A89BFCED4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51AB5D68-A562-45E6-9426-AE4A89BFCED4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51AB5D68-A562-45E6-9426-AE4A89BFCED4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51AB5D68-A562-45E6-9426-AE4A89BFCED4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

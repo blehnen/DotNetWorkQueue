@@ -86,21 +86,15 @@ namespace ConsoleShared
         public static async Task<ConsoleExecuteResult> ExecuteAsync(ConsoleCommand command,
             CommandList commands)
         {
-            ConsoleExecutingAssembly instance;
-            Dictionary<string, ConsoleExecutingMethod> methodDictionary;
-            if (!ValidateCommand(command, commands, out instance, out methodDictionary))
+            if (!ValidateCommand(command, commands, out var instance, out Dictionary<string, ConsoleExecutingMethod> methodDictionary))
             {
                 return new ConsoleExecuteResult($"Unrecognized command \'{command.LibraryClassName}.{command.Name}\'. " +
                                        "Please type a valid command.");
             }
-
-            object[] inputArgs;
-            Type typeInfo;
-            string errorMessage;
             if (BuildCommand(command, instance, methodDictionary,
-                out inputArgs,
-                out typeInfo,
-                out errorMessage))
+                out object[] inputArgs,
+                out Type typeInfo,
+                out string errorMessage))
             {
 
                 // This will throw if the number of arguments provided does not match the number 
@@ -110,7 +104,7 @@ namespace ConsoleShared
                 {
                     //add the command to the current macro if capture is enabled
                     id = _consoleMacro?.Add(command.RawCommand);
-                    var result = await ((Task<ConsoleExecuteResult>) typeInfo.InvokeMember(
+                    var result = await ((Task<ConsoleExecuteResult>)typeInfo.InvokeMember(
                         command.Name,
                         BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod,
                         null, instance.Instance, inputArgs)).ConfigureAwait(false);
@@ -134,21 +128,15 @@ namespace ConsoleShared
         public static ConsoleExecuteResult Execute(ConsoleCommand command,
             CommandList commands)
         {
-            ConsoleExecutingAssembly instance;
-            Dictionary<string, ConsoleExecutingMethod> methodDictionary;
-            if (!ValidateCommand(command, commands, out instance, out methodDictionary))
+            if (!ValidateCommand(command, commands, out ConsoleExecutingAssembly instance, out Dictionary<string, ConsoleExecutingMethod> methodDictionary))
             {
                 return new ConsoleExecuteResult($"Unrecognized command \'{command.LibraryClassName}.{command.Name}\'. " +
                                        "Please type a valid command.");
             }
-
-            object[] inputArgs;
-            Type typeInfo;
-            string errorMessage;
             if (BuildCommand(command, instance, methodDictionary,
-                out inputArgs,
-                out typeInfo,
-                out errorMessage))
+                out object[] inputArgs,
+                out Type typeInfo,
+                out string errorMessage))
             {
 
                 // This will throw if the number of arguments provided does not match the number 
@@ -156,8 +144,8 @@ namespace ConsoleShared
                 int? id = -1;
                 try
                 {
-                    id =_consoleMacro?.Add(command.RawCommand);
-                    var result = (ConsoleExecuteResult) typeInfo.InvokeMember(
+                    id = _consoleMacro?.Add(command.RawCommand);
+                    var result = (ConsoleExecuteResult)typeInfo.InvokeMember(
                         command.Name,
                         BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod,
                         null, instance.Instance, inputArgs);
@@ -170,7 +158,7 @@ namespace ConsoleShared
                     {
                         _consoleMacro?.Remove(id.Value);
                     }
-                    if(ex.InnerException != null)
+                    if (ex.InnerException != null)
                         throw ex.InnerException;
                     throw;
                 }

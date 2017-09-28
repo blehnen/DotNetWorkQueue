@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
                 using (var queueCreator =
-                    new QueueCreationContainer<MessageQueueInit>(
+                    new QueueCreationContainer<MemoryMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     try
@@ -66,12 +66,12 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                             if (messageType == 1)
                             {
                                 var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<MessageQueueInit, FakeMessage>(queueName,
+                                producer.RunTestAsync<MemoryMessageQueueInit, FakeMessage>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, oCreation.Scope).Wait(timeOut / 2 * 1000);
 
                                 var consumer = new ConsumerAsyncShared<FakeMessage> { Factory = Factory };
-                                consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
@@ -79,12 +79,12 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                             else if (messageType == 2)
                             {
                                 var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<MessageQueueInit, FakeMessageA>(queueName,
+                                producer.RunTestAsync<MemoryMessageQueueInit, FakeMessageA>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, oCreation.Scope).Wait(timeOut / 2 * 1000);
 
                                 var consumer = new ConsumerAsyncShared<FakeMessageA> { Factory = Factory };
-                                consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
@@ -92,12 +92,12 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                             else if (messageType == 3)
                             {
                                 var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<MessageQueueInit, FakeMessageB>(queueName,
+                                producer.RunTestAsync<MemoryMessageQueueInit, FakeMessageB>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, oCreation.Scope).Wait(timeOut / 2 * 1000);
 
                                 var consumer = new ConsumerAsyncShared<FakeMessageB> { Factory = Factory };
-                                consumer.RunConsumer<MessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount,

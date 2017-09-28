@@ -19,9 +19,9 @@
 
 using System;
 using System.Threading;
-using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using Xunit;
+
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
     public class ConsumerMethodShared

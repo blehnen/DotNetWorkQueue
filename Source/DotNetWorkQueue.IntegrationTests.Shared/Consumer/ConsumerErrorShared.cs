@@ -19,8 +19,8 @@
 
 using System;
 using System.Threading;
-using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
+
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 {
     public class ConsumerErrorShared<TMessage>
