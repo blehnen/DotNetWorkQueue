@@ -27,11 +27,14 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <DefineConstants>NETSTANDARD2_0;</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <DocumentationFile>bin\Release\netstandard2.0\DotNetWorkQueue.Transport.RelationalDatabase.xml</DocumentationFile>
+    <DocumentationFile>DotNetWorkQueue.Transport.RelationalDatabase.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
     <DefineConstants>NETFULL</DefineConstants>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <DocumentationFile>DotNetWorkQueue.Transport.RelationalDatabase.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

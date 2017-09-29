@@ -3,6 +3,10 @@ using Microsoft.Data.Sqlite;
 
 namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Basic
 {
+    /// <summary>
+    /// Returns the 'source' value from a connection string
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.Transport.SQLite.Shared.IDbDataSource" />
     public class DbDataSource : IDbDataSource
     {
         /// <inheritdoc />

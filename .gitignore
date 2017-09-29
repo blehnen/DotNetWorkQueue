@@ -201,3 +201,12 @@ Source/DotNetWorkQueue.Transport.SqlServer.Tests/AppReadme/Compare-NET-Objects-H
 Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/AppReadme/Compare-NET-Objects-Help.txt
 Source/DotNetWorkQueue.Transport.SQLite.Tests/AppReadme/Compare-NET-Objects-Help.txt
 Source/DotNetWorkQueue.Transport.SqlServer.Tests/AppReadme/Compare-NET-Objects-Help.txt
+Source/DotNetWorkQueue.Metrics.Net/DotNetWorkQueue.Metrics.Net.xml
+Source/DotNetWorkQueue.Transport.PostgreSQL/DotNetWorkQueue.Transport.PostgreSQL.xml
+Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.xml
+Source/DotNetWorkQueue.Transport.RelationalDatabase/DotNetWorkQueue.Transport.RelationalDatabase.xml
+Source/DotNetWorkQueue.Transport.SQLite.Microsoft/DotNetWorkQueue.Transport.SQLite.Microsoft.xml
+Source/DotNetWorkQueue.Transport.SQLite.Shared/DotNetWorkQueue.Transport.SQLite.xml
+Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.xml
+Source/DotNetWorkQueue/DotNetWorkQueue.xml
+Source/DotNetWorkQueue/bDotNetWorkQueue.xml

@@ -16,6 +16,7 @@ SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
 
 https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageTags>Tasks Jobs Scheduler Threading Queues</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
@@ -28,13 +29,16 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
     <DefineConstants>NETSTANDARD2_0;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
-    <DocumentationFile>bin\Release\netstandard2.0\DotNetWorkQueue.xml</DocumentationFile>
+    <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
     <DefineConstants>LIBLOG_PUBLIC;NETFULL</DefineConstants>
+    <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
   </PropertyGroup>
 
   <ItemGroup>

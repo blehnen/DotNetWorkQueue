@@ -4,6 +4,10 @@ using Microsoft.Data.Sqlite;
 
 namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Basic
 {
+    /// <summary>
+    /// Enforces that only a single connection can be created per process
+    /// </summary>
+    /// <seealso cref="System.Data.IDbConnection" />
     public class SingleConnection: IDbConnection
     {
         private readonly SqliteConnection _connection;
@@ -26,6 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Basic
             _connection = new SqliteConnection(connectionString);
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _connection.Dispose();
@@ -35,46 +40,56 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Basic
             }
         }
 
+        /// <inheritdoc />
         public IDbTransaction BeginTransaction()
         {
             return ((IDbConnection) _connection).BeginTransaction();
         }
 
+        /// <inheritdoc />
         public IDbTransaction BeginTransaction(IsolationLevel il)
         {
             return ((IDbConnection) _connection).BeginTransaction(il);
         }
 
+        /// <inheritdoc />
         public void ChangeDatabase(string databaseName)
         {
             _connection.ChangeDatabase(databaseName);
         }
 
+        /// <inheritdoc />
         public void Close()
         {
             _connection.Close();
         }
 
+        /// <inheritdoc />
         public IDbCommand CreateCommand()
         {
             return ((IDbConnection) _connection).CreateCommand();
         }
 
+        /// <inheritdoc />
         public void Open()
         {
             _connection.Open();
         }
 
+        /// <inheritdoc />
         public string ConnectionString
         {
             get => _connection.ConnectionString;
             set => _connection.ConnectionString = value;
         }
 
+        /// <inheritdoc />
         public int ConnectionTimeout => _connection.ConnectionTimeout;
 
+        /// <inheritdoc />
         public string Database => _connection.Database;
 
+        /// <inheritdoc />
         public ConnectionState State => _connection.State;
     }
 }

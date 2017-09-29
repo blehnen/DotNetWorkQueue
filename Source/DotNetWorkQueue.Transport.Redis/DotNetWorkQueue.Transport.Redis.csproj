@@ -13,7 +13,8 @@
     <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
     <PackageReleaseNotes>See change log
 
-https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageReleaseNotes>
+https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageReleaseNotes>
+    <PackageTags>Redis</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
@@ -26,13 +27,16 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
     <DefineConstants>NETSTANDARD2_0;</DefineConstants>
-    <DocumentationFile>bin\Release\netstandard2.0\DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
+    <DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
     <DefineConstants>NETFULL</DefineConstants>
+    <DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
