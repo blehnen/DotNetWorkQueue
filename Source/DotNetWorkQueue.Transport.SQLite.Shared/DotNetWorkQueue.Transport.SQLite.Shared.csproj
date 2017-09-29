@@ -14,6 +14,7 @@
     <PackageReleaseNotes>See change log
       https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md
     </PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net452|AnyCPU'">

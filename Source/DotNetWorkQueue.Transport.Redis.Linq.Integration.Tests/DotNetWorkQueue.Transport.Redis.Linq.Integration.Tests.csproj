@@ -38,7 +38,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj" />
-    <ProjectReference Include="..\DotNetWorkQueue.Transport.Redis.IntegrationTests\DotNetWorkQueue.Transport.Redis.IntegrationTests.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.Redis.IntegrationTests\DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.Redis\DotNetWorkQueue.Transport.Redis.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>

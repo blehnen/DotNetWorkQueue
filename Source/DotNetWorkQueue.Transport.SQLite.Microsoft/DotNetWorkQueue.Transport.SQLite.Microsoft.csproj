@@ -17,6 +17,7 @@
       https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md
     </PackageReleaseNotes>
     <PackageTags>SQLite</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">

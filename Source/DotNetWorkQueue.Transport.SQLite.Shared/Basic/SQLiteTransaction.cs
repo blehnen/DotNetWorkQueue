@@ -21,7 +21,7 @@ using System.Data;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
 {
-    internal class SQLiteTransactionWrapper : ISQLiteTransactionWrapper
+    internal class SqLiteTransactionWrapper : ISQLiteTransactionWrapper
     {
         public IDbConnection Connection
         {

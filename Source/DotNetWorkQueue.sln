@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests", "DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj", "{D1CFD06B-2DD8-40CA-8BA2-171B251331F6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SqlServer.IntegrationTests", "DotNetWorkQueue.Transport.SqlServer.IntegrationTests\DotNetWorkQueue.Transport.SqlServer.IntegrationTests.csproj", "{6295D4BA-002E-46CB-BA81-F168137CD44E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SqlServer.Integration.Tests", "DotNetWorkQueue.Transport.SqlServer.IntegrationTests\DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj", "{6295D4BA-002E-46CB-BA81-F168137CD44E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests", "DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests\DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj", "{4514E510-BE38-4D58-A274-FFAB833BF9FB}"
 EndProject
@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.R
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Redis.Tests", "DotNetWorkQueue.Transport.Redis.Tests\DotNetWorkQueue.Transport.Redis.Tests.csproj", "{32C577B8-F639-4628-BC2D-07BD10E25EE1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Redis.IntegrationTests", "DotNetWorkQueue.Transport.Redis.IntegrationTests\DotNetWorkQueue.Transport.Redis.IntegrationTests.csproj", "{F895C532-2440-4834-9D18-EA42C12E4EDC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Redis.Integration.Tests", "DotNetWorkQueue.Transport.Redis.IntegrationTests\DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj", "{F895C532-2440-4834-9D18-EA42C12E4EDC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests", "DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests\DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj", "{0C65998B-3142-4385-9443-0BF1AD7A2799}"
 EndProject

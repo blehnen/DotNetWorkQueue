@@ -38,7 +38,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj" />
-    <ProjectReference Include="..\DotNetWorkQueue.Transport.SqlServer.IntegrationTests\DotNetWorkQueue.Transport.SqlServer.IntegrationTests.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SqlServer.IntegrationTests\DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.SqlServer\DotNetWorkQueue.Transport.SqlServer.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>

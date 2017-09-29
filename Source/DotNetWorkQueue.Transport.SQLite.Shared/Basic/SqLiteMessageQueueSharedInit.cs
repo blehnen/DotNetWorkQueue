@@ -112,7 +112,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             container
                 .Register<IConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>,
                     ConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>>(LifeStyles.Singleton);
-            container.Register<ISQLiteTransactionWrapper, SQLiteTransactionWrapper>(LifeStyles.Transient);
+            container.Register<ISQLiteTransactionWrapper, SqLiteTransactionWrapper>(LifeStyles.Transient);
             //**all
 
             //**receive
