@@ -46,6 +46,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
     /// </summary>
     public class SqLiteMessageQueueSharedInit : TransportInitDuplex
     {
+        /// <summary>
+        /// Allows a transport to register its dependencies in the IoC container.
+        /// </summary>
+        /// <param name="container">The container.</param>
+        /// <param name="registrationType">Type of the registration.</param>
+        /// <param name="connection">The connection.</param>
+        /// <param name="queue">The queue.</param>
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
             string connection, string queue)
         {
@@ -244,6 +251,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             scope.AddScopedObject(holder);
         }
 
+        /// <summary>
+        /// Setup the policies for a transport
+        /// </summary>
+        /// <param name="container">The container.</param>
         protected virtual void SetupPolicy(IContainer container)
         { //no-op unless overridden
         }

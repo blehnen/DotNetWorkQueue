@@ -23,7 +23,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Decorator
     /// </summary>
     public enum RetryableSqlErrors
     {
+        /// <summary>
+        /// The database is busy
+        /// </summary>
         DatabaseIsBusy = 5,
+        /// <summary>
+        /// The database is locked
+        /// </summary>
         DatabaseIsLocked = 6
     }
 }

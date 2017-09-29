@@ -30,6 +30,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
     {
         private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DatabaseExists"/> class.
+        /// </summary>
+        /// <param name="getFileNameFromConnection">The get file name from connection.</param>
         public DatabaseExists(IGetFileNameFromConnectionString getFileNameFromConnection)
         {
             Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
