@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net452</TargetFramework>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <Authors>Brian Lehnen</Authors>
     <Company>Brian Lehnen</Company>
     <Description>SQLite transport for https://github.com/blehnen/DotNetWorkQueue</Description>

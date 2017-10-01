@@ -1,4 +1,4 @@
-###0.2.0 ????
+###0.2.1 2017-09-30
 * Refactoring to share logic between transports better
 
 * **Breaking Change** Various spelling mistakes have been fixed. This is a breaking change, as this changed the public signatures of a few methods / properties. There are no behavior changes.

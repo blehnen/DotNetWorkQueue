@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <Description>Microsoft SQlite transport for https://github.com/blehnen/DotNetWorkQueue</Description>
     <Authors>Brian Lehnen</Authors>
     <Company>Brian Lehnen</Company>
@@ -11,11 +11,10 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
     <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
-    <PackageReleaseNotes>
-      See change log
+    <PackageReleaseNotes>See change log
 
       https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md
-    </PackageReleaseNotes>
+</PackageReleaseNotes>
     <PackageTags>SQLite</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

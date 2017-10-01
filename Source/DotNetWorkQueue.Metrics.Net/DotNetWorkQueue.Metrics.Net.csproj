@@ -4,7 +4,7 @@
     <TargetFramework>net452</TargetFramework>
     <Description>An implementation of metrics.net (
 https://github.com/Recognos/Metrics.NET) for https://github.com/blehnen/DotNetWorkQueue</Description>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <Authors>Brian Lehnen</Authors>
     <Company>Brian Lehnen</Company>
     <Copyright>Copyright © Brian Lehnen 2017</Copyright>
