@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2017 Brian Lehnen
+//Copyright © 2015-2018 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,14 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
 using System;
 using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
     /// <summary>
-    /// The correlation ID for the SQLite queue
+    /// The correlation ID for the queue
     /// <remarks>A GUID is used, since this needs to be different across queues</remarks>
     /// </summary>
     public class MessageCorrelationId: ICorrelationId

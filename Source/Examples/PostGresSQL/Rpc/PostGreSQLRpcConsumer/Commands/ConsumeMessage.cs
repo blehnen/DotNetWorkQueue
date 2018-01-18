@@ -1,5 +1,5 @@
 ﻿// ---------------------------------------------------------------------
-// Copyright © 2017 Brian Lehnen
+// Copyright © 2015-2018 Brian Lehnen
 // 
 // All rights reserved.
 // 
@@ -23,7 +23,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 // ---------------------------------------------------------------------
-
 using ConsoleShared;
 using ConsoleSharedCommands.Commands;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;

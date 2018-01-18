@@ -43,17 +43,17 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CacheManager.Core" Version="1.1.1" />
+    <PackageReference Include="CacheManager.Core" Version="1.1.2" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="Polly" Version="5.3.1" />
-    <PackageReference Include="SimpleInjector" Version="4.0.11" />
+    <PackageReference Include="Polly" Version="5.7.0" />
+    <PackageReference Include="SimpleInjector" Version="4.0.12" />
   </ItemGroup>
 
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
     <Reference Include="Microsoft.CSharp" />
-    <PackageReference Include="CacheManager.SystemRuntimeCaching" Version="1.1.1" />
+    <PackageReference Include="CacheManager.SystemRuntimeCaching" Version="1.1.2" />
     <Reference Include="Schyntax">
       <HintPath>..\..\Lib\Schyntax\net452\Schyntax.dll</HintPath>
     </Reference>
@@ -66,7 +66,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="Microsoft.Extensions.Caching.Memory">
       <Version>2.0.0</Version>
     </PackageReference>
-    <PackageReference Include="CacheManager.Microsoft.Extensions.Caching.Memory" Version="1.1.1" />
+    <PackageReference Include="CacheManager.Microsoft.Extensions.Caching.Memory" Version="1.1.2" />
     <Reference Include="Schyntax">
       <HintPath>..\..\Lib\Schyntax\netstandard2.0\Schyntax.dll</HintPath>
     </Reference>

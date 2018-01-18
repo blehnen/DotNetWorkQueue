@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2017 Brian Lehnen
+//Copyright © 2015-2018 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,9 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
-using Polly;
-
 namespace DotNetWorkQueue.Policies
 {
     /// <summary>
@@ -32,7 +29,7 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// The receive message from transport.
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type. Policy must be async.</remarks>
+        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type. Policy must be async.</remarks>
         public string ReceiveMessageFromTransport => "ReceiveMessageFromTransport";
 
         /// <summary>
@@ -41,7 +38,7 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// The receive message from transport.
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type</remarks>
         public string ReceiveMessageFromTransportAsync => "ReceiveMessageFromTransportAsync";
 
         /// <summary>
@@ -50,7 +47,7 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// Send message command
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type</remarks>
         public string SendMessage => "SendMessage";
 
         /// <summary>
@@ -59,7 +56,7 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// Send hearbeat command
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type</remarks>
         public string SendHeartBeat => "SendHeartBeat";
 
         /// <summary>
@@ -68,7 +65,7 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// Send message command
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type. Policy must be async.</remarks>
+        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type. Policy must be async.</remarks>
         public string SendMessageAsync => "SendMessageAsync";
 
         /// <summary>
@@ -77,7 +74,7 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// Send hearbeat command
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type. Policy must be async.</remarks>
+        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type. Policy must be async.</remarks>
         public string SendHeartBeatAsync => "SendHeartBeatAsync";
     }
 }
