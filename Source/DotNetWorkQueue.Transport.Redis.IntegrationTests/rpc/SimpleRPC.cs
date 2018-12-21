@@ -11,9 +11,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.rpc
     {
         [Theory]
         [InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux),
-         InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux),
-         InlineData(30, 0, 240, 5, false, ConnectionInfoTypes.Windows),
-         InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Windows)]
+         InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool async, ConnectionInfoTypes type)
         {
             var queueNameSend = GenerateQueueName.Create();

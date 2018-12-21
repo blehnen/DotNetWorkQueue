@@ -12,12 +12,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodCancelWork
     {
         [Theory]
-        [InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
 #if NETFULL
-          InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(7, 5, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
+        [InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+#else
+        [InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
 #endif
-         InlineData(7, 5, 90, 3, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {

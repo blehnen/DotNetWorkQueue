@@ -11,8 +11,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
     public class RouteTests
     {
         [Theory]
-        [InlineData(10, 1, 60, 1, 1, ConnectionInfoTypes.Windows, false),
-         InlineData(100, 0, 180, 1, 2, ConnectionInfoTypes.Linux, true)]
+        [InlineData(100, 0, 180, 1, 2, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
            int routeCount, ConnectionInfoTypes type, bool batch)
         {

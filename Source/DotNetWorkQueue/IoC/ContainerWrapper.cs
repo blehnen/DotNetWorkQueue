@@ -248,7 +248,7 @@ namespace DotNetWorkQueue.IoC
         public IContainer RegisterNonScopedSingleton<TConcrete>(TConcrete instance)
             where TConcrete : class
         {
-            _container.RegisterSingleton(instance);
+            _container.RegisterInstance(instance);
             return this;
         }
 
@@ -261,7 +261,7 @@ namespace DotNetWorkQueue.IoC
         public IContainer RegisterCollection<TService>(IEnumerable<Type> serviceTypes) 
             where TService : class
         {
-            _container.RegisterCollection<TService>(serviceTypes);
+            _container.Collection.Register<TService>(serviceTypes);
             return this;
         }
 
@@ -286,6 +286,8 @@ namespace DotNetWorkQueue.IoC
         /// <param name="lifestyle">The lifestyle.</param>
         /// <returns></returns>
         public IContainer RegisterDecorator<TService, TDecorator>(LifeStyles lifestyle)
+            where TService : class
+            where TDecorator : class, TService
         {
             _container.RegisterDecorator<TService, TDecorator>(GetLifeStyle(lifestyle));
             return this;

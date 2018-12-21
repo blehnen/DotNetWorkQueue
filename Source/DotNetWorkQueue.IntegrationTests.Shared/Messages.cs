@@ -108,37 +108,37 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         public static LinqExpressionToRun CreateMultipleDynamic(Guid id, int counter, int runTime)
         {
-            return CreateDefaultLinq($"(message, workerNotification) => StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"), int.Parse(\"{counter}\"))", true);
+            return CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"), int.Parse(\"{counter}\"))", true);
         }
         public static LinqExpressionToRun CreateDynamic(Guid id, int runTime)
         {
-            return CreateDefaultLinq($"(message, workerNotification) => StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
+            return CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
         }
 
         public static LinqExpressionToRun CreateRollBackDynamic(Guid id, int runTime)
         {
-            return CreateDefaultLinq($"(message, workerNotification) => RollBackTesting.Run((IReceivedMessage<MessageExpression>)message, new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
+            return CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.RollBackTesting.Run((IReceivedMessage<MessageExpression>)message, new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
         }
 
         public static LinqExpressionToRun CreateNoOpDynamic(Guid id, int runTime)
         {
-            return CreateDefaultLinq("(message, workerNotification) => StandardTesting.NoOp()");
+            return CreateDefaultLinq("(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.NoOp()");
         }
 
         public static LinqExpressionToRun CreateCancelDynamic(Guid id, int runTime)
         {
             return
-                CreateDefaultLinq($"(message, workerNotification) => CancelTesting.Run((IReceivedMessage<MessageExpression>)message, (IWorkerNotification)workerNotification, new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
+                CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.CancelTesting.Run((IReceivedMessage<MessageExpression>)message, (IWorkerNotification)workerNotification, new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
         }
 
         public static LinqExpressionToRun CreateErrorDynamic(Guid id, int runTime)
         {
-            return CreateDefaultLinq("(message, workerNotification) => StandardTesting.Error()");
+            return CreateDefaultLinq("(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.Error()");
         }
 
         public static LinqExpressionToRun CreateRpcDynamic(Guid id, int runTime)
         {
-            return CreateDefaultLinq($"(message, workerNotification) => StandardTesting.RunRpc(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
+            return CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.RunRpc(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
         }
 
         private static LinqExpressionToRun CreateDefaultLinq(string method, bool unique = false)

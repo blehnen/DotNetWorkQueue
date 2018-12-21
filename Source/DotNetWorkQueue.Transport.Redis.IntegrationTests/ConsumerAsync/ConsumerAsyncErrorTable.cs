@@ -11,10 +11,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncErrorTable
     {
         [Theory]
-        [InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows, false),
-            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, false),
-            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows, true),
-            InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, true)]
+        [InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, false),
+        InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();

@@ -230,8 +230,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             return NullDisposable.Instance;
         }
+
         /// <inheritdoc />
-        public IDisposable OpenMappedContext(string key, string value)
+        public IDisposable OpenMappedContext(string key, object value, bool destructure = false)
         {
             return NullDisposable.Instance;
         }

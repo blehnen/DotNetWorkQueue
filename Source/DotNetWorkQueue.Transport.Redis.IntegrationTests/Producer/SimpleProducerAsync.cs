@@ -14,13 +14,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
         InlineData(250, true, false, ConnectionInfoTypes.Linux),
         InlineData(200, false, false, ConnectionInfoTypes.Linux),
         InlineData(100, true, true, ConnectionInfoTypes.Linux),
-        InlineData(100, false, true, ConnectionInfoTypes.Linux),
-            InlineData(100, true, false, ConnectionInfoTypes.Windows),
-        InlineData(100, false, false, ConnectionInfoTypes.Windows),
-        InlineData(250, true, false, ConnectionInfoTypes.Windows),
-        InlineData(250, false, false, ConnectionInfoTypes.Windows),
-        InlineData(100, true, true, ConnectionInfoTypes.Windows),
-        InlineData(100, false, true, ConnectionInfoTypes.Windows)]
+        InlineData(100, false, true, ConnectionInfoTypes.Linux)]
         public async void Run(
            int messageCount,
            bool interceptors,

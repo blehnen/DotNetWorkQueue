@@ -10,12 +10,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerTests
     {
         [Theory]
-        [InlineData(false, ConnectionInfoTypes.Linux),
 #if NETFULL
-         InlineData(true, ConnectionInfoTypes.Linux),
-         InlineData(true, ConnectionInfoTypes.Windows),
+        [InlineData(true, ConnectionInfoTypes.Linux)]
+#else
+        [InlineData(false, ConnectionInfoTypes.Linux)]
 #endif
-         InlineData(false, ConnectionInfoTypes.Windows)]
         public void Run(
             bool dynamic,
             ConnectionInfoTypes type)

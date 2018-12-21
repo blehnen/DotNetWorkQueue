@@ -12,12 +12,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumer
     {
         [Theory]
-        [InlineData(10, 5, 180, 7, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
 #if NETFULL
-        InlineData(100, 0, 240, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+        [InlineData(100, 0, 240, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+#else
+        [InlineData(10, 5, 180, 7, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
 #endif
-        InlineData(100, 0, 240, 25, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();

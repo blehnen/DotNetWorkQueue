@@ -13,14 +13,10 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.RpcMethod
         [Theory]
         [InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
 #if NETFULL
-        InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(10, 1, 180, 5, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 5, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
 #endif
-         InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(10, 1, 180, 5, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-         InlineData(30, 0, 240, 5, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+         InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, 
             int workerCount, bool async, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {

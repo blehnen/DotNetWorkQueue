@@ -13,8 +13,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodMultipleDynamic
     {
         [Theory]
-        [InlineData(100, 0, 140, 5, ConnectionInfoTypes.Linux),
-        InlineData(100, 0, 240, 25, ConnectionInfoTypes.Windows)]
+        [InlineData(100, 0, 140, 5, ConnectionInfoTypes.Linux)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();

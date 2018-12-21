@@ -26,43 +26,24 @@ namespace DotNetWorkQueue.Logging
     /// </summary>
     public class NullLoggerProvider : ILogProvider
     {
-        /// <summary>
-        /// Gets the specified named logger.
-        /// </summary>
-        /// <param name="name">Name of the logger.</param>
-        /// <returns>
-        /// The logger reference.
-        /// </returns>
+        /// <inheritdoc/>
         public Logger GetLogger(string name)
         {
             return (logLevel, messageFunc, exception, formatParameters) => true;
         }
 
-        /// <summary>
-        /// Opens a nested diagnostics context. Not supported in EntLib logging.
-        /// </summary>
-        /// <param name="message">The message to add to the diagnostics context.</param>
-        /// <returns>
-        /// A disposable that when disposed removes the message from the context.
-        /// </returns>
+        /// <inheritdoc/>
         public IDisposable OpenNestedContext(string message)
         {
             return NullDisposable.Instance;
         }
 
-        /// <summary>
-        /// Opens a mapped diagnostics context. Not supported in EntLib logging.
-        /// </summary>
-        /// <param name="key">A key.</param>
-        /// <param name="value">A value.</param>
-        /// <returns>
-        /// A disposable that when disposed removes the map from the context.
-        /// </returns>
-        public IDisposable OpenMappedContext(string key, string value)
+        /// <inheritdoc/>
+        public IDisposable OpenMappedContext(string key, object value, bool destructure = false)
         {
             return NullDisposable.Instance;
         }
-
+    
         /// <summary>
         /// An implementation of a NoOp class that is <see cref="IDisposable"/>
         /// </summary>

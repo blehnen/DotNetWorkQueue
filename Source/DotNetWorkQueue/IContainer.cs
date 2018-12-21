@@ -121,7 +121,9 @@ namespace DotNetWorkQueue
         /// <typeparam name="TDecorator">The type of the decorator.</typeparam>
         /// <param name="lifestyle">The lifestyle.</param>
         /// <returns></returns>
-        IContainer RegisterDecorator<TService, TDecorator>(LifeStyles lifestyle);
+        IContainer RegisterDecorator<TService, TDecorator>(LifeStyles lifestyle)
+            where TService : class
+            where TDecorator : class, TService;
 
         /// <summary>
         /// Registers the specified service type.

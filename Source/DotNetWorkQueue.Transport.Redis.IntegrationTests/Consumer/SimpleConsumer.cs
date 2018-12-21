@@ -12,9 +12,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     {
         [Theory]
         [InlineData(500, 0, 240, 5, ConnectionInfoTypes.Linux),
-        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux),
-        InlineData(10, 5, 180, 7, ConnectionInfoTypes.Windows),
-        InlineData(500, 0, 240, 25, ConnectionInfoTypes.Windows)]
+        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();

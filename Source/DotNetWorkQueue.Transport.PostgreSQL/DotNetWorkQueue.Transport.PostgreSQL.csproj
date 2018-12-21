@@ -47,7 +47,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql" Version="3.2.6" />
+    <PackageReference Include="Npgsql" Version="4.0.4" />
+    <PackageReference Include="Polly" Version="6.1.2" />
   </ItemGroup>
 
   <ItemGroup>

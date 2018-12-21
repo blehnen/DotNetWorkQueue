@@ -16,18 +16,10 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
         InlineData(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
         InlineData(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(100, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-        InlineData(100, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-        InlineData(100, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-        InlineData(100, false, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
 #endif
         InlineData(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
         InlineData(100, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-        InlineData(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-        InlineData(100, true, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-        InlineData(100, false, false, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-        InlineData(100, true, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
-        InlineData(100, false, true, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled)]
+        InlineData(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
         public async void Run(
            int messageCount,
            bool interceptors,

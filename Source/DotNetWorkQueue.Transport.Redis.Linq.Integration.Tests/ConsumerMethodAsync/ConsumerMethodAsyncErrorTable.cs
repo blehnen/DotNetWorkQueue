@@ -12,12 +12,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     public class ConsumerMethodAsyncErrorTable
     {
         [Theory]
-        [InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Compiled),
 #if NETFULL
-         InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Windows, LinqMethodTypes.Dynamic),
-         InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         [InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+#else
+        [InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
 #endif
-        InlineData(1, 30, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
