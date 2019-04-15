@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
     {
         private readonly IQueryHandler<TQuery, TResult> _decorated;
         private readonly IPolicies _policies;
-        private Policy _policy;
+        private ISyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RetryQueryHandlerDecorator{TQuery,TResult}" /> class.

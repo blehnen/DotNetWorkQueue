@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
     {
         private readonly ICommandHandler<TCommand> _decorated;
         private readonly IPolicies _policies;
-        private Policy _policy;
+        private ISyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RetryCommandHandlerDecorator{TCommand}" /> class.

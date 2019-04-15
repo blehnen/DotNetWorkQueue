@@ -45,15 +45,15 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
   <ItemGroup>
     <PackageReference Include="CacheManager.Core" Version="1.2.0" />
     <PackageReference Include="CacheManager.SystemRuntimeCaching" Version="1.2.0" />
-    <PackageReference Include="LibLog" Version="5.0.3">
+    <PackageReference Include="LibLog" Version="5.0.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Polly" Version="6.1.2" />
-    <PackageReference Include="SimpleInjector" Version="4.4.2" />
+    <PackageReference Include="Polly" Version="7.1.0" />
+    <PackageReference Include="SimpleInjector" Version="4.5.1" />
   </ItemGroup>
 
 

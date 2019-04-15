@@ -11,7 +11,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
     {
         private readonly ICommandHandlerWithOutputAsync<TCommand, TOutput> _decorated;
         private readonly IPolicies _policies;
-        private Policy _policy;
+        private IAsyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RetryCommandHandlerOutputDecoratorAsync{TCommand,TOutput}" /> class.

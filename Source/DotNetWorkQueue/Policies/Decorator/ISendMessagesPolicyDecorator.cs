@@ -26,8 +26,8 @@ namespace DotNetWorkQueue.Policies.Decorator
     internal class SendMessagesPolicyDecorator: ISendMessages
     {
         private readonly IPolicies _policies;
-        private Policy _policy;
-        private Policy _policyAsync;
+        private ISyncPolicy _policy;
+        private IAsyncPolicy _policyAsync;
         private readonly ISendMessages _handler;
 
         /// <summary>

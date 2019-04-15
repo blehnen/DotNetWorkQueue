@@ -30,7 +30,8 @@ namespace DotNetWorkQueue.Interceptors
     internal class MessageInterceptors : List<IMessageInterceptor>, IMessageInterceptorRegistrar
     {
         private readonly IInterceptorFactory _interceptorFactory;
-        private readonly ConcurrentDictionary<Type, IMessageInterceptor> _createdInterceptors; 
+        private readonly ConcurrentDictionary<Type, IMessageInterceptor> _createdInterceptors;
+        private readonly IEnumerable<IMessageInterceptor> _interceptors;
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageInterceptors" /> class.
         /// </summary>
@@ -41,7 +42,7 @@ namespace DotNetWorkQueue.Interceptors
         {
             _interceptorFactory = interceptorFactory;
             _createdInterceptors = new ConcurrentDictionary<Type, IMessageInterceptor>();
-            AddInterceptors(interceptors.ToList());
+            _interceptors = interceptors;
         }
         /// <summary>
         /// Runs all <see cref="IMessageInterceptor"/> in the collection on the input, in order
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Interceptors
             if (Count == 0) return new MessageInterceptorsResult {Output = input};
             var output = new MessageInterceptorsResult();
             var bytes = input;
-            foreach (var interceptor in this)
+            foreach (var interceptor in _interceptors)
             {
                 var temp = interceptor.MessageToBytes(bytes);
                 if (temp.AddToGraph)
@@ -82,27 +83,10 @@ namespace DotNetWorkQueue.Interceptors
             var temp = graph.Types.Reverse();
             return temp.Select(GetInterceptor).Aggregate(input, (current, interceptor) => interceptor.BytesToMessage(current));
         }
-        /// <summary>
-        /// Adds the interceptors.
-        /// </summary>
-        /// <param name="interceptors">The interceptors.</param>
-        private void AddInterceptors(List<IMessageInterceptor> interceptors)
-        {
-            if (interceptors.Count == 0)
-                return;
-
-            Guard.IsValid(() => Count, Count, i => i == 0,
-               "AddInterceptors cannot be called more than once");
-
-            foreach (var interceptor in interceptors)
-            {
-                Add(interceptor);
-            }
-        }
 
         private IMessageInterceptor GetInterceptor(Type type)
         {
-            foreach (var interceptor in this.Where(interceptor => interceptor.GetType() == type))
+            foreach (var interceptor in _interceptors.Where(interceptor => interceptor.GetType() == type))
             {
                 return interceptor;
             }

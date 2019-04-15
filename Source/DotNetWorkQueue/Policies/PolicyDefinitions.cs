@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// The receive message from transport.
         /// </value>
-        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type. Policy must be async.</remarks>
+        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type.</remarks>
         public string ReceiveMessageFromTransport => "ReceiveMessageFromTransport";
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// The receive message from transport.
         /// </value>
-        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type</remarks>
+        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type. Policy must be async.</remarks>
         public string ReceiveMessageFromTransportAsync => "ReceiveMessageFromTransportAsync";
 
         /// <summary>
@@ -51,10 +51,10 @@ namespace DotNetWorkQueue.Policies
         public string SendMessage => "SendMessage";
 
         /// <summary>
-        /// Send hearbeat command
+        /// Send heartbeat command
         /// </summary>
         /// <value>
-        /// Send hearbeat command
+        /// Send heartbeat command
         /// </value>
         /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type</remarks>
         public string SendHeartBeat => "SendHeartBeat";
@@ -69,10 +69,10 @@ namespace DotNetWorkQueue.Policies
         public string SendMessageAsync => "SendMessageAsync";
 
         /// <summary>
-        /// Send hearbeat command
+        /// Send heartbeat command
         /// </summary>
         /// <value>
-        /// Send hearbeat command
+        /// Send heartbeat command
         /// </value>
         /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type. Policy must be async.</remarks>
         public string SendHeartBeatAsync => "SendHeartBeatAsync";

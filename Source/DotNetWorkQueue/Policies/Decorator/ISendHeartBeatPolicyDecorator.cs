@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Policies.Decorator
     {
         private readonly ISendHeartBeat _handler;
         private readonly IPolicies _policies;
-        private Policy _policy;
+        private ISyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendHeartBeatPolicyDecorator" /> class.
