@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Metrics.NoOp
 {
@@ -59,37 +60,37 @@ namespace DotNetWorkQueue.Metrics.NoOp
             
         }
 
-        public void Gauge(string name, Func<double> valueProvider, Units unit, string tag = null)
+        public void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             
         }
 
-        public ICounter Counter(string name, Units unit, string tag = null)
+        public ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             return _counter;
         }
 
-        public ICounter Counter(string name, string unitName, string tag = null)
+        public ICounter Counter(string name, string unitName, List<KeyValuePair<string, string>> tags = null)
         {
             return _counter;
         }
 
-        public IMeter Meter(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, string tag = null)
+        public IMeter Meter(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, List<KeyValuePair<string, string>> tags = null)
         {
             return _meter;
         }
 
-        public IMeter Meter(string name, string unitName, TimeUnits rateUnit, string tag = null)
+        public IMeter Meter(string name, string unitName, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
             return _meter;
         }
 
-        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType = SamplingTypes.FavorRecent, string tag = null)
+        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType = SamplingTypes.FavorRecent, List<KeyValuePair<string, string>> tags = null)
         {
             return _histogram;
         }
 
-        public ITimer Timer(string name, Units unit, SamplingTypes samplingType = SamplingTypes.FavorRecent, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, string tag = null)
+        public ITimer Timer(string name, Units unit, SamplingTypes samplingType = SamplingTypes.FavorRecent, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, List<KeyValuePair<string, string>> tags = null)
         {
             return _timer;
         }
@@ -210,37 +211,37 @@ namespace DotNetWorkQueue.Metrics.NoOp
             
         }
 
-        public void Gauge(string name, Func<double> valueProvider, Units unit, string tag = null)
+        public void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
            
         }
 
-        public IMeter Meter(string name, Units unit, TimeUnits rateUnit, string tag = null)
+        public IMeter Meter(string name, Units unit, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
             return _meter;
         }
 
-        public IMeter Meter(string name, string unitName, TimeUnits rateUnit, string tag = null)
+        public IMeter Meter(string name, string unitName, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
             return _meter;
         }
 
-        public ICounter Counter(string name, Units unit, string tag = null)
+        public ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             return _counter;
         }
 
-        public ICounter Counter(string name, string unitName, string tag = null)
+        public ICounter Counter(string name, string unitName, List<KeyValuePair<string, string>> tags = null)
         {
             return _counter;
         }
 
-        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType, string tag = null)
+        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType, List<KeyValuePair<string, string>> tags = null)
         {
             return _histogram;
         }
 
-        public ITimer Timer(string name, Units unit, SamplingTypes samplingType, TimeUnits rateUnit, TimeUnits durationUnit, string tag = null)
+        public ITimer Timer(string name, Units unit, SamplingTypes samplingType, TimeUnits rateUnit, TimeUnits durationUnit, List<KeyValuePair<string, string>> tags = null)
         {
             return _timer;
         }

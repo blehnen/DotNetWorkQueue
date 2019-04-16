@@ -24,19 +24,22 @@
 // THE SOFTWARE.
 // ---------------------------------------------------------------------
 using System;
+using System.Linq;
 using System.Text;
 using ConsoleShared;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
-using Metrics;
+using App.Metrics;
 
 namespace ConsoleSharedCommands.Commands
 {
     public abstract class SharedCommands: IConsoleCommand, IDisposable
     {
         protected readonly Lazy<QueueStatusContainer> QueueStatusContainer;
-        protected DotNetWorkQueue.Metrics.Net.Metrics Metrics;
+        protected DotNetWorkQueue.AppMetrics.Metrics Metrics;
+        private App.Metrics.IMetricsRoot _metricsRoot;
+
         protected IQueueStatus QueueStatus;
 
         protected bool Gzip;
@@ -70,8 +73,9 @@ namespace ConsoleSharedCommands.Commands
             help.AppendLine("");
             help.AppendLine("-The following should be enabled before performing queue actions; usage is optional-");
             help.AppendLine(ConsoleFormatting.FixedLength("EnableStatus uri", "Enables the status HTTP server"));
-            help.AppendLine(ConsoleFormatting.FixedLength("EnableMetrics uri [performanceCounters]",
+            help.AppendLine(ConsoleFormatting.FixedLength("EnableMetrics",
                 "Enables queue metrics"));
+            help.AppendLine(ConsoleFormatting.FixedLength("ViewMetrics","Displays any captured metrics"));
             help.AppendLine(ConsoleFormatting.FixedLength("EnableGzip", "Enables the Gzip message interceptor"));
             help.AppendLine(ConsoleFormatting.FixedLength("EnableDes [key] [iv]",
                 "Enables Triple DES message interceptor; key/iv must be base64 strings"));
@@ -108,27 +112,37 @@ namespace ConsoleSharedCommands.Commands
             QueueStatus.Start();
             return new ConsoleExecuteResult($"status listener started at {location}", new ConsoleExecuteAction(ConsoleExecuteActions.StatusUri, location));
         }
-        public ConsoleExecuteResult EnableMetrics(string location, bool performanceCounters = false)
+
+        public ConsoleExecuteResult ViewMetrics()
+        {
+            if (Metrics != null)
+            {
+                var tasks =_metricsRoot.ReportRunner.RunAllAsync();
+                System.Threading.Tasks.Task.WaitAll(tasks.ToArray());
+            }
+            return new ConsoleExecuteResult("Metric reports have been run");
+        }
+        public ConsoleExecuteResult EnableMetrics()
         {
             if (Metrics != null)
                 return new ConsoleExecuteResult("Metrics already enabled");
 
-            if (!Uri.IsWellFormedUriString(location, UriKind.Absolute))
-            {
-                throw new ArgumentException($"{location} is not a valid Uri");
-            }
+            _metricsRoot = new App.Metrics.MetricsBuilder()
+                .Configuration.Configure(
+                    options =>
+                    {
+                        options.DefaultContextLabel = "ExampleApp";
+                        options.Enabled = true;
+                        options.ReportingEnabled = true;
+                    })
+                .Report.ToConsole(
+                    options => {
+                        options.FlushInterval = TimeSpan.FromSeconds(5);
+                    })
+                .Build();
 
-            if (!location.EndsWith("/"))
-                location = location + "/";
-
-            Metrics = new DotNetWorkQueue.Metrics.Net.Metrics("ExampleApp");
-            Metrics.Config.WithHttpEndpoint(location);
-            if (performanceCounters)
-            {
-                Metrics.Config.WithAllCounters();
-            }
-
-            return new ConsoleExecuteResult($"Metrics enabled at {location}", new ConsoleExecuteAction(ConsoleExecuteActions.StartProcess, location));
+            Metrics = new DotNetWorkQueue.AppMetrics.Metrics(_metricsRoot);
+            return new ConsoleExecuteResult($"Metrics enabled");
         }
 
         /// <summary>

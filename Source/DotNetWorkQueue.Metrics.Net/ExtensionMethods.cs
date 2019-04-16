@@ -1,4 +1,7 @@
-﻿using Metrics.MetricData;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Metrics;
+using Metrics.MetricData;
 
 namespace DotNetWorkQueue.Metrics.Net
 {
@@ -23,6 +26,17 @@ namespace DotNetWorkQueue.Metrics.Net
         public static MetricsData GetCurrentMetrics(this Metrics data)
         {
             return (MetricsData)data.CollectedMetrics;
+        }
+
+        /// <summary>
+        /// Metrics.net only supports a single string for a tag. We will pull the first value out of the list.
+        /// </summary>
+        /// <param name="tags">The tags.</param>
+        /// <returns></returns>
+        public static string GetFirstTag(this List<KeyValuePair<string, string>> tags)
+        {
+            if (tags == null || tags.Count == 0) return null;
+            return tags[0].Value;
         }
     }
 }

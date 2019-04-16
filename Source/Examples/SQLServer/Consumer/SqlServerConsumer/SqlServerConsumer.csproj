@@ -36,9 +36,6 @@
     <Reference Include="DotNetWorkQueue">
       <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetWorkQueue.Metrics.Net">
-      <HintPath>..\..\..\..\DotNetWorkQueue.Metrics.Net\bin\Debug\net452\DotNetWorkQueue.Metrics.Net.dll</HintPath>
-    </Reference>
     <Reference Include="DotNetWorkQueue.Transport.SqlServer">
       <HintPath>..\..\..\..\DotNetWorkQueue.Transport.SqlServer\bin\Debug\net452\DotNetWorkQueue.Transport.SqlServer.dll</HintPath>
     </Reference>
