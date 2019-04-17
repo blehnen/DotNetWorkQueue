@@ -116,15 +116,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
             });
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private static async void SendMultipleMessagesAsync(IRpcQueue<TTResponse, TTMessage> queue, int number)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             //send a bunch of messages
             var numberOfJobs = number;
             var jobs = Enumerable.Range(0, numberOfJobs)
                    .Select(i => new TTMessage());
-            Parallel.ForEach(jobs, async job =>
+
+            foreach (var job in jobs)
             {
                 try
                 {
@@ -149,7 +148,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Rpc
                 {
                     throw new DotNetWorkQueueException("The request has timed out");
                 }
-            });
+            }
         }
 
         private void RunRpcReceive(string queueName, string connectionString,
