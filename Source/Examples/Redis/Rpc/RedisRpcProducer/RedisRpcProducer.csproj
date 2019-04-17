@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RedisRpcProducer</RootNamespace>
     <AssemblyName>RedisRpcProducer</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -36,11 +36,14 @@
     <Reference Include="DotNetWorkQueue">
       <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetWorkQueue.AppMetrics">
+      <HintPath>..\..\..\..\DotNetWorkQueue.AppMetrics\bin\Debug\net452\DotNetWorkQueue.AppMetrics.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetWorkQueue.Metrics.Net">
       <HintPath>..\..\..\..\DotNetWorkQueue.Metrics.Net\bin\Debug\net452\DotNetWorkQueue.Metrics.Net.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.Redis">
-      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.Redis\bin\Debug\net452\DotNetWorkQueue.Transport.Redis.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.Redis\bin\Debug\net472\DotNetWorkQueue.Transport.Redis.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />

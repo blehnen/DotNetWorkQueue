@@ -36,8 +36,8 @@
     <Reference Include="DotNetWorkQueue">
       <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetWorkQueue.Metrics.Net">
-      <HintPath>..\..\..\..\DotNetWorkQueue.Metrics.Net\bin\Debug\net452\DotNetWorkQueue.Metrics.Net.dll</HintPath>
+    <Reference Include="DotNetWorkQueue.AppMetrics">
+      <HintPath>..\..\..\..\DotNetWorkQueue.AppMetrics\bin\Debug\net452\DotNetWorkQueue.AppMetrics.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.PostgreSQL">
       <HintPath>..\..\..\..\DotNetWorkQueue.Transport.PostgreSQL\bin\Debug\net452\DotNetWorkQueue.Transport.PostgreSQL.dll</HintPath>

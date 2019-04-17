@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Metrics;
 
 namespace DotNetWorkQueue.Metrics.Net
 {
     /// <inheritdoc cref="IMetrics" />
+    [Obsolete("Replaced by DotNetWorkQueue.AppMetrics", false)]
     public class Metrics: IMetrics, IDisposable
     {
         private readonly global::Metrics.MetricsContext _context;
@@ -24,45 +26,45 @@ namespace DotNetWorkQueue.Metrics.Net
         public MetricsConfig Config => Metric.Config;
 
         /// <inheritdoc />
-        public void Gauge(string name, Func<double> valueProvider, Units unit, string tag = null)
+        public void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
-            _context.Gauge(name, valueProvider, unit.ToString(), tag);
+            _context.Gauge(name, valueProvider, unit.ToString(), tags.GetFirstTag());
         }
 
         /// <inheritdoc />
-        public IMeter Meter(string name, Units unit, TimeUnits rateUnit, string tag = null)
+        public IMeter Meter(string name, Units unit, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
-            return new Meter(_context.Meter(name, unit.ToString(), (TimeUnit)rateUnit, tag));
+            return new Meter(_context.Meter(name, unit.ToString(), (TimeUnit)rateUnit, tags.GetFirstTag()));
         }
 
         /// <inheritdoc />
-        public IMeter Meter(string name, string unitName, TimeUnits rateUnit, string tag = null)
+        public IMeter Meter(string name, string unitName, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
-            return new Meter(_context.Meter(name, unitName, (TimeUnit)rateUnit, tag));
+            return new Meter(_context.Meter(name, unitName, (TimeUnit)rateUnit, tags.GetFirstTag()));
         }
 
         /// <inheritdoc />
-        public ICounter Counter(string name, Units unit, string tag = null)
+        public ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
-            return new Counter(_context.Counter(name, unit.ToString(), tag));
+            return new Counter(_context.Counter(name, unit.ToString(), tags.GetFirstTag()));
         }
 
         /// <inheritdoc />
-        public ICounter Counter(string name, string unitName, string tag = null)
+        public ICounter Counter(string name, string unitName, List<KeyValuePair<string, string>> tags = null)
         {
-            return new Counter(_context.Counter(name, unitName, tag));
+            return new Counter(_context.Counter(name, unitName, tags.GetFirstTag()));
         }
 
         /// <inheritdoc />
-        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType, string tag = null)
+        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType, List<KeyValuePair<string, string>> tags = null)
         {
-            return new Histogram(_context.Histogram(name, unit.ToString(), (SamplingType)samplingType, tag));
+            return new Histogram(_context.Histogram(name, unit.ToString(), (SamplingType)samplingType, tags.GetFirstTag()));
         }
 
         /// <inheritdoc />
-        public ITimer Timer(string name, Units unit, SamplingTypes samplingType, TimeUnits rateUnit, TimeUnits durationUnit, string tag = null)
+        public ITimer Timer(string name, Units unit, SamplingTypes samplingType, TimeUnits rateUnit, TimeUnits durationUnit, List<KeyValuePair<string, string>> tags = null)
         {
-            return new Timer(_context.Timer(name, unit.ToString(), (SamplingType)samplingType, (TimeUnit)rateUnit, (TimeUnit)durationUnit, tag));
+            return new Timer(_context.Timer(name, unit.ToString(), (SamplingType)samplingType, (TimeUnit)rateUnit, (TimeUnit)durationUnit, tags.GetFirstTag()));
         }
 
         /// <inheritdoc />

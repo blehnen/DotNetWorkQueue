@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using DotNetWorkQueue.Metrics.NoOp;
 
 namespace DotNetWorkQueue.IntegrationTests.Metrics
@@ -20,13 +21,13 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         }
 
         /// <inheritdoc />
-        public void Gauge(string name, Func<double> valueProvider, Units unit, string tag = null)
+        public void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             //noop
         }
 
         /// <inheritdoc />
-        public IMeter Meter(string name, Units unit, TimeUnits rateUnit, string tag = null)
+        public IMeter Meter(string name, Units unit, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
             if (_meters.ContainsKey(name))
                 return _meters[name];
@@ -35,7 +36,7 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         }
 
         /// <inheritdoc />
-        public IMeter Meter(string name, string unitName, TimeUnits rateUnit, string tag = null)
+        public IMeter Meter(string name, string unitName, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
             if (_meters.ContainsKey(name))
                 return _meters[name];
@@ -44,7 +45,7 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         }
 
         /// <inheritdoc />
-        public ICounter Counter(string name, Units unit, string tag = null)
+        public ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             if (_counters.ContainsKey(name))
                 return _counters[name];
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         }
 
         /// <inheritdoc />
-        public ICounter Counter(string name, string unitName, string tag = null)
+        public ICounter Counter(string name, string unitName, List<KeyValuePair<string, string>> tags = null)
         {
             if (_counters.ContainsKey(name))
                 return _counters[name];
@@ -62,13 +63,13 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         }
 
         /// <inheritdoc />
-        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType, string tag = null)
+        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType, List<KeyValuePair<string, string>> tags = null)
         {
             return new HistogramNoOp();
         }
 
         /// <inheritdoc />
-        public ITimer Timer(string name, Units unit, SamplingTypes samplingType, TimeUnits rateUnit, TimeUnits durationUnit, string tag = null)
+        public ITimer Timer(string name, Units unit, SamplingTypes samplingType, TimeUnits rateUnit, TimeUnits durationUnit, List<KeyValuePair<string, string>> tags = null)
         {
             return new TimerNoOp();
         }

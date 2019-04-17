@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue
 {
@@ -45,26 +46,26 @@ namespace DotNetWorkQueue
         /// <param name="name">Name of this gauge metric. Must be unique across all gauges in this context.</param>
         /// <param name="valueProvider">Function that returns the value for the gauge.</param>
         /// <param name="unit">Description of want the value represents ( Unit.Requests , Unit.Items etc ) .</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
-        void Gauge(string name, Func<double> valueProvider, Units unit, string tag = null);
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
+        void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A counter is a simple incrementing and decrementing 64-bit integer. Ex number of active requests.
         /// </summary>
         /// <param name="name">Name of the metric. Must be unique across all counters in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
-        ICounter Counter(string name, Units unit, string tag = null);
+        ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A counter is a simple incrementing and decrementing 64-bit integer. Ex number of active requests.
         /// </summary>
         /// <param name="name">Name of the metric. Must be unique across all counters in this context.</param>
         /// <param name="unitName">A Parent name; child counters can be added to this by specifying the this name</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns></returns>
-        ICounter Counter(string name, string unitName, string tag = null);
+        ICounter Counter(string name, string unitName, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A meter measures the rate at which a set of events occur, in a few different ways. 
@@ -79,9 +80,9 @@ namespace DotNetWorkQueue
         /// <param name="name">Name of the metric. Must be unique across all meters in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
         /// <param name="rateUnit">Time unit for rates reporting. Defaults to Second ( occurrences / second ).</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
-        IMeter Meter(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, string tag = null);
+        IMeter Meter(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A meter measures the rate at which a set of events occur, in a few different ways.
@@ -90,7 +91,7 @@ namespace DotNetWorkQueue
         /// <param name="name">Name of the metric. Must be unique across all meters in this context.</param>
         /// <param name="unitName">A Parent name; child counters can be added to this by specifying the this name</param>
         /// <param name="rateUnit">Time unit for rates reporting. Defaults to Second ( occurrences / second ).</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         /// <remarks>
         /// The mean rate is the average rate of events. It’s generally useful for trivia,
@@ -98,7 +99,7 @@ namespace DotNetWorkQueue
         /// divided by the number of seconds the process has been running), it does not offer a sense of recency.
         /// Luckily, meters also record three different exponentially-weighted moving average rates: the 1-, 5-, and 15-minute moving averages.
         /// </remarks>
-        IMeter Meter(string name, string unitName, TimeUnits rateUnit, string tag = null);
+        IMeter Meter(string name, string unitName, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A Histogram measures the distribution of values in a stream of data: e.g., the number of results returned by a search.
@@ -106,12 +107,12 @@ namespace DotNetWorkQueue
         /// <param name="name">Name of the metric. Must be unique across all histograms in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
         /// <param name="samplingType">Type of the sampling to use (see SamplingType for details ).</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         IHistogram Histogram(string name,
             Units unit,
             SamplingTypes samplingType = SamplingTypes.FavorRecent,
-            string tag = null);
+            List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A timer is basically a histogram of the duration of a type of event and a meter of the rate of its occurrence.
@@ -121,14 +122,14 @@ namespace DotNetWorkQueue
         /// <param name="samplingType">Type of the sampling to use (see SamplingType for details ).</param>
         /// <param name="rateUnit">Time unit for rates reporting. Defaults to Second ( occurrences / second ).</param>
         /// <param name="durationUnit">Time unit for reporting durations. Defaults to Milliseconds. </param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         ITimer Timer(string name,
             Units unit,
             SamplingTypes samplingType = SamplingTypes.FavorRecent,
             TimeUnits rateUnit = TimeUnits.Seconds,
             TimeUnits durationUnit = TimeUnits.Milliseconds,
-            string tag = null);
+            List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// Gets the collected metrics.
@@ -164,26 +165,26 @@ namespace DotNetWorkQueue
         /// <param name="name">Name of this gauge metric. Must be unique across all gauges in this context.</param>
         /// <param name="valueProvider">Function that returns the value for the gauge.</param>
         /// <param name="unit">Description of want the value represents ( Unit.Requests , Unit.Items etc ) .</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
-        void Gauge(string name, Func<double> valueProvider, Units unit, string tag = null);
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
+        void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A counter is a simple incrementing and decrementing 64-bit integer. Ex number of active requests.
         /// </summary>
         /// <param name="name">Name of the metric. Must be unique across all counters in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
-        ICounter Counter(string name, Units unit, string tag = null);
+        ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A counter is a simple incrementing and decrementing 64-bit integer. Ex number of active requests.
         /// </summary>
         /// <param name="name">Name of the metric. Must be unique across all counters in this context.</param>
         /// <param name="unitName">A Parent name; child counters can be added to this by specifying the this name</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns></returns>
-        ICounter Counter(string name, string unitName, string tag = null);
+        ICounter Counter(string name, string unitName, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A meter measures the rate at which a set of events occur, in a few different ways. 
@@ -198,9 +199,9 @@ namespace DotNetWorkQueue
         /// <param name="name">Name of the metric. Must be unique across all meters in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
         /// <param name="rateUnit">Time unit for rates reporting. Defaults to Second ( occurrences / second ).</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
-        IMeter Meter(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, string tag = null);
+        IMeter Meter(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A meter measures the rate at which a set of events occur, in a few different ways.
@@ -209,7 +210,7 @@ namespace DotNetWorkQueue
         /// <param name="name">Name of the metric. Must be unique across all meters in this context.</param>
         /// <param name="unitName">A Parent name; child counters can be added to this by specifying the this name</param>
         /// <param name="rateUnit">Time unit for rates reporting. Defaults to Second ( occurrences / second ).</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         /// <remarks>
         /// The mean rate is the average rate of events. It’s generally useful for trivia,
@@ -217,7 +218,7 @@ namespace DotNetWorkQueue
         /// divided by the number of seconds the process has been running), it does not offer a sense of recency.
         /// Luckily, meters also record three different exponentially-weighted moving average rates: the 1-, 5-, and 15-minute moving averages.
         /// </remarks>
-        IMeter Meter(string name, string unitName, TimeUnits rateUnit, string tag = null);
+        IMeter Meter(string name, string unitName, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A Histogram measures the distribution of values in a stream of data: e.g., the number of results returned by a search.
@@ -225,12 +226,12 @@ namespace DotNetWorkQueue
         /// <param name="name">Name of the metric. Must be unique across all histograms in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
         /// <param name="samplingType">Type of the sampling to use (see SamplingType for details ).</param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         IHistogram Histogram(string name,
             Units unit,
             SamplingTypes samplingType = SamplingTypes.FavorRecent,
-            string tag = null);
+            List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
         /// A timer is basically a histogram of the duration of a type of event and a meter of the rate of its occurrence.
@@ -240,14 +241,14 @@ namespace DotNetWorkQueue
         /// <param name="samplingType">Type of the sampling to use (see SamplingType for details ).</param>
         /// <param name="rateUnit">Time unit for rates reporting. Defaults to Second ( occurrences / second ).</param>
         /// <param name="durationUnit">Time unit for reporting durations. Defaults to Milliseconds. </param>
-        /// <param name="tag">Optional tag that can be associated with the metric.</param>
+        /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         ITimer Timer(string name,
             Units unit,
             SamplingTypes samplingType = SamplingTypes.FavorRecent,
             TimeUnits rateUnit = TimeUnits.Seconds,
             TimeUnits durationUnit = TimeUnits.Milliseconds,
-            string tag = null);
+            List<KeyValuePair<string, string>> tags = null);
     }
     /// <summary>
     /// A timer is basically a histogram of the duration of a type of event and a meter of the rate of its occurrence.

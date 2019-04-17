@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodMultipleDynamic
     {
         [Theory]
-        [InlineData(1000, 0, 60, 5)]
+        [InlineData(1000, 0, 120, 5)]
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount)
         {

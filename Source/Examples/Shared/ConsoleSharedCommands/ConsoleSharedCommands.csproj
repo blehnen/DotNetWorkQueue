@@ -31,20 +31,32 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="App.Metrics.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Abstractions.3.0.0\lib\net45\App.Metrics.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="App.Metrics.Concurrency, Version=2.0.1.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Concurrency.2.0.1\lib\net45\App.Metrics.Concurrency.dll</HintPath>
+    </Reference>
+    <Reference Include="App.Metrics.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Core.3.0.0\lib\net452\App.Metrics.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="App.Metrics.Formatters.Ascii, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Formatters.Ascii.3.0.0\lib\net452\App.Metrics.Formatters.Ascii.dll</HintPath>
+    </Reference>
+    <Reference Include="App.Metrics.Reporting.Console, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Reporting.Console.3.0.0\lib\net452\App.Metrics.Reporting.Console.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetWorkQueue">
       <HintPath>..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetWorkQueue.Metrics.Net">
-      <HintPath>..\..\..\DotNetWorkQueue.Metrics.Net\bin\Debug\net452\DotNetWorkQueue.Metrics.Net.dll</HintPath>
+    <Reference Include="DotNetWorkQueue.AppMetrics">
+      <HintPath>..\..\..\DotNetWorkQueue.AppMetrics\bin\Debug\net452\DotNetWorkQueue.AppMetrics.dll</HintPath>
     </Reference>
     <Reference Include="JpLabs.DynamicCode">
-      <HintPath>..\..\..\..\..\DotNetWorkQueue\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll</HintPath>
-    </Reference>
-    <Reference Include="Metrics, Version=0.5.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Metrics.NET.0.5.5\lib\net45\Metrics.dll</HintPath>
+      <HintPath>..\..\..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll</HintPath>
     </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Serilog.2.7.1\lib\net45\Serilog.dll</HintPath>
+      <HintPath>..\..\packages\Serilog.2.8.0\lib\net45\Serilog.dll</HintPath>
     </Reference>
     <Reference Include="Serilog.Sinks.ColoredConsole, Version=3.0.1.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Serilog.Sinks.ColoredConsole.3.0.1\lib\net45\Serilog.Sinks.ColoredConsole.dll</HintPath>
@@ -53,6 +65,7 @@
       <HintPath>..\..\packages\Serilog.Sinks.Console.3.1.1\lib\net45\Serilog.Sinks.Console.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
