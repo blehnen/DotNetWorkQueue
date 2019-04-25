@@ -18,8 +18,10 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Text;
-using CacheManager.Core;
 using DotNetWorkQueue.Messages;
+using Polly;
+using Polly.Caching;
+using Polly.Caching.Memory;
 
 namespace DotNetWorkQueue.LinqCompile.Decorator
 {
@@ -30,8 +32,8 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
     public class LinqCompileCacheDecorator: ILinqCompiler
     {
         private readonly ILinqCompiler _handler;
-        private readonly ICacheManager<object> _cache;
-        private readonly ICachePolicy<ILinqCompiler> _itemPolicy;
+        private readonly CachePolicy<Action<object, object>> _cacheActions;
+        private readonly CachePolicy<Func<object, object, object>> _cacheFunctions;
 
         private readonly ICounter _counterActionCacheHit;
         private readonly ICounter _counterActionCacheMiss;
@@ -41,24 +43,28 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
         private readonly ICounter _counterFunctionCacheMiss;
         private readonly ICounter _counterFunctionCacheUnique;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LinqCompileCacheDecorator" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="LinqCompileCacheDecorator"/> class.</summary>
         /// <param name="handler">The handler.</param>
-        /// <param name="cache">The cache.</param>
+        /// <param name="cacheProvider"></param>
         /// <param name="cachePolicy">The cache policy.</param>
         /// <param name="metrics">The metrics.</param>
         /// <param name="connectionInformation">The connection information.</param>
         public LinqCompileCacheDecorator(
             ILinqCompiler handler,
-            ICacheManager<object> cache,
+            MemoryCacheProvider cacheProvider,
             ICachePolicy<ILinqCompiler> cachePolicy,
             IMetrics metrics,
              IConnectionInformation connectionInformation)
         {
             _handler = handler;
-            _cache = cache;
-            _itemPolicy = cachePolicy;
+            _cacheActions = Policy.Cache<Action<object, object>>(cacheProvider, new SlidingTtl(cachePolicy.SlidingExpiration)
+            , OnCacheGetAction, OnCacheMissAction, (context, s) => { }, (context, s, arg3) => { },
+            (context, s, arg3) => { });
+
+            _cacheFunctions = Policy.Cache<Func<object, object, object>>(cacheProvider, new SlidingTtl(cachePolicy.SlidingExpiration)
+                , OnCacheGetFunction, OnCacheMissFunction, (context, s) => { }, (context, s, arg3) => { },
+                (context, s, arg3) => { });
+
             var name = handler.GetType().Name;
 
             _counterActionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheHitCounter", Units.Items);
@@ -69,6 +75,26 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
             _counterFunctionCacheMiss = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionCacheMissCounter", Units.Items);
             _counterFunctionCacheUnique = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionUniqueFlaggedCounter", Units.Items);
 
+        }
+
+        private void OnCacheMissAction(Context arg1, string arg2)
+        {
+            _counterActionCacheMiss.Increment(arg1.OperationKey);
+        }
+
+        private void OnCacheGetAction(Context arg1, string arg2)
+        {
+            _counterActionCacheHit.Increment(arg1.OperationKey);
+        }
+
+        private void OnCacheMissFunction(Context arg1, string arg2)
+        {
+            _counterFunctionCacheMiss.Increment(arg1.OperationKey);
+        }
+
+        private void OnCacheGetFunction(Context arg1, string arg2)
+        {
+            _counterFunctionCacheHit.Increment(arg1.OperationKey);
         }
 
         /// <summary>
@@ -85,23 +111,7 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
             }
 
             var key = GenerateKey(linqExpression);
-            var result = (Action<object, object>)_cache[key];
-
-            if (result != null)
-            {
-                _counterActionCacheHit.Increment(key);
-                return result;
-            }
-
-            result = _handler.CompileAction(linqExpression);
-            if (!_cache.Exists(key))
-            {
-                _counterActionCacheMiss.Increment(key);
-                _cache.Add(key, result);
-                _cache.Expire(key, ExpirationMode.Sliding, _itemPolicy.SlidingExpiration);
-            }
-
-            return result;
+            return _cacheActions.Execute(context => _handler.CompileAction(linqExpression), new Context(key));      
         }
 
         /// <summary>
@@ -118,23 +128,7 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
             }
 
             var key = GenerateKey(linqExpression);
-            var result = (Func<object, object, object>)_cache[key];
-
-            if (result != null)
-            {
-                _counterFunctionCacheHit.Increment(key);
-                return result;
-            }
-
-            result = _handler.CompileFunction(linqExpression);
-            if (!_cache.Exists(key))
-            {
-                _counterFunctionCacheMiss.Increment(key);
-                _cache.Add(key, result);
-                _cache.Expire(key, _itemPolicy.SlidingExpiration);
-            }
-
-            return result;
+            return _cacheFunctions.Execute(context => _handler.CompileFunction(linqExpression), new Context(key));
         }
 
         /// <summary>

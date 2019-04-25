@@ -21,8 +21,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CacheManager.Core;
 using DotNetWorkQueue.Exceptions;
+using Microsoft.Extensions.Caching.Memory;
+using Polly;
+using Polly.Caching;
+using Polly.Caching.Memory;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -47,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         //dequeue count
         private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> DequeueCounts;
 
-        private static readonly ICacheManager<object> JobLastEventCache;
+        private static readonly CachePolicy<DateTimeOffset> JobLastEventCache;
 
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
         private readonly IConnectionInformation _connectionInformation;
@@ -117,14 +120,11 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             Jobs = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>>();
             QueueWorking = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
 
-            JobLastEventCache = CacheFactory.Build("DotNetWorkQueueCache", settings =>
-            {
-#if NETFULL
-                settings.WithSystemRuntimeCacheHandle("DataStore");
-#else
-                settings.WithMicrosoftMemoryCacheHandle("DataStore");
-#endif
-            });
+            var memoryCache = new MemoryCache(new MemoryCacheOptions());
+            var memoryCacheProvider = new MemoryCacheProvider(memoryCache);
+
+            JobLastEventCache = Policy.Cache<DateTimeOffset>(cacheProvider: memoryCacheProvider, ttlStrategy: new JobTimeStrategy(),
+                cacheKeyStrategy: new CacheKeyStrategy(), onCacheError: (context, s, arg3) => { });
         }
 
         /// <inheritdoc />
@@ -204,8 +204,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (!string.IsNullOrEmpty(item.JobName))
                 {
                     var key = GenerateKey(item.JobName);
-                    JobLastEventCache.Add(key, item.JobEventTime);
-                    JobLastEventCache.Expire(key, DateTimeOffset.UtcNow.AddDays(1));
+
+                    //add it to the cache
+                    JobLastEventCache.Execute(context => item.JobEventTime, new Context(key));
                 }
 
                 Interlocked.Increment(ref DequeueCounts[_connectionInformation].ProcessedCount);
@@ -251,11 +252,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public DateTimeOffset GetJobLastKnownEvent(string jobName)
         {
-            var key = GenerateKey(jobName);
-            if (JobLastEventCache.Exists(key))
-                return (DateTimeOffset)JobLastEventCache.Get(key);
-
-            return default(DateTimeOffset);
+            return JobLastEventCache.Execute(context => default(DateTimeOffset), new Context(GenerateKey(jobName)));
         }
 
         /// <inheritdoc />
@@ -328,6 +325,29 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 ProcessedCount = 0;
             }
             public long ProcessedCount;
+        }
+
+        private class JobTimeStrategy : ITtlStrategy
+        {
+            public Ttl GetTtl(Context context, object result)
+            {
+                switch (result)
+                {
+                    case null:
+                        return new Ttl(TimeSpan.Zero, false);
+                    case DateTimeOffset cast:
+                        return cast == default(DateTimeOffset) ? new Ttl(TimeSpan.Zero, false) : new Ttl(TimeSpan.FromDays(1), false);
+                }
+                return new Ttl(TimeSpan.Zero, false);
+            }
+        }
+
+        private class CacheKeyStrategy : ICacheKeyStrategy
+        {
+            public string GetCacheKey(Context context)
+            {
+                return context.OperationKey;
+            }
         }
     }
 }

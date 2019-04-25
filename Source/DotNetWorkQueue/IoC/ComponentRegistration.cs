@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Linq;
-using CacheManager.Core;
 using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
@@ -39,7 +38,9 @@ using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Time;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Caching.Memory;
 using Polly;
+using Polly.Caching.Memory;
 using Polly.Registry;
 using ClearExpiredMessagesDecorator = DotNetWorkQueue.Logging.Decorator.ClearExpiredMessagesDecorator;
 using ReceivePoisonMessageDecorator = DotNetWorkQueue.Logging.Decorator.ReceivePoisonMessageDecorator;
@@ -99,14 +100,9 @@ namespace DotNetWorkQueue.IoC
             RegisterSharedDefaults(container);
 
             //object cache
-            container.Register(() => CacheFactory.Build("DotNetWorkQueueCache", settings =>
-            {
-#if NETFULL
-                settings.WithSystemRuntimeCacheHandle("LinqCache");
-#else
-                settings.WithMicrosoftMemoryCacheHandle("LinqCache");
-#endif
-            }), LifeStyles.Singleton);
+            var memoryCache = new MemoryCache(new MemoryCacheOptions());
+            var memoryCacheProvider = new MemoryCacheProvider(memoryCache);
+            container.Register(() => memoryCacheProvider, LifeStyles.Singleton);
 
             //object pool for linq 
             container.Register<IObjectPool<DynamicCodeCompiler>>(

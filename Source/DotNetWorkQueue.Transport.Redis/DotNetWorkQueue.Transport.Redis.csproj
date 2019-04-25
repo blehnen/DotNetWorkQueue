@@ -8,7 +8,7 @@
     <Authors>Brian Lehnen</Authors>
     <Company>Brian Lehnen</Company>
     <Copyright>Copyright © Brian Lehnen 2017</Copyright>
-    <PackageLicenseUrl>http://www.gnu.org/licenses/lgpl-2.1.html</PackageLicenseUrl>
+    <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
     <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
     <PackageReleaseNotes>See change log
