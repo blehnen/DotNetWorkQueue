@@ -504,8 +504,6 @@ This library uses multiple 3rd party libaries, listed below.
 
 * [Polly ](https://github.com/App-vNext/Polly)
 
-* [CacheManager ](https://github.com/MichaCo/CacheManager)
-
 [**DotNetWorkQueue.Transport.Redis**]
 
 * [GuerrillaNTP ](https://github.com/blehnen/GuerrillaNtp)
