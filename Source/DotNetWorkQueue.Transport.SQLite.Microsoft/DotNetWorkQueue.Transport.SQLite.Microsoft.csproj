@@ -2,11 +2,10 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>0.2.1</Version>
     <Description>Microsoft SQlite transport for https://github.com/blehnen/DotNetWorkQueue</Description>
+    <Version>0.3.0</Version>
     <Authors>Brian Lehnen</Authors>
-    <Company>Brian Lehnen</Company>
-    <Copyright>Copyright © Brian Lehnen 2017</Copyright>
+    <Copyright>Copyright © Brian Lehnen 2015-2019</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>

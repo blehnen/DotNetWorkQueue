@@ -2,6 +2,23 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0;net472</TargetFrameworks>
+    <Description>
+      An implementation of AppMetrics (
+      https://github.com/AppMetrics/AppMetrics) for https://github.com/blehnen/DotNetWorkQueue
+    </Description>
+    <Version>0.3.0</Version>
+    <Authors>Brian Lehnen</Authors>
+    <Copyright>Copyright © Brian Lehnen 2015-2019</Copyright>
+    <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
+    <PackageReleaseNotes>
+      See change log
+
+      https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md
+    </PackageReleaseNotes>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

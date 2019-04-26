@@ -5,9 +5,9 @@ DotNetWorkQueue
 [![Build status](https://ci.appveyor.com/api/projects/status/vqqq9m0j9xodbfof/branch/master?svg=true)](https://ci.appveyor.com/project/blehnen/dotnetworkqueue/branch/master)
 [![Coverity status](https://scan.coverity.com/projects/10126/badge.svg)](https://scan.coverity.com/projects/blehnen-dotnetworkqueue)
 
-A producer / distributed consumer library for dot net applications. Dot net 4.52 and Dot net standard 2.0 are supported
+A producer / distributed consumer library for dot net applications. Dot net 4.7.2 and Dot net standard 2.0 are supported
 
-| Transport 									| 4.52 			| Standard 2.0 |
+| Transport 									| 4.7.2 		| Standard 2.0 |
 | ------------- 								| ------------- |------------- |
 | DotNetWorkQueue.Transport.SqlServer  			| Yes  			| Yes		   |
 | DotNetWorkQueue.Transport.PostgreSQL 			| Yes  			| Yes 		   |
@@ -39,9 +39,7 @@ Transports
 
 Metrics
 
-* NuGet package [DotNetWorkQueue.Metrics.Net](https://www.nuget.org/packages/DotNetWorkQueue.Metrics.Net/)
-
-Metrics implemtnation only supports dot net 4.52 until metrics.net is updated to support dot net standard.
+* NuGet package [DotNetWorkQueue.AppMetrics](https://www.nuget.org/packages/DotNetWorkQueue.AppMetrics/)
 
 Differences between versions
 ------------
@@ -51,7 +49,6 @@ Dot net standard 2.0 is missing the following features from the full framework v
 - No support for aborting threads when stopping the consumer queues
 - No support for dynamic linq statements
 - The SQLite transport uses the microsoft driver for SQlite instead of System.Data.SQLite. The microsoft diver is limited to a single conncurent connection. This is because it doesn't handle multiple threads accessing the database file as well as the System.Data driver. At the moment, this lock is per process, and not system wide.
-- The metrics.net implemetnation for metric reporting only supports dot net 4.52. Once the metrics library has been updated to support dot net standard, this implementation will be updated as well.
 
 Usage - POCO
 ------
@@ -463,7 +460,7 @@ All references are either in NuGet or the \lib folder - building from Visual stu
 
 License
 --------
-Copyright � 2015-2018 Brian Lehnen
+Copyright � 2015-2019 Brian Lehnen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -534,9 +531,9 @@ This library uses multiple 3rd party libaries, listed below.
 
 * [Npgsql ](http://www.npgsql.org/)
 
-[**DotNetWorkQueue.Metrics.Net**]
+[**DotNetWorkQueue.AppMetrics**]
 
-* [Metrics.net ](https://github.com/Recognos/Metrics.NET)
+* [AppMetrics ](https://github.com/AppMetrics/AppMetrics)
 
 [**Unit / Integration Tests**]
 

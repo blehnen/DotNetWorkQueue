@@ -1,3 +1,9 @@
+###0.3.0 2019-04-26
+* All modules are now targeting dot net 4.7.2 and dot net standard 2.0
+* **Breaking Change** changes to metrics interface to swtich to AppMetrics
+* Deperated Metrics.net - it's no longer updated and will not be getting support for dot.net core
+* Added DotNetWorkQueue.AppMetrics as a replacement for DotNetWorkQueue.Metrics.Net
+
 ###0.2.1 2017-09-30
 * Refactoring to share logic between transports better
 

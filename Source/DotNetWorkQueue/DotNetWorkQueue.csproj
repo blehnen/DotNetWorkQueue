@@ -4,11 +4,11 @@
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.2.1</Version>
+    <Version>0.3.0</Version>
     <Description>Work queue for dot net 4.7.2 and dot net standard 2.0 
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
-    <Copyright>Copyright © Brian Lehnen 2017</Copyright>
+    <Copyright>Copyright © Brian Lehnen 2015-2019</Copyright>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
