@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <Description>Work queue for dot net 4.7.2 and dot net standard 2.0 
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>

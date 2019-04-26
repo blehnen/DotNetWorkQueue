@@ -1,3 +1,6 @@
+###0.3.1 2019-04-26
+* Correct versioning for nuget publish
+
 ###0.3.0 2019-04-26
 * All modules are now targeting dot net 4.7.2 and dot net standard 2.0
 * **Breaking Change** changes to metrics interface to swtich to AppMetrics
