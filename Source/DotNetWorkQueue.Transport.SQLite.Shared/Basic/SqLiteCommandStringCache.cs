@@ -113,6 +113,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
 
             CommandCache.Add(CommandStringTypes.DeleteTable,
                 "drop table {0}");
+
+            CommandCache.Add(CommandStringTypes.GetHeader,
+                $"select headers from {TableNameHelper.QueueName} where queueID = @queueID");
         }
     }
 }

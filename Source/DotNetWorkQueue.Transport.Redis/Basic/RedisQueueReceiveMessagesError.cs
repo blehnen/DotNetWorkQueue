@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _commandMoveRecord.Handle(
                 new MoveRecordToErrorQueueCommand((RedisQueueId)context.MessageId));
             //we are done doing any processing - remove the messageID to block other actions
-            context.MessageId = null;
+            context.SetMessageAndHeaders(null, context.Headers);
             _log.ErrorException("Message with ID {0} has failed and has been moved to the error queue", exception,
                 message.MessageId);
             return ReceiveMessagesErrorResult.Error;

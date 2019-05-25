@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             var messageId = (long)context.MessageId.Id.Value;
             _commandMoveRecord.Handle(
                 new MoveRecordToErrorQueueCommand(exception, messageId, context));
-            context.MessageId = null;
+            context.SetMessageAndHeaders(null, context.Headers);
         }
     }
 }

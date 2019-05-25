@@ -117,6 +117,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             CommandCache.Add(CommandStringTypes.DeleteTable,
                 "IF OBJECT_ID('dbo.{0}', 'U') IS NOT NULL DROP TABLE dbo.{0};");
+
+            CommandCache.Add(CommandStringTypes.GetHeader,
+                $"select headers from {TableNameHelper.QueueName} WITH (NOLOCK) where queueid = @queueid ");
         }
     }
 }

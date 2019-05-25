@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MessageId;
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
 
             //we need to update the status table here, as we don't do it as part of the de-queue
             if (_configuration.Options().EnableStatusTable)
@@ -143,7 +143,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MessageId;
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
 
             //we need to update the status table here, as we don't do it as part of the de-queue
             if (_configuration.Options().EnableStatusTable)

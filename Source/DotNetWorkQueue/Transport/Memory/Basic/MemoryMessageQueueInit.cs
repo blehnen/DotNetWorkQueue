@@ -51,6 +51,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             container.Register<ICorrelationIdFactory, CorrelationIdFactory>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
             container.Register<IDataStorage, DataStorage>(LifeStyles.Singleton);
+            container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
+            container.Register<IGetHeader, GetHeader>(LifeStyles.Singleton);
             //**all
 
             //**send

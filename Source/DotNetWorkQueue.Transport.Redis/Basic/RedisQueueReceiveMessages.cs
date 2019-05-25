@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             context.Commit += ContextOnCommit;
             context.Rollback += ContextOnRollback;
-            context.Cleanup += context_Cleanup;
+            context.Cleanup += Context_Cleanup;
 
             TimeSpan? timeout = null;
             IMessageId messageId = null;
@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             context.Commit += ContextOnCommit;
             context.Rollback += ContextOnRollback;
-            context.Cleanup += context_Cleanup;
+            context.Cleanup += Context_Cleanup;
 
             TimeSpan? timeout = null;
             IMessageId messageId = null;
@@ -195,7 +195,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (message == null) return null;
             if (!message.Expired)
             {
-                context.MessageId = message.Message.MessageId;
+                context.SetMessageAndHeaders(message.Message.MessageId, message.Message.Headers);
             }
             return message;
         }
@@ -212,7 +212,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (message == null) return null;
             if (!message.Expired)
             {
-                context.MessageId = message.Message.MessageId;
+                context.SetMessageAndHeaders(message.Message.MessageId, message.Message.Headers);
             }
             return message;
         }
@@ -240,7 +240,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
-        private void context_Cleanup(object sender, EventArgs e)
+        private void Context_Cleanup(object sender, EventArgs e)
         {
             var context = (IMessageContext)sender;
             ContextCleanup(context);
@@ -253,7 +253,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             context.Commit -= ContextOnCommit;
             context.Rollback -= ContextOnRollback;
-            context.Cleanup -= context_Cleanup;
+            context.Cleanup -= Context_Cleanup;
         }
     }
 }

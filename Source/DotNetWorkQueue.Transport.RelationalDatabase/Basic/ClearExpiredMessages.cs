@@ -30,29 +30,27 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     {
         #region Member Level Variables
         private readonly IConnectionInformation _connectionInfo;
-        private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommandHandler;
+        private readonly IRemoveMessage _removeMessage;
         private readonly IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>
             _findExpiredMessagesQueryHandler;
         #endregion
 
         #region Constructor
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ClearExpiredMessages" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="ClearExpiredMessages"/> class.</summary>
         /// <param name="connectionInfo">The connection information.</param>
         /// <param name="findExpiredMessagesQueryHandler">The find expired messages query handler.</param>
-        /// <param name="deleteMessageCommandHandler">The delete message command handler.</param>
+        /// <param name="removeMessage"></param>
         public ClearExpiredMessages(IConnectionInformation connectionInfo,
-            IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> findExpiredMessagesQueryHandler, 
-            ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommandHandler)
+            IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> findExpiredMessagesQueryHandler,
+            IRemoveMessage removeMessage)
         {
             Guard.NotNull(() => connectionInfo, connectionInfo);
             Guard.NotNull(() => findExpiredMessagesQueryHandler, findExpiredMessagesQueryHandler);
-            Guard.NotNull(() => deleteMessageCommandHandler, deleteMessageCommandHandler);
+            Guard.NotNull(() => removeMessage, removeMessage);
 
             _connectionInfo = connectionInfo;
             _findExpiredMessagesQueryHandler = findExpiredMessagesQueryHandler;
-            _deleteMessageCommandHandler = deleteMessageCommandHandler;
+            _removeMessage = removeMessage;
         }
         #endregion
 
@@ -61,13 +59,18 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public long ClearMessages(CancellationToken cancelToken)
         {
-            return string.IsNullOrEmpty(_connectionInfo?.ConnectionString)
-                ? 0
-                : _findExpiredMessagesQueryHandler.Handle(new FindExpiredMessagesToDeleteQuery(cancelToken))
-                    .Aggregate<long, long>
-                    (0,
-                        (current, queueId) =>
-                            current + _deleteMessageCommandHandler.Handle(new DeleteMessageCommand(queueId)));
+            if (string.IsNullOrWhiteSpace(_connectionInfo?.ConnectionString))
+                return 0;
+
+            var messages = _findExpiredMessagesQueryHandler.Handle(new FindExpiredMessagesToDeleteQuery(cancelToken));
+            var count = 0;
+            foreach (var message in messages)
+            {
+                var status = _removeMessage.Remove(new MessageQueueId(message));
+                if (status == RemoveMessageStatus.Removed)
+                    count++;
+            }
+            return count;
         }
 
         #endregion

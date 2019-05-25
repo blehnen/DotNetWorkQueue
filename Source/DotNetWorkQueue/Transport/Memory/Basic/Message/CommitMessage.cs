@@ -26,16 +26,14 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
     /// </summary>
     internal class CommitMessage
     {
-        private readonly IDataStorage _dataStorage;
+        private readonly IRemoveMessage _removeMessage;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CommitMessage" /> class.
-        /// </summary>
-        /// <param name="dataStorage">The data storage.</param>
-        public CommitMessage(IDataStorage dataStorage)
+        /// <summary>Initializes a new instance of the <see cref="CommitMessage"/> class.</summary>
+        /// <param name="removeMessage">The remove message.</param>
+        public CommitMessage(IRemoveMessage removeMessage)
         {
-            Guard.NotNull(() => dataStorage, dataStorage);
-            _dataStorage = dataStorage;
+            Guard.NotNull(() => removeMessage, removeMessage);
+            _removeMessage = removeMessage;
         }
         /// <summary>
         /// Commits the processed message, by deleting the message
@@ -43,10 +41,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         /// <param name="context">The context.</param>
         public void Commit(IMessageContext context)
         {
-            if (context.MessageId != null && context.MessageId.HasValue)
-            {
-                _dataStorage.DeleteMessage((Guid) context.MessageId.Id.Value);
-            }
+            if(context != null)
+                _removeMessage.Remove(context.MessageId);
         }
     }
 }

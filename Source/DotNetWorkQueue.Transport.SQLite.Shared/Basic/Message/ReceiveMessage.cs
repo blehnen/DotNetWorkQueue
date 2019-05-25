@@ -75,8 +75,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MessageId;
-            
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
+
             return receivedTransportMessage;
         }
 
@@ -114,7 +114,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MessageId;
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
 
             return receivedTransportMessage;
         }

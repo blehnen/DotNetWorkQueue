@@ -51,6 +51,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
 
+            container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
+
             container.Register<IGetTime, PostgreSqlTime>(LifeStyles.Singleton);
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
             container

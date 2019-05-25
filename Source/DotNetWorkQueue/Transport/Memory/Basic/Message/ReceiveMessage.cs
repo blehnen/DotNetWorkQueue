@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
                 }
 
                 //set the message ID on the context for later usage
-                context.MessageId = receivedTransportMessage.MessageId;
+                context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
 
                 return receivedTransportMessage;
             }
@@ -112,7 +112,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MessageId;
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
 
             return receivedTransportMessage;
         }

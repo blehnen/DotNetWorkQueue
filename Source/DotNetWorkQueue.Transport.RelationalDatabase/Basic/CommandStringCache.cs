@@ -281,7 +281,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Moves a record to the error queue
         /// </summary>
-        MoveToErrorQueue
+        MoveToErrorQueue,
+        /// <summary>
+        /// Gets header records for an item in the queue
+        /// </summary>
+        GetHeader
     }
 
     /// <summary>

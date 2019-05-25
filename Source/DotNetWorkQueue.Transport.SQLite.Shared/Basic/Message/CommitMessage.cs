@@ -1,6 +1,4 @@
-﻿using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
-using DotNetWorkQueue.Validation;
+﻿using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message
 {
@@ -9,17 +7,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message
     /// </summary>
     internal class CommitMessage
     {
-        private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
+        private readonly IRemoveMessage _removeMessage;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitMessage" /> class.
         /// </summary>
-        /// <param name="deleteMessageCommand">The delete message command.</param>
         public CommitMessage(
-            ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand)
+            IRemoveMessage removeMessage)
         {
-            Guard.NotNull(() => deleteMessageCommand, deleteMessageCommand);
-            _deleteMessageCommand = deleteMessageCommand;
+            Guard.NotNull(() => removeMessage, removeMessage);
+            _removeMessage = removeMessage;
         }
         /// <summary>
         /// Commits the processed message, by deleting the message
@@ -27,10 +24,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message
         /// <param name="context">The context.</param>
         public void Commit(IMessageContext context)
         {
-            if (context.MessageId != null && context.MessageId.HasValue)
-            {
-                _deleteMessageCommand.Handle(new DeleteMessageCommand((long)context.MessageId.Id.Value));
-            }
+            _removeMessage.Remove(context);
         }
     }
 }

@@ -48,6 +48,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<ICorrelationIdFactory, RedisQueueCorrelationIdFactory>(
                 LifeStyles.Singleton);
 
+            container.Register<IGetHeader, GetHeader>(LifeStyles.Singleton);
+
+            container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
             container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
 
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
@@ -121,12 +124,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<ErrorLua>(LifeStyles.Singleton);
             container.Register<MoveDelayedToPendingLua>(LifeStyles.Singleton);
             container.Register<SendHeartbeatLua>(LifeStyles.Singleton);
-            container.Register<ClearExpiredMessagesLua>(LifeStyles.Singleton);
             container.Register<ResetHeartbeatLua>(LifeStyles.Singleton);
             container.Register<TimeLua>(LifeStyles.Singleton);
             container.Register<EnqueueBatchLua>(LifeStyles.Singleton);
-            container.Register<CommitLua>(LifeStyles.Singleton);
             container.Register<DoesJobExistLua>(LifeStyles.Singleton);
+            container.Register<GetHeaderLua>(LifeStyles.Singleton);
 
             var types = target.GetTypes().Where(x => x.IsSubclassOf(typeof(BaseLua)));
             container.RegisterCollection<BaseLua>(types);

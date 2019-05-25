@@ -2,7 +2,6 @@
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
@@ -14,26 +13,24 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
     public class SqliteSendToJobQueue: ASendJobToQueue
     {
         private readonly IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> _doesJobExist;
-        private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
+        private readonly IRemoveMessage _removeMessage;
         private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqliteSendToJobQueue" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="SqliteSendToJobQueue"/> class.</summary>
         /// <param name="queue">The queue.</param>
         /// <param name="doesJobExist">Query for determining if a job already exists</param>
-        /// <param name="deleteMessageCommand">The delete message command.</param>
+        /// <param name="removeMessage">The remove message.</param>
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="createJobMetaData">The create job meta data.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
         public SqliteSendToJobQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> doesJobExist,
-            ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
+            IRemoveMessage removeMessage,
             IQueryHandler<GetJobIdQuery, long> getJobId, CreateJobMetaData createJobMetaData,
             IGetTimeFactory getTimeFactory): base(queue, getTimeFactory)
         {
             _doesJobExist = doesJobExist;
-            _deleteMessageCommand = deleteMessageCommand;
+            _removeMessage = removeMessage;
             _getJobId = getJobId;
             _createJobMetaData = createJobMetaData;
         }
@@ -55,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// <param name="name">The name.</param>
         protected override void DeleteJob(string name)
         {
-            _deleteMessageCommand.Handle(new DeleteMessageCommand(_getJobId.Handle(new GetJobIdQuery(name))));
+            _removeMessage.Remove(new MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))));
         }
 
         /// <summary>

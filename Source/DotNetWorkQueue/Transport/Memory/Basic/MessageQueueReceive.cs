@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             {
                 if (exception.MessageId != null && exception.MessageId.HasValue)
                 {
-                    context.MessageId = exception.MessageId;
+                    context.SetMessageAndHeaders(exception.MessageId, null);
                 }
                 throw;
             }
@@ -113,7 +113,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             {
                 if (exception.MessageId != null && exception.MessageId.HasValue)
                 {
-                    context.MessageId = exception.MessageId;
+                    context.SetMessageAndHeaders(exception.MessageId, null);
                 }
                 throw;
             }

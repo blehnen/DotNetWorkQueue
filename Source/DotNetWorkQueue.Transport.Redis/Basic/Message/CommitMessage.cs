@@ -8,15 +8,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
     /// </summary>
     internal class CommitMessage
     {
-        private readonly ICommandHandlerWithOutput<CommitMessageCommand, bool> _command;
+        private readonly IRemoveMessage _removeMessage;
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitMessage" /> class.
         /// </summary>
-        /// <param name="command">The command.</param>
-        public CommitMessage(ICommandHandlerWithOutput<CommitMessageCommand, bool> command)
+        public CommitMessage(IRemoveMessage removeMessage)
         {
-            Guard.NotNull(() => command, command);
-            _command = command;
+            Guard.NotNull(() => removeMessage, removeMessage);
+            _removeMessage = removeMessage;
         }
 
         /// <summary>
@@ -25,8 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
         /// <param name="context">The context.</param>
         public void Commit(IMessageContext context)
         {
-            if (context.MessageId == null || !context.MessageId.HasValue) return;
-            _command.Handle(new CommitMessageCommand((RedisQueueId) context.MessageId));
+            _removeMessage.Remove(context);
         }
     }
 }

@@ -1,9 +1,10 @@
 ﻿using System;
+using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using Npgsql;
+using CreateJobMetaData = DotNetWorkQueue.Transport.RelationalDatabase.Basic.CreateJobMetaData;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
@@ -11,30 +12,28 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     public class PostgreSqlSendJobToQueue : ASendJobToQueue
     {
         private readonly IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> _doesJobExist;
-        private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
         private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
+        private readonly IRemoveMessage _removeMessage;
 
-        /// <inheritdoc />
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PostgreSqlSendJobToQueue" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="PostgreSqlSendJobToQueue"/> class.</summary>
         /// <param name="queue">The queue.</param>
         /// <param name="doesJobExist">Query for determining if a job already exists</param>
-        /// <param name="deleteMessageCommand">The delete message command.</param>
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="createJobMetaData">The create job meta data.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
+        /// <param name="removeMessage"></param>
+        /// <inheritdoc />
         public PostgreSqlSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> doesJobExist,
-            ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
             IQueryHandler<GetJobIdQuery, long> getJobId,
             CreateJobMetaData createJobMetaData,
-            IGetTimeFactory getTimeFactory) : base(queue, getTimeFactory)
+            IGetTimeFactory getTimeFactory,
+            IRemoveMessage removeMessage) : base(queue, getTimeFactory)
         {
             _doesJobExist = doesJobExist;
-            _deleteMessageCommand = deleteMessageCommand;
             _getJobId = getJobId;
             _createJobMetaData = createJobMetaData;
+            _removeMessage = removeMessage;
         }
 
         /// <inheritdoc />
@@ -46,7 +45,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         protected override void DeleteJob(string name)
         {
-            _deleteMessageCommand.Handle(new DeleteMessageCommand(_getJobId.Handle(new GetJobIdQuery(name))));
+            _removeMessage.Remove(new RelationalDatabase.Basic.MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))));
         }
 
         /// <inheritdoc />

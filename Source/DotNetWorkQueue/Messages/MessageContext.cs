@@ -53,6 +53,14 @@ namespace DotNetWorkQueue.Messages
             WorkerNotification = workerNotificationFactory.Create();
         }
 
+        /// <summary>Sets the message and headers.</summary>
+        /// <param name="id">The identifier. Can be null.</param>
+        /// <param name="headers">The headers. Can be null.</param>
+        public void SetMessageAndHeaders(IMessageId id, IReadOnlyDictionary<string, object> headers)
+        {
+            MessageId = id;
+            Headers = headers;
+        }
         /// <summary>
         /// Returns data set by <see cref="Set{T}" />
         /// </summary>
@@ -88,6 +96,31 @@ namespace DotNetWorkQueue.Messages
         {
             ThrowIfDisposed();
              _items[property.Name] = value;
+        }
+
+        /// <summary>
+        /// Gets the headers.
+        /// </summary>
+        /// <value>
+        /// The headers.
+        /// </value>
+        /// <remarks>If possible use <seealso cref="GetHeader{THeader}"/> to get data in a type safe manner</remarks>
+        public IReadOnlyDictionary<string, object> Headers { get; private set; }
+
+        /// <summary>
+        /// Returns data from a header property
+        /// </summary>
+        /// <typeparam name="THeader">data type</typeparam>
+        /// <param name="property">The property.</param>
+        /// <returns></returns>
+        public THeader GetHeader<THeader>(IMessageContextData<THeader> property)
+            where THeader : class
+        {
+            if (!Headers.ContainsKey(property.Name))
+            {
+                return property.Default;
+            }
+            return (THeader)Headers[property.Name];
         }
 
         /// <summary>
@@ -139,7 +172,7 @@ namespace DotNetWorkQueue.Messages
         /// <value>
         /// The message identifier.
         /// </value>
-        public IMessageId MessageId { get; set; }
+        public IMessageId MessageId { get; private set; }
 
         /// <summary>
         /// Worker notification data, such as stop, cancel or heartbeat failures

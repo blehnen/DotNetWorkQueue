@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue
 {
@@ -25,6 +26,11 @@ namespace DotNetWorkQueue
     /// </summary>
     public interface IMessageContext : IDisposable, IIsDisposed
     {
+        /// <summary>Sets the message and headers.</summary>
+        /// <param name="id">The identifier. Can be null.</param>
+        /// <param name="headers">The headers. Can be null.</param>
+        void SetMessageAndHeaders(IMessageId id, IReadOnlyDictionary<string, object> headers);
+
         /// <summary>
         /// Returns data set by <see cref="Set{T}"/> 
         /// </summary>
@@ -65,7 +71,25 @@ namespace DotNetWorkQueue
         /// <value>
         /// The message identifier.
         /// </value>
-        IMessageId MessageId { get; set; }
+        IMessageId MessageId { get; }
+
+        /// <summary>
+        /// Gets the headers.
+        /// </summary>
+        /// <value>
+        /// The headers.
+        /// </value>
+        /// <remarks>If possible use <seealso cref="GetHeader{THeader}"/> to get data in a type safe manner</remarks>
+        IReadOnlyDictionary<string, object> Headers { get; }
+
+        /// <summary>
+        /// Returns data from a header property
+        /// </summary>
+        /// <typeparam name="THeader">data type</typeparam>
+        /// <param name="property">The property.</param>
+        /// <returns></returns>
+        THeader GetHeader<THeader>(IMessageContextData<THeader> property)
+            where THeader : class;
 
         /// <summary>
         /// Explicitly fires the commit event.

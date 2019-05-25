@@ -113,6 +113,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             CommandCache.Add(CommandStringTypes.DeleteTable,
                 "DROP TABLE IF EXISTS {0} CASCADE;");
+
+            CommandCache.Add(CommandStringTypes.GetHeader,
+                $"select headers from {TableNameHelper.QueueName} where queueID = @queueID");
         }
     }
 }

@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 _commandMoveRecord.Handle(new MoveRecordToErrorQueueCommand((RedisQueueId)context.MessageId));
             }
-            context.MessageId = null;
+            context.SetMessageAndHeaders(null, context.Headers);
         }
     }
 }

@@ -88,8 +88,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MessageId;
-            
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
+
             //if we are holding open transactions, we need to update the status table in a separate call
             //When not using held transactions, this is part of the de-queue statement and so not needed here
 
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.MessageId = receivedTransportMessage.MessageId;
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
 
             //if we are holding open transactions, we need to update the status table in a separate call
             //When not using held transactions, this is part of the de-queue statement and so not needed here

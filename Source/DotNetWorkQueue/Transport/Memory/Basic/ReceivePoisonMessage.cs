@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (context.MessageId == null || !context.MessageId.HasValue) return;
 
             _dataStorage.MoveToErrorQueue(exception, (Guid)context.MessageId.Id.Value, context);
-            context.MessageId = null;
+            context.SetMessageAndHeaders(null, context.Headers);
         }
     }
 }

@@ -51,6 +51,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 LifeStyles.Singleton);
             container.Register<TableNameHelper>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
+            container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
+            container.Register<IGetHeader, GetHeader>(LifeStyles.Singleton);
             //**all
 
             //**send

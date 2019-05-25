@@ -35,16 +35,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotNetWorkQueue">
-      <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net472\DotNetWorkQueue.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.AppMetrics">
-      <HintPath>..\..\..\..\DotNetWorkQueue.AppMetrics\bin\Debug\net452\DotNetWorkQueue.AppMetrics.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue.AppMetrics\bin\Debug\net472\DotNetWorkQueue.AppMetrics.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.RelationalDatabase">
-      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.RelationalDatabase\bin\Debug\net452\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.RelationalDatabase\bin\Debug\net472\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.SqlServer">
-      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.SqlServer\bin\Debug\net452\DotNetWorkQueue.Transport.SqlServer.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.SqlServer\bin\Debug\net472\DotNetWorkQueue.Transport.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />

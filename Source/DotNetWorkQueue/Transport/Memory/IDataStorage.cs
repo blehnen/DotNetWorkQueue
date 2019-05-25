@@ -62,11 +62,21 @@ namespace DotNetWorkQueue.Transport.Memory
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
         Task<IReceivedMessageInternal> GetNextMessageAsync(List<string> routes);
+
+        /// <summary>
+        /// Gets the headers for the specified message if possible
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns>
+        /// null if the headers could not be obtained; otherwise a collection with 0 or more records
+        /// </returns>
+        IDictionary<string, object> GetHeaders(Guid id);
+
         /// <summary>
         /// Deletes the message.
         /// </summary>
         /// <param name="id">The identifier.</param>
-        void DeleteMessage(Guid id);
+        bool DeleteMessage(Guid id);
 
         /// <summary>
         /// Used to inform consumers if work has been added to the queue

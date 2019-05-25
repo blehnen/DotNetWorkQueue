@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
 
             var increaseDelay = context.Get(_headers.IncreaseQueueDelay).IncreaseDelay;
             _command.Handle(new RollbackMessageCommand((RedisQueueId)context.MessageId, increaseDelay));
-            context.MessageId = null; //this message should not have any more actions performed on it
+            context.SetMessageAndHeaders(null, context.Headers);  //this message should not have any more actions performed on it
         }
     }
 }

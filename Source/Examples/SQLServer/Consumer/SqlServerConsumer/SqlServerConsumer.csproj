@@ -35,10 +35,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotNetWorkQueue">
-      <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net472\DotNetWorkQueue.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.SqlServer">
-      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.SqlServer\bin\Debug\net452\DotNetWorkQueue.Transport.SqlServer.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.SqlServer\bin\Debug\net472\DotNetWorkQueue.Transport.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />

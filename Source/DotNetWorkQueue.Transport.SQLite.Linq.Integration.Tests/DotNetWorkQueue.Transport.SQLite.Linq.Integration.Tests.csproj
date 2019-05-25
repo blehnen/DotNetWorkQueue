@@ -20,10 +20,10 @@
     <PackageReference Include="AutoFixture" Version="4.8.0" />
     <PackageReference Include="AutoFixture.AutoNSubstitute" Version="4.8.0" />
     <PackageReference Include="AutoFixture.Xunit2" Version="4.8.0" />
-    <PackageReference Include="CompareNETObjects" Version="4.58.0" />
+    <PackageReference Include="CompareNETObjects" Version="4.59.0" />
     <PackageReference Include="FluentAssertions" Version="5.6.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
-    <PackageReference Include="NSubstitute" Version="4.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.1.0" />
+    <PackageReference Include="NSubstitute" Version="4.2.0" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.110" />
     <PackageReference Include="Tynamix.ObjectFiller" Version="1.5.5" />
     <PackageReference Include="xunit" Version="2.4.1" />

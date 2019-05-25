@@ -47,10 +47,10 @@
       <HintPath>..\..\packages\App.Metrics.Reporting.Console.3.1.0\lib\netstandard2.0\App.Metrics.Reporting.Console.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue">
-      <HintPath>..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
+      <HintPath>..\..\..\DotNetWorkQueue\bin\Debug\net472\DotNetWorkQueue.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.AppMetrics">
-      <HintPath>..\..\..\DotNetWorkQueue.AppMetrics\bin\Debug\net452\DotNetWorkQueue.AppMetrics.dll</HintPath>
+      <HintPath>..\..\..\DotNetWorkQueue.AppMetrics\bin\Debug\net472\DotNetWorkQueue.AppMetrics.dll</HintPath>
     </Reference>
     <Reference Include="JpLabs.DynamicCode">
       <HintPath>..\..\..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll</HintPath>

@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotNetWorkQueue">
-      <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net452\DotNetWorkQueue.dll</HintPath>
+      <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net472\DotNetWorkQueue.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.Redis">
       <HintPath>..\..\..\..\DotNetWorkQueue.Transport.Redis\bin\Debug\net472\DotNetWorkQueue.Transport.Redis.dll</HintPath>

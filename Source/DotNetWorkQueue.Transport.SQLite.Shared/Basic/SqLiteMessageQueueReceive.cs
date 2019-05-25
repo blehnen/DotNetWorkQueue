@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             {
                 if (exception.MessageId != null && exception.MessageId.HasValue)
                 {
-                    context.MessageId = exception.MessageId;
+                    context.SetMessageAndHeaders(exception.MessageId, context.Headers);
                 }
                 throw;
             }
@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             {
                 if (exception.MessageId != null && exception.MessageId.HasValue)
                 {
-                    context.MessageId = exception.MessageId;
+                    context.SetMessageAndHeaders(exception.MessageId, context.Headers);
                 }
                 throw;
             }
@@ -192,7 +192,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             //wire up the context commit/rollback/dispose delegates
             context.Commit += ContextOnCommit;
             context.Rollback += ContextOnRollback;
-            context.Cleanup += context_Cleanup;
+            context.Cleanup += Context_Cleanup;
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private void context_Cleanup(object sender, EventArgs e)
+        private void Context_Cleanup(object sender, EventArgs e)
         {
             var context = (IMessageContext) sender;
             ContextCleanup(context);
@@ -234,7 +234,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         {
             context.Commit -= ContextOnCommit;
             context.Rollback -= ContextOnRollback;
-            context.Cleanup -= context_Cleanup;
+            context.Cleanup -= Context_Cleanup;
         }
 
         #endregion

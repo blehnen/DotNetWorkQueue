@@ -238,15 +238,30 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
             return await Task.Run(() => GetNextMessage(routes)).ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Gets the headers for the specified message if possible
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns>
+        /// null if the headers could not be obtained; otherwise a collection with 0 or more records
+        /// </returns>
+        public IDictionary<string, object> GetHeaders(Guid id)
+        {
+            return !QueueData[_connectionInformation].TryGetValue(id, out var item) ? null : item.Headers;
+        }
         /// <inheritdoc />
-        public void DeleteMessage(Guid id)
+        public bool DeleteMessage(Guid id)
         {
             //remove data - if id is still in queue, it will fall out eventually
-            QueueData[_connectionInformation].TryRemove(id, out var item);
+            var removed = QueueData[_connectionInformation].TryRemove(id, out var item);
             if(item == null)
-                QueueWorking[_connectionInformation].TryRemove(id, out item);
+                removed = QueueWorking[_connectionInformation].TryRemove(id, out item);
+
             if (item != null)
                 Jobs[_connectionInformation].TryRemove(item.JobName, out _);
+
+            return removed;
         }
 
         /// <inheritdoc />
