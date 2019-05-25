@@ -87,6 +87,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <inheritdoc />
         public RemoveMessageStatus Remove(IMessageContext context)
         {
+            if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
+                return Remove(context.MessageId);
+
             var connection = context.Get(_headers.Connection);
 
             //if transaction held
