@@ -34,7 +34,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// <seealso cref="DotNetWorkQueue.IRemoveMessage" />
     public class RemoveMessage: IRemoveMessage
     {
-        private readonly bool _useTransactions;
         private readonly QueueConsumerConfiguration _configuration;
         private readonly ICommandHandler<DeleteStatusTableStatusCommand> _deleteStatusCommandHandler;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
@@ -65,7 +64,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             Guard.NotNull(() => deleteTransactionalMessageCommand, deleteTransactionalMessageCommand);
             Guard.NotNull(() => log, log);
 
-            _useTransactions = configuration.Options().EnableHoldTransactionUntilMessageCommitted;
             _configuration = configuration;
             _deleteStatusCommandHandler = deleteStatusCommandHandler;
             _deleteMessageCommand = deleteMessageCommand;
@@ -77,7 +75,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <inheritdoc />
         public RemoveMessageStatus Remove(IMessageId id)
         {
-            if (_useTransactions)
+            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
                 throw new DotNetWorkQueueException("Cannot use a transaction without the message context");
 
             if (id == null || !id.HasValue) return RemoveMessageStatus.NotFound;
