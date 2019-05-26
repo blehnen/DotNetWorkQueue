@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// <param name="context">The context.</param>
         public void CommitForTransaction(IMessageContext context)
         {
-            _removeMessage.Remove(context);
+            _removeMessage.Remove(context, RemoveMessageReason.Complete);
         }
         /// <summary>
         /// Commits the processed message, by deleting the message
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// <param name="context">The context.</param>
         public void Commit(IMessageContext context)
         {
-            _removeMessage.Remove(context);
+            _removeMessage.Remove(context, RemoveMessageReason.Complete);
         }
     }
 }

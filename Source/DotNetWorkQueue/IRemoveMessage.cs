@@ -23,19 +23,17 @@ namespace DotNetWorkQueue
     /// </summary>
     public interface IRemoveMessage
     {
-        /// <summary>
-        /// Removes a specific message from the transport
-        /// </summary>
+        /// <summary>Removes a specific message from the transport</summary>
         /// <param name="id">The identifier.</param>
+        /// <param name="reason">The reason for removing the message</param>
         /// <returns>Status of the request</returns>
-        RemoveMessageStatus Remove(IMessageId id);
+        RemoveMessageStatus Remove(IMessageId id, RemoveMessageReason reason);
 
-        /// <summary>
-        /// Removes a specific message from the transport
-        /// </summary>
+        /// <summary>Removes a specific message from the transport</summary>
         /// <param name="context">The context.</param>
+        /// <param name="reason">The reason for removing the message</param>
         /// <returns>Status of the request</returns>
-        RemoveMessageStatus Remove(IMessageContext context);
+        RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason);
     }
 
     /// <summary>
@@ -51,5 +49,24 @@ namespace DotNetWorkQueue
         /// The message was removed
         /// </summary>
         Removed = 1
+    }
+
+    /// <summary>
+    /// Reasons why a message was removed
+    /// </summary>
+    public enum RemoveMessageReason
+    {
+        /// <summary>
+        /// Message Completed
+        /// </summary>
+        Complete = 0,
+        /// <summary>
+        /// Message removed due to error
+        /// </summary>
+        Error = 1,
+        /// <summary>
+        /// Message has expired
+        /// </summary>
+        Expired = 2,
     }
 }

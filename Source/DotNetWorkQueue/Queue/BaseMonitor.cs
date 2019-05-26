@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -31,6 +32,7 @@ namespace DotNetWorkQueue.Queue
     public abstract class BaseMonitor: IMonitor
     {
         private readonly Func<CancellationToken, long> _monitorAction;
+        private readonly Func<CancellationToken, List<ResetHeartBeatOutput>> _monitorActionIds;
         private readonly IMonitorTimespan _monitorTimeSpan;
 
         private Timer _timer;
@@ -57,6 +59,27 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(() => log, log);
 
             _monitorAction = monitorAction;
+            _monitorActionIds = null;
+            _monitorTimeSpan = monitorTimeSpan;
+            _log = log.Create();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseMonitor"/> class.
+        /// </summary>
+        /// <param name="monitorAction">The monitor action.</param>
+        /// <param name="monitorTimeSpan">The monitor time span.</param>
+        /// <param name="log">The log.</param>
+        protected BaseMonitor(Func<CancellationToken, List<ResetHeartBeatOutput>> monitorAction,
+            IMonitorTimespan monitorTimeSpan,
+            ILogFactory log)
+        {
+            Guard.NotNull(() => monitorAction, monitorAction);
+            Guard.NotNull(() => monitorTimeSpan, monitorTimeSpan);
+            Guard.NotNull(() => log, log);
+
+            _monitorActionIds = monitorAction;
+            _monitorAction = null;
             _monitorTimeSpan = monitorTimeSpan;
             _log = log.Create();
         }
@@ -93,7 +116,10 @@ namespace DotNetWorkQueue.Queue
                 {
                     Running = true;
                     CancelToken = new CancellationTokenSource();
-                    _monitorAction(CancelToken.Token);
+                    if (_monitorAction != null)
+                        _monitorAction(CancelToken.Token);
+                    else
+                        _monitorActionIds(CancelToken.Token);
                 }
                 catch (Exception error)
                 {

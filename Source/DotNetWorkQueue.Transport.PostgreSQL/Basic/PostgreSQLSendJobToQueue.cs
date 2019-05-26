@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         protected override void DeleteJob(string name)
         {
-            _removeMessage.Remove(new RelationalDatabase.Basic.MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))));
+            _removeMessage.Remove(new RelationalDatabase.Basic.MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))), RemoveMessageReason.Error);
         }
 
         /// <inheritdoc />

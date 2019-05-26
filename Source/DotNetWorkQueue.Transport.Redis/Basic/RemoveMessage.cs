@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _deleteMessage = deleteMessage;
         }
         /// <inheritdoc />
-        public RemoveMessageStatus Remove(IMessageId id)
+        public RemoveMessageStatus Remove(IMessageId id, RemoveMessageReason reason)
         {
             if (id == null || !id.HasValue)
                 return RemoveMessageStatus.NotFound;
@@ -44,9 +44,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <inheritdoc />
-        public RemoveMessageStatus Remove(IMessageContext context)
+        public RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason)
         {
-            return Remove(context.MessageId);
+            return Remove(context.MessageId, reason);
         }
     }
 }

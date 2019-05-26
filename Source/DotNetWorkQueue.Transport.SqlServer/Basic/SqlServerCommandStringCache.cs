@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
-                $"select queueid, heartbeat from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where status = @status and heartbeat is not null and (DATEDIFF(SECOND, heartbeat, GETUTCDATE()) > @time)");
+                $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and (DATEDIFF(SECOND, heartbeat, GETUTCDATE()) > @time)");
 
             CommandCache.Add(CommandStringTypes.GetColumnNamesFromTable,
                 "select c.name from sys.columns c inner join sys.tables t on t.object_id = c.object_id and t.name = @TableName and t.type = 'U'");

@@ -140,6 +140,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             return true;
         }
         #endregion
+
         #region Private Methods   
 
         /// <summary>

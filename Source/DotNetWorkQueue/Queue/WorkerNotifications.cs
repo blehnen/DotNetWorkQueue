@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using OpenTracing;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -27,31 +28,33 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     public class WorkerNotification : IWorkerNotification
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WorkerNotification" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="WorkerNotification"/> class.</summary>
         /// <param name="headerNames">The header names.</param>
         /// <param name="cancelWork">The cancel work.</param>
         /// <param name="configuration">The configuration.</param>
         /// <param name="log">The log.</param>
         /// <param name="metrics">The metrics factory.</param>
+        /// <param name="tracer">The tracer.</param>
         public WorkerNotification(IHeaders headerNames,
             IQueueCancelWork cancelWork,
             TransportConfigurationReceive configuration,
             ILogFactory log,
-            IMetrics metrics)
+            IMetrics metrics,
+            ITracer tracer)
         {
             Guard.NotNull(() => headerNames, headerNames);
             Guard.NotNull(() => cancelWork, cancelWork);
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => log, log);
             Guard.NotNull(() => metrics, metrics);
+            Guard.NotNull(() => tracer, tracer);
 
             HeaderNames = headerNames;
             WorkerStopping = cancelWork;
             TransportSupportsRollback = configuration.MessageRollbackSupported;
             Log = log.Create();
             Metrics = metrics;
+            Tracer = tracer;
         }
 
         /// <summary>
@@ -105,5 +108,8 @@ namespace DotNetWorkQueue.Queue
         /// The metrics.
         /// </value>
         public IMetrics Metrics { get; }
+
+        /// <inheritdoc/>
+        public ITracer Tracer { get; }
     }
 }

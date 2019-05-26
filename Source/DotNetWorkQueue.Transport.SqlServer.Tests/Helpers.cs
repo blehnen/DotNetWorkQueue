@@ -14,6 +14,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         public FakeAMessageData()
         {
             _headers = new Dictionary<string, object>();
+            TraceTags = new Dictionary<string, string>();
         }
         public ICorrelationId CorrelationId
         {
@@ -53,5 +54,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
             value = null;
             return false;
         }
+
+        /// <summary>
+        /// Tags that will be added to the trace when sending a message
+        /// </summary>
+        /// <value>
+        /// The trace tags.
+        /// </value>
+        public IDictionary<string, string> TraceTags { get; }
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28922.388
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue", "DotNetWorkQueue\DotNetWorkQueue.csproj", "{212ACD0D-8042-4DB4-A37C-D6786950681B}"
 EndProject
@@ -65,7 +65,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.AppMetrics", "DotNetWorkQueue.AppMetrics\DotNetWorkQueue.AppMetrics.csproj", "{C81936FA-D05C-4BFF-8DBF-4D1A4E1CD9F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.AppMetrics.Tests", "DotNetWorkQueue.AppMetrics.Tests\DotNetWorkQueue.AppMetrics.Tests.csproj", "{8A943059-928D-4C1B-AD75-72A9D6967024}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.AppMetrics.Tests", "DotNetWorkQueue.AppMetrics.Tests\DotNetWorkQueue.AppMetrics.Tests.csproj", "{8A943059-928D-4C1B-AD75-72A9D6967024}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

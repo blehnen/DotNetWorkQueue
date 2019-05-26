@@ -58,6 +58,7 @@ namespace DotNetWorkQueue.Tests
         {
             _headers = new Dictionary<string, object>();
             _settings = new ConcurrentDictionary<string, object>();
+            TraceTags = new Dictionary<string, string>();
         }
         public ICorrelationId CorrelationId
         {
@@ -96,6 +97,14 @@ namespace DotNetWorkQueue.Tests
         {
             return _settings.TryGetValue(name, out value);
         }
+
+        /// <summary>
+        /// Tags that will be added to the trace when sending a message
+        /// </summary>
+        /// <value>
+        /// The trace tags.
+        /// </value>
+        public IDictionary<string, string> TraceTags { get; }
     }
 
     public class FakeMessage

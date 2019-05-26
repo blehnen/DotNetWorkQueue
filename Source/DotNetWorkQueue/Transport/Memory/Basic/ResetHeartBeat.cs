@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using System.Threading;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
@@ -31,9 +33,10 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// </summary>
         /// <param name="cancelToken">The cancel token. When set, stop processing as soon as possible</param>
         /// <returns></returns>
-        public long Reset(CancellationToken cancelToken)
+        public List<ResetHeartBeatOutput> Reset(CancellationToken cancelToken)
         {
-            return 0;
+            //in memory transport does not support heartbeats
+            return new List<ResetHeartBeatOutput>(0);
         }
     }
 }

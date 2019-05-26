@@ -35,6 +35,7 @@ namespace DotNetWorkQueue.Messages
         public AdditionalMessageData()
         {
             AdditionalMetaData = new List<IAdditionalMetaData>();
+            TraceTags = new Dictionary<string, string>();
             _headers = new Dictionary<string, object>();
             _settings = new ConcurrentDictionary<string, object>();
         }
@@ -71,6 +72,9 @@ namespace DotNetWorkQueue.Messages
         /// The headers.
         /// </value>
         public IReadOnlyDictionary<string, object> Headers => new ReadOnlyDictionary<string, object>(_headers);
+
+        /// <inheritdoc/>
+        public IDictionary<string, string> TraceTags { get; }
 
         /// <summary>
         /// Returns data set by <see cref="SetHeader{THeader}"/> 

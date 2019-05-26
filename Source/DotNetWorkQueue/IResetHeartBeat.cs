@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace DotNetWorkQueue
@@ -29,6 +32,56 @@ namespace DotNetWorkQueue
         /// Used to find and reset work items that are out of the heart beat window
         /// </summary>
         /// <param name="cancelToken">The cancel token. When set, stop processing as soon as possible</param>
-        long Reset(CancellationToken cancelToken);
+        List<ResetHeartBeatOutput> Reset(CancellationToken cancelToken);
+    }
+
+    /// <summary>
+    /// Output data for resetting a heartbeat
+    /// </summary>
+    public class ResetHeartBeatOutput
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ResetHeartBeatOutput"/> class.
+        /// </summary>
+        /// <param name="messageId">The message identifier.</param>
+        /// <param name="headers">The headers.</param>
+        /// <param name="approximateResetTimeStart">The approximate reset time start.</param>
+        /// <param name="approximateResetTimeEnd">The approximate reset time end.</param>
+        public ResetHeartBeatOutput(IMessageId messageId, IReadOnlyDictionary<string, object> headers,
+            DateTime approximateResetTimeStart, DateTime approximateResetTimeEnd)
+        {
+            MessageId = messageId;
+            Headers = headers;
+            ApproximateResetTimeStart = approximateResetTimeStart;
+            ApproximateResetTimeEnd = approximateResetTimeEnd;
+        }
+        /// <summary>
+        /// Gets the message identifier.
+        /// </summary>
+        /// <value>
+        /// The message identifier.
+        /// </value>
+        public IMessageId MessageId { get; }
+        /// <summary>
+        /// Gets the headers.
+        /// </summary>
+        /// <value>
+        /// The headers.
+        /// </value>
+        public IReadOnlyDictionary<string, object> Headers { get; }
+        /// <summary>
+        /// Gets the approximate reset time start.
+        /// </summary>
+        /// <value>
+        /// The approximate reset time start.
+        /// </value>
+        public DateTime ApproximateResetTimeStart { get; }
+        /// <summary>
+        /// Gets the approximate reset time end.
+        /// </summary>
+        /// <value>
+        /// The approximate reset time end.
+        /// </value>
+        public DateTime ApproximateResetTimeEnd { get; }
     }
 }

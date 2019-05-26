@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Trace;
 using System;
 
 namespace DotNetWorkQueue
@@ -90,6 +91,14 @@ namespace DotNetWorkQueue
         /// The message interceptor graph.
         /// </value>
         IMessageContextData<MessageInterceptorsGraph> MessageInterceptorGraph { get; }
+
+        /// <summary>
+        /// Stores information allowing us to re-create a trace on the other side of a queue
+        /// </summary>
+        /// <value>
+        /// The trace span.
+        /// </value>
+        IMessageContextData<DataMappingTextMap> TraceSpan { get; }
     }
 
     /// <summary>

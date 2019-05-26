@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                                 //message has expired
                                 var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
                                 query.MessageContext.SetMessageAndHeaders(id, new ReadOnlyDictionary<string, object>(allHeaders));
-                                _removeMessage.Remove(query.MessageContext);
+                                _removeMessage.Remove(query.MessageContext, RemoveMessageReason.Expired);
                                 return new RedisMessage(messageId, null, true);
                             }
                         }

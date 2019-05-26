@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
         public void Create_Default()
         {
             var date = DateTime.Now;
-            var test = new MessageToReset(100, date);
+            var test = new MessageToReset(100, date, null);
             Assert.Equal(100, test.QueueId);
             Assert.Equal(date, test.HeartBeat);
         }

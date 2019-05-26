@@ -65,9 +65,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         }
 
         /// <inheritdoc />
-        public RemoveMessageStatus Remove(IMessageId id)
+        public RemoveMessageStatus Remove(IMessageId id, RemoveMessageReason reason)
         {
-            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
+            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted && reason != RemoveMessageReason.Expired)
                 throw new DotNetWorkQueueException("Cannot use a transaction without the message context");
 
             if (id == null || !id.HasValue) return RemoveMessageStatus.NotFound;
@@ -77,15 +77,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         }
 
         /// <inheritdoc />
-        public RemoveMessageStatus Remove(IMessageContext context)
+        public RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason)
         {
             if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
-                return Remove(context.MessageId);
+                return Remove(context.MessageId, reason);
 
             var connection = context.Get(_headers.Connection);
 
             //if transaction held
-            if (connection.Connection == null || connection.Transaction == null) return RemoveMessageStatus.NotFound;
+            if (connection.Connection == null || connection.Transaction == null)
+            {
+                var counter = _deleteMessageCommand.Handle(new DeleteMessageCommand((long)context.MessageId.Id.Value));
+                return counter > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
+            }
 
             //delete the message, and then commit the transaction
             var count = _deleteTransactionalMessageCommand.Handle(new DeleteTransactionalMessageCommand((long)context.MessageId.Id.Value, context));

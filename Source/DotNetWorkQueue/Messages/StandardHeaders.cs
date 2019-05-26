@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Trace;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Messages
@@ -45,6 +46,7 @@ namespace DotNetWorkQueue.Messages
             MessageInterceptorGraph =
                 messageContextDataFactory.Create("Queue-MessageInterceptorGraph",
                     new MessageInterceptorsGraph());
+            TraceSpan = messageContextDataFactory.Create<DataMappingTextMap>("Queue-TraceSpan", null);
         }
 
         /// <summary>
@@ -110,5 +112,8 @@ namespace DotNetWorkQueue.Messages
         /// The message interceptor graph.
         /// </value>
         public IMessageContextData<MessageInterceptorsGraph> MessageInterceptorGraph { get; }
+
+        /// <inheritdoc/>
+        public IMessageContextData<DataMappingTextMap> TraceSpan { get; }
     }
 }

@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <exception cref="NotImplementedException"></exception>
         protected override void DeleteJob(string name)
         {
-            _removeMessage.Remove(new MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))));
+            _removeMessage.Remove(new MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))), RemoveMessageReason.Error);
         }
 
         /// <summary>

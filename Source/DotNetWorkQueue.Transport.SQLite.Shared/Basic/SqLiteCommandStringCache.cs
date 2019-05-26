@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
                 $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
-                $"select queueid, heartbeat from {TableNameHelper.MetaDataName} where status = @Status and heartbeat is not null and heartbeat < @Time");
+                $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @Status and heartbeat is not null and heartbeat < @Time");
 
             CommandCache.Add(CommandStringTypes.GetErrorRecordExists,
                 $"Select 1 from {TableNameHelper.ErrorTrackingName} where queueid = @QueueID and ExceptionType = @ExceptionType");

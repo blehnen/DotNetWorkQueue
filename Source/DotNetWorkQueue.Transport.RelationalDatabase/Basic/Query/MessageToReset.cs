@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
@@ -31,13 +32,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// </summary>
         /// <param name="queueId">The queue identifier.</param>
         /// <param name="heartBeat">The heart beat.</param>
-        public MessageToReset(long queueId, DateTime heartBeat)
+        /// <param name="headers">The headers.</param>
+        public MessageToReset(long queueId, DateTime heartBeat, IReadOnlyDictionary<string, object> headers)
         {
             Guard.IsValid(() => queueId, queueId, i => i > 0,
               "queueId must be greater than 0");
 
             QueueId = queueId;
             HeartBeat = heartBeat;
+            Headers = headers;
         }
         /// <summary>
         /// Gets the queue identifier.
@@ -57,5 +60,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// If the value has changed in the DB, this means that other process has reset the status, and a worker has started processing the record
         /// </remarks>
         public DateTime HeartBeat { get; }
+
+        /// <summary>
+        /// Gets the headers.
+        /// </summary>
+        /// <value>
+        /// The headers.
+        /// </value>
+        public IReadOnlyDictionary<string, object> Headers { get; }
     }
 }

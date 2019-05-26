@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             var count = 0;
             foreach (var message in messages)
             {
-                var status = _removeMessage.Remove(new MessageQueueId(message));
+                var status = _removeMessage.Remove(new MessageQueueId(message), RemoveMessageReason.Expired);
                 if (status == RemoveMessageStatus.Removed)
                     count++;
             }

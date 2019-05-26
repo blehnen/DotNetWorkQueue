@@ -12,7 +12,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
         {
             const int id = 293;
             var date = DateTime.Now;
-            var message = new MessageToReset(id, date);
+            var message = new MessageToReset(id, date, null);
             var test = new ResetHeartBeatCommand(message);
             Assert.Equal(message, test.MessageReset);
         }

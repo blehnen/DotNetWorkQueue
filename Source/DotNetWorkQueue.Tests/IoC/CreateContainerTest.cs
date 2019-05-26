@@ -161,9 +161,9 @@ namespace DotNetWorkQueue.Tests.IoC
         }
         internal class ResetHeartBeatNoOp : IResetHeartBeat
         {
-            public long Reset(CancellationToken cancelToken)
+            public List<ResetHeartBeatOutput> Reset(CancellationToken cancelToken)
             {
-                return 0;
+                return new List<ResetHeartBeatOutput>(0);
             }
         }
 

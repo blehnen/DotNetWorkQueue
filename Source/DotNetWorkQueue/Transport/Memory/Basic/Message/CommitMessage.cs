@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         public void Commit(IMessageContext context)
         {
             if(context != null)
-                _removeMessage.Remove(context.MessageId);
+                _removeMessage.Remove(context.MessageId, RemoveMessageReason.Complete);
         }
     }
 }

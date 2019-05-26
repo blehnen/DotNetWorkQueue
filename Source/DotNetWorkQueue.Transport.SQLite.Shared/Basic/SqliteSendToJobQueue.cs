@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// <param name="name">The name.</param>
         protected override void DeleteJob(string name)
         {
-            _removeMessage.Remove(new MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))));
+            _removeMessage.Remove(new MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))), RemoveMessageReason.Error);
         }
 
         /// <summary>

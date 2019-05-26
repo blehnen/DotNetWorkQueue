@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Validation;
@@ -47,13 +49,13 @@ namespace DotNetWorkQueue.Logging.Decorator
             _configuration = configuration;
         }
 
-        public long Reset(CancellationToken cancelToken)
+        public List<ResetHeartBeatOutput> Reset(CancellationToken cancelToken)
         {
             var count = _handler.Reset(cancelToken);
-            if (count > 0)
+            if (count.Count > 0)
             {
                 _log.Info(
-                   $"Reset the status of {count} records that where outside of the heartbeat window of {_configuration.HeartBeat.Time.TotalSeconds} seconds");
+                   $"Reset the status of {count.Count} records that where outside of the heartbeat window of {_configuration.HeartBeat.Time.TotalSeconds} seconds");
             }
             return count;
         }

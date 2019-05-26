@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
-                $"select queueid, heartbeat from {TableNameHelper.MetaDataName} where status = @status and heartbeat is not null and heartbeat < @time FOR UPDATE SKIP LOCKED");
+                $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and heartbeat < @time FOR UPDATE SKIP LOCKED");
 
             CommandCache.Add(CommandStringTypes.GetColumnNamesFromTable,
                 "select column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = @TableName");

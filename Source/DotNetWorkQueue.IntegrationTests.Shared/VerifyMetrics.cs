@@ -121,7 +121,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         public static void VerifyProcessedCount(string queueName, MetricsData data, long messageCount)
         {
             var found = false;
-            const string name = "CommitMessage.CommitCounter";
+            const string name = "CommitMessageDecorator.CommitCounter";
             foreach (var counter in data.Counters.Where(counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
                 Assert.Equal(messageCount, counter.Value.Value);

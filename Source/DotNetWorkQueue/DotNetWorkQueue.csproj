@@ -50,6 +50,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="OpenTracing" Version="0.12.0" />
     <PackageReference Include="Polly" Version="7.1.0" />
     <PackageReference Include="Polly.Caching.Memory" Version="3.0.1" />
     <PackageReference Include="SimpleInjector" Version="4.6.0" />

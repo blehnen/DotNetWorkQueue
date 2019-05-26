@@ -37,8 +37,11 @@ using DotNetWorkQueue.QueueStatus;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Time;
+using DotNetWorkQueue.Trace.NoOp;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Caching.Memory;
+using OpenTracing;
+using OpenTracing.Util;
 using Polly;
 using Polly.Caching.Memory;
 using Polly.Registry;
@@ -294,8 +297,12 @@ namespace DotNetWorkQueue.IoC
 #endif
             container.Register<ILogFactory, LogFactory>(LifeStyles.Singleton);
 
-#endregion
+            #endregion
 
+            #region Open Tracing
+            var tracer = new TraceNoOp();
+            container.Register<ITracer>(() => tracer, LifeStyles.Singleton);
+            #endregion
             container.Register<IQueueStatus, QueueStatusHttp>(LifeStyles.Singleton);
             container.Register<BaseTimeConfiguration>(LifeStyles.Singleton);
             container.Register<IGetTimeFactory, GetTimeFactory>(LifeStyles.Singleton);
@@ -311,6 +318,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<PolicyRegistry>(LifeStyles.Singleton);
             container.Register<PolicyDefinitions>(LifeStyles.Singleton);
 
+            RegisterTraceDecorators(container);
             RegisterMetricDecorators(container);
             RegisterPolicyDecorators(container);
             RegisterLoggerDecorators(container);
@@ -419,6 +427,26 @@ namespace DotNetWorkQueue.IoC
         private static void RegisterPolicyDecorators(IContainer container)
         {
             container.RegisterDecorator<IReceiveMessages, ReceiveMessagesPolicyDecorator>(LifeStyles.Transient);
+        }
+
+        private static void RegisterTraceDecorators(IContainer container)
+        {
+            container.RegisterDecorator<ISendMessages, Trace.Decorator.SendMessagesDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IReceiveMessages, Trace.Decorator.ReceiveMessagesDecorator>(LifeStyles.Transient);
+            container.RegisterDecorator<IMessageHandler, Trace.Decorator.MessageHandlerDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageHandlerAsync, Trace.Decorator.MessageHandlerAsyncDecorator>(
+                LifeStyles.Singleton);
+            container.RegisterDecorator<ICommitMessage, Trace.Decorator.CommitMessageDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IRemoveMessage, Trace.Decorator.RemoveMessageDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageMethodHandling, Trace.Decorator.MessageMethodHandlingDecorator>(
+                LifeStyles.Singleton);
+            container.RegisterDecorator<IReceiveMessagesError, Trace.Decorator.ReceiveMessagesErrorDecorator>(
+                LifeStyles.Singleton);
+            container.RegisterDecorator<IReceivePoisonMessage, Trace.Decorator.ReceivePoisonMessageDecorator>(
+                LifeStyles.Singleton);
+            container.RegisterDecorator<IResetHeartBeat, Trace.Decorator.ResetHeartBeatDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IRollbackMessage, Trace.Decorator.RollbackMessageDecorator>(
+                LifeStyles.Singleton);
         }
 
         /// <summary>

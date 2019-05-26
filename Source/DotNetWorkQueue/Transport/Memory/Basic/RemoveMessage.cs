@@ -37,26 +37,20 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         }
 
         /// <inheritdoc />
-        public RemoveMessageStatus Remove(IMessageId id)
+        public RemoveMessageStatus Remove(IMessageId id, RemoveMessageReason reason)
         {
-            if (id != null && id.HasValue)
-            {
-                var found = _dataStorage.DeleteMessage((Guid)id.Id.Value);
-                if (found)
-                    return RemoveMessageStatus.Removed;
-            }
+            if (id == null || !id.HasValue) return RemoveMessageStatus.NotFound;
+            var found = _dataStorage.DeleteMessage((Guid)id.Id.Value);
+            if (found)
+                return RemoveMessageStatus.Removed;
 
             return RemoveMessageStatus.NotFound;
         }
 
-        /// <summary>
-        /// Removes a specific message from the transport
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <returns>Status of the request</returns>
-        public RemoveMessageStatus Remove(IMessageContext context)
+        /// <inheritdoc />
+        public RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason)
         {
-            return Remove(context.MessageId);
+            return Remove(context.MessageId, reason);
         }
     }
 }

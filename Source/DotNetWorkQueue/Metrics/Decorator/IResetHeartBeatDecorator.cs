@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace DotNetWorkQueue.Metrics.Decorator
@@ -47,12 +50,12 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// </summary>
         /// <param name="cancelToken">The cancel token. When set, stop processing as soon as possible</param>
         /// <returns></returns>
-        public long Reset(CancellationToken cancelToken)
+        public List<ResetHeartBeatOutput> Reset(CancellationToken cancelToken)
         {
             using (_timer.NewContext())
             {
                 var count = _handler.Reset(cancelToken);
-                _counter.Increment(count);
+                _counter.Increment(count.Count);
                 return count;
             }
         }

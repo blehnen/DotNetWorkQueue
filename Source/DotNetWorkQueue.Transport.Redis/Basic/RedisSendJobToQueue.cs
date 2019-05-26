@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="name">The name.</param>
         protected override void DeleteJob(string name)
         {
-            _removeMessage.Remove(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(name))));
+            _removeMessage.Remove(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(name))), RemoveMessageReason.Error);
         }
 
         /// <summary>

@@ -92,5 +92,13 @@ namespace DotNetWorkQueue
         /// <returns>true if the setting was found</returns>
         /// <remarks>Expected usage is via type safe extension methods</remarks>
         bool TryGetSetting(string name, out object value);
+
+        /// <summary>
+        /// Tags that will be added to the trace when sending a message
+        /// </summary>
+        /// <value>
+        /// The trace tags.
+        /// </value>
+        IDictionary<string, string> TraceTags { get; }
     }
 }

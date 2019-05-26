@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
         /// <param name="context">The context.</param>
         public void Commit(IMessageContext context)
         {
-            _removeMessage.Remove(context);
+            _removeMessage.Remove(context, RemoveMessageReason.Complete);
         }
     }
 }

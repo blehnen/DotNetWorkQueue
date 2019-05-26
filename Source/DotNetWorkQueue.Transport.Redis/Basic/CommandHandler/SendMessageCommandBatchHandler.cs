@@ -71,8 +71,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
                 var meta =
                     _serializer.InternalSerializer.ConvertToBytes(
                         new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds()));
-                var sentMessages = SendMessages(m, meta);
-                foreach (var s in sentMessages)
+                foreach (var s in SendMessages(m, meta))
                 {
                     rc.Add(s);
                 }
