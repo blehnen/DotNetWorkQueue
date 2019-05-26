@@ -70,8 +70,8 @@ namespace DotNetWorkQueue.Queue
         /// <param name="monitorAction">The monitor action.</param>
         /// <param name="monitorTimeSpan">The monitor time span.</param>
         /// <param name="log">The log.</param>
-        protected BaseMonitor(Func<CancellationToken, List<ResetHeartBeatOutput>> monitorAction,
-            IMonitorTimespan monitorTimeSpan,
+        protected BaseMonitor(IMonitorTimespan monitorTimeSpan, 
+            Func<CancellationToken, List<ResetHeartBeatOutput>> monitorAction,
             ILogFactory log)
         {
             Guard.NotNull(() => monitorAction, monitorAction);
