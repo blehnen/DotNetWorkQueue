@@ -35,7 +35,8 @@ namespace DotNetWorkQueue.Queue
         /// <param name="configuration">The configuration.</param>
         /// <param name="resetHeartBeat">The reset heart beat module.</param>
         /// <param name="log">The log.</param>
-        public HeartBeatMonitor(IHeartBeatConfiguration configuration, IResetHeartBeat resetHeartBeat, ILogFactory log): base(Guard.NotNull(() => resetHeartBeat, resetHeartBeat).Reset, configuration, log)
+        public HeartBeatMonitor(IHeartBeatConfiguration configuration, IResetHeartBeat resetHeartBeat, ILogFactory log)
+            : base(resetHeartBeat.Reset, configuration, log)
         {
 
         }
