@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<MessageProcessingMode>(LifeStyles.Singleton);
 
             container.Register<IMessageFactory, MessageFactory>(LifeStyles.Singleton);
-            container.Register<IMessageContextDataFactory, MessageContextDataFactory>(LifeStyles.Singleton);
+         
 
             container.Register<IJobSchedulerMetaData, JobSchedulerMetaData>(LifeStyles.Singleton);
 
@@ -130,17 +130,11 @@ namespace DotNetWorkQueue.IoC
             container.Register<IExpressionSerializer, JsonExpressionSerializer>(LifeStyles.Singleton);
             container.Register<IQueueDelayFactory, QueueDelayFactory>(LifeStyles.Singleton);
             container.Register<ILinqCompiler, LinqCompiler>(LifeStyles.Singleton);
+            container.Register<IGetHeader, GetHeaderDefault>(LifeStyles.Singleton);
 
             container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
             container.Register<ICompositeSerialization, CompositeSerialization>(LifeStyles.Singleton);
 
-            container.Register<IHeaders, Headers>(LifeStyles.Singleton);
-            container.Register<IStandardHeaders, StandardHeaders>(LifeStyles.Singleton);
-            container.Register<ICustomHeaders, CustomHeaders>(LifeStyles.Singleton);
-
-            //because of it's usage in 'standard' modules, this must always be added, even if RPC is not enabled.
-            //otherwise, the IoC container can't create the producer queue.
-            container.Register<IRpcTimeoutFactory, RpcTimeoutFactory>(LifeStyles.Singleton);
             container.Register<IMessageMethodHandling, MessageMethodHandling>(LifeStyles.Singleton);
 
             container.Register<IRegisterMessagesAsync, RegisterMessagesAsync>(LifeStyles.Singleton);
@@ -317,6 +311,15 @@ namespace DotNetWorkQueue.IoC
             container.Register<IPolicies, Policies.Policies>(LifeStyles.Singleton);
             container.Register<PolicyRegistry>(LifeStyles.Singleton);
             container.Register<PolicyDefinitions>(LifeStyles.Singleton);
+
+            //because of it's usage in 'standard' modules, this must always be added, even if RPC is not enabled.
+            //otherwise, the IoC container can't create the producer queue.
+            container.Register<IRpcTimeoutFactory, RpcTimeoutFactory>(LifeStyles.Singleton);
+            container.Register<IMessageContextDataFactory, MessageContextDataFactory>(LifeStyles.Singleton);
+
+            container.Register<IHeaders, Headers>(LifeStyles.Singleton);
+            container.Register<IStandardHeaders, StandardHeaders>(LifeStyles.Singleton);
+            container.Register<ICustomHeaders, CustomHeaders>(LifeStyles.Singleton);
 
             RegisterTraceDecorators(container);
             RegisterMetricDecorators(container);
