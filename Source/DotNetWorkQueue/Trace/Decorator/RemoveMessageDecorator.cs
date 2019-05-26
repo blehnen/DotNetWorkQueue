@@ -65,8 +65,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                 {
                     using (IScope scope = _tracer.BuildSpan("Remove").StartActive(finishSpanOnDispose: true))
                     {
-                        if (id.HasValue)
-                            scope.Span.SetTag("MessageID", id.Id.Value.ToString());
+                        scope.Span.AddMessageIdTag(id);
                         scope.Span.SetTag("RemovedBecause", reason.ToString());
                         return _handler.Remove(id, reason);
                     }
@@ -76,8 +75,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 using (IScope scope = _tracer.BuildSpan("Remove").StartActive(finishSpanOnDispose: true))
                 {
-                    if (id.HasValue)
-                        scope.Span.SetTag("MessageID", id.Id.Value.ToString());
+                    scope.Span.AddMessageIdTag(id);
                     scope.Span.SetTag("RemovedBecause", reason.ToString());
                     return _handler.Remove(id, reason);
                 }
@@ -100,8 +98,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 using (IScope scope = _tracer.BuildSpan("Remove").StartActive(finishSpanOnDispose: true))
                 {
-                    if (context.MessageId.HasValue)
-                        scope.Span.SetTag("MessageID", context.MessageId.Id.Value.ToString());
+                    scope.Span.AddMessageIdTag(context);
                     scope.Span.SetTag("RemovedBecause", reason.ToString());
                     return _handler.Remove(context, reason);
                 }

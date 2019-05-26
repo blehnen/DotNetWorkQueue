@@ -141,5 +141,15 @@ namespace DotNetWorkQueue.Trace
             if (context.MessageId.HasValue)
                 span.SetTag("MessageId", context.MessageId.Id.Value.ToString());
         }
+        /// <summary>
+        /// Adds the message identifier tag.
+        /// </summary>
+        /// <param name="span">The span.</param>
+        /// <param name="id">The identifier.</param>
+        public static void AddMessageIdTag(this ISpan span, IMessageId id)
+        {
+            if (id != null && id.HasValue)
+                span.SetTag("MessageId", id.Id.Value.ToString());
+        }
     }
 }

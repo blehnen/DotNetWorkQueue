@@ -64,8 +64,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                     {
                         using (IScope scope = _tracer.BuildSpan("ResetHeartBeat").WithStartTimestamp(result.ApproximateResetTimeStart).StartActive(finishSpanOnDispose: true))
                         {
-                            if(result.MessageId.HasValue)
-                                scope.Span.SetTag("MessageID", result.MessageId.Id.Value.ToString());
+                            scope.Span.AddMessageIdTag(result.MessageId);
                             scope.Span.Finish(result.ApproximateResetTimeEnd);
                         }
                     }
@@ -74,8 +73,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                 {
                     using (IScope scope = _tracer.BuildSpan("ResetHeartBeat").WithStartTimestamp(result.ApproximateResetTimeStart).StartActive(finishSpanOnDispose: true))
                     {
-                        if (result.MessageId.HasValue)
-                            scope.Span.SetTag("MessageID", result.MessageId.Id.Value.ToString());
+                        scope.Span.AddMessageIdTag(result.MessageId);
                         scope.Span.Finish(result.ApproximateResetTimeEnd);
                     }
                 }

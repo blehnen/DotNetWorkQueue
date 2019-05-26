@@ -58,8 +58,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 using (IScope scope = _tracer.BuildSpan("Commit").StartActive(finishSpanOnDispose: true))
                 {
-                    if(context.MessageId.HasValue)
-                        scope.Span.SetTag("MessageID", context.MessageId.Id.Value.ToString());
+                    scope.Span.AddMessageIdTag(context);
                     return _handler.Commit(context);
                 }
             }

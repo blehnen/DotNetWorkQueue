@@ -66,8 +66,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                 {
                     using (IScope scope = _tracer.BuildSpan("PoisonMessage").StartActive(finishSpanOnDispose: true))
                     {
-                        if (context.MessageId.HasValue)
-                            scope.Span.SetTag("MessageID", context.MessageId.Id.Value.ToString());
+                        scope.Span.AddMessageIdTag(context);
                         scope.Span.Log(exception.ToString());
                         _handler.Handle(context, exception);
                     }
@@ -77,8 +76,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 using (IScope scope = _tracer.BuildSpan("PoisonMessage").StartActive(finishSpanOnDispose: true))
                 {
-                    if (context.MessageId.HasValue)
-                        scope.Span.SetTag("MessageID", context.MessageId.Id.Value.ToString());
+                    scope.Span.AddMessageIdTag(context);
                     scope.Span.Log(exception.ToString());
                     _handler.Handle(context, exception);
                 }
