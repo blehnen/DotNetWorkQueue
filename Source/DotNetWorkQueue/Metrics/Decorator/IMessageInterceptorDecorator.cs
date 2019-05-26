@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             _handler = handler;
-            var name = handler.GetType().Name;
+            var name = "MessageInterceptor";
 
             _metricTimerBytes =
                 metrics.Timer($"{connectionInformation.QueueName}.{name}.BytesToMessageTimer", Units.Calls);

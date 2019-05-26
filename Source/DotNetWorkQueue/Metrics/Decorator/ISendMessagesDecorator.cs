@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             ISendMessages handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "SendMessages";
             _sendTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.SendTimer", Units.Calls);
             _sendBatchTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.SendBatchTimer", Units.Calls);
             _sendAsyncTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.SendAsyncTimer", Units.Calls);

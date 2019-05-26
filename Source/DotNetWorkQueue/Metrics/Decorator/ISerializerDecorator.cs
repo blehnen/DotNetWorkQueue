@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             ISerializer handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "Serializer";
             _bytesToMessageTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToMessageTimer", Units.Calls);
             _messageToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertMessageToBytesTimer", Units.Calls);
             _resultSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertMessageToBytesHistogram", Units.Bytes,

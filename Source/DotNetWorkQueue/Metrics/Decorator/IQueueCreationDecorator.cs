@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IQueueCreation handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "QueueCreation";
             _createQueueTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.CreateQueueTimer", Units.Calls);
             _removeQueueTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.RemoveQueueTimer", Units.Calls);
             _handler = handler;

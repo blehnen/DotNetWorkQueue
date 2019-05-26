@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             ILinqCompiler handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "LinqCompiler";
             _compileActionTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.CompileActionTimer", Units.Calls);
             _compileFunctionTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.CompileFunctionTimer", Units.Calls);
             _handler = handler;

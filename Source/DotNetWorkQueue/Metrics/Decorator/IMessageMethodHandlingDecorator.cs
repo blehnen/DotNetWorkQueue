@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IMessageMethodHandling handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "MessageMethodHandling";
             _runMethodCompiledCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleCompiledMethodTimer", Units.Calls);
             _runFunctionCompiledCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleCompiledFunctionTimer", Units.Calls);
             _runMethodDynamicCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleDynamicMethodTimer", Units.Calls);

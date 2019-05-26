@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IRollbackMessage handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "RollbackMessage";
             _rollbackCounter = metrics.Counter($"{connectionInformation.QueueName}.{name}.RollbackCounter", Units.Items);
             _handler = handler;
         }

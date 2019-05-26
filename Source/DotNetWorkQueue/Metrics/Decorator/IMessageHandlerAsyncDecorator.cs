@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IMessageHandlerAsync handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "MessageHandlerAsync";
             _runCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleTimer", Units.Calls);
             _handler = handler;
         }

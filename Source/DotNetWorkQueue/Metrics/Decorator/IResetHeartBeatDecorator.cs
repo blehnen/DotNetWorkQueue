@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IResetHeartBeat handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "ResetHeartBeat";
             _timer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ResetTimer", Units.Calls);
             _counter = metrics.Counter($"{connectionInformation.QueueName}.{name}.ResetCounter", Units.Items);
             _handler = handler;

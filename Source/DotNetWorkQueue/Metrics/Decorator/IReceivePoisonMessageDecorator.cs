@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IReceivePoisonMessage handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "ReceivePoisonMessage";
             _meterError = metrics.Meter($"{connectionInformation.QueueName}.{name}.PoisonHandleMeter", Units.Items);
             _handler = handler;
         }

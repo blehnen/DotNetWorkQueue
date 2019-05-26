@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IInternalSerializer handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "InternalSerializer";
             _bytesToMessageTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToTimer", Units.Calls);
             _messageToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertToBytesTimer", Units.Calls);
             _messageToStringTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertToStringTimer", Units.Calls);

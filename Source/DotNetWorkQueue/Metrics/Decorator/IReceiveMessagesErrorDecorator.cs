@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IReceiveMessagesError handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "ReceiveMessagesError";
             _meterError = metrics.Meter($"{connectionInformation.QueueName}.{name}.MessageFailedProcessingErrorMeter", Units.Items);
             _meterRetry = metrics.Meter($"{connectionInformation.QueueName}.{name}.MessageFailedProcessingRetryMeter", Units.Items);
             _handler = handler;

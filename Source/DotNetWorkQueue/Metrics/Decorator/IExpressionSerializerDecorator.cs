@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IExpressionSerializer handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "ExpressionSerializer";
             _methodToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertMethodToBytesTimer", Units.Calls);
             _bytesToMethodTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToMethodTimer", Units.Calls);
             _resultMethodSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertMethodToBytesHistogram", Units.Bytes,

@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             ISendHeartBeat handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "SendHeartBeat";
             _timer = metrics.Timer($"{connectionInformation.QueueName}.{name}.SendTimer", Units.Calls);
             _handler = handler;
         }

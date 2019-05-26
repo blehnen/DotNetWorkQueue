@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             ICommitMessage handler,
             IConnectionInformation connectionInformation)
         {
-            var name = handler.GetType().Name;
+            var name = "CommitMessage";
             _commitCounter = metrics.Counter($"{connectionInformation.QueueName}.{name}.CommitCounter", Units.Items);
             _handler = handler;
         }
