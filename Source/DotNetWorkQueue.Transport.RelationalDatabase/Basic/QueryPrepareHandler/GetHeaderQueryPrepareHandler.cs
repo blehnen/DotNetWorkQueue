@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 
             var queueid = dbCommand.CreateParameter();
-            queueid.ParameterName = "@QueueID";
+            queueid.ParameterName = "@queueID";
             queueid.DbType = DbType.Int64;
             queueid.Value = query.Id;
             dbCommand.Parameters.Add(queueid);
