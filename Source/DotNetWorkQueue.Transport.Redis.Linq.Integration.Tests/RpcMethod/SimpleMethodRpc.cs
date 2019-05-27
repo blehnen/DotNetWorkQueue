@@ -14,9 +14,9 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.RpcMethod
         [InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
 #if NETFULL
          InlineData(10, 1, 180, 5, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(30, 1, 240, 5, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
 #endif
-         InlineData(30, 0, 240, 5, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+         InlineData(30, 1, 240, 5, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, 
             int workerCount, bool async, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {

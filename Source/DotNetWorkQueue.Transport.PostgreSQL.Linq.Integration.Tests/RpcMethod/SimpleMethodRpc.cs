@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.RpcMethod
         [Theory]
 #if NETFULL
          [InlineData(50, 1, 200, 3, false, false, LinqMethodTypes.Dynamic),
-         InlineData(30, 0, 240, 3, false, true, LinqMethodTypes.Compiled)]
+         InlineData(30, 1, 240, 3, false, true, LinqMethodTypes.Compiled)]
 #else
         [InlineData(30, 0, 240, 3, false, true, LinqMethodTypes.Compiled)]
 #endif
