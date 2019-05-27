@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Reflection;
 using DotNetWorkQueue.IoC;
@@ -7,6 +8,7 @@ using DotNetWorkQueue.Policies;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
 using DotNetWorkQueue.Transport.SQLite.Shared;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
@@ -43,6 +45,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 typeof(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>,
                     QueueCreationResult>),
                 typeof(CreateQueueTablesAndSaveConfigurationDecorator), LifeStyles.Singleton);
+
+            //some SQLite errors should be warnings, not errors
+            container.RegisterDecorator(
+                typeof(IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>),
+                typeof(FindRecordsToResetByHeartBeatErrorDecorator), LifeStyles.Singleton);
+
+            //some SQLite errors should be warnings, not errors
+            container.RegisterDecorator(
+                typeof(IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>),
+                typeof(FindExpiredRecordsToDeleteQueryHandlerErrorDecorator), LifeStyles.Singleton);
         }
 
         /// <inheritdoc />
