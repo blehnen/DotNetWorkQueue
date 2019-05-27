@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using DotNetWorkQueue.Validation;
 
@@ -38,6 +41,7 @@ namespace DotNetWorkQueue.Interceptors
         public TripleDesMessageInterceptor(TripleDesMessageInterceptorConfiguration configuration)
         {
             _configuration = configuration;
+            DisplayName = "TripleDes";
         }
         #endregion
 
@@ -47,7 +51,7 @@ namespace DotNetWorkQueue.Interceptors
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
-        public MessageInterceptorResult MessageToBytes(byte[] input)
+        public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
             Guard.NotNull(() => input, input);
             using (var tripleDes = TripleDES.Create())
@@ -64,7 +68,7 @@ namespace DotNetWorkQueue.Interceptors
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
-        public byte[] BytesToMessage(byte[] input)
+        public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
             Guard.NotNull(() => input, input);
             using (var tripleDes = TripleDES.Create())
@@ -75,6 +79,16 @@ namespace DotNetWorkQueue.Interceptors
                 }
             }
         }
+        public string DisplayName { get; }
+
+        /// <summary>
+        /// The base type of the interceptor; used for re-creation
+        /// </summary>
+        /// <value>
+        /// The type of the base.
+        /// </value>
+        public Type BaseType => GetType();
+
         #endregion
     }
 

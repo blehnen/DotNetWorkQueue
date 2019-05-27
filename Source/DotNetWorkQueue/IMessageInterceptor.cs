@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using DotNetWorkQueue.Interceptors;
 
 namespace DotNetWorkQueue
@@ -35,13 +36,29 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
-        MessageInterceptorResult MessageToBytes(byte[] input);
+        MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers);
         /// <summary>
         /// Runs the interceptor on the input and returns the output as a byte array. Used to re-construct a message stream.
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
-        byte[] BytesToMessage(byte[] input);
+        byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers);
+
+        /// <summary>
+        /// Gets the display name for logging or display purposes
+        /// </summary>
+        /// <value>
+        /// The display name.
+        /// </value>
+        string DisplayName { get; }
+
+        /// <summary>
+        /// The base type of the interceptor; used for re-creation
+        /// </summary>
+        /// <value>
+        /// The type of the base.
+        /// </value>
+        Type BaseType { get; }
     }
 
     /// <summary>

@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using System.Text;
 using DotNetWorkQueue.Validation;
 using Newtonsoft.Json;
@@ -32,6 +34,10 @@ namespace DotNetWorkQueue.Serialization
             TypeNameHandling = TypeNameHandling.Auto
         };
 
+        public JsonSerializer()
+        {
+            DisplayName = "JSON";
+        }
         #region Protected Methods
         /// <summary>
         /// Converts a message to a byte array
@@ -39,7 +45,7 @@ namespace DotNetWorkQueue.Serialization
         /// <typeparam name="T">The message type</typeparam>
         /// <param name="message">The message.</param>
         /// <returns></returns>
-        public byte[] ConvertMessageToBytes<T>(T message)
+        public byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers)
              where T : class
         {
             Guard.NotNull(() => message, message);
@@ -53,13 +59,16 @@ namespace DotNetWorkQueue.Serialization
         /// <typeparam name="T">The message type</typeparam>
         /// <param name="bytes">The bytes.</param>
         /// <returns></returns>
-        public T ConvertBytesToMessage<T>(byte[] bytes)
+        public T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers)
              where T : class
         {
             Guard.NotNull(() => bytes, bytes);
             var wrapper = JsonConvert.DeserializeObject<SerializationWrapper<T>>(Encoding.UTF8.GetString(bytes), _serializerSettings);
             return wrapper.Message;
         }
+
+        /// <inheritdoc />
+        public string DisplayName { get; }
         #endregion
         /// <summary>
         /// A wrapper class to avoid issues with being passed a dictionary as the top level object

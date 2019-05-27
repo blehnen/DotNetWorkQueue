@@ -113,7 +113,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
 
                         var headers = _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerPayload);
                         var messageGraph = (MessageInterceptorsGraph)headers[_headers.StandardHeaders.MessageInterceptorGraph.Name];
-                        var message = _serialization.Serializer.BytesToMessage<MessageBody>(messagePayload, messageGraph).Body;
+                        var message = _serialization.Serializer.BytesToMessage<MessageBody>(messagePayload, messageGraph, headers).Body;
                         var newMessage = _messageFactory.Create(message, headers);
 
                         return _receivedMessageFactory.Create(newMessage,

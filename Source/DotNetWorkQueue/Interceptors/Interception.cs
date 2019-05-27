@@ -20,7 +20,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Interceptors
 {
@@ -49,14 +48,14 @@ namespace DotNetWorkQueue.Interceptors
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
-        public MessageInterceptorsResult MessageToBytes(byte[] input)
+        public MessageInterceptorsResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
-            if (Count == 0) return new MessageInterceptorsResult {Output = input};
+            if (!_interceptors.Any()) return new MessageInterceptorsResult {Output = input};
             var output = new MessageInterceptorsResult();
             var bytes = input;
             foreach (var interceptor in _interceptors)
             {
-                var temp = interceptor.MessageToBytes(bytes);
+                var temp = interceptor.MessageToBytes(bytes, headers);
                 if (temp.AddToGraph)
                 {
                     output.Graph.Add(temp.BaseType);
@@ -73,7 +72,7 @@ namespace DotNetWorkQueue.Interceptors
         /// <param name="input">The input.</param>
         /// <param name="graph">The graph.</param>
         /// <returns></returns>
-        public byte[] BytesToMessage(byte[] input, MessageInterceptorsGraph graph)
+        public byte[] BytesToMessage(byte[] input, MessageInterceptorsGraph graph, IReadOnlyDictionary<string, object> headers)
         {
             if (!graph.Types.Any())  //an empty graph means no interceptors where used
             {
@@ -81,12 +80,12 @@ namespace DotNetWorkQueue.Interceptors
             }
 
             var temp = graph.Types.Reverse();
-            return temp.Select(GetInterceptor).Aggregate(input, (current, interceptor) => interceptor.BytesToMessage(current));
+            return temp.Select(GetInterceptor).Aggregate(input, (current, interceptor) => interceptor.BytesToMessage(current, headers));
         }
 
         private IMessageInterceptor GetInterceptor(Type type)
         {
-            foreach (var interceptor in _interceptors.Where(interceptor => interceptor.GetType() == type))
+            foreach (var interceptor in _interceptors.Where(interceptor => interceptor.BaseType == type))
             {
                 return interceptor;
             }

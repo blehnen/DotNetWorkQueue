@@ -1,6 +1,4 @@
 ﻿using Xunit;
-using AutoFixture;
-using AutoFixture.AutoNSubstitute;
 using AutoFixture.Xunit2;
 
 namespace DotNetWorkQueue.AppMetrics.Tests

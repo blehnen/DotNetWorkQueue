@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace DotNetWorkQueue.Metrics.Decorator
@@ -42,6 +43,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             _handler = handler;
+            DisplayName = _handler.DisplayName;
             var name = "MessageInterceptor";
 
             _metricTimerBytes =
@@ -65,11 +67,11 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
-        public MessageInterceptorResult MessageToBytes(byte[] input)
+        public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
             using (_metricTimerMessage.NewContext())
             {
-                var temp = _handler.MessageToBytes(input);
+                var temp = _handler.MessageToBytes(input, headers);
                 if (!temp.AddToGraph)
                 {
                     _metricHistogramOptOut.Update(input.Length, input.Length.ToString(CultureInfo.InvariantCulture));
@@ -89,12 +91,22 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
-        public byte[] BytesToMessage(byte[] input)
+        public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
             using (_metricTimerBytes.NewContext())
             {
-                return _handler.BytesToMessage(input);
+                return _handler.BytesToMessage(input, headers);
             }
         }
+
+        public string DisplayName { get; }
+
+        /// <summary>
+        /// The base type of the interceptor; used for re-creation
+        /// </summary>
+        /// <value>
+        /// The type of the base.
+        /// </value>
+        public Type BaseType => _handler.BaseType;
     }
 }

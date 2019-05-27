@@ -31,14 +31,14 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
-        MessageInterceptorsResult MessageToBytes(byte[] input);
+        MessageInterceptorsResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers);
         /// <summary>
         /// Runs the interceptor on the input and returns the output as a byte array. Used to re-construct a message stream.
         /// </summary>
         /// <param name="input">The input.</param>
         /// <param name="graph">The graph.</param>
         /// <returns></returns>
-        byte[] BytesToMessage(byte[] input, MessageInterceptorsGraph graph);
+        byte[] BytesToMessage(byte[] input, MessageInterceptorsGraph graph, IReadOnlyDictionary<string, object> headers);
     }
 
     /// <summary>

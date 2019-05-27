@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 
 namespace DotNetWorkQueue.Metrics.Decorator
@@ -38,6 +41,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "Serializer";
+            DisplayName = handler.DisplayName;
             _bytesToMessageTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToMessageTimer", Units.Calls);
             _messageToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertMessageToBytesTimer", Units.Calls);
             _resultSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertMessageToBytesHistogram", Units.Bytes,
@@ -53,11 +57,11 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// <returns>
         /// byte array
         /// </returns>
-        public byte[] ConvertMessageToBytes<T>(T message) where T : class
+        public byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers) where T : class
         {
             using (_messageToBytesTimer.NewContext())
             {
-                var result = _handler.ConvertMessageToBytes(message);
+                var result = _handler.ConvertMessageToBytes(message, headers);
                 _resultSizeHistogram.Update(result.Length, result.Length.ToString(CultureInfo.InvariantCulture));
                 return result;
             }
@@ -71,12 +75,15 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// <returns>
         /// an instance of T
         /// </returns>
-        public T ConvertBytesToMessage<T>(byte[] bytes) where T : class
+        public T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers) where T : class
         {
             using (_bytesToMessageTimer.NewContext())
             {
-                return _handler.ConvertBytesToMessage<T>(bytes);
+                return _handler.ConvertBytesToMessage<T>(bytes, headers);
             }
         }
+
+        /// <inheritdoc />
+        public string DisplayName { get; }
     }
 }

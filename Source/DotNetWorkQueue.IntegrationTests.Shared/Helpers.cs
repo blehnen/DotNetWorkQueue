@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
@@ -93,15 +94,17 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             TypeNameHandling = TypeNameHandling.All
         };
 
-        public byte[] ConvertMessageToBytes<T>(T message) where T : class
+        public byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers) where T : class
         {
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, _serializerSettings));
         }
 
-        public T ConvertBytesToMessage<T>(byte[] bytes) where T : class
+        public T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers) where T : class
         {
             // ReSharper disable once UnthrowableException
             throw new AccessViolationException("Permission denied");
         }
+
+        public string DisplayName => "WillCrash";
     }
 }

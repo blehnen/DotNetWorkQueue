@@ -1,5 +1,4 @@
-﻿using App.Metrics;
-using App.Metrics.Histogram;
+﻿using App.Metrics.Histogram;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using AutoFixture.Xunit2;

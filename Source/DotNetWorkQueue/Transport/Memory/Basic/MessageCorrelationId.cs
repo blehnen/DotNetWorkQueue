@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     /// </summary>
     public class MessageCorrelationId: ICorrelationId
     {
-        private Guid _id;
+        private readonly Guid _id;
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageCorrelationId"/> class.
         /// </summary>

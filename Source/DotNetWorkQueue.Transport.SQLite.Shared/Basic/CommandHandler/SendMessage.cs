@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
             var command = connection.CreateCommand();
             command.CommandText = commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
             var serialization =
-                serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body });
+                serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body }, commandSend.MessageToSend.Headers);
 
             var param = command.CreateParameter();
             param.ParameterName = "@Body";

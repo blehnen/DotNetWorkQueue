@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.Tests.Factory
             var test = factory.Create();
             Assert.NotNull(test);
         }
-        public IMessageContextFactory Create()
+        private IMessageContextFactory Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             return fixture.Create<MessageContextFactory>();

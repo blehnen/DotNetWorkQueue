@@ -13,8 +13,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
     /// </summary>
     internal class ResetHeartbeatLua : BaseLua
     {
-        private IGetTime _getTime;
-        private ICompositeSerialization _serialization;
+        private readonly IGetTime _getTime;
+        private readonly ICompositeSerialization _serialization;
 
         /// <inheritdoc />
         public ResetHeartbeatLua(IRedisConnection connection, RedisNames redisNames, IGetTimeFactory getTime, ICompositeSerialization serialization)

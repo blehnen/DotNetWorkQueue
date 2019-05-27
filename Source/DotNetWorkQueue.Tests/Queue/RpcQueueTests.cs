@@ -192,11 +192,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             public ISetting Id
             {
-                get
-                {
-                    return new Setting<Guid>(Guid.NewGuid());
-                }
-
+                get => new Setting<Guid>(Guid.NewGuid());
                 set
                 {
                    

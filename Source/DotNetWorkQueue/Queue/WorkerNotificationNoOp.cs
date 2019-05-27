@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Queue
 
         public IWorkerHeartBeatNotification HeartBeat
         {
-            get { return null; }
+            get => null;
             set
             {
                 
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Queue
 
         public ICancelWork WorkerStopping
         {
-            get { return null; }
+            get => null;
             set
             {
             }

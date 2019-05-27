@@ -448,6 +448,10 @@ namespace DotNetWorkQueue.IoC
             container.RegisterDecorator<IResetHeartBeat, Trace.Decorator.ResetHeartBeatDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IRollbackMessage, Trace.Decorator.RollbackMessageDecorator>(
                 LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageInterceptor, Trace.Decorator.MessageInterceptorDecorator>(LifeStyles
+                .Transient);
+
+            container.RegisterDecorator<ISerializer, Trace.Decorator.SerializerDecorator>(LifeStyles.Singleton);
         }
 
         /// <summary>

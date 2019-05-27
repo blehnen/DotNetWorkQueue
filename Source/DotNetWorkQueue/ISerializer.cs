@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -23,19 +26,25 @@ namespace DotNetWorkQueue
     /// </summary>
     public interface ISerializer
     {
-        /// <summary>
-        /// Converts the message to an array of bytes
-        /// </summary>
+        /// <summary>Converts the message to an array of bytes</summary>
         /// <typeparam name="T">the message type</typeparam>
         /// <param name="message">The message.</param>
+        /// <param name="headers">The message headers</param>
         /// <returns>byte array</returns>
-        byte[] ConvertMessageToBytes<T>(T message) where T : class;
-        /// <summary>
-        /// Converts the byte array to a message.
-        /// </summary>
+        byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers) where T : class;
+        /// <summary>Converts the byte array to a message.</summary>
         /// <typeparam name="T">the message type</typeparam>
         /// <param name="bytes">The bytes.</param>
+        /// <param name="headers">The message headers</param>
         /// <returns>an instance of T</returns>
-        T ConvertBytesToMessage<T>(byte[] bytes) where T : class;
+        T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers) where T : class;
+
+        /// <summary>
+        /// Gets the display name for logging or display purposes
+        /// </summary>
+        /// <value>
+        /// The display name.
+        /// </value>
+        string DisplayName { get; }
     }
 }

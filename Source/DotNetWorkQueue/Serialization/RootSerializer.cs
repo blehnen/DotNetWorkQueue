@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Serialization
@@ -47,10 +49,10 @@ namespace DotNetWorkQueue.Serialization
         /// <typeparam name="T">The message type</typeparam>
         /// <param name="message">The message.</param>
         /// <returns></returns>
-        protected override byte[] ConvertMessageToBytes<T>(T message)
+        protected override byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers)
         {
             Guard.NotNull(() => message, message);
-            return _serializer.ConvertMessageToBytes(message);
+            return _serializer.ConvertMessageToBytes(message, headers);
         }
 
         /// <summary>
@@ -59,10 +61,10 @@ namespace DotNetWorkQueue.Serialization
         /// <typeparam name="T">The message type</typeparam>
         /// <param name="bytes">The bytes.</param>
         /// <returns></returns>
-        protected override T ConvertBytesToMessage<T>(byte[] bytes)
+        protected override T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers)
         {
             Guard.NotNull(() => bytes, bytes);
-            return _serializer.ConvertBytesToMessage<T>(bytes);
+            return _serializer.ConvertBytesToMessage<T>(bytes, headers);
 
         }
         #endregion

@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Tests.Serialization
             Assert.Throws<ArgumentNullException>(
            delegate
            {
-               test.ConvertMessageToBytes<Uri>(null);
+               test.ConvertMessageToBytes<Uri>(null, null);
            });
         }
         [Fact]
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Tests.Serialization
             Assert.Throws<ArgumentNullException>(
            delegate
            {
-               test.ConvertBytesToMessage<Uri>(null);
+               test.ConvertBytesToMessage<Uri>(null, null);
            });
         }
 
@@ -38,8 +38,8 @@ namespace DotNetWorkQueue.Tests.Serialization
             var r = new Random();
             r.NextBytes(testData.Data);
 
-            var serializedBytes = test.ConvertMessageToBytes(testData);
-            var testData2 = test.ConvertBytesToMessage<TestData>(serializedBytes);
+            var serializedBytes = test.ConvertMessageToBytes(testData, null);
+            var testData2 = test.ConvertBytesToMessage<TestData>(serializedBytes, null);
 
             Assert.Equal(testData.Data, testData2.Data);
         }
@@ -53,8 +53,8 @@ namespace DotNetWorkQueue.Tests.Serialization
             var r = new Random();
             r.NextBytes(testData.Data);
 
-            var serializedBytes = test.ConvertMessageToBytes(testData);
-            var testData2 = test.ConvertBytesToMessage<ITestData>(serializedBytes);
+            var serializedBytes = test.ConvertMessageToBytes(testData, null);
+            var testData2 = test.ConvertBytesToMessage<ITestData>(serializedBytes, null);
 
             Assert.IsAssignableFrom<TestData>(testData2);
         }

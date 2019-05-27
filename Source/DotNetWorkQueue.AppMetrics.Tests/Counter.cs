@@ -1,5 +1,4 @@
-﻿using App.Metrics;
-using App.Metrics.Counter;
+﻿using App.Metrics.Counter;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using AutoFixture.Xunit2;

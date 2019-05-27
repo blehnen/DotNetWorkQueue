@@ -19,6 +19,7 @@
 using System;
 using DotNetWorkQueue.Metrics.Decorator;
 using DotNetWorkQueue.Validation;
+using OpenTracing;
 
 namespace DotNetWorkQueue.Factory
 {
@@ -46,8 +47,11 @@ namespace DotNetWorkQueue.Factory
         public IMessageInterceptor Create(Type type)
         {
             var interceptor = (IMessageInterceptor)_container.Create().GetInstance(type);
+
+            //HACK for now - it's not clear to me if simple injector supports this pattern
             var decorator = new MessageInterceptorDecorator(_container.Create().GetInstance<IMetrics>(), interceptor, _container.Create().GetInstance<IConnectionInformation>());
-            return decorator;
+            var decorator2 = new Trace.Decorator.MessageInterceptorDecorator(decorator, _container.Create().GetInstance<ITracer>(), _container.Create().GetInstance<IStandardHeaders>());
+            return decorator2;
         }
     }
 }

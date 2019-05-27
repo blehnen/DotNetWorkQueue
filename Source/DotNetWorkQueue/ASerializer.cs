@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 
@@ -39,19 +41,18 @@ namespace DotNetWorkQueue
         {
             MessageInterceptors = messageInterceptors;
         }
-        /// <summary>
-        /// Converts a message into a byte array
-        /// </summary>
+        /// <summary>Converts a message into a byte array</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="message">The message.</param>
+        /// <param name="headers">message headers</param>
         /// <returns></returns>
-        public virtual MessageInterceptorsResult MessageToBytes<T>(T message) where T : class
+        public virtual MessageInterceptorsResult MessageToBytes<T>(T message, IDictionary<string, object> headers) where T : class
         {
             Guard.NotNull(() => message, message);
             byte[] btBytes;
             try
             {
-                btBytes = ConvertMessageToBytes(message);
+                btBytes = ConvertMessageToBytes(message, new ReadOnlyDictionary<string, object>(headers));
             }
             catch (Exception error)
             {
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue
             if (MessageInterceptors == null) return new MessageInterceptorsResult {Output = btBytes};
             try
             {
-                return MessageInterceptors.MessageToBytes(btBytes);
+                return MessageInterceptors.MessageToBytes(btBytes, new ReadOnlyDictionary<string, object>(headers));
             }
             catch (Exception error)
             {
@@ -73,20 +74,21 @@ namespace DotNetWorkQueue
         /// <typeparam name="T">The message type</typeparam>
         /// <param name="bytes">The bytes.</param>
         /// <param name="graph">The message interception graph.</param>
+        /// <param name="headers">The message headers</param>
         /// <returns></returns>
         /// <exception cref="SerializationException">An error has occurred when de-serializing a message</exception>
-        public virtual T BytesToMessage<T>(byte[] bytes, MessageInterceptorsGraph graph) where T : class
+        public virtual T BytesToMessage<T>(byte[] bytes, MessageInterceptorsGraph graph, IDictionary<string, object> headers) where T : class
         {
             Guard.NotNull(() => bytes, bytes);
 
             if (MessageInterceptors != null)
             {
-                return BytesToMessageWithInterceptors<T>(bytes, graph);
+                return BytesToMessageWithInterceptors<T>(bytes, graph, headers);
             }
 
             try
             {
-                return ConvertBytesToMessage<T>(bytes);
+                return ConvertBytesToMessage<T>(bytes, new ReadOnlyDictionary<string, object>(headers));
             }
             catch (Exception error)
             {
@@ -103,13 +105,13 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         /// <exception cref="InterceptorException">An error has occurred while intercepting message de-serialization</exception>
         /// <exception cref="SerializationException">An error has occurred when de-serializing a message</exception>
-        private T BytesToMessageWithInterceptors<T>(byte[] bytes, MessageInterceptorsGraph graph) where T : class
+        private T BytesToMessageWithInterceptors<T>(byte[] bytes, MessageInterceptorsGraph graph, IDictionary<string, object> headers) where T : class
         {
             byte[] btBytes;
 
             try
             {
-                btBytes = MessageInterceptors.BytesToMessage(bytes, graph);
+                btBytes = MessageInterceptors.BytesToMessage(bytes, graph, new ReadOnlyDictionary<string, object>(headers));
             }
             catch (Exception error)
             {
@@ -118,7 +120,7 @@ namespace DotNetWorkQueue
 
             try
             {
-                return ConvertBytesToMessage<T>(btBytes);
+                return ConvertBytesToMessage<T>(btBytes, new ReadOnlyDictionary<string, object>(headers));
             }
             catch (Exception error)
             {
@@ -132,13 +134,13 @@ namespace DotNetWorkQueue
         /// <typeparam name="T"></typeparam>
         /// <param name="message">The message.</param>
         /// <returns></returns>
-        protected abstract byte[] ConvertMessageToBytes<T>(T message) where T : class;
+        protected abstract byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers) where T : class;
         /// <summary>
         /// Converts a byte array back into a message
         /// </summary>
         /// <typeparam name="T">the type of the message</typeparam>
         /// <param name="bytes">The bytes.</param>
         /// <returns></returns>
-        protected abstract T ConvertBytesToMessage<T>(byte[] bytes) where T : class;
+        protected abstract T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers) where T : class;
     }
 }

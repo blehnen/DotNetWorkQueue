@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
                     }
                 }
 
-                var serialized = serializer.Serializer.MessageToBytes(new MessageBody { Body = m.Message.Body });
+                var serialized = serializer.Serializer.MessageToBytes(new MessageBody { Body = m.Message.Body }, m.Message.Headers);
                 m.Message.SetHeader(redisHeaders.Headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
                 messagesToSend.Add(new EnqueueBatchLua.MessageToSend

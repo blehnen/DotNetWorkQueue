@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenTracing;
+﻿using OpenTracing;
 using OpenTracing.Propagation;
 
 namespace DotNetWorkQueue.Trace.NoOp

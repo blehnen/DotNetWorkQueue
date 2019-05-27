@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Tests.Factory
                 i++;
             }
         }
-        public IQueueDelayFactory Create()
+        private IQueueDelayFactory Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             return fixture.Create<QueueDelayFactory>();

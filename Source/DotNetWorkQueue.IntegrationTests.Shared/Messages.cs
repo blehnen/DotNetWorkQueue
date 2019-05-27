@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         public string HomePage { get; set; }
         public decimal Amount { get; set; }
         public bool Allowed { get; set; }
-        public List<FakeSubClass> MoreInfo { get; set; }
+        public List<FakeSubClass> MoreInfo { get; }
 
         public string Id
         {

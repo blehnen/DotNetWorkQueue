@@ -155,7 +155,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                 var messageGraph =
                     (MessageInterceptorsGraph)
                         allHeaders[_redisHeaders.Headers.StandardHeaders.MessageInterceptorGraph.Name];
-                var messageData = _serializer.Serializer.BytesToMessage<MessageBody>(message, messageGraph);
+                var messageData = _serializer.Serializer.BytesToMessage<MessageBody>(message, messageGraph, allHeaders);
 
                 var newMessage = _messageFactory.Create(messageData.Body, allHeaders);
                 query.MessageContext.SetMessageAndHeaders(query.MessageContext.MessageId, new ReadOnlyDictionary<string, object>(allHeaders));

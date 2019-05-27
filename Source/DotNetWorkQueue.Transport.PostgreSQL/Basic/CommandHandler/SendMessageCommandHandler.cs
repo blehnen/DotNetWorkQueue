@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 _serializer.Serializer.MessageToBytes(new MessageBody
                                 {
                                     Body = commandSend.MessageToSend.Body
-                                });
+                                }, commandSend.MessageToSend.Headers);
 
                             command.Parameters.Add("@body", NpgsqlDbType.Bytea, -1);
                             command.Parameters["@body"].Value = serialization.Output;

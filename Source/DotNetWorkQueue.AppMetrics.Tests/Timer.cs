@@ -1,5 +1,4 @@
 ﻿using System.Threading;
-using App.Metrics;
 using App.Metrics.Timer;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;

@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                                 _serializer.Serializer.MessageToBytes(new MessageBody
                                 {
                                     Body = commandSend.MessageToSend.Body
-                                });
+                                }, commandSend.MessageToSend.Headers);
 
                             command.Parameters.Add("@body", SqlDbType.VarBinary, -1);
                             command.Parameters["@body"].Value = serialization.Output;

@@ -40,10 +40,10 @@ namespace DotNetWorkQueue.Tests.Interceptors
             var configuration = new GZipMessageInterceptorConfiguration();
             var gzip = new GZipMessageInterceptor(configuration);
 
-            var serialization = gzip.MessageToBytes(Encoding.UTF8.GetBytes(body));
+            var serialization = gzip.MessageToBytes(Encoding.UTF8.GetBytes(body), null);
             if (serialization.AddToGraph)
             {
-                var actual = Encoding.UTF8.GetString(gzip.BytesToMessage(serialization.Output));
+                var actual = Encoding.UTF8.GetString(gzip.BytesToMessage(serialization.Output, null));
                 Assert.Equal(body, actual);
             }
             else
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
             var configuration = new GZipMessageInterceptorConfiguration {MinimumSize = length};
             var gzip = new GZipMessageInterceptor(configuration);
 
-            var serialization = gzip.MessageToBytes(Encoding.UTF8.GetBytes(body));
+            var serialization = gzip.MessageToBytes(Encoding.UTF8.GetBytes(body), null);
             Assert.False(serialization.AddToGraph);
             Assert.Equal(body, Encoding.UTF8.GetString(serialization.Output));
         }

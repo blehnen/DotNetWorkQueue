@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
                 var message =
                     _serialization.Serializer.BytesToMessage<MessageBody>(
                         messagePayload,
-                        messageGraph).Body;
+                        messageGraph, headers).Body;
                 var newMessage = _messageFactory.Create(message, headers);
 
                 foreach (var additionalCommand in commandString.AdditionalCommands)

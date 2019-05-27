@@ -18,7 +18,7 @@ namespace DotNetWorkQueue.Tests.Factory
             Assert.IsAssignableFrom<INoOperation>(monitor);
         }
 
-        public IHeartBeatWorkerFactory Create(bool enabled)
+        private IHeartBeatWorkerFactory Create(bool enabled)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var configuration = fixture.Create<IHeartBeatConfiguration>();

@@ -21,7 +21,7 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
-    internal class MessageHandlerAsyncDecorator : IMessageHandlerAsync
+    public class MessageHandlerAsyncDecorator : IMessageHandlerAsync
     {
         private readonly IMessageHandlerAsync _handler;
         private readonly ITracer _tracer;

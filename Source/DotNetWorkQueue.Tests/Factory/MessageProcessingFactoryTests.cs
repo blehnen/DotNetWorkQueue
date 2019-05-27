@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.Tests.Factory
             factory.Create();
         }
 
-        public IMessageProcessingFactory Create()
+        private IMessageProcessingFactory Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             return fixture.Create<MessageProcessingFactory>();

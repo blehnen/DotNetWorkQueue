@@ -56,8 +56,8 @@ namespace DotNetWorkQueue.Tests.Interceptors
 
         private void Test(IMessageInterceptorRegistrar register, string body)
         {
-            var serialization = register.MessageToBytes(Encoding.UTF8.GetBytes(body));
-            var message = register.BytesToMessage(serialization.Output, serialization.Graph);
+            var serialization = register.MessageToBytes(Encoding.UTF8.GetBytes(body), null);
+            var message = register.BytesToMessage(serialization.Output, serialization.Graph, null);
             Assert.Equal(body, Encoding.UTF8.GetString(message));
         }
     }

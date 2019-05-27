@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Text;
 using DotNetWorkQueue.Interceptors;
 using Xunit;
@@ -25,8 +26,8 @@ namespace DotNetWorkQueue.Tests.Interceptors
         }
         private void TestDes(string body)
         {
-            var serialization = _tripleDesMessageInterceptor.MessageToBytes(Encoding.UTF8.GetBytes(body));
-            var actual = Encoding.UTF8.GetString(_tripleDesMessageInterceptor.BytesToMessage(serialization.Output));
+            var serialization = _tripleDesMessageInterceptor.MessageToBytes(Encoding.UTF8.GetBytes(body), null);
+            var actual = Encoding.UTF8.GetString(_tripleDesMessageInterceptor.BytesToMessage(serialization.Output, null));
             Assert.Equal(body, actual);
         }
     }
