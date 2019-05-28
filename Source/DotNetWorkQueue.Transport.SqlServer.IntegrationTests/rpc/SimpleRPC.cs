@@ -12,7 +12,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.rpc
     {
         [Theory]
         [InlineData(50, 1, 90, 3, false, false),
-         InlineData(30, 0, 90, 3, false, true)]
+         InlineData(30, 1, 90, 3, false, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool async)
         {
             var queueNameSend = GenerateQueueName.Create();
