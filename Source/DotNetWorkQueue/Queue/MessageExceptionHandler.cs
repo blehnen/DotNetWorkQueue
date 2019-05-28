@@ -54,9 +54,10 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="MessageException">An unhanded exception has occurred while processing a message</exception>
         public void Handle(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
+            ReceiveMessagesErrorResult result = ReceiveMessagesErrorResult.NotSpecified;
             try
             {
-                _transportErrorHandler.MessageFailedProcessing(message, context,
+                result = _transportErrorHandler.MessageFailedProcessing(message, context,
                     exception);
             }
             catch (Exception errorHandlingError)
@@ -67,8 +68,17 @@ namespace DotNetWorkQueue.Queue
                 throw new DotNetWorkQueueException("An error has occurred in the error handling code",
                     errorHandlingError);
             }
-            throw new MessageException("An unhanded exception has occurred while processing a message",
-                exception, message.MessageId, message.CorrelationId);
+
+            switch (result)
+            {
+                case ReceiveMessagesErrorResult.Retry:
+                case ReceiveMessagesErrorResult.NotSpecified:
+                case ReceiveMessagesErrorResult.NoActionPossible:
+                    throw new MessageException("An unhanded exception has occurred while processing a message",
+                        exception, message.MessageId, message.CorrelationId);
+                case ReceiveMessagesErrorResult.Error: //don't throw exception, as the message has been moved
+                    break;
+            }
         }
     }
 }

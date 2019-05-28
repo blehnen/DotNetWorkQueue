@@ -452,6 +452,7 @@ namespace DotNetWorkQueue.IoC
                 .Transient);
 
             container.RegisterDecorator<ISerializer, Trace.Decorator.SerializerDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<ISendHeartBeat, Trace.Decorator.SendHeartBeatDecorator>(LifeStyles.Singleton);
         }
 
         /// <summary>

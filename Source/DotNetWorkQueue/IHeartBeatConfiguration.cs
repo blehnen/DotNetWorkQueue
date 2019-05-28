@@ -47,7 +47,7 @@ namespace DotNetWorkQueue
         bool Enabled { get; }
 
         /// <summary>
-        /// Gets or sets the heart beat time. \
+        /// Gets or sets the heart beat time.
         /// </summary>
         /// <remarks>This controls how long before a record is considered 'dead' because the heartbeat is out side of this window. The status will be reset, allowing re-processing</remarks>
         /// <value>
