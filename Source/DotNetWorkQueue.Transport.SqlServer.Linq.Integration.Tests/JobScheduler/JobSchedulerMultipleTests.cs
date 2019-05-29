@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
     public class JobSchedulerMultipleTests
     {
         [Theory]
-        [InlineData(true, 10)]
+        [InlineData(true, 3)]
         public void Run(
             bool interceptors,
             int producerCount)

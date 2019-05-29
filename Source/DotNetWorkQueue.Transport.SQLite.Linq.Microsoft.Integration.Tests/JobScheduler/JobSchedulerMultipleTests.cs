@@ -12,8 +12,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.JobS
     public class JobSchedulerMultipleTests
     {
         [Theory]
-        [InlineData(10, false),
-         InlineData(10, true)]
+        [InlineData(3, false),
+         InlineData(3, true)]
         public void Run(
             int producerCount,
             bool inMemoryDb)
