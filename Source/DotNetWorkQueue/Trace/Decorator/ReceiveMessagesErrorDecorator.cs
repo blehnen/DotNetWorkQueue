@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using OpenTracing;
+using OpenTracing.Tag;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -53,7 +54,10 @@ namespace DotNetWorkQueue.Trace.Decorator
                 using (IScope scope = _tracer.BuildSpan("Error").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
                 {
                     scope.Span.Log(exception.ToString());
-                    return _handler.MessageFailedProcessing(message, context, exception);
+                    Tags.Error.Set(scope.Span, true);
+                    var result = _handler.MessageFailedProcessing(message, context, exception);
+                    scope.Span.SetTag("WillRetry", result == ReceiveMessagesErrorResult.Retry);
+                    return result;
                 }
             }
             else
@@ -62,7 +66,10 @@ namespace DotNetWorkQueue.Trace.Decorator
                 {
                     scope.Span.AddMessageIdTag(message);
                     scope.Span.Log(exception.ToString());
-                    return _handler.MessageFailedProcessing(message, context, exception);
+                    Tags.Error.Set(scope.Span, true);
+                    var result = _handler.MessageFailedProcessing(message, context, exception);
+                    scope.Span.SetTag("WillRetry", result == ReceiveMessagesErrorResult.Retry);
+                    return result;
                 }
             }
         }

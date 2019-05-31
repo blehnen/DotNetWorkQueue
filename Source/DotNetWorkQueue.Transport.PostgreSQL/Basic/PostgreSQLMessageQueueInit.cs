@@ -160,6 +160,20 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 typeof(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>,
                     QueueCreationResult>),
                 typeof(CreateQueueTablesAndSaveConfigurationDecorator), LifeStyles.Singleton);
+
+            //trace fallback command
+            container.RegisterDecorator(
+                typeof(ICommandHandler<RollbackMessageCommand>),
+                typeof(DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator.RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+
+            //trace sending a message so that we can add specific tags
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutput<SendMessageCommand, long>),
+                typeof(DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator.SendMessageCommandHandlerDecorator), LifeStyles.Singleton);
+
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutputAsync<SendMessageCommand, long>),
+                typeof(DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator), LifeStyles.Singleton);
         }
         /// <inheritdoc />
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)

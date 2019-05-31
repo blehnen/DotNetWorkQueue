@@ -432,7 +432,6 @@ namespace DotNetWorkQueue.IoC
 
         private static void RegisterTraceDecorators(IContainer container)
         {
-            container.RegisterDecorator<ISendMessages, Trace.Decorator.SendMessagesDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IReceiveMessages, Trace.Decorator.ReceiveMessagesDecorator>(LifeStyles.Transient);
             container.RegisterDecorator<IMessageHandler, Trace.Decorator.MessageHandlerDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IMessageHandlerAsync, Trace.Decorator.MessageHandlerAsyncDecorator>(

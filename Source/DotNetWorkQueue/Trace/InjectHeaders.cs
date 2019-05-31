@@ -44,6 +44,24 @@ namespace DotNetWorkQueue.Trace
         /// <summary>
         /// Extracts the specified tracer.
         /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="tracer">The tracer.</param>
+        /// <param name="headers">The headers.</param>
+        /// <returns></returns>
+        public static ISpanContext Extract(this IMessage message, ITracer tracer, IStandardHeaders headers)
+        {
+            if (message.Headers.ContainsKey(headers.TraceSpan.Name))
+            {
+                var mapping =
+                    (DataMappingTextMap)message.Headers[headers.TraceSpan.Name];
+                return tracer.Extract(BuiltinFormats.TextMap, mapping);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Extracts the specified tracer.
+        /// </summary>
         /// <param name="inputHeaders">The input headers.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
@@ -105,6 +123,8 @@ namespace DotNetWorkQueue.Trace
             span.SetTag("Server", connectionInformation.Server);
             span.SetTag("Queue", connectionInformation.QueueName);
             span.SetTag("CorrelationId", data.CorrelationId.ToString());
+            if(!string.IsNullOrEmpty(data.Route))
+                span.SetTag("Route", data.Route);
 
             foreach(var userTag in data.TraceTags)
             {

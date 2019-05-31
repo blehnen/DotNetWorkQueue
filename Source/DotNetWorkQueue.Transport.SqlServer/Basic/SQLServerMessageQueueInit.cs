@@ -141,6 +141,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult>),
                 typeof(CreateQueueTablesAndSaveConfigurationDecorator), LifeStyles.Singleton);
+
+            //trace fallback command
+            container.RegisterDecorator(
+                typeof(ICommandHandler<RollbackMessageCommand>),
+                typeof(DotNetWorkQueue.Transport.SqlServer.Trace.Decorator.RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+
+            //trace sending a message so that we can add specific tags
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutput<SendMessageCommand, long>),
+                typeof(DotNetWorkQueue.Transport.SqlServer.Trace.Decorator.SendMessageCommandHandlerDecorator), LifeStyles.Singleton);
+
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutputAsync<SendMessageCommand, long>),
+                typeof(DotNetWorkQueue.Transport.SqlServer.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator), LifeStyles.Singleton);
         }
 
         /// <summary>

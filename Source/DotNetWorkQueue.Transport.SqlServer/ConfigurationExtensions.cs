@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// </remarks>
         public static ushort? GetPriority(this IAdditionalMessageData data)
         {
-            return data.TryGetSetting("SqlServerMessageQueuePriority", out dynamic value) ? value : 128;
+            return data.TryGetSetting("SqlServerMessageQueuePriority", out dynamic value) ? value : (ushort)128;
         }
     }
 

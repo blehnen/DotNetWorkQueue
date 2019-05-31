@@ -204,6 +204,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandler<SetErrorCountCommand>),
                 typeof(SetErrorCountCommandDecorator), LifeStyles.Singleton);
+
+            //trace fallback command
+            container.RegisterDecorator(
+                typeof(ICommandHandler<RollbackMessageCommand>),
+                typeof(DotNetWorkQueue.Transport.SQLite.Shared.Trace.Decorator.RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+
+            //trace sending a message so that we can add specific tags
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutput<SendMessageCommand, long>),
+                typeof(DotNetWorkQueue.Transport.SQLite.Shared.Trace.Decorator.SendMessageCommandHandlerDecorator), LifeStyles.Singleton);
+
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutputAsync<SendMessageCommand, long>),
+                typeof(DotNetWorkQueue.Transport.SQLite.Shared.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator), LifeStyles.Singleton);
         }
 
         /// <summary>

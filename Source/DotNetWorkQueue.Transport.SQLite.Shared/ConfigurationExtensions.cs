@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared
         /// </remarks>
         public static ushort? GetPriority(this IAdditionalMessageData data)
         {
-            return data.TryGetSetting("SQLiteMessageQueuePriority", out dynamic value) ? value : 128;
+            return data.TryGetSetting("SQLiteMessageQueuePriority", out dynamic value) ? value : (ushort)128;
         }
     }
 

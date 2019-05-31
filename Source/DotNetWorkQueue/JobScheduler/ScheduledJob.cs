@@ -212,7 +212,7 @@ namespace DotNetWorkQueue.JobScheduler
                         if (result.Status == JobQueuedStatus.Success || result.Status == JobQueuedStatus.RequeuedDueToErrorStatus)
                         {
                             RaiseEnQueue(result);
-                            _queue.Logger.Log(LogLevel.Debug, () => $"job {this} has been queued");
+                            _queue.Logger.Log(LogLevel.Debug, () => $"job {this} queued");
                         }
                         else if (result.Status == JobQueuedStatus.AlreadyQueuedWaiting ||
                                  result.Status == JobQueuedStatus.AlreadyQueuedProcessing ||

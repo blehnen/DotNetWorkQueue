@@ -73,8 +73,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 return new QueueOutputMessage(_sentMessageFactory.Create(null, data.CorrelationId), exception);
             }
         }
-        #endregion
-
+        
         /// <inheritdoc />
         public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
@@ -147,5 +146,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 throw new DotNetWorkQueueException("An error occurred while sending a message", exception);
             }
         }
+        #endregion
     }
 }

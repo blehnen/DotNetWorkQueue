@@ -5,6 +5,7 @@ using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Factory;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Redis.Basic.Message;
@@ -142,6 +143,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.RegisterDecorator<IQueryHandler<ReceiveMessageQuery, RedisMessage>, Logging.Decorator.ReceiveMessageQueryDecorator>(
                 LifeStyles.Singleton);
             container.RegisterDecorator<IDelayedProcessingAction, Logging.Decorator.DelayedProcessingActionDecorator>(LifeStyles.Singleton);
+
+            //trace fallback command
+            container.RegisterDecorator(
+                typeof(ICommandHandler<RollbackMessageCommand>),
+                typeof(DotNetWorkQueue.Transport.Redis.Trace.Decorator.RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+
+            //trace sending messages
+            container.RegisterDecorator(
+                typeof(ISendMessages),
+                typeof(DotNetWorkQueue.Transport.Redis.Trace.Decorator.SendMessagesDecorator), LifeStyles.Singleton);
         }
 
         /// <summary>

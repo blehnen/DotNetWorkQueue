@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Exceptions;
 using OpenTracing;
+using OpenTracing.Tag;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -59,6 +60,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                     using (IScope scope = _tracer.BuildSpan("PoisonMessage").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
                     {
                         scope.Span.Log(exception.ToString());
+                        Tags.Error.Set(scope.Span, true);
                         _handler.Handle(context, exception);
                     }
                 }
@@ -68,6 +70,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                     {
                         scope.Span.AddMessageIdTag(context);
                         scope.Span.Log(exception.ToString());
+                        Tags.Error.Set(scope.Span, true);
                         _handler.Handle(context, exception);
                     }
                 }
