@@ -22,8 +22,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         {
             _getTime = getTime.Create();
             _serialization = serialization;
-            Script = @"local signal = tonumber(@signalID)
-                        local returnData = {}
+            Script = @"local returnData = {}
                         local uuids = redis.call('zrangebyscore', @workingkey, 0, @heartbeattime, 'LIMIT', 0, @limit)
                         if #uuids == 0 then
 	                        return nil
@@ -39,16 +38,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 	                            redis.call('rpush', @pendingkey, v) 
                             end
                             redis.call('hset', @StatusKey, v, '0') 
-	                        if signal == 1 then
-		                        redis.call('publish', @channel, v) 
-	                        end
                             returnData[index] = {v, redis.call('hget', @headerskey, v)}
                             index = index + 1
                         end
-
-                        if signal == 0 then
-	                        redis.call('publish', @channel, '') 
-                        end
+                        redis.call('publish', @channel, '') 
                         return returnData";
         }
         /// <summary>
@@ -56,17 +49,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         /// <param name="unixTime">The unix time.</param>
         /// <param name="count">The count.</param>
-        /// <param name="rpc">if set to <c>true</c> [RPC].</param>
         /// <returns></returns>
-        public List<ResetHeartBeatOutput> Execute(long unixTime, int count, bool rpc)
+        public List<ResetHeartBeatOutput> Execute(long unixTime, int count)
         {
             if (Connection.IsDisposed)
                 return new List<ResetHeartBeatOutput>();
 
             var db = Connection.Connection.GetDatabase();
-            DateTime Start = _getTime.GetCurrentUtcDate();
-            var result = db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, count, rpc));
-            DateTime End = _getTime.GetCurrentUtcDate();
+            DateTime start = _getTime.GetCurrentUtcDate();
+            var result = db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, count));
+            DateTime end = _getTime.GetCurrentUtcDate();
             if(result.IsNull) return new List<ResetHeartBeatOutput>(0);
             var ids = (RedisResult[]) result;
             var returnData = new List<ResetHeartBeatOutput>(ids.Length);
@@ -79,8 +71,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                     headers = _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(header);
 
                 if(headers != null)
-                    returnData.Add(new ResetHeartBeatOutput(new RedisQueueId(queueId), new ReadOnlyDictionary<string, object>(headers), Start, End));
-                returnData.Add(new ResetHeartBeatOutput(new RedisQueueId(queueId), null, Start, End));
+                    returnData.Add(new ResetHeartBeatOutput(new RedisQueueId(queueId), new ReadOnlyDictionary<string, object>(headers), start, end));
+                returnData.Add(new ResetHeartBeatOutput(new RedisQueueId(queueId), null, start, end));
             }
 
             return returnData;
@@ -90,9 +82,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         /// <param name="heartbeatResetTime">The heartbeat reset time.</param>
         /// <param name="count">The count.</param>
-        /// <param name="rpc">if set to <c>true</c> [RPC].</param>
         /// <returns></returns>
-        private object GetParameters(long heartbeatResetTime, int count, bool rpc)
+        private object GetParameters(long heartbeatResetTime, int count)
         {
             return new
             {
@@ -101,7 +92,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 heartbeattime = heartbeatResetTime,
                 channel = RedisNames.Notification,
                 limit = count,
-                signalID = Convert.ToInt32(rpc),
                 RouteIDKey = (RedisKey)RedisNames.Route,
                 StatusKey = (RedisKey)RedisNames.Status,
                 headerskey = (RedisKey)RedisNames.Headers,

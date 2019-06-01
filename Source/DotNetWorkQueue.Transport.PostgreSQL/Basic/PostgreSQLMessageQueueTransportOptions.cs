@@ -181,11 +181,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 {
                     sbErrors.AppendLine("[EnableStatus] must be false when using transactions. The status table may still be used.");
                 }
-
-                if (QueueType != QueueTypes.Normal)
-                {
-                    sbErrors.AppendLine("[EnableHoldTransactionUntilMessageCommitted] must be false when using RPC queues");
-                }
             }
 
             v.ErrorMessage = sbErrors.ToString();
@@ -262,7 +257,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 command.Append(", Status ");
             }
 
-            if (EnableMessageExpiration || QueueType == QueueTypes.RpcReceive || QueueType == QueueTypes.RpcSend)
+            if (EnableMessageExpiration)
             {
                 command.Append(", ExpirationTime ");
             }
@@ -303,7 +298,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 command.Append(", @Status ");
             }
 
-            if (EnableMessageExpiration || QueueType == QueueTypes.RpcReceive || QueueType == QueueTypes.RpcSend)
+            if (EnableMessageExpiration)
             {
                 command.Append(expiration != TimeSpan.Zero ? $", {currentDateTime.Add(expiration).Ticks} " : ", NULL ");
             }

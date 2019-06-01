@@ -12,13 +12,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
         /// Initializes a new instance of the <see cref="ReceiveMessageQuery"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="id">The identifier.</param>
-        public ReceiveMessageQuery(IMessageContext context, IMessageId id)
+        public ReceiveMessageQuery(IMessageContext context)
         {
             Guard.NotNull(() => context, context);
 
             MessageContext = context;
-            MessageId = id;
         }
         /// <summary>
         /// Gets the message context.
@@ -27,12 +25,5 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
         /// The message context.
         /// </value>
         public IMessageContext MessageContext { get;  }
-        /// <summary>
-        /// Gets the message identifier.
-        /// </summary>
-        /// <value>
-        /// The message identifier.
-        /// </value>
-        public IMessageId MessageId { get; }
     }
 }

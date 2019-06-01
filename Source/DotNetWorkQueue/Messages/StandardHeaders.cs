@@ -31,17 +31,9 @@ namespace DotNetWorkQueue.Messages
         /// Initializes a new instance of the <see cref="StandardHeaders"/> class.
         /// </summary>
         /// <param name="messageContextDataFactory">The message context data factory.</param>
-        /// <param name="timeoutFactory">The timeout factory.</param>
-        public StandardHeaders(IMessageContextDataFactory messageContextDataFactory, IRpcTimeoutFactory timeoutFactory)
+        public StandardHeaders(IMessageContextDataFactory messageContextDataFactory)
         {
             Guard.NotNull(() => messageContextDataFactory, messageContextDataFactory);
-            Guard.NotNull(() => timeoutFactory, timeoutFactory);
-
-            RpcTimeout = messageContextDataFactory.Create("Queue-RPCTimeout", timeoutFactory.Create(TimeSpan.Zero));
-            RpcResponseId = messageContextDataFactory.Create<string>("Queue-RPCResponseID", null);
-            RpcConsumerException = messageContextDataFactory.Create<Exception>("Queue-RPCConsumerException", null);
-            RpcConnectionInfo = messageContextDataFactory.Create<IConnectionInformation>("Queue-RPCConnectionInfo", null);
-            RpcContext = messageContextDataFactory.Create<IRpcContext>("Queue-RPCContext", null);
             FirstPossibleDeliveryDate = messageContextDataFactory.Create<ValueTypeWrapper<DateTime>>("Queue-FirstPossibleDeliveryDate", null);
             MessageInterceptorGraph =
                 messageContextDataFactory.Create("Queue-MessageInterceptorGraph",
@@ -49,68 +41,10 @@ namespace DotNetWorkQueue.Messages
             TraceSpan = messageContextDataFactory.Create<DataMappingTextMap>("Queue-TraceSpan", null);
         }
 
-        /// <summary>
-        /// The connection information for the receiving queue in an RPC queue.
-        /// <remarks>The consuming code of the original message can use this information to send a reply</remarks>
-        /// <example>
-        /// IConnectionInformationSend connection = (IConnectionInformationSend)message.Headers[Headers.RPCConnectionInfoKey];
-        /// </example>
-        /// </summary>
-        public IMessageContextData<IConnectionInformation> RpcConnectionInfo { get; }
-        /// <summary>
-        /// The consuming code in an RPC queue can use this header to return an exception to the caller.
-        /// <example>
-        ///  Send
-        ///  IAdditionalMessageData data = oConfig.GetAdditionalData();
-        ///  data.Headers.Set(Headers.RPCConsumerException, new DotNetWorkQueue.Exceptions.MessageException("Exception information here!", message.ID, message.CorrelationID));
-        ///  
-        ///  Receive
-        ///  //do we have an exception?
-        ///  if(message.Headers[Headers.RPCConsumerException] != null)
-        ///  {
-        ///     Exception error = (Exception)message.Headers[Headers.RPCConsumerException];
-        ///     //etc
-        ///  }
-        /// </example>
-        /// </summary>
-        public IMessageContextData<Exception> RpcConsumerException { get; }
-        /// <summary>
-        /// The timeout period will be attached to the headers when an RPC queue sends a message
-        /// <remarks>The consuming code can re-use the timeout, or use it's own value. The timeout period when sending a response simply lets the clean up thread know when its safe to delete the record if it was not processed.</remarks>
-        /// <example>
-        /// TimeSpan timeOut = TimeSpan.Parse((string)message.Headers[Headers.RPCTimeout], System.Globalization.CultureInfo.InvariantCulture);
-        /// </example>
-        /// </summary>
-        public IMessageContextData<IRpcTimeout> RpcTimeout  { get; }
-        /// <summary>
-        /// Contains the ID of the RPC response
-        /// </summary>
-        public IMessageContextData<string> RpcResponseId { get; }
-        /// <summary>
-        /// Gets the RPC context.
-        /// </summary>
-        /// <value>
-        /// The RPC context.
-        /// </value>
-        public IMessageContextData<IRpcContext> RpcContext { get; }
-
-        /// <summary>
-        /// Gets the first possible delivery date.
-        /// </summary>
-        /// <value>
-        /// The first possible delivery date.
-        /// </value>
-        /// <remarks>
-        /// Used to record the first possible date/time a message could be de-queued
-        /// </remarks>
+        /// <inheritdoc/>
         public IMessageContextData<ValueTypeWrapper<DateTime>> FirstPossibleDeliveryDate { get; }
 
-        /// <summary>
-        /// Gets the message interceptor graph.
-        /// </summary>
-        /// <value>
-        /// The message interceptor graph.
-        /// </value>
+        /// <inheritdoc/>
         public IMessageContextData<MessageInterceptorsGraph> MessageInterceptorGraph { get; }
 
         /// <inheritdoc/>

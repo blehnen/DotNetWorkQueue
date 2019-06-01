@@ -9,6 +9,9 @@ using OpenTracing.Tag;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator
 {
+    /// <summary>
+    /// Tracing for sending a message
+    /// </summary>
     public class SendMessageCommandHandlerAsyncDecorator : ICommandHandlerWithOutputAsync<SendMessageCommand, long>
     {
         private readonly ICommandHandlerWithOutputAsync<SendMessageCommand, long> _handler;

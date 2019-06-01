@@ -14,14 +14,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
         /// </summary>
         /// <param name="metaTableName">Name of the meta table.</param>
         /// <param name="queueTableName">Name of the queue table.</param>
-        /// <param name="forRpc">if set to <c>true</c> [for RPC].</param>
         /// <param name="statusTableName">Name of the status table.</param>
         /// <param name="options">The options.</param>
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
         public static CommandString GetDeQueueCommand(string metaTableName, 
-            string queueTableName, 
-            bool forRpc, 
+            string queueTableName,
             string statusTableName,
             SqLiteMessageQueueTransportOptions options,
             List<string> routes )
@@ -56,21 +54,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
                 needWhere = false;
             }
 
-            if (forRpc)
-            {
-                if (needWhere)
-                {
-                    sb.AppendLine("Where SourceQueueID = @QueueID ");
-                    needWhere = false;
-                }
-                else
-                {
-                    sb.AppendLine("AND SourceQueueID = @QueueID ");
-                }
-            }
-
-
-            if (options.EnableMessageExpiration || options.QueueType == QueueTypes.RpcReceive || options.QueueType == QueueTypes.RpcSend)
+            if (options.EnableMessageExpiration)
             {
                 if (needWhere)
                 {

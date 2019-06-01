@@ -17,8 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Configuration;
-
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -142,41 +140,6 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         IProducerMethodJobQueue CreateMethodJobProducer(
             string queue, string connection);
-
-        /// <summary>
-        /// Creates an RPC queue.
-        /// </summary>
-        /// <typeparam name="TMessageReceive">The type of the received message.</typeparam>
-        /// <typeparam name="TMessageSend">The type of the sent message.</typeparam>
-        /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
-        /// <param name="connectionSettings">The connection settings.</param>
-        /// <returns></returns>
-        IRpcQueue<TMessageReceive, TMessageSend> CreateRpc
-            <TMessageReceive, TMessageSend, TTConnectionSettings>(TTConnectionSettings connectionSettings)
-            where TMessageReceive : class
-            where TMessageSend : class
-            where TTConnectionSettings : BaseRpcConnection;
-
-        /// <summary>
-        /// Creates an RPC queue.
-        /// </summary>
-        /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
-        /// <param name="connectionSettings">The connection settings.</param>
-        /// <returns></returns>
-        IRpcMethodQueue CreateMethodRpc
-            <TTConnectionSettings>(TTConnectionSettings connectionSettings)
-            where TTConnectionSettings : BaseRpcConnection;
-
-        /// <summary>
-        /// Creates an RPC queue that can send responses
-        /// </summary>
-        /// <typeparam name="TMessage">The type of the message.</typeparam>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
-        /// <returns></returns>
-        IProducerQueueRpc<TMessage> CreateProducerRpc
-            <TMessage>(string queue, string connection)
-            where TMessage : class;
 
         /// <summary>
         /// Creates the job scheduler last known event.

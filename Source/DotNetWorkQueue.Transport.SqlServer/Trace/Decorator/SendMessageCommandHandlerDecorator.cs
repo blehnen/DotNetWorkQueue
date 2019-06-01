@@ -8,6 +8,9 @@ using OpenTracing.Tag;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Trace.Decorator
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class SendMessageCommandHandlerDecorator : ICommandHandlerWithOutput<SendMessageCommand, long>
     {
         private readonly ICommandHandlerWithOutput<SendMessageCommand, long> _handler;

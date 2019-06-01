@@ -3,8 +3,16 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Trace
 {
+    /// <summary>
+    /// Adds tags to spans
+    /// </summary>
     public static class TraceExtensions
     {
+        /// <summary>
+        /// Adds tags from the command to the span
+        /// </summary>
+        /// <param name="span">The span.</param>
+        /// <param name="command">The command.</param>
         public static void Add(this ISpan span, SendMessageCommand command)
         {
             var delay = command.MessageData.GetDelay();

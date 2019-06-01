@@ -252,22 +252,6 @@ namespace DotNetWorkQueue.IoC
                 container.Register<IWaitForEventOrCancelFactory, WaitForEventOrCancelFactory>(LifeStyles.Singleton);
                 container.Register<ThreadPoolConfiguration>(LifeStyles.Singleton);
             }
-
-            //implementations for RPC / or a duplex transport
-            //NOTE - we don't bother to tell the difference between RPC / duplex
-            //so it's possible these are registered, but never actually used.
-            if ((registrationType & RegistrationTypes.Receive) == RegistrationTypes.Receive &&
-                (registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
-            {
-                container.Register<IRpcMethodQueue, RpcMethodQueue>(LifeStyles.Singleton);
-
-                container.Register<IClearExpiredMessagesRpcMonitor, ClearExpiredMessagesRpcMonitor>
-                    (LifeStyles.Singleton);
-
-                container.Register<IResponseIdFactory, ResponseIdFactory>(LifeStyles.Singleton);
-                container.Register<IRpcContextFactory, RpcContextFactory>(LifeStyles.Singleton);
-                container.Register<QueueRpcConfiguration>(LifeStyles.Singleton);
-            }
         }
 
         private static void RegisterSharedDefaults(IContainer container)
@@ -310,9 +294,8 @@ namespace DotNetWorkQueue.IoC
             container.Register<PolicyRegistry>(LifeStyles.Singleton);
             container.Register<PolicyDefinitions>(LifeStyles.Singleton);
 
-            //because of it's usage in 'standard' modules, this must always be added, even if RPC is not enabled.
+            //because of it's usage in 'standard' modules, this must always be added.
             //otherwise, the IoC container can't create the producer queue.
-            container.Register<IRpcTimeoutFactory, RpcTimeoutFactory>(LifeStyles.Singleton);
             container.Register<IMessageContextDataFactory, MessageContextDataFactory>(LifeStyles.Singleton);
 
             container.Register<IHeaders, Headers>(LifeStyles.Singleton);
@@ -393,22 +376,10 @@ namespace DotNetWorkQueue.IoC
         public static void RegisterFallbacks(IContainer container, RegistrationTypes registrationType)
         {
             container.RegisterConditional(typeof(ICachePolicy<>), typeof(CachePolicy<>), LifeStyles.Singleton);
-
             if ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
             {
                 container.RegisterConditional(typeof (IProducerQueue<>), typeof (ProducerQueue<>),
                     LifeStyles.Singleton);
-            }
-
-            if ((registrationType & RegistrationTypes.Receive) == RegistrationTypes.Receive &&
-            (registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
-            {
-                container.RegisterConditional(typeof(IProducerQueueRpc<>), typeof(ProducerQueueRpc<>), LifeStyles.Singleton);
-                container.RegisterConditional(typeof(IRpcQueue<,>), typeof(RpcQueue<,>), LifeStyles.Singleton);
- 
-
-                container.RegisterConditional(typeof(IMessageProcessingRpcSend<>), typeof(MessageProcessingRpcSend<>), LifeStyles.Singleton);
-                container.RegisterConditional(typeof(IMessageProcessingRpcReceive<>), typeof(MessageProcessingRpcReceive<>), LifeStyles.Singleton);
             }
         }
 

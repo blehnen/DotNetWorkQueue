@@ -36,7 +36,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         private readonly IRemoveMessage _removeMessage;
         private readonly RedisHeaders _redisHeaders;
         private readonly DequeueLua _dequeueLua;
-        private readonly DequeueRpcLua _dequeueRpcLua;
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly IMessageFactory _messageFactory;
 
@@ -46,7 +45,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// <param name="removeMessage">Removes a message from the queue</param>
         /// <param name="redisHeaders">The redisHeaders.</param>
         /// <param name="dequeueLua">The dequeue.</param>
-        /// <param name="dequeueRpcLua">The dequeue RPC.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="messageFactory">The message factory.</param>
         public ReceiveMessageQueryHandler(
@@ -55,7 +53,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             IRemoveMessage removeMessage,
             RedisHeaders redisHeaders,
             DequeueLua dequeueLua,
-            DequeueRpcLua dequeueRpcLua, 
             IUnixTimeFactory unixTimeFactory, 
             IMessageFactory messageFactory)
         {
@@ -64,7 +61,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             Guard.NotNull(() => removeMessage, removeMessage);
             Guard.NotNull(() => redisHeaders, redisHeaders);
             Guard.NotNull(() => dequeueLua, dequeueLua);
-            Guard.NotNull(() => dequeueRpcLua, dequeueRpcLua);
             Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
 
             _serializer = serializer;
@@ -72,7 +68,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _removeMessage = removeMessage;
             _redisHeaders = redisHeaders;
             _dequeueLua = dequeueLua;
-            _dequeueRpcLua = dequeueRpcLua;
             _unixTimeFactory = unixTimeFactory;
             _messageFactory = messageFactory;
         }
@@ -88,16 +83,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             try
             {
                 var unixTimestamp = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-                RedisValue[] result;
-                if (query.MessageId != null && query.MessageId.HasValue)
-                {
-                    result = _dequeueRpcLua.Execute(query.MessageId.Id.Value.ToString(), unixTimestamp);
-                }
-                else
-                {
-                    result = _dequeueLua.Execute(unixTimestamp);
-                }
-
+                RedisValue[] result = _dequeueLua.Execute(unixTimestamp);
+                
                 if (result == null || result.Length == 1 && !result[0].HasValue || !result[0].HasValue)
                 {
                     return null;

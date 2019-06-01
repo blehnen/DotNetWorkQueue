@@ -46,10 +46,9 @@ namespace DotNetWorkQueue.Interceptors
         #endregion
 
         #region Encryption
-        /// <summary>
-        /// Encrypts the input byte array
-        /// </summary>
+        /// <summary>Encrypts the input byte array</summary>
         /// <param name="input">The input.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
@@ -67,6 +66,7 @@ namespace DotNetWorkQueue.Interceptors
         /// Decrypts the input byte array
         /// </summary>
         /// <param name="input">The input.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
@@ -79,6 +79,12 @@ namespace DotNetWorkQueue.Interceptors
                 }
             }
         }
+        /// <summary>
+        /// Gets the display name for logging or display purposes
+        /// </summary>
+        /// <value>
+        /// The display name.
+        /// </value>
         public string DisplayName { get; }
 
         /// <summary>

@@ -102,15 +102,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     return null;
                 }
 
-                if (_configuration.Options().QueueType == QueueTypes.RpcReceive)
-                {
-                    var rpc = context.Get(_configuration.HeaderNames.StandardHeaders.RpcContext);
-                    if (rpc.MessageId == null || !rpc.MessageId.HasValue)
-                    {
-                        return null;
-                    }
-                }
-
                 var connection = GetConnectionAndSetOnContext(context);
                 try
                 {
@@ -160,15 +151,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 if (_cancelWork.Tokens.Any(m => m.IsCancellationRequested))
                 {
                     return null;
-                }
-
-                if (_configuration.Options().QueueType == QueueTypes.RpcReceive)
-                {
-                    var rpc = context.Get(_configuration.HeaderNames.StandardHeaders.RpcContext);
-                    if (rpc.MessageId == null || !rpc.MessageId.HasValue)
-                    {
-                        return null;
-                    }
                 }
 
                 var connection = GetConnectionAndSetOnContext(context);

@@ -75,21 +75,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
                     using (var selectCommand = connection.CreateCommand())
                     {
                         selectCommand.Transaction = transaction;
-                        CommandString commandString;
-                        if (query.MessageId != null && query.MessageId.HasValue)
-                        {
-                            commandString = GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
-                                    true,
-                                    _tableNameHelper.StatusName, query.Routes);
-                        }
-                        else
-                        {
-                            commandString =
+                        CommandString commandString =
                                   GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
-                                    false,
                                     _tableNameHelper.StatusName, query.Routes);
-                        }
-                        _buildDequeueCommand.BuildCommand(selectCommand, query.MessageId, commandString, _options.Value, query.Routes);
+                        
+                        _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value, query.Routes);
                         using (var reader = selectCommand.ExecuteReader())
                         {
                             return _messageDeQueue.HandleMessage(connection, transaction, reader, commandString);
@@ -104,13 +94,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
         /// </summary>
         /// <param name="metaTableName">Name of the meta table.</param>
         /// <param name="queueTableName">Name of the queue table.</param>
-        /// <param name="forRpc">if set to <c>true</c> [for RPC].</param>
         /// <param name="statusTableName">Name of the status table.</param>
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, bool forRpc, string statusTableName, List<string> routes )
+        private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, string statusTableName, List<string> routes )
         {
-            return ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, forRpc, statusTableName, _options.Value, routes);
+            return ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, statusTableName, _options.Value, routes);
         }
     }
 }

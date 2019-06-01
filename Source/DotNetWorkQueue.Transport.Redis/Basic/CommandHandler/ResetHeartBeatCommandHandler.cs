@@ -11,7 +11,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
     {
         private readonly IHeartBeatConfiguration _configuration;
         private readonly ResetHeartbeatLua _resetHeartbeatLua;
-        private readonly bool _rpcQueue;
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly RedisQueueTransportOptions _options;
 
@@ -39,13 +38,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             _resetHeartbeatLua = resetHeartbeatLua;
             _unixTimeFactory = unixTimeFactory;
             _options = options;
-            _rpcQueue = queueContext.Context == QueueContexts.RpcQueue;
         }
 
         /// <inheritdoc />
         public List<ResetHeartBeatOutput> Handle(ResetHeartBeatCommand command)
         {
-            return _resetHeartbeatLua.Execute(_unixTimeFactory.Create().GetSubtractDifferenceMilliseconds(_configuration.Time), _options.ResetHeartBeatBatchLimit, _rpcQueue);
+            return _resetHeartbeatLua.Execute(_unixTimeFactory.Create().GetSubtractDifferenceMilliseconds(_configuration.Time), _options.ResetHeartBeatBatchLimit);
         }
     }
 }

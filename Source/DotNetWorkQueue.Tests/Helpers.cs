@@ -41,14 +41,6 @@ namespace DotNetWorkQueue.Tests
             }
         }
     }
-
-    public class RpcSettingsNoOp : BaseRpcConnection
-    {
-        public override IConnectionInformation GetConnection(ConnectionTypes connectionType)
-        {
-            return new BaseConnectionInformation(string.Empty, String.Empty);
-        }
-    }
     public class FakeAMessageData : IAdditionalMessageData
     {
         private readonly ConcurrentDictionary<string, object> _settings;

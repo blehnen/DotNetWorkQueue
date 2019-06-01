@@ -102,6 +102,7 @@ namespace DotNetWorkQueue
         /// <typeparam name="T"></typeparam>
         /// <param name="bytes">The bytes.</param>
         /// <param name="graph">The graph.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         /// <exception cref="InterceptorException">An error has occurred while intercepting message de-serialization</exception>
         /// <exception cref="SerializationException">An error has occurred when de-serializing a message</exception>
@@ -133,6 +134,7 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="message">The message.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         protected abstract byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers) where T : class;
         /// <summary>
@@ -140,6 +142,7 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <typeparam name="T">the type of the message</typeparam>
         /// <param name="bytes">The bytes.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         protected abstract T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers) where T : class;
     }

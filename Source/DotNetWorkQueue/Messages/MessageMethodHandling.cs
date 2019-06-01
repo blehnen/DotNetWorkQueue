@@ -30,42 +30,27 @@ namespace DotNetWorkQueue.Messages
     public class MessageMethodHandling: IMessageMethodHandling
     {
         private readonly IExpressionSerializer _serializer;
-        private readonly ILog _log;
-        private readonly IQueueContainer _queueContainer;
         private readonly ILinqCompiler _linqCompiler;
         private readonly ICompositeSerialization _compositeSerialization;
-
-        private readonly Dictionary<IConnectionInformation, IProducerQueueRpc<object>> _rpcQueues;
-        private readonly object _rpcLock = new object();
         private int _disposeCount;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageMethodHandling" /> class.
         /// </summary>
         /// <param name="serializer">The serializer.</param>
-        /// <param name="queueContainer">The queue container.</param>
-        /// <param name="log">The log.</param>
         /// <param name="linqCompiler">The method compiler.</param>
         /// <param name="compositeSerialization">The composite serialization.</param>
         public MessageMethodHandling(IExpressionSerializer serializer,
-            IQueueContainer queueContainer,
-            ILogFactory log, 
             ILinqCompiler linqCompiler, 
             ICompositeSerialization compositeSerialization)
         {
             Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => queueContainer, queueContainer);
-            Guard.NotNull(() => log, log);
             Guard.NotNull(() => linqCompiler, linqCompiler);
             Guard.NotNull(() => compositeSerialization, compositeSerialization);
 
             _serializer = serializer;
-            _queueContainer = queueContainer;
             _linqCompiler = linqCompiler;
             _compositeSerialization = compositeSerialization;
-            _log = log.Create();
-
-            _rpcQueues = new Dictionary<IConnectionInformation, IProducerQueueRpc<object>>();
         }
 
         /// <inheritdoc />
@@ -83,9 +68,6 @@ namespace DotNetWorkQueue.Messages
                 case MessageExpressionPayloads.ActionRaw:
                     HandleRawAction(receivedMessage, workerNotification);
                     break;
-                case MessageExpressionPayloads.Function:
-                    HandleFunction(receivedMessage, workerNotification);
-                    break;
                 case MessageExpressionPayloads.ActionText:
                     var targetMethod =
                         _linqCompiler.CompileAction(
@@ -95,27 +77,6 @@ namespace DotNetWorkQueue.Messages
                     try
                     {
                         HandleAction(targetMethod, receivedMessage, workerNotification);
-                    }
-                    catch (Exception error) //throw the real exception if needed
-                    {
-                        if (error.Message == "Exception has been thrown by the target of an invocation." &&
-                            error.InnerException != null)
-                        {
-                            throw error.InnerException;
-                        }
-                        throw;
-                    }
-
-                    break;
-                case MessageExpressionPayloads.FunctionText:
-                    var targetFunction =
-                        _linqCompiler.CompileFunction(
-                            _compositeSerialization.InternalSerializer.ConvertBytesTo<LinqExpressionToRun>(
-                                receivedMessage.Body.SerializedExpression));
-
-                    try
-                    {
-                        HandleFunction(targetFunction, receivedMessage, workerNotification);
                     }
                     catch (Exception error) //throw the real exception if needed
                     {
@@ -189,85 +150,6 @@ namespace DotNetWorkQueue.Messages
             action.DynamicInvoke(receivedMessage, workerNotification);
         }
 
-        /// <summary>
-        /// De-serializes and runs a compiled linq func expression.
-        /// </summary>
-        /// <param name="receivedMessage">The received message.</param>
-        /// <param name="workerNotification">The worker notification.</param>
-        private void HandleFunction(IReceivedMessage<MessageExpression> receivedMessage,
-            IWorkerNotification workerNotification)
-        {
-            var target = _serializer.ConvertBytesToFunction(receivedMessage.Body.SerializedExpression);
-            try
-            {
-                HandleFunction(target.Compile(), receivedMessage, workerNotification);
-            }
-            catch (Exception error) //throw the real exception if needed
-            {
-                if (error.Message == "Exception has been thrown by the target of an invocation." &&
-                    error.InnerException != null)
-                {
-                    throw error.InnerException;
-                }
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// De-serializes and runs a compiled linq func expression.
-        /// </summary>
-        /// <param name="function">The function.</param>
-        /// <param name="receivedMessage">The received message.</param>
-        /// <param name="workerNotification">The worker notification.</param>
-        private void HandleFunction(Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object> function, IReceivedMessage<MessageExpression> receivedMessage, IWorkerNotification workerNotification)
-        {
-            var result = function.DynamicInvoke(receivedMessage, workerNotification);
-            if (result == null) return;
-
-            //if we have a connection, this is an rpc request
-            var connection =
-                receivedMessage.GetHeader(workerNotification.HeaderNames.StandardHeaders.RpcConnectionInfo);
-
-            //if no connection, then this was not RPC
-            if (connection == null) return;
-
-            var timeOut =
-                receivedMessage.GetHeader(workerNotification.HeaderNames.StandardHeaders.RpcTimeout).Timeout;
-
-            //if we don't have an RPC queue for this queue, create one
-            CreateRpcModuleIfNeeded(connection);
-
-            //send the response
-            var response =
-                _rpcQueues[connection].Send(
-                    result,
-                    _rpcQueues[connection].CreateResponse(receivedMessage.MessageId, timeOut));
-
-            if (response.HasError)
-            {
-                _log.ErrorException("Failed to send a response for message {0}", response.SendingException, receivedMessage.MessageId.Id.Value);
-            }
-        }
-
-
-        /// <summary>
-        /// Creates an RPC module for sending responses if one does not already exist.
-        /// </summary>
-        /// <remarks>The connection is used as the key</remarks>
-        /// <param name="connection">The connection.</param>
-        private void CreateRpcModuleIfNeeded(IConnectionInformation connection)
-        {
-            lock (_rpcLock)
-            {
-                if (!_rpcQueues.ContainsKey(connection))
-                {
-                    _rpcQueues.Add(connection,
-                        _queueContainer.CreateProducerRpc<object>(connection.QueueName,
-                            connection.ConnectionString));
-                }
-            }
-        }
-
         #region IDispose, IIsDisposed
         /// <summary>
         /// Throws an exception if this instance has been disposed.
@@ -299,12 +181,6 @@ namespace DotNetWorkQueue.Messages
             if (!disposing) return;
 
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
-
-            foreach (var queue in _rpcQueues.Values)
-            {
-                queue.Dispose();
-            }
-            _rpcQueues.Clear();
             _linqCompiler.Dispose();
         }
 

@@ -34,6 +34,9 @@ namespace DotNetWorkQueue.Serialization
             TypeNameHandling = TypeNameHandling.Auto
         };
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonSerializer"/> class.
+        /// </summary>
         public JsonSerializer()
         {
             DisplayName = "JSON";
@@ -44,6 +47,7 @@ namespace DotNetWorkQueue.Serialization
         /// </summary>
         /// <typeparam name="T">The message type</typeparam>
         /// <param name="message">The message.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         public byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers)
              where T : class
@@ -58,6 +62,7 @@ namespace DotNetWorkQueue.Serialization
         /// </summary>
         /// <typeparam name="T">The message type</typeparam>
         /// <param name="bytes">The bytes.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         public T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers)
              where T : class

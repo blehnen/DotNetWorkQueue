@@ -23,29 +23,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         }
         public void BuildCommand(SqlCommand selectCommand, ReceiveMessageQuery<SqlConnection, SqlTransaction> query)
         {
-            BuildCommandInternal(selectCommand, query.Transaction, query.MessageId, query.Routes);
+            BuildCommandInternal(selectCommand, query.Transaction,  query.Routes);
         }
         public void BuildCommand(SqlCommand selectCommand, ReceiveMessageQueryAsync<SqlConnection, SqlTransaction> query)
         {
-            BuildCommandInternal(selectCommand, query.Transaction, query.MessageId, query.Routes);
+            BuildCommandInternal(selectCommand, query.Transaction, query.Routes);
         }
 
-        private void BuildCommandInternal(SqlCommand selectCommand, 
-             SqlTransaction transaction, IMessageId messageId, List<string> routes)
+        private void BuildCommandInternal(SqlCommand selectCommand,
+            SqlTransaction transaction, List<string> routes)
         {
             selectCommand.Transaction = transaction;
-            if (messageId != null && messageId.HasValue)
-            {
-                selectCommand.CommandText =
-                    _createDequeueStatement.GetDeQueueCommand(true, routes);
-                selectCommand.Parameters.Add("@QueueID", SqlDbType.BigInt);
-                selectCommand.Parameters["@QueueID"].Value = messageId.Id.Value;
-            }
-            else
-            {
-                selectCommand.CommandText =
-                    _createDequeueStatement.GetDeQueueCommand(false, routes);
-            }
+            selectCommand.CommandText =
+                _createDequeueStatement.GetDeQueueCommand(routes);
+
             if (_options.Value.EnableRoute && routes != null && routes.Count > 0)
             {
                 var routeCounter = 1;

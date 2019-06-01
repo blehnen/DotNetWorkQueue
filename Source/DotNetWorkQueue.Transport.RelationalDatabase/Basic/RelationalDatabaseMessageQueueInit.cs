@@ -96,9 +96,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             transportReceive.HeartBeatSupported = options.EnableHeartBeat && options.EnableStatus &&
                                                   !options.EnableHoldTransactionUntilMessageCommitted;
 
-            transportReceive.MessageExpirationSupported = options.EnableMessageExpiration ||
-                                                          options.QueueType == QueueTypes.RpcReceive ||
-                                                          options.QueueType == QueueTypes.RpcSend;
+            transportReceive.MessageExpirationSupported = options.EnableMessageExpiration;
 
             transportReceive.MessageRollbackSupported = options.EnableStatus ||
                                                         options.EnableHoldTransactionUntilMessageCommitted;

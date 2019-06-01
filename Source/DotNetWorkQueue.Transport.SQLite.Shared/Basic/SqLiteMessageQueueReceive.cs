@@ -148,15 +148,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
                 return false;
             }
 
-            if (_configuration.Options().QueueType == QueueTypes.RpcReceive)
-            {
-                var rpc = context.Get(_configuration.HeaderNames.StandardHeaders.RpcContext);
-                if (rpc.MessageId == null || !rpc.MessageId.HasValue)
-                {
-                    return false;
-                }
-            }
-
             SetActionsOnContext(context);
             return true;
         }

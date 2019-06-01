@@ -9,6 +9,10 @@ using OpenTracing.Tag;
 
 namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.ISendMessages" />
     public class SendMessagesDecorator: ISendMessages
     {
         private readonly ISendMessages _handler;
@@ -32,6 +36,12 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
             _connectionInformation = connectionInformation;
         }
 
+        /// <summary>
+        /// Sends a new message to an existing queue
+        /// </summary>
+        /// <param name="messageToSend">The message to send.</param>
+        /// <param name="data">The additional data.</param>
+        /// <returns></returns>
         public IQueueOutputMessage Send(IMessage messageToSend, IAdditionalMessageData data)
         {
             using (IScope scope = _tracer.BuildSpan("SendMessage").StartActive(finishSpanOnDispose: true))
@@ -60,12 +70,23 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
             }
         }
 
+        /// <summary>
+        /// Sends a collection of new messages to an existing queue
+        /// </summary>
+        /// <param name="messages">The messages.</param>
+        /// <returns></returns>
         public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
             //TODO
             return _handler.Send(messages);
         }
 
+        /// <summary>
+        /// Sends a new message to an existing queue
+        /// </summary>
+        /// <param name="messageToSend">The message to send.</param>
+        /// <param name="data">The additional data.</param>
+        /// <returns></returns>
         public async Task<IQueueOutputMessage> SendAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
             //lets add a bit more information to the active span if possible
@@ -95,6 +116,11 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
             }
         }
 
+        /// <summary>
+        /// Sends a collection of new messages to an existing queue
+        /// </summary>
+        /// <param name="messages">The messages.</param>
+        /// <returns></returns>
         public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
             //TODO

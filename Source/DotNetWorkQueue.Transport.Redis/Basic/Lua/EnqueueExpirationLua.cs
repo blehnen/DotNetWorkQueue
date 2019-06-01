@@ -25,7 +25,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                         id = redis.call('INCR', @IDKey)
                      end
 
-                     local signal = tonumber(@signalID)
                      redis.call('hset', @key, id, @value) 
                      redis.call('hset', @headerskey, id, @headers) 
                      redis.call('lpush', @pendingkey, id) 
@@ -35,11 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                       if @Route ~= '' then
                          redis.call('hset', @RouteIDKey, id, @Route)
                      end
-                      if signal == 1 then
-                        redis.call('publish', @channel, id) 
-                     else
-                        redis.call('publish', @channel, '') 
-                     end
+                     redis.call('publish', @channel, '') 
                      return id";
         }
         /// <summary>
@@ -50,16 +45,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="headers">The headers.</param>
         /// <param name="metaData">The meta data.</param>
         /// <param name="expireTime">The expire time.</param>
-        /// <param name="rpc">if set to <c>true</c> [RPC].</param>
         /// <param name="route">The route.</param>
         /// <returns></returns>
-        public string Execute(string messageId, byte[] message, byte[] headers, byte[] metaData, long expireTime, bool rpc, string route)
+        public string Execute(string messageId, byte[] message, byte[] headers, byte[] metaData, long expireTime, string route)
         {
             if (Connection.IsDisposed)
                 return null;
 
             var db = Connection.Connection.GetDatabase();
-            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, expireTime, rpc, route));
+            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, expireTime, route));
         }
         /// <summary>
         /// Enqueues a message with an expiration
@@ -69,13 +63,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="headers">The headers.</param>
         /// <param name="metaData">The meta data.</param>
         /// <param name="expireTime">The expire time.</param>
-        /// <param name="rpc">if set to <c>true</c> [RPC].</param>
         /// <param name="route">The route.</param>
         /// <returns></returns>
-        public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, long expireTime, bool rpc, string route)
+        public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, long expireTime, string route)
         {
             var db = Connection.Connection.GetDatabase();
-            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, expireTime, rpc, route)).ConfigureAwait(false);
+            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, expireTime, route)).ConfigureAwait(false);
         }
         /// <summary>
         /// Gets the parameters.
@@ -85,11 +78,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="headers">The headers.</param>
         /// <param name="metaData">The meta data.</param>
         /// <param name="expireTime">The expire time.</param>
-        /// <param name="rpc">if set to <c>true</c> [RPC].</param>
         /// <param name="route">The route.</param>
         /// <returns></returns>
         private object GetParameters(string messageId, byte[] message, byte[] headers, byte[] metaData, 
-            long expireTime, bool rpc, string route)
+            long expireTime, string route)
         {
             var pendingKey = !string.IsNullOrEmpty(route) ? RedisNames.PendingRoute(route) : RedisNames.Pending;
             var realRoute = string.IsNullOrEmpty(route) ? string.Empty : route;
@@ -108,7 +100,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 metavalue = metaData,
                 expirekey = (RedisKey)RedisNames.Expiration,
                 timestampexpire = expireTime,
-                signalID = Convert.ToInt32(rpc),
                 IDKey = (RedisKey)RedisNames.Id,
                 StatusKey = (RedisKey)RedisNames.Status,
                 RouteIDKey = (RedisKey)RedisNames.Route

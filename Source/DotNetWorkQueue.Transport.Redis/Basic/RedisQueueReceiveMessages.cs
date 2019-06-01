@@ -60,22 +60,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             context.Rollback += ContextOnRollback;
             context.Cleanup += Context_Cleanup;
 
-            TimeSpan? timeout = null;
-            IMessageId messageId = null;
-            var rpc = context.Get(_headers.StandardHeaders.RpcContext);
-            if (rpc?.Timeout != null)
-            {
-                timeout = rpc.Timeout;
-            }
-            if (rpc?.MessageId != null)
-            {
-                messageId = rpc.MessageId;
-            }
-
             using (
-                var workSub = rpc?.MessageId != null && rpc.MessageId.HasValue
-                    ? _workSubFactory.Create(rpc.MessageId)
-                    : _workSubFactory.Create())
+                var workSub =  _workSubFactory.Create())
             {
                 while (true)
                 {
@@ -84,7 +70,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                         return null;
                     }
 
-                    var message = GetMessage(context, messageId);
+                    var message = GetMessage(context);
                     if (message != null && !message.Expired)
                     {
                         return message.Message;
@@ -96,7 +82,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     }
 
                     workSub.Reset();
-                    message = GetMessage(context, messageId);
+                    message = GetMessage(context);
                     if (message != null && !message.Expired)
                     {
                         return message.Message;
@@ -105,7 +91,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     {
                         continue;
                     }
-                    if (workSub.Wait(timeout))
+                    if (workSub.Wait())
                     {
                         continue;
                     }
@@ -127,23 +113,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             context.Commit += ContextOnCommit;
             context.Rollback += ContextOnRollback;
             context.Cleanup += Context_Cleanup;
-
-            TimeSpan? timeout = null;
-            IMessageId messageId = null;
-            var rpc = context.Get(_headers.StandardHeaders.RpcContext);
-            if (rpc?.Timeout != null)
-            {
-                timeout = rpc.Timeout;
-            }
-            if (rpc?.MessageId != null)
-            {
-                messageId = rpc.MessageId;
-            }
-
             using (
-                var workSub = rpc?.MessageId != null && rpc.MessageId.HasValue
-                    ? _workSubFactory.Create(rpc.MessageId)
-                    : _workSubFactory.Create())
+                var workSub = _workSubFactory.Create())
             {
                 while (true)
                 {
@@ -152,7 +123,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                         return null;
                     }
 
-                    var message = await GetMessageAsync(context, messageId).ConfigureAwait(false);
+                    var message = await GetMessageAsync(context).ConfigureAwait(false);
                     if (message != null && !message.Expired)
                     {
                         return message.Message;
@@ -164,7 +135,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     }
 
                     workSub.Reset();
-                    message = GetMessage(context, messageId);
+                    message = GetMessage(context);
                     if (message != null && !message.Expired)
                     {
                         return message.Message;
@@ -173,7 +144,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     {
                         continue;
                     }
-                    if (workSub.Wait(timeout))
+                    if (workSub.Wait())
                     {
                         continue;
                     }
@@ -187,11 +158,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// Gets the next message from the queue
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="messageId">The message identifier.</param>
         /// <returns></returns>
-        private async Task<RedisMessage> GetMessageAsync(IMessageContext context, IMessageId messageId)
+        private async Task<RedisMessage> GetMessageAsync(IMessageContext context)
         {
-            var message = await _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync(context, messageId)).ConfigureAwait(false);
+            var message = await _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync(context)).ConfigureAwait(false);
             if (message == null) return null;
             if (!message.Expired)
             {
@@ -204,11 +174,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// Gets the next message from the queue
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="messageId">The message identifier.</param>
         /// <returns></returns>
-        private RedisMessage GetMessage(IMessageContext context, IMessageId messageId)
+        private RedisMessage GetMessage(IMessageContext context)
         {
-            var message = _receiveMessage.Handle(new ReceiveMessageQuery(context, messageId));
+            var message = _receiveMessage.Handle(new ReceiveMessageQuery(context));
             if (message == null) return null;
             if (!message.Expired)
             {

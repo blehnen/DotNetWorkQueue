@@ -8,7 +8,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
 {
     internal static class ReceiveMessage
     {
-        private const string RpcdequeueKey = "dequeueCommandRpc";
         private const string DequeueKey = "dequeueCommand";
 
         /// <summary>
@@ -17,17 +16,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// <param name="commandCache">The command cache.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="options">The options.</param>
-        /// <param name="forRpc">if set to <c>true</c> [for RPC].</param>
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, TableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, bool forRpc, List<string> routes )
+        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, TableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, List<string> routes )
         {
             if (routes == null || routes.Count == 0)
             {
-                if (forRpc && commandCache.Contains(RpcdequeueKey))
-                {
-                    return commandCache.Get(RpcdequeueKey).CommandText;
-                }
                 if (commandCache.Contains(DequeueKey))
                 {
                     return commandCache.Get(DequeueKey).CommandText;
@@ -73,20 +67,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 needWhere = false;
             }
 
-            if (forRpc)
-            {
-                if (needWhere)
-                {
-                    sb.AppendLine("where q.SourceQueueID = @QueueID");
-                    needWhere = false;
-                }
-                else
-                {
-                    sb.AppendLine("AND q.SourceQueueID = @QueueID");
-                }
-            }
-
-            if (options.EnableMessageExpiration || options.QueueType == QueueTypes.RpcReceive || options.QueueType == QueueTypes.RpcSend)
+            if (options.EnableMessageExpiration)
             {
                 if (needWhere)
                 {
@@ -162,7 +143,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             { //TODO - cache based on route
                 return sb.ToString();
             }
-            return commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, sb.ToString());
+            return commandCache.Add(DequeueKey, sb.ToString());
         }
     }
 }

@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         {
             if (!_messageExpirationEnabled.HasValue)
             {
-                _messageExpirationEnabled = _options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend;
+                _messageExpirationEnabled = _options.Value.EnableMessageExpiration;
             }
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
@@ -127,7 +127,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 var expiration = TimeSpan.Zero;
                                 if (_messageExpirationEnabled.Value)
                                 {
-                                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, data => data.GetExpiration());
+                                    expiration = MessageExpiration.GetExpiration(commandSend, data => data.GetExpiration());
                                 }
 
                                 CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration, connection, id,

@@ -295,7 +295,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
                 command.Append(", Status ");
             }
 
-            if (EnableMessageExpiration || QueueType == QueueTypes.RpcReceive || QueueType == QueueTypes.RpcSend)
+            if (EnableMessageExpiration)
             {
                 command.Append(", ExpirationTime ");
             }
@@ -326,7 +326,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
                 command.Append(", @Status ");
             }
 
-            if (EnableMessageExpiration || QueueType == QueueTypes.RpcReceive || QueueType == QueueTypes.RpcSend)
+            if (EnableMessageExpiration)
             {
                 command.Append(", @ExpirationDate ");
             }
@@ -351,7 +351,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
                 command.Parameters.Add(param);
             }
 
-            if (EnableMessageExpiration || QueueType == QueueTypes.RpcReceive || QueueType == QueueTypes.RpcSend)
+            if (EnableMessageExpiration)
             {
                 var param = command.CreateParameter();
                 param.ParameterName = "@ExpirationDate";

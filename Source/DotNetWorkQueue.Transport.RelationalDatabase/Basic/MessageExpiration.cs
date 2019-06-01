@@ -30,23 +30,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// Gets the message expiration.
         /// </summary>
         /// <param name="commandSend">The command send.</param>
-        /// <param name="headers">The headers.</param>
         /// <param name="getExpirationFromMessageData">The get expiration from message data.</param>
         /// <returns></returns>
         public static TimeSpan GetExpiration(SendMessageCommand commandSend, 
-            IHeaders headers, Func<IAdditionalMessageData, TimeSpan?> getExpirationFromMessageData)
+             Func<IAdditionalMessageData, TimeSpan?> getExpirationFromMessageData)
         {
-            //there are three possible locations for a message expiration. The user data and the header / internal headers
-            //grab it from the internal header
-            var expiration = commandSend.MessageToSend.GetInternalHeader(headers.StandardHeaders.RpcTimeout).Timeout;
-            //if the header value is zero, check the message expiration
-            if (expiration == TimeSpan.Zero)
-            {
-                //try the message header
-                expiration = commandSend.MessageToSend.GetHeader(headers.StandardHeaders.RpcTimeout).Timeout;
-            }
-            //if the header value is zero, check the message expiration
-            if (expiration == TimeSpan.Zero && getExpirationFromMessageData(commandSend.MessageData).HasValue)
+            var expiration = TimeSpan.Zero;
+            //check the message expiration
+            if (getExpirationFromMessageData(commandSend.MessageData).HasValue)
             {
                 // ReSharper disable once PossibleInvalidOperationException
                 expiration = getExpirationFromMessageData(commandSend.MessageData).Value;

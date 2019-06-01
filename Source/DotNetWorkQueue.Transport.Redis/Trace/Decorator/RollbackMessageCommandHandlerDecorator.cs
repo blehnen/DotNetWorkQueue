@@ -3,6 +3,9 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand>
     {
         private readonly ICommandHandler<RollbackMessageCommand> _handler;

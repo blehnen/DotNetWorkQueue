@@ -4,6 +4,9 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator
 {
+    /// <summary>
+    /// Tracing for rolling back a message
+    /// </summary>
     public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand>
     {
         private readonly ICommandHandler<RollbackMessageCommand> _handler;

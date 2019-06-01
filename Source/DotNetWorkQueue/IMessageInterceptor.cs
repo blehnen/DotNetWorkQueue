@@ -35,12 +35,14 @@ namespace DotNetWorkQueue
         /// Runs the interceptor on the input and returns the output as a byte array. Used to serialize a message stream.
         /// </summary>
         /// <param name="input">The input.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers);
         /// <summary>
         /// Runs the interceptor on the input and returns the output as a byte array. Used to re-construct a message stream.
         /// </summary>
         /// <param name="input">The input.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers);
 

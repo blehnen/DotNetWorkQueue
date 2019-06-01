@@ -8,11 +8,10 @@ namespace DotNetWorkQueue.Transport.Redis
     public interface IRedisQueueWorkSub: IDisposable, IIsDisposed
     {
         /// <summary>
-        /// Waits until a notification is received, or until the timeout is reached
+        /// Waits until a notification is received
         /// </summary>
-        /// <param name="timeout">The timeout. Null value means no timeout.</param>
         /// <returns></returns>
-        bool Wait(TimeSpan? timeout);
+        bool Wait();
         /// <summary>
         /// Resets this instance.
         /// </summary>

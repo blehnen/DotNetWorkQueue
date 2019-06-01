@@ -93,19 +93,9 @@ namespace DotNetWorkQueue.Messages
         /// </summary>
         Action,
         /// <summary>
-        /// A function that returns an object.
-        /// </summary>
-        /// <remarks>Used for RPC; otherwise everything else should be an <seealso cref="Action"/></remarks>
-        Function,
-        /// <summary>
         /// A linq action expression, specified as a string to be compiled.
         /// </summary>
         ActionText,
-        /// <summary>
-        /// A linq action expression, specified as a string to be compiled. This should be a func that returns an <seealso cref="object"/>
-        /// </summary>
-        /// <remarks>Used for RPC; otherwise everything else should be an <seealso cref="ActionText"/></remarks>
-        FunctionText,
         /// <summary>
         /// A linq action expression; not serialized and passed around the queues as-is
         /// </summary>

@@ -71,17 +71,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             TimeSpan? delay = null;
             //there are three possible locations for a message expiration. The user data and the header / internal headers
             //grab it from the internal header
-            TimeSpan? expiration =
-                commandSend.MessageToSend.GetInternalHeader(_headers.StandardHeaders.RpcTimeout).Timeout;
-            //if the header value is zero, check the message expiration
-            if (expiration == TimeSpan.Zero)
-            {
-                //try the message header
-                expiration = commandSend.MessageToSend.GetHeader(_headers.StandardHeaders.RpcTimeout).Timeout;
-            }
-
-            //if the header value is zero, check the message expiration
-            if (expiration == TimeSpan.Zero && commandSend.MessageData.GetExpiration().HasValue)
+            TimeSpan? expiration = TimeSpan.Zero;
+            //check the message expiration
+            if (commandSend.MessageData.GetExpiration().HasValue)
             {
                 // ReSharper disable once PossibleInvalidOperationException
                 expiration = commandSend.MessageData.GetExpiration().Value;
@@ -125,14 +117,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <exception cref="DotNetWorkQueueException">Failed to enqueue a record. The LUA enqueue script returned null</exception>
         private string SendStandardMessage(SendMessageCommand commandSend)
         {
-            var id = commandSend.MessageToSend.GetInternalHeader(_headers.StandardHeaders.RpcResponseId);
-            var rpc = false;
             var messageId = _messageIdFactory.Create().Create().ToString();
-            if (!string.IsNullOrWhiteSpace(id))
-            {
-                messageId = id;
-                rpc = true;
-            }
             var meta = new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds());
 
             var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body }, commandSend.MessageToSend.Headers);
@@ -149,7 +134,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             var result = _enqueueLua.Execute(messageId,
                 serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), 
-                _serializer.InternalSerializer.ConvertToBytes(meta), rpc, jobName, scheduledTime, eventTime, commandSend.MessageData.Route);
+                _serializer.InternalSerializer.ConvertToBytes(meta), jobName, scheduledTime, eventTime, commandSend.MessageData.Route);
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -168,12 +153,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <exception cref="DotNetWorkQueueException">Failed to enqueue a record. The LUA enqueue script returned null</exception>
         private string SendDelayMessage(SendMessageCommand commandSend, long delayTime)
         {
-            var id = commandSend.MessageToSend.GetInternalHeader(_headers.StandardHeaders.RpcResponseId);
             var messageId = _messageIdFactory.Create().Create().ToString();
-            if (!string.IsNullOrWhiteSpace(id))
-            {
-                messageId = id;
-            }
             var meta = new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds());
 
             var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body }, commandSend.MessageToSend.Headers);
@@ -200,12 +180,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <exception cref="DotNetWorkQueueException">Failed to enqueue a record. The LUA enqueue script returned null</exception>
         private string SendDelayAndExpirationMessage(SendMessageCommand commandSend, long delayTime, long expireTime)
         {
-            var id = commandSend.MessageToSend.GetInternalHeader(_headers.StandardHeaders.RpcResponseId);
             var messageId = _messageIdFactory.Create().Create().ToString();
-            if (!string.IsNullOrWhiteSpace(id))
-            {
-                messageId = id;
-            }
             var meta = new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds());
 
             var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body }, commandSend.MessageToSend.Headers);
@@ -232,21 +207,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <exception cref="DotNetWorkQueueException">Failed to enqueue a record. The LUA enqueue script returned null</exception>
         private string SendExpirationMessage(SendMessageCommand commandSend, long expireTime)
         {
-            var id = commandSend.MessageToSend.GetInternalHeader(_headers.StandardHeaders.RpcResponseId);
-            var rpc = false;
             var messageId = _messageIdFactory.Create().Create().ToString();
-            if (!string.IsNullOrWhiteSpace(id))
-            {
-                messageId = id;
-                rpc = true;
-            }
             var meta = new RedisMetaData(_unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds());
 
             var serialized = _serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body }, commandSend.MessageToSend.Headers);
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
             var result = _enqueueExpirationLua.Execute(messageId,
-                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), expireTime, rpc, commandSend.MessageData.Route);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), expireTime, commandSend.MessageData.Route);
 
             if (string.IsNullOrWhiteSpace(result))
             {

@@ -48,14 +48,6 @@ namespace DotNetWorkQueue
         /// </summary>
         ProducerQueue = 5,
         /// <summary>
-        /// The producer queue for Rpc
-        /// </summary>
-        ProducerQueueRpc = 6,
-        /// <summary>
-        /// The rpc queue
-        /// </summary>
-        RpcQueue = 7,
-        /// <summary>
         /// The task scheduler
         /// </summary>
         TaskScheduler = 8,
@@ -83,10 +75,6 @@ namespace DotNetWorkQueue
         /// The queue/scheduler for an async consumer queue; will process method messages
         /// </summary>
         ConsumerMethodQueueScheduler = 14,
-        /// <summary>
-        /// The RPC method queue. Functions are executed in the queue, and the function return value is sent back.
-        /// </summary>
-        RpcMethodQueue = 15,
         /// <summary>
         /// The job queue creator
         /// </summary>

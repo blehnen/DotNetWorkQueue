@@ -47,6 +47,7 @@ namespace DotNetWorkQueue.Interceptors
         /// Runs all <see cref="IMessageInterceptor"/> in the collection on the input, in order
         /// </summary>
         /// <param name="input">The input.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         public MessageInterceptorsResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
@@ -71,6 +72,7 @@ namespace DotNetWorkQueue.Interceptors
         /// </summary>
         /// <param name="input">The input.</param>
         /// <param name="graph">The graph.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         public byte[] BytesToMessage(byte[] input, MessageInterceptorsGraph graph, IReadOnlyDictionary<string, object> headers)
         {

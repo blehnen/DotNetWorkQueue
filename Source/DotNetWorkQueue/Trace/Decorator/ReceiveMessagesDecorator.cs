@@ -40,6 +40,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
+        /// <param name="getTime">The time factory</param>
         public ReceiveMessagesDecorator(IReceiveMessages handler, ITracer tracer, IHeaders headers, IGetTimeFactory getTime)
         {
             _handler = handler;

@@ -27,55 +27,6 @@ namespace DotNetWorkQueue
     public interface IStandardHeaders
     {
         /// <summary>
-        /// The connection information for the receiving queue in an RPC queue.
-        /// <remarks>The consuming code of the original message can use this information to send a reply</remarks>
-        /// <example>
-        /// IConnectionInformationSend connection = (IConnectionInformationSend)message.Headers[Headers.RPCConnectionInfoKey];
-        /// </example>
-        /// </summary>
-        IMessageContextData<IConnectionInformation> RpcConnectionInfo { get; }
-        /// <summary>
-        /// The consuming code in an RPC queue can use this header to return an exception to the caller.
-        /// <example>
-        /// Send
-        /// IAdditionalMessageData data = oConfig.GetAdditionalData();
-        /// data.Headers.Set(Headers.RPCConsumerException, new DotNetWorkQueue.Exceptions.MessageException("Exception information here!", message.ID, message.CorrelationID));
-        /// Receive
-        /// //do we have an exception?
-        /// if(message.Headers[Headers.RPCConsumerException] != null)
-        /// {
-        /// Exception error = (Exception)message.Headers[Headers.RPCConsumerException];
-        /// //etc
-        /// }
-        /// </example>
-        /// </summary>
-        /// <value>
-        /// The RPC consumer exception.
-        /// </value>
-        IMessageContextData<Exception> RpcConsumerException { get; }
-        /// <summary>
-        /// The timeout period will be attached to the headers when an RPC queue sends a message
-        /// <remarks>The consuming code can re-use the timeout, or use it's own value. The timeout period when sending a response simply lets the clean up thread know when its safe to delete the record if it was not processed.</remarks><example>
-        /// TimeSpan timeOut = TimeSpan.Parse((string)message.Headers[Headers.RPCTimeout], System.Globalization.CultureInfo.InvariantCulture);
-        /// </example>
-        /// </summary>
-        /// <value>
-        /// The RPC timeout.
-        /// </value>
-        IMessageContextData<IRpcTimeout> RpcTimeout { get; }
-        /// <summary>
-        /// Contains the ID of the RPC response
-        /// </summary>
-        IMessageContextData<string> RpcResponseId { get; }
-        /// <summary>
-        /// Gets the RPC context.
-        /// </summary>
-        /// <value>
-        /// The RPC context.
-        /// </value>
-        IMessageContextData<IRpcContext> RpcContext { get; }
-
-        /// <summary>
         /// Gets the first possible delivery date.
         /// </summary>
         /// <value>

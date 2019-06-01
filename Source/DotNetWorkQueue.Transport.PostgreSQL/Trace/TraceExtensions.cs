@@ -3,8 +3,16 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Trace
 {
+    /// <summary>
+    /// Tracing for sending a message
+    /// </summary>
     public static class TraceExtensions
     {
+        /// <summary>
+        /// Adds tags based on the send command
+        /// </summary>
+        /// <param name="span">The span.</param>
+        /// <param name="command">The command.</param>
         public static void Add(this ISpan span, SendMessageCommand command)
         {
             var delay = command.MessageData.GetDelay();

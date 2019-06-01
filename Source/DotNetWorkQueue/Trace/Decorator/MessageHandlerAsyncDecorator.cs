@@ -21,12 +21,22 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
+    /// <summary>
+    /// Tracing for handling messages
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.IMessageHandlerAsync" />
     public class MessageHandlerAsyncDecorator : IMessageHandlerAsync
     {
         private readonly IMessageHandlerAsync _handler;
         private readonly ITracer _tracer;
         private readonly IHeaders _headers;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MessageHandlerAsyncDecorator"/> class.
+        /// </summary>
+        /// <param name="handler">The handler.</param>
+        /// <param name="tracer">The tracer.</param>
+        /// <param name="headers">The headers.</param>
         public MessageHandlerAsyncDecorator(IMessageHandlerAsync handler, ITracer tracer, IHeaders headers)
         {
             _handler = handler;
@@ -34,6 +44,12 @@ namespace DotNetWorkQueue.Trace.Decorator
             _headers = headers;
         }
 
+        /// <summary>
+        /// Handles the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="workerNotification">The worker notification.</param>
+        /// <returns></returns>
         public async Task HandleAsync(IReceivedMessageInternal message, IWorkerNotification workerNotification)
         {
             var spanContext = message.Extract(_tracer, _headers.StandardHeaders);

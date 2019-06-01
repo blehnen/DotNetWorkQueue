@@ -8,6 +8,9 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Trace;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator
 {
+    /// <summary>
+    /// Tracing for sending a message
+    /// </summary>
     public class SendMessageCommandHandlerDecorator : ICommandHandlerWithOutput<SendMessageCommand, long>
     {
         private readonly ICommandHandlerWithOutput<SendMessageCommand, long> _handler;

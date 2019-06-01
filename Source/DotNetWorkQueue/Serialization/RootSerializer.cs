@@ -48,6 +48,7 @@ namespace DotNetWorkQueue.Serialization
         /// </summary>
         /// <typeparam name="T">The message type</typeparam>
         /// <param name="message">The message.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         protected override byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers)
         {
@@ -60,6 +61,7 @@ namespace DotNetWorkQueue.Serialization
         /// </summary>
         /// <typeparam name="T">The message type</typeparam>
         /// <param name="bytes">The bytes.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         protected override T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers)
         {

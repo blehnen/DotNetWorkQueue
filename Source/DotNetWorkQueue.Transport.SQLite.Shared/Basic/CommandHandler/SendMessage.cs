@@ -15,8 +15,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
             IHeaders headers, SqLiteMessageQueueTransportOptions options, IGetTime getTime)
         {
             var command = connection.CreateCommand();
-            BuildMetaCommand(command, tableNameHelper, headers,
-                data, message, 0, options, delay, expiration, getTime.GetCurrentUtcDate());
+            BuildMetaCommand(command, tableNameHelper, data, options, delay, expiration, getTime.GetCurrentUtcDate());
             return command;
         }
 
@@ -102,16 +101,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
 
             //add configurable column command params - user
             AddUserColumnsParams(command, data);
-            AddHeaderColumnParams(command, message, headers);
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         private static void BuildMetaCommand(IDbCommand command, 
             TableNameHelper tableNameHelper,
-            IHeaders headers,
             IAdditionalMessageData data,
-            IMessage message,
-            long id,
             SqLiteMessageQueueTransportOptions options,
             TimeSpan? delay, 
             TimeSpan expiration,
@@ -124,8 +119,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
             //add configurable columns - queue
             options.AddBuiltInColumns(sbMeta);
 
-            AddHeaderColumns(sbMeta, message, headers);
-
             //close the column list
             sbMeta.AppendLine(") ");
 
@@ -136,23 +129,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
             //add the values for built in fields
             options.AddBuiltInColumnValues(sbMeta);
 
-            AddHeaderValues(sbMeta, message, headers);
-
             sbMeta.Append(")"); //close the VALUES 
 
             command.CommandText = sbMeta.ToString();
 
             options.AddBuiltInColumnsParams(command, data, delay, expiration, currentDateTime);
-            AddHeaderColumnParams(command, message, headers);
-
-            if (id > 0)
-            {
-                var paramid = command.CreateParameter();
-                paramid.ParameterName = "@QueueID";
-                paramid.DbType = DbType.Int64;
-                paramid.Value = id;
-                command.Parameters.Add(paramid);
-            }
 
             var param = command.CreateParameter();
             param.ParameterName = "@CorrelationID";
@@ -184,23 +165,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
         }
 
         /// <summary>
-        /// Adds the header column parameters.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="data">The data.</param>
-        /// <param name="headers">The headers.</param>
-        private static void AddHeaderColumnParams(IDbCommand command, IMessage data, IHeaders headers)
-        {
-            var responseId = data.GetInternalHeader(headers.StandardHeaders.RpcResponseId);
-            if (string.IsNullOrEmpty(responseId)) return;
-            var param = command.CreateParameter();
-            param.ParameterName = "@SourceQueueID";
-            param.DbType = DbType.Int64;
-            param.Value = long.Parse(responseId);
-            command.Parameters.Add(param);
-        }
-
-        /// <summary>
         /// Adds the user specific columns to the meta data SQL command string
         /// </summary>
         /// <param name="command">The command.</param>
@@ -222,31 +186,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
                 i++;
             }
         }
-        /// <summary>
-        /// Adds the header columns.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="data">The data.</param>
-        /// <param name="headers">The headers.</param>
-        private static void AddHeaderColumns(StringBuilder command, IMessage data, IHeaders headers)
-        {
-            var responseId = data.GetInternalHeader(headers.StandardHeaders.RpcResponseId);
-            if (string.IsNullOrEmpty(responseId)) return;
-            command.Append(",SourceQueueID");
-        }
 
-        /// <summary>
-        /// Adds the header values.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="data">The data.</param>
-        /// <param name="headers">The headers.</param>
-        private static void AddHeaderValues(StringBuilder command, IMessage data, IHeaders headers)
-        {
-            var responseId = data.GetInternalHeader(headers.StandardHeaders.RpcResponseId);
-            if (string.IsNullOrEmpty(responseId)) return;
-            command.Append(",@SourceQueueID");
-        }
         /// <summary>
         /// Adds the values for the user specific meta data to the SQL command.
         /// </summary>

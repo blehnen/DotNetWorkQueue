@@ -32,13 +32,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessageQuery{TConnection, TTransaction}" /> class.
         /// </summary>
-        /// <param name="messageId">A specific message identifier to de-queue. If null, the first message found will be de-queued.</param>
         /// <param name="routes">The routes.</param>
-        public ReceiveMessageQuery(IMessageId messageId, List<string> routes)
+        public ReceiveMessageQuery(List<string> routes)
         {
             Connection = default(TConnection);
             Transaction = default(TTransaction);
-            MessageId = messageId;
             Routes = routes;
         }
 
@@ -47,13 +45,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="transaction">The transaction.</param>
-        /// <param name="messageId">A specific message identifier to de-queue. If null, the first message found will be de-queued.</param>
         /// <param name="routes">The routes.</param>
-        public ReceiveMessageQuery(TConnection connection, TTransaction transaction, IMessageId messageId, List<string> routes )
+        public ReceiveMessageQuery(TConnection connection, TTransaction transaction, List<string> routes )
         {
             Connection = connection;
             Transaction = transaction;
-            MessageId = messageId;
             Routes = routes;
         }
 
@@ -71,13 +67,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// The transaction.
         /// </value>
         public TTransaction Transaction { get; }
-        /// <summary>
-        /// Gets the message identifier.
-        /// </summary>
-        /// <value>
-        /// The message identifier.
-        /// </value>
-        public IMessageId MessageId { get; }
         /// <summary>
         /// Gets the route.
         /// </summary>

@@ -9,6 +9,9 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Trace;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Trace.Decorator
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class SendMessageCommandHandlerAsyncDecorator : ICommandHandlerWithOutputAsync<SendMessageCommand, long>
     {
         private readonly ICommandHandlerWithOutputAsync<SendMessageCommand, long> _handler;

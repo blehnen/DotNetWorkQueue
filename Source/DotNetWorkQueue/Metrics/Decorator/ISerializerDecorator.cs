@@ -54,6 +54,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// </summary>
         /// <typeparam name="T">the message type</typeparam>
         /// <param name="message">The message.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns>
         /// byte array
         /// </returns>
@@ -72,6 +73,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// </summary>
         /// <typeparam name="T">the message type</typeparam>
         /// <param name="bytes">The bytes.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns>
         /// an instance of T
         /// </returns>

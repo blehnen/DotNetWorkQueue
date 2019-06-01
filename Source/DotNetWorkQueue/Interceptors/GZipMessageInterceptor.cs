@@ -45,6 +45,7 @@ namespace DotNetWorkQueue.Interceptors
         /// Runs the interceptor on the input and returns the output as a byte array. Used to serialize a message stream.
         /// </summary>
         /// <param name="input">The input.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
@@ -64,6 +65,7 @@ namespace DotNetWorkQueue.Interceptors
         /// Runs the interceptor on the input and returns the output as a byte array. Used to re-construct a message stream.
         /// </summary>
         /// <param name="input">The input.</param>
+        /// <param name="headers">the message headers</param>
         /// <returns></returns>
         public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
@@ -76,6 +78,12 @@ namespace DotNetWorkQueue.Interceptors
                 return destination.ToArray();
             }
         }
+        /// <summary>
+        /// Gets the display name for logging or display purposes
+        /// </summary>
+        /// <value>
+        /// The display name.
+        /// </value>
         public string DisplayName { get; }
 
         /// <summary>

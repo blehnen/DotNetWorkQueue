@@ -65,12 +65,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Tests.Basic
             Assert.Equal(!c, test.EnableStatusTable);
         }
 
-        [Fact]
-        public void GetSet_QueueType()
-        {
-            var test = new SqLiteMessageQueueTransportOptions { QueueType = QueueTypes.RpcReceive};
-            Assert.Equal(QueueTypes.RpcReceive, test.QueueType);
-        }
 
         [Fact]
         public void GetSet_EnableMessageExpiration()

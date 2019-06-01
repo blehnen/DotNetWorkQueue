@@ -46,7 +46,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
             //add configurable column command params - user
             AddUserColumnsParams(command, data);
-            AddHeaderColumnParams(command, message, headers);
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
@@ -67,8 +66,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             //add configurable columns - queue
             options.AddBuiltInColumns(sbMeta);
 
-            AddHeaderColumns(sbMeta, message, headers);
-
             //close the column list
             sbMeta.AppendLine(") ");
 
@@ -79,15 +76,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             //add the values for built in fields
             options.AddBuiltInColumnValues(delay, expiration, sbMeta);
 
-            AddHeaderValues(sbMeta, message, headers);
-
             sbMeta.Append(")"); //close the VALUES 
 
             command.CommandText = sbMeta.ToString();
 
             options.AddBuiltInColumnsParams(command, data);
-            AddHeaderColumnParams(command, message, headers);
-
+ 
             command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
             command.Parameters.Add("@CorrelationID", SqlDbType.UniqueIdentifier, 16).Value = data.CorrelationId.Id.Value;
 
@@ -105,20 +99,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             }
         }
 
-        /// <summary>
-        /// Adds the header column parameters.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="data">The data.</param>
-        /// <param name="headers">The headers.</param>
-        private static void AddHeaderColumnParams(SqlCommand command, IMessage data, IHeaders headers)
-        {
-            var responseId = data.GetInternalHeader(headers.StandardHeaders.RpcResponseId);
-            if (!string.IsNullOrEmpty(responseId))
-            {
-                command.Parameters.AddWithValue("@SourceQueueID", long.Parse(responseId));
-            }
-        }
 
         /// <summary>
         /// Adds the user specific columns to the meta data SQL command string
@@ -142,31 +122,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 i++;
             }
         }
-        /// <summary>
-        /// Adds the header columns.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="data">The data.</param>
-        /// <param name="headers">The headers.</param>
-        private static void AddHeaderColumns(StringBuilder command, IMessage data, IHeaders headers)
-        {
-            var responseId = data.GetInternalHeader(headers.StandardHeaders.RpcResponseId);
-            if (string.IsNullOrEmpty(responseId)) return;
-            command.Append(",SourceQueueID");
-        }
 
-        /// <summary>
-        /// Adds the header values.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="data">The data.</param>
-        /// <param name="headers">The headers.</param>
-        private static void AddHeaderValues(StringBuilder command, IMessage data, IHeaders headers)
-        {
-            var responseId = data.GetInternalHeader(headers.StandardHeaders.RpcResponseId);
-            if (string.IsNullOrEmpty(responseId)) return;
-            command.Append(",@SourceQueueID");
-        }
         /// <summary>
         /// Adds the values for the user specific meta data to the SQL command.
         /// </summary>

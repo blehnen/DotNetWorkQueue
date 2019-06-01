@@ -98,9 +98,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
 
             if (!_messageExpirationEnabled.HasValue)
             {
-                _messageExpirationEnabled = _options.Value.EnableMessageExpiration ||
-                                            _options.Value.QueueType == QueueTypes.RpcReceive ||
-                                            _options.Value.QueueType == QueueTypes.RpcSend;
+                _messageExpirationEnabled = _options.Value.EnableMessageExpiration;
             }
 
             using (var connection = _dbFactory.CreateConnection(_configurationSend.ConnectionInfo.ConnectionString, false))
@@ -110,7 +108,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
                 var expiration = TimeSpan.Zero;
                 if (_messageExpirationEnabled.Value)
                 {
-                    expiration = MessageExpiration.GetExpiration(commandSend, _headers, data => data.GetExpiration());
+                    expiration = MessageExpiration.GetExpiration(commandSend, data => data.GetExpiration());
                 }
 
                 var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);

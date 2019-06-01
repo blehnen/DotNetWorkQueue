@@ -139,14 +139,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <summary>
         /// Standard queue
         /// </summary>
-        Normal,
-        /// <summary>
-        /// RPC send
-        /// </summary>
-        RpcSend,
-        /// <summary>
-        /// RPC receive
-        /// </summary>
-        RpcReceive
+        Normal
     }
 }

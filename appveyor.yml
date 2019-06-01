@@ -9,7 +9,7 @@ build_script:
 - dotnet build "Source\DotNetWorkQueue.sln" -c Debug
 test_script:	
 - dotnet test "Source\DotNetWorkQueue.Tests\DotNetWorkQueue.Tests.csproj"
-- dotnet test "Source\DotNetWorkQueue.Metrics.Net.Tests\DotNetWorkQueue.Metrics.Net.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.AppMetrics.Tests\DotNetWorkQueue.AppMetrics.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.PostgreSQL.Tests\DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.Redis.Tests\DotNetWorkQueue.Transport.Redis.Tests.csproj"

@@ -425,86 +425,7 @@ namespace DotNetWorkQueue
 
         #endregion
 
-        #region RPC Queue
-
-        /// <summary>
-        /// Creates an RPC queue.
-        /// </summary>
-        /// <typeparam name="TMessageReceive">The type of the received message.</typeparam>
-        /// <typeparam name="TMessageSend">The type of the sent message.</typeparam>
-        /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
-        /// <param name="connectionSettings">The connection settings.</param>
-        /// <returns></returns>
-        public IRpcQueue<TMessageReceive, TMessageSend> CreateRpc
-            <TMessageReceive, TMessageSend, TTConnectionSettings>(TTConnectionSettings connectionSettings)
-            where TMessageReceive : class
-            where TMessageSend : class
-            where TTConnectionSettings : BaseRpcConnection
-        {
-            //we need to create an explicit producer queue
-            var connectionSend = connectionSettings.GetConnection(ConnectionTypes.Send);
-            var producer = CreateProducer<TMessageSend>(connectionSend.QueueName, connectionSend.ConnectionString);
-
-            var connectionReceive = connectionSettings.GetConnection(ConnectionTypes.Receive);
-            var container = _createContainerInternal().Create(QueueContexts.RpcQueue, _registerService,
-                connectionReceive.QueueName, connectionReceive.ConnectionString, _transportInit, ConnectionTypes.Receive,
-                serviceRegister =>
-                    serviceRegister.Register(
-                        () => producer, LifeStyles.Singleton).Register(
-                        () => connectionSettings, LifeStyles.Singleton), _setOptions);
-            Containers.Add(container);
-            return
-                container
-                    .GetInstance<IRpcQueue<TMessageReceive, TMessageSend>>();
-        }
-
-        /// <summary>
-        /// Creates an RPC queue.
-        /// </summary>
-        /// <typeparam name="TTConnectionSettings">The type of the connection settings.</typeparam>
-        /// <param name="connectionSettings">The connection settings.</param>
-        /// <returns></returns>
-        public IRpcMethodQueue CreateMethodRpc
-            <TTConnectionSettings>(TTConnectionSettings connectionSettings)
-            where TTConnectionSettings : BaseRpcConnection
-        {
-            //create a base RPC queue for usage by the method RPC queue
-            var rpc = CreateRpc<object, MessageExpression, TTConnectionSettings>(connectionSettings);
-            var connectionReceive = connectionSettings.GetConnection(ConnectionTypes.Receive);
-            var container = _createContainerInternal().Create(QueueContexts.RpcMethodQueue, _registerService,
-                connectionReceive.QueueName, connectionReceive.ConnectionString, _transportInit, ConnectionTypes.Receive,
-                serviceRegister =>
-                    serviceRegister.Register(
-                        () => rpc, LifeStyles.Singleton).Register(
-                        () => connectionSettings, LifeStyles.Singleton), _setOptions);
-            Containers.Add(container);
-            return
-                container
-                    .GetInstance<IRpcMethodQueue>();
-        }
-
-        /// <summary>
-        /// Creates an RPC queue that can send responses
-        /// </summary>
-        /// <typeparam name="TMessage">The type of the message.</typeparam>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
-        /// <returns></returns>
-        public IProducerQueueRpc<TMessage> CreateProducerRpc
-            <TMessage>(string queue, string connection)
-            where TMessage : class
-        {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            var container = _createContainerInternal().Create(QueueContexts.ProducerQueueRpc, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
-            Containers.Add(container);
-            return container.GetInstance<IProducerQueueRpc<TMessage>>();
-        }
-
-        #endregion
-
+        #region Job Scheduler
         /// <summary>
         /// Creates a re-occurring job scheduler.
         /// </summary>
@@ -518,7 +439,9 @@ namespace DotNetWorkQueue
             Containers.Add(container);
             return container.GetInstance<IJobSchedulerLastKnownEvent>();
         }
+        #endregion
 
+        #region Time Sync
         /// <summary>
         /// Creates a class that returns the current date/time
         /// </summary>
@@ -530,6 +453,7 @@ namespace DotNetWorkQueue
             var factory = container.GetInstance<IGetTimeFactory>();
             return factory;
         }
+        #endregion
     }
     #endregion 
 }

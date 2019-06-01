@@ -45,11 +45,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         #endregion
 
         /// <summary>
-        /// Waits until a notification is received, or until the timeout is reached
+        /// Waits until a notification is received
         /// </summary>
-        /// <param name="timeout">The timeout. Null means no timeout.</param>
         /// <returns></returns>
-        public bool Wait(TimeSpan? timeout)
+        public bool Wait()
         {
             ThrowIfDisposed();
 
@@ -58,10 +57,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 try
                 {
-                    if (timeout.HasValue)
-                    {
-                        return _waitHandle.Wait(timeout.Value, cts.Token);
-                    }
                     _waitHandle.Wait(cts.Token);
                 }
                 catch (OperationCanceledException)

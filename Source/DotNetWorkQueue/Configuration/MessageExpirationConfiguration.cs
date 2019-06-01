@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Configuration
 {
     /// <summary>
     /// Message expiration setting.
-    /// <remarks>Messages can be set to expire. Used by the RPC queue, but can also be enabled for any queue.</remarks>
+    /// <remarks>Messages can be set to expire.</remarks>
     /// </summary>
     public class MessageExpirationConfiguration : IMessageExpirationConfiguration
     {
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Configuration
 
         #region Configuration
         /// <summary>
-        /// If true, message expiration is enabled. Generally used by RPC queues, but can be used by any queue.
+        /// If true, message expiration is enabled.
         /// </summary>
         /// <value>
         /// <c>true</c> if [message expiration enabled]; otherwise, <c>false</c>.

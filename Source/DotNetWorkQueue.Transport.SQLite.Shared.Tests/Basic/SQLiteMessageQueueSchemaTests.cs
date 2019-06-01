@@ -124,19 +124,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Tests.Basic
         }
 
         [Fact]
-        public void Create_Meta_SourceQueueID()
-        {
-            var tableName = GetTableNameHelper();
-            var options = new SqLiteMessageQueueTransportOptions { QueueType = QueueTypes.RpcReceive};
-            var factory = Substitute.For<ISqLiteMessageQueueTransportOptionsFactory>();
-            factory.Create().Returns(options);
-            var test = Create(factory, tableName);
-            var tables = test.GetSchema().ConvertAll(o => (Table)o);
-            var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.Contains(statusTable.Columns.Items, item => item.Name == "SourceQueueID");
-        }
-
-        [Fact]
         public void Create_FIFO()
         {
             var tableName = GetTableNameHelper();

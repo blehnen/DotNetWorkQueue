@@ -84,18 +84,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
                         _handler.HandleExecution(receivedMessage, workerNotification);
                     }
                     break;
-                case MessageExpressionPayloads.Function:
-                    using (_runFunctionCompiledCodeTimer.NewContext())
-                    {
-                        _handler.HandleExecution(receivedMessage, workerNotification);
-                    }
-                    break;
-                case MessageExpressionPayloads.FunctionText:
-                    using (_runFunctionDynamicCodeTimer.NewContext())
-                    {
-                        _handler.HandleExecution(receivedMessage, workerNotification);
-                    }
-                    break;
                 default:
                     throw new DotNetWorkQueueException($"Logic error - failed to handle type {receivedMessage.Body.PayLoad}");
             }

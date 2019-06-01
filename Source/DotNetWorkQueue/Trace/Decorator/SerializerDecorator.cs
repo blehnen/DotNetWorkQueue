@@ -21,6 +21,10 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
+    /// <summary>
+    /// Traces the serialization logic
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.ISerializer" />
     public class SerializerDecorator: ISerializer
     {
         private readonly ITracer _tracer;
@@ -41,6 +45,15 @@ namespace DotNetWorkQueue.Trace.Decorator
             DisplayName = _handler.DisplayName;
         }
 
+        /// <summary>
+        /// Converts the message to an array of bytes
+        /// </summary>
+        /// <typeparam name="T">the message type</typeparam>
+        /// <param name="message">The message.</param>
+        /// <param name="headers">The message headers</param>
+        /// <returns>
+        /// byte array
+        /// </returns>
         public byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers) where T : class
         {
             var spanContext = headers.Extract(_tracer, _headers);
@@ -64,6 +77,15 @@ namespace DotNetWorkQueue.Trace.Decorator
             }
         }
 
+        /// <summary>
+        /// Converts the byte array to a message.
+        /// </summary>
+        /// <typeparam name="T">the message type</typeparam>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="headers">The message headers</param>
+        /// <returns>
+        /// an instance of T
+        /// </returns>
         public T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers) where T : class
         {
             var spanContext = headers.Extract(_tracer, _headers);

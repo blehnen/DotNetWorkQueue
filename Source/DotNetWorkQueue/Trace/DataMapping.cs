@@ -5,7 +5,7 @@ using OpenTracing.Propagation;
 namespace DotNetWorkQueue.Trace
 {
     /// <summary>
-    /// Storage for open tracing RPC format
+    /// Storage for open tracing format
     /// </summary>
     public sealed class DataMappingTextMap : Dictionary<string, string>, ITextMap
     {

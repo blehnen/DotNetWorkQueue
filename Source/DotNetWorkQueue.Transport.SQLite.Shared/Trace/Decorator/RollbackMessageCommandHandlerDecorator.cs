@@ -4,6 +4,9 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Trace.Decorator
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand>
     {
         private readonly ICommandHandler<RollbackMessageCommand> _handler;

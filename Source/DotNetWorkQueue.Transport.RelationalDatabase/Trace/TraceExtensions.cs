@@ -1,6 +1,9 @@
 ﻿using OpenTracing;
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Trace
 {
+    /// <summary>
+    /// Extensions for adding trace tags
+    /// </summary>
     public static class TraceExtensions
     {
         /// <summary>

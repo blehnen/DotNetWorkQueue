@@ -123,18 +123,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             Assert.Contains(statusTable.Columns.Items, item => item.Name == "ExpirationTime");
         }
 
-        [Fact]
-        public void Create_Meta_SourceQueueID()
-        {
-            var tableName = GetTableNameHelper();
-            var options = new PostgreSqlMessageQueueTransportOptions {QueueType = QueueTypes.RpcReceive};
-            var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
-            factory.Create().Returns(options);
-            var test = Create(factory, tableName);
-            var tables = test.GetSchema().ConvertAll(o => (Table)o);
-            var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.Contains(statusTable.Columns.Items, item => item.Name == "SourceQueueID");
-        }
 
         [Fact]
         public void Create_FIFO()

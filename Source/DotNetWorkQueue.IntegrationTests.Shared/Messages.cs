@@ -100,12 +100,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             return (message, workerNotification) => StandardTesting.Error();
         }
 
-        public static Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> CreateRpcCompiled(
-            Guid id, int runTime)
-        {
-            return (message, workerNotification) => StandardTesting.RunRpc(id, runTime);
-        }
-
         public static LinqExpressionToRun CreateMultipleDynamic(Guid id, int counter, int runTime)
         {
             return CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"), int.Parse(\"{counter}\"))", true);
@@ -134,11 +128,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         public static LinqExpressionToRun CreateErrorDynamic(Guid id, int runTime)
         {
             return CreateDefaultLinq("(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.Error()");
-        }
-
-        public static LinqExpressionToRun CreateRpcDynamic(Guid id, int runTime)
-        {
-            return CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.RunRpc(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
         }
 
         private static LinqExpressionToRun CreateDefaultLinq(string method, bool unique = false)
@@ -179,16 +168,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 Thread.Sleep(runTime * 1000);
 
             MethodIncrementWrapper.IncreaseCounter(queueId);
-        }
-        public static object RunRpc(Guid queueId, int runTime)
-        {
-            if (runTime > 0)
-                Thread.Sleep(runTime * 1000);
-
-            MethodIncrementWrapper.IncreaseCounter(queueId);
-
-            var rc = new FakeResponse {ResponseMessage = "int test"};
-            return rc;
         }
         public static void NoOp()
         {

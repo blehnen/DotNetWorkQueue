@@ -13,7 +13,8 @@ using NpgsqlTypes;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
 {
     /// <inheritdoc />
-    internal class ReceiveMessageQueryHandlerAsync : IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>>
+    internal class ReceiveMessageQueryHandlerAsync : IQueryHandler<
+        ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>>
     {
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
         private readonly TableNameHelper _tableNameHelper;
@@ -62,24 +63,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             _serialization = serialization;
             _getTime = getTimeFactory.Create();
         }
+
         /// <inheritdoc />
-        public async Task<IReceivedMessageInternal> Handle(ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction> query)
+        public async Task<IReceivedMessageInternal> Handle(
+            ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction> query)
         {
             using (var selectCommand = query.Connection.CreateCommand())
             {
                 selectCommand.Transaction = query.Transaction;
-                if (query.MessageId != null && query.MessageId.HasValue)
-                {
-                    selectCommand.CommandText =
-                        ReceiveMessage.GetDeQueueCommand(_commandCache, _tableNameHelper, _options.Value, true, query.Routes);
-                    selectCommand.Parameters.Add("@QueueID", NpgsqlDbType.Bigint);
-                    selectCommand.Parameters["@QueueID"].Value = query.MessageId.Id.Value;
-                }
-                else
-                {
-                    selectCommand.CommandText =
-                       ReceiveMessage.GetDeQueueCommand(_commandCache, _tableNameHelper, _options.Value, false, query.Routes);
-                }
+                selectCommand.CommandText =
+                    ReceiveMessage.GetDeQueueCommand(_commandCache, _tableNameHelper, _options.Value,
+                        query.Routes);
+
 
                 selectCommand.Parameters.Add("@CurrentDate", NpgsqlDbType.Bigint);
                 selectCommand.Parameters["@CurrentDate"].Value = _getTime.GetCurrentUtcDate().Ticks;
@@ -107,14 +102,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
 
                     try
                     {
-                        id = (long)reader["queueid"];
-                        correlationId = (Guid)reader["CorrelationID"];
-                        headerPayload = (byte[])reader["Headers"];
-                        messagePayload = (byte[])reader["body"];
+                        id = (long) reader["queueid"];
+                        correlationId = (Guid) reader["CorrelationID"];
+                        headerPayload = (byte[]) reader["Headers"];
+                        messagePayload = (byte[]) reader["body"];
 
-                        var headers = _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerPayload);
-                        var messageGraph = (MessageInterceptorsGraph)headers[_headers.StandardHeaders.MessageInterceptorGraph.Name];
-                        var message = _serialization.Serializer.BytesToMessage<MessageBody>(messagePayload, messageGraph, headers).Body;
+                        var headers =
+                            _serialization.InternalSerializer
+                                .ConvertBytesTo<IDictionary<string, object>>(headerPayload);
+                        var messageGraph =
+                            (MessageInterceptorsGraph) headers[_headers.StandardHeaders.MessageInterceptorGraph.Name];
+                        var message = _serialization.Serializer
+                            .BytesToMessage<MessageBody>(messagePayload, messageGraph, headers).Body;
                         var newMessage = _messageFactory.Create(message, headers);
 
                         return _receivedMessageFactory.Create(newMessage,
@@ -125,7 +124,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                     {
                         //at this point, the record has been de-queued, but it can't be processed.
                         throw new PoisonMessageException(
-                            "An error has occurred trying to re-assemble a message de-queued from the server", error, 
+                            "An error has occurred trying to re-assemble a message de-queued from the server", error,
                             new MessageQueueId(id), new MessageCorrelationId(correlationId),
                             messagePayload, headerPayload);
 

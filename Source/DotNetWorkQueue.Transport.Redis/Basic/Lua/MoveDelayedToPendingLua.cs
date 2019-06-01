@@ -18,8 +18,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public MoveDelayedToPendingLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
-            Script = @"local signal = tonumber(@signalID)
-                       local uuids = redis.call('zrangebyscore', @delaykey, 0, @currenttime, 'LIMIT', 0, @limit)
+            Script = @"local uuids = redis.call('zrangebyscore', @delaykey, 0, @currenttime, 'LIMIT', 0, @limit)
                        if #uuids == 0 then
                         return 0
                        end
@@ -34,14 +33,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                         else
                             redis.call('lpush', @pendingkey, v) 
                         end
-                        if signal == 1 then
-                            redis.call('publish', @channel, v) 
-                        end
                        end
-
-                        if signal == 0 then
-                            redis.call('publish', @channel, '') 
-                        end
+                      redis.call('publish', @channel, '') 
                       return table.getn(uuids)";
         }
         /// <summary>
@@ -49,24 +42,22 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         /// <param name="unixTime">The unix time.</param>
         /// <param name="count">The count.</param>
-        /// <param name="rpc">if set to <c>true</c> [RPC].</param>
         /// <returns></returns>
-        public int Execute(long unixTime, int count, bool rpc)
+        public int Execute(long unixTime, int count)
         {
             if (Connection.IsDisposed)
                 return 0;
 
             var db = Connection.Connection.GetDatabase();
-            return (int) db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, count, rpc));
+            return (int) db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, count));
         }
         /// <summary>
         /// Gets the parameters.
         /// </summary>
         /// <param name="unixTime">The unix time.</param>
         /// <param name="count">The count.</param>
-        /// <param name="rpc">if set to <c>true</c> [RPC].</param>
         /// <returns></returns>
-        private object GetParameters(long unixTime, int count, bool rpc)
+        private object GetParameters(long unixTime, int count)
         {
             return new
             {
@@ -75,8 +66,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 currenttime = unixTime,
                 channel = RedisNames.Notification,
                 limit = count,
-                RouteIDKey = (RedisKey)RedisNames.Route,
-                signalID = Convert.ToInt32(rpc)
+                RouteIDKey = (RedisKey)RedisNames.Route
             };
         }
     }

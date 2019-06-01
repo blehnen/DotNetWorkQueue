@@ -14,33 +14,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
             Guard.NotNull(() => getTimeFactory, getTimeFactory);
             _getTime = getTimeFactory.Create();
         }
-        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        internal void BuildCommand(IDbCommand selectCommand, IMessageId messageId, CommandString commandString,
-            SqLiteMessageQueueTransportOptions options, List<string> routes )
+
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification =
+            "Query checked")]
+        internal void BuildCommand(IDbCommand selectCommand, CommandString commandString,
+            SqLiteMessageQueueTransportOptions options, List<string> routes)
         {
             selectCommand.CommandText = commandString.CommandText;
-            if (messageId != null && messageId.HasValue)
-            {
-                var param = selectCommand.CreateParameter();
-                param.ParameterName = "@QueueID";
-                param.DbType = DbType.Int64;
-                param.Value = messageId.Id.Value;
-                selectCommand.Parameters.Add(param);
 
-                param = selectCommand.CreateParameter();
-                param.ParameterName = "@CurrentDateTime";
-                param.DbType = DbType.Int64;
-                param.Value = _getTime.GetCurrentUtcDate().Ticks;
-                selectCommand.Parameters.Add(param);
-            }
-            else
-            {
-                var param = selectCommand.CreateParameter();
-                param.ParameterName = "@CurrentDateTime";
-                param.DbType = DbType.Int64;
-                param.Value = _getTime.GetCurrentUtcDate().Ticks;
-                selectCommand.Parameters.Add(param);
-            }
+            var paramDate = selectCommand.CreateParameter();
+            paramDate.ParameterName = "@CurrentDateTime";
+            paramDate.DbType = DbType.Int64;
+            paramDate.Value = _getTime.GetCurrentUtcDate().Ticks;
+            selectCommand.Parameters.Add(paramDate);
 
             if (options.EnableRoute && routes != null && routes.Count > 0)
             {

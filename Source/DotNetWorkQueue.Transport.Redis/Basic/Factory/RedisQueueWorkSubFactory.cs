@@ -27,17 +27,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
             _redisNames = redisNames;
             _cancelWork = cancelWork;
         }
-        /// <inheritdoc />
-        public IRedisQueueWorkSub Create(IMessageId id)
-        {
-            if (id == null || !id.HasValue)
-            {
-                return Create();
-            }
-
-            //return a new instance
-            return new RedisQueueWorkSubRpc(_connection, _redisNames, _cancelWork, id);
-        }
 
         /// <inheritdoc />
         public IRedisQueueWorkSub Create()

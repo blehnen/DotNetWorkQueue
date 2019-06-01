@@ -25,7 +25,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
         private readonly DatabaseExists _databaseExists;
         private readonly IReaderAsync _readerAsync;
 
-        private const string RpcdequeueKey = "dequeueCommandRpc";
         private const string DequeueKey = "dequeueCommand";
 
         /// <summary>
@@ -90,25 +89,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
                     using (var selectCommand = connection.CreateCommand())
                     {
                         selectCommand.Transaction = transaction;
-                        CommandString commandString;
-                        if (query.MessageId != null && query.MessageId.HasValue)
-                        {
-                            commandString = GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
-                                    true,
-                                    _tableNameHelper.StatusName, query.Routes);
-                        }
-                        else
-                        {
-                            commandString =
+                        CommandString commandString =
                                   GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
-                                    false,
-                                    _tableNameHelper.StatusName, query.Routes);
-                        }
-
+                                      _tableNameHelper.StatusName, query.Routes);
+                        
                         if (commandString == null)
                             throw new DotNetWorkQueueException("Failed to generate command text for de-queue of messages");
 
-                        _buildDequeueCommand.BuildCommand(selectCommand, query.MessageId, commandString, _options.Value, query.Routes);
+                        _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value, query.Routes);
                         using (var reader = await _readerAsync.ExecuteReaderAsync(selectCommand).ConfigureAwait(false))
                         {
                             return _messageDeQueue.HandleMessage(connection, transaction, reader, commandString);
@@ -122,30 +110,25 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
         /// </summary>
         /// <param name="metaTableName">Name of the meta table.</param>
         /// <param name="queueTableName">Name of the queue table.</param>
-        /// <param name="forRpc">if set to <c>true</c> [for RPC].</param>
         /// <param name="statusTableName">Name of the status table.</param>
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, bool forRpc, string statusTableName, List<string> routes)
+        private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, string statusTableName, List<string> routes)
         {
             if (routes == null || routes.Count == 0)
             {
-                if (forRpc && _commandCache.Contains(RpcdequeueKey))
-                {
-                    return _commandCache.Get(RpcdequeueKey);
-                }
                 if (_commandCache.Contains(DequeueKey))
                 {
                     return _commandCache.Get(DequeueKey);
                 }
             }
 
-            var command = ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, forRpc, statusTableName, _options.Value, routes);
+            var command = ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName,  statusTableName, _options.Value, routes);
             if (routes != null && routes.Count > 0)
             { //TODO - cache based on route
                 return command;
             }
-            return _commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, command);
+            return _commandCache.Add(DequeueKey, command);
         }
     }
 }

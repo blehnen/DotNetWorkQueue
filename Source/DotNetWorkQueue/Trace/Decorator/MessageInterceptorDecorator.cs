@@ -22,6 +22,10 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
+    /// <summary>
+    /// Tracing for message interception
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.IMessageInterceptor" />
     public class MessageInterceptorDecorator: IMessageInterceptor
     {
         private readonly ITracer _tracer;

@@ -67,18 +67,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
                 return null;
             }
 
-            //check for a specific MessageID to pull
-            IMessageId messageId = null;
-            var rpc = context.Get(_configuration.HeaderNames.StandardHeaders.RpcContext);
-            if (rpc?.MessageId != null && rpc.MessageId.HasValue)
-            {
-                messageId = rpc.MessageId;
-            }
-
-            //ask for the next message, or a specific message if we have a messageID
+            //ask for the next message
             var receivedTransportMessage =
                 _receiveMessage.Handle(new ReceiveMessageQuery<SqlConnection, SqlTransaction>(connectionHolder.Connection,
-                    connectionHolder.Transaction, messageId, _configuration.Routes));
+                    connectionHolder.Transaction,  _configuration.Routes));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
@@ -126,18 +118,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
                 return null;
             }
 
-            //check for a specific MessageID to pull
-            IMessageId messageId = null;
-            var rpc = context.Get(_configuration.HeaderNames.StandardHeaders.RpcContext);
-            if (rpc?.MessageId != null && rpc.MessageId.HasValue)
-            {
-                messageId = rpc.MessageId;
-            }
-
-            //ask for the next message, or a specific message if we have a messageID
+            //ask for the next message
             var receivedTransportMessage = await 
                 _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync<SqlConnection, SqlTransaction>(connectionHolder.Connection,
-                    connectionHolder.Transaction, messageId, _configuration.Routes)).ConfigureAwait(false);
+                    connectionHolder.Transaction, _configuration.Routes)).ConfigureAwait(false);
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)

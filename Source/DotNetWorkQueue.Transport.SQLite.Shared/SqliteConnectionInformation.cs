@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared
         private void ValidateConnection(string value)
         {
             //validate that the passed in string parses as a SQLite server connection string
-            if (_dataSource != null) //right now, this is null for RPC
+            if (_dataSource != null)
             {
                 _server = _dataSource.DataSource(value);
             }

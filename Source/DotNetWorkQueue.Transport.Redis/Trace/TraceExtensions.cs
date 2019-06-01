@@ -3,8 +3,16 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.Redis.Trace
 {
+    /// <summary>
+    /// Tracing extensions
+    /// </summary>
     public static class TraceExtensions
     {
+        /// <summary>
+        /// Adds tags to the span from the data
+        /// </summary>
+        /// <param name="span">The span.</param>
+        /// <param name="data">The data.</param>
         public static void Add(this ISpan span, IAdditionalMessageData data)
         {
             var delay = data.GetDelay();

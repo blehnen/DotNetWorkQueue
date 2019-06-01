@@ -11,7 +11,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
     {
         private readonly RollbackLua _rollbackLua;
         private readonly RollbackDelayLua _rollbackDelayLua;
-        private readonly bool _rpcQueue;
         private readonly IUnixTimeFactory _unixTimeFactory;
 
         /// <summary>
@@ -20,21 +19,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="rollbackLua">The rollback.</param>
         /// <param name="rollbackDelayLua">The rollback delay.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
-        /// <param name="queueContext">The queue context.</param>
         public RollbackMessageCommandHandler(RollbackLua rollbackLua, 
             RollbackDelayLua rollbackDelayLua, 
-            IUnixTimeFactory unixTimeFactory,
-            QueueContext queueContext)
+            IUnixTimeFactory unixTimeFactory)
         {
             Guard.NotNull(() => rollbackLua, rollbackLua);
             Guard.NotNull(() => rollbackDelayLua, rollbackDelayLua);
             Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
-            Guard.NotNull(() => queueContext, queueContext);
-
             _rollbackLua = rollbackLua;
             _rollbackDelayLua = rollbackDelayLua;
             _unixTimeFactory = unixTimeFactory;
-            _rpcQueue = queueContext.Context == QueueContexts.RpcQueue;
         }
 
         /// <inheritdoc />
@@ -47,7 +41,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             }
             else
             {
-                _rollbackLua.Execute(command.Id.Id.Value.ToString(), _rpcQueue);
+                _rollbackLua.Execute(command.Id.Id.Value.ToString());
             }
         }
     }

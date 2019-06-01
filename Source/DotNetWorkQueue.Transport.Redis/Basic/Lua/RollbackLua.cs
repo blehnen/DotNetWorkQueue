@@ -18,8 +18,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public RollbackLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
-            Script = @"local signal = tonumber(@signalID)
-                     redis.call('zrem', @workingkey, @uuid) 
+            Script = @"redis.call('zrem', @workingkey, @uuid) 
                      local routeName = redis.call('hget', @RouteIDKey, @uuid) 
                      if(routeName) then
                         local routePending = @pendingkey .. '_}' .. routeName
@@ -28,31 +27,25 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                         redis.call('rpush', @pendingkey, @uuid)
                      end
                      redis.call('hset', @StatusKey, @uuid, '0') 
-                     if signal == 1 then
-                       redis.call('publish', @channel, @uuid) 
-                     else
-                        redis.call('publish', @channel, '') 
-                     end
+                     redis.call('publish', @channel, '') 
                      return 1";
         }
         /// <summary>
         /// Moves a message from the working queue back into the pending queue
         /// </summary>
         /// <param name="messageId">The message identifier.</param>
-        /// <param name="rpc">if set to <c>true</c> [RPC].</param>
         /// <returns></returns>
-        public int? Execute(string messageId, bool rpc)
+        public int? Execute(string messageId)
         {
             var db = Connection.Connection.GetDatabase();
-            return (int) db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, rpc));
+            return (int) db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId));
         }
         /// <summary>
         /// Gets the parameters.
         /// </summary>
         /// <param name="messageId">The message identifier.</param>
-        /// <param name="rpc">if set to <c>true</c> [RPC].</param>
         /// <returns></returns>
-        private object GetParameters(string messageId, bool rpc)
+        private object GetParameters(string messageId)
         {
             return new
             {
@@ -60,7 +53,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 uuid = messageId,
                 pendingkey = (RedisKey)RedisNames.Pending,
                 channel = RedisNames.Notification,
-                signalID = Convert.ToInt32(rpc),
                 RouteIDKey = (RedisKey)RedisNames.Route,
                 StatusKey = (RedisKey)RedisNames.Status
             };

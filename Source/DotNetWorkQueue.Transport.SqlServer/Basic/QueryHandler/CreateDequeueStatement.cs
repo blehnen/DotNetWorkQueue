@@ -13,7 +13,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         private readonly TableNameHelper _tableNameHelper;
         private readonly SqlServerCommandStringCache _commandCache;
 
-        private const string RpcdequeueKey = "dequeueCommandRpc";
         private const string DequeueKey = "dequeueCommand";
 
         public CreateDequeueStatement(ISqlServerMessageQueueTransportOptionsFactory optionsFactory,
@@ -32,17 +31,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// <summary>
         /// Gets the de queue command.
         /// </summary>
-        /// <param name="forRpc">if set to <c>true</c> [for RPC].</param>
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        public string GetDeQueueCommand(bool forRpc, List<string> routes = null)
+        public string GetDeQueueCommand(List<string> routes = null)
         {
             if (routes == null || routes.Count == 0)
             {
-                if (forRpc && _commandCache.Contains(RpcdequeueKey))
-                {
-                    return _commandCache.Get(RpcdequeueKey).CommandText;
-                }
                 if (_commandCache.Contains(DequeueKey))
                 {
                     return _commandCache.Get(DequeueKey).CommandText;
@@ -117,21 +111,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 sb.Append(") ");
             }
 
-            if (forRpc)
-            {
-                if (needWhere)
-                {
-                    sb.AppendLine("Where SourceQueueID = @QueueID ");
-                    needWhere = false;
-                }
-                else
-                {
-                    sb.AppendLine("AND SourceQueueID = @QueueID ");
-                }
-            }
-
-
-            if (_options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend)
+            if (_options.Value.EnableMessageExpiration)
             {
                 sb.AppendLine(needWhere
                     ? "where ExpirationTime > getutcdate() "
@@ -220,7 +200,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             { //TODO - cache based on route
                 return sb.ToString();
             }
-            return _commandCache.Add(forRpc ? RpcdequeueKey : DequeueKey, sb.ToString());
+            return _commandCache.Add(DequeueKey, sb.ToString());
         }
     }
 }

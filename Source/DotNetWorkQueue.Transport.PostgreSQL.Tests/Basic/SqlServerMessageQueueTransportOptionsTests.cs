@@ -75,13 +75,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         }
 
         [Fact]
-        public void GetSet_QueueType()
-        {
-            var test = new PostgreSqlMessageQueueTransportOptions {QueueType = QueueTypes.RpcReceive};
-            Assert.Equal(QueueTypes.RpcReceive, test.QueueType);
-        }
-
-        [Fact]
         public void GetSet_EnableMessageExpiration()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();

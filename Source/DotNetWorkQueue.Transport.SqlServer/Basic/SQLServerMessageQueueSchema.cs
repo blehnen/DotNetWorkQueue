@@ -162,7 +162,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 meta.Columns.Add(new Column("HeartBeat", ColumnTypes.Datetime, true, null));
             }
 
-            if (_options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend)
+            if (_options.Value.EnableMessageExpiration)
             {
                 meta.Columns.Add(new Column("ExpirationTime", ColumnTypes.Datetime, false, null));
             }
@@ -170,13 +170,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             if (_options.Value.EnableRoute)
             {
                 meta.Columns.Add(new Column("Route", ColumnTypes.Varchar, 255, true, null));
-            }
-
-            switch (_options.Value.QueueType)
-            {
-                case QueueTypes.RpcReceive:
-                    meta.Columns.Add(new Column("SourceQueueID", ColumnTypes.Bigint, false, null));
-                    break;
             }
 
             var clusterIndex = new List<string>();
@@ -196,17 +189,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             {
                 clusterIndex.Add("Route");
             }
-                //add index on expiration time if needed
-            if (_options.Value.EnableMessageExpiration || _options.Value.QueueType == QueueTypes.RpcReceive || _options.Value.QueueType == QueueTypes.RpcSend)
+            //add index on expiration time if needed
+            if (_options.Value.EnableMessageExpiration)
             {
                 clusterIndex.Add("ExpirationTime");
-            }
-
-            switch (_options.Value.QueueType)
-            {
-                case QueueTypes.RpcReceive:
-                    clusterIndex.Add("SourceQueueID");
-                    break;
             }
 
             if (clusterIndex.Count > 0)

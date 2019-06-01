@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SqlServer.Tests", "DotNetWorkQueue.Transport.SqlServer.Tests\DotNetWorkQueue.Transport.SqlServer.Tests.csproj", "{903AE230-3B77-481D-B454-77ECD5A61CF8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Metrics.Net", "DotNetWorkQueue.Metrics.Net\DotNetWorkQueue.Metrics.Net.csproj", "{A08D1612-317E-4D00-8646-BEFB0C0DBD69}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.IntegrationTests.Metrics", "DotNetWorkQueue.IntegrationTests.Metrics\DotNetWorkQueue.IntegrationTests.Metrics.csproj", "{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.IntegrationTests.Shared", "DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj", "{B8D08857-4084-4B18-BB0F-8944945CBE40}"
@@ -36,8 +34,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests", "DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests\DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj", "{0C65998B-3142-4385-9443-0BF1AD7A2799}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.PostgreSQL", "DotNetWorkQueue.Transport.PostgreSQL\DotNetWorkQueue.Transport.PostgreSQL.csproj", "{7AA5EDFE-3D5D-4CF6-84A3-A1A5F1207FD3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Metrics.Net.Tests", "DotNetWorkQueue.Metrics.Net.Tests\DotNetWorkQueue.Metrics.Net.Tests.csproj", "{1EB58B6D-E88D-449F-9331-F4DC9169EF9B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.RelationalDatabase.Tests", "DotNetWorkQueue.Transport.RelationalDatabase.Tests\DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj", "{BC265AFB-8038-4AC6-8296-1B1A032FC116}"
 EndProject
@@ -93,10 +89,6 @@ Global
 		{903AE230-3B77-481D-B454-77ECD5A61CF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{903AE230-3B77-481D-B454-77ECD5A61CF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{903AE230-3B77-481D-B454-77ECD5A61CF8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A08D1612-317E-4D00-8646-BEFB0C0DBD69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A08D1612-317E-4D00-8646-BEFB0C0DBD69}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A08D1612-317E-4D00-8646-BEFB0C0DBD69}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A08D1612-317E-4D00-8646-BEFB0C0DBD69}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -141,10 +133,6 @@ Global
 		{7AA5EDFE-3D5D-4CF6-84A3-A1A5F1207FD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AA5EDFE-3D5D-4CF6-84A3-A1A5F1207FD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AA5EDFE-3D5D-4CF6-84A3-A1A5F1207FD3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1EB58B6D-E88D-449F-9331-F4DC9169EF9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1EB58B6D-E88D-449F-9331-F4DC9169EF9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1EB58B6D-E88D-449F-9331-F4DC9169EF9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1EB58B6D-E88D-449F-9331-F4DC9169EF9B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BC265AFB-8038-4AC6-8296-1B1A032FC116}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BC265AFB-8038-4AC6-8296-1B1A032FC116}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC265AFB-8038-4AC6-8296-1B1A032FC116}.Release|Any CPU.ActiveCfg = Release|Any CPU
