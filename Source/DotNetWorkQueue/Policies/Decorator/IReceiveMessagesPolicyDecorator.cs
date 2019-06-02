@@ -73,5 +73,8 @@ namespace DotNetWorkQueue.Policies.Decorator
                 result = await _handler.ReceiveMessageAsync(context).ConfigureAwait(false);
             return result;
         }
+
+        /// <inheritdoc />
+        public bool IsBlockingOperation => _handler.IsBlockingOperation;
     }
 }

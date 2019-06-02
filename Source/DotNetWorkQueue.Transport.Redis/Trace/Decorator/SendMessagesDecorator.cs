@@ -48,6 +48,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
             {
                 scope.Span.AddCommonTags(data, _connectionInformation);
                 scope.Span.Add(data);
+                scope.Span.SetTag("IsBatch", false);
                 messageToSend.Inject(_tracer, scope.Span.Context, _headers.StandardHeaders);
                 try
                 {
@@ -77,7 +78,16 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         /// <returns></returns>
         public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
-            //TODO
+            foreach (var message in messages)
+            {
+                using (IScope scope = _tracer.BuildSpan("SendMessage").StartActive(finishSpanOnDispose: true))
+                {
+                    scope.Span.AddCommonTags(message.MessageData, _connectionInformation);
+                    scope.Span.Add(message.MessageData);
+                    scope.Span.SetTag("IsBatch", true);
+                    message.Message.Inject(_tracer, scope.Span.Context, _headers.StandardHeaders);
+                }
+            }
             return _handler.Send(messages);
         }
 
@@ -94,6 +104,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
             {
                 scope.Span.AddCommonTags(data, _connectionInformation);
                 scope.Span.Add(data);
+                scope.Span.SetTag("IsBatch", false);
                 messageToSend.Inject(_tracer, scope.Span.Context, _headers.StandardHeaders);
                 try
                 {
@@ -123,7 +134,16 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         /// <returns></returns>
         public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
-            //TODO
+            foreach (var message in messages)
+            {
+                using (IScope scope = _tracer.BuildSpan("SendMessage").StartActive(finishSpanOnDispose: true))
+                {
+                    scope.Span.AddCommonTags(message.MessageData, _connectionInformation);
+                    scope.Span.Add(message.MessageData);
+                    scope.Span.SetTag("IsBatch", true);
+                    message.Message.Inject(_tracer, scope.Span.Context, _headers.StandardHeaders);
+                }
+            }
             return await _handler.SendAsync(messages);
         }
     }

@@ -42,5 +42,13 @@ namespace DotNetWorkQueue
         /// A message to process or null if there are no messages to process
         /// </returns>
         Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context);
+
+        /// <summary>
+        /// Gets a value indicating whether calling <see cref="ReceiveMessage"/> or <see cref="ReceiveMessageAsync"/> is a blocking operation
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is blocking operation; otherwise, <c>false</c>.
+        /// </value>
+        bool IsBlockingOperation { get; }
     }
 }

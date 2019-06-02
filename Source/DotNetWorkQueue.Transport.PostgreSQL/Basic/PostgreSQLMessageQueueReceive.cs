@@ -165,6 +165,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
 
+        /// <inheritdoc />
+        public bool IsBlockingOperation => false; //nope
+
         #endregion
 
         #region Private Methods   

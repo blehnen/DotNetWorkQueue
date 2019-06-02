@@ -181,6 +181,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             }
         }
 
+        /// <inheritdoc />
+        public bool IsBlockingOperation => false; //nope
+
         #endregion
 
         #region Private Methods   

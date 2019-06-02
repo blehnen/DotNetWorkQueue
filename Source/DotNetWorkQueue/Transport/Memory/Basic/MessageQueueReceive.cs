@@ -124,6 +124,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
         }
 
+        /// <inheritdoc />
+        public bool IsBlockingOperation => true; //memory queue blocks
+
         /// <summary>
         /// Performs pre-checks on context
         /// </summary>

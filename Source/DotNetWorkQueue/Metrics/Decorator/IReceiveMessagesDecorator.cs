@@ -85,6 +85,9 @@ namespace DotNetWorkQueue.Metrics.Decorator
             return result;
         }
 
+        /// <inheritdoc />
+        public bool IsBlockingOperation => _handler.IsBlockingOperation;
+
         private void ProcessResult(IReceivedMessageInternal message)
         {
             if (message.Headers.ContainsKey(_headers.StandardHeaders.FirstPossibleDeliveryDate.Name))

@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28922.388
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLServerProducer", "SQLServerProducer\SQLServerProducer.csproj", "{370751AE-73D3-4D22-A081-63EE424BF5D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLServerProducerLinq", "SQLServerProducerLinq\SQLServerProducerLinq.csproj", "{80DBD0EA-0C46-4958-B466-44FDF98E4EA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLServerConsumer", "SQLServerConsumer\SQLServerConsumer.csproj", "{74B0C06F-2297-4BE0-A8BF-6DAFFE7073E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLServerConsumerAsync", "SQLServerConsumerAsync\SQLServerConsumerAsync.csproj", "{CA17710B-4B2E-4382-AB1C-7CB0236AA515}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLServerConsumerLinq", "SQLServerConsumerLinq\SQLServerConsumerLinq.csproj", "{EA13764D-C8FC-4E04-874B-73969C1BC917}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLServerScheduler", "SQLServerScheduler\SQLServerScheduler.csproj", "{5FD78401-75DE-4625-8CDC-2C8C86A89165}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLServerSchedulerConsumer", "SQLServerSchedulerConsumer\SQLServerSchedulerConsumer.csproj", "{0E2CB303-107A-44E9-99F1-349A559C0E80}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{370751AE-73D3-4D22-A081-63EE424BF5D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{370751AE-73D3-4D22-A081-63EE424BF5D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{370751AE-73D3-4D22-A081-63EE424BF5D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{370751AE-73D3-4D22-A081-63EE424BF5D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80DBD0EA-0C46-4958-B466-44FDF98E4EA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80DBD0EA-0C46-4958-B466-44FDF98E4EA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80DBD0EA-0C46-4958-B466-44FDF98E4EA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80DBD0EA-0C46-4958-B466-44FDF98E4EA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74B0C06F-2297-4BE0-A8BF-6DAFFE7073E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74B0C06F-2297-4BE0-A8BF-6DAFFE7073E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74B0C06F-2297-4BE0-A8BF-6DAFFE7073E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74B0C06F-2297-4BE0-A8BF-6DAFFE7073E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA17710B-4B2E-4382-AB1C-7CB0236AA515}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA17710B-4B2E-4382-AB1C-7CB0236AA515}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA17710B-4B2E-4382-AB1C-7CB0236AA515}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA17710B-4B2E-4382-AB1C-7CB0236AA515}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA13764D-C8FC-4E04-874B-73969C1BC917}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA13764D-C8FC-4E04-874B-73969C1BC917}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA13764D-C8FC-4E04-874B-73969C1BC917}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA13764D-C8FC-4E04-874B-73969C1BC917}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FD78401-75DE-4625-8CDC-2C8C86A89165}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FD78401-75DE-4625-8CDC-2C8C86A89165}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FD78401-75DE-4625-8CDC-2C8C86A89165}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FD78401-75DE-4625-8CDC-2C8C86A89165}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E2CB303-107A-44E9-99F1-349A559C0E80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E2CB303-107A-44E9-99F1-349A559C0E80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E2CB303-107A-44E9-99F1-349A559C0E80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E2CB303-107A-44E9-99F1-349A559C0E80}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FCA7CD6D-9A98-402A-A1C1-5941A7B7EE0F}
+	EndGlobalSection
+EndGlobal

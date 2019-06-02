@@ -1,0 +1,9 @@
+﻿{
+  "Jaeger": {
+    "JAEGER_SERVICE_NAME": "dotnetworkqueue-PostgreSQL-sample",
+    "JAEGER_AGENT_HOST": "192.168.0.76",
+    "JAEGER_AGENT_PORT": "6831",
+    "JAEGER_SAMPLER_TYPE": "const",
+    "JAEGER_SAMPLER_PARAM": "1"
+  },
+}

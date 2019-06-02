@@ -130,6 +130,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             }
         }
 
+        /// <inheritdoc />
+        public bool IsBlockingOperation => false; //nope
+
         /// <summary>
         /// Performs pre-checks on context
         /// </summary>

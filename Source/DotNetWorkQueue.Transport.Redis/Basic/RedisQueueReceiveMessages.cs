@@ -154,6 +154,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             }
         }
 
+        /// <inheritdoc />
+        public bool IsBlockingOperation => true; //we use signals to indicate new items, so yes
+
         /// <summary>
         /// Gets the next message from the queue
         /// </summary>

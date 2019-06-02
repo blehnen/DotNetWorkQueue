@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28922.388
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisConsumer", "RedisConsumer\RedisConsumer.csproj", "{125B3FBA-3FC8-44B3-9C23-A1DD67BEB050}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisConsumerAsync", "RedisConsumerAsync\RedisConsumerAsync.csproj", "{E1339E30-B992-4D79-9B04-40D851C62DD9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisProducer", "RedisProducer\RedisProducer.csproj", "{74AD03FA-5D7D-4540-A827-30709708FDB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisConsumerLinq", "RedisConsumerLinq\RedisConsumerLinq.csproj", "{C4669204-C481-4533-8053-FA2706E6B58A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisProducerLinq", "RedisProducerLinq\RedisProducerLinq.csproj", "{0D3D16AC-8CB0-4FD5-B366-DDBEB5CFDBB9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisScheduler", "RedisScheduler\RedisScheduler.csproj", "{B4DAD885-9572-4289-B841-A095FBE50169}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisSchedulerConsumer", "RedisSchedulerConsumer\RedisSchedulerConsumer.csproj", "{7F7AB67B-F831-4932-BF4A-63BE1F109215}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{125B3FBA-3FC8-44B3-9C23-A1DD67BEB050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{125B3FBA-3FC8-44B3-9C23-A1DD67BEB050}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{125B3FBA-3FC8-44B3-9C23-A1DD67BEB050}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{125B3FBA-3FC8-44B3-9C23-A1DD67BEB050}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1339E30-B992-4D79-9B04-40D851C62DD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1339E30-B992-4D79-9B04-40D851C62DD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1339E30-B992-4D79-9B04-40D851C62DD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1339E30-B992-4D79-9B04-40D851C62DD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74AD03FA-5D7D-4540-A827-30709708FDB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74AD03FA-5D7D-4540-A827-30709708FDB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74AD03FA-5D7D-4540-A827-30709708FDB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74AD03FA-5D7D-4540-A827-30709708FDB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4669204-C481-4533-8053-FA2706E6B58A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4669204-C481-4533-8053-FA2706E6B58A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4669204-C481-4533-8053-FA2706E6B58A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4669204-C481-4533-8053-FA2706E6B58A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D3D16AC-8CB0-4FD5-B366-DDBEB5CFDBB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D3D16AC-8CB0-4FD5-B366-DDBEB5CFDBB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D3D16AC-8CB0-4FD5-B366-DDBEB5CFDBB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D3D16AC-8CB0-4FD5-B366-DDBEB5CFDBB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4DAD885-9572-4289-B841-A095FBE50169}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4DAD885-9572-4289-B841-A095FBE50169}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4DAD885-9572-4289-B841-A095FBE50169}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4DAD885-9572-4289-B841-A095FBE50169}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F7AB67B-F831-4932-BF4A-63BE1F109215}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F7AB67B-F831-4932-BF4A-63BE1F109215}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F7AB67B-F831-4932-BF4A-63BE1F109215}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F7AB67B-F831-4932-BF4A-63BE1F109215}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3122E4A7-92E7-48BC-9427-93DB644A4EEA}
+	EndGlobalSection
+EndGlobal
