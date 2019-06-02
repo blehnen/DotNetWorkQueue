@@ -10,26 +10,26 @@ DotNetWorkQueue.Samples
 
 [**Samples**]
 
--Producer
--Producer LINQ
--Consumer with dedicated threads
--Consumer with dedicated reader and seperate processing threads
--Consumer for LINQ
--Scheduler
--Scheduler Consumer
+- Producer
+- Producer LINQ
+- Consumer with dedicated threads
+- Consumer with dedicated reader and seperate processing thread pool
+- Consumer for LINQ
+- Scheduler
+- Scheduler Consumer
 
 [**Sample Transports**]
 
--Redis
--SQL Server
--SQLite
--PostGresSQL
+- Redis
+- SQL Server
+- SQLite
+- PostGresSQL
 
 [**Configuration**]
 
--Set connection strings and queue name in app.config
--Enable/disable GZIP and encryption as needed in app.config
--Enable/disable tracing and metrics in app.config
+- Set connection strings and queue name in app.config
+- Enable/disable GZIP and encryption as needed in app.config
+- Enable/disable tracing and metrics in app.config
 
 [**Trace**]
 

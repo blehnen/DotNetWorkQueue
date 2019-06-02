@@ -7,13 +7,13 @@ DotNetWorkQueue
 
 A producer / distributed consumer library for dot net applications. Dot net 4.7.2 and Dot net standard 2.0 are supported
 
-| Transport 									| 4.7.2 		| Standard 2.0 |
-| ------------- 								| ------------- |------------- |
-| DotNetWorkQueue.Transport.SqlServer  			| Yes  			| Yes		   |
-| DotNetWorkQueue.Transport.PostgreSQL 			| Yes  			| Yes 		   |
-| DotNetWorkQueue.Transport.Redis 				| Yes  			| Yes		   |
-| DotNetWorkQueue.Transport.SQLite 				| Yes  			| No		   |
-| DotNetWorkQueue.Transport.SQLite.Microsoft 	| No  			| Yes		   |
+| Transport 			| 4.7.2 		| Standard 2.0 |
+| ------------- 		| ------------- |------------- |
+| SqlServer  			| Yes  			| Yes		   |
+| PostgreSQL 			| Yes  			| Yes 		   |
+| Redis 				| Yes  			| Yes		   |
+| SQLite 				| Yes  			| No		   |
+| SQLite.Microsoft 		| No  			| Yes		   |
 
 High level features
 
@@ -53,182 +53,38 @@ Dot net standard 2.0 is missing the following features from the full framework v
 Usage - POCO
 ------
 
-[**Message**]
-```csharp
-public class SimpleMessage
-{
-	public string Message { get; set; }
-}
-```
-
 [**Producer - Sql server**]
 
-```csharp
-//Create the queue if it doesn't exist
-var queueName = "testing";
-var connectionString = "Server=V-SQL;Application Name=SQLProducer;Database=TestR;Trusted_Connection=True;";
-using (var createQueueContainer = new QueueCreationContainer<SqlServerMessageQueueInit>())
-{
-	using (var createQueue = createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueName, connectionString))
-	{
-		if (!createQueue.QueueExists)
-		{
-			createQueue.CreateQueue();
-		}
-	}
-}
 
-using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
-{
-	using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
-    {
-		queue.Send(new SimpleMessage {Message = "Hello World"});
-    }
-}
-```
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLServer/SQLServerProducer/Program.cs
 
 [**Producer - SQLite**]
 
-```csharp
-//Create the queue if it doesn't exist
-var queueName = "testing";
-var connectionString = @"Data Source=c:\queue.db;Version=3;";
-using (var createQueueContainer = new QueueCreationContainer<SqLiteMessageQueueInit>())
-{
-	using (var createQueue = createQueueContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueName, connectionString))
-    {
-    	if (!createQueue.QueueExists)
-        {
-        	createQueue.CreateQueue();
-        }
-    }
- }
-
-using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>())
-{
-	using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
-    {
-    	queue.Send(new SimpleMessage { Message = "Hello World" });
-    }
-}
-```
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLite/SQLiteProducer/Program.cs
 
 [**Producer - Redis**]
-```csharp
-var queueName = "example";
-var connectionString = "192.168.0.212";
-using (var queueContainer = new QueueContainer<RedisQueueInit>())
-{
-	using (var queue = queueContainer.CreateProducer<SimpleMessage.SimpleMessage>(queueName, connectionString))
-	{
-		queue.Send(new SimpleMessage.SimpleMessage{Message = "hello world"});
-	}
-}
-```
+
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/Redis/RedisProducer/Program.cs
 
 [**Producer - PostgreSQL**]
 
-```csharp
-//Create the queue if it doesn't exist
-var queueName = "testing";
-var connectionString = "Server=V-SQL;Port=5432;Database=IntegrationTesting;Integrated Security=true;";
-using (var createQueueContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>())
-{
-	using (var createQueue = createQueueContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName, connectionString))
-	{
-		if (!createQueue.QueueExists)
-		{
-			createQueue.CreateQueue();
-		}
-	}
-}
-
-using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>())
-{
-	using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
-    {
-		queue.Send(new SimpleMessage {Message = "Hello World"});
-    }
-}
-```
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/PostgreSQL/PostgreSQLProducer/Program.cs
 
 [**Consumer - Sql server**]
 
-```csharp
-using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>())
-{
-	using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
-    {
-		queue.Start<SimpleMessage>(HandleMessages);
-		Console.WriteLine("Processing messages - press any key to stop");
-        Console.ReadKey((true));
-    }
-}
-
-private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
-{
-	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
-}
-
-```
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLServer/SQLServerConsumer/Program.cs
 
 [**Consumer - SQLite**]
 
-```csharp
-using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>())
-{
-	using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
-    {
-    	queue.Start<SimpleMessage>(HandleMessages);
-        Console.WriteLine("Processing messages - press any key to stop");
-        Console.ReadKey((true));
-    }
-}
-
-private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
-{
-	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
-}
-
-```
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLite/SQLiteConsumer/Program.cs
 
 [**Consumer - Redis**]
-```csharp
-using (var queueContainer = new QueueContainer<RedisQueueInit>())
-{
-	using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
-    {
-		queue.Start<SimpleMessage.SimpleMessage>(HandleMessages);
-        Console.WriteLine("Processing messages - press any key to stop");
-        Console.ReadKey((true));
-    }
-}
 
-private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
-{
-	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
-}
-```
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/Redis/RedisConsumer/Program.cs
 
 [**Consumer - PostgreSQL**]
 
-```csharp
-using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>())
-{
-	using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
-    {
-		queue.Start<SimpleMessage>(HandleMessages);
-		Console.WriteLine("Processing messages - press any key to stop");
-        Console.ReadKey((true));
-    }
-}
-
-private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
-{
-	notifications.Log.Log(DotNetWorkQueue.Logging.LogLevel.Debug, () => $"Processing Message {message.Body.Message}");
-}
-```
-
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/PostgreSQL/PostGreSQLConsumer/Program.cs
 
 Usage - Linq Expression
 ------
@@ -238,55 +94,6 @@ You can choose to send Linq expressions to be executed instead. This has some ad
 NOTE: It's possbile for a producer to queue up work that a consumer cannot process. In order for a consumer to execute the Linq statement, all types must be resolvable. For dynamic statements, it's also possible to queue up work that doesn't compile due to syntax errors. That won't be discovered until the consumer dequeues the work.
 
 ####Example#####
-
-[**Shared Classes**]
-Note that the producer needs references to shared resources when using standard Linq statements. However, if you are using dyanmic linq statements (expressed as a string), the producer does not need any references to the types being executed.
-
-```csharp
-
-Assembly: ProducerMethodTestingClasses.dll
-NameSpace: ProducerMethodTestingClasses
-
-public class TestCompile
-{
-	public void RunMe(IReceivedMessage<MessageExpression> message, IWorkerNotification workNotification)
-    {
-    	Console.WriteLine(message.MessageId.Id.Value);
-    }
-}
-
-public class TestClass
-{
-	public void RunMe(IWorkerNotification workNotification, string input1, int input2, SomeInput moreInput)
-	{
-		var sb = new StringBuilder();
-		sb.Append(input1);
-        sb.Append(" ");
-		sb.Append(input2);
-        sb.Append(" ");
-		sb.AppendLine(moreInput.Message);
-		Console.Write(sb.ToString());
-	}
-}
-
-public class SomeInput
-{
-	public SomeInput()
-    {
-    }
-
-    public SomeInput(string message)
-    {
-    	Message = message;
-    }
-
-	public string Message { get; set; }
-	public override string ToString()
-    {
-   	 	return Message;
-    }
-}
-```
 
 [**Producer**]
 NOTE - if passing in the message or worker notifications as arguments to dynamic linq, you must cast them. The internal compiler treats those as objects. You can see this syntax in the examples below. That's not nessasry if using standard Linq expressions.
@@ -299,39 +106,7 @@ WorkerNotification
 (IWorkerNotification)
 ```
 
-```csharp
-using (var queueContainer = new QueueContainer<AnyTransport>())
-{
-	using (var queue = queueContainer.CreateMethodProducer(queueName, connectionString))
-     {
-		//send a standard linq expression
-        queue.Send((message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
-
-		//send another standard linq expression
-		queue.Send((message, workerNotification) => new TestClass().RunMe(
-              workerNotification,
-              "a string",
-              2,
-              new SomeInput(DateTime.UtcNow.ToString())));
-
-       //send a dynamic expression. The consumer will attempt to compile and run this.
-       //The producer will perform no checks on this expression.
-       //note that you must indicate which additional assemblies and name spaces
-       //are needed to compile your expression or dependent classes.
-       queue.Send(new LinqExpressionToRun(
-        "(message, workerNotification) => new TestClass().RunMe((IWorkerNotification)workerNotification, \"dynamic\", 2, new SomeInput(DateTime.UtcNow.ToString()))",
-          new List<string> { "ProducerMethodTestingClasses.dll" }, //additional references
-          new List<string> { "ProducerMethodTestingClasses" })); //additional using statements
-
-       //send another dynamic expression
-       queue.Send(new LinqExpressionToRun(
-        "(message, workerNotification) => new TestCompile().RunMe((IReceivedMessage<MessageExpression>)message, (IWorkerNotification)workerNotification)",
-          new List<string> { "ProducerMethodTestingClasses.dll" },
-          new List<string> { "ProducerMethodTestingClasses" }));
-	}
-}
-
-```
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLite/SQLiteProducerLinq/Program.cs
 
 If you are passing value types, you will need to parse them. Here is an example.
 The Guid and the int are both inside string literials and parsed via the built in dot.net methods.
@@ -350,19 +125,7 @@ The consumer is generic; it can process any linq expression. However, it must be
 
 https://msdn.microsoft.com/en-us/library/system.appdomain.assemblyresolve(v=vs.110).aspx
 
-```csharp
-//NOTE - assumed that scheduler factory has already been created
-using (var queueContainer = new QueueContainer<AnyTransport>())
-{
-	using (var queue = queueContainer.CreateConsumerMethodQueueScheduler(queueName,
-       connectionString, factory))
-    {
-        queue.Start();
-        Console.WriteLine("Processing messages - press any key to stop");
-        Console.ReadKey(true);
-     }
-}
-```
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLite/SQLiteConsumerLinq/Program.cs
 
 The above queue will process all Linq statements sent to the specified connection / queue.
 
@@ -397,56 +160,14 @@ See [Schyntax ](https://github.com/schyntax/schyntax) for event scheduling forma
 
 The scheduler and container must be kept in scope until you are done scheduling work or shutting down. No work will be queued if the scheduler is disposed or falls out of scope.
 
-```csharp
-using (var jobContainer = new JobSchedulerContainer(QueueCreation))
-{
-	using (var scheduler = jobContainer.CreateJobScheduler())
-    {
-    	//events for job added, job add exception and job add failure
-        scheduler.OnJobQueueException += SchedulerOnOnJobQueueException;
-        scheduler.OnJobQueue += SchedulerOnOnJobEnQueue;
-        scheduler.OnJobNonFatalFailureQueue += SchedulerOnOnJobNonFatalFailureEnQueue;
-
-        scheduler.AddUpdateJob<SqlServerMessageQueueInit, SqlServerJobQueueCreation>("test job1",
-        	"sampleSQL",
-        	connectionString,
-            "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
-    		(message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
-
-       scheduler.AddUpdateJob<RedisQueueInit, RedisJobQueueCreation>("test job2",
-       "sampleRedis",
-       "192.168.0.212",
-       "second(0,15,30,45)",
-     	new LinqExpressionToRun("(message, workerNotification) => System.Threading.Thread.Sleep(20000)"));
-
-        scheduler.AddUpdateJob<SqLiteMessageQueueInit, SqliteJobQueueCreation>("test job3",
-        "sampleSqlite",
-        connectionStringSqlite,
-        "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
-        (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value));
-
-		//start may be called before or after adding jobs
-        scheduler.Start();
-        Console.WriteLine("Running - press any key to stop");
-        Console.ReadKey(true);
-	}
-}
-
-private static void SchedulerOnOnJobNonFatalFailureEnQueue(IScheduledJob scheduledJob, IJobQueueOutputMessage jobQueueOutputMessage)
-{
-}
-
-private static void SchedulerOnOnJobEnQueue(IScheduledJob scheduledJob, IJobQueueOutputMessage jobQueueOutputMessage)
-{
-}
-
-private static void SchedulerOnOnJobQueueException(IScheduledJob scheduledJob, Exception error)
-{
-}
-
-```
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLite/SQliteScheduler/Program.cs
 
 To consume / process scheduled jobs, a [Linq Consumer ](https://github.com/blehnen/DotNetWorkQueue/wiki/ConsumerLinq) is used
+
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLite/SQLiteSchedulerConsumer/Program.cs
+
+---------------------
+[**Samples**](https://github.com/blehnen/DotNetWorkQueue/tree/master/Source/Samples)
 
 [**More examples**](https://github.com/blehnen/DotNetWorkQueue/tree/master/Source/Examples)
 ------
@@ -454,7 +175,7 @@ To consume / process scheduled jobs, a [Linq Consumer ](https://github.com/blehn
 Building the source
 ---------------------
 
-You'll need VS2017 (any version) and you'll also need to install the dot net core 2.0 SDK
+You'll need VS2019 (any version) and you'll also need to install the dot net core 2.0 SDK
 
 All references are either in NuGet or the \lib folder - building from Visual studio should restore any needed files.
 
