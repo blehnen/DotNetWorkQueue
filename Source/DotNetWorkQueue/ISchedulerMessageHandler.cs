@@ -21,8 +21,21 @@ using System.Threading.Tasks;
 
 namespace DotNetWorkQueue
 {
+    /// <summary>
+    /// Handles scheduling a message for task schedulers
+    /// </summary>
     public interface ISchedulerMessageHandler
     {
+        /// <summary>
+        /// Handles scheduling a message on the task scheduler
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="workGroup">The work group.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="notifications">The notifications.</param>
+        /// <param name="functionToRun">The function to run.</param>
+        /// <param name="taskFactory">The task factory.</param>
+        /// <returns></returns>
         Task HandleAsync<T>(IWorkGroup workGroup, IReceivedMessage<T> message, IWorkerNotification notifications,
             Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ITaskFactory taskFactory)
             where T : class;
