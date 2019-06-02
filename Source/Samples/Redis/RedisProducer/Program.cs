@@ -27,7 +27,7 @@ namespace RedisProducer
             
             //create the producer
             using (var queueContainer = new QueueContainer<RedisQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlProducer", serviceRegister)))
+                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisProducer", serviceRegister)))
             {
                 using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
                 {
