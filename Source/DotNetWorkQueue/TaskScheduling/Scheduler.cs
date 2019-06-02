@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.TaskScheduling
     public class Scheduler : IConsumerQueueScheduler
     {
         private readonly IConsumerQueueAsync _queue;
-        private readonly SchedulerMessageHandler _schedulerMessageHandler;
+        private readonly ISchedulerMessageHandler _schedulerMessageHandler;
         private readonly Lazy<ITaskFactory> _taskFactory;
         private int _disposeCount;
         private int? _schedulerId;
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="factory">The factory.</param>
         /// <param name="workGroup">The work group.</param>
         public Scheduler(IConsumerQueueAsync queue, 
-            SchedulerMessageHandler schedulerMessageHandler,
+            ISchedulerMessageHandler schedulerMessageHandler,
             ITaskFactoryFactory factory,
             IWorkGroup workGroup)
         {

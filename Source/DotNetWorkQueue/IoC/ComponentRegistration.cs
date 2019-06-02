@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<ITaskFactory, SchedulerTaskFactory>(LifeStyles.Singleton);
             container.Register<IWaitForEventOrCancelThreadPool, WaitForEventOrCancelThreadPool>(LifeStyles.Singleton);
             container.Register<IWaitForEventOrCancelFactory, WaitForEventOrCancelFactory>(LifeStyles.Singleton);
-            container.Register<SchedulerMessageHandler, SchedulerMessageHandler>(LifeStyles.Singleton);
+            container.Register<ISchedulerMessageHandler, SchedulerMessageHandler>(LifeStyles.Singleton);
             container.Register<ITaskSchedulerFactory, TaskSchedulerFactory>(LifeStyles.Singleton);
             container.Register<ITaskFactoryFactory, TaskFactoryFactory>(LifeStyles.Singleton);
             container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);         
@@ -204,7 +204,7 @@ namespace DotNetWorkQueue.IoC
 
                 container.Register<ITaskSchedulerConfiguration, TaskSchedulerConfiguration>(LifeStyles.Singleton);
                 container.Register<ATaskScheduler, SmartThreadPoolTaskScheduler>(LifeStyles.Singleton);
-                container.Register<SchedulerMessageHandler, SchedulerMessageHandler>(LifeStyles.Singleton);
+                container.Register<ISchedulerMessageHandler, SchedulerMessageHandler>(LifeStyles.Singleton);
                 container.Register<ITaskFactory, SchedulerTaskFactory>(LifeStyles.Singleton);
                 container.Register<ITaskSchedulerFactory, TaskSchedulerFactory>(LifeStyles.Singleton);
                 container.Register<ITaskFactoryFactory, TaskFactoryFactory>(LifeStyles.Singleton);
@@ -423,6 +423,11 @@ namespace DotNetWorkQueue.IoC
 
             container.RegisterDecorator<ISerializer, Trace.Decorator.SerializerDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<ISendHeartBeat, Trace.Decorator.SendHeartBeatDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IProducerMethodJobQueue, Trace.Decorator.ProducerMethodJobQueueDecorator>(
+                LifeStyles.Singleton);
+
+            container.RegisterDecorator<ISchedulerMessageHandler, Trace.Decorator.SchedulerMessageHandlerDecorator>(
+                LifeStyles.Singleton);
         }
 
         /// <summary>

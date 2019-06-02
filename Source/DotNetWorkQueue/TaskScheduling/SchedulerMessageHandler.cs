@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.TaskScheduling
     /// <summary>
     /// Handles message processing for the task scheduler queue
     /// </summary>
-    public class SchedulerMessageHandler
+    public class SchedulerMessageHandler: ISchedulerMessageHandler
     {
         private readonly ILog _log;
         private readonly ICounter _waitingOnFreeThreadCounter;
