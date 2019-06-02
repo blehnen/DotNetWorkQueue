@@ -1,3 +1,8 @@
+###0.4.0 2019-06-02
+- Remove RPC
+- Implement OpenTracing https://opentracing.io/
+- Fix Message interception
+
 ###0.3.1 2019-04-26
 * Correct versioning for nuget publish
 
