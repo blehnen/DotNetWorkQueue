@@ -64,31 +64,6 @@ namespace DotNetWorkQueue.LinqCompile
             }
         }
 
-        /// <summary>
-        /// Compiles the input linqExpression into a Linq expression tree
-        /// </summary>
-        /// <param name="linqExpression">The linqExpression.</param>
-        /// <returns></returns>
-        public Func<object, object, object> CompileFunction(LinqExpressionToRun linqExpression)
-        {
-            Guard.NotNull(() => linqExpression, linqExpression);
-            Guard.NotNullOrEmpty(() => linqExpression.Linq, linqExpression.Linq);
-            var compiler = _objectPool.GetObject();
-            try
-            {
-                return compiler.CompileFunction(linqExpression);
-            }
-            catch (Exception error)
-            {
-                throw new CompileException($"Failed to compile linq expression [{linqExpression.Linq}]", error,
-                    linqExpression.Linq);
-            }
-            finally
-            {
-                _objectPool.ReturnObject(compiler);
-            }
-        }
-
         #region IDisposable Support
         private bool _disposedValue;
         /// <summary>

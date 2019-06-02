@@ -29,7 +29,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
     {
         private readonly ILinqCompiler _handler;
         private readonly ITimer _compileActionTimer;
-        private readonly ITimer _compileFunctionTimer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InternalSerializerDecorator" /> class.
@@ -43,7 +42,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
         {
             var name = "LinqCompiler";
             _compileActionTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.CompileActionTimer", Units.Calls);
-            _compileFunctionTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.CompileFunctionTimer", Units.Calls);
             _handler = handler;
         }
 
@@ -68,17 +66,5 @@ namespace DotNetWorkQueue.Metrics.Decorator
             }
         }
 
-        /// <summary>
-        /// Compiles the input linqExpression into a Linq expression tree
-        /// </summary>
-        /// <param name="linqExpression">The linqExpression.</param>
-        /// <returns></returns>
-        public Func<object, object, object> CompileFunction(LinqExpressionToRun linqExpression)
-        {
-            using (_compileFunctionTimer.NewContext())
-            {
-                return _handler.CompileFunction(linqExpression);
-            }
-        }
     }
 }

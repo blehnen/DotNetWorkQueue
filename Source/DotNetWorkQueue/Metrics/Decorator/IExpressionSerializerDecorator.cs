@@ -33,11 +33,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
         private readonly ITimer _methodToBytesTimer;
         private readonly ITimer _bytesToMethodTimer;
 
-        private readonly ITimer _functionToBytesTimer;
-        private readonly ITimer _bytesToFunctionTimer;
-
         private readonly IHistogram _resultMethodSizeHistogram;
-        private readonly IHistogram _resultFunctionSizeHistogram;
 
         private readonly IExpressionSerializer _handler;
 
@@ -55,11 +51,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
             _methodToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertMethodToBytesTimer", Units.Calls);
             _bytesToMethodTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToMethodTimer", Units.Calls);
             _resultMethodSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertMethodToBytesHistogram", Units.Bytes,
-                SamplingTypes.LongTerm);
-
-            _functionToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertFunctionToBytesTimer", Units.Calls);
-            _bytesToFunctionTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToFunctionTimer", Units.Calls);
-            _resultFunctionSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertFunctionToBytesHistogram", Units.Bytes,
                 SamplingTypes.LongTerm);
 
             _handler = handler;
@@ -90,34 +81,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
             using (_bytesToMethodTimer.NewContext())
             {
                 return _handler.ConvertBytesToMethod(bytes);
-            }
-        }
-
-        /// <summary>
-        /// Converts the function to bytes.
-        /// </summary>
-        /// <param name="method">The method.</param>
-        /// <returns></returns>
-        public byte[] ConvertFunctionToBytes(Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> method)
-        {
-            using (_functionToBytesTimer.NewContext())
-            {
-                var result = _handler.ConvertFunctionToBytes(method);
-                _resultFunctionSizeHistogram.Update(result.Length, result.Length.ToString(CultureInfo.InvariantCulture));
-                return result;
-            }
-        }
-
-        /// <summary>
-        /// Converts the bytes back to the function.
-        /// </summary>
-        /// <param name="bytes">The bytes.</param>
-        /// <returns></returns>
-        public Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> ConvertBytesToFunction(byte[] bytes)
-        {
-            using (_bytesToFunctionTimer.NewContext())
-            {
-                return _handler.ConvertBytesToFunction(bytes);
             }
         }
     }

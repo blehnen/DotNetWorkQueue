@@ -29,9 +29,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
     {
         private readonly IMessageMethodHandling _handler;
         private readonly ITimer _runMethodCompiledCodeTimer;
-        private readonly ITimer _runFunctionCompiledCodeTimer;
         private readonly ITimer _runMethodDynamicCodeTimer;
-        private readonly ITimer _runFunctionDynamicCodeTimer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageMethodHandlingDecorator" /> class.
@@ -45,9 +43,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
         {
             var name = "MessageMethodHandling";
             _runMethodCompiledCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleCompiledMethodTimer", Units.Calls);
-            _runFunctionCompiledCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleCompiledFunctionTimer", Units.Calls);
             _runMethodDynamicCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleDynamicMethodTimer", Units.Calls);
-            _runFunctionDynamicCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleDynamicFunctionTimer", Units.Calls);
             _handler = handler;
         }
 

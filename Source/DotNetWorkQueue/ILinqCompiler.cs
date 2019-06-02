@@ -32,12 +32,5 @@ namespace DotNetWorkQueue
         /// <param name="linqExpression">The linqExpression.</param>
         /// <returns></returns>
         Action<object, object> CompileAction(LinqExpressionToRun linqExpression);
-
-        /// <summary>
-        /// Compiles the input linqExpression into a Linq expression tree
-        /// </summary>
-        /// <param name="linqExpression">The linqExpression.</param>
-        /// <returns></returns>
-        Func<object, object, object> CompileFunction(LinqExpressionToRun linqExpression);
     }
 }

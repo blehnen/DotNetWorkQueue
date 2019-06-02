@@ -33,15 +33,10 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
     {
         private readonly ILinqCompiler _handler;
         private readonly CachePolicy<Action<object, object>> _cacheActions;
-        private readonly CachePolicy<Func<object, object, object>> _cacheFunctions;
 
         private readonly ICounter _counterActionCacheHit;
         private readonly ICounter _counterActionCacheMiss;
         private readonly ICounter _counterActionCacheUnique;
-
-        private readonly ICounter _counterFunctionCacheHit;
-        private readonly ICounter _counterFunctionCacheMiss;
-        private readonly ICounter _counterFunctionCacheUnique;
 
         /// <summary>Initializes a new instance of the <see cref="LinqCompileCacheDecorator"/> class.</summary>
         /// <param name="handler">The handler.</param>
@@ -61,20 +56,11 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
             , OnCacheGetAction, OnCacheMissAction, (context, s) => { }, (context, s, arg3) => { },
             (context, s, arg3) => { });
 
-            _cacheFunctions = Policy.Cache<Func<object, object, object>>(cacheProvider, new SlidingTtl(cachePolicy.SlidingExpiration)
-                , OnCacheGetFunction, OnCacheMissFunction, (context, s) => { }, (context, s, arg3) => { },
-                (context, s, arg3) => { });
-
             var name = handler.GetType().Name;
 
             _counterActionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheHitCounter", Units.Items);
             _counterActionCacheMiss = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheMissCounter", Units.Items);
             _counterActionCacheUnique = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionUniqueFlaggedCounter", Units.Items);
-
-            _counterFunctionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionCacheHitCounter", Units.Items);
-            _counterFunctionCacheMiss = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionCacheMissCounter", Units.Items);
-            _counterFunctionCacheUnique = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqFunctionUniqueFlaggedCounter", Units.Items);
-
         }
 
         private void OnCacheMissAction(Context arg1, string arg2)
@@ -85,16 +71,6 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
         private void OnCacheGetAction(Context arg1, string arg2)
         {
             _counterActionCacheHit.Increment(arg1.OperationKey);
-        }
-
-        private void OnCacheMissFunction(Context arg1, string arg2)
-        {
-            _counterFunctionCacheMiss.Increment(arg1.OperationKey);
-        }
-
-        private void OnCacheGetFunction(Context arg1, string arg2)
-        {
-            _counterFunctionCacheHit.Increment(arg1.OperationKey);
         }
 
         /// <summary>
@@ -112,23 +88,6 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
 
             var key = GenerateKey(linqExpression);
             return _cacheActions.Execute(context => _handler.CompileAction(linqExpression), new Context(key));      
-        }
-
-        /// <summary>
-        /// Compiles the input linqExpression into a Linq expression tree
-        /// </summary>
-        /// <param name="linqExpression">The linqExpression.</param>
-        /// <returns></returns>
-        public Func<object, object, object> CompileFunction(LinqExpressionToRun linqExpression)
-        {
-            if (linqExpression.Unique) //don't bother caching
-            {
-                _counterFunctionCacheUnique.Increment();
-                return _handler.CompileFunction(linqExpression);
-            }
-
-            var key = GenerateKey(linqExpression);
-            return _cacheFunctions.Execute(context => _handler.CompileFunction(linqExpression), new Context(key));
         }
 
         /// <summary>

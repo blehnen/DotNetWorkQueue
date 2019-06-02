@@ -40,18 +40,5 @@ namespace DotNetWorkQueue
         /// <param name="bytes">The bytes.</param>
         /// <returns></returns>
         Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> ConvertBytesToMethod(byte[] bytes);
-
-        /// <summary>
-        /// Converts the function to bytes.
-        /// </summary>
-        /// <param name="method">The method.</param>
-        /// <returns></returns>
-        byte[] ConvertFunctionToBytes(Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> method);
-        /// <summary>
-        /// Converts the bytes back to the function.
-        /// </summary>
-        /// <param name="bytes">The bytes.</param>
-        /// <returns></returns>
-        Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> ConvertBytesToFunction(byte[] bytes);
     }
 }

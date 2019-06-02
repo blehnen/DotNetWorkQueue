@@ -19,16 +19,6 @@ namespace DotNetWorkQueue.Tests.Serialization
             Assert.Equal(Tester.GetValue(), value);
         }
 
-        [Theory, AutoData]
-        public void RoundTripFunction(int value)
-        {
-            var test = Create();
-            var bytes = test.ConvertFunctionToBytes((message, notification) => Tester.ReturnValue(value));
-            var method = test.ConvertBytesToFunction(bytes);
-            var methodValue = (int)method.Compile().DynamicInvoke(null, null);
-            Assert.Equal(methodValue, value);
-
-        }
 
         [Fact]
         public void ConvertToBytes_Null_Exception()
@@ -48,27 +38,6 @@ namespace DotNetWorkQueue.Tests.Serialization
            delegate
            {
                test.ConvertBytesToMethod(null);
-           });
-        }
-
-        [Fact]
-        public void ConvertFunctionToBytes_Null_Exception()
-        {
-            var test = Create();
-            Assert.Throws<ArgumentNullException>(
-           delegate
-           {
-               test.ConvertFunctionToBytes(null);
-           });
-        }
-        [Fact]
-        public void BytesToFunction_Null_Exception()
-        {
-            var test = Create();
-            Assert.Throws<ArgumentNullException>(
-           delegate
-           {
-               test.ConvertBytesToFunction(null);
            });
         }
 

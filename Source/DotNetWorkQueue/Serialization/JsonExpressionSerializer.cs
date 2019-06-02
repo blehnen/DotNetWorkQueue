@@ -60,25 +60,5 @@ namespace DotNetWorkQueue.Serialization
             Guard.NotNull(() => method, method);
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(method, _serializerSettings));
         }
-
-        /// <inheritdoc />
-        public byte[] ConvertFunctionToBytes(
-            Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> method)
-        {
-            Guard.NotNull(() => method, method);
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(method, _serializerSettings));
-        }
-        
-        /// <inheritdoc />
-        public Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>> ConvertBytesToFunction
-            (byte[] bytes)
-        {
-            Guard.NotNull(() => bytes, bytes);
-            return
-                JsonConvert
-                    .DeserializeObject
-                    <Expression<Func<IReceivedMessage<MessageExpression>, IWorkerNotification, object>>>(
-                        Encoding.UTF8.GetString(bytes), _serializerSettings);
-        }
     }
 }
