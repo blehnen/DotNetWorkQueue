@@ -64,10 +64,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             var log = container.GetInstance<ILogFactory>().Create();
 
             var retrySql = Policy
-                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.ResultCode))
+                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), Convert.ToInt32(ex.ResultCode)))
                 .WaitAndRetry(
                     RetryConstants.RetryCount,
-                    retryAttempt => TimeSpan.FromSeconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                    retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
                     (exception, timeSpan, retryCount, context) =>
                     {
                         log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);

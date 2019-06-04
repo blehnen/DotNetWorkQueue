@@ -192,7 +192,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 .Handle<PostgresException>(ex => RetryablePostGreErrors.Errors.Contains(ex.SqlState))
                 .WaitAndRetry(
                     RetryConstants.RetryCount,
-                    retryAttempt => TimeSpan.FromSeconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                    retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
                     (exception, timeSpan, retryCount, context) =>
                     {
                         log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
@@ -202,7 +202,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 .Handle<PostgresException>(ex => RetryablePostGreErrors.Errors.Contains(ex.SqlState))
                 .WaitAndRetryAsync(
                     RetryConstants.RetryCount,
-                    retryAttempt => TimeSpan.FromSeconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                    retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
                     (exception, timeSpan, retryCount, context) =>
                     {
                         log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
