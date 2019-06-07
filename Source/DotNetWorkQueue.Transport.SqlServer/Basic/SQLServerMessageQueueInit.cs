@@ -3,8 +3,6 @@ using System.Data.SqlClient;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
-using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Policies;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -20,7 +18,6 @@ using DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Time;
 using DotNetWorkQueue.Transport.SqlServer.Decorator;
 using DotNetWorkQueue.Validation;
-using Polly;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -173,55 +170,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
         private void SetupPolicy(IContainer container)
         {
-            var policies = container.GetInstance<IPolicies>();
-            var log = container.GetInstance<ILogFactory>().Create();
-
-            var retrySql = Policy
-                .Handle<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
-                .WaitAndRetry(
-                    RetryConstants.RetryCount,
-                    retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
-                    (exception, timeSpan, retryCount, context) =>
-                    {
-                        log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
-                    });
-
-            var retrySqlAsync = Policy
-                .Handle<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
-                .WaitAndRetryAsync(
-                    RetryConstants.RetryCount,
-                    retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
-                    (exception, timeSpan, retryCount, context) =>
-                    {
-                        log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
-                    });
-
-            //RetryCommandHandler
-            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandler,
-                new TransportPolicyDefinition(
-                    TransportPolicyDefinitions.RetryCommandHandler,
-                    "A policy for retrying a failed command. This checks specific" +
-                    "SQL server errors, such as deadlocks, and retries the command" +
-                    "after a short pause"));
-            policies.Registry[TransportPolicyDefinitions.RetryCommandHandler] = retrySql;
-
-            //RetryCommandHandlerAsync
-            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandlerAsync,
-                new TransportPolicyDefinition(
-                    TransportPolicyDefinitions.RetryCommandHandler,
-                    "A policy for retrying a failed command. This checks specific" +
-                    "PostGres server errors, such as deadlocks, and retries the command" +
-                    "after a short pause"));
-            policies.Registry[TransportPolicyDefinitions.RetryCommandHandlerAsync] = retrySqlAsync;
-
-            //RetryQueryHandler
-            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryQueryHandler,
-                new TransportPolicyDefinition(
-                    TransportPolicyDefinitions.RetryQueryHandler,
-                    "A policy for retrying a failed query. This checks specific" +
-                    "SQL server errors, such as deadlocks, and retries the query" +
-                    "after a short pause"));
-            policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql;
+            RetrySqlPolicyCreation.Register(container);
         }
     }
 }

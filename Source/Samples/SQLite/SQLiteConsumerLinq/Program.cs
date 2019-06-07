@@ -31,7 +31,7 @@ namespace SQLiteConsumerLinq
             using (var createQueueContainer = new QueueCreationContainer<SqLiteMessageQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumerLinq",
-                    serviceRegister)))
+                    serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
                     createQueueContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueName, connectionString))
@@ -49,7 +49,7 @@ namespace SQLiteConsumerLinq
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumerLinq",
-                    serviceRegister)))
+                    serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = schedulerContainer.CreateTaskScheduler())
                 {
@@ -64,7 +64,7 @@ namespace SQLiteConsumerLinq
                     using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(serviceRegister =>
                         Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                             SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
-                            "SQLiteConsumerLinq", serviceRegister)))
+                            "SQLiteConsumerLinq", serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
                         using (var queue =
                             queueContainer.CreateConsumerMethodQueueScheduler(queueName, connectionString, factory))

@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.JobScheduler
             var transportName = typeof(TTransportInit).ToString();
             if (!_containers.ContainsKey(transportName))
             {
-                var container = new QueueContainer<TTransportInit>(_registrations.QueueRegistrations);
+                var container = new QueueContainer<TTransportInit>(_registrations.QueueRegistrations, _registrations.QueueOptions);
                 if (!_containers.TryAdd(transportName, container))
                 {
                     container.Dispose();
@@ -89,11 +89,11 @@ namespace DotNetWorkQueue.JobScheduler
             if (!_queues.ContainsKey(connectionInfo))
             {
                 using (var jobQueueCreation =
-                    new JobQueueCreationContainer<TTransportInit>(_registrations.QueueCreationRegistrations))
+                    new JobQueueCreationContainer<TTransportInit>(_registrations.QueueCreationRegistrations, _registrations.QueueCreationOptions))
                 {
                     using (var createQueue = jobQueueCreation.GetQueueCreation<TQueue>(queueName, connection))
                     {
-                        var createResult = createQueue.CreateJobSchedulerQueue(_registrations.QueueCreationRegistrations, queueName, connection);
+                        var createResult = createQueue.CreateJobSchedulerQueue(_registrations.QueueCreationRegistrations, queueName, connection, _registrations.QueueCreationOptions);
                         if (createResult.Success)
                         {
                             var scope = createQueue.Scope;
@@ -143,7 +143,7 @@ namespace DotNetWorkQueue.JobScheduler
             var transportName = typeof(TTransportInit).ToString();
             if (!_containers.ContainsKey(transportName))
             {
-                var container = new QueueContainer<TTransportInit>(_registrations.QueueRegistrations);
+                var container = new QueueContainer<TTransportInit>(_registrations.QueueRegistrations, _registrations.QueueOptions);
                 if (!_containers.TryAdd(transportName, container))
                 {
                     container.Dispose();
@@ -153,7 +153,7 @@ namespace DotNetWorkQueue.JobScheduler
             if (!_queues.ContainsKey(connectionInfo))
             {
                 var createResult = jobQueueCreation.CreateJobSchedulerQueue(_registrations.QueueCreationRegistrations,
-                    queueName, connection);
+                    queueName, connection, _registrations.QueueCreationOptions);
                 if (createResult.Success)
                 {
                     var scope = jobQueueCreation.Scope;

@@ -49,40 +49,40 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                                 var producer = new ProducerAsyncShared();
                                 producer.RunTestAsync<MemoryMessageQueueInit, FakeMessage>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, oCreation.Scope).Wait(timeOut / 2 * 1000);
+                                    Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                                 var consumer = new ConsumerAsyncShared<FakeMessage> { Factory = Factory };
                                 consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false);
                             }
                             else if (messageType == 2)
                             {
                                 var producer = new ProducerAsyncShared();
                                 producer.RunTestAsync<MemoryMessageQueueInit, FakeMessageA>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, oCreation.Scope).Wait(timeOut / 2 * 1000);
+                                    Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                                 var consumer = new ConsumerAsyncShared<FakeMessageA> { Factory = Factory };
                                 consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false);
                             }
                             else if (messageType == 3)
                             {
                                 var producer = new ProducerAsyncShared();
                                 producer.RunTestAsync<MemoryMessageQueueInit, FakeMessageB>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, oCreation.Scope).Wait(timeOut / 2 * 1000);
+                                    Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                                 var consumer = new ConsumerAsyncShared<FakeMessageB> { Factory = Factory };
                                 consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount,
-                                    TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
+                                    TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false);
                             }
 
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);

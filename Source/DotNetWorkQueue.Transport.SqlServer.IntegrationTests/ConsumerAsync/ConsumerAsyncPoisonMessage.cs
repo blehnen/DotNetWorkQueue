@@ -11,12 +11,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, false),
-         InlineData(10, 30, 5, 1, 0, false),
-         InlineData(10, 30, 5, 1, 0, true),
-         InlineData(50, 40, 20, 2, 2, true)]
+        [InlineData(1, 20, 1, 1, 0, false, false),
+         InlineData(10, 30, 5, 1, 0, false, false),
+         InlineData(10, 30, 5, 1, 0, true, false),
+         InlineData(50, 40, 20, 2, 2, true, false),
+         InlineData(3, 30, 5, 1, 0, false, true),
+         InlineData(3, 30, 5, 1, 0, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
-            bool useTransactions)
+            bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -46,7 +48,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                         var producer = new ProducerShared();
                         producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         //process data
                         var consumer = new ConsumerAsyncPoisonMessageShared<FakeMessage>();

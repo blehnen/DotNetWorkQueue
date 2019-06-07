@@ -12,9 +12,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, true),
-         InlineData(10, 30, 5, false)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb)
+        [InlineData(1, 20, 1, true, false),
+         InlineData(10, 30, 5, false, false),
+         InlineData(1, 40, 1, true, true)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                             //process data
                             var consumer = new ConsumerPoisonMessageShared<FakeMessage>();

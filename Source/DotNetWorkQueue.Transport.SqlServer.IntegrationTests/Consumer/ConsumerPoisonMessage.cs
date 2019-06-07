@@ -11,9 +11,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
     public class ConsumerPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, false),
-         InlineData(10, 30, 5, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions)
+        [InlineData(1, 40, 1, false, true),
+         InlineData(10, 30, 5, true, false)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         //process data
                         var consumer = new ConsumerPoisonMessageShared<FakeMessage>();

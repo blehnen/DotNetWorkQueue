@@ -16,12 +16,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
     {
         [Theory]
 #if NETFULL
-        [InlineData(LinqMethodTypes.Dynamic),
-         InlineData(LinqMethodTypes.Compiled)]
+        [InlineData(100, LinqMethodTypes.Dynamic, true),
+         InlineData(1000, LinqMethodTypes.Compiled, false)]
 #else
-        [InlineData(LinqMethodTypes.Compiled)]
+        [InlineData(1000, LinqMethodTypes.Compiled, false),
+        InlineData(100, LinqMethodTypes.Compiled, true)]
 #endif
-        public void Run(LinqMethodTypes linqMethodTypes)
+        public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -41,9 +42,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
 
-                        RunTest(queueName, 1000, 10, logProvider, Guid.NewGuid(), 0, linqMethodTypes, null);
+                        RunTest(queueName, messageCount, 10, logProvider, Guid.NewGuid(), 0, linqMethodTypes, null, enableChaos);
                         LoggerShared.CheckForErrors(queueName);
-                        new VerifyQueueData(queueName, oCreation.Options).Verify(1000*10, null);
+                        new VerifyQueueData(queueName, oCreation.Options).Verify(messageCount * 10, null);
                     }
                 }
                 finally
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, Guid id, int runTime, LinqMethodTypes linqMethodTypes, ICreationScope scope)
+        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, Guid id, int runTime, LinqMethodTypes linqMethodTypes, ICreationScope scope, bool enableChaos)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
@@ -76,7 +77,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                                     producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                                         ConnectionInfo.ConnectionString, false, messageCount,
                                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateDynamic, runTime, scope)));
+                                        GenerateMethod.CreateDynamic, runTime, scope, enableChaos)));
                         break;
 #endif
                     case LinqMethodTypes.Compiled:
@@ -86,7 +87,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                                     producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueName,
                                         ConnectionInfo.ConnectionString, false, messageCount,
                                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateCompiled, runTime, scope)));
+                                        GenerateMethod.CreateCompiled, runTime, scope, enableChaos)));
                         break;
                 }
             }

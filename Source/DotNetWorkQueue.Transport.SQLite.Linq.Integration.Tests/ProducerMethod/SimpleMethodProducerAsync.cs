@@ -13,14 +13,23 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerAsync
     {
         [Theory]
-        [InlineData(1000, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic),
-         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic),
-         InlineData(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic),
-         InlineData(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic),
-         InlineData(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled),
-         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled),
-         InlineData(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled),
-         InlineData(1000, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled)]
+        [InlineData(1000, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
+         InlineData(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
+         InlineData(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
+         InlineData(1000, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
+
+         InlineData(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, true),
+         InlineData(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, true),
+         InlineData(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, true),
+         InlineData(10, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, true),
+         InlineData(10, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true),
+         InlineData(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
         public async void Run(
             int messageCount,
             bool interceptors,
@@ -32,7 +41,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
             bool enableStatusTable,
             bool additionalColumn, 
             bool inMemoryDb,
-            LinqMethodTypes linqMethodTypes)
+            LinqMethodTypes linqMethodTypes,
+            bool enableChaos)
         {
 
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
@@ -73,7 +83,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                             await producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope).ConfigureAwait(false);
+                                Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope, enableChaos).ConfigureAwait(false);
                         }
                     }
                     finally

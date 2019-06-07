@@ -9,7 +9,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
         public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
             ILogProvider logProvider,
             int workerCount, int timeOut, int messageCount,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueName))
@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 }
 
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false, enableChaos)
                     )
                 {
                     bool rollbacks;

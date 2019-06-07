@@ -21,12 +21,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
             bool sendViaBatch, Guid id,
             Func<Guid, int, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>>
-                generateTestMethod, int runTime, ICreationScope scope)
+                generateTestMethod, int runTime, ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
             RunTestCompiled<TTransportInit>(queueName, connectionString, addInterceptors, messageCount, logProvider,
                 generateData,
-                verify, sendViaBatch, true, id, generateTestMethod, runTime, scope);
+                verify, sendViaBatch, true, id, generateTestMethod, runTime, scope, enableChaos);
         }
 
 #if NETFULL
@@ -39,12 +39,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
            bool sendViaBatch, Guid id,
            Func<Guid, int,LinqExpressionToRun>
-               generateTestMethod, int runTime, ICreationScope scope)
+               generateTestMethod, int runTime, ICreationScope scope, bool enableChaos)
            where TTransportInit : ITransportInit, new()
         {
             RunTestDynamic<TTransportInit>(queueName, connectionString, addInterceptors, messageCount, logProvider,
                 generateData,
-                verify, sendViaBatch, true, id, generateTestMethod, runTime, scope);
+                verify, sendViaBatch, true, id, generateTestMethod, runTime, scope, enableChaos);
         }
 #endif
 
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
             bool sendViaBatch, bool validateMetricCounts, Guid id,
             Func<Guid, int, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>>
-                generateTestMethod, int runTime, ICreationScope scope)
+                generateTestMethod, int runTime, ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueName))
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     addInterceptorProducer = InterceptorAdding.Yes;
                 }
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, enableChaos)
                     )
                 {
                     //create the queue
@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
             bool sendViaBatch, bool validateMetricCounts, Guid id,
-            Func<Guid, int, LinqExpressionToRun> generateTestMethod, int runTime, ICreationScope scope)
+            Func<Guid, int, LinqExpressionToRun> generateTestMethod, int runTime, ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueName))
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     addInterceptorProducer = InterceptorAdding.Yes;
                 }
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, enableChaos)
                     )
                 {
                     //create the queue

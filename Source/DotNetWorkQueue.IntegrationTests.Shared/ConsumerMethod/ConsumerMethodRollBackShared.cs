@@ -18,7 +18,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             TimeSpan heartBeatTime, 
             TimeSpan heartBeatMonitorTime,
             string updateTime,
-            Guid id)
+            Guid id, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 }
 
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, enableChaos)
                     )
                 {
                     using (

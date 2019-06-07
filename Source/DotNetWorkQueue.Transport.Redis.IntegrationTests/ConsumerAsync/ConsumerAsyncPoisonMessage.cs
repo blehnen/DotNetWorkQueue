@@ -31,14 +31,14 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         var producer = new ProducerShared();
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateRouteData,
-                            Helpers.Verify, false, null);
+                            Helpers.Verify, false, null, false);
                     }
                     else
                     {
                         var producer = new ProducerShared();
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null);
+                            Helpers.Verify, false, null, false);
                     }
 
                     //process data

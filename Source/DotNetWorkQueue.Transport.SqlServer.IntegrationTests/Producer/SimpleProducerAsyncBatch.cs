@@ -10,15 +10,25 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
     public class SimpleProducerAsyncBatch
     {
         [Theory]
-        [InlineData(1000, true, true, true, false, false, false, true, false, false),
-         InlineData(1000, false, true, true, false, false, false, true, false, false),
-         InlineData(1000, false, false, false, false, false, false, false, false, false),
-         InlineData(1000, true, false, false, false, false, false, false, false, false),
-         InlineData(1000, false, false, false, false, false, false, false, true, false),
-         InlineData(1000, false, false, false, false, false, false, true, true, false),
-         InlineData(1000, false, true, false, true, true, true, false, true, false),
-         InlineData(1000, false, true, true, false, true, true, true, true, false),
-            InlineData(1000, true, true, true, false, false, false, true, false, true)]
+        [InlineData(1000, true, true, true, false, false, false, true, false, false, false),
+         InlineData(1000, false, true, true, false, false, false, true, false, false, false),
+         InlineData(1000, false, false, false, false, false, false, false, false, false, false),
+         InlineData(1000, true, false, false, false, false, false, false, false, false, false),
+         InlineData(1000, false, false, false, false, false, false, false, true, false, false),
+         InlineData(1000, false, false, false, false, false, false, true, true, false, false),
+         InlineData(1000, false, true, false, true, true, true, false, true, false, false),
+         InlineData(1000, false, true, true, false, true, true, true, true, false, false),
+         InlineData(1000, true, true, true, false, false, false, true, false, true, false),
+
+         InlineData(10, true, true, true, false, false, false, true, false, false, true),
+         InlineData(10, false, true, true, false, false, false, true, false, false, true),
+         InlineData(10, false, false, false, false, false, false, false, false, false, true),
+         InlineData(10, true, false, false, false, false, false, false, false, false, true),
+         InlineData(10, false, false, false, false, false, false, false, true, false, true),
+         InlineData(10, false, false, false, false, false, false, true, true, false, true),
+         InlineData(10, false, true, false, true, true, true, false, true, false, true),
+         InlineData(10, false, true, true, false, true, true, true, true, false, true),
+         InlineData(10, true, true, true, false, false, false, true, false, true, true)]
         public async void Run(
             int messageCount,
             bool interceptors,
@@ -29,7 +39,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
             bool enablePriority,
             bool enableStatus,
             bool enableStatusTable,
-            bool additionalColumn)
+            bool additionalColumn, 
+            bool enableChaos)
         {
 
             var queueName = GenerateQueueName.Create();
@@ -69,7 +80,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
                         await producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
-                            Helpers.Verify, true, oCreation.Scope).ConfigureAwait(false);
+                            Helpers.Verify, true, oCreation.Scope, enableChaos).ConfigureAwait(false);
                     }
                 }
                 finally

@@ -42,7 +42,6 @@ namespace ConsoleSharedCommands.Commands
         private readonly Lazy<QueueContainer<TTransportInit>> _queueContainer;
         private readonly Lazy<SchedulerContainer> _schedulerContainer; 
         protected readonly Dictionary<string, IConsumerBaseQueue> Queues;
-        protected readonly Dictionary<string, IProducerQueueRpc<SimpleResponse>> RpcQueues;
         private ATaskScheduler _taskScheduler;
         private ITaskFactory _taskFactory;
 
@@ -51,7 +50,6 @@ namespace ConsoleSharedCommands.Commands
             _schedulerContainer = new Lazy<SchedulerContainer>(CreateSchedulerContainer);
             _queueContainer = new Lazy<QueueContainer<TTransportInit>>(CreateContainer);
             Queues = new Dictionary<string, IConsumerBaseQueue>();
-            RpcQueues = new Dictionary<string, IProducerQueueRpc<SimpleResponse>>();
         }
 
         public override ConsoleExecuteResult Help()
@@ -288,12 +286,6 @@ namespace ConsoleSharedCommands.Commands
                 _queueContainer.Value.Dispose();
             }
 
-            foreach (var queue in RpcQueues.Values)
-            {
-                queue.Dispose();
-            }
-            RpcQueues.Clear();
-
             _taskScheduler?.Dispose();
             if (_schedulerContainer.IsValueCreated)
             {
@@ -330,14 +322,6 @@ namespace ConsoleSharedCommands.Commands
             {
                 container.Register(() => DesConfiguration,
                     LifeStyles.Singleton);
-            }
-        }
-
-        protected void CreateRpcModuleIfNeeded(string queueName, string connection)
-        {
-            if (!string.IsNullOrWhiteSpace(queueName) && !RpcQueues.ContainsKey(queueName))
-            {
-                RpcQueues.Add(queueName, _queueContainer.Value.CreateProducerRpc<SimpleResponse>(queueName, connection));
             }
         }
 
@@ -401,9 +385,6 @@ namespace ConsoleSharedCommands.Commands
         /// <param name="notifications">The notifications.</param>
         private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
         {
-            //if we have a connection, this is an rpc request
-            var connection = message.GetHeader(notifications.HeaderNames.StandardHeaders.RpcConnectionInfo);
-
             notifications.Log.Debug(
                 $"Processing Message {message.MessageId} with run time {message.Body.RunTimeInMs}");
 
@@ -429,13 +410,6 @@ namespace ConsoleSharedCommands.Commands
                 }
             }
             notifications.Log.Debug($"Processed message {message.MessageId}");
-
-            if (connection == null) return;
-
-            var timeOut = message.GetHeader(notifications.HeaderNames.StandardHeaders.RpcTimeout).Timeout;
-            CreateRpcModuleIfNeeded(connection.QueueName, connection.ConnectionString);
-            RpcQueues[connection.QueueName].Send(new SimpleResponse {Message = DateTime.UtcNow.ToString(System.Globalization.CultureInfo.InvariantCulture) },
-                RpcQueues[connection.QueueName].CreateResponse(message.MessageId, timeOut));
         }
     }
 }

@@ -43,6 +43,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Polly.Contrib.Simmy" Version="0.1.0" />
+  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj" />

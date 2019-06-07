@@ -29,7 +29,8 @@ namespace SQLiteConsumer
             var connectionString =
                 $"Data Source={fileLocation}{ConfigurationManager.AppSettings.ReadSetting("Database")};Version=3;";
             using (var createQueueContainer = new QueueCreationContainer<SqLiteMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumer", serviceRegister)))
+                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumer", serviceRegister)
+                , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
                     createQueueContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueName, connectionString))
@@ -38,13 +39,14 @@ namespace SQLiteConsumer
                     {
                         //the consumer can't do anything if the queue hasn't been created
                         Log.Error($"Could not find {connectionString}. Verify that you have run the producer, which will create the queue");
-                       return;
+                        return;
                     }
                 }
             }
 
             using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumer", serviceRegister)))
+                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumer", serviceRegister),
+                options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
                 {

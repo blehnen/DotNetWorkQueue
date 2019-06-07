@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
             {
                 var producer = new ProducerShared();
                 var task = new Task(() => producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueName, connectionString, false, messageCount,
-                    logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, scope));
+                    logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, scope, false));
                 tasks.Add(task); 
             }
             tasks.AsParallel().ForAll(x => x.Start());

@@ -19,24 +19,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         {
             _queueCreation = queueCreation;
         }
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+
+        /// <inheritdoc />
         public bool IsDisposed => _queueCreation.IsDisposed;
 
-        /// <summary>
-        /// Gets a disposable creation scope
-        /// </summary>
-        /// <value>
-        /// The scope.
-        /// </value>
-        /// <remarks>
-        /// This is used to prevent queues from going out of scope before you have finished working with them. Generally
-        /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.
-        /// </remarks>
+        /// <inheritdoc />
         public ICreationScope Scope => _queueCreation.Scope;
 
         /// <summary>
@@ -47,15 +34,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// </value>
         public SqLiteMessageQueueTransportOptions Options => _queueCreation.Options;
 
-        /// <summary>
-        /// Tells the transport to setup and create a queue for handling re-occurring jobs.
-        /// </summary>
-        /// <param name="registerService">The additional registrations.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="enableRoute">if set to <c>true</c> [enable route].</param>
-        /// <returns></returns>
-        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, bool enableRoute = false)
+        /// <inheritdoc />
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, Action<IContainer> setOptions = null, bool enableRoute = false)
         {
             if (_queueCreation.Options.AdditionalColumns.Count == 0)
             {
@@ -73,13 +53,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             return _queueCreation.CreateQueue();
         }
 
-        /// <summary>
-        /// Attempts to delete an existing queue
-        /// </summary>
-        /// <returns></returns>
-        /// <remarks>
-        /// May not be supported by all transports. Any data in the queue will be lost.
-        /// </remarks>
+        /// <inheritdoc />
         public QueueRemoveResult RemoveQueue()
         {
             return _queueCreation.RemoveQueue();

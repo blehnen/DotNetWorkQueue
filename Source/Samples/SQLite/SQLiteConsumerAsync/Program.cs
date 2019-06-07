@@ -29,7 +29,8 @@ namespace SQLiteConsumerAsync
             var connectionString =
                 $"Data Source={fileLocation}{ConfigurationManager.AppSettings.ReadSetting("Database")};Version=3;";
             using (var createQueueContainer = new QueueCreationContainer<SqLiteMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumerAsync", serviceRegister)))
+                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumerAsync", serviceRegister), 
+                options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
                     createQueueContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueName, connectionString))
@@ -46,7 +47,7 @@ namespace SQLiteConsumerAsync
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumerAsync",
-                    serviceRegister)))
+                    serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = schedulerContainer.CreateTaskScheduler())
                 {
@@ -58,7 +59,8 @@ namespace SQLiteConsumerAsync
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 
                     using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(serviceRegister =>
-                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumerAsync", serviceRegister)))
+                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumerAsync", serviceRegister)
+                        , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
                         using (var queue = queueContainer.CreateConsumerQueueScheduler(queueName, connectionString, factory))
                         {

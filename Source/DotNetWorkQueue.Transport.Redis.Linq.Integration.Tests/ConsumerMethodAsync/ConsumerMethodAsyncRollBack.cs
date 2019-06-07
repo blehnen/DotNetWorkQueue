@@ -35,14 +35,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     {
                         producer.RunTestCompiled<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, null);
+                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, null, false);
                     }
 #if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, null);
+                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, null, false);
                     }
 #endif
 
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     var consumer = new ConsumerMethodAsyncRollBackShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         workerCount, logProvider,
-                        timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
+                        timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", false);
                     LoggerShared.CheckForErrors(queueName);
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

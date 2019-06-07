@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
     public class ConsumerMethodPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, true, LinqMethodTypes.Compiled),
-         InlineData(10, 30, 5, true, LinqMethodTypes.Compiled)]
+        [InlineData(1, 20, 1, true, LinqMethodTypes.Compiled, true),
+         InlineData(10, 30, 5, true, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int timeOut, 
-            int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+            int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                             {
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                               Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope);
+                               Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope, enableChaos);
                             }
 
                             //process data

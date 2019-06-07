@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
                             producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, false);
                         }
                     }
                     finally

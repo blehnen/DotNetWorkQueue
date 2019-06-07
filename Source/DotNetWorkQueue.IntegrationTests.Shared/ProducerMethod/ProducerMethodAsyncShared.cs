@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
             int runTime, Guid id, LinqMethodTypes linqMethodTypes,
-            ICreationScope scope)
+            ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 }
                 using (
                     var creator =
-                        SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics)
+                        SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, enableChaos)
                 )
                 {
                     //create the queue

@@ -12,9 +12,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
     public class ConsumerAsyncRollBack
     {
         [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, true),
-         InlineData(10, 45, 260, 5, 1, 2, false)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, bool inMemoryDb)
+        [InlineData(100, 1, 400, 5, 5, 5, true, false),
+         InlineData(10, 45, 260, 5, 1, 2, false, false),
+         InlineData(10, 0, 400, 5, 5, 5, true, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, 
+            int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -45,14 +47,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                             //process data
                             var consumer = new ConsumerAsyncRollBackShared<FakeMessage>();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 workerCount, logProvider,
-                                timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null);
+                                timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
                             LoggerShared.CheckForErrors(queueName);
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

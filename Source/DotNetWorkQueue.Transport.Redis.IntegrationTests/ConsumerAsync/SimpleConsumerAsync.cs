@@ -38,40 +38,40 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         var producer = new ProducerAsyncShared();
                         producer.RunTestAsync<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null).Wait(timeOut * 1000 / 2);
+                            Helpers.Verify, false, null, false).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                             logProvider,
                             runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
+                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
                     }
                     else if (messageType == 2)
                     {
                         var producer = new ProducerAsyncShared();
                         producer.RunTestAsync<RedisQueueInit, FakeMessageA>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null).Wait(timeOut * 1000 / 2);
+                            Helpers.Verify, false, null, false).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                             logProvider,
                             runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
+                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
                     }
                     else if (messageType == 3)
                     {
                         var producer = new ProducerAsyncShared();
                         producer.RunTestAsync<RedisQueueInit, FakeMessageB>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null).Wait(timeOut * 1000 / 2);
+                            Helpers.Verify, false, null, false).Wait(timeOut * 1000 / 2);
 
 
                         var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                             logProvider,
                             runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
+                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
                     }
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))

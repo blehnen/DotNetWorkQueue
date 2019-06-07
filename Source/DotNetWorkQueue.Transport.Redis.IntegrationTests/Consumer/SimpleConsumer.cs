@@ -28,12 +28,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     var producer = new ProducerShared();
                     producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                         connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, false, null);
+                        Helpers.Verify, false, null, false);
 
                     var consumer = new ConsumerShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false, logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
+                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

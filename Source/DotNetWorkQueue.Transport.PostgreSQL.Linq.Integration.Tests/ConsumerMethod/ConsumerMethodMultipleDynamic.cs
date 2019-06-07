@@ -15,11 +15,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
         public class SimpleMethodConsumer
         {
            [Theory]
-           [InlineData(100, 0, 240, 5, false),
-           InlineData(200, 0, 240, 25, false),
-           InlineData(200, 0, 240, 25, true),
-           InlineData(100, 0, 240, 5, true)]
-            public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions)
+           [InlineData(100, 0, 240, 5, false, false),
+           InlineData(200, 0, 240, 25, false, false),
+           InlineData(200, 0, 240, 25, true, false),
+           InlineData(100, 0, 240, 5, true, false),
+            InlineData(10, 0, 240, 5, true, true)]
+            public void Run(int messageCount, int runtime, int timeOut, 
+                int workerCount, bool useTransactions, bool enableChaos)
             {
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -49,14 +51,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                             var producer = new ProducerMethodMultipleDynamicShared();
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope);
+                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope, enableChaos);
 
                             var consumer = new ConsumerMethodShared();
                             consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                                 false,
                                 logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
+                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos);
 
                             new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                         }

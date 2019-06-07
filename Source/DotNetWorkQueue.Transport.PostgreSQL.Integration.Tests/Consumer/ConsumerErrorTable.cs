@@ -11,10 +11,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(100, 60, 20, false),
-         InlineData(100, 60, 20, true),
-         InlineData(10, 40, 5, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions)
+        [InlineData(100, 60, 20, false, false),
+         InlineData(100, 60, 20, true, false),
+         InlineData(10, 40, 5, true, false),
+         InlineData(10, 60, 20, true, true),
+         InlineData(1, 40, 5, false, true)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -44,14 +46,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         //process data
                         var consumer = new ConsumerErrorShared<FakeMessage>();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
                             logProvider,
-                            workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null);
+                            workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
                     }

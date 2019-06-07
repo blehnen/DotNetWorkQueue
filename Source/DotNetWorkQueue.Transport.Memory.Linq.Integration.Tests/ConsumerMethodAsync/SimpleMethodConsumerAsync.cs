@@ -53,13 +53,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 var producer = new ProducerMethodAsyncShared();
                                 producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
+                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                                 consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
                             }
                             else if (messageType == 2)
                             {
@@ -67,13 +67,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 var producer = new ProducerMethodAsyncShared();
                                 producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
+                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                                 consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
                             }
                             else if (messageType == 3)
                             {
@@ -81,13 +81,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 var producer = new ProducerMethodAsyncShared();
                                 producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
+                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                                 consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
                             }
 
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);

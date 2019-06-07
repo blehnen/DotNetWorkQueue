@@ -70,13 +70,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                 if (linqMethodTypes == LinqMethodTypes.Compiled)
                 {
                     tasks.Add(new Task(() => producer.RunTestCompiled<MemoryMessageQueueInit>(queueName, connectionString, false, messageCount,
-                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateCompiled, 0, scope)));
+                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateCompiled, 0, scope, false)));
                 }
 #if NETFULL
                 else
                 {
                     tasks.Add(new Task(() => producer.RunTestDynamic<MemoryMessageQueueInit>(queueName, connectionString, false, messageCount,
-                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateDynamic, 0, scope)));
+                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateDynamic, 0, scope, false)));
                 }
 #endif
             }

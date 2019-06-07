@@ -17,9 +17,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Prod
     public class MultiMethodProducer
     {
         [Theory]
-        [InlineData(true, LinqMethodTypes.Compiled),
-        InlineData(false, LinqMethodTypes.Compiled)]
-        public void Run(bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+        [InlineData(100, true, LinqMethodTypes.Compiled, false),
+        InlineData(10, false, LinqMethodTypes.Compiled, true)]
+        public void Run(int messageCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -41,9 +41,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Prod
                             var result = oCreation.CreateQueue();
                             Assert.True(result.Success, result.ErrorMessage);
 
-                            RunTest(queueName, 100, 10, logProvider, connectionInfo.ConnectionString, linqMethodTypes, oCreation.Scope);
+                            RunTest(queueName, messageCount, 10, logProvider, connectionInfo.ConnectionString, linqMethodTypes, oCreation.Scope, enableChaos);
                             LoggerShared.CheckForErrors(queueName);
-                            new VerifyQueueData(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(100 * 10, null);
+                            new VerifyQueueData(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount * 10, null);
                         }
                     }
                     finally
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Prod
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, string connectionString, LinqMethodTypes linqMethodTypes, ICreationScope scope)
+        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, string connectionString, LinqMethodTypes linqMethodTypes, ICreationScope scope, bool enableChaos)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Prod
                 if (linqMethodTypes == LinqMethodTypes.Compiled)
                 {
                     tasks.Add(new Task(() => producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName, connectionString, false, messageCount,
-                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateCompiled, 0, scope)));
+                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateCompiled, 0, scope, enableChaos )));
                 }
             }
             tasks.AsParallel().ForAll(x => x.Start());

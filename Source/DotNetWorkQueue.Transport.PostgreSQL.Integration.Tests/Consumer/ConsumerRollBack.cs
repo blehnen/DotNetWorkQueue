@@ -12,11 +12,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
     {
 
         [Theory]
-        [InlineData(500, 0, 60, 5, false),
-        InlineData(50, 5, 90, 10, false),
-        InlineData(500, 0, 60, 5, true),
-        InlineData(50, 5, 90, 10, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions)
+        [InlineData(500, 0, 60, 5, false, false),
+        InlineData(50, 5, 90, 10, false, false),
+        InlineData(500, 0, 60, 5, true, false),
+        InlineData(50, 5, 90, 10, true, false),
+        InlineData(5, 5, 90, 10, false, true),
+        InlineData(50, 0, 60, 5, true, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -47,13 +49,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         //process data
                         var consumer = new ConsumerRollBackShared<FakeMessage>();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
-                            workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null);
+                            workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                                producer.RunTestCompiled<MemoryMessageQueueInit>(queueName,
                                connectionInfo.ConnectionString, true, messageCount, logProvider,
                                Helpers.GenerateData,
-                               Helpers.Verify, true, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope);
+                               Helpers.Verify, true, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope, false);
                             }
 #if NETFULL
                             else
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                                producer.RunTestDynamic<MemoryMessageQueueInit>(queueName,
                                connectionInfo.ConnectionString, true, messageCount, logProvider,
                                Helpers.GenerateData,
-                               Helpers.Verify, true, id, GenerateMethod.CreateDynamic, 0, oCreation.Scope);
+                               Helpers.Verify, true, id, GenerateMethod.CreateDynamic, 0, oCreation.Scope, false);
                             }
 #endif
                         }

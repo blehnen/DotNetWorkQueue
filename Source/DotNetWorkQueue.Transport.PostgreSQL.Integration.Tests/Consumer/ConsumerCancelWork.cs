@@ -11,8 +11,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
     public class ConsumerCancelWork
     {
         [Theory]
-        [InlineData(7, 15, 90, 3)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
+        [InlineData(7, 15, 90, 3, false),
+         InlineData(2, 5, 90, 3, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -41,12 +42,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         var consumer = new ConsumerCancelWorkShared<PostgreSqlMessageQueueInit, FakeMessage>();
                         consumer.RunConsumer(queueName, ConnectionInfo.ConnectionString, false, logProvider,
                             runtime, messageCount,
-                            workerCount, timeOut, x => { }, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null);
+                            workerCount, timeOut, x => { }, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

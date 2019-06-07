@@ -26,7 +26,8 @@ namespace SQLServerScheduler
 
             using (var jobQueueCreation =
                 new JobQueueCreationContainer<SqlServerMessageQueueInit>(serviceRegister =>
-                    Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)))
+                    Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)
+                    , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
                     jobQueueCreation.GetQueueCreation<SqlServerJobQueueCreation>(queueName, connectionString))
@@ -39,19 +40,23 @@ namespace SQLServerScheduler
                     createQueue.Options.EnableStatus = true;
                     createQueue.Options.EnableStatusTable = true;
                     var result = createQueue.CreateJobSchedulerQueue(serviceRegister =>
-                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister), queueName, connectionString, false);
+                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister), queueName, connectionString, 
+                        options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos), false);
                     log.Information(result.Status.ToString());
 
                 }
             }
 
             using (var jobContainer = new JobSchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)))
+                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)
+                , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = jobContainer.CreateJobScheduler(serviceRegister =>
                     Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister),
                     serviceRegister =>
-                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)))
+                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)
+                    , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)
+                    , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                 {
                     //start may be called before or after adding jobs
                     scheduler.Start();

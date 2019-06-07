@@ -12,9 +12,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(10, 40, 5, false),
-         InlineData(10, 40, 5, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb)
+        [InlineData(10, 40, 5, false, false),
+         InlineData(10, 40, 5, true, false),
+         InlineData(1, 40, 5, true, true)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -45,14 +46,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                             //process data
                             var consumer = new ConsumerErrorShared<FakeMessage>();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
-                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null);
+                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, false);
                         }

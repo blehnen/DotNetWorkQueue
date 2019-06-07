@@ -11,12 +11,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
     public class ConsumerAsyncRollBack
     {
         [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, false),
-         InlineData(50, 5, 200, 5, 1, 3, false),
-         InlineData(100, 1, 400, 5, 5, 5, true),
-         InlineData(50, 5, 200, 5, 1, 3, true)]
+        [InlineData(100, 1, 400, 5, 5, 5, false, false),
+         InlineData(50, 5, 200, 5, 1, 3, false, false),
+         InlineData(100, 1, 400, 5, 5, 5, true, false),
+         InlineData(50, 5, 200, 5, 1, 3, true, false),
+         InlineData(5, 5, 200, 5, 1, 3, true, true),
+         InlineData(5, 5, 200, 5, 1, 3, false, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-            bool useTransactions)
+            bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -46,14 +48,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         var producer = new ProducerShared();
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         //process data
                         var consumer = new ConsumerAsyncRollBackShared<FakeMessage>();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
                             workerCount, logProvider,
-                            timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null);
+                            timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
                         LoggerShared.CheckForErrors(queueName);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

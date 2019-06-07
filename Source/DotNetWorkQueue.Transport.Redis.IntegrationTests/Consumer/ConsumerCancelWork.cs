@@ -29,13 +29,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateRouteData,
-                            Helpers.Verify, false, null);
+                            Helpers.Verify, false, null, false);
                     }
                     else
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null);
+                            Helpers.Verify, false, null, false);
                     }
 
                     var defaultRoute = route ? Helpers.DefaultRoute : null;
@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     var consumer = new ConsumerCancelWorkShared<RedisQueueInit, FakeMessage>();
                     consumer.RunConsumer(queueName, connectionString, false, logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, x => { }, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute);
+                        workerCount, timeOut, x => { }, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute, false);
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
     public class ConsumerMethodHeartbeat
     {
         [Theory]
-        [InlineData(7, 15, 90, 3, true, LinqMethodTypes.Compiled),
-        InlineData(7, 15, 90, 3, false, LinqMethodTypes.Compiled)]
+        [InlineData(7, 15, 90, 3, true, LinqMethodTypes.Compiled, false),
+        InlineData(7, 15, 190, 3, false, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int runtime, 
-            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                             {
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                               Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, oCreation.Scope);
+                               Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, oCreation.Scope, enableChaos);
                             }
 
                             var consumer = new ConsumerMethodHeartBeatShared();
@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                                 false,
                                 logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
+                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                             GenerateMethod.ClearCancel(id);

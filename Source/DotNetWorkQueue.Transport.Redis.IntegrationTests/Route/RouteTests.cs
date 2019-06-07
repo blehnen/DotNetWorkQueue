@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
                         var routeTest = new RouteTestsShared();
                         routeTest.RunTest<RedisQueueInit, FakeMessageA>(queueName, connectionString,
                             true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, batch,
-                            GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)");
+                            GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", false);
 
                         using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                         {

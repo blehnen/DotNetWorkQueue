@@ -41,5 +41,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         {
             return Random.Value.Next(min, max);
         }
+        /// <summary>
+        ///  Returns a random integer that is less than the max.
+        /// </summary>
+        /// <param name="max">The exclusive upper bound of the random number returned.</param>
+        /// <returns></returns>
+        public static int Next(int max)
+        {
+            return Random.Value.Next(max);
+        }
     }
 }

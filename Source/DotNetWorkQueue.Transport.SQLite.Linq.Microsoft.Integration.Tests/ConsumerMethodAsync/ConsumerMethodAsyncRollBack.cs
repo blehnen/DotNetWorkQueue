@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
     public class ConsumerMethodAsyncRollBack
     {
         [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Compiled),
-         InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled)]
+        [InlineData(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Compiled, false),
+         InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int runtime, int timeOut, 
-            int workerCount, int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+            int workerCount, int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                             {
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                    connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                   Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, null);
+                                   Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, null, enableChaos);
                             }
 
                             //process data
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 workerCount, logProvider,
-                                timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
                             LoggerShared.CheckForErrors(queueName);
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                             GenerateMethod.ClearRollback(id);

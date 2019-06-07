@@ -302,10 +302,10 @@ namespace DotNetWorkQueue.IoC
             container.Register<IStandardHeaders, StandardHeaders>(LifeStyles.Singleton);
             container.Register<ICustomHeaders, CustomHeaders>(LifeStyles.Singleton);
 
-            RegisterTraceDecorators(container);
             RegisterMetricDecorators(container);
             RegisterPolicyDecorators(container);
             RegisterLoggerDecorators(container);
+            RegisterTraceDecorators(container);
 
             //register the linq cache decorator
             container.RegisterDecorator<ILinqCompiler, LinqCompileCacheDecorator>(LifeStyles.Singleton);

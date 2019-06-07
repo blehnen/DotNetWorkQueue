@@ -25,7 +25,10 @@ namespace SampleShared
             {
                 EnableEncryption = bool.Parse(oSettings["EnableEncryption"]);
             }
-
+            if (oSettings["EnableChaos"] != null)
+            {
+                EnableChaos = bool.Parse(oSettings["EnableChaos"]);
+            }
         }
         #endregion
 
@@ -34,7 +37,7 @@ namespace SampleShared
         public static bool EnableMetrics { get; }
         public static bool EnableCompression { get; }
         public static bool EnableEncryption { get; }
-
+        public static bool EnableChaos { get; }
         #endregion
 
         public static string AllSettings
@@ -44,6 +47,8 @@ namespace SampleShared
                 StringBuilder sb = new StringBuilder();
                 sb.Append("Tracing:");
                 sb.Append(EnableTrace.ToString());
+                sb.Append(" Chaos:");
+                sb.Append(EnableChaos.ToString());
                 sb.Append(" Metrics:");
                 sb.Append(EnableMetrics.ToString());
                 sb.Append(" Compression:");

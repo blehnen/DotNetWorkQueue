@@ -10,15 +10,25 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
     public class SimpleProducerAsync
     {
         [Theory]
-        [InlineData(100, true, true, true, false, false, false, true, false, false),
-         InlineData(100, false, true, true, false, false, false, true, false, false),
-         InlineData(100, false, false, false, false, false, false, false, false, false),
-         InlineData(100, true, false, false, false, false, false, false, false, false),
-         InlineData(100, false, false, false, false, false, false, false, true, false),
-         InlineData(100, false, false, false, false, false, false, true, true, false),
-         InlineData(100, false, true, false, true, true, true, false, true, false),
-         InlineData(100, false, true, true, false, true, true, true, true, false),
-            InlineData(100, true, true, true, false, false, false, true, false, true)]
+        [InlineData(100, true, true, true, false, false, false, true, false, false, false),
+         InlineData(100, false, true, true, false, false, false, true, false, false, false),
+         InlineData(100, false, false, false, false, false, false, false, false, false, false),
+         InlineData(100, true, false, false, false, false, false, false, false, false, false),
+         InlineData(100, false, false, false, false, false, false, false, true, false, false),
+         InlineData(100, false, false, false, false, false, false, true, true, false, false),
+         InlineData(100, false, true, false, true, true, true, false, true, false, false),
+         InlineData(100, false, true, true, false, true, true, true, true, false, false),
+         InlineData(100, true, true, true, false, false, false, true, false, true, false),
+
+         InlineData(10, true, true, true, false, false, false, true, false, false, true),
+         InlineData(10, false, true, true, false, false, false, true, false, false, true),
+         InlineData(10, false, false, false, false, false, false, false, false, false, true),
+         InlineData(10, true, false, false, false, false, false, false, false, false, true),
+         InlineData(10, false, false, false, false, false, false, false, true, false, true),
+         InlineData(10, false, false, false, false, false, false, true, true, false, true),
+         InlineData(10, false, true, false, true, true, true, false, true, false, true),
+         InlineData(10, false, true, true, false, true, true, true, true, false, true),
+         InlineData(10, true, true, true, false, false, false, true, false, true, true)]
         public async void Run(
             int messageCount,
             bool interceptors,
@@ -29,7 +39,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
             bool enablePriority,
             bool enableStatus,
             bool enableStatusTable,
-            bool additionalColumn)
+            bool additionalColumn, 
+            bool enableChaos)
         {
 
             var queueName = GenerateQueueName.Create();
@@ -69,7 +80,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                         await producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope).ConfigureAwait(false);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos).ConfigureAwait(false);
                     }
                 }
                 finally

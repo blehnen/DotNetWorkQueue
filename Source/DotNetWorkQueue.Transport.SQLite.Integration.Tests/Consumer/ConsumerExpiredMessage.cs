@@ -12,9 +12,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, true),
-         InlineData(100, 0, 20, 5, false)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb)
+        [InlineData(100, 0, 20, 5, true, false),
+         InlineData(100, 0, 20, 5, false, false),
+         InlineData(10, 0, 20, 5, false, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -46,14 +47,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                             var consumer = new ConsumerExpiredMessageShared<FakeMessage>();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null);
+                                workerCount, timeOut, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

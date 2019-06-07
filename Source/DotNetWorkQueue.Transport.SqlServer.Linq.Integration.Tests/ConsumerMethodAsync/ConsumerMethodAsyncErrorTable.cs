@@ -4,6 +4,7 @@ using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
+using NSubstitute.Extensions;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethodAsync
@@ -13,13 +14,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     {
         [Theory]
 #if NETFULL
-        [InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Dynamic),
-        InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Compiled)]
+        [InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
+        InlineData(1, 25, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
 #else
-        [InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Compiled)]
+        [InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
 #endif
         public void Run(int messageCount, int timeOut, int workerCount, 
-            int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes)
+            int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -53,14 +54,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         {
                             producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                          Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope);
+                          Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                          Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope);
+                          Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope, enableChaos);
                         }
 #endif
                         //process data
@@ -69,7 +70,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             false,
                             logProvider,
                             messageCount, workerCount, timeOut, queueSize, readerCount,
-                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
+                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos);
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
                     }

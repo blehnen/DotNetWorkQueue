@@ -12,13 +12,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled),
+        [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
-        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Dynamic),
-        InlineData(100, 0, 20, 5, false, LinqMethodTypes.Dynamic),
+        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Dynamic, false),
+        InlineData(100, 0, 20, 5, false, LinqMethodTypes.Dynamic, false),
 #endif
-        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Compiled)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
+        InlineData(100, 5, 120, 5, true, LinqMethodTypes.Compiled, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, 
+            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -52,14 +53,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         {
                             producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
+                           Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
+                           Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope, enableChaos);
                         }
 #endif
                         var consumer = new ConsumerMethodExpiredMessageShared();
@@ -67,7 +68,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             false,
                             logProvider,
                             runtime, messageCount,
-                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id);
+                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id, enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

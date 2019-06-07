@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             producer.RunTestDynamic<MemoryMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope);
+                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope, false);
 
                             var consumer = new ConsumerMethodShared();
                             consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
 
                             new VerifyQueueRecordCount()
                                 .Verify(oCreation.Scope, 0, true);

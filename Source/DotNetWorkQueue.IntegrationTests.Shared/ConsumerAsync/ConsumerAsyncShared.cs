@@ -24,6 +24,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 TimeSpan heartBeatTime, 
                 TimeSpan heartBeatMonitorTime,
                 string updateTime,
+                bool enableChaos,
                 List<string> routes = null)
             where TTransportInit : ITransportInit, new()
         {
@@ -44,7 +45,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 }
 
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, enableChaos)
                     )
                 {
 

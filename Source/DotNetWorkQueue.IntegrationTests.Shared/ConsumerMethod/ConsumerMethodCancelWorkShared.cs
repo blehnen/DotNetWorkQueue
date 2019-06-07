@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, Guid id)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, Guid id, bool enableChaos)
         {
             _queueName = queueName;
             _connectionString = connectionString;
@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
             //run consumer
             RunConsumerInternal(queueName, connectionString, addInterceptors, logProvider, runTime,
-                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, id, updateTime);
+                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, id, updateTime, enableChaos);
         }
 
 
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, IDisposable queueBad,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos)
         {
 
             using (var metrics = new Metrics.Metrics(queueName))
@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly; 
                 }
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false, enableChaos)
                     )
                 {
 

@@ -32,6 +32,7 @@ namespace DotNetWorkQueue
         private static Func<ICreateContainer<JobSchedulerInit>> _createContainerInternal = () => new CreateContainer<JobSchedulerInit>();
 
         private readonly Action<IContainer> _registerService;
+        private readonly Action<IContainer> _setOptions;
         private readonly JobSchedulerInit _transportInit;
         private readonly ConcurrentBag<IDisposable> _containers;
 
@@ -55,13 +56,15 @@ namespace DotNetWorkQueue
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="JobSchedulerContainer" /> class.
+        /// Initializes a new instance of the <see cref="JobSchedulerContainer"/> class.
         /// </summary>
         /// <param name="registerService">The register service.</param>
-        public JobSchedulerContainer(Action<IContainer> registerService)
+        /// <param name="setOptions">The set options.</param>
+        public JobSchedulerContainer(Action<IContainer> registerService, Action<IContainer> setOptions = null)
         {
             _containers = new ConcurrentBag<IDisposable>();
             _registerService = registerService;
+            _setOptions = setOptions;
             _transportInit = new JobSchedulerInit();
         }
         #endregion
@@ -95,15 +98,16 @@ namespace DotNetWorkQueue
 
         #endregion
 
-        /// <summary>
-        /// Creates a re-occurring job scheduler.
-        /// </summary>
+        /// <summary>Creates a re-occurring job scheduler.</summary>
         /// <param name="queueCreation">Service registrations for the queue creation modules that will create any needed job queues.</param>
         /// <param name="queueContainer">Service registrations for the queue containers that will contain the producing queues for the jobs.</param>
+        /// <param name="queueCreationOptions">allows setting options for queue creation module</param>
+        /// <param name="queueContainerOptions">allows setting options for queue container module</param>
         /// <returns></returns>
-        public IJobScheduler CreateJobScheduler(Action<IContainer> queueCreation = null, Action<IContainer> queueContainer = null)
+        public IJobScheduler CreateJobScheduler(Action<IContainer> queueCreation = null, Action<IContainer> queueContainer = null,
+            Action<IContainer> queueCreationOptions = null, Action<IContainer> queueContainerOptions = null)
         {
-            var container = _createContainerInternal().Create(QueueContexts.JobScheduler, _registerService, _transportInit, x => { }, null, new JobQueueContainerRegistrations(queueCreation, queueContainer));
+            var container = _createContainerInternal().Create(QueueContexts.JobScheduler, _registerService, _transportInit, x => { }, _setOptions, new JobQueueContainerRegistrations(queueCreation, queueContainer, queueCreationOptions, queueContainerOptions));
             _containers.Add(container);
             return container.GetInstance<IJobScheduler>();
         }

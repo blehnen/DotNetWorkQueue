@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
            TimeSpan heartBeatTime,
            TimeSpan heartBeatMonitorTime,
            ICreationScope scope,
-           string updateTime)
+           string updateTime, bool enableChaos)
            where TTransportInit : ITransportInit, new()
            where TMessage : class
         {
@@ -35,13 +35,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
             foreach (var route in routes1)
             {
                 RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors,
-                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope);
+                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, enableChaos);
             }
 
             foreach (var route in routes2)
             {
                 RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors,
-                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope);
+                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, enableChaos);
             }
 
             //run a consumer for each route
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                     var consumer = new ConsumerAsyncShared<TMessage> { Factory = taskFactory };
 
                     consumer.RunConsumer<TTransportInit>(queueName, connectionString, addInterceptors,
-                        logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, route);
+                        logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, enableChaos, route);
                 });
             }
         }
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
             Action<string, string, QueueProducerConfiguration, long, string, ICreationScope> verify,
             bool sendViaBatch,
             string route,
-            ICreationScope scope)
+            ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 (a, b, c, d, e) => VerifyRoutes(verify, a, b, c, d, route, scope),
                 sendViaBatch,
                 false,
-                scope);
+                scope, enableChaos);
         }
 
         private AdditionalMessageData GenerateDataWithRoute(Func<QueueProducerConfiguration, AdditionalMessageData> generateData, QueueProducerConfiguration config, string route)

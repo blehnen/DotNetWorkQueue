@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public ICreationScope Scope => _creation.Scope;
 
         /// <inheritdoc />
-        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, bool enableRoute = false)
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, Action<IContainer> setOptions = null, bool enableRoute = false)
         {
             return _creation.CreateQueue();
         }

@@ -13,12 +13,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, true, LinqMethodTypes.Dynamic),
-         InlineData(10, 30, 5, 1, 0, false, LinqMethodTypes.Dynamic),
-         InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Compiled),
-         InlineData(10, 30, 5, 1, 0, true, LinqMethodTypes.Compiled)]
+        [InlineData(1, 20, 1, 1, 0, true, LinqMethodTypes.Dynamic, false),
+         InlineData(10, 30, 5, 1, 0, false, LinqMethodTypes.Dynamic, false),
+         InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Compiled, false),
+         InlineData(10, 30, 5, 1, 0, true, LinqMethodTypes.Compiled, false),
+         InlineData(1, 30, 5, 1, 0, false, LinqMethodTypes.Dynamic, true),
+         InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int timeOut, int workerCount, 
-            int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+            int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -53,14 +55,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider,
                                     Helpers.GenerateData,
-                                    Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope);
+                                    Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope, enableChaos);
                             }
                             else
                             {
                                 producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
                                    connectionInfo.ConnectionString, false, messageCount, logProvider,
                                    Helpers.GenerateData,
-                                   Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope);
+                                   Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope, enableChaos);
                             }
 
                             //process data

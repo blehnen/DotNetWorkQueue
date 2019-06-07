@@ -11,9 +11,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
     public class ConsumerPoisonMessage
     {
         [Theory]
-        [InlineData(10, 30, 5, false),
-         InlineData(10, 30, 5, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions)
+        [InlineData(10, 30, 5, false, false),
+         InlineData(10, 30, 5, true, false),
+         InlineData(1, 30, 5, false, true),
+         InlineData(1, 30, 5, true, true)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -43,7 +45,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         //process data
                         var consumer = new ConsumerPoisonMessageShared<FakeMessage>();

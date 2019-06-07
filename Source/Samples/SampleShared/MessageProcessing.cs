@@ -69,7 +69,7 @@ namespace SampleShared
                     arg2.WorkerStopping.StopWorkToken.WaitHandle.WaitOne(
                         TimeSpan.FromMilliseconds(arg1.Body.ProcessingTime));
 
-                if (canceled) throw new OperationCanceledException("We have been asked to stop working"); //force a requeue
+                if (canceled) qthrow new OperationCanceledException("We have been asked to stop working"); //force a requeue
             }
             else
                 System.Threading.Thread.Sleep(arg1.Body.ProcessingTime);

@@ -12,12 +12,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodMultipleDynamic
     {
         [Theory]
-        [InlineData(1000, 0, 240, 5, true),
-         InlineData(1000, 0, 240, 10, true),
-         InlineData(1000, 0, 240, 5, false),
-         InlineData(1000, 0, 240, 10, false)]
+        [InlineData(1000, 0, 240, 5, true, false),
+         InlineData(100, 0, 240, 10, true, true),
+         InlineData(100, 0, 240, 5, false, true),
+         InlineData(1000, 0, 240, 10, false, false)]
         public void Run(int messageCount, int runtime,
-            int timeOut, int workerCount, bool inMemoryDb)
+            int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope);
+                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope, enableChaos);
 
                             var consumer = new ConsumerMethodShared();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options)
                                 .Verify(0, false, false);

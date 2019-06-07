@@ -30,8 +30,12 @@ namespace DotNetWorkQueue.JobScheduler
         /// </summary>
         /// <param name="queueCreationRegistrations">The queue creation registrations.</param>
         /// <param name="queueRegistrations">The queue registrations.</param>
+        /// <param name="queueCreationOptions">The queue creation options.</param>
+        /// <param name="queueContainerOptions">The queue container options.</param>
         public JobQueueContainerRegistrations(Action<IContainer> queueCreationRegistrations,
-            Action<IContainer> queueRegistrations)
+            Action<IContainer> queueRegistrations,
+            Action<IContainer> queueCreationOptions, 
+            Action<IContainer> queueContainerOptions)
         {
             if (queueCreationRegistrations != null)
             {
@@ -50,6 +54,24 @@ namespace DotNetWorkQueue.JobScheduler
             {
                 QueueRegistrations = x => { };
             }
+
+            if (queueCreationOptions != null)
+            {
+                QueueCreationOptions = queueCreationOptions;
+            }
+            else
+            {
+                QueueCreationOptions = x => { };
+            }
+
+            if (queueContainerOptions != null)
+            {
+                QueueOptions = queueContainerOptions;
+            }
+            else
+            {
+                QueueOptions = x => { };
+            }
         }
         /// <summary>
         /// Gets the queue creation registrations.
@@ -65,5 +87,21 @@ namespace DotNetWorkQueue.JobScheduler
         /// The queue registrations.
         /// </value>
         public Action<IContainer> QueueRegistrations { get; }
+
+        /// <summary>
+        /// Gets the queue creation options.
+        /// </summary>
+        /// <value>
+        /// The queue creation options.
+        /// </value>
+        public Action<IContainer> QueueCreationOptions { get; }
+
+        /// <summary>
+        /// Gets the queue options.
+        /// </summary>
+        /// <value>
+        /// The queue options.
+        /// </value>
+        public Action<IContainer> QueueOptions { get; }
     }
 }

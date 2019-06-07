@@ -29,7 +29,7 @@ namespace PostGreSQLConsumerLinq
             using (var createQueueContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlConsumerLinq",
-                    serviceRegister)))
+                    serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
                     createQueueContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName, connectionString))
@@ -47,7 +47,7 @@ namespace PostGreSQLConsumerLinq
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlConsumerLinq",
-                    serviceRegister)))
+                    serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = schedulerContainer.CreateTaskScheduler())
                 {
@@ -62,7 +62,7 @@ namespace PostGreSQLConsumerLinq
                     using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>(serviceRegister =>
                         Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                             SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
-                            "PostgreSqlConsumerLinq", serviceRegister)))
+                            "PostgreSqlConsumerLinq", serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
                         using (var queue =
                             queueContainer.CreateConsumerMethodQueueScheduler(queueName, connectionString, factory))

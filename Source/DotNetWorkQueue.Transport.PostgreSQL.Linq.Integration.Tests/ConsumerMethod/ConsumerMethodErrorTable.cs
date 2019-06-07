@@ -12,14 +12,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodErrorTable
     {
         [Theory]
-        [InlineData(100, 60, 20, true, LinqMethodTypes.Compiled),
+        [InlineData(10, 60, 20, true, LinqMethodTypes.Compiled, true),
 #if NETFULL
-        InlineData(100, 60, 20, false, LinqMethodTypes.Dynamic),
-         InlineData(100, 60, 20, true, LinqMethodTypes.Dynamic),
-         InlineData(10, 40, 5, true, LinqMethodTypes.Dynamic),
+        InlineData(100, 60, 20, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, 60, 20, true, LinqMethodTypes.Dynamic, false),
+         InlineData(1, 40, 5, true, LinqMethodTypes.Dynamic, true),
 #endif
-         InlineData(10, 40, 5, true, LinqMethodTypes.Compiled)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
+         InlineData(10, 40, 5, true, LinqMethodTypes.Compiled, false)]
+        public void Run(int messageCount, int timeOut, int workerCount, 
+            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -52,14 +53,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         {
                             producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope);
+                            Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope);
+                            Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope, enableChaos);
                         }
 #endif
                         //process data
@@ -67,7 +68,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
                             logProvider,
-                            workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
+                            workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos);
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
                     }

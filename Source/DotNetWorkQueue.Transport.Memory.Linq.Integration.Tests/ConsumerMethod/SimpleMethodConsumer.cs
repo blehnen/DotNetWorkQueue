@@ -45,14 +45,14 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             {
                                 producer.RunTestCompiled<MemoryMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
+                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope, false);
                             }
 #if NETFULL
                             else
                             {
                                 producer.RunTestDynamic<MemoryMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
+                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope, false);
                             }
 #endif
                             var consumer = new ConsumerMethodShared();
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
 
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);
                         }

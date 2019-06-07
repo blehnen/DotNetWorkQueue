@@ -37,14 +37,14 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, false);
 
                             //process data
                             var consumer = new ConsumerErrorShared<FakeMessage>();
                             consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
-                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null);
+                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, false);
                             ValidateErrorCounts(oCreation.Scope, messageCount);
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
                         }

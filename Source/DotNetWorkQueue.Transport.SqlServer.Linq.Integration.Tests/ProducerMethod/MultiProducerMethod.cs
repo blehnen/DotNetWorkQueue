@@ -16,12 +16,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
     {
         [Theory]
 #if NETFULL
-        [InlineData(LinqMethodTypes.Dynamic),
-         InlineData(LinqMethodTypes.Compiled)]
+        [InlineData(1000, LinqMethodTypes.Dynamic, false),
+         InlineData(1000, LinqMethodTypes.Compiled, false)]
 #else
-        [InlineData(LinqMethodTypes.Compiled)]
+        [InlineData(10,LinqMethodTypes.Compiled, true)]
 #endif
-        public void Run(LinqMethodTypes linqMethodTypes)
+        public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -41,9 +41,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
 
-                        RunTest(queueName, 1000, 10, logProvider, Guid.NewGuid(), 0, linqMethodTypes);
+                        RunTest(queueName, messageCount, 10, logProvider, Guid.NewGuid(), 0, linqMethodTypes, enableChaos);
                         LoggerShared.CheckForErrors(queueName);
-                        new VerifyQueueData(queueName, oCreation.Options).Verify(1000*10);
+                        new VerifyQueueData(queueName, oCreation.Options).Verify(messageCount * 10);
                     }
                 }
                 finally
@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, Guid id, int runTime, LinqMethodTypes linqMethodTypes)
+        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, Guid id, int runTime, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                                     producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                                         ConnectionInfo.ConnectionString, false, messageCount,
                                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateDynamic, runTime, null)));
+                                        GenerateMethod.CreateDynamic, runTime, null, enableChaos)));
                         break;
 #endif
                     case LinqMethodTypes.Compiled:
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                                     producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
                                         ConnectionInfo.ConnectionString, false, messageCount,
                                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateCompiled, runTime, null)));
+                                        GenerateMethod.CreateCompiled, runTime, null, enableChaos)));
                         break;
                 }
             }

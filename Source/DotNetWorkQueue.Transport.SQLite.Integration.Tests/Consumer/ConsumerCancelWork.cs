@@ -12,9 +12,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerCancelWork
     {
         [Theory]
-        [InlineData(7, 15, 90, 3, true),
-        InlineData(2, 45, 90, 3, false)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb)
+        [InlineData(7, 15, 90, 3, true, false),
+        InlineData(2, 45, 90, 3, false, false),
+        InlineData(7, 15, 90, 3, true, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -44,12 +45,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                             var consumer = new ConsumerCancelWorkShared<SqLiteMessageQueueInit, FakeMessage>();
                             consumer.RunConsumer(queueName, connectionInfo.ConnectionString, false, logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, x => { }, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null);
+                                workerCount, timeOut, x => { }, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

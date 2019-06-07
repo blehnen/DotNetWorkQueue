@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             TimeSpan heartBeatTime, 
             TimeSpan heartBeatMonitorTime,
             string updateTime,
-            string route)
+            string route, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                 var processedCount = new IncrementWrapper();
                 var haveIProcessedYouBefore = new ConcurrentDictionary<string, int>();
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, enableChaos)
                     )
                 {
                     using (

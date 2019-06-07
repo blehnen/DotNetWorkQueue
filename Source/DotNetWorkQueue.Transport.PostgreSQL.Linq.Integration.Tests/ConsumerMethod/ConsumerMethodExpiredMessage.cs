@@ -13,12 +13,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     {
         [Theory]
 #if NETFULL
-          [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled),
-        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Dynamic)]
+          [InlineData(10, 0, 20, 5, false, LinqMethodTypes.Compiled, true),
+        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Dynamic, false)]
 #else
-        [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled)]
+        [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled, false)]
 #endif
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
+        public void Run(int messageCount, int runtime, int timeOut, 
+            int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -52,14 +53,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         {
                             producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
+                           Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
+                           Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope, enableChaos);
                         }
 #endif
                         var consumer = new ConsumerMethodExpiredMessageShared();
@@ -67,7 +68,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                             false,
                             logProvider,
                             runtime, messageCount,
-                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id);
+                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id, enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

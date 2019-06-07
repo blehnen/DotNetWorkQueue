@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
                             await producer.RunTestAsync<MemoryMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope).ConfigureAwait(false);
+                                Helpers.Verify, false, oCreation.Scope, false).ConfigureAwait(false);
                         }
                     }
                     finally

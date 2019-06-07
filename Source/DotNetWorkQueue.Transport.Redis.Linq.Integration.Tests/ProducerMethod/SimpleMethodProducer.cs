@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                             producer.RunTestCompiled<RedisQueueInit>(queueName,
                                 connectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateDelayExpiredData,
-                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null);
+                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null, false);
                         }
 #if NETFULL
                         else
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                             producer.RunTestDynamic<RedisQueueInit>(queueName,
                                connectionString, interceptors, messageCount, logProvider,
                                Helpers.GenerateDelayExpiredData,
-                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null);
+                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null, false);
                         }
 #endif
                     }
@@ -82,14 +82,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                         {
                             producer.RunTestCompiled<RedisQueueInit>(queueName,
                                 connectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
-                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null);
+                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null, false);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<RedisQueueInit>(queueName,
                                connectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
-                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null);
+                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null, false);
                         }
 #endif
                     }
@@ -99,14 +99,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                         {
                             producer.RunTestCompiled<RedisQueueInit>(queueName,
                                 connectionString, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
-                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null);
+                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null, false);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<RedisQueueInit>(queueName,
                                connectionString, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
-                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null);
+                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null, false);
                         }
 #endif
                     }
@@ -116,14 +116,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                         {
                             producer.RunTestCompiled<RedisQueueInit>(queueName,
                                 connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null);
+                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, null, false);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<RedisQueueInit>(queueName,
                                connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null);
+                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, null, false);
                         }
 #endif
                     }

@@ -13,9 +13,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(3, 40, 1, false),
-         InlineData(3, 40, 1, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb)
+        [InlineData(3, 80, 1, false, true),
+         InlineData(3, 40, 1, true, false)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -46,14 +46,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                             //process data
                             var consumer = new ConsumerErrorShared<FakeMessage>();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
-                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null);
+                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, false);
                         }

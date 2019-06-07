@@ -11,9 +11,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
     public class ConsumerExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, false),
-        InlineData(100, 5, 20, 5, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions)
+        [InlineData(100, 0, 20, 5, false, false),
+        InlineData(100, 5, 20, 5, true, false),
+        InlineData(10, 0, 60, 5, false, true),
+        InlineData(10, 5, 60, 5, true, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -44,14 +46,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         var consumer = new ConsumerExpiredMessageShared<FakeMessage>();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
                             logProvider,
                             runtime, messageCount,
-                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null);
+                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

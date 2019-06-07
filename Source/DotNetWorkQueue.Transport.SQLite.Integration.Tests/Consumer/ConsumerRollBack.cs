@@ -12,9 +12,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerRollBack
     {
         [Theory]
-        [InlineData(500, 0, 240, 5, true),
-        InlineData(10, 20, 220, 7, false)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb)
+        [InlineData(500, 0, 240, 5, true, false),
+        InlineData(10, 20, 220, 7, false, false),
+        InlineData(5, 5, 220, 7, false, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -46,14 +47,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                             //process data
                             var consumer = new ConsumerRollBackShared<FakeMessage>();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                 false,
                                 workerCount, logProvider, timeOut, runtime, messageCount,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null);
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

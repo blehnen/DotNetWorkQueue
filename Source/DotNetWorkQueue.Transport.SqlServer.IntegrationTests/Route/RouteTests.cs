@@ -11,10 +11,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
     public class RouteTests
     {
         [Theory]
-        [InlineData(10, 5, 180, 1, false, 4),
-         InlineData(10, 5, 180, 1, true, 10)]
+        [InlineData(10, 5, 180, 1, false, 4, true),
+         InlineData(10, 5, 180, 1, true, 10, false)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
-           bool useTransactions, int routeCount)
+           bool useTransactions, int routeCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
                         var routeTest = new RouteTestsShared();
                         routeTest.RunTest<SqlServerMessageQueueInit, FakeMessageA>(queueName, ConnectionInfo.ConnectionString,
                             true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
-                            GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)");
+                            GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

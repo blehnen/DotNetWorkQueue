@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Prod
     public class SimpleMethodProducerAsyncBatch
     {
         [Theory]
-        [InlineData(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled),
-         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled),
-         InlineData(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled),
-         InlineData(1000, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled)]
+        [InlineData(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
+         InlineData(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true),
+         InlineData(10, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
         public async void Run(
             int messageCount,
             bool interceptors,
@@ -29,7 +29,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Prod
             bool enableStatusTable,
             bool additionalColumn,
             bool inMemoryDb,
-            LinqMethodTypes linqMethodTypes)
+            LinqMethodTypes linqMethodTypes,
+            bool enableChaos)
         {
 
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
@@ -70,7 +71,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Prod
                             await producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, true, 0, id, linqMethodTypes, oCreation.Scope).ConfigureAwait(false);
+                                Helpers.Verify, true, 0, id, linqMethodTypes, oCreation.Scope, enableChaos).ConfigureAwait(false);
                         }
                     }
                     finally

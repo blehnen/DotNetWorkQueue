@@ -11,11 +11,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncErrorTable
     {
         [Theory]
-        [InlineData(1, 15, 1, 1, 0, false),
-        InlineData(25, 120, 20, 1, 5, false),
-        InlineData(1, 15, 1, 1, 0, true),
-        InlineData(25, 120, 20, 1, 5, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, bool useTransactions)
+        [InlineData(1, 15, 1, 1, 0, false, false),
+        InlineData(25, 120, 20, 1, 5, false, false),
+        InlineData(1, 15, 1, 1, 0, true, false),
+        InlineData(25, 120, 20, 1, 5, true, false),
+        InlineData(2, 120, 20, 1, 5, false, true),
+        InlineData(1, 15, 1, 1, 0, true, true)]
+        public void Run(int messageCount, int timeOut, int workerCount, 
+            int readerCount, int queueSize, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -46,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                         var producer = new ProducerShared();
                         producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         //process data
                         var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
@@ -54,7 +57,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             false,
                             logProvider,
                             messageCount, workerCount, timeOut, queueSize, readerCount,
-                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null);
+                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
                     }

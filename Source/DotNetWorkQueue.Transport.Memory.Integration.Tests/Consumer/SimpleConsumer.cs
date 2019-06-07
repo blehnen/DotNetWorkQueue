@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, false);
 
                             var consumer = new ConsumerShared<FakeMessage>();
                             consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                                 logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false);
 
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);
                         }

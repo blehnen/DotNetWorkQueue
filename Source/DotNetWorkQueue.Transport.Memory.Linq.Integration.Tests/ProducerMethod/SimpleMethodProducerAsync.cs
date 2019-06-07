@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                             await producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, true, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope).ConfigureAwait(false);
+                                Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope, false).ConfigureAwait(false);
                         }
                     }
                     finally

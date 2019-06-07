@@ -44,25 +44,25 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
                     {
                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                        connectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayExpiredData,
-                       Helpers.Verify, batchSending, null);
+                       Helpers.Verify, batchSending, null, false);
                     }
                     else if (enableDelay)
                     {
                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                        connectionString, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
-                       Helpers.Verify, batchSending, null);
+                       Helpers.Verify, batchSending, null, false);
                     }
                     else if (enableExpiration)
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                        connectionString, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
-                       Helpers.Verify, batchSending, null);
+                       Helpers.Verify, batchSending, null, false);
                     }
                     else
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                         connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, batchSending, null);
+                        Helpers.Verify, batchSending, null, false);
                     }
                 }
                 finally

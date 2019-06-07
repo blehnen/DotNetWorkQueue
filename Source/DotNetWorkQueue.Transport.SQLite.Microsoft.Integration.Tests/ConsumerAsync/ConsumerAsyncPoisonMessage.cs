@@ -13,9 +13,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.ConsumerA
     public class ConsumerAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, true),
-         InlineData(25, 40, 10, 1, 2, false)]
-        public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, bool inMemoryDb)
+        [InlineData(1, 20, 1, 1, 0, true, true),
+         InlineData(25, 40, 10, 1, 2, false, false)]
+        public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.ConsumerA
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                             //process data
                             var consumer = new ConsumerAsyncPoisonMessageShared<FakeMessage>();

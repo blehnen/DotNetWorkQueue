@@ -13,12 +13,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumer
     {
         [Theory]
-        [InlineData(100, 0, 240, 5, true, LinqMethodTypes.Dynamic),
-        InlineData(50, 5, 200, 10, false, LinqMethodTypes.Dynamic),
-        InlineData(50, 5, 200, 10, false, LinqMethodTypes.Compiled),
-        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled)]
+        [InlineData(100, 0, 240, 5, true, LinqMethodTypes.Dynamic, false),
+        InlineData(5, 5, 200, 10, false, LinqMethodTypes.Dynamic, true),
+        InlineData(5, 5, 200, 10, false, LinqMethodTypes.Compiled, true),
+        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int runtime, 
-            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -51,13 +51,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             {
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope);
+                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope, enableChaos);
                             }
                             else
                             {
                                 producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope);
+                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope, enableChaos);
                             }
 
                             var consumer = new ConsumerMethodShared();
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

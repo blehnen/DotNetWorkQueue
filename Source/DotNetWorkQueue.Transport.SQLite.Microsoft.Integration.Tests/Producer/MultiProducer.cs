@@ -15,9 +15,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Producer
     public class MultiProducer
     {
         [Theory]
-        [InlineData(true),
-        InlineData(false)]
-        public void Run(bool inMemoryDb)
+        [InlineData(10, true, true),
+        InlineData(100, false, false)]
+        public void Run(int messageCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -39,9 +39,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Producer
                             var result = oCreation.CreateQueue();
                             Assert.True(result.Success, result.ErrorMessage);
 
-                            RunTest(queueName, 100, 10, logProvider, connectionInfo.ConnectionString, oCreation.Scope);
+                            RunTest(queueName, messageCount, 10, logProvider, connectionInfo.ConnectionString, oCreation.Scope, enableChaos);
                             LoggerShared.CheckForErrors(queueName);
-                            new VerifyQueueData(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(100 * 10, null);
+                            new VerifyQueueData(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount * 10, null);
                         }
                     }
                     finally
@@ -59,14 +59,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Producer
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, string connectionString, ICreationScope scope)
+        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, string connectionString, ICreationScope scope, bool enableChaos)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
             {
                 var producer = new ProducerShared();
                 var task = new Task(() => producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName, connectionString, false, messageCount,
-                    logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, scope));
+                    logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, scope, enableChaos));
                 tasks.Add(task); 
             }
             tasks.AsParallel().ForAll(x => x.Start());

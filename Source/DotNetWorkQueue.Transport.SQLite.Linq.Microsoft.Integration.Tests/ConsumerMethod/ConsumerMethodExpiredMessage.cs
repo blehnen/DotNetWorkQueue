@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
     public class ConsumerMethodExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, true, LinqMethodTypes.Compiled),
-         InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled)]
+        [InlineData(100, 0, 20, 5, true, LinqMethodTypes.Compiled, false),
+         InlineData(10, 0, 20, 5, false, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int runtime, 
-            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                             {
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                               Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, runtime, oCreation.Scope);
+                               Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, runtime, oCreation.Scope, enableChaos);
                             }
 
                             var consumer = new ConsumerMethodExpiredMessageShared();
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                                 false,
                                 logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", id);
+                                workerCount, timeOut, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", id, enableChaos);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

@@ -13,12 +13,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodHeartbeat
     {
         [Theory]
-        [InlineData(7, 15, 90, 3, true, LinqMethodTypes.Dynamic),
-        InlineData(7, 15, 90, 3, false, LinqMethodTypes.Dynamic),
-        InlineData(7, 15, 90, 3, true, LinqMethodTypes.Compiled),
-        InlineData(7, 15, 90, 3, false, LinqMethodTypes.Compiled)]
+        [InlineData(7, 15, 90, 3, true, LinqMethodTypes.Dynamic, false),
+        InlineData(7, 15, 190, 3, false, LinqMethodTypes.Dynamic, true),
+        InlineData(7, 15, 190, 3, true, LinqMethodTypes.Compiled, true),
+        InlineData(7, 15, 90, 3, false, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int runtime, 
-            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -51,13 +51,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             {
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                               Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, oCreation.Scope);
+                               Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, oCreation.Scope, enableChaos);
                             }
                             else
                             {
                                 producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                               Helpers.Verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, oCreation.Scope);
+                               Helpers.Verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, oCreation.Scope, enableChaos);
                             }
 
 
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 false,
                                 logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
+                                workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                             GenerateMethod.ClearCancel(id);

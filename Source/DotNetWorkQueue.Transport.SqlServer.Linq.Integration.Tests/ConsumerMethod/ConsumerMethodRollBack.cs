@@ -13,13 +13,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     {
 
         [Theory]
-        [InlineData(50, 5, 200, 10, false, LinqMethodTypes.Compiled),
+        [InlineData(50, 5, 200, 10, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
-        InlineData(50, 5, 200, 10, true, LinqMethodTypes.Dynamic),
-        InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic),
+        InlineData(50, 5, 200, 10, true, LinqMethodTypes.Dynamic, false),
+        InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic, false),
 #endif
-        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
+        InlineData(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false),
+        InlineData(3, 15, 180, 7, true, LinqMethodTypes.Compiled, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, 
+            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -53,21 +55,21 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         {
                             producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, oCreation.Scope);
+                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, oCreation.Scope);
+                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, oCreation.Scope, enableChaos);
                         }
 #endif
                         //process data
                         var consumer = new ConsumerMethodRollBackShared();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
-                            workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id);
+                            workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id, enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                         GenerateMethod.ClearRollback(id);

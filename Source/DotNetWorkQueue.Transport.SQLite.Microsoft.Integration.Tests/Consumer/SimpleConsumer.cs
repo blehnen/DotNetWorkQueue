@@ -13,9 +13,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
     public class SimpleConsumer
     {
         [Theory]
-        [InlineData(1000, 0, 60, 1, true),
-        InlineData(10, 5, 120, 1, false)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb)
+        [InlineData(1000, 0, 60, 1, true, false),
+        InlineData(10, 5, 120, 1, false, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope);
+                                Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                             var consumer = new ConsumerShared<FakeMessage>();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
                                 logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)");
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos);
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
                         }

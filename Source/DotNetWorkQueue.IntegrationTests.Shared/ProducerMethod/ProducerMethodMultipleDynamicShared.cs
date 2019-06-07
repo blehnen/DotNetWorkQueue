@@ -24,12 +24,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
            bool sendViaBatch, Guid id,
            Func<Guid, int, int, LinqExpressionToRun> generateTestMethod, 
-           int runTime, ICreationScope scope)
+           int runTime, ICreationScope scope, bool enableChaos)
            where TTransportInit : ITransportInit, new()
         {
             RunTestDynamic<TTransportInit>(queueName, connectionString, addInterceptors, messageCount, logProvider,
                 generateData,
-                verify, sendViaBatch, true, id, generateTestMethod, runTime, scope);
+                verify, sendViaBatch, true, id, generateTestMethod, runTime, scope, enableChaos);
         }
 
         public void RunTestDynamic<TTransportInit>(string queueName,
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
             bool sendViaBatch, bool validateMetricCounts, Guid id,
             Func<Guid, int, int, LinqExpressionToRun> generateTestMethod, 
-            int runTime, ICreationScope scope)
+            int runTime, ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueName))
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     addInterceptorProducer = InterceptorAdding.Yes;
                 }
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, enableChaos)
                     )
                 {
                     //create the queue

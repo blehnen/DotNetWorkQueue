@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Configuration;
 using System.Threading.Tasks;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
@@ -47,6 +48,12 @@ namespace SampleShared
                 AddMessageInterceptors(container, enableEncryption, enableGzip);
             }
 
+        }
+
+        public static void SetOptions(IContainer container, bool enableChaos)
+        {
+            var pol = container.GetInstance<IPolicies>();
+            pol.EnableChaos = enableChaos;
         }
 
         private static void AddMessageInterceptors(IContainer container,

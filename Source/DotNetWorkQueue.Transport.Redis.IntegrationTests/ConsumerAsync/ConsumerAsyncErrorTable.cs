@@ -31,14 +31,14 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         var producer = new ProducerShared();
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateRouteData,
-                            Helpers.Verify, false, null);
+                            Helpers.Verify, false, null, false);
                     }
                     else
                     {
                         var producer = new ProducerShared();
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null);
+                            Helpers.Verify, false, null, false);
                     }
 
                     //process data
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         logProvider,
-                        messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute);
+                        messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute, false);
                     ValidateErrorCounts(queueName, messageCount, connectionString);
                     using (
                         var count = new VerifyQueueRecordCount(queueName, connectionString))

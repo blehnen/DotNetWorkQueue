@@ -11,25 +11,45 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
     public class SimpleProducerBatch
     {
         [Theory]
-        [InlineData(1000, true, true, true, false, false, true, false, false, true),
-         InlineData(100, false, true, true, false, false, true, false, false, true),
-         InlineData(100, false, false, false, false, false, false, false, false, true),
-         InlineData(100, true, false, false, false, false, false, false, false, true),
-         InlineData(100, false, false, false, false, false, false, true, false, true),
-         InlineData(100, false, false, false, false, false, true, true, false, true),
-         InlineData(100, false, true, false, true, true, false, true, false, true),
-         InlineData(100, false, true, true, true, true, true, true, false, true),
-         InlineData(100, true, true, true, false, false, true, false, true, true),
+        [InlineData(1000, true, true, true, false, false, true, false, false, true, false),
+         InlineData(100, false, true, true, false, false, true, false, false, true, false),
+         InlineData(100, false, false, false, false, false, false, false, false, true, false),
+         InlineData(100, true, false, false, false, false, false, false, false, true, false),
+         InlineData(100, false, false, false, false, false, false, true, false, true, false),
+         InlineData(100, false, false, false, false, false, true, true, false, true, false),
+         InlineData(100, false, true, false, true, true, false, true, false, true, false),
+         InlineData(100, false, true, true, true, true, true, true, false, true, false),
+         InlineData(100, true, true, true, false, false, true, false, true, true, false),
 
-         InlineData(100, true, true, true, false, false, true, false, false, false),
-         InlineData(100, false, true, true, false, false, true, false, false, false),
-         InlineData(100, false, false, false, false, false, false, false, false, false),
-         InlineData(100, true, false, false, false, false, false, false, false, false),
-         InlineData(100, false, false, false, false, false, false, true, false, false),
-         InlineData(100, false, false, false, false, false, true, true, false, false),
-         InlineData(100, false, true, false, true, true, false, true, false, false),
-         InlineData(100, false, true, true, true, true, true, true, false, false),
-         InlineData(1000, true, true, true, false, false, true, false, true, false)]
+         InlineData(100, true, true, true, false, false, true, false, false, false, false),
+         InlineData(100, false, true, true, false, false, true, false, false, false, false),
+         InlineData(100, false, false, false, false, false, false, false, false, false, false),
+         InlineData(100, true, false, false, false, false, false, false, false, false, false),
+         InlineData(100, false, false, false, false, false, false, true, false, false, false),
+         InlineData(100, false, false, false, false, false, true, true, false, false, false),
+         InlineData(100, false, true, false, true, true, false, true, false, false, false),
+         InlineData(100, false, true, true, true, true, true, true, false, false, false),
+         InlineData(1000, true, true, true, false, false, true, false, true, false, false),
+
+         InlineData(10, true, true, true, false, false, true, false, false, true, true),
+         InlineData(10, false, true, true, false, false, true, false, false, true, true),
+         InlineData(10, false, false, false, false, false, false, false, false, true, true),
+         InlineData(10, true, false, false, false, false, false, false, false, true, true),
+         InlineData(10, false, false, false, false, false, false, true, false, true, true),
+         InlineData(10, false, false, false, false, false, true, true, false, true, true),
+         InlineData(10, false, true, false, true, true, false, true, false, true, true),
+         InlineData(10, false, true, true, true, true, true, true, false, true, true),
+         InlineData(10, true, true, true, false, false, true, false, true, true, true),
+
+         InlineData(10, true, true, true, false, false, true, false, false, false, true),
+         InlineData(10, false, true, true, false, false, true, false, false, false, true),
+         InlineData(10, false, false, false, false, false, false, false, false, false, true),
+         InlineData(10, true, false, false, false, false, false, false, false, false, true),
+         InlineData(10, false, false, false, false, false, false, true, false, false, true),
+         InlineData(10, false, false, false, false, false, true, true, false, false, true),
+         InlineData(10, false, true, false, true, true, false, true, false, false, true),
+         InlineData(10, false, true, true, true, true, true, true, false, false, true),
+         InlineData(10, true, true, true, false, false, true, false, true, false, true)]
         public void Run(
             int messageCount,
             bool interceptors,
@@ -40,7 +60,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
             bool enableStatus,
             bool enableStatusTable,
             bool additionalColumn, 
-            bool inMemoryDb)
+            bool inMemoryDb,
+            bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -78,7 +99,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, true, oCreation.Scope);
+                                Helpers.Verify, true, oCreation.Scope, enableChaos);
                         }
                     }
                     finally

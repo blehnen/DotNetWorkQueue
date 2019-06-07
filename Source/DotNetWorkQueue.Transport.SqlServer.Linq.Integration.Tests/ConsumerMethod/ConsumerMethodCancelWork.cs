@@ -13,12 +13,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     {
         [Theory]
 #if NETFULL
-        [InlineData(7, 15, 90, 3, LinqMethodTypes.Compiled),
-        InlineData(7, 15, 90, 3, LinqMethodTypes.Dynamic)]
+        [InlineData(7, 15, 90, 3, LinqMethodTypes.Compiled, false),
+        InlineData(7, 15, 90, 3, LinqMethodTypes.Dynamic, false)]
 #else
-        [InlineData(7, 15, 90, 3, LinqMethodTypes.Compiled)]
+        [InlineData(7, 15, 190, 3, LinqMethodTypes.Compiled, true)]
 #endif
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -51,20 +51,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         {
                             producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                          Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, oCreation.Scope);
+                          Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                          Helpers.Verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, oCreation.Scope);
+                          Helpers.Verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, oCreation.Scope, enableChaos);
                         }
 #endif
                         var consumer = new ConsumerMethodCancelWorkShared<SqlServerMessageQueueInit>();
                         consumer.RunConsumer(queueName, ConnectionInfo.ConnectionString, false, logProvider,
                             runtime, messageCount,
-                            workerCount, timeOut, serviceRegister => serviceRegister.Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id);
+                            workerCount, timeOut, serviceRegister => serviceRegister.Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id, enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                         GenerateMethod.ClearCancel(id);

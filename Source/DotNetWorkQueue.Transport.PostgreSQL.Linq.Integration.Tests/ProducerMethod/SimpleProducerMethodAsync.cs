@@ -12,26 +12,35 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
     public class SimpleProducerMethodAsync
     {
         [Theory]
-        [InlineData(100, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled),
+        [InlineData(100, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
-         InlineData(100, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic),
-         InlineData(100, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic),
-         InlineData(100, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic),
-         InlineData(100, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic),
-         InlineData(100, false, false, false, false, false, false, false, true, false, LinqMethodTypes.Dynamic),
-         InlineData(100, false, false, false, false, false, false, true, true, false, LinqMethodTypes.Dynamic),
-         InlineData(100, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Dynamic),
-         InlineData(100, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Dynamic),
-         InlineData(100, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Dynamic),
+         InlineData(100, true, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, false, false, false, false, false, false, true, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, false, false, false, false, false, true, true, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Dynamic, false),
 #endif       
-         InlineData(100, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled),
-         InlineData(100, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled),
-         InlineData(100, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled),
-         InlineData(100, false, false, false, false, false, false, false, true, false, LinqMethodTypes.Compiled),
-         InlineData(100, false, false, false, false, false, false, true, true, false, LinqMethodTypes.Compiled),
-         InlineData(100, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Compiled),
-         InlineData(100, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Compiled),
-         InlineData(100, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Compiled)]
+         InlineData(100, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, false, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, false, false, false, false, false, true, true, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Compiled, false),
+
+         InlineData(10, false, true, true, false, false, false, true, false, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, true, false, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, false, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, false, false, false, false, false, true, true, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Compiled, true)]
         public async void Run(
             int messageCount,
             bool interceptors,
@@ -43,7 +52,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
             bool enableStatus,
             bool enableStatusTable,
             bool additionalColumn,
-            LinqMethodTypes linqMethodTypes)
+            LinqMethodTypes linqMethodTypes, 
+            bool enableChaos)
         {
 
             var queueName = GenerateQueueName.Create();
@@ -84,7 +94,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                         await producer.RunTestAsync<PostgreSqlMessageQueueInit>(queueName,
                             ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
-                            Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope).ConfigureAwait(false);
+                            Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope, enableChaos).ConfigureAwait(false);
                     }
                 }
                 finally

@@ -36,20 +36,20 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     {
                         producer.RunTestCompiled<RedisQueueInit>(queueName,
                             connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, null);
+                            Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, null, false);
                     }
 #if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueName,
                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, null);
+                           Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, null, false);
                     }
 #endif
                     var consumer = new ConsumerMethodShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false, logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)");
+                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", false);
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

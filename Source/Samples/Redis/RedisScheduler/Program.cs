@@ -28,12 +28,15 @@ namespace RedisScheduler
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
 
             using (var jobContainer = new JobSchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister)))
+                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister)
+                , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = jobContainer.CreateJobScheduler(serviceRegister =>
                     Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister),
                     serviceRegister =>
-                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister)))
+                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister)
+                    , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)
+                    , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                 {
                     //start may be called before or after adding jobs
                     scheduler.Start();

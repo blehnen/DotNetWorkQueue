@@ -13,12 +13,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     {
         [Theory]
 #if NETFULL
-        [InlineData(10, 30, 5, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 30, 5, true, LinqMethodTypes.Compiled)]
+        [InlineData(3, 30, 5, false, LinqMethodTypes.Dynamic, true),
+         InlineData(3, 30, 5, true, LinqMethodTypes.Compiled, true)]
 #else
-        [InlineData(10, 30, 5, true, LinqMethodTypes.Compiled)]
+        [InlineData(10, 30, 5, true, LinqMethodTypes.Compiled, false)]
 #endif
-        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
+        public void Run(int messageCount, int timeOut, int workerCount, 
+            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -50,14 +51,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         {
                             producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope);
+                           Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope);
+                           Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope, enableChaos);
                         }
 #endif
                         //process data

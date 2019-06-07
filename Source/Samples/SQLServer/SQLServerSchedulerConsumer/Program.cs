@@ -29,7 +29,8 @@ namespace SQLServerSchedulerConsumer
             using (var createQueueContainer = new QueueCreationContainer<SqlServerMessageQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
-                    "SQLServerSchedulerConsumer", serviceRegister)))
+                    "SQLServerSchedulerConsumer", serviceRegister)
+                , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
                     createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueName, connectionString))
@@ -47,7 +48,8 @@ namespace SQLServerSchedulerConsumer
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
-                    "SQLServerSchedulerConsumer", serviceRegister)))
+                    "SQLServerSchedulerConsumer", serviceRegister), 
+                options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = schedulerContainer.CreateTaskScheduler())
                 {
@@ -62,7 +64,7 @@ namespace SQLServerSchedulerConsumer
                     using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>(serviceRegister =>
                         Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                             SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
-                            "SQLServerSchedulerConsumer", serviceRegister)))
+                            "SQLServerSchedulerConsumer", serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
                         using (var queue =
                             queueContainer.CreateConsumerMethodQueueScheduler(queueName, connectionString, factory))

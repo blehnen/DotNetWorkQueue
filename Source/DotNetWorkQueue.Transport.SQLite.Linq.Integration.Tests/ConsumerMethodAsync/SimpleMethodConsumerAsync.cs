@@ -15,13 +15,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [InlineData(10, 45, 260, 7, 1, 1, 1, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 45, 260, 7, 1, 1, 1, true, LinqMethodTypes.Dynamic),
-         InlineData(500, 1, 400, 10, 5, 5, 1, false, LinqMethodTypes.Compiled),
-         InlineData(50, 5, 200, 10, 1, 2, 1, true, LinqMethodTypes.Compiled)]
+        [InlineData(10, 45, 260, 7, 1, 1, 1, false, LinqMethodTypes.Dynamic, false),
+         InlineData(10, 45, 260, 7, 1, 1, 1, true, LinqMethodTypes.Dynamic, true),
+         InlineData(50, 1, 400, 10, 5, 5, 1, false, LinqMethodTypes.Compiled, true),
+         InlineData(50, 5, 200, 10, 1, 2, 1, true, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, int readerCount, int queueSize,
-           int messageType, bool inMemoryDb, LinqMethodTypes linqMethodTypes)
+           int messageType, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             if (Factory == null)
             {
@@ -59,13 +59,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 var producer = new ProducerMethodAsyncShared();
                                 producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
+                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, enableChaos).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                                 consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
                             }
                             else if (messageType == 2)
                             {
@@ -73,13 +73,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 var producer = new ProducerMethodAsyncShared();
                                 producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
+                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, enableChaos).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                                 consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
                             }
                             else if (messageType == 3)
                             {
@@ -87,13 +87,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                                 var producer = new ProducerMethodAsyncShared();
                                 producer.RunTestAsync<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope).Wait(timeOut);
+                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, enableChaos).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                                 consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
                             }
 
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
@@ -117,10 +117,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
 #pragma warning disable xUnit1013 // Public method should be marked as test
         public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
 #pragma warning restore xUnit1013 // Public method should be marked as test
-            int messageType, bool inMemoryDb, ITaskFactory factory, LinqMethodTypes linqMethodTypes)
+            int messageType, bool inMemoryDb, ITaskFactory factory, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             Factory = factory;
-            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, inMemoryDb, linqMethodTypes);
+            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, inMemoryDb, linqMethodTypes, enableChaos);
         }
 
 

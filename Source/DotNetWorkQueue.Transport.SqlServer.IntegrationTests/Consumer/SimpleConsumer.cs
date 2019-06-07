@@ -11,9 +11,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
     public class SimpleConsumer
     {
         [Theory]
-        [InlineData(1000, 0, 240, 5, false),
-        InlineData(10, 15, 180, 7, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions)
+        [InlineData(1000, 0, 240, 5, false, false),
+        InlineData(10, 15, 180, 7, true, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -42,14 +42,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         var consumer = new ConsumerShared<FakeMessage>();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
                             logProvider,
                             runtime, messageCount,
-                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)");
+                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

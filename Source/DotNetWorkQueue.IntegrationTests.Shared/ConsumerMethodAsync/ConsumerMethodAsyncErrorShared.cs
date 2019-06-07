@@ -11,7 +11,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             int messageCount, int workerCount, int timeOut,
             int queueSize, int readerCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
-            Guid id, string updateTime)
+            Guid id, string updateTime, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                 }
 
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, enableChaos)
                     )
                 {
                     using (var schedulerCreator =

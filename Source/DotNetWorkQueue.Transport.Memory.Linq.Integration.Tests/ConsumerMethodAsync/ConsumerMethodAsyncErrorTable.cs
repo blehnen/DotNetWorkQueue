@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 producer.RunTestCompiled<MemoryMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider,
                                     Helpers.GenerateData,
-                                    Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope);
+                                    Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope, false);
                             }
 #if NETFULL
                             else
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                                 producer.RunTestDynamic<MemoryMessageQueueInit>(queueName,
                                    connectionInfo.ConnectionString, false, messageCount, logProvider,
                                    Helpers.GenerateData,
-                                   Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope);
+                                   Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope, false);
                             }
 #endif
                             //process data
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             consumer.RunConsumer<MemoryMessageQueueInit>(queueName,connectionInfo.ConnectionString,
                                 false,
                                 logProvider,
-                                messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)");
+                                messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
                             ValidateErrorCounts(oCreation.Scope, messageCount);
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
                         }

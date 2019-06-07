@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="2.2.4" />
+    <PackageReference Include="Polly.Contrib.Simmy" Version="0.1.0" />
   </ItemGroup>
 
   <ItemGroup>

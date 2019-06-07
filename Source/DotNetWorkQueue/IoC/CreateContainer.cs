@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.IoC
                 }
                 else
                 {
-                    containerWrapper.Register(() => new JobQueueContainerRegistrations(null, null), LifeStyles.Singleton);
+                    containerWrapper.Register(() => new JobQueueContainerRegistrations(null, null, null, null), LifeStyles.Singleton);
                 }
 
                 var type = GetRegistrationType(register);

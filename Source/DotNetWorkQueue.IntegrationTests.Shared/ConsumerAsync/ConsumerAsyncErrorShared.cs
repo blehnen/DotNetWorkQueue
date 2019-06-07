@@ -13,7 +13,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             int queueSize, int readerCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
             string updateTime,
-            string route)
+            string route,
+            bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -27,14 +28,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
 
                 var processedCount = new IncrementWrapper();
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, enableChaos)
                     )
                 {
 
                     using (var schedulerCreator =
                         new SchedulerContainer(
                             // ReSharper disable once AccessToDisposedClosure
-                            serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton)))
+                            serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton), options => SharedSetup.SetOptions(options, enableChaos)))
                     {
                         bool rollBacks;
                         using (var taskScheduler = schedulerCreator.CreateTaskScheduler())

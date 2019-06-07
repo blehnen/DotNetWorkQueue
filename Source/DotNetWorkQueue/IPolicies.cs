@@ -49,5 +49,13 @@ namespace DotNetWorkQueue
         /// The transport definition.
         /// </value>
         ConcurrentDictionary<string, TransportPolicyDefinition> TransportDefinition { get; }
+
+        /// <summary>
+        /// If true, failures will be inserted into polices
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [enable chaos]; otherwise, <c>false</c>.
+        /// </value>
+        bool EnableChaos { get; set; }
     }
 }

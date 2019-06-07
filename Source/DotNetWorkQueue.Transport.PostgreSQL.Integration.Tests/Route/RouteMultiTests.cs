@@ -11,10 +11,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
     public class RouteMultiTests
     {
         [Theory]
-        [InlineData(100, 1, 400, 1, true, 2),
-        InlineData(100, 0, 180, 1, false, 2)]
+        [InlineData(100, 1, 400, 1, true, 2, false),
+        InlineData(100, 0, 180, 1, false, 2, false),
+        InlineData(10, 1, 400, 1, true, 2, true),
+        InlineData(10, 0, 180, 1, false, 2, true)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
-          bool useTransactions, int routeCount)
+          bool useTransactions, int routeCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -44,7 +46,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
                         var routeTest = new RouteMultiTestsShared();
                         routeTest.RunTest<PostgreSqlMessageQueueInit, FakeMessageA>(queueName, ConnectionInfo.ConnectionString,
                             true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
-                            GenerateRoutes(routeCount, 1), GenerateRoutes(routeCount, routeCount + 1), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)");
+                            GenerateRoutes(routeCount, 1), GenerateRoutes(routeCount, routeCount + 1), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                     }

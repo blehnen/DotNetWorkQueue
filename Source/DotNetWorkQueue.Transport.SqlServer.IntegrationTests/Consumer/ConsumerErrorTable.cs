@@ -11,9 +11,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(1, 10, 1, false),
-         InlineData(10, 40, 5, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions)
+        [InlineData(1, 10, 1, false, false),
+         InlineData(10, 40, 5, true, false),
+         InlineData(3, 40, 5, true, true)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -43,14 +44,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                         var producer = new ProducerShared();
                         producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope);
+                            Helpers.Verify, false, oCreation.Scope, enableChaos);
 
                         //process data
                         var consumer = new ConsumerErrorShared<FakeMessage>();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
                             false,
                             logProvider,
-                            workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null);
+                            workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
                     }

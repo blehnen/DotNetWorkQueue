@@ -12,13 +12,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, true, LinqMethodTypes.Compiled),
+        [InlineData(1, 20, 1, true, LinqMethodTypes.Compiled, false),
 #if NETFULL
-        InlineData(1, 20, 1, false, LinqMethodTypes.Dynamic),
-         InlineData(10, 30, 5, true, LinqMethodTypes.Dynamic),
+        InlineData(1, 20, 1, false, LinqMethodTypes.Dynamic, false),
+         InlineData(10, 30, 5, true, LinqMethodTypes.Dynamic, false),
 #endif
-         InlineData(10, 30, 5, false, LinqMethodTypes.Compiled)]
-        public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes)
+         InlineData(3, 30, 5, false, LinqMethodTypes.Compiled, true)]
+        public void Run(int messageCount, int timeOut, int workerCount, 
+            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -50,14 +51,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         {
                             producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope);
+                           Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope);
+                           Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope, enableChaos);
                         }
 #endif
                         //process data
