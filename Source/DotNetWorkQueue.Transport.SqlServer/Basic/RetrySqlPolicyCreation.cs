@@ -154,8 +154,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null, null);
 #endif
             var collection = CreateInstance<SqlErrorCollection>();
-            ArrayList errors = collection.GetPrivateFieldValue<ArrayList>("errors");
+#if NETFULL
+             var errors = collection.GetPrivateFieldValue<ArrayList>("errors");
+             errors.Add(sqlError);
+#else
+            var errors = collection.GetPrivateFieldValue<List<object>>("_errors");
             errors.Add(sqlError);
+#endif
             var e = CreateInstance<SqlException>(string.Empty, collection, null, Guid.NewGuid());
             throw e;
         }
