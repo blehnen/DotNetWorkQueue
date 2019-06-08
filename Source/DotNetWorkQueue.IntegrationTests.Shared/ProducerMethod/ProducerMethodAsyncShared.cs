@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 }
                 using (
                     var creator =
-                        SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, enableChaos)
+                        SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, false, enableChaos)
                 )
                 {
                     //create the queue

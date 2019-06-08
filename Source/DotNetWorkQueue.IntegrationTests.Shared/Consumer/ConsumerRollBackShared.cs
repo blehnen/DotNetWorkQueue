@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                 var processedCount = new IncrementWrapper();
                 var haveIProcessedYouBefore = new ConcurrentDictionary<string, int>();
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, enableChaos)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos)
                     )
                 {
                     using (

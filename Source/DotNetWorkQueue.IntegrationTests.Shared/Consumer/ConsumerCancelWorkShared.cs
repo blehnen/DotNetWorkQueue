@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly; 
                 }
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, enableChaos)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos)
                     )
                 {
 

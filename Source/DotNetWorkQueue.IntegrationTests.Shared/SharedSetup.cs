@@ -38,33 +38,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
-        public static QueueContainer<TTransportInit> CreateCreator<TTransportInit>(InterceptorAdding addInterceptors,
-            ILogProvider logProvider, IMetrics metrics, bool enableChaos)
-            where TTransportInit : ITransportInit, new()
-        {
-            switch (addInterceptors)
-            {
-                case InterceptorAdding.ConfigurationOnly:
-                    return new QueueContainer<TTransportInit>(
-                  serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
-                     LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                           Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
-                case InterceptorAdding.Yes:
-                    return new QueueContainer<TTransportInit>(
-                   serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
-                      LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
-                       {
-                            typeof (GZipMessageInterceptor), //gzip compression
-                            typeof (TripleDesMessageInterceptor) //encryption
-                      }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                            Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
-                default:
-                    return new QueueContainer<TTransportInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
-                      LifeStyles.Singleton), options => SetOptions(options, enableChaos));
-            }
-        }
-
         public static void SetOptions(IContainer obj, bool enableChaos)
         {
             var policy = obj.GetInstance<IPolicies>();
@@ -72,32 +45,66 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
 
         public static QueueContainer<TTransportInit> CreateCreator<TTransportInit>(InterceptorAdding addInterceptors,
-            ILogProvider logProvider, IMetrics metrics, bool fakeRemoveMeLater, bool createBadSerialization, bool enableChaos)
+            ILogProvider logProvider, IMetrics metrics, bool createBadSerialization, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
-            switch (addInterceptors)
+            if (createBadSerialization)
             {
-                case InterceptorAdding.ConfigurationOnly:
-                    return new QueueContainer<TTransportInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
-                  .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton).Register(() => metrics,
-                     LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                          Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
-                case InterceptorAdding.Yes:
-                    return new QueueContainer<TTransportInit>(
-                serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
-                    .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton).Register(() => metrics,
-                       LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
-                        {
-                            typeof (GZipMessageInterceptor), //gzip compression
-                            typeof (TripleDesMessageInterceptor) //encryption
-                        }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                            Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
-                default:
-                    return new QueueContainer<TTransportInit>(
-                serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
-                    .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton).Register(() => metrics,
-                       LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                switch (addInterceptors)
+                {
+                    case InterceptorAdding.ConfigurationOnly:
+                        return new QueueContainer<TTransportInit>(
+                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
+                                .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton)
+                                .Register(() => metrics,
+                                    LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(
+                                    Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                                    Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton),
+                            options => SetOptions(options, enableChaos));
+                    case InterceptorAdding.Yes:
+                        return new QueueContainer<TTransportInit>(
+                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
+                                .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton)
+                                .Register(() => metrics,
+                                    LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
+                                {
+                                    typeof(GZipMessageInterceptor), //gzip compression
+                                    typeof(TripleDesMessageInterceptor) //encryption
+                                }).Register(() => new TripleDesMessageInterceptorConfiguration(
+                                    Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                                    Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton),
+                            options => SetOptions(options, enableChaos));
+                    default:
+                        return new QueueContainer<TTransportInit>(
+                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
+                                .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton)
+                                .Register(() => metrics,
+                                    LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                }
+            }
+            else
+            {
+                switch (addInterceptors)
+                {
+                    case InterceptorAdding.ConfigurationOnly:
+                        return new QueueContainer<TTransportInit>(
+                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
+                                LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                    case InterceptorAdding.Yes:
+                        return new QueueContainer<TTransportInit>(
+                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
+                                LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
+                            {
+                                typeof (GZipMessageInterceptor), //gzip compression
+                                typeof (TripleDesMessageInterceptor) //encryption
+                            }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                    default:
+                        return new QueueContainer<TTransportInit>(
+                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
+                                LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                }
             }
         }
 

@@ -17,7 +17,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             long messageCount,
             TimeSpan heartBeatTime, 
             TimeSpan heartBeatMonitorTime,
-            string updatetime)
+            string updatetime,
+            bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -31,7 +32,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
 
                 using (
                     var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics,
-                        true))
+                        true, enableChaos))
                 {
                     using (var schedulerCreator = new SchedulerContainer())
                     {

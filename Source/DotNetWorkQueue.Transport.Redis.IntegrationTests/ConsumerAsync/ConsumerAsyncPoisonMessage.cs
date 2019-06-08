@@ -13,7 +13,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
         [Theory]
         [InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, false),
         InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Linux, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, bool route)
+        public void Run(int messageCount, int timeOut, int workerCount, 
+            int readerCount, int queueSize, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -46,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     var consumer = new ConsumerAsyncPoisonMessageShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         workerCount, logProvider,
-                        timeOut, readerCount, queueSize, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute);
+                        timeOut, readerCount, queueSize, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute, false);
 
                     ValidateErrorCounts(queueName, connectionString, messageCount);
                     using (
