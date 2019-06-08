@@ -1,3 +1,6 @@
+###0.4.1 2019-06-08
+- Fix issue with retry policies using seconds instead of milliseconds
+
 ###0.4.0 2019-06-02
 - Remove RPC
 - Implement OpenTracing https://opentracing.io/

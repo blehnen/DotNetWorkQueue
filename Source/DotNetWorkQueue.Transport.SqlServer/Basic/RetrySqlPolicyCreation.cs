@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Reflection;
 using System.Threading;
@@ -99,7 +100,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 new TransportPolicyDefinition(
                     TransportPolicyDefinitions.RetryCommandHandler,
                     "A policy for retrying a failed command. This checks specific" +
-                    "PostGres server errors, such as deadlocks, and retries the command" +
+                    "SQL server errors, such as deadlocks, and retries the command" +
                     "after a short pause"));
             if (chaosPolicyAsync != null)
                 policies.Registry[TransportPolicyDefinitions.RetryCommandHandlerAsync] = retrySqlAsync.WrapAsync(chaosPolicyAsync);
@@ -146,7 +147,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
         private static Task Behaviour(Context arg1, CancellationToken arg2)
         {
-            var sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null);
+            SqlError sqlError = null;
+#if NETFULL
+            sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null);
+#else
+            sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null, null);
+#endif
             var collection = CreateInstance<SqlErrorCollection>();
             ArrayList errors = collection.GetPrivateFieldValue<ArrayList>("errors");
             errors.Add(sqlError);
@@ -156,10 +162,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
         private static void Behaviour(Context arg1)
         {
-            var sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null);
+            SqlError sqlError = null;
+#if NETFULL
+            sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null);
+#else
+            sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null, null);
+#endif
             var collection = CreateInstance<SqlErrorCollection>();
-            ArrayList errors = collection.GetPrivateFieldValue<ArrayList>("errors");
+#if NETFULL
+             var errors = collection.GetPrivateFieldValue<ArrayList>("errors");
+             errors.Add(sqlError);
+#else
+            var errors = collection.GetPrivateFieldValue<List<object>> ("_errors");
             errors.Add(sqlError);
+#endif
             var e = CreateInstance<SqlException>(string.Empty, collection, null, Guid.NewGuid());
             throw e;
         }
@@ -167,7 +183,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private static T CreateInstance<T>(params object[] args)
         {
             var type = typeof(T);
-            var instance = type.Assembly.CreateInstance(
+            var assembly = type.Assembly;
+            var instance = assembly.CreateInstance(
                 type.FullName, true,
                 BindingFlags.Instance | BindingFlags.NonPublic,
                 null, args, null, null);
