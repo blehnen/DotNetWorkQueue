@@ -4,6 +4,7 @@ using System.Text;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 using Npgsql;
 using NpgsqlTypes;
 

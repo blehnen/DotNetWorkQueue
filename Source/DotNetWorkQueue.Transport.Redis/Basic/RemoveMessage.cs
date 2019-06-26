@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {

@@ -3,6 +3,7 @@ using System.IO;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Shared;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using DotNetWorkQueue.Validation;

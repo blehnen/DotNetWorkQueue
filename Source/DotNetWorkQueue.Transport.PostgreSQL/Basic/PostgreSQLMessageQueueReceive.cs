@@ -5,6 +5,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic.Message;
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -19,7 +20,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private readonly ICancelWork _cancelWork;
 
         private readonly ReceiveMessage _receiveMessages;
-        private readonly HandleMessage _handleMessage;
+        private readonly ITransportHandleMessage _handleMessage;
 
         private readonly IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> _sqlHeaders;
 
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public PostgreSqlMessageQueueReceive(QueueConsumerConfiguration configuration,
             IConnectionHolderFactory<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> connectionFactory,
             IQueueCancelWork cancelWork,
-            HandleMessage handleMessage,
+            ITransportHandleMessage handleMessage,
             ReceiveMessage receiveMessages,
             IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> sqlHeaders)
         {
@@ -82,8 +83,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
-                _commitConnection = (c, b) => _handleMessage.CommitMessage.CommitForTransaction(context);
-                _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.RollbackForTransaction(context);
+                _commitConnection = (c, b) => _handleMessage.CommitMessage.Commit(context);
+                _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.Rollback(context);
             }
 
             try
@@ -126,8 +127,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
-                _commitConnection = (c, b) => _handleMessage.CommitMessage.CommitForTransaction(context);
-                _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.RollbackForTransaction(context);
+                _commitConnection = (c, b) => _handleMessage.CommitMessage.Commit(context);
+                _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.Rollback(context);
             }
 
             try

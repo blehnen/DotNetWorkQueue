@@ -4,6 +4,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
@@ -11,7 +12,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
     /// <summary>
     /// Rolls back a message by either rolling back a transaction or updating a status
     /// </summary>
-    internal class RollbackMessage
+    internal class RollbackMessage: ITransportRollbackMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
         private readonly ICommandHandler<RollbackMessageCommand> _rollbackCommand;
@@ -50,11 +51,44 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             _increaseQueueDelay = increaseQueueDelay;
             _log = log.Create();
         }
+
+        /// <summary>
+        /// Rollbacks the specified message by setting the status
+        /// </summary>
+        /// <param name="context">The context.</param>
+        public void Rollback(IMessageContext context)
+        {
+            var connection = context.Get(_headers.Connection);
+            if (connection?.IsDisposed == false && connection?.Connection != null && connection.Transaction != null)
+            {
+                RollbackForTransaction(context);
+                return;
+            }
+
+            if (context.MessageId == null || !context.MessageId.HasValue) return;
+
+            //there is nothing to rollback unless at least one of these options is enabled
+            if (_configuration.Options().EnableDelayedProcessing ||
+                _configuration.Options().EnableHeartBeat ||
+                _configuration.Options().EnableStatus)
+            {
+                DateTime? lastHeartBeat = null;
+                if (context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime != null)
+                {
+                    lastHeartBeat = context.WorkerNotification.HeartBeat.Status.LastHeartBeatTime.Value;
+                }
+
+                var increaseDelay = context.Get(_increaseQueueDelay.QueueDelay).IncreaseDelay;
+                _rollbackCommand.Handle(new RollbackMessageCommand(lastHeartBeat,
+                    (long)context.MessageId.Id.Value, increaseDelay));
+            }
+        }
+
         /// <summary>
         /// Rollbacks the specified message by rolling back the transaction
         /// </summary>
         /// <param name="context">The context.</param>
-        public void RollbackForTransaction(IMessageContext context)
+        private void RollbackForTransaction(IMessageContext context)
         {
             var connection = context.Get(_headers.Connection);
             //if transaction open, then just rollback the transaction
@@ -64,7 +98,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             {
                 if (context.MessageId != null && context.MessageId.HasValue)
                 {
-                    _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand((long) context.MessageId.Id.Value,
+                    _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand((long)context.MessageId.Id.Value,
                         QueueStatuses.Waiting));
                 }
             }
@@ -85,31 +119,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             //ensure that transaction won't be used anymore
             connection.Transaction.Dispose();
             connection.Transaction = null;
-        }
-
-        /// <summary>
-        /// Rollbacks the specified message by setting the status
-        /// </summary>
-        /// <param name="context">The context.</param>
-        public void Rollback(IMessageContext context)
-        {
-            if (context.MessageId == null || !context.MessageId.HasValue) return;
-
-            //there is nothing to rollback unless at least one of these options is enabled
-            if (_configuration.Options().EnableDelayedProcessing ||
-                _configuration.Options().EnableHeartBeat ||
-                _configuration.Options().EnableStatus)
-            {
-                DateTime? lastHeartBeat = null;
-                if (context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime != null)
-                {
-                    lastHeartBeat = context.WorkerNotification.HeartBeat.Status.LastHeartBeatTime.Value;
-                }
-
-                var increaseDelay = context.Get(_increaseQueueDelay.QueueDelay).IncreaseDelay;
-                _rollbackCommand.Handle(new RollbackMessageCommand(lastHeartBeat,
-                    (long)context.MessageId.Id.Value, increaseDelay));
-            }
         }
     }
 }

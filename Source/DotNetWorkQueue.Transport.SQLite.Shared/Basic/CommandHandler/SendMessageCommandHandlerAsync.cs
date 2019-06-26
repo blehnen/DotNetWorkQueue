@@ -3,10 +3,10 @@ using System.Data;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
         private readonly IGetTime _getTime;
         private readonly IDbFactory _dbFactory;
         private readonly ICommandHandler<SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>> _sendJobStatus;
-        private readonly IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> _jobExistsHandler;
+        private readonly RelationalDatabase.IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> _jobExistsHandler;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
         private readonly DatabaseExists _databaseExists;
         private readonly IReaderAsync _readerAsync;
@@ -55,8 +55,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
             TransportConfigurationSend configurationSend,
             IGetTimeFactory getTimeFactory,
             IDbFactory dbFactory,
-            ICommandHandler<SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>> sendJobStatus, 
-            IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> jobExistsHandler, 
+            ICommandHandler<SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>> sendJobStatus, RelationalDatabase.IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> jobExistsHandler, 
             IJobSchedulerMetaData jobSchedulerMetaData,
             DatabaseExists databaseExists,
             IReaderAsync readerAsync)

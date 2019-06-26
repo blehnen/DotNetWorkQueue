@@ -425,13 +425,11 @@ namespace DotNetWorkQueue.TaskScheduling
 
             WaitForFreeThread.Cancel();
 
-            if (_smartThreadPool != null)
-            {
-                WaitForDelegate.Wait(() => _smartThreadPool.BulkheadAvailableCount != _configuration.MaximumThreads,
-                    _configuration.WaitForThreadPoolToFinish);
-                _smartThreadPool.Dispose();
-                _smartThreadPool = null;
-            }
+            if (_smartThreadPool == null) return;
+            WaitForDelegate.Wait(() => _smartThreadPool.BulkheadAvailableCount != _configuration.MaximumThreads,
+                _configuration.WaitForThreadPoolToFinish);
+            _smartThreadPool.Dispose();
+            _smartThreadPool = null;
         }
         /// <summary>
         /// Throws an exception if this instance has been disposed.

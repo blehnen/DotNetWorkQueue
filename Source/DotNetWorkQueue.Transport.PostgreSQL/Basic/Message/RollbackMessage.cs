@@ -2,6 +2,7 @@
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -10,7 +11,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
     /// <summary>
     /// Rolls back a message by either rolling back a transaction or updating a status
     /// </summary>
-    internal class RollbackMessage
+    internal class RollbackMessage: ITransportRollbackMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
         private readonly ICommandHandler<RollbackMessageCommand> _rollbackCommand;
@@ -44,26 +45,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             _headers = headers;
             _increaseQueueDelay = increaseQueueDelay;
         }
-        /// <summary>
-        /// Rollbacks the specified message by rolling back the transaction
-        /// </summary>
-        /// <param name="context">The context.</param>
-        public void RollbackForTransaction(IMessageContext context)
-        {
-            var connection = context.Get(_headers.Connection);
-            //if transaction open, then just rollback the transaction
-            if (connection.Connection == null || connection.Transaction == null) return;
-
-            if (_configuration.Options().EnableStatusTable)
-            {
-                if (context.MessageId != null && context.MessageId.HasValue)
-                {
-                    _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand((long) context.MessageId.Id.Value,
-                        QueueStatuses.Waiting));
-                }
-            }
-            connection.Transaction.Rollback();
-        }
 
         /// <summary>
         /// Rollbacks the specified message by setting the status
@@ -71,6 +52,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         /// <param name="context">The context.</param>
         public void Rollback(IMessageContext context)
         {
+            var connection = context.Get(_headers.Connection);
+            if (connection?.IsDisposed == false && connection?.Connection != null && connection.Transaction != null)
+            {
+                RollbackForTransaction(context);
+                return;
+            }
+
             if (context.MessageId == null || !context.MessageId.HasValue) return;
 
             //there is nothing to rollback unless at least one of these options is enabled
@@ -89,5 +77,27 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
                     (long)context.MessageId.Id.Value, increaseDelay));
             }
         }
+
+        /// <summary>
+        /// Rollbacks the specified message by rolling back the transaction
+        /// </summary>
+        /// <param name="context">The context.</param>
+        private void RollbackForTransaction(IMessageContext context)
+        {
+            var connection = context.Get(_headers.Connection);
+            //if transaction open, then just rollback the transaction
+            if (connection.Connection == null || connection.Transaction == null) return;
+
+            if (_configuration.Options().EnableStatusTable)
+            {
+                if (context.MessageId != null && context.MessageId.HasValue)
+                {
+                    _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand((long)context.MessageId.Id.Value,
+                        QueueStatuses.Waiting));
+                }
+            }
+            connection.Transaction.Rollback();
+        }
+
     }
 }

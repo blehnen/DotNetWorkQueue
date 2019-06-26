@@ -23,6 +23,7 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Message;
 using DotNetWorkQueue.Validation;
 

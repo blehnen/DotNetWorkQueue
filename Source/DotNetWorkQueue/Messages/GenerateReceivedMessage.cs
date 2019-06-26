@@ -35,8 +35,9 @@ namespace DotNetWorkQueue.Messages
         public dynamic GenerateMessage(Type messageType, IReceivedMessageInternal message)
         {
             var getHandlerGenericMethod = GetType().GetMethod("GetMessage", new[] { message.GetType() });
+            if (getHandlerGenericMethod == null) throw new NullReferenceException("getHandlerGenericMethod is null");
             var generic = getHandlerGenericMethod.MakeGenericMethod(messageType);
-            return generic.Invoke(this, new object[] { message });
+            return generic.Invoke(this, new object[] {message});
         }
         /// <summary>
         /// Generates a <see cref="IReceivedMessage{T}" /> from a <see cref="IReceivedMessageInternal" />

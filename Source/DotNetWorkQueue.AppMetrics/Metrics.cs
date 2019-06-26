@@ -18,8 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Linq;
-
 namespace DotNetWorkQueue.AppMetrics
 {
     /// <inheritdoc cref="IMetrics" />
@@ -53,98 +51,49 @@ namespace DotNetWorkQueue.AppMetrics
         /// <inheritdoc />
         public void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
-            var options = new App.Metrics.Gauge.GaugeOptions {Name = name, Tags = tags.GetTags(), MeasurementUnit = unit.GetUnit()};
-            _context.Measure.Gauge.SetValue(options, valueProvider);
+            MetricsStatic.Gauge(_context, name, valueProvider, unit, tags);
         }
 
         /// <inheritdoc />
         public IMeter Meter(string name, Units unit, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
-            var options = new App.Metrics.Meter.MeterOptions
-            {
-                Name = name, RateUnit = (App.Metrics.TimeUnit) rateUnit, MeasurementUnit = unit.GetUnit(), Tags = tags.GetTags()
-            };
-            return new Meter(_context.Provider.Meter.Instance(options));
+            return MetricsStatic.Meter(_context, name, unit, rateUnit, tags);
         }
 
         /// <inheritdoc />
         public IMeter Meter(string name, string unitName, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
-            var options = new App.Metrics.Meter.MeterOptions
-            {
-                Name = name,
-                RateUnit = (App.Metrics.TimeUnit)rateUnit,
-                MeasurementUnit = App.Metrics.Unit.Custom(unitName),
-                Tags = tags.GetTags()
-            };
-            return new Meter(_context.Provider.Meter.Instance(options));
+            return MetricsStatic.Meter(_context, name, unitName, rateUnit, tags);
         }
 
         /// <inheritdoc />
         public ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
-            var options = new App.Metrics.Counter.CounterOptions {MeasurementUnit = unit.GetUnit(), Name = name, Tags = tags.GetTags()};
-            return new Counter(_context.Provider.Counter.Instance(options));
+            return MetricsStatic.Counter(_context, name, unit, tags);
         }
 
         /// <inheritdoc />
         public ICounter Counter(string name, string unitName, List<KeyValuePair<string, string>> tags = null)
         {
-            var options = new App.Metrics.Counter.CounterOptions { MeasurementUnit = App.Metrics.Unit.Custom(unitName), Name = name, Tags = tags.GetTags() };
-            return new Counter(_context.Provider.Counter.Instance(options));
+            return MetricsStatic.Counter(_context, name, unitName, tags);
         }
 
         /// <inheritdoc />
         public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType, List<KeyValuePair<string, string>> tags = null)
         {
-            var options = new App.Metrics.Histogram.HistogramOptions
-            {
-                MeasurementUnit = unit.GetUnit(), Name = name, Tags = tags.GetTags()
-            };
-
-            switch (samplingType)
-            {
-                case SamplingTypes.FavorRecent:
-                    options.Reservoir = () => new App.Metrics.ReservoirSampling.ExponentialDecay.DefaultForwardDecayingReservoir(1024, 0.015, 0);
-                    break;
-                case SamplingTypes.LongTerm:
-                    options.Reservoir = () => new App.Metrics.ReservoirSampling.Uniform.DefaultAlgorithmRReservoir(1024);
-                    break;
-                case SamplingTypes.SlidingWindow:
-                    options.Reservoir = () => new App.Metrics.ReservoirSampling.SlidingWindow.DefaultSlidingWindowReservoir(1024);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(samplingType), samplingType, null);
-            }
-            return new Histogram(_context.Provider.Histogram.Instance(options));
+            return MetricsStatic.Histogram(_context, name, unit, samplingType, tags);
         }
 
         /// <inheritdoc />
         public ITimer Timer(string name, Units unit, SamplingTypes samplingType, TimeUnits rateUnit, TimeUnits durationUnit, List<KeyValuePair<string, string>> tags = null)
         {
-            var options = new App.Metrics.Timer.TimerOptions
-            {
-                MeasurementUnit = unit.GetUnit(),
-                Name = name,
-                DurationUnit = (App.Metrics.TimeUnit) durationUnit,
-                RateUnit = (App.Metrics.TimeUnit) rateUnit,
-                Tags = tags.GetTags()
-            };
-            return new Timer(_context.Provider.Timer.Instance(options));
+            return MetricsStatic.Timer(_context, name, unit, samplingType, rateUnit, durationUnit, tags);
         }
 
         /// <inheritdoc />
         public IMetricsContext Context(string contextName)
         {
-            return new MetricsContext(new App.Metrics.MetricsBuilder()
-                .Configuration.Configure(
-                    options =>
-                    {
-                        options.DefaultContextLabel = contextName;
-                        options.Enabled = true;
-                        options.ReportingEnabled = true;
-                    })
-                .Build());
+            return MetricsStatic.Build(contextName);
         }
 
         /// <inheritdoc />

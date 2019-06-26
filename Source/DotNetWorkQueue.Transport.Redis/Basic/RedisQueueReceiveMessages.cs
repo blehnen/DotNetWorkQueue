@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Redis.Basic.Message;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
@@ -15,7 +16,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private readonly IRedisQueueWorkSubFactory _workSubFactory;
         private readonly IQueryHandler<ReceiveMessageQuery, RedisMessage> _receiveMessage;
         private readonly IQueryHandler<ReceiveMessageQueryAsync, Task<RedisMessage>> _receiveMessageAsync;
-        private readonly HandleMessage _handleMessage;
+        private readonly ITransportHandleMessage _handleMessage;
         private readonly IHeaders _headers;
         private readonly ICancelWork _cancelWork;
 
@@ -29,8 +30,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="cancelWork">The cancel work.</param>
         /// <param name="receiveMessageAsync">The receive message asynchronous.</param>
         public RedisQueueReceiveMessages(IRedisQueueWorkSubFactory workSubFactory,
-            IQueryHandler<ReceiveMessageQuery, RedisMessage> receiveMessage, 
-            HandleMessage handleMessage, 
+            IQueryHandler<ReceiveMessageQuery, RedisMessage> receiveMessage,
+            ITransportHandleMessage handleMessage, 
             IHeaders headers,
             IQueueCancelWork cancelWork, IQueryHandler<ReceiveMessageQueryAsync, Task<RedisMessage>> receiveMessageAsync)
         {

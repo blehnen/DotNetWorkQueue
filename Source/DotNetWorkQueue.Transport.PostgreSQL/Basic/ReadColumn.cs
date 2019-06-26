@@ -8,7 +8,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     public class ReadColumn : RelationalDatabase.Basic.ReadColumn
     {
         /// <inheritdoc />
-        public override DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader, DateTime noValue = default(DateTime))
+        public override DateTime ReadAsDateTime(CommandStringTypes command, int column, IDataReader reader, DateTime noValue = default)
         {
             switch (command)
             {
@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
         }
         /// <inheritdoc />
-        public override DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default(DateTimeOffset))
+        public override DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default)
         {
             switch (command)
             {

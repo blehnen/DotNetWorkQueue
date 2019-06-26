@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.JobScheduler
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan))
+            TimeSpan window = default)
              where TTransportInit : ITransportInit, new()
              where TQueue : class, IJobQueueCreation
         {
@@ -143,7 +143,7 @@ namespace DotNetWorkQueue.JobScheduler
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan))
+            TimeSpan window = default)
              where TTransportInit : ITransportInit, new()
         {
             Guard.NotNullOrEmpty(() => schedule, schedule);
@@ -163,7 +163,7 @@ namespace DotNetWorkQueue.JobScheduler
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan),
+            TimeSpan window = default,
             bool rawExpression = false)
              where TTransportInit : ITransportInit, new()
              where TQueue : class, IJobQueueCreation
@@ -184,7 +184,7 @@ namespace DotNetWorkQueue.JobScheduler
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan),
+            TimeSpan window = default,
             bool rawExpression = false)
              where TTransportInit : ITransportInit, new()
         {

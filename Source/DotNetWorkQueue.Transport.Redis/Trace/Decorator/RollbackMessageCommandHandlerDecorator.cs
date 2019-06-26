@@ -1,4 +1,5 @@
 ﻿using DotNetWorkQueue.Transport.Redis.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator

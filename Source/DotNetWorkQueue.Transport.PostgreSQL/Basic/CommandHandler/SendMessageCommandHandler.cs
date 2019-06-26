@@ -3,10 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         private readonly PostgreSqlCommandStringCache _commandCache;
         private readonly TransportConfigurationSend _configurationSend;
         private readonly ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>> _sendJobStatus;
-        private readonly IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> _jobExistsHandler;
+        private readonly RelationalDatabase.IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> _jobExistsHandler;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
         private readonly IGetTime _getTime;
 
@@ -47,8 +47,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             IHeaders headers,
             PostgreSqlCommandStringCache commandCache, 
             TransportConfigurationSend configurationSend, 
-            ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>> sendJobStatus, 
-            IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> jobExistsHandler, 
+            ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>> sendJobStatus, RelationalDatabase.IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> jobExistsHandler, 
             IJobSchedulerMetaData jobSchedulerMetaData,
             IGetTimeFactory getTimeFactory)
         {

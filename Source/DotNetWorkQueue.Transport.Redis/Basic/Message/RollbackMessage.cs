@@ -1,4 +1,5 @@
 ﻿using DotNetWorkQueue.Transport.Redis.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Message
@@ -6,7 +7,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
     /// <summary>
     /// Rolls back a message by moving it from the working queue into another queue
     /// </summary>
-    internal class RollbackMessage
+    internal class RollbackMessage: ITransportRollbackMessage
     {
         private readonly RedisHeaders _headers;
         private readonly ICommandHandler<RollbackMessageCommand> _command;

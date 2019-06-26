@@ -60,6 +60,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.Shared\DotNetWorkQueue.Transport.Shared.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>
 

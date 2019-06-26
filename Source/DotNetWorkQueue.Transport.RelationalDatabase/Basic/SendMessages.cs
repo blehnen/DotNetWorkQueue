@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic

@@ -39,14 +39,9 @@ using DotNetWorkQueue.Trace.NoOp;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Caching.Memory;
 using OpenTracing;
-using OpenTracing.Util;
 using Polly;
 using Polly.Caching.Memory;
 using Polly.Registry;
-using ClearExpiredMessagesDecorator = DotNetWorkQueue.Logging.Decorator.ClearExpiredMessagesDecorator;
-using ReceivePoisonMessageDecorator = DotNetWorkQueue.Logging.Decorator.ReceivePoisonMessageDecorator;
-using ResetHeartBeatDecorator = DotNetWorkQueue.Logging.Decorator.ResetHeartBeatDecorator;
-using RollbackMessageDecorator = DotNetWorkQueue.Metrics.Decorator.RollbackMessageDecorator;
 
 namespace DotNetWorkQueue.IoC
 {
@@ -389,11 +384,11 @@ namespace DotNetWorkQueue.IoC
         /// <param name="container">The container.</param>
         private static void RegisterLoggerDecorators(IContainer container)
         {
-            container.RegisterDecorator<IAbortWorkerThread, DotNetWorkQueue.Logging.Decorator.AbortWorkerThreadDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IRollbackMessage, DotNetWorkQueue.Logging.Decorator.RollbackMessageDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IClearExpiredMessages, DotNetWorkQueue.Logging.Decorator.ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IResetHeartBeat, DotNetWorkQueue.Logging.Decorator.ResetHeartBeatDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IReceivePoisonMessage, DotNetWorkQueue.Logging.Decorator.ReceivePoisonMessageDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IAbortWorkerThread, Logging.Decorator.AbortWorkerThreadDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IRollbackMessage, Logging.Decorator.RollbackMessageDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IClearExpiredMessages, Logging.Decorator.ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IResetHeartBeat, Logging.Decorator.ResetHeartBeatDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IReceivePoisonMessage, Logging.Decorator.ReceivePoisonMessageDecorator>(LifeStyles.Singleton);
         }
 
         private static void RegisterPolicyDecorators(IContainer container)
@@ -437,26 +432,26 @@ namespace DotNetWorkQueue.IoC
         private static void RegisterMetricDecorators(IContainer container)
         {
             //common decorators for metrics
-            container.RegisterDecorator<ISerializer, DotNetWorkQueue.Metrics.Decorator.SerializerDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IQueueCreation, DotNetWorkQueue.Metrics.Decorator.QueueCreationDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IMessageHandler, DotNetWorkQueue.Metrics.Decorator.MessageHandlerDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IMessageHandlerAsync, DotNetWorkQueue.Metrics.Decorator.MessageHandlerAsyncDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<ISerializer, Metrics.Decorator.SerializerDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IQueueCreation, Metrics.Decorator.QueueCreationDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageHandler, Metrics.Decorator.MessageHandlerDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageHandlerAsync,Metrics.Decorator.MessageHandlerAsyncDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IResetHeartBeat, Metrics.Decorator.ResetHeartBeatDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IInternalSerializer, DotNetWorkQueue.Metrics.Decorator.InternalSerializerDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<ISendHeartBeat, DotNetWorkQueue.Metrics.Decorator.SendHeartBeatDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<ISendMessages, DotNetWorkQueue.Metrics.Decorator.SendMessagesDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IReceiveMessages, DotNetWorkQueue.Metrics.Decorator.ReceiveMessagesDecorator>(LifeStyles.Transient);
-            container.RegisterDecorator<IReceiveMessagesError, DotNetWorkQueue.Metrics.Decorator.ReceiveMessagesErrorDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IInternalSerializer, Metrics.Decorator.InternalSerializerDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<ISendHeartBeat, Metrics.Decorator.SendHeartBeatDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<ISendMessages, Metrics.Decorator.SendMessagesDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IReceiveMessages, Metrics.Decorator.ReceiveMessagesDecorator>(LifeStyles.Transient);
+            container.RegisterDecorator<IReceiveMessagesError, Metrics.Decorator.ReceiveMessagesErrorDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IReceivePoisonMessage, Metrics.Decorator.ReceivePoisonMessageDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<ICommitMessage, DotNetWorkQueue.Metrics.Decorator.CommitMessageDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IRollbackMessage, DotNetWorkQueue.Metrics.Decorator.RollbackMessageDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<ICommitMessage, Metrics.Decorator.CommitMessageDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IRollbackMessage,Metrics.Decorator.RollbackMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IClearExpiredMessages, Metrics.Decorator.ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IExpressionSerializer, DotNetWorkQueue.Metrics.Decorator.ExpressionSerializerDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IMessageMethodHandling, DotNetWorkQueue.Metrics.Decorator.MessageMethodHandlingDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<ILinqCompiler, DotNetWorkQueue.Metrics.Decorator.LinqCompilerDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IExpressionSerializer, Metrics.Decorator.ExpressionSerializerDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageMethodHandling, Metrics.Decorator.MessageMethodHandlingDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<ILinqCompiler, Metrics.Decorator.LinqCompilerDecorator>(LifeStyles.Singleton);
 
             //while this is registered as transient, it ends up being a singleton because the interceptor host is a singleton
-            container.RegisterDecorator<IMessageInterceptor, DotNetWorkQueue.Metrics.Decorator.MessageInterceptorDecorator>(LifeStyles.Transient);
+            container.RegisterDecorator<IMessageInterceptor, Metrics.Decorator.MessageInterceptorDecorator>(LifeStyles.Transient);
         }
     }
     /// <summary>

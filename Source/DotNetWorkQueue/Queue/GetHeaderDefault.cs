@@ -17,7 +17,7 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="DotNetWorkQueue.Exceptions.DotNetWorkQueueException">Transports must implement IGetHeader</exception>
         public IDictionary<string, object> GetHeaders(IMessageId id)
         {
-            throw new DotNetWorkQueue.Exceptions.DotNetWorkQueueException("Transports must implement IGetHeader");
+            throw new Exceptions.DotNetWorkQueueException("Transports must implement IGetHeader");
         }
     }
 }

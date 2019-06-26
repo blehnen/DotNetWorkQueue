@@ -55,7 +55,9 @@ namespace DotNetWorkQueue.JobScheduler
         public event Action<IScheduledJob, IJobQueueOutputMessage> OnNonFatalFailureEnQueue;
         public event Action<IScheduledJob, IJobQueueOutputMessage> OnEnQueue;
 
+#if NETFULL
         private readonly LinqExpressionToRun _expressionToRun;
+#endif
         private readonly Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> _actionToRun;
         private readonly IGetTime _getTime;
 
@@ -72,7 +74,10 @@ namespace DotNetWorkQueue.JobScheduler
             Name = name;
             Schedule = schedule;
             _queue = queue;
+
+#if NETFULL
             _expressionToRun = expressionToRun;
+#endif
             _getTime = time;
             Route = route;
         }
@@ -109,7 +114,7 @@ namespace DotNetWorkQueue.JobScheduler
                 var firstEventSet = false;
                 var window = Window;
                 var lastKnownEvent = _queue.LastKnownEvent.Get(Name);
-                if (window > TimeSpan.Zero && lastKnownEvent != default(DateTimeOffset))
+                if (window > TimeSpan.Zero && lastKnownEvent != default)
                 {
                     // check if we actually want to run the first event right away
                     var prev = Schedule.Previous();

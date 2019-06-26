@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.AppMetrics", "DotNetWorkQueue.AppMetrics\DotNetWorkQueue.AppMetrics.csproj", "{C81936FA-D05C-4BFF-8DBF-4D1A4E1CD9F7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.Shared", "DotNetWorkQueue.Transport.Shared\DotNetWorkQueue.Transport.Shared.csproj", "{35B020AC-19D5-43C2-A659-26D0F3B0835D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

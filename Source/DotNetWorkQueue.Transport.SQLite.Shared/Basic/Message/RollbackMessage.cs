@@ -2,6 +2,7 @@
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message
@@ -9,7 +10,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message
     /// <summary>
     /// Rolls back a message by either rolling back a transaction or updating a status
     /// </summary>
-    internal class RollbackMessage
+    internal class RollbackMessage: ITransportRollbackMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
         private readonly ICommandHandler<RollbackMessageCommand> _rollbackCommand;

@@ -267,7 +267,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public DateTimeOffset GetJobLastKnownEvent(string jobName)
         {
-            return JobLastEventCache.Execute(context => default(DateTimeOffset), new Context(GenerateKey(jobName)));
+            return JobLastEventCache.Execute(context => default, new Context(GenerateKey(jobName)));
         }
 
         /// <inheritdoc />
@@ -351,7 +351,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     case null:
                         return new Ttl(TimeSpan.Zero, false);
                     case DateTimeOffset cast:
-                        return cast == default(DateTimeOffset) ? new Ttl(TimeSpan.Zero, false) : new Ttl(TimeSpan.FromDays(1), false);
+                        return cast == default ? new Ttl(TimeSpan.Zero, false) : new Ttl(TimeSpan.FromDays(1), false);
                 }
                 return new Ttl(TimeSpan.Zero, false);
             }

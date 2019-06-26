@@ -5,6 +5,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message;
 using DotNetWorkQueue.Validation;
 
@@ -22,7 +23,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         private readonly ReceiveMessage _receiveMessages;
         private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
         private readonly DatabaseExists _databaseExists;
-        private readonly HandleMessage _handleMessage;
+        private readonly ITransportHandleMessage _handleMessage;
         private readonly ILog _log;
         private static bool _loggedMissingDb;
         private static readonly object LoggedMissingDbLock = new object();
@@ -42,7 +43,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// <param name="databaseExists">The database exists.</param>
         public SqLiteMessageQueueReceive(QueueConsumerConfiguration configuration,
             IQueueCancelWork cancelWork,
-            HandleMessage handleMessage,
+            ITransportHandleMessage handleMessage,
             ReceiveMessage receiveMessages,
             ILogFactory log,
             IGetFileNameFromConnectionString getFileNameFromConnection,

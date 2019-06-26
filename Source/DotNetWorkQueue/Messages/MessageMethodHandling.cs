@@ -17,11 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Messages

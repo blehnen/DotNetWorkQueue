@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.AppMetrics
         /// Gets the current metric values
         /// </summary>
         /// <param name="data">The data.</param>
-        public static App.Metrics.MetricsDataValueSource GetCurrentMetrics(this App.Metrics.IMetrics data)
+        public static MetricsDataValueSource GetCurrentMetrics(this App.Metrics.IMetrics data)
         {
             return data.Snapshot.Get();
         }
@@ -41,18 +41,18 @@ namespace DotNetWorkQueue.AppMetrics
         /// </summary>
         /// <param name="data">The data.</param>
         /// <returns></returns>
-        public static App.Metrics.MetricsDataValueSource GetCurrentMetrics(this Metrics data)
+        public static MetricsDataValueSource GetCurrentMetrics(this Metrics data)
         {
             return (MetricsDataValueSource)data.CollectedMetrics;
         }
 
-        public static App.Metrics.MetricTags GetTags(this List<KeyValuePair<string, string>> tags)
+        public static MetricTags GetTags(this List<KeyValuePair<string, string>> tags)
         {
             if (tags == null) return new MetricTags();
-            return new App.Metrics.MetricTags(tags.Select(z => z.Key).ToArray(), tags.Select(z => z.Value).ToArray());
+            return new MetricTags(tags.Select(z => z.Key).ToArray(), tags.Select(z => z.Value).ToArray());
         }
 
-        public static App.Metrics.Unit GetUnit(this Units unit)
+        public static Unit GetUnit(this Units unit)
         {
             switch (unit)
             {

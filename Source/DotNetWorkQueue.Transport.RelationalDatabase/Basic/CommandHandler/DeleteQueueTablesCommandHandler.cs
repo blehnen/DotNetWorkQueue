@@ -19,6 +19,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler

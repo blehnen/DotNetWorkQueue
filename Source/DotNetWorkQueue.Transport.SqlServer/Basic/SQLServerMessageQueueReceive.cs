@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Message;
 using DotNetWorkQueue.Validation;
 
@@ -21,7 +22,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private readonly ICancelWork _cancelWork;
 
         private readonly ReceiveMessage _receiveMessages;
-        private readonly HandleMessage _handleMessage;
+        private readonly ITransportHandleMessage _handleMessage;
 
         private readonly IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> _sqlHeaders;
 
@@ -55,7 +56,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public SqlServerMessageQueueReceive(QueueConsumerConfiguration configuration,
             IConnectionHolderFactory<SqlConnection, SqlTransaction, SqlCommand> connectionFactory,
             IQueueCancelWork cancelWork,
-            HandleMessage handleMessage,
+            ITransportHandleMessage handleMessage,
             ReceiveMessage receiveMessages,
             IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> sqlHeaders)
         {
@@ -91,8 +92,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
-                _commitConnection = (c, b) => _handleMessage.CommitMessage.CommitForTransaction(context);
-                _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.RollbackForTransaction(context);
+                _commitConnection = (c, b) => _handleMessage.CommitMessage.Commit(context);
+                _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.Rollback(context);
             }
 
             try
@@ -142,8 +143,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
-                _commitConnection = (c, b) => _handleMessage.CommitMessage.CommitForTransaction(context);
-                _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.RollbackForTransaction(context);
+                _commitConnection = (c, b) => _handleMessage.CommitMessage.Commit(context);
+                _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.Rollback(context);
             }
 
             try

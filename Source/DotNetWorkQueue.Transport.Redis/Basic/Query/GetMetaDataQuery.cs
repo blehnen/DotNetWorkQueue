@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.Validation;
+﻿using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Query
 {

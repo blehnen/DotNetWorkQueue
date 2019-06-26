@@ -4,6 +4,7 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler

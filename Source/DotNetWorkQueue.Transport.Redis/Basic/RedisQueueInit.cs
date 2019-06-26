@@ -13,6 +13,7 @@ using DotNetWorkQueue.Transport.Redis.Basic.MessageID;
 using DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Redis.Basic.Time;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
@@ -20,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <summary>
     /// Adds redis implementations to the Ioc Container
     /// </summary>
-    public class RedisQueueInit: TransportInitDuplex
+    public class RedisQueueInit: TransportMessageQueueSharedInit
     {
         /// <summary>
         /// Allows a transport to register its dependencies in the IoC container.
@@ -32,6 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
         {
             Guard.NotNull(() => container, container);
+            base.RegisterImplementations(container, registrationType, connection, queue);
 
             //**all
             container.Register<IConnectionInformation>(() => new RedisConnectionInfo(queue, connection), LifeStyles.Singleton);
@@ -73,9 +75,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             //**send
             container.Register<ISendMessages, RedisQueueSend>(LifeStyles.Singleton);
 
-            container.Register<CommitMessage>(LifeStyles.Singleton);
-            container.Register<RollbackMessage>(LifeStyles.Singleton);
-            container.Register<HandleMessage>(LifeStyles.Singleton);
+            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Singleton);
 
             container.Register<IGetMessageIdFactory, GetMessageIdFactory>(LifeStyles.Singleton);
             container.Register<GetUuidMessageId>(LifeStyles.Singleton);

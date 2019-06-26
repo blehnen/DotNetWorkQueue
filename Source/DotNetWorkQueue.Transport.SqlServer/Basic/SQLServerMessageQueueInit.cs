@@ -11,6 +11,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Factory;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Message;
@@ -24,7 +25,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// <summary>
     /// Registers the implementations for the SQL server queue into the IoC container.
     /// </summary>
-    public class SqlServerMessageQueueInit : TransportInitDuplex
+    public class SqlServerMessageQueueInit : TransportMessageQueueSharedInit
     {
         /// <summary>
         /// Registers the implementations.
@@ -36,6 +37,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
         {
             Guard.NotNull(() => container, container);
+            base.RegisterImplementations(container, registrationType, connection, queue);
 
             var init = new RelationalDatabaseMessageQueueInit();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
@@ -74,9 +76,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             //**receive
             container.Register<IReceiveMessages, SqlServerMessageQueueReceive>(LifeStyles.Transient);
             container.Register<IConnectionHolderFactory<SqlConnection, SqlTransaction, SqlCommand>, ConnectionHolderFactory>(LifeStyles.Singleton);
-            container.Register<CommitMessage>(LifeStyles.Transient);
-            container.Register<RollbackMessage>(LifeStyles.Transient);
-            container.Register<HandleMessage>(LifeStyles.Transient);
+            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Transient);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
             container.Register<CreateDequeueStatement>(LifeStyles.Singleton);
             container.Register<BuildDequeueCommand>(LifeStyles.Singleton);
@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             //explicit registration of our job exists query
             container
-                .Register<IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>,
+                .Register<RelationalDatabase.IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>,
                         QueueStatuses>,
                     DoesJobExistQueryHandler<SqlConnection, SqlTransaction>>(LifeStyles.Singleton);
 
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             //explicit registration of options
             container
-                .Register<IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions>,
+                .Register<RelationalDatabase.IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions>,
                     GetQueueOptionsQueryHandler<SqlServerMessageQueueTransportOptions>>(LifeStyles.Singleton);
 
             container
@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.RegisterDecorator(typeof(ICommandHandlerWithOutputAsync<,>),
                 typeof(RetryCommandHandlerOutputDecoratorAsync<,>), LifeStyles.Singleton);
 
-            container.RegisterDecorator(typeof(IQueryHandler<,>),
+            container.RegisterDecorator(typeof(RelationalDatabase.IQueryHandler<,>),
                typeof(RetryQueryHandlerDecorator<,>), LifeStyles.Singleton);
 
             //register our decorator that handles table creation errors

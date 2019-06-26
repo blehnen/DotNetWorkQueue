@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Query
 {

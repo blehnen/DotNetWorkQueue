@@ -1,5 +1,6 @@
 ﻿using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
+using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {

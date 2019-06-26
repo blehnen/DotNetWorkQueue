@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2018 Brian Lehnen
+//Copyright © 2015-2019 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,20 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.Transport.RelationalDatabase
+namespace DotNetWorkQueue.Transport.Shared
 {
-    /// <summary>
-    /// Runs a command
-    /// </summary>
-    /// <typeparam name="TCommand">The type of the command.</typeparam>
-    /// <typeparam name="TOutput">The type of the output.</typeparam>
-    public interface ICommandHandlerWithOutput<in TCommand, out TOutput>
+    public interface ITransportCommitMessage
     {
         /// <summary>
-        /// Handles the specified command.
+        /// Commits the processed message, by deleting the message
         /// </summary>
-        /// <param name="command">The command.</param>
-        /// <returns></returns>
-        TOutput Handle(TCommand command);
+        /// <param name="context">The context.</param>
+        void Commit(IMessageContext context);
     }
 }

@@ -18,6 +18,8 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Message;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using Polly;
@@ -27,13 +29,14 @@ using FindRecordsToResetByHeartBeatQueryPrepareHandler = DotNetWorkQueue.Transpo
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
     /// <inheritdoc />
-    public class PostgreSqlMessageQueueInit : TransportInitDuplex
+    public class PostgreSqlMessageQueueInit : TransportMessageQueueSharedInit
     {
         /// <inheritdoc />
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
             string connection, string queue)
         {
             Guard.NotNull(() => container, container);
+            base.RegisterImplementations(container, registrationType, connection, queue);
 
             var init = new RelationalDatabaseMessageQueueInit();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
@@ -71,9 +74,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //**receive
             container.Register<IReceiveMessages, PostgreSqlMessageQueueReceive>(LifeStyles.Transient);
             container.Register<IConnectionHolderFactory<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>, ConnectionHolderFactory>(LifeStyles.Singleton);
-            container.Register<CommitMessage>(LifeStyles.Transient);
-            container.Register<RollbackMessage>(LifeStyles.Transient);
-            container.Register<HandleMessage>(LifeStyles.Transient);
+            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Transient);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
             container.Register<IBuildMoveToErrorQueueSql, BuildMoveToErrorQueueSql>(LifeStyles.Singleton);
             //**receive
@@ -90,7 +91,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //explicit registration of our job exists query
             container
-                .Register<IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>,
+                .Register<RelationalDatabase.IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>,
                         QueueStatuses>,
                     DoesJobExistQueryHandler<NpgsqlConnection, NpgsqlTransaction>>(LifeStyles.Singleton);
 
@@ -120,7 +121,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //explicit registration of options
             container
-                .Register<IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>,
+                .Register<RelationalDatabase.IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>,
                         PostgreSqlMessageQueueTransportOptions>,
                     GetQueueOptionsQueryHandler<PostgreSqlMessageQueueTransportOptions>>(LifeStyles.Singleton);
 
@@ -147,7 +148,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.RegisterDecorator(typeof(ICommandHandlerWithOutputAsync<,>),
                 typeof(RetryCommandHandlerOutputDecoratorAsync<,>), LifeStyles.Singleton);
 
-            container.RegisterDecorator(typeof(IQueryHandler<,>),
+            container.RegisterDecorator(typeof(RelationalDatabase.IQueryHandler<,>),
                 typeof(RetryQueryHandlerDecorator<,>), LifeStyles.Singleton);
 
             //register our decorator that handles table creation errors

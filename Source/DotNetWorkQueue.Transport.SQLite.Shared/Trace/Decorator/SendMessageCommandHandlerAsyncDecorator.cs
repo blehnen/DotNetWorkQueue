@@ -6,6 +6,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using OpenTracing;
 using OpenTracing.Tag;
 using DotNetWorkQueue.Transport.RelationalDatabase.Trace;
+using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Trace.Decorator
 {

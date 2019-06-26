@@ -1,5 +1,6 @@
 ﻿using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator

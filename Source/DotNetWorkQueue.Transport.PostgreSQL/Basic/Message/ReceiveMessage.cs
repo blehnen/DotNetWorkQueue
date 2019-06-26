@@ -6,6 +6,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -17,8 +18,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
     internal class ReceiveMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal> _receiveMessage;
-        private readonly IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>> _receiveMessageAsync;
+        private readonly RelationalDatabase.IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal> _receiveMessage;
+        private readonly RelationalDatabase.IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>> _receiveMessageAsync;
         private readonly ICommandHandler<SetStatusTableStatusCommand> _setStatusCommandHandler;
         private readonly ICancelWork _cancelToken;
 
@@ -30,11 +31,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         /// <param name="setStatusCommandHandler">The set status command handler.</param>
         /// <param name="cancelToken">The cancel token.</param>
         /// <param name="receiveMessageAsync">The receive message asynchronous.</param>
-        public ReceiveMessage(QueueConsumerConfiguration configuration,
-            IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal> receiveMessage,
+        public ReceiveMessage(QueueConsumerConfiguration configuration, RelationalDatabase.IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal> receiveMessage,
             ICommandHandler<SetStatusTableStatusCommand> setStatusCommandHandler,
-            IQueueCancelWork cancelToken, 
-            IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>> receiveMessageAsync)
+            IQueueCancelWork cancelToken, RelationalDatabase.IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>> receiveMessageAsync)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => receiveMessage, receiveMessage);
@@ -69,30 +68,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
                 return null;
             }
 
-
-            //ask for the next message, or a specific message if we have a messageID
+            //ask for the next message
             var receivedTransportMessage =
                 _receiveMessage.Handle(new ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>(connectionHolder.Connection,
                     connectionHolder.Transaction, routes));
 
-            //if no message (null) run the no message action and return
-            if (receivedTransportMessage == null)
-            {
-                noMessageFoundActon(connectionHolder);
-                return null;
-            }
-
-            //set the message ID on the context for later usage
-            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
-
-            //we need to update the status table here, as we don't do it as part of the de-queue
-            if (_configuration.Options().EnableStatusTable)
-            {
-                _setStatusCommandHandler.Handle(
-                    new SetStatusTableStatusCommand(
-                        (long) receivedTransportMessage.MessageId.Id.Value, QueueStatuses.Processing));
-            }
-            return receivedTransportMessage;
+            return ProcessMessage(receivedTransportMessage, connectionHolder, context, noMessageFoundActon);
         }
 
         /// <summary>
@@ -120,6 +101,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
                 _receiveMessageAsync.Handle(new ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>(connectionHolder.Connection,
                     connectionHolder.Transaction, routes)).ConfigureAwait(false);
 
+            return ProcessMessage(receivedTransportMessage, connectionHolder, context, noMessageFoundActon);
+        }
+
+        private IReceivedMessageInternal ProcessMessage(IReceivedMessageInternal receivedTransportMessage,
+            IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> connectionHolder,
+            IMessageContext context,
+            Action<IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>> noMessageFoundActon)
+        {
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
             {

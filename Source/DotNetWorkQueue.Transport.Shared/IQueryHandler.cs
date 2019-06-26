@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2018 Brian Lehnen
+//Copyright © 2015-2019 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,22 +16,20 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Threading.Tasks;
-
-namespace DotNetWorkQueue.Transport.RelationalDatabase
+namespace DotNetWorkQueue.Transport.Shared
 {
     /// <summary>
-    /// Runs a command
+    /// A handler for a <see cref="IQuery{TResult}"/> 
     /// </summary>
-    /// <typeparam name="TCommand">The type of the command.</typeparam>
-    /// <typeparam name="TOutput">The type of the output.</typeparam>
-    public interface ICommandHandlerWithOutputAsync<in TCommand, TOutput>
+    /// <typeparam name="TQuery">The type of the query.</typeparam>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    public interface IQueryHandler<in TQuery, out TResult> where TQuery : IQuery<TResult>
     {
         /// <summary>
-        /// Handles the specified command.
+        /// Handles the specified query.
         /// </summary>
-        /// <param name="command">The command.</param>
+        /// <param name="query">The query.</param>
         /// <returns></returns>
-        Task<TOutput> HandleAsync(TCommand command);
+        TResult Handle(TQuery query);
     }
 }

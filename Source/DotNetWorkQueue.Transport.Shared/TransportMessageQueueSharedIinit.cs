@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2018 Brian Lehnen
+//Copyright © 2015-2019 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -16,18 +16,18 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.Transport.RelationalDatabase
+using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Transport.Shared.Message;
+
+namespace DotNetWorkQueue.Transport.Shared
 {
-    /// <summary>
-    /// Runs a command
-    /// </summary>
-    /// <typeparam name="TCommand">The type of the command.</typeparam>
-    public interface ICommandHandler<in TCommand>
+    public class TransportMessageQueueSharedInit : TransportInitDuplex
     {
-        /// <summary>
-        /// Handles the specified command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        void Handle(TCommand command);
+        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
+        {
+            container.Register<ITransportCommitMessage, TransportCommitMessage>(LifeStyles.Singleton);
+            container.Register<ITransportHandleMessage, TransportHandleMessage>(LifeStyles.Singleton);
+        }
     }
 }

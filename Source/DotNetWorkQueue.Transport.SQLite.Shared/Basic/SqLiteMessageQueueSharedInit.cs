@@ -10,6 +10,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic.Factory;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message;
@@ -25,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
     /// <summary>
     /// Registers the implementations for the SQLite queue into the IoC container.
     /// </summary>
-    public class SqLiteMessageQueueSharedInit : TransportInitDuplex
+    public class SqLiteMessageQueueSharedInit : TransportMessageQueueSharedInit
     {
         /// <summary>
         /// Allows a transport to register its dependencies in the IoC container.
@@ -53,6 +54,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             string connection, string queue, params Assembly[] assemblies)
         {
             Guard.NotNull(() => container, container);
+            base.RegisterImplementations(container, registrationType, connection, queue);
             var init = new RelationalDatabaseMessageQueueInit();
             init.RegisterStandardImplementations(container, assemblies);
 
@@ -98,9 +100,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
 
             //**receive
             container.Register<IReceiveMessages, SqLiteMessageQueueReceive>(LifeStyles.Transient);
-            container.Register<CommitMessage>(LifeStyles.Transient);
-            container.Register<RollbackMessage>(LifeStyles.Transient);
-            container.Register<HandleMessage>(LifeStyles.Transient);
+            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Transient);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
             //**receive
 
@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
 
             //explicit registration of our job exists query
             container
-                .Register<IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>,
+                .Register<RelationalDatabase.IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>,
                         QueueStatuses>,
                     DoesJobExistQueryHandler<IDbConnection, IDbTransaction>>(LifeStyles.Singleton);
 
@@ -142,7 +142,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
 
             //explicit registration of options
             container
-                .Register<IQueryHandler<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>,
+                .Register<RelationalDatabase.IQueryHandler<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>,
                         SqLiteMessageQueueTransportOptions>,
                     GetQueueOptionsQueryHandler<SqLiteMessageQueueTransportOptions>>(LifeStyles.Singleton);
 
@@ -174,27 +174,27 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
                 typeof(MoveRecordToErrorQueueCommandDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(
-                typeof(IQueryHandler<GetErrorRecordExistsQuery, bool>),
+                typeof(RelationalDatabase.IQueryHandler<GetErrorRecordExistsQuery, bool>),
                 typeof(GetErrorRecordExistsQueryDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(
-                typeof(IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>),
+                typeof(RelationalDatabase.IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>),
                 typeof(FindExpiredRecordsToDeleteDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(
-                typeof(IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>),
+                typeof(RelationalDatabase.IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>),
                 typeof(FindRecordsToResetByHeartBeatDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(
-                typeof(IQueryHandler<GetColumnNamesFromTableQuery, List<string>>),
+                typeof(RelationalDatabase.IQueryHandler<GetColumnNamesFromTableQuery, List<string>>),
                 typeof(GetColumnNamesFromTableDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(
-                typeof(IQueryHandler<GetTableExistsQuery, bool>),
+                typeof(RelationalDatabase.IQueryHandler<GetTableExistsQuery, bool>),
                 typeof(GetTableExistsDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(
-                typeof(IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses>),
+                typeof(RelationalDatabase.IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses>),
                 typeof(DoesJobExistDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(

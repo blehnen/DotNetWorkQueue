@@ -4,6 +4,7 @@ using System.Threading;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
@@ -16,7 +17,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         #region Member level variables
 
         private readonly SqLiteMessageQueueSchema _createSchema;
-        private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
+        private readonly RelationalDatabase.IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
 
         private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult>
             _createCommand;
@@ -39,8 +40,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// <param name="createCommand">The create command.</param>
         /// <param name="deleteCommand">The delete command.</param>
         /// <param name="creationScope">The creation scope.</param>
-        public SqLiteMessageQueueCreation(IConnectionInformation connectionInfo,
-            IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
+        public SqLiteMessageQueueCreation(IConnectionInformation connectionInfo, RelationalDatabase.IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             ISqLiteMessageQueueTransportOptionsFactory options, 
             SqLiteMessageQueueSchema createSchema,
             ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> createCommand,

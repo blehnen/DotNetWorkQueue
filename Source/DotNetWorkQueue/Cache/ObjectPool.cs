@@ -79,9 +79,9 @@ namespace DotNetWorkQueue.Cache
                 value.ResetState();
                 _objects.Add(value);
             }
-            else if (value is IDisposable)
+            else if (value is IDisposable disposable)
             {
-                ((IDisposable)value).Dispose();
+                disposable.Dispose();
             }
         }
 

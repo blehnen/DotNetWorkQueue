@@ -132,9 +132,7 @@ namespace DotNetWorkQueue.Queue
             _waitForEventOrCancel.Cancel();
 
             //stop is a blocking operation for the primary worker
-            Task.Run(() => {
-                worker.Stop();
-            });
+            Task.Run(worker.Stop);
 
             //wait for workers to stop
             WaitForDelegate.Wait(() => worker.Running, _configuration.TimeToWaitForWorkersToStop);

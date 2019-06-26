@@ -42,6 +42,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.Shared\DotNetWorkQueue.Transport.Shared.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>
 

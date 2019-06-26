@@ -117,7 +117,7 @@ namespace DotNetWorkQueue
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan),
+            TimeSpan window = default,
             bool rawExpression = false)
                 where TTransportInit : ITransportInit, new()
                 where TQueue : class, IJobQueueCreation;
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
-            TimeSpan window = default(TimeSpan),
+            TimeSpan window = default,
             bool rawExpression = false)
             where TTransportInit : ITransportInit, new();
 

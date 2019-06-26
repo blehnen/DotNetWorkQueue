@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="MessageException">An unhanded exception has occurred while processing a message</exception>
         public void Handle(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
-            ReceiveMessagesErrorResult result = ReceiveMessagesErrorResult.NotSpecified;
+            ReceiveMessagesErrorResult result;
             try
             {
                 result = _transportErrorHandler.MessageFailedProcessing(message, context,

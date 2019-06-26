@@ -21,6 +21,7 @@ using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic

@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 using (IScope scope = _tracer.BuildSpan($"MessageSerializerMessageToBytes{_handler.DisplayName}").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
                 {
-                    var output = _handler.ConvertMessageToBytes<T>(message, headers);
+                    var output = _handler.ConvertMessageToBytes(message, headers);
                     scope.Span.SetTag("Length", output.Length.ToString());
                     return output;
                 }
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 using (IScope scope = _tracer.BuildSpan($"MessageSerializerMessageToBytes{_handler.DisplayName}").StartActive(finishSpanOnDispose: true))
                 {
-                    var output = _handler.ConvertMessageToBytes<T>(message, headers);
+                    var output = _handler.ConvertMessageToBytes(message, headers);
                     scope.Span.SetTag("Length", output.Length.ToString());
                     return output;
                 }

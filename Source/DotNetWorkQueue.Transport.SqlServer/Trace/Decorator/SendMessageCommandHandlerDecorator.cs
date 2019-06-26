@@ -3,6 +3,7 @@ using DotNetWorkQueue.Trace;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Trace;
+using DotNetWorkQueue.Transport.Shared;
 using OpenTracing;
 using OpenTracing.Tag;
 

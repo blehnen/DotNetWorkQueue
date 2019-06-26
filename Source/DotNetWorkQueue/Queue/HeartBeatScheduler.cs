@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Queue
             if (_consumer == null)
                 CreateScheduler();
 
-            return _scheduler.AddUpdateJob<MemoryMessageQueueInit, JobQueueCreation>(jobName, QueueName, Connection, schedule, job, null, null, true, default(TimeSpan), true);
+            return _scheduler.AddUpdateJob<MemoryMessageQueueInit, JobQueueCreation>(jobName, QueueName, Connection, schedule, job, null, null, true, default, true);
         }
 
         /// <inheritdoc />

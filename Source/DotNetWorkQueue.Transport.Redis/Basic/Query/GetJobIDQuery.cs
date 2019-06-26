@@ -1,4 +1,6 @@
-﻿namespace DotNetWorkQueue.Transport.Redis.Basic.Query
+﻿using DotNetWorkQueue.Transport.Shared;
+
+namespace DotNetWorkQueue.Transport.Redis.Basic.Query
 {
     /// <inheritdoc />
     public class GetJobIdQuery : IQuery<string>

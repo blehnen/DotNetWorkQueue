@@ -19,6 +19,7 @@
 using System.Collections.Generic;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {

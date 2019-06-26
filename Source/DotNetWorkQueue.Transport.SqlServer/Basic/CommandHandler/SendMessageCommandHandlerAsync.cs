@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly TransportConfigurationSend _configurationSend;
         private readonly ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>> _sendJobStatus;
-        private readonly IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> _jobExistsHandler;
+        private readonly RelationalDatabase.IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> _jobExistsHandler;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
 
         /// <summary>
@@ -47,8 +47,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             IHeaders headers,
             SqlServerCommandStringCache commandCache, 
             TransportConfigurationSend configurationSend, 
-            ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>> sendJobStatus, 
-            IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> jobExistsHandler, 
+            ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>> sendJobStatus, RelationalDatabase.IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> jobExistsHandler, 
             IJobSchedulerMetaData jobSchedulerMetaData)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);

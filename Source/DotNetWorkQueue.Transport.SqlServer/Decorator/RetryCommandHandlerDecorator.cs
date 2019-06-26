@@ -1,4 +1,5 @@
 ﻿using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Validation;
 using Polly;

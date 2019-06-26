@@ -37,41 +37,10 @@ namespace DotNetWorkQueue.JobScheduler
             Action<IContainer> queueCreationOptions, 
             Action<IContainer> queueContainerOptions)
         {
-            if (queueCreationRegistrations != null)
-            {
-                QueueCreationRegistrations = queueCreationRegistrations;
-            }
-            else
-            {
-                QueueCreationRegistrations = x => { };
-            }
-
-            if (queueRegistrations != null)
-            {
-                QueueRegistrations = queueRegistrations;
-            }
-            else
-            {
-                QueueRegistrations = x => { };
-            }
-
-            if (queueCreationOptions != null)
-            {
-                QueueCreationOptions = queueCreationOptions;
-            }
-            else
-            {
-                QueueCreationOptions = x => { };
-            }
-
-            if (queueContainerOptions != null)
-            {
-                QueueOptions = queueContainerOptions;
-            }
-            else
-            {
-                QueueOptions = x => { };
-            }
+            QueueCreationRegistrations = queueCreationRegistrations ?? (x => { });
+            QueueRegistrations = queueRegistrations ?? (x => { });
+            QueueCreationOptions = queueCreationOptions ?? (x => { });
+            QueueOptions = queueContainerOptions ?? (x => { });
         }
         /// <summary>
         /// Gets the queue creation registrations.

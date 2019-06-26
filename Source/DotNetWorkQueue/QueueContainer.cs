@@ -21,7 +21,6 @@ using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
-using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.QueueStatus;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Validation;

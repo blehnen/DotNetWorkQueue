@@ -121,6 +121,7 @@ namespace DotNetWorkQueue.Queue
             return await _queue.SendAsync(messages).ConfigureAwait(false);
         }
 
+#if NETFULL
         /// <inheritdoc />
         public IQueueOutputMessage Send(LinqExpressionToRun linqExpression, IAdditionalMessageData data = null)
         {
@@ -175,6 +176,7 @@ namespace DotNetWorkQueue.Queue
             }
             return await _queue.SendAsync(messages).ConfigureAwait(false);
         }
+#endif
 
         /// <inheritdoc />
         public async Task<IQueueOutputMessages> SendAsync(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods, bool rawExpression = false)
@@ -202,7 +204,7 @@ namespace DotNetWorkQueue.Queue
             }
         }
 
-        #region IDisposable Support
+#region IDisposable Support
         private bool _disposedValue; // To detect redundant calls
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
@@ -228,6 +230,6 @@ namespace DotNetWorkQueue.Queue
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
-        #endregion
+#endregion
     }
 }
