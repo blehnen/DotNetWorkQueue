@@ -85,6 +85,9 @@
     <Reference Include="DotNetWorkQueue.Transport.RelationalDatabase">
       <HintPath>..\..\..\DotNetWorkQueue.Transport.RelationalDatabase\bin\Debug\net472\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetWorkQueue.Transport.Shared">
+      <HintPath>..\..\..\DotNetWorkQueue.Transport.Shared\bin\Debug\net472\DotNetWorkQueue.Transport.Shared.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetWorkQueue.Transport.SQLite, Version=0.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\DotNetWorkQueue.Transport.SQLite\bin\Debug\net472\DotNetWorkQueue.Transport.SQLite.dll</HintPath>

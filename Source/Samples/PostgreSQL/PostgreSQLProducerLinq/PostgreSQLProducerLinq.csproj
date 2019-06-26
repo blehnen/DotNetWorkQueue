@@ -45,6 +45,9 @@
     <Reference Include="DotNetWorkQueue.Transport.RelationalDatabase">
       <HintPath>..\..\..\DotNetWorkQueue.Transport.RelationalDatabase\bin\Debug\net472\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetWorkQueue.Transport.Shared">
+      <HintPath>..\..\..\DotNetWorkQueue.Transport.Shared\bin\Debug\net472\DotNetWorkQueue.Transport.Shared.dll</HintPath>
+    </Reference>
     <Reference Include="SampleShared">
       <HintPath>..\..\SampleShared\bin\Debug\SampleShared.dll</HintPath>
     </Reference>

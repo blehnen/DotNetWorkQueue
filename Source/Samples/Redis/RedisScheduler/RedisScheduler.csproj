@@ -42,6 +42,9 @@
     <Reference Include="DotNetWorkQueue.Transport.Redis">
       <HintPath>..\..\..\DotNetWorkQueue.Transport.Redis\bin\Debug\net472\DotNetWorkQueue.Transport.Redis.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetWorkQueue.Transport.Shared">
+      <HintPath>..\..\..\DotNetWorkQueue.Transport.Shared\bin\Debug\net472\DotNetWorkQueue.Transport.Shared.dll</HintPath>
+    </Reference>
     <Reference Include="SampleShared">
       <HintPath>..\..\SampleShared\bin\Debug\SampleShared.dll</HintPath>
     </Reference>

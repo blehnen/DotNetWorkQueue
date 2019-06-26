@@ -39,6 +39,9 @@
     <Reference Include="DotNetWorkQueue">
       <HintPath>..\..\..\..\DotNetWorkQueue\bin\Debug\net472\DotNetWorkQueue.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetWorkQueue.Transport.Shared">
+      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.Shared\bin\Debug\net472\DotNetWorkQueue.Transport.Shared.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetWorkQueue.Transport.SQLite">
       <HintPath>..\..\..\..\DotNetWorkQueue.Transport.SQLite\bin\Debug\net472\DotNetWorkQueue.Transport.SQLite.dll</HintPath>
     </Reference>
