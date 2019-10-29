@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net472;net461</TargetFrameworks>
     <Description>Redis transport for https://github.com/blehnen/DotNetWorkQueue</Description>  
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.4.1</Version>
+    <Version>0.4.2</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2019</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
@@ -25,6 +25,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net461|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
     <DefineConstants>NETSTANDARD2_0;</DefineConstants>
     <DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
@@ -39,7 +43,21 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <WarningsAsErrors />
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net461|AnyCPU'">
+    <DefineConstants>NETFULL</DefineConstants>
+    <DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="GuerrillaNtp">
+      <HintPath>..\..\Lib\GuerrillaNtp\net452\GuerrillaNtp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="GuerrillaNtp">
       <HintPath>..\..\Lib\GuerrillaNtp\net452\GuerrillaNtp.dll</HintPath>
@@ -53,7 +71,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.2.2" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.0" />
     <PackageReference Include="MsgPack.Cli" Version="1.0.1" />
     <PackageReference Include="Polly.Contrib.Simmy" Version="0.1.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.0.601" />

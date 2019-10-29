@@ -18,7 +18,10 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.Shared
 {
-    public  interface ITransportHandleMessage
+    /// <summary>
+    /// Transport message handling actions
+    /// </summary>
+    public interface ITransportHandleMessage
     {
         /// <summary>
         /// Gets the commit message module.

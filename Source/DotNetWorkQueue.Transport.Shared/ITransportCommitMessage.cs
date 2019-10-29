@@ -18,6 +18,9 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.Shared
 {
+    /// <summary>
+    /// Transport commit message action
+    /// </summary>
     public interface ITransportCommitMessage
     {
         /// <summary>

@@ -22,8 +22,19 @@ using DotNetWorkQueue.Transport.Shared.Message;
 
 namespace DotNetWorkQueue.Transport.Shared
 {
+    /// <summary>
+    /// Shared init methods for IoC container
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.Configuration.TransportInitDuplex" />
     public class TransportMessageQueueSharedInit : TransportInitDuplex
     {
+        /// <summary>
+        /// Allows a transport to register its dependencies in the IoC container.
+        /// </summary>
+        /// <param name="container">The container.</param>
+        /// <param name="registrationType">Type of the registration.</param>
+        /// <param name="connection">The connection.</param>
+        /// <param name="queue">The queue.</param>
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
         {
             container.Register<ITransportCommitMessage, TransportCommitMessage>(LifeStyles.Singleton);

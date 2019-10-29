@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private readonly ILog _log;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CommitMessage" /> class.
+        /// Initializes a new instance of the <see cref="RemoveMessage" /> class.
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="deleteStatusCommandHandler">The delete status command handler.</param>

@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net472;net461</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.4.1</Version>
+    <Version>0.4.2</Version>
     <Description>Work queue for dot net 4.7.2 and dot net standard 2.0 
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
@@ -22,6 +22,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net461|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;NETFULL</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
@@ -42,22 +46,39 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <WarningsAsErrors />
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net461|AnyCPU'">
+    <DefineConstants>LIBLOG_PUBLIC;NETFULL</DefineConstants>
+    <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="LibLog" Version="5.0.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.2.2" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.6.0" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="OpenTracing" Version="0.12.0" />
-    <PackageReference Include="Polly" Version="7.1.0" />
-    <PackageReference Include="Polly.Caching.Memory" Version="3.0.1" />
-    <PackageReference Include="SimpleInjector" Version="4.6.0" />
+    <PackageReference Include="OpenTracing" Version="0.12.1" />
+    <PackageReference Include="Polly" Version="7.1.1" />
+    <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
+    <PackageReference Include="SimpleInjector" Version="4.7.1" />
   </ItemGroup>
 
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Schyntax">
+      <HintPath>..\..\Lib\Schyntax\net452\Schyntax.dll</HintPath>
+    </Reference>
+    <Reference Include="Aq.ExpressionJsonSerializer">
+      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net452\Aq.ExpressionJsonSerializer.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Schyntax">
       <HintPath>..\..\Lib\Schyntax\net452\Schyntax.dll</HintPath>

@@ -18,6 +18,9 @@
 // ---------------------------------------------------------------------
 namespace DotNetWorkQueue.Transport.Shared
 {
+    /// <summary>
+    /// Transport rollback message action
+    /// </summary>
     public interface ITransportRollbackMessage
     {
         /// <summary>

@@ -19,6 +19,10 @@
 using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.Shared.Message
 {
+    /// <summary>
+    /// Transport message handling actions
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.Transport.Shared.ITransportHandleMessage" />
     public class TransportHandleMessage : ITransportHandleMessage
     {
         /// <summary>

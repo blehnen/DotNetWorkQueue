@@ -19,6 +19,10 @@
 using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.Shared.Message
 {
+    /// <summary>
+    /// Transport commit message action
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.Transport.Shared.ITransportCommitMessage" />
     public class TransportCommitMessage: ITransportCommitMessage
     {
         private readonly IRemoveMessage _removeMessage;

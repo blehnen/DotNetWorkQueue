@@ -1,3 +1,7 @@
+###0.4.2 2019-10-29
+- Add target for 4.6.1
+- Upgrade packages to latest versions
+
 ###0.4.1 2019-06-08
 - Fix issue with retry policies using seconds instead of milliseconds
 
