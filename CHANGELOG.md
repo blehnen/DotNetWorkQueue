@@ -1,3 +1,6 @@
+###0.4.3 2019-10-29
+- Fix issue with registration of message rollback
+
 ###0.4.2 2019-10-29
 - Add target for 4.6.1
 - Upgrade packages to latest versions
