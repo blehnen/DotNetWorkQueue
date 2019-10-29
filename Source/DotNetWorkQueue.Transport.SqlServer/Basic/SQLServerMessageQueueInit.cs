@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             //**receive
             container.Register<IReceiveMessages, SqlServerMessageQueueReceive>(LifeStyles.Transient);
             container.Register<IConnectionHolderFactory<SqlConnection, SqlTransaction, SqlCommand>, ConnectionHolderFactory>(LifeStyles.Singleton);
-            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Transient);
+            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Singleton);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
             container.Register<CreateDequeueStatement>(LifeStyles.Singleton);
             container.Register<BuildDequeueCommand>(LifeStyles.Singleton);

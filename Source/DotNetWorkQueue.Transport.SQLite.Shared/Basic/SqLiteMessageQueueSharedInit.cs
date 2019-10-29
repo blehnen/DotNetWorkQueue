@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
 
             //**receive
             container.Register<IReceiveMessages, SqLiteMessageQueueReceive>(LifeStyles.Transient);
-            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Transient);
+            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Singleton);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
             //**receive
 

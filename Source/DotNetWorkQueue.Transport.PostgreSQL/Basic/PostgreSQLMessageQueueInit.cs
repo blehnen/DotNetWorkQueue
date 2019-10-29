@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //**receive
             container.Register<IReceiveMessages, PostgreSqlMessageQueueReceive>(LifeStyles.Transient);
             container.Register<IConnectionHolderFactory<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>, ConnectionHolderFactory>(LifeStyles.Singleton);
-            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Transient);
+            container.Register<ITransportRollbackMessage, RollbackMessage>(LifeStyles.Singleton);
             container.Register<ReceiveMessage>(LifeStyles.Transient);
             container.Register<IBuildMoveToErrorQueueSql, BuildMoveToErrorQueueSql>(LifeStyles.Singleton);
             //**receive
