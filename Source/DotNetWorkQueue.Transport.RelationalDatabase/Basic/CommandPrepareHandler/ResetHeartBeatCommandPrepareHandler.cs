@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
 
             param = dbCommand.CreateParameter();
             param.ParameterName = "@HeartBeat";
-            param.DbType = DbType.DateTime2;
+            param.DbType = DbType.DateTime;
             param.Value = command.MessageReset.HeartBeat;
             dbCommand.Parameters.Add(param);
         }
