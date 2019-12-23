@@ -1,17 +1,20 @@
+###0.4.4 2019-12-23
+* Fix issue with SQL server transport and heartbeat reset
+
 ###0.4.3 2019-10-29
-- Fix issue with registration of message rollback
+* Fix issue with registration of message rollback
 
 ###0.4.2 2019-10-29
-- Add target for 4.6.1
-- Upgrade packages to latest versions
+* Add target for 4.6.1
+* Upgrade packages to latest versions
 
 ###0.4.1 2019-06-08
-- Fix issue with retry policies using seconds instead of milliseconds
+* Fix issue with retry policies using seconds instead of milliseconds
 
 ###0.4.0 2019-06-02
-- Remove RPC
-- Implement OpenTracing https://opentracing.io/
-- Fix Message interception
+* Remove RPC
+* Implement OpenTracing https://opentracing.io/
+* Fix Message interception
 
 ###0.3.1 2019-04-26
 * Correct versioning for nuget publish
