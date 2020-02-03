@@ -11,7 +11,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
 {
     public class ConsumerMethodMultipleDynamic
     {
-        [Collection("SqlServer")]
+        [Collection("Consumer")]
         public class SimpleMethodConsumer
         {
            [Theory]

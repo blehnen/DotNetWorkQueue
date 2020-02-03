@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
 {
-    [Collection("postgresql")]
+    [Collection("route")]
     public class RouteTests
     {
         [Theory]

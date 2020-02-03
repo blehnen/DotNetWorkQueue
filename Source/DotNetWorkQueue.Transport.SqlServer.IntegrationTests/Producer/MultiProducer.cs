@@ -9,7 +9,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
 {
-    [Collection("SqlServer")]
+    [Collection("Producer")]
     public class MultiProducer
     {
         [Theory]

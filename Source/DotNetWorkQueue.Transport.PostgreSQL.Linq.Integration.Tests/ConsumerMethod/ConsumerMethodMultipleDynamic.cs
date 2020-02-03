@@ -9,6 +9,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMethod
 {
+    [Collection("consumer")]
     public class ConsumerMethodMultipleDynamic
     {
         [Collection("PostgreSQL")]

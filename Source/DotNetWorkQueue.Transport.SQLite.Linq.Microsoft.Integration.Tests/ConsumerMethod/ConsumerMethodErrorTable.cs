@@ -10,7 +10,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.ConsumerMethod
 {
-    [Collection("SQLite")]
+    [Collection("Consumer")]
     public class ConsumerMethodErrorTable
     {
         [Theory]

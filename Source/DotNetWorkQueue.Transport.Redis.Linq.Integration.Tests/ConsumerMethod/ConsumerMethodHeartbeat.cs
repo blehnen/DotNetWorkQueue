@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("Redis")]
+    [Collection("Consumer")]
     public class ConsumerMethodHeartbeat
     {
         [Theory]

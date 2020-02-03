@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("Redis")]
+    [Collection("ConsumerAsync")]
     public class ConsumerMethodAsyncPoisonMessage
     {
         [Theory]

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
 {
-    [Collection("postgresql")]
+    [Collection("consumer")]
     public class ConsumerRollBack
     {
 

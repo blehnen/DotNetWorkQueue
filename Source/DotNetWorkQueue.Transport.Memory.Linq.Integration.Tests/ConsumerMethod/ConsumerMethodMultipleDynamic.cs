@@ -10,6 +10,7 @@ using Xunit;
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
 {
 #if NETFULL
+    [Collection("consumer")]
     public class ConsumerMethodMultipleDynamic
     {
         [Theory]

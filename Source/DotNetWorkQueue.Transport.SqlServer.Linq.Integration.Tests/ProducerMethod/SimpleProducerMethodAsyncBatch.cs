@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("SqlServer")]
+    [Collection("Producer")]
     public class SimpleProducerMethodAsyncBatch
     {
         [Theory]

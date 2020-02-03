@@ -7,6 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
 {
+    [Collection("consumerasync")]
     public class ConsumerAsyncErrorTable
     {
         [Theory]

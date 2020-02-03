@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.JobScheduler
 {
-    [Collection("SQLite")]
+    [Collection("JobScheduler")]
     public class JobSchedulerTests
     {
         [Theory]

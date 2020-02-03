@@ -9,7 +9,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("SqlServer")]
+    [Collection("ConsumerAsync")]
     public class ConsumerMethodAsyncErrorTable
     {
         [Theory]

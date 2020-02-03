@@ -10,7 +10,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.ProducerMethod
 {
-    [Collection("SQLite")]
+    [Collection("Producer")]
     public class SimpleMethodProducer
     {
         [Theory]

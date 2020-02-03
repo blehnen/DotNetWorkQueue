@@ -6,7 +6,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("Memory")]
+    [Collection("producer")]
     public class SimpleMethodProducerAsync
     {
         [Theory]

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
 {
-    [Collection("SQLite")]
+    [Collection("Producer")]
     public class MultiProducer
     {
         [Theory]

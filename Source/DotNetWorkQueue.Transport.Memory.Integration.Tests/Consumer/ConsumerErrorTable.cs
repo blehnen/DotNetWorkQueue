@@ -7,6 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
 {
+    [Collection("consumer")]
     public class ConsumerErrorTable
     {
         [Theory]

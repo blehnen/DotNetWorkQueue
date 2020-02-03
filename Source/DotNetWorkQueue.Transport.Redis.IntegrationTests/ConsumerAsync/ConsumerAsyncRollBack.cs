@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
-    [Collection("Redis")]
+    [Collection("ConsumerAsync")]
     public class ConsumerAsyncRollBack
     {
         [Theory]

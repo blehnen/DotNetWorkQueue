@@ -6,6 +6,6 @@
         /// The connection string to the SQL DB for the integration tests. All tests in this project will use this connection string
         /// </summary>
         public static string ConnectionString =
-            "Server=V-SQL;Port=5432;Database=IntegrationTesting;Integrated Security=true;Maximum Pool Size=250";
+            "Server=V-PostgreSql;Port=5432;Database=IntegrationTesting;Integrated Security=true;Maximum Pool Size=250";
     }
 }

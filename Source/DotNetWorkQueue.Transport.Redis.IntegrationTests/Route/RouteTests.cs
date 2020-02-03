@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
 {
-    [Collection("Redis")]
+    [Collection("Route")]
     public class RouteTests
     {
         [Theory]

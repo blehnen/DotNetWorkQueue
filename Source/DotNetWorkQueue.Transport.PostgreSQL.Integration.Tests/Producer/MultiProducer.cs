@@ -9,7 +9,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
 {
-    [Collection("postgresql")]
+    [Collection("producer")]
     public class MultiProducer
     {
         [Theory]

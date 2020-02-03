@@ -6,7 +6,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("SqlServer")]
+    [Collection("JobScheduler")]
     public class JobSchedulerTests
     {
         [Theory]

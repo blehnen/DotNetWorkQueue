@@ -9,7 +9,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("SQLite")]
+    [Collection("ConsumerAsync")]
     public class ConsumerMethodAsyncPoisonMessage
     {
         [Theory]

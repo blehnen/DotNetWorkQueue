@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("SqlServer")]
+    [Collection("Consumer")]
     public class ConsumerMethodCancelWork
     {
         [Theory]

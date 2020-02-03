@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("PostgreSQL")]
+    [Collection("consumerasync")]
     public class SimpleConsumerMethodAsync
     {
         private ITaskFactory Factory { get; set; }

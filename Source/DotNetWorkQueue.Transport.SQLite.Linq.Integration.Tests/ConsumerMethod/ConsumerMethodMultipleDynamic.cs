@@ -9,6 +9,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
 {
+    [Collection("Consumer")]
     public class ConsumerMethodMultipleDynamic
     {
         [Theory]

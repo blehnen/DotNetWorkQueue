@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route
 {
-    [Collection("SQLite")]
+    [Collection("Route")]
     public class RouteMultiTests
     {
         [Theory]

@@ -5,6 +5,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
 {
+    [Collection("producer")]
     public class SimpleProducer
     {
         [Theory]

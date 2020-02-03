@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
 {
-    [Collection("SqlServer")]
+    [Collection("Route")]
     public class RouteTests
     {
         [Theory]

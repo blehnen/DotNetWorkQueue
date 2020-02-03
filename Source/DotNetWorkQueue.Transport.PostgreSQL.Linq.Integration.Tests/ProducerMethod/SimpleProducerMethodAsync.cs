@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("PostgreSQL")]
+    [Collection("producer")]
     public class SimpleProducerMethodAsync
     {
         [Theory]

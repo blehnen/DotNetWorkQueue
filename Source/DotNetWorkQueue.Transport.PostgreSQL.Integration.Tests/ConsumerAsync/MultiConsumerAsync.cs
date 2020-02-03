@@ -3,7 +3,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 {
-    [Collection("postgresql")]
+    [Collection("consumerasyncmulti")]
     public class MultiConsumerAsync
     {
         [Theory]

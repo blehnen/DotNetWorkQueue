@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 {
-    [Collection("postgresql")]
+    [Collection("consumerasync")]
     public class ConsumerAsyncRollBack
     {
         [Theory]

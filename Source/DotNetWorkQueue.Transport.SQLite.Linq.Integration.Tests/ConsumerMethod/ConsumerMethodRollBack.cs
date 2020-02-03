@@ -9,7 +9,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("SQLite")]
+    [Collection("Consumer")]
     public class ConsumerMethodRollBack
     {
         [Theory]

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 {
-    [Collection("SqlServer")]
+    [Collection("ConsumerAsync")]
     public class ConsumerAsyncPoisonMessage
     {
         [Theory]

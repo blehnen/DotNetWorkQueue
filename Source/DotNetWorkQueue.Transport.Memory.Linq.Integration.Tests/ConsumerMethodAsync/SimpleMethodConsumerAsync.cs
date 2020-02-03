@@ -7,6 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethodAsync
 {
+    [Collection("consumer")]
     public class SimpleMethodConsumerAsync
     {
         private ITaskFactory Factory { get; set; }

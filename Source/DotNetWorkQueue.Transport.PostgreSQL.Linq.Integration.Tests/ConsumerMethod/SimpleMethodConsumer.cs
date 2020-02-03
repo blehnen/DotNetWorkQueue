@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("PostgreSQL")]
+    [Collection("consumer")]
     public class SimpleMethodConsumer
     {
         [Theory]

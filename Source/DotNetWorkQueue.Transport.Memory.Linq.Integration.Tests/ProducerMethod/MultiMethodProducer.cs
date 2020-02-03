@@ -10,6 +10,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
 {
+    [Collection("producer")]
     public class MultiMethodProducer
     {
         [Theory]
