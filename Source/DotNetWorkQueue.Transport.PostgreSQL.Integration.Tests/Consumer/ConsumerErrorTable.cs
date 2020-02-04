@@ -11,10 +11,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(100, 60, 20, false, false),
-         InlineData(100, 60, 20, true, false),
+        [InlineData(100, 60, 40, false, false),
+         InlineData(100, 60, 40, true, false),
          InlineData(10, 40, 5, true, false),
-         InlineData(10, 60, 20, true, true),
+         InlineData(10, 60, 40, true, true),
          InlineData(1, 40, 5, false, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {

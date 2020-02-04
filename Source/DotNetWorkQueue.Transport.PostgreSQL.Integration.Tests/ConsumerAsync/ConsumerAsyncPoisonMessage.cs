@@ -11,10 +11,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
     public class ConsumerAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(10, 30, 5, 1, 0, false, false),
-         InlineData(50, 40, 20, 2, 2, false, false),
-         InlineData(10, 30, 5, 1, 0, true, false),
-         InlineData(50, 40, 20, 2, 2, true, false),
+        [InlineData(10, 40, 5, 1, 0, false, false),
+         InlineData(50, 50, 20, 2, 2, false, false),
+         InlineData(10, 40, 5, 1, 0, true, false),
+         InlineData(50, 50, 20, 2, 2, true, false),
          InlineData(5, 60, 5, 1, 0, false, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, bool enableChaos)
