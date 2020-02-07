@@ -17,6 +17,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             where TTransportInit : ITransportInit, new()
         {
 
+            if (enableChaos)
+                timeOut *= 2;
+
             using (var metrics = new Metrics.Metrics(queueName))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;

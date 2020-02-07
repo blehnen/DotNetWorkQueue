@@ -17,6 +17,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
+            if (enableChaos)
+                timeOut *= 2;
+
             var queue = new ConsumerCancelWorkShared<TTransportInit, TMessage>();
             if (addInterceptors)
             {

@@ -29,6 +29,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             where TTransportInit : ITransportInit, new()
         {
 
+            if (enableChaos)
+                timeOut *= 2;
+
             var metricName = queueName;
             if (routes != null)
             {

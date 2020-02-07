@@ -38,6 +38,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             var t = new Thread(RunBadQueue);
             t.Start();
 
+            if (enableChaos)
+                timeOut *= 2;
+
             //run consumer
             RunConsumerInternal(queueName, connectionString, addInterceptors, logProvider, runTime,
                 messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, updateTime, route, enableChaos);
