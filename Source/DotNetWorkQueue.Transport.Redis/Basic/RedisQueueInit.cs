@@ -123,7 +123,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<RollbackDelayLua>(LifeStyles.Singleton);
             container.Register<ErrorLua>(LifeStyles.Singleton);
             container.Register<MoveDelayedToPendingLua>(LifeStyles.Singleton);
-            container.Register<SendHeartbeatLua>(LifeStyles.Singleton);
             container.Register<ResetHeartbeatLua>(LifeStyles.Singleton);
             container.Register<TimeLua>(LifeStyles.Singleton);
             container.Register<EnqueueBatchLua>(LifeStyles.Singleton);

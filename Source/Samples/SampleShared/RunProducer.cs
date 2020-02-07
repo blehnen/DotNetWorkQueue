@@ -212,6 +212,9 @@ w) Send 1000 random jobs
 x) Send Async 100 random jobs
 y) Send Async 1000 random jobs
 
+Long Running
+z) Send 1 job with a 600 second processing time
+
 q) Quit");
                 var key = char.ToLower(Console.ReadKey(true).KeyChar);
 
@@ -253,7 +256,10 @@ q) Quit");
                     case 'j':
                         HandleResults.Handle(RunProducer.Run(queue, Messages.CreateSimpleExpiredMessage(), expiredDataInstant.Invoke()), Log.Logger);
                         break;
-
+                    case 'z':
+                        HandleResults.Handle(RunProducer.Run(queue, Messages.CreateSimpleMessage(1, 600000, 10), expiredDataFuture),
+                            Log.Logger);
+                        break;
                     //async
 
                     case 'k':
