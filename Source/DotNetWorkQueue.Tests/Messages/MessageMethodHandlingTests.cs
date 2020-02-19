@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Tests.Messages
             Assert.Throws<ObjectDisposedException>(
                 delegate
                 {
-                    test.HandleExecution(new ReceivedMessage<MessageExpression>(message), new WorkerNotificationNoOp());
+                    test.HandleExecution(new ReceivedMessage<MessageExpression>(message, new GetPreviousErrorsNoOp()), new WorkerNotificationNoOp());
                 });
         }
 
@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Tests.Messages
                     delegate
                     {
                         test.HandleExecution(
-                            new ReceivedMessage<MessageExpression>(message), null);
+                            new ReceivedMessage<MessageExpression>(message, new GetPreviousErrorsNoOp()), null);
                     });
             }
         }

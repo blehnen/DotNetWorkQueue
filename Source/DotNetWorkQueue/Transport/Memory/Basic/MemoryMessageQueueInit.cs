@@ -53,6 +53,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             container.Register<IDataStorage, DataStorage>(LifeStyles.Singleton);
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
             container.Register<IGetHeader, GetHeader>(LifeStyles.Singleton);
+            container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrorsNoOp>(LifeStyles.Singleton);
             //**all
 
             //**send

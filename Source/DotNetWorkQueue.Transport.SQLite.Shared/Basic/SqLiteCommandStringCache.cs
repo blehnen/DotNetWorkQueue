@@ -66,6 +66,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             CommandCache.Add(CommandStringTypes.GetErrorRetryCount,
                 $"Select RetryCount from {TableNameHelper.ErrorTrackingName} where queueid = @QueueID and ExceptionType = @ExceptionType");
 
+            CommandCache.Add(CommandStringTypes.GetMessageErrors,
+                $"Select ExceptionType, RetryCount from {TableNameHelper.ErrorTrackingName} where queueid = @QueueID");
+
             CommandCache.Add(CommandStringTypes.GetConfiguration,
                 $"select Configuration from {TableNameHelper.ConfigurationName}");
 

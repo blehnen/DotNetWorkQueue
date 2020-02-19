@@ -56,6 +56,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IBuildMoveToErrorQueueSql, BuildMoveToErrorQueueSql>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
+            container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrors>(LifeStyles.Singleton);
 
             container.Register<IGetTime, SqlServerTime>(LifeStyles.Singleton);
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);

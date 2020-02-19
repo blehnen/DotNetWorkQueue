@@ -53,6 +53,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<IJobSchema, PostgreSqlJobSchema>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
+            container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrors>(LifeStyles.Singleton);
 
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
 

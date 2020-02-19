@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
@@ -39,9 +40,24 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 waitForFinish.Set();
             }
         }
-        public static void HandleFakeMessagesError(IncrementWrapper processedCount, ManualResetEventSlim waitForFinish, int messageCount)
+        public static void HandleFakeMessagesError<TMessage>(IncrementWrapper processedCount, ManualResetEventSlim waitForFinish, int messageCount, IReceivedMessage<TMessage> message)
+         where TMessage: class
         {
+            var currentCount = processedCount.GetErrorCount(message.MessageId.Id.Value.ToString());
+            if (currentCount == 0)
+            {
+                Assert.False(message.PreviousErrors.ContainsKey(typeof(IndexOutOfRangeException).ToString()));
+            }
+            else
+            {
+                var messageCountFromMessage = Convert.ToInt64(message.PreviousErrors[typeof(IndexOutOfRangeException).ToString()]);
+
+                //our count and the message count should match
+                Assert.Equal(currentCount, messageCountFromMessage);
+            }
+
             Interlocked.Increment(ref processedCount.ProcessedCount);
+            processedCount.AddUpdateErrorCount(message.MessageId.Id.Value.ToString(), currentCount+1);
             if (Interlocked.Read(ref processedCount.ProcessedCount) == messageCount * 3)
             {
                 waitForFinish.Set();

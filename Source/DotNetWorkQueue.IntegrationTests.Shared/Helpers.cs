@@ -66,11 +66,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     public class IncrementWrapper
     {
         private readonly ConcurrentDictionary<string, string> _ids;
+        private readonly ConcurrentDictionary<string, int> _errorCounts;
+
         public IncrementWrapper()
         {
             ProcessedCount = 0;
             IdError = null;
             _ids = new ConcurrentDictionary<string, string>();
+            _errorCounts = new ConcurrentDictionary<string, int>();
         }
 
         public bool AddId(string id)
@@ -81,6 +84,21 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 IdError = id;
             }
             return result;
+        }
+
+        public void AddUpdateErrorCount(string id, int counter)
+        {
+            if (_errorCounts.ContainsKey(id))
+                _errorCounts[id] = counter;
+            else
+                _errorCounts.TryAdd(id, counter);
+        }
+
+        public int GetErrorCount(string id)
+        {
+            if (_errorCounts.ContainsKey(id))
+                return _errorCounts[id];
+            return 0;
         }
 
         public string IdError { get; private set; }

@@ -30,6 +30,11 @@ namespace SampleShared
             }
             else if (arg1.Body.Error == ErrorTypes.RetryableErrorFail)
             {
+                foreach (var error in arg1.PreviousErrors)
+                {
+                    arg2.Log.Log(LogLevel.Info, () => $"previous error {error.Key}, count {error.Value}");
+                }
+
                 //simulate some processing
                 System.Threading.Thread.Sleep(100);
                 throw new InvalidDataException("the data is invalid. We will retry a few times and then give up because this error will happen over and over");
@@ -47,10 +52,18 @@ namespace SampleShared
                 else if (RetryErrorCount[arg1.MessageId.Id.Value.ToString()] > 2)
                 {
                     //complete
+                    foreach (var error in arg1.PreviousErrors)
+                    {
+                        arg2.Log.Log(LogLevel.Info, () => $"previous error {error.Key}, count {error.Value}");
+                    }
                 }
                 else
                 {
                     RetryErrorCount[arg1.MessageId.Id.Value.ToString()] = RetryErrorCount[arg1.MessageId.Id.Value.ToString()] + 1;
+                    foreach (var error in arg1.PreviousErrors)
+                    {
+                        arg2.Log.Log(LogLevel.Info, () => $"previous error {error.Key}, count {error.Value}");
+                    }
                     throw new InvalidDataException("the data is invalid");
                 }
             }

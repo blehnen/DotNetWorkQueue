@@ -50,6 +50,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<DelayedProcessingConfiguration>(LifeStyles.Singleton);
             container.Register<ICorrelationIdFactory, RedisQueueCorrelationIdFactory>(
                 LifeStyles.Singleton);
+            container.Register<IGetPreviousMessageErrors, RedisGetPreviousMessageErrors>(LifeStyles.Singleton);
 
             container.Register<IGetHeader, GetHeader>(LifeStyles.Singleton);
 

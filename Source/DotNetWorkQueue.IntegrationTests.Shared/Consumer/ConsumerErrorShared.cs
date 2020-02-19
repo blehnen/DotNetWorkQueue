@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                         //start looking for work
                         queue.Start<TMessage>((message, notifications) =>
                         {
-                            MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish, messageCount);
+                            MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish, messageCount, message);
                         });
 
                         waitForFinish.Wait(timeOut*1000);

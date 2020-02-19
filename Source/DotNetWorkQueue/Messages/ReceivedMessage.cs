@@ -29,13 +29,18 @@ namespace DotNetWorkQueue.Messages
     /// <typeparam name="T">The type of the message</typeparam>
     public class ReceivedMessage<T> : IReceivedMessage<T> where T : class
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="IReceivedMessage{T}" /> class.
-        /// </summary>
+        private IReadOnlyDictionary<string, int> _previousErrors = null;
+        private readonly IGetPreviousMessageErrors _getErrors;
+
+        /// <summary>Initializes a new instance of the <see cref="IReceivedMessage{T}"/> class.</summary>
         /// <param name="message">The internal message.</param>
-        public ReceivedMessage(IReceivedMessageInternal message)
+        /// <param name="getErrors">Gets any previous errors that have occured for this specific message</param>
+        public ReceivedMessage(IReceivedMessageInternal message, IGetPreviousMessageErrors getErrors)
         {
             Guard.NotNull(() => message, message);
+            Guard.NotNull(() => getErrors, getErrors);
+
+            _getErrors = getErrors;
 
             Body = (T)message.Body;
             Headers = new ReadOnlyDictionary<string, object>(message.Headers.ToDictionary(entry => entry.Key,
@@ -73,6 +78,9 @@ namespace DotNetWorkQueue.Messages
         /// The headers.
         /// </value>
         public IReadOnlyDictionary<string, object> Headers { get; }
+
+        /// <inheritdoc/>
+        public IReadOnlyDictionary<string, int> PreviousErrors => _previousErrors ?? (_previousErrors = _getErrors.Get(MessageId));
 
         /// <summary>
         /// Returns typed data from the headers collection

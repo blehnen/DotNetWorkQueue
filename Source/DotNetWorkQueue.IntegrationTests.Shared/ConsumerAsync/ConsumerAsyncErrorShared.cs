@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                 queue.Start<TMessage>((message, notifications) =>
                                 {
                                     MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
-                                        messageCount);
+                                        messageCount, message);
                                 });
 
                                 waitForFinish.Wait(timeOut*1000);

@@ -45,10 +45,8 @@ namespace SampleShared
             {
                 Message = RandomString.Create(messagePayloadLength),
                 ProcessingTime = 100,
+                Error = failAtEnd ? ErrorTypes.RetryableErrorFail : ErrorTypes.RetryableError,
             };
-            if (failAtEnd)
-                message.Error = ErrorTypes.RetryableErrorFail;
-            else message.Error = ErrorTypes.RetryableError;
             yield return message;
         }
 

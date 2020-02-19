@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Messages
 {
@@ -26,6 +27,14 @@ namespace DotNetWorkQueue.Messages
     /// <remarks>Since we never care what the user type is internally, we use dynamic to avoid having to pass the T around internally</remarks>
     public class GenerateReceivedMessage : IGenerateReceivedMessage
     {
+        private readonly IGetPreviousMessageErrors _getErrors;
+
+        public GenerateReceivedMessage(IGetPreviousMessageErrors getErrors)
+        {
+            Guard.NotNull(() => getErrors, getErrors);
+            _getErrors = getErrors;
+        }
+
         /// <summary>
         /// Generates a <see cref="IReceivedMessage{T}" /> from a <see cref="IReceivedMessageInternal" />
         /// </summary>
@@ -54,7 +63,7 @@ namespace DotNetWorkQueue.Messages
             // ReSharper disable once PossibleNullReferenceException
             var make = d1.MakeGenericType(typeArgs);
 
-            return (IReceivedMessage<T>)Activator.CreateInstance(make, internalMessage);
+            return (IReceivedMessage<T>)Activator.CreateInstance(make, internalMessage, _getErrors);
         }
     }
 }

@@ -285,7 +285,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Gets header records for an item in the queue
         /// </summary>
-        GetHeader
+        GetHeader,
+        /// <summary>
+        /// Gets any previous error types that have occured and their count from the queue
+        /// </summary>
+        GetMessageErrors
     }
 
     /// <summary>
