@@ -36,6 +36,7 @@ using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Time;
 using DotNetWorkQueue.Trace.NoOp;
+using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Caching.Memory;
 using OpenTracing;
@@ -111,6 +112,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<IMessageInterceptorRegistrar, MessageInterceptors>(LifeStyles.Singleton);
 
             container.Register<MessageProcessingMode>(LifeStyles.Singleton);
+            container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrorsNoOp>(LifeStyles.Singleton);
 
             container.Register<IMessageFactory, MessageFactory>(LifeStyles.Singleton);
          
