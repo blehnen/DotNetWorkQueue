@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
                             var producer = new ProducerShared();
                             producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, enableChaos);
+                                Helpers.Verify, false, oCreation.Scope, false);
 
                             //process data
                             var consumer = new ConsumerErrorShared<FakeMessage>();

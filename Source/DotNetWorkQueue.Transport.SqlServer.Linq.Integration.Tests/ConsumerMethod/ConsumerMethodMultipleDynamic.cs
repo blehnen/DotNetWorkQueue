@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                             var producer = new ProducerMethodMultipleDynamicShared();
                             producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope, enableChaos);
+                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope, false);
 
                             var consumer = new ConsumerMethodShared();
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,

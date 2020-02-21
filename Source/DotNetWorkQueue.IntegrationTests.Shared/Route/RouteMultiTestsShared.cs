@@ -35,13 +35,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
             Parallel.ForEach(routes1, route =>
             {
                 RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors,
-                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, enableChaos);
+                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, false);
             });
 
             Parallel.ForEach(routes2, route =>
             {
                 RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors,
-                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, enableChaos);
+                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, false);
             });
 
             //run a consumer for each route

@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                             producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName,
                                 connectionInfo.ConnectionString, false, messageCount, logProvider,
                                 Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope, enableChaos);
+                                Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope, false);
 
                             var consumer = new ConsumerMethodShared();
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,

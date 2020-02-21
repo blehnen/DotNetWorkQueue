@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         var producer = new ProducerShared();
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
                             ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope, enableChaos);
+                            Helpers.Verify, false, oCreation.Scope, false);
 
                         //process data
                         var consumer = new ConsumerAsyncErrorShared<FakeMessage>();

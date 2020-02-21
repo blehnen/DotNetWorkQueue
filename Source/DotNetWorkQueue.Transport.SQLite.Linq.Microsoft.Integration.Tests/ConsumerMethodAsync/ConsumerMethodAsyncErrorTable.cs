@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                                 producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
                                     connectionInfo.ConnectionString, false, messageCount, logProvider,
                                     Helpers.GenerateData,
-                                    Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope, enableChaos);
+                                    Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope, false);
                             }
 
                             //process data

@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             var producer = new ProducerAsyncShared();
                             producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessage>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, enableChaos).Wait(timeOut / 2 * 1000);
+                                Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             var producer = new ProducerAsyncShared();
                             producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageA>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, enableChaos).Wait(timeOut / 2 * 1000);
+                                Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             var producer = new ProducerAsyncShared();
                             producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageB>(queueName,
                                 ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, enableChaos).Wait(timeOut / 2 * 1000);
+                                Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
