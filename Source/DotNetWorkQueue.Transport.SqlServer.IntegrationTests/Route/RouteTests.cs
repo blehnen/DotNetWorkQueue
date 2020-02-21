@@ -11,8 +11,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
     public class RouteTests
     {
         [Theory]
-        [InlineData(10, 5, 180, 1, false, 4, true),
-         InlineData(10, 5, 180, 1, true, 10, false)]
+        [InlineData(10, 0, 180, 1, false, 4, true),
+         InlineData(10, 0, 180, 1, true, 10, false)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
            bool useTransactions, int routeCount, bool enableChaos)
         {

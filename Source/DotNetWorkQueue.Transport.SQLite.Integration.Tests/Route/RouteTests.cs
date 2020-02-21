@@ -12,7 +12,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route
     public class RouteTests
     {
         [Theory]
-        [InlineData(10, 1, 60, 1, false, 1, false),
+        [InlineData(10, 0, 60, 1, false, 1, false),
          InlineData(100, 0, 180, 1, true, 2, false),
          InlineData(10, 0, 60, 1, false, 1, true)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,

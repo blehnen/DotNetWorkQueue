@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Route
     public class RouteMultiTests
     {
         [Theory]
-        [InlineData(10, 1, 400, 1, false, 2, true),
+        [InlineData(10, 0, 400, 1, false, 2, true),
         InlineData(100, 0, 180, 1, true, 2, false)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
           bool inMemoryDb, int routeCount, bool enableChaos)

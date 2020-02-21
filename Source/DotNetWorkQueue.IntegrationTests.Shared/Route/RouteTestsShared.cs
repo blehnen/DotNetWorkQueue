@@ -31,11 +31,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
            where TMessage : class
         {
             //add data with routes - generate data per route passed in
-            foreach(var route in routes)
+            Parallel.ForEach(routes, route =>
             {
                 RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors,
                     messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, enableChaos);
-            }
+            });
 
             //run a consumer for each route
             using (var schedulerCreator = new SchedulerContainer())

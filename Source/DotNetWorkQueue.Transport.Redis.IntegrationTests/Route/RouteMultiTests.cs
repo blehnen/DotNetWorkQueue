@@ -11,7 +11,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
     public class RouteMultiTests
     {
         [Theory]
-        [InlineData(100, 1, 400, 1, 2, ConnectionInfoTypes.Linux)]
+        [InlineData(100, 0, 400, 1, 2, ConnectionInfoTypes.Linux)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
           int routeCount, ConnectionInfoTypes type)
         {

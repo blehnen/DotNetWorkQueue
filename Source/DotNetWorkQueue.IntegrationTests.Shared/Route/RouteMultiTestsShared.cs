@@ -32,24 +32,24 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
            where TMessage : class
         {
             //add data with routes - generate data per route passed in
-            foreach (var route in routes1)
+            Parallel.ForEach(routes1, route =>
             {
                 RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors,
                     messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, enableChaos);
-            }
+            });
 
-            foreach (var route in routes2)
+            Parallel.ForEach(routes2, route =>
             {
                 RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors,
                     messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, enableChaos);
-            }
+            });
 
             //run a consumer for each route
             using (var schedulerCreator = new SchedulerContainer())
             {
                 var taskScheduler = schedulerCreator.CreateTaskScheduler();
 
-                taskScheduler.Configuration.MaximumThreads = routes1.Count + 1;
+                taskScheduler.Configuration.MaximumThreads = routes1.Count + routes2.Count;
 
                 taskScheduler.Start();
                 var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
