@@ -4,6 +4,12 @@
     <TargetFrameworks>netcoreapp2.0;net472;net461</TargetFrameworks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="..\xunit.runner.json" Link="xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.0|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
     <NoWarn>1701;1702;1705;NU1701;NU1603</NoWarn>
