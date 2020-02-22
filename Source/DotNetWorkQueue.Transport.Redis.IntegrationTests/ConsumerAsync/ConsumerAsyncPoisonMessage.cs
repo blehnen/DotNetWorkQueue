@@ -11,8 +11,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, false),
-        InlineData(10, 30, 5, 1, 0, ConnectionInfoTypes.Linux, true)]
+        [InlineData(1, 60, 1, 1, 0, ConnectionInfoTypes.Linux, false),
+        InlineData(10, 60, 5, 1, 0, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int timeOut, int workerCount, 
             int readerCount, int queueSize, ConnectionInfoTypes type, bool route)
         {

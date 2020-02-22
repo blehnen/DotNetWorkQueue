@@ -12,9 +12,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(10, 40, 5, false, false),
-         InlineData(10, 40, 5, true, false),
-         InlineData(1, 40, 5, true, true)]
+        [InlineData(10, 60, 5, false, false),
+         InlineData(10, 60, 5, true, false),
+         InlineData(1, 60, 5, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

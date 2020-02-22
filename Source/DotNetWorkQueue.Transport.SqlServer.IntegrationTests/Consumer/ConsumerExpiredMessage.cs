@@ -11,9 +11,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
     public class ConsumerExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, false, false),
-        InlineData(100, 5, 20, 5, true, false),
-        InlineData(10, 5, 40, 5, true, true)]
+        [InlineData(100, 0, 60, 5, false, false),
+        InlineData(100, 5, 60, 5, true, false),
+        InlineData(10, 5, 60, 5, true, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

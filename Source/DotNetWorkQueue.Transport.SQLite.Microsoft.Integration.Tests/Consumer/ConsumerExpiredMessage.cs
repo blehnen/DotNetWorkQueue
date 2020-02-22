@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
     public class ConsumerExpiredMessage
     {
         [Theory]
-        [InlineData(20, 0, 20, 1, true, false),
+        [InlineData(20, 0, 60, 1, true, false),
          InlineData(20, 0, 60, 1, false, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {

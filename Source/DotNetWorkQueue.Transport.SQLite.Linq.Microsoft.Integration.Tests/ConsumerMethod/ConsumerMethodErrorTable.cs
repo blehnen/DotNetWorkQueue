@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
     public class ConsumerMethodErrorTable
     {
         [Theory]
-        [InlineData(1, 10, 1, false, LinqMethodTypes.Compiled, false)]
+        [InlineData(1, 60, 1, false, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

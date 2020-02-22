@@ -12,9 +12,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, true, false),
-         InlineData(10, 30, 5, false, false),
-         InlineData(1, 40, 1, true, true)]
+        [InlineData(1, 60, 1, true, false),
+         InlineData(10, 60, 5, false, false),
+         InlineData(1, 60, 1, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

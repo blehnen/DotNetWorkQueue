@@ -14,8 +14,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
     public class ConsumerMethodAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, 30, 5, 1, 0, true, LinqMethodTypes.Compiled, false)]
+        [InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, 60, 5, 1, 0, true, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int timeOut, int workerCount, 
             int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

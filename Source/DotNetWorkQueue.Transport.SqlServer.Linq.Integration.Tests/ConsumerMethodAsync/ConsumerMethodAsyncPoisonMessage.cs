@@ -12,10 +12,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(10, 30, 5, 1, 0, true, LinqMethodTypes.Compiled, false),
+        [InlineData(10, 60, 5, 1, 0, true, LinqMethodTypes.Compiled, false),
 #if NETFULL
-        InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
-        InlineData(10, 30, 5, 1, 0, true, LinqMethodTypes.Dynamic, false),
+        InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
+        InlineData(10, 60, 5, 1, 0, true, LinqMethodTypes.Dynamic, false),
 #endif
         InlineData(10, 80, 20, 2, 2, false, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,

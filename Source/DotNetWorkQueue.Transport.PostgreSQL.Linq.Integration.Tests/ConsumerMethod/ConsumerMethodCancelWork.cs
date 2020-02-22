@@ -13,10 +13,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     {
         [Theory]
 #if NETFULL
-         [InlineData(7, 15, 180, 3, LinqMethodTypes.Compiled, true),
-            InlineData(7, 15, 180, 3, LinqMethodTypes.Dynamic, true)]
+         [InlineData(7, 60, 180, 3, LinqMethodTypes.Compiled, true),
+            InlineData(7, 60, 180, 3, LinqMethodTypes.Dynamic, true)]
 #else
-        [InlineData(7, 15, 90, 3, LinqMethodTypes.Compiled, false)]
+        [InlineData(7, 60, 90, 3, LinqMethodTypes.Compiled, false)]
 #endif
         public void Run(int messageCount, int runtime, int timeOut, 
             int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos)

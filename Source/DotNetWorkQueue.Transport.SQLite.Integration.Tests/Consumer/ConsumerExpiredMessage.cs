@@ -12,9 +12,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, true, false),
-         InlineData(100, 0, 20, 5, false, false),
-         InlineData(10, 0, 20, 5, false, true)]
+        [InlineData(100, 0, 60, 5, true, false),
+         InlineData(100, 0, 60, 5, false, false),
+         InlineData(10, 0, 60, 5, false, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

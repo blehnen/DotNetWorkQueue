@@ -11,9 +11,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(1, 10, 1, false, false),
-         InlineData(10, 40, 5, true, false),
-         InlineData(3, 40, 5, true, true)]
+        [InlineData(1, 60, 1, false, false),
+         InlineData(10, 60, 5, true, false),
+         InlineData(3, 60, 5, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

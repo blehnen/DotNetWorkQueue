@@ -11,7 +11,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(1, 40, 1, ConnectionInfoTypes.Linux, false),
+        [InlineData(1, 60, 1, ConnectionInfoTypes.Linux, false),
         InlineData(100, 120, 20, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int timeOut, int workerCount, ConnectionInfoTypes type, bool route)
         {

@@ -13,8 +13,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [Theory]
-        [InlineData(10, 40, 5, false, LinqMethodTypes.Dynamic, false),
-         InlineData(1, 10, 1, false, LinqMethodTypes.Compiled, true)]
+        [InlineData(10, 60, 5, false, LinqMethodTypes.Dynamic, false),
+         InlineData(1, 60, 1, false, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

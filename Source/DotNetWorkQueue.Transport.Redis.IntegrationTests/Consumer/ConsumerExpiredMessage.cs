@@ -12,7 +12,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, false),
+        [InlineData(100, 0, 60, 5, ConnectionInfoTypes.Linux, false),
         InlineData(500, 0, 120, 5, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type, bool route)
         {

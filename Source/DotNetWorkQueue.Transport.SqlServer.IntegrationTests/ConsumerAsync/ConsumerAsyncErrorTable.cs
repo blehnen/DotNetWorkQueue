@@ -11,12 +11,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncErrorTable
     {
         [Theory]
-        [InlineData(1, 15, 1, 1, 0, false, false),
+        [InlineData(1, 60, 1, 1, 0, false, false),
         InlineData(25, 120, 20, 1, 5, false, false),
-        InlineData(1, 15, 1, 1, 0, true, false),
+        InlineData(1, 60, 1, 1, 0, true, false),
         InlineData(25, 120, 20, 1, 5, true, false),
         InlineData(2, 120, 20, 1, 5, false, true),
-        InlineData(1, 15, 1, 1, 0, true, true)]
+        InlineData(1, 60, 1, 1, 0, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount, 
             int readerCount, int queueSize, bool useTransactions, bool enableChaos)
         {

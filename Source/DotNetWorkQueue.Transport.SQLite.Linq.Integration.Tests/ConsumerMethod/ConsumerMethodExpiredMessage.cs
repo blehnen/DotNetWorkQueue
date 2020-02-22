@@ -13,10 +13,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, true, LinqMethodTypes.Compiled, false),
-         InlineData(10, 0, 40, 5, false, LinqMethodTypes.Compiled, true),
-          InlineData(10, 0, 40, 5, true, LinqMethodTypes.Dynamic, true),
-         InlineData(100, 0, 20, 5, false, LinqMethodTypes.Dynamic, false)]
+        [InlineData(100, 0, 60, 5, true, LinqMethodTypes.Compiled, false),
+         InlineData(10, 0, 60, 5, false, LinqMethodTypes.Compiled, true),
+          InlineData(10, 0, 60, 5, true, LinqMethodTypes.Dynamic, true),
+         InlineData(100, 0, 60, 5, false, LinqMethodTypes.Dynamic, false)]
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

@@ -11,8 +11,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, ConnectionInfoTypes.Linux, false),
-        InlineData(10, 30, 5, ConnectionInfoTypes.Linux, true)]
+        [InlineData(1, 60, 1, ConnectionInfoTypes.Linux, false),
+        InlineData(10, 60, 5, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int timeOut, int workerCount, 
             ConnectionInfoTypes type, bool route)
         {

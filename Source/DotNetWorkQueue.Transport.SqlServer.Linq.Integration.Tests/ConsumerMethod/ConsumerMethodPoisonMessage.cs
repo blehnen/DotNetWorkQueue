@@ -12,12 +12,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, true, LinqMethodTypes.Compiled, false),
+        [InlineData(1, 60, 1, true, LinqMethodTypes.Compiled, false),
 #if NETFULL
-        InlineData(1, 20, 1, false, LinqMethodTypes.Dynamic, false),
-         InlineData(10, 30, 5, true, LinqMethodTypes.Dynamic, false),
+        InlineData(1, 60, 1, false, LinqMethodTypes.Dynamic, false),
+         InlineData(10, 60, 5, true, LinqMethodTypes.Dynamic, false),
 #endif
-         InlineData(3, 30, 5, false, LinqMethodTypes.Compiled, true)]
+         InlineData(3, 60, 5, false, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int timeOut, int workerCount, 
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

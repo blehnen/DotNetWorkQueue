@@ -12,10 +12,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 20, 5, false, LinqMethodTypes.Compiled, false),
+        [InlineData(100, 0, 60, 5, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
-        InlineData(100, 5, 20, 5, true, LinqMethodTypes.Dynamic, false),
-        InlineData(100, 0, 20, 5, false, LinqMethodTypes.Dynamic, false),
+        InlineData(100, 5, 60, 5, true, LinqMethodTypes.Dynamic, false),
+        InlineData(100, 0, 60, 5, false, LinqMethodTypes.Dynamic, false),
 #endif
         InlineData(100, 5, 120, 5, true, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, 

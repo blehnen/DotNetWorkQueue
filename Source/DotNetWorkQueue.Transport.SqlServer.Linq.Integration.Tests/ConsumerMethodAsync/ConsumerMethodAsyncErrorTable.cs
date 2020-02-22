@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     {
         [Theory]
 #if NETFULL
-        [InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
-        InlineData(1, 25, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
+        [InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
+        InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
 #else
-        [InlineData(1, 15, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
+        [InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
 #endif
         public void Run(int messageCount, int timeOut, int workerCount, 
             int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)

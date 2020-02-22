@@ -12,9 +12,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
     public class ConsumerAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, true, false),
-         InlineData(50, 40, 10, 2, 2, false, false),
-         InlineData(5, 40, 10, 2, 2, false, true)]
+        [InlineData(1, 60, 1, 1, 0, true, false),
+         InlineData(50, 60, 10, 2, 2, false, false),
+         InlineData(5, 60, 10, 2, 2, false, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

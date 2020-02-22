@@ -12,12 +12,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Compiled, true),
+        [InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true),
 #if NETFULL
-        InlineData(1, 20, 1, 1, 0, false, LinqMethodTypes.Dynamic, true),
-         InlineData(50, 40, 20, 2, 2, true, LinqMethodTypes.Dynamic, false),
+        InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, true),
+         InlineData(50, 60, 20, 2, 2, true, LinqMethodTypes.Dynamic, false),
 #endif
-         InlineData(5, 40, 20, 2, 2, true, LinqMethodTypes.Compiled, true)]
+         InlineData(5, 60, 20, 2, 2, true, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

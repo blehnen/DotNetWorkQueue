@@ -11,8 +11,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
     public class ConsumerPoisonMessage
     {
         [Theory]
-        [InlineData(1, 40, 1, false, true),
-         InlineData(10, 30, 5, true, false)]
+        [InlineData(1, 60, 1, false, true),
+         InlineData(10, 60, 5, true, false)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
