@@ -124,7 +124,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             configuration.HeartBeat.ThreadPoolConfiguration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
             configuration.HeartBeat.ThreadPoolConfiguration.ThreadsMax = 2;
             configuration.Worker.WorkerCount = workerCount;
-            configuration.MessageError.MonitorTime = TimeSpan.FromSeconds(10);
             configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
             configuration.Worker.TimeToWaitForWorkersToCancel = TimeSpan.FromSeconds(10);
             configuration.Worker.SingleWorkerWhenNoWorkFound = true;
@@ -137,7 +136,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
             configuration.Worker.TimeToWaitForWorkersToCancel = TimeSpan.FromSeconds(10);
             configuration.Worker.SingleWorkerWhenNoWorkFound = true;
-            configuration.MessageError.MessageAge = actuallyPurge ? TimeSpan.FromSeconds(1) : TimeSpan.FromDays(1);
+            configuration.MessageError.MessageAge = actuallyPurge ? TimeSpan.FromSeconds(0) : TimeSpan.FromDays(1);
             configuration.MessageError.Enabled = true;
             configuration.MessageError.MonitorTime = TimeSpan.FromSeconds(5);
         }

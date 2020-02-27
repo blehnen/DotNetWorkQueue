@@ -55,18 +55,6 @@ namespace DotNetWorkQueue.LinqCompile
             _compiler.Usings = DefaultUsing.Union(linqExpression.Usings).ToArray();
             return _compiler.ParseLambdaExpr<Action<object, object>>(linqExpression.Linq).Compile();
         }
-        /// <summary>
-        /// Compiles the input linqExpression into a Linq expression tree
-        /// </summary>
-        /// <param name="linqExpression">The linqExpression.</param>
-        /// <returns></returns>
-        public Func<object, object, object> CompileFunction(LinqExpressionToRun linqExpression)
-        {
-            _compiler.References = DefaultReferences.Union(linqExpression.References).ToArray();
-            _compiler.Usings = DefaultUsing.Union(linqExpression.Usings).ToArray();
-            return _compiler.ParseLambdaExpr<Func<object, object, object>>(linqExpression.Linq).Compile();
-        }
-
         /// <inheritdoc />
         public void ResetState()
         {
