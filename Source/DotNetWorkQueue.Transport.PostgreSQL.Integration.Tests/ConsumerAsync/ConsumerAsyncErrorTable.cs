@@ -59,9 +59,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
 
+                        consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            false, logProvider, false);
+                        ValidateErrorCounts(queueName, messageCount);
+
                         //purge error messages and verify that count is 0
                         consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
-                            false,  logProvider);
+                            false,  logProvider, true);
                         ValidateErrorCounts(queueName, 0);
                     }
                 }

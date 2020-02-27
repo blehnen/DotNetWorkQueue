@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
 
                             consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
-                                false,  logProvider);
+                                false,  logProvider, true);
                         }
                     }
                     finally

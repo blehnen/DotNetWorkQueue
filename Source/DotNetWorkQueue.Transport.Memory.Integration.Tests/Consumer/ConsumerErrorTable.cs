@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
 
                             //purge error records
                             consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
-                               false,  logProvider);
+                               false,  logProvider, true);
 
                             //memory queue doesn't actually keep errors, so nothing to check for...
                         }

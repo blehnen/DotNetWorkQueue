@@ -57,9 +57,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
 
+                        //run, but don't purge
+                        consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            false, logProvider, false);
+                        ValidateErrorCounts(queueName, messageCount);
+
                         //purge error records
                         consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
-                            false, logProvider);
+                            false, logProvider, true);
 
                         //table should be empty now
                         ValidateErrorCounts(queueName, 0);

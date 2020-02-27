@@ -7,7 +7,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
     public class ConsumerMethodAsyncErrorShared
     {
         public void PurgeErrorMessages<TTransportInit>(string queueName, string connectionString,
-            bool addInterceptors, ILogProvider logProvider)
+            bool addInterceptors, ILogProvider logProvider, bool actuallyPurge)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueName))
@@ -38,10 +38,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                         .CreateConsumerMethodQueueScheduler(
                                             queueName, connectionString, taskFactory))
                             {
-                                SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration);
+                                SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
                                 SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
                                 queue.Start();
-                                Thread.Sleep(30000);
+                                Thread.Sleep(15000);
                             }
                         }
                     }

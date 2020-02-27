@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
 
                             //purge error messages and verify that count is 0
                             consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
-                                false,  logProvider);
+                                false,  logProvider, true);
                         }
                     }
                     finally

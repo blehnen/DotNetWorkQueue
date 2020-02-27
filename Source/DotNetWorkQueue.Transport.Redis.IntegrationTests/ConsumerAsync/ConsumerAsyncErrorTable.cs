@@ -54,10 +54,14 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         count.Verify(messageCount, false, 2);
                     }
 
+                    consumer.PurgeErrorMessages<RedisQueueInit>(queueName, connectionString,
+                        false, logProvider, false);
+                    ValidateErrorCounts(queueName, messageCount, connectionString);
+
                     //purge error messages and verify that count is 0
                     consumer.PurgeErrorMessages<RedisQueueInit>(queueName, connectionString,
-                        false, logProvider);
-                    ValidateErrorCounts(queueName, messageCount, connectionString);
+                        false, logProvider, true);
+                    ValidateErrorCounts(queueName, 0, connectionString);
 
                 }
                 finally

@@ -57,9 +57,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, false);
 
+                            consumer.PurgeErrorMessages<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                false, logProvider, false);
+
+                            //table should be empty now
+                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
+
                             //purge error records
                             consumer.PurgeErrorMessages<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
-                                false, logProvider);
+                                false, logProvider, true);
 
                             //table should be empty now
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, 0);

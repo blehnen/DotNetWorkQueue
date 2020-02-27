@@ -74,9 +74,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
 
+                        //don't purge
+                        consumer.PurgeErrorMessages<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            false, logProvider, false);
+                        ValidateErrorCounts(queueName, messageCount);
+
                         //purge error messages and verify that count is 0
                         consumer.PurgeErrorMessages<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
-                            false,  logProvider);
+                            false,  logProvider, true);
                         ValidateErrorCounts(queueName, 0);
                     }
                 }

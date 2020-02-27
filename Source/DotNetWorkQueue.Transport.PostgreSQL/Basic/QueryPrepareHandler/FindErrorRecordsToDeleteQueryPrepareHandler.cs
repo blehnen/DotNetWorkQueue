@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler
 
             var command = (NpgsqlCommand)dbCommand;
             command.Parameters.Add("@CurrentDate", NpgsqlDbType.Timestamp);
-            command.Parameters["@CurrentDate"].Value = _getTime.GetCurrentUtcDate().Add(_configuration.MessageAge);
+            command.Parameters["@CurrentDate"].Value = _getTime.GetCurrentUtcDate().Subtract(_configuration.MessageAge);
         }
     }
 }

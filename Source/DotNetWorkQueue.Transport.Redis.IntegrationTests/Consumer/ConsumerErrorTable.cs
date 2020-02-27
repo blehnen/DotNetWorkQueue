@@ -54,9 +54,15 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                         count.Verify(messageCount, true, 2);
                     }
 
+                    consumer.PurgeErrorMessages<RedisQueueInit>(queueName, connectionString,
+                        false, logProvider, false);
+
+                    //table should be empty now
+                    ValidateErrorCounts(queueName, connectionString, messageCount);
+
                     //purge error records
                     consumer.PurgeErrorMessages<RedisQueueInit>(queueName, connectionString,
-                        false, logProvider);
+                        false, logProvider, true);
 
                     //table should be empty now
                     ValidateErrorCounts(queueName, connectionString, 0);

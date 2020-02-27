@@ -132,12 +132,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 configuration.Routes.Add(route);
         }
 
-        public static void SetupDefaultConsumerQueueErrorPurge(QueueConsumerConfiguration configuration)
+        public static void SetupDefaultConsumerQueueErrorPurge(QueueConsumerConfiguration configuration, bool actuallyPurge)
         {
             configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
             configuration.Worker.TimeToWaitForWorkersToCancel = TimeSpan.FromSeconds(10);
             configuration.Worker.SingleWorkerWhenNoWorkFound = true;
-            configuration.MessageError.MessageAge = TimeSpan.FromSeconds(1);
+            configuration.MessageError.MessageAge = actuallyPurge ? TimeSpan.FromSeconds(1) : TimeSpan.FromDays(1);
             configuration.MessageError.Enabled = true;
             configuration.MessageError.MonitorTime = TimeSpan.FromSeconds(5);
         }

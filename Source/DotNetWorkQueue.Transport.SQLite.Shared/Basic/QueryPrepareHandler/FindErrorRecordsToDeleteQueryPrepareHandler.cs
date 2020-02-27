@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryPrepareHandler
             var param = command.CreateParameter();
             param.ParameterName = "@CurrentDateTime";
             param.DbType = DbType.Int64;
-            param.Value = _getTime.GetCurrentUtcDate().Ticks + _configuration.MessageAge.Ticks;
+            param.Value = _getTime.GetCurrentUtcDate().Ticks - _configuration.MessageAge.Ticks;
             command.Parameters.Add(param);
         }
     }

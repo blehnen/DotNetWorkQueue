@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             var param = dbCommand.CreateParameter();
             param.ParameterName = "@CurrentDate";
             param.DbType = DbType.DateTime;
-            param.Value = _getTime.GetCurrentUtcDate().Add(_configuration.MessageAge);
+            param.Value = _getTime.GetCurrentUtcDate().Subtract(_configuration.MessageAge);
             dbCommand.Parameters.Add(param);
         }
     }

@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         }
 
         public void PurgeErrorMessages<TTransportInit>(string queueName, string connectionString,
-            bool addInterceptors, ILogProvider logProvider)
+            bool addInterceptors, ILogProvider logProvider, bool actuallyPurge)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueName))
@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             creator.CreateConsumer(queueName,
                                 connectionString))
                     {
-                        SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration);
+                        SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
                         SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
                         var waitForFinish = new ManualResetEventSlim(false);
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             throw new Exception("There should have been no data to process"));
 
                         //wait for 30 seconds
-                        waitForFinish.Wait(30000);
+                        waitForFinish.Wait(15000);
                     }
                 }
             }
