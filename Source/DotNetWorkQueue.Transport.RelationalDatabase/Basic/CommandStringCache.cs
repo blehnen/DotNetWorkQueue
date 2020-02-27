@@ -289,7 +289,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Gets any previous error types that have occured and their count from the queue
         /// </summary>
-        GetMessageErrors
+        GetMessageErrors,
+        /// <summary>
+        /// Returns records that are in an error status
+        /// </summary>
+        FindErrorRecordsToDelete
     }
 
     /// <summary>

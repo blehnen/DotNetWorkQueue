@@ -193,7 +193,7 @@ namespace DotNetWorkQueue.Queue
             }
         }
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="ClearExpiredMessagesMonitor"/> is running.
+        /// Gets or sets a value indicating whether this <see cref="BaseMonitor"/> is running.
         /// </summary>
         /// <value>
         ///   <c>true</c> if running; otherwise, <c>false</c>.

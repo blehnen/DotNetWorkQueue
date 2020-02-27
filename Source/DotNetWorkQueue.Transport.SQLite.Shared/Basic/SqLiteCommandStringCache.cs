@@ -111,6 +111,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             CommandCache.Add(CommandStringTypes.FindExpiredRecordsWithStatusToDelete,
                 $"select queueid from {TableNameHelper.MetaDataName} where status = {Convert.ToInt16(QueueStatuses.Waiting)} and @CurrentDateTime > ExpirationTime");
 
+            CommandCache.Add(CommandStringTypes.FindErrorRecordsToDelete,
+                $"select queueid from {TableNameHelper.MetaDataErrorsName} where @CurrentDateTime > LastExceptionDate");
+
             CommandCache.Add(CommandStringTypes.GetColumnNamesFromTable,
                 "PRAGMA table_info('{0}')");
 

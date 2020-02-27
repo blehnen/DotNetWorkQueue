@@ -48,6 +48,12 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                                 workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, false);
                             ValidateErrorCounts(oCreation.Scope, messageCount);
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
+
+                            //purge error records
+                            consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                               false,  logProvider);
+
+                            //memory queue doesn't actually keep errors, so nothing to check for...
                         }
                     }
                     finally

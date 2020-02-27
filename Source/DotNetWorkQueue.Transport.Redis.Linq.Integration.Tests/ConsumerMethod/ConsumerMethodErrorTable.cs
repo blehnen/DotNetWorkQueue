@@ -58,6 +58,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     {
                         count.Verify(messageCount, true, 2);
                     }
+
+                    //purge error messages and verify that count is 0
+                    consumer.PurgeErrorMessages<RedisQueueInit>(queueName, connectionString,
+                        false,  logProvider);
+                    ValidateErrorCounts(queueName, connectionString, 0);
                 }
                 finally
                 {

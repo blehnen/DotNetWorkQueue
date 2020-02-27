@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         public RemoveMessageStatus Remove(IMessageId id, RemoveMessageReason reason)
         {
-            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted && reason != RemoveMessageReason.Expired)
+            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted && reason == RemoveMessageReason.Complete )
                 throw new DotNetWorkQueueException("Cannot use a transaction without the message context");
 
             if (id == null || !id.HasValue) return RemoveMessageStatus.NotFound;

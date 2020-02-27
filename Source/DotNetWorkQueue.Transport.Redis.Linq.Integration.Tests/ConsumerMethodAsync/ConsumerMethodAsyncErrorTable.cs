@@ -51,13 +51,19 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     var consumer = new ConsumerMethodAsyncErrorShared();
                     consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
                         logProvider,
-                        messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", false);
+                        messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(10),
+                        TimeSpan.FromSeconds(12), id, "second(*%3)", false);
                     ValidateErrorCounts(queueName, messageCount, connectionString);
                     using (
                         var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {
                         count.Verify(messageCount, false, 2);
                     }
+
+                    //purge error messages and verify that count is 0
+                    consumer.PurgeErrorMessages<RedisQueueInit>(queueName, connectionString,
+                        false, logProvider);
+                    ValidateErrorCounts(queueName, messageCount, connectionString);
 
                 }
                 finally
@@ -66,7 +72,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                         var oCreation =
                             queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
                                 connectionString)
-                        )
+                    )
                     {
                         oCreation.RemoveQueue();
                     }

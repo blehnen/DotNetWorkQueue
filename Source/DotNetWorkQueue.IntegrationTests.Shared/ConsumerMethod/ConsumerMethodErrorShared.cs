@@ -6,6 +6,36 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
     public class ConsumerMethodErrorShared
     {
+        public void PurgeErrorMessages<TTransportInit>(string queueName, string connectionString,
+            bool addInterceptors, ILogProvider logProvider)
+            where TTransportInit : ITransportInit, new()
+        {
+            using (var metrics = new Metrics.Metrics(queueName))
+            {
+                var addInterceptorConsumer = InterceptorAdding.No;
+                if (addInterceptors)
+                {
+                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                }
+
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false)
+                )
+                {
+                    using (
+                        var queue =
+                            creator.CreateMethodConsumer(queueName,
+                                connectionString))
+                    {
+                        SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration);
+                        SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+                        queue.Start();
+                        Thread.Sleep(30000);
+                    }
+                }
+            }
+        }
+
         public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
             ILogProvider logProvider,
             int workerCount, int timeOut, int messageCount,

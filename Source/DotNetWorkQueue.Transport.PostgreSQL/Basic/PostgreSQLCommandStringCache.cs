@@ -111,6 +111,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             CommandCache.Add(CommandStringTypes.FindExpiredRecordsWithStatusToDelete,
                 $"select queueid from {TableNameHelper.MetaDataName} where status = {Convert.ToInt16(QueueStatuses.Waiting)} and @CurrentDate > ExpirationTime FOR UPDATE SKIP LOCKED");
 
+            CommandCache.Add(CommandStringTypes.FindErrorRecordsToDelete,
+                $"select queueid from {TableNameHelper.MetaDataErrorsName} where @CurrentDate > lastexceptiondate FOR UPDATE SKIP LOCKED");
+
             CommandCache.Add(CommandStringTypes.FindExpiredRecordsToDelete,
                 $"select queueid from {TableNameHelper.MetaDataName} where @CurrentDate > ExpirationTime FOR UPDATE SKIP LOCKED");
 

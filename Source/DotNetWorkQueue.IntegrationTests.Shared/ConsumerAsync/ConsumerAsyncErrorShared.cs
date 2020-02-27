@@ -83,5 +83,57 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 }
             }
         }
+        public void PurgeErrorMessages<TTransportInit>(string queueName, string connectionString,
+            bool addInterceptors, ILogProvider logProvider)
+            where TTransportInit : ITransportInit, new()
+        {
+            using (var metrics = new Metrics.Metrics(queueName))
+            {
+                var addInterceptorConsumer = InterceptorAdding.No;
+                if (addInterceptors)
+                {
+                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                }
+
+                var processedCount = new IncrementWrapper();
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false)
+                    )
+                {
+
+                    using (var schedulerCreator =
+                        new SchedulerContainer(
+                            // ReSharper disable once AccessToDisposedClosure
+                            serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton), options => SharedSetup.SetOptions(options, false)))
+                    {
+                        using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                        {
+                            taskScheduler.Start();
+                            var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
+
+                            using (
+                                var queue =
+                                    creator
+                                        .CreateConsumerQueueScheduler(
+                                            queueName, connectionString, taskFactory))
+                            {
+                              
+                                SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration);
+                                SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+
+                                var waitForFinish = new ManualResetEventSlim(false);
+                                waitForFinish.Reset();
+
+                                //start looking for work
+                                queue.Start<TMessage>((message, notifications) => throw new Exception("There should have been no data to process"));
+
+                                //wait for 30 seconds
+                                waitForFinish.Wait(30000);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

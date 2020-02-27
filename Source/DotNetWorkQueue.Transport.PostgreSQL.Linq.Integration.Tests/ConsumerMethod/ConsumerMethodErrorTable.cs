@@ -71,6 +71,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                             workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos);
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
+
+                        //purge error messages and verify that count is 0
+                        consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            false,  logProvider);
+                        ValidateErrorCounts(queueName, 0);
                     }
                 }
                 finally

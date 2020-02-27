@@ -8,6 +8,7 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Tests.Queue;
 using NSubstitute;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;
@@ -117,6 +118,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
                 container.Register<ATaskScheduler, TaskSchedulerNoOp>(LifeStyles.Singleton);
                 container.Register<IClearExpiredMessages, ClearExpiredMessagesNoOp>(LifeStyles.Singleton);
+                container.Register<IClearErrorMessages, ClearErrorMessagesNoOp>(LifeStyles.Singleton);
                 container.Register<ISendHeartBeat, SendHeartBeatNoOp>(LifeStyles.Singleton);
                 container.Register<IReceiveMessagesError, ReceiveMessagesErrorNoOp>(LifeStyles.Singleton);
                 container.Register<IReceivePoisonMessage, ReceivePoisonMessageNoOp>(LifeStyles.Singleton);

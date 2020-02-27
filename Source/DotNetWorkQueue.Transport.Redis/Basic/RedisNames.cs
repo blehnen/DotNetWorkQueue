@@ -204,6 +204,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <summary>
+        /// Tracks when a record was placed in an error status
+        /// </summary>
+        public string ErrorTime
+        {
+            get
+            {
+                BuildListIfNeeded();
+                return _names["ErrorTime"];
+            }
+        }
+
+        /// <summary>
         /// Gets the meta data queue name
         /// </summary>
         /// <value>
@@ -282,6 +294,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 yield return JobNames;
                 yield return JobIdNames;
                 yield return Status;
+                yield return ErrorTime;
                 yield return Route;
             }
         } 
@@ -291,7 +304,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         private void BuildListIfNeeded()
         {
-            if (_names.Count == 15) return; //don't return unless all names are loaded
+            if (_names.Count == 16) return; //don't return unless all names are loaded
             lock (_names)
             {
                 if (_names.Count != 0) return;
@@ -302,6 +315,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 _names.Add("Delayed", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Delayed"));
                 _names.Add("MetaData", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}MetaData"));
                 _names.Add("Error", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Error"));
+                _names.Add("ErrorTime", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}ErrorTime"));
                 _names.Add("Expiration", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Expiration"));
                 _names.Add("Id", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Id"));
                 _names.Add("Headers", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Headers"));

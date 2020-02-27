@@ -71,6 +71,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<SntpTimeConfiguration>(LifeStyles.Singleton);
             container.Register<RedisHeaders>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, RedisQueueClearExpiredMessages>(LifeStyles.Singleton);
+            container.Register<IClearErrorMessages, RedisQueueClearErrorMessages>(LifeStyles.Singleton);
             //**all
 
             //**send

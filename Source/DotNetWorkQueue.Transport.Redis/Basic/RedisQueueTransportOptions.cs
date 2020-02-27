@@ -14,6 +14,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private int _clearExpiredMessagesBatchLimit;
         private int _moveDelayedMessagesBatchLimit;
         private int _resetHeartBeatBatchLimit;
+        private int _clearErrorMessagesBatchLimit;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisQueueTransportOptions"/> class.
@@ -29,6 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _clearExpiredMessagesBatchLimit = 50;
             _moveDelayedMessagesBatchLimit = 50;
             _resetHeartBeatBatchLimit = 50;
+            _clearErrorMessagesBatchLimit = 50;
             DelayedProcessingConfiguration = delayedProcessingConfiguration;
             SntpTimeConfiguration = sntpTimeConfiguration;
         }
@@ -89,6 +91,19 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 FailIfReadOnly();
                 _clearExpiredMessagesBatchLimit = value;
+            }
+        }
+
+        /// <summary>
+        /// How many error message ids to return per call
+        /// </summary>
+        public int ClearErrorMessagesBatchLimit
+        {
+            get => _clearErrorMessagesBatchLimit;
+            set
+            {
+                FailIfReadOnly();
+                _clearErrorMessagesBatchLimit = value;
             }
         }
 

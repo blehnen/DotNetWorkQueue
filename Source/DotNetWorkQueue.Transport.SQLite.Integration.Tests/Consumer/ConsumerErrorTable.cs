@@ -12,9 +12,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(10, 60, 5, false, false),
-         InlineData(10, 60, 5, true, false),
-         InlineData(1, 60, 5, true, true)]
+        [InlineData(10, 120, 5, false, false),
+         InlineData(10, 120, 5, true, false),
+         InlineData(1, 120, 5, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
@@ -56,6 +56,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                                 workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, false);
+
+                            //purge error records
+                            consumer.PurgeErrorMessages<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                false, logProvider);
+
+                            //table should be empty now
+                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, 0);
                         }
                     }
                     finally

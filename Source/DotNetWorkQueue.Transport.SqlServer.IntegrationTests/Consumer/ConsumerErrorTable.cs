@@ -54,6 +54,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                             workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
+
+                        //purge error records
+                        consumer.PurgeErrorMessages<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            false, logProvider);
+
+                        //table should be empty now
+                        ValidateErrorCounts(queueName, 0);
                     }
                 }
                 finally

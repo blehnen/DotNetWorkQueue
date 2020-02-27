@@ -11,11 +11,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(100, 60, 40, false, false),
-         InlineData(100, 60, 40, true, false),
-         InlineData(10, 40, 5, true, false),
-         InlineData(10, 60, 40, true, true),
-         InlineData(1, 40, 5, false, true)]
+        [InlineData(100, 120, 40, false, false),
+         InlineData(100, 120, 40, true, false),
+         InlineData(10, 100, 5, true, false),
+         InlineData(10, 120, 40, true, true),
+         InlineData(1, 100, 5, false, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
@@ -56,6 +56,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                             workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
+
+                        //purge error records
+                        consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            false, logProvider);
+
+                        //table should be empty now
+                        ValidateErrorCounts(queueName, 0);
                     }
                 }
                 finally

@@ -11,8 +11,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerErrorTable
     {
         [Theory]
-        [InlineData(1, 60, 1, ConnectionInfoTypes.Linux, false),
-        InlineData(100, 120, 20, ConnectionInfoTypes.Linux, true)]
+        [InlineData(1, 120, 1, ConnectionInfoTypes.Linux, false),
+        InlineData(100, 180, 20, ConnectionInfoTypes.Linux, true)]
         public void Run(int messageCount, int timeOut, int workerCount, ConnectionInfoTypes type, bool route)
         {
             var queueName = GenerateQueueName.Create();
@@ -53,6 +53,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     {
                         count.Verify(messageCount, true, 2);
                     }
+
+                    //purge error records
+                    consumer.PurgeErrorMessages<RedisQueueInit>(queueName, connectionString,
+                        false, logProvider);
+
+                    //table should be empty now
+                    ValidateErrorCounts(queueName, connectionString, 0);
                 }
                 finally
                 {

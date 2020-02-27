@@ -15,26 +15,29 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly List<IMonitor> _monitors;
         private readonly IClearExpiredMessagesMonitor _clearMessagesFactory;
+        private readonly IClearErrorMessagesMonitor _clearErrorMessages;
         private readonly IHeartBeatMonitor _heartBeatFactory;
         private readonly IDelayedProcessingMonitor _delayedProcessing;
         private int _disposeCount;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RedisQueueMonitor" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="RedisQueueMonitor"/> class.</summary>
         /// <param name="clearMessagesFactory">The clear messages factory.</param>
         /// <param name="heartBeatFactory">The heart beat factory.</param>
         /// <param name="delayedProcessing">The delayed processing.</param>
+        /// <param name="clearErrorMessagesMonitor">clears error messages from the queue</param>
         public RedisQueueMonitor(IClearExpiredMessagesMonitor clearMessagesFactory,
             IHeartBeatMonitor heartBeatFactory,
-            IDelayedProcessingMonitor delayedProcessing)
+            IDelayedProcessingMonitor delayedProcessing,
+            IClearErrorMessagesMonitor clearErrorMessagesMonitor)
         {
             Guard.NotNull(() => clearMessagesFactory, clearMessagesFactory);
             Guard.NotNull(() => heartBeatFactory, heartBeatFactory);
+            Guard.NotNull(() => clearErrorMessagesMonitor, clearErrorMessagesMonitor);
             _heartBeatFactory = heartBeatFactory;
             _clearMessagesFactory = clearMessagesFactory;
             _delayedProcessing = delayedProcessing;
-            _monitors = new List<IMonitor>(3);
+            _clearErrorMessages = clearErrorMessagesMonitor;
+            _monitors = new List<IMonitor>(4);
         }
         /// <summary>
         /// Starts the monitor process.
@@ -51,6 +54,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _monitors.Add(_heartBeatFactory);
             _monitors.Add(_clearMessagesFactory);
             _monitors.Add(_delayedProcessing);
+            _monitors.Add(_clearErrorMessages);
             _monitors.AsParallel().ForAll(w => w.Start());
         }
 

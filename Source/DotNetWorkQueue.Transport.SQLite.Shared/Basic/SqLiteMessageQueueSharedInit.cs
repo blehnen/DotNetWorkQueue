@@ -19,6 +19,7 @@ using DotNetWorkQueue.Transport.SQLite.Shared.Decorator;
 using DotNetWorkQueue.Validation;
 using FindExpiredRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler;
 using FindRecordsToResetByHeartBeatQueryPrepareHandler = DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler;
+using FindErrorRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryPrepareHandler.FindErrorRecordsToDeleteQueryPrepareHandler;
 using ReceiveMessage = DotNetWorkQueue.Transport.SQLite.Shared.Basic.Message.ReceiveMessage;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
@@ -135,6 +136,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             container
                 .Register<IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>,
                     FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
+
+            //error messages
+            container
+                .Register<IPrepareQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>>,
+                    FindErrorRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
 
             //heartbeat
             container

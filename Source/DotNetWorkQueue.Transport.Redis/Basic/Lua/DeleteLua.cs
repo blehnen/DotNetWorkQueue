@@ -24,6 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      redis.call('LREM', @pendingkey, -1, @uuid) 
                      redis.call('LREM', @errorkey, -1, @uuid) 
                      redis.call('zrem', @delaykey, @uuid) 
+                     redis.call('zrem', @errortimekey, @uuid) 
                      redis.call('zrem', @expirekey, @uuid) 
                      redis.call('hdel', @StatusKey, @uuid) 
 
@@ -64,6 +65,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 metakey = (RedisKey)RedisNames.MetaData,
                 pendingkey = (RedisKey)RedisNames.Pending,
                 errorkey = (RedisKey)RedisNames.Error,
+                errortimekey = (RedisKey)RedisNames.ErrorTime,
                 delaykey = (RedisKey)RedisNames.Delayed,
                 expirekey = (RedisKey)RedisNames.Expiration,
                 JobKey = (RedisKey)RedisNames.JobNames,

@@ -115,6 +115,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             CommandCache.Add(CommandStringTypes.FindExpiredRecordsWithStatusToDelete,
                 $"select queueid from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where status = {Convert.ToInt16(QueueStatuses.Waiting)} and GETUTCDate() > ExpirationTime");
 
+            CommandCache.Add(CommandStringTypes.FindErrorRecordsToDelete,
+                $"select queueid from {TableNameHelper.MetaDataErrorsName} with (updlock, readpast, rowlock) where @CurrentDate > lastexceptiondate");
+
             CommandCache.Add(CommandStringTypes.FindExpiredRecordsToDelete,
                 $"select queueid from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where GETUTCDate() > ExpirationTime");
 

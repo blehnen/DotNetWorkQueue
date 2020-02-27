@@ -216,6 +216,7 @@ namespace DotNetWorkQueue.IoC
                 container.Register<ProcessMessageAsync>(LifeStyles.Singleton);
 
                 container.Register<IClearExpiredMessagesMonitor, ClearExpiredMessagesMonitor>(LifeStyles.Singleton);
+                container.Register<IClearErrorMessagesMonitor, ClearErrorMessagesMonitor>(LifeStyles.Singleton);
 
                 container.Register<IHeartBeatScheduler, HeartBeatScheduler>(LifeStyles.Singleton);
 
@@ -232,7 +233,7 @@ namespace DotNetWorkQueue.IoC
                 container.Register<IHeartBeatThreadPoolConfiguration, HeartBeatThreadPoolConfiguration>(
                     LifeStyles.Singleton);
                 container.Register<IMessageExpirationConfiguration, MessageExpirationConfiguration>(LifeStyles.Singleton);
-
+                container.Register<IMessageErrorConfiguration, MessageErrorConfiguration>(LifeStyles.Singleton);
 
                 container.Register<IMessageHandler, MessageHandler>(LifeStyles.Singleton);
 
@@ -389,6 +390,7 @@ namespace DotNetWorkQueue.IoC
             container.RegisterDecorator<IAbortWorkerThread, Logging.Decorator.AbortWorkerThreadDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IRollbackMessage, Logging.Decorator.RollbackMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IClearExpiredMessages, Logging.Decorator.ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IClearErrorMessages, Logging.Decorator.ClearErrorMessagesDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IResetHeartBeat, Logging.Decorator.ResetHeartBeatDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IReceivePoisonMessage, Logging.Decorator.ReceivePoisonMessageDecorator>(LifeStyles.Singleton);
         }
@@ -448,6 +450,7 @@ namespace DotNetWorkQueue.IoC
             container.RegisterDecorator<ICommitMessage, Metrics.Decorator.CommitMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IRollbackMessage,Metrics.Decorator.RollbackMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IClearExpiredMessages, Metrics.Decorator.ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IClearErrorMessages, Metrics.Decorator.ClearErrorMessagesDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IExpressionSerializer, Metrics.Decorator.ExpressionSerializerDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IMessageMethodHandling, Metrics.Decorator.MessageMethodHandlingDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<ILinqCompiler, Metrics.Decorator.LinqCompilerDecorator>(LifeStyles.Singleton);

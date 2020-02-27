@@ -6,6 +6,49 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
 {
     public class ConsumerMethodAsyncErrorShared
     {
+        public void PurgeErrorMessages<TTransportInit>(string queueName, string connectionString,
+            bool addInterceptors, ILogProvider logProvider)
+            where TTransportInit : ITransportInit, new()
+        {
+            using (var metrics = new Metrics.Metrics(queueName))
+            {
+                var addInterceptorConsumer = InterceptorAdding.No;
+                if (addInterceptors)
+                {
+                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                }
+
+                using (
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false)
+                    )
+                {
+                    using (var schedulerCreator =
+                        new SchedulerContainer(
+                            // ReSharper disable once AccessToDisposedClosure
+                            serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton)))
+                    {
+                        using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                        {
+                            taskScheduler.Start();
+                            var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
+
+                            using (
+                                var queue =
+                                    creator
+                                        .CreateConsumerMethodQueueScheduler(
+                                            queueName, connectionString, taskFactory))
+                            {
+                                SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration);
+                                SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+                                queue.Start();
+                                Thread.Sleep(30000);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
             ILogProvider logProvider,
             int messageCount, int workerCount, int timeOut,

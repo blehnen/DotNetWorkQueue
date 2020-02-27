@@ -29,15 +29,14 @@ namespace DotNetWorkQueue.Configuration
         private bool _isReadonly;
 
         #region Constructor
-        /// <summary>
-        /// Initializes a new instance of the <see cref="QueueConsumerConfiguration" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="QueueConsumerConfiguration"/> class.</summary>
         /// <param name="transportConfiguration">The transport configuration.</param>
         /// <param name="workerConfiguration">The worker configuration.</param>
         /// <param name="heartBeatConfiguration">The heart beat configuration.</param>
         /// <param name="messageExpirationConfiguration">The message expiration configuration.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="additionalConfiguration">The additional configuration.</param>
+        /// <param name="messageErrorConfiguration">Configuration for if/when to delete messages in an error status</param>
         /// <param name="timeConfiguration">The time configuration.</param>
         public QueueConsumerConfiguration(TransportConfigurationReceive transportConfiguration, 
             IWorkerConfiguration workerConfiguration, 
@@ -45,16 +44,19 @@ namespace DotNetWorkQueue.Configuration
             IMessageExpirationConfiguration messageExpirationConfiguration, 
             IHeaders headers,
             IConfiguration additionalConfiguration,
+            IMessageErrorConfiguration messageErrorConfiguration,
             BaseTimeConfiguration timeConfiguration)
             : base(transportConfiguration, headers, additionalConfiguration, timeConfiguration)
         {
             Guard.NotNull(() => workerConfiguration, workerConfiguration);
             Guard.NotNull(() => heartBeatConfiguration, heartBeatConfiguration);
             Guard.NotNull(() => messageExpirationConfiguration, messageExpirationConfiguration);
+            Guard.NotNull(() => messageErrorConfiguration, messageErrorConfiguration);
 
             Worker = workerConfiguration;
             HeartBeat = heartBeatConfiguration;
             MessageExpiration = messageExpirationConfiguration;
+            MessageError = messageErrorConfiguration;
             Routes = new List<string>();
         }
         #endregion
@@ -75,6 +77,7 @@ namespace DotNetWorkQueue.Configuration
         /// Heart Beat configuration
         /// </value>
         public IHeartBeatConfiguration HeartBeat { get; }
+
         /// <summary>
         /// Message expiration configuration
         /// </summary>
@@ -82,6 +85,12 @@ namespace DotNetWorkQueue.Configuration
         /// Message expiration configuration
         /// </value>
         public IMessageExpirationConfiguration MessageExpiration { get; }
+
+        /// <summary>
+        /// Message error configuration
+        /// </summary>
+        /// <remarks>Messages with an error status can be automaticly removed from the queue</remarks>
+        public IMessageErrorConfiguration MessageError { get; }
 
         /// <summary>
         /// Gets or sets the routes.

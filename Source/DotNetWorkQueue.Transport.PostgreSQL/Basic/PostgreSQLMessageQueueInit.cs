@@ -24,6 +24,7 @@ using DotNetWorkQueue.Validation;
 using Npgsql;
 using Polly;
 using FindExpiredRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler;
+using FindErrorRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler.FindErrorRecordsToDeleteQueryPrepareHandler;
 using FindRecordsToResetByHeartBeatQueryPrepareHandler = DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
@@ -106,6 +107,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container
                 .Register<IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>,
                     FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
+
+            //error messages
+            container
+                .Register<IPrepareQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>>,
+                    FindErrorRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
 
             //heartbeat
             container

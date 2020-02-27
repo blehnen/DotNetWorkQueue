@@ -124,11 +124,22 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             configuration.HeartBeat.ThreadPoolConfiguration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
             configuration.HeartBeat.ThreadPoolConfiguration.ThreadsMax = 2;
             configuration.Worker.WorkerCount = workerCount;
+            configuration.MessageError.MonitorTime = TimeSpan.FromSeconds(10);
             configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
             configuration.Worker.TimeToWaitForWorkersToCancel = TimeSpan.FromSeconds(10);
             configuration.Worker.SingleWorkerWhenNoWorkFound = true;
             if(!string.IsNullOrEmpty(route))
                 configuration.Routes.Add(route);
+        }
+
+        public static void SetupDefaultConsumerQueueErrorPurge(QueueConsumerConfiguration configuration)
+        {
+            configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
+            configuration.Worker.TimeToWaitForWorkersToCancel = TimeSpan.FromSeconds(10);
+            configuration.Worker.SingleWorkerWhenNoWorkFound = true;
+            configuration.MessageError.MessageAge = TimeSpan.FromSeconds(1);
+            configuration.MessageError.Enabled = true;
+            configuration.MessageError.MonitorTime = TimeSpan.FromSeconds(5);
         }
     }
 

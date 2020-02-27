@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Xml;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 
@@ -33,33 +34,41 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly List<IMonitor> _monitors;
         private readonly IClearExpiredMessagesMonitor _clearMessagesFactory;
+        private readonly IClearErrorMessagesMonitor _clearErrorMessages;
+        private readonly IMessageErrorConfiguration _clearMessageErrorConfiguration;
         private readonly IHeartBeatMonitor _heartBeatFactory;
         private readonly IHeartBeatConfiguration _heartBeatConfiguration;
         private readonly IMessageExpirationConfiguration _expirationConfiguration;
         private int _disposeCount;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="QueueMonitor" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="QueueMonitor"/> class.</summary>
         /// <param name="clearMessagesFactory">The clear messages factory.</param>
         /// <param name="heartBeatFactory">The heart beat factory.</param>
         /// <param name="heartBeatConfiguration">The heart beat configuration.</param>
         /// <param name="expirationConfiguration">The expiration configuration.</param>
+        /// <param name="clearErrorMessagesMonitor">clears error messages from the queue</param>
+        /// <param name="clearMessageErrorConfiguration">Configuration for clearing error messages</param>
         public QueueMonitor(IClearExpiredMessagesMonitor clearMessagesFactory,
             IHeartBeatMonitor heartBeatFactory,
             IHeartBeatConfiguration heartBeatConfiguration,
-            IMessageExpirationConfiguration expirationConfiguration)
+            IMessageExpirationConfiguration expirationConfiguration,
+            IClearErrorMessagesMonitor clearErrorMessagesMonitor,
+            IMessageErrorConfiguration clearMessageErrorConfiguration)
         {
             Guard.NotNull(() => clearMessagesFactory, clearMessagesFactory);
             Guard.NotNull(() => heartBeatFactory, heartBeatFactory);
             Guard.NotNull(() => heartBeatConfiguration, heartBeatConfiguration);
             Guard.NotNull(() => expirationConfiguration, expirationConfiguration);
+            Guard.NotNull(() => clearErrorMessagesMonitor, clearErrorMessagesMonitor);
+            Guard.NotNull(() => clearMessageErrorConfiguration, clearMessageErrorConfiguration);
 
             _heartBeatConfiguration = heartBeatConfiguration;
             _heartBeatFactory = heartBeatFactory;
             _clearMessagesFactory = clearMessagesFactory;
             _expirationConfiguration = expirationConfiguration;
-            _monitors = new List<IMonitor>(2);
+            _clearErrorMessages = clearErrorMessagesMonitor;
+            _clearMessageErrorConfiguration = clearMessageErrorConfiguration;
+            _monitors = new List<IMonitor>(3);
         }
         /// <summary>
         /// Starts the monitor process.
@@ -81,6 +90,12 @@ namespace DotNetWorkQueue.Queue
             {
                 _monitors.Add(_clearMessagesFactory);
             }
+
+            if (_clearMessageErrorConfiguration.Enabled)
+            {
+                _monitors.Add(_clearErrorMessages);
+            }
+
             if (_monitors.Count > 0)
             {
                 _monitors.AsParallel().ForAll(w => w.Start());
