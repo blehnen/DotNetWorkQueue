@@ -5,7 +5,7 @@
     <Description>Microsoft SQlite transport for https://github.com/blehnen/DotNetWorkQueue</Description>
     <Version>0.4.4</Version>
     <Authors>Brian Lehnen</Authors>
-    <Copyright>Copyright © Brian Lehnen 2015-2019</Copyright>
+    <Copyright>Copyright © Brian Lehnen 2015-2020</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
@@ -29,6 +29,11 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
+
+
+  <ItemGroup>
+    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader" Link="DotNetWorkQueue.licenseheader" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.0" />

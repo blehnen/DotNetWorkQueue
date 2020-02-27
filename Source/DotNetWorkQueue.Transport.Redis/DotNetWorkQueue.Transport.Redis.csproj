@@ -6,7 +6,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Version>0.4.4</Version>
     <Authors>Brian Lehnen</Authors>
-    <Copyright>Copyright © Brian Lehnen 2015-2019</Copyright>
+    <Copyright>Copyright © Brian Lehnen 2015-2020</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
     <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
@@ -68,6 +68,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <Reference Include="GuerrillaNtp">
       <HintPath>..\..\Lib\GuerrillaNtp\netstandard2.0\GuerrillaNtp.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader" Link="DotNetWorkQueue.licenseheader" />
   </ItemGroup>
 
   <ItemGroup>
