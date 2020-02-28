@@ -19,6 +19,10 @@
 using System;
 namespace DotNetWorkQueue.Configuration
 {
+    /// <summary>
+    /// Configures removal of messages in error
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.IMessageErrorConfiguration" />
     public class MessageErrorConfiguration: IMessageErrorConfiguration
     {
         private TimeSpan _monitorTime;

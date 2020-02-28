@@ -23,6 +23,9 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
+    /// <summary>
+    /// Performs setup for the command that finds error messages to delete
+    /// </summary>
     public class FindErrorRecordsToDeleteQueryPrepareHandler : IPrepareQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>>
     {
         private readonly CommandStringCache _commandCache;

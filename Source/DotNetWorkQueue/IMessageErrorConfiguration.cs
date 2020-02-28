@@ -19,6 +19,12 @@
 using System;
 namespace DotNetWorkQueue
 {
+    /// <summary>
+    /// Configuration settings for removing messages in an error status
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.IMonitorTimespan" />
+    /// <seealso cref="DotNetWorkQueue.IReadonly" />
+    /// <seealso cref="DotNetWorkQueue.ISetReadonly" />
     public interface IMessageErrorConfiguration : IMonitorTimespan, IReadonly, ISetReadonly
     {
         /// <summary>

@@ -19,12 +19,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
+    /// <summary>
+    /// Finds error messages that need to be deleted
+    /// </summary>
     public class FindErrorRecordsToDeleteQueryHandler : IQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>>
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
@@ -56,6 +58,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _options = new Lazy<ITransportOptions>(options.Create);
         }
 
+        /// <inheritdoc />
         public IEnumerable<long> Handle(FindErrorMessagesToDeleteQuery query)
         {
             if (query.Cancellation.IsCancellationRequested)

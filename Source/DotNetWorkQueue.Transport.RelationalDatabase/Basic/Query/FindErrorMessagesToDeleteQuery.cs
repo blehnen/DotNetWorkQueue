@@ -22,6 +22,9 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
+    /// <summary>
+    /// Finds error messages to delete
+    /// </summary>
     public class FindErrorMessagesToDeleteQuery : IQuery<IEnumerable<long>>
     {
         /// <summary>

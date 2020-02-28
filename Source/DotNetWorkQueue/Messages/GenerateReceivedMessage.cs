@@ -29,6 +29,10 @@ namespace DotNetWorkQueue.Messages
     {
         private readonly IGetPreviousMessageErrors _getErrors;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GenerateReceivedMessage"/> class.
+        /// </summary>
+        /// <param name="getErrors">The get errors.</param>
         public GenerateReceivedMessage(IGetPreviousMessageErrors getErrors)
         {
             Guard.NotNull(() => getErrors, getErrors);

@@ -19,6 +19,9 @@
 using System.Threading;
 namespace DotNetWorkQueue
 {
+    /// <summary>
+    /// Removes messages in an error status
+    /// </summary>
     public interface IClearErrorMessages
     {
         /// <summary>

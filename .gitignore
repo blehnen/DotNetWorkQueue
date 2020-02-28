@@ -210,3 +210,4 @@ Source/DotNetWorkQueue.Transport.SQLite.Shared/DotNetWorkQueue.Transport.SQLite.
 Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.xml
 Source/DotNetWorkQueue/DotNetWorkQueue.xml
 Source/DotNetWorkQueue/bDotNetWorkQueue.xml
+Source/DotNetWorkQueue.Transport.Shared/DotNetWorkQueue.Transport.Shared.xml

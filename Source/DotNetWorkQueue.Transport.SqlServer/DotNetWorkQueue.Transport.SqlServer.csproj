@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net472;net461</TargetFrameworks>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.4.4</Version>
+    <Version>0.4.5</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2020</Copyright>
     <Description>SQL server transport for https://github.com/blehnen/DotNetWorkQueue </Description>
@@ -53,7 +53,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
   </ItemGroup>
 
   <ItemGroup>

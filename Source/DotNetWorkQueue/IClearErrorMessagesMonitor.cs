@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace DotNetWorkQueue
 {
+    /// <summary>
+    /// Removes messages in an error status on a schedule
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.IMonitor" />
     public interface IClearErrorMessagesMonitor : IMonitor
     {
 

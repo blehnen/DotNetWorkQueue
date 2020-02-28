@@ -25,6 +25,9 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryPrepareHandler
 {
+    /// <summary>
+    /// Prepares the find error message command for execution
+    /// </summary>
     public class FindErrorRecordsToDeleteQueryPrepareHandler : IPrepareQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>>
     {
         private readonly CommandStringCache _commandCache;

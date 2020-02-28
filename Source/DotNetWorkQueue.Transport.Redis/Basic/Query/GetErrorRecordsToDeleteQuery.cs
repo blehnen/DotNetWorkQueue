@@ -21,6 +21,9 @@ using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Query
 {
+    /// <summary>
+    /// Gets the ids of the messages in an error status that should be deleted
+    /// </summary>
     public class GetErrorRecordsToDeleteQuery : IQuery<List<string>>
     {
 

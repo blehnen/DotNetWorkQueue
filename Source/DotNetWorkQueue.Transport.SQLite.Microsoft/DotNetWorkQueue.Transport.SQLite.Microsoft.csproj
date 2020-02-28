@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Description>Microsoft SQlite transport for https://github.com/blehnen/DotNetWorkQueue</Description>
-    <Version>0.4.4</Version>
+    <Version>0.4.5</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2020</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.2" />
     <PackageReference Include="Polly.Contrib.Simmy" Version="0.1.0" />
   </ItemGroup>
 

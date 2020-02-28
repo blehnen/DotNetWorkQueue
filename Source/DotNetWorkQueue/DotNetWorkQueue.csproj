@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net472;net461</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.4.4</Version>
+    <Version>0.4.5</Version>
     <Description>Work queue for dot net 4.7.2 and dot net standard 2.0 
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
@@ -64,7 +64,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="OpenTracing" Version="0.12.1" />
     <PackageReference Include="Polly" Version="7.2.0" />
     <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
-    <PackageReference Include="SimpleInjector" Version="4.8.1" />
+    <PackageReference Include="SimpleInjector" Version="4.9.0" />
   </ItemGroup>
 
 

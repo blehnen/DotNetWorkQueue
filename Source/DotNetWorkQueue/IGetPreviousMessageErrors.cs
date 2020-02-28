@@ -19,6 +19,9 @@
 using System.Collections.Generic;
 namespace DotNetWorkQueue
 {
+    /// <summary>
+    /// Obtains previous error types and counts for a message
+    /// </summary>
     public interface IGetPreviousMessageErrors
     {
         /// <summary>

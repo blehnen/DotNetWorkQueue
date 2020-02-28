@@ -22,6 +22,11 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
 {
+    /// <summary>
+    /// Monitor process for removing messages in error
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.Queue.BaseMonitor" />
+    /// <seealso cref="DotNetWorkQueue.IClearErrorMessagesMonitor" />
     [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "not needed")]
     public class ClearErrorMessagesMonitor : BaseMonitor, IClearErrorMessagesMonitor
     {

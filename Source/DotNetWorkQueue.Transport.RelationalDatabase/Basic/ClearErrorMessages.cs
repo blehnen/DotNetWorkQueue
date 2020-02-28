@@ -16,15 +16,17 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
+    /// <summary>
+    /// Removes messages in an error status
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.IClearErrorMessages" />
     public class ClearErrorMessages: IClearErrorMessages
     {
         #region Member Level Variables

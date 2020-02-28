@@ -22,13 +22,21 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
+    /// <summary>
+    /// Finds any previous errors that have occured while processing a message
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.IGetPreviousMessageErrors" />
     public class GetPreviousMessageErrors: IGetPreviousMessageErrors
     {
         #region Member Level Variables
         private readonly IQueryHandler<GetMessageErrorsQuery, Dictionary<string, int>> _getErrorMessageQueryHandler;
         #endregion
 
-        #region Constructor
+        #region Constructor        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetPreviousMessageErrors"/> class.
+        /// </summary>
+        /// <param name="getErrorMessageQueryHandler">The get error message query handler.</param>
         public GetPreviousMessageErrors(IQueryHandler<GetMessageErrorsQuery, Dictionary<string, int>> getErrorMessageQueryHandler)
         {
             Guard.NotNull(() => getErrorMessageQueryHandler, getErrorMessageQueryHandler);
@@ -37,6 +45,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         #endregion
 
         #region IGetPreviousMessageErrors
+        /// <inheritdoc />
         public IReadOnlyDictionary<string, int> Get(IMessageId id)
         {
             return !id.HasValue 

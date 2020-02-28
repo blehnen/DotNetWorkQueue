@@ -1,3 +1,7 @@
+###0.4.5 2020-02-28
+* Make the previous error types and count available to message processing
+* Consumer queues will now remove errors by default; messages in an error status will be removed after 30 days. This can be configured on the customer and disabled if needed.
+
 ###0.4.4 2019-12-23
 * Fix issue with SQL server transport and heartbeat reset
 

@@ -25,16 +25,27 @@ using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
+    /// <summary>
+    /// Clears messages in an error status
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.IClearErrorMessages" />
     public class RedisQueueClearErrorMessages: IClearErrorMessages
     {
         private readonly IQueryHandler<GetErrorRecordsToDeleteQuery, List<string>> _getErrorMessages;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, bool> _deleteMessage;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedisQueueClearErrorMessages"/> class.
+        /// </summary>
+        /// <param name="getErrorMessages">The get error messages.</param>
+        /// <param name="deleteMessage">The delete message.</param>
         public RedisQueueClearErrorMessages(IQueryHandler<GetErrorRecordsToDeleteQuery, List<string>> getErrorMessages,
             ICommandHandlerWithOutput<DeleteMessageCommand, bool> deleteMessage)
         {
             _getErrorMessages = getErrorMessages;
             _deleteMessage = deleteMessage;
         }
+
+        /// <inheritdoc />
         public long ClearMessages(CancellationToken cancelToken)
         {
             var count = 0L;

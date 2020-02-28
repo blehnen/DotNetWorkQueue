@@ -181,7 +181,7 @@ All references are either in NuGet or the \lib folder - building from Visual stu
 
 License
 --------
-Copyright � 2015-2019 Brian Lehnen
+Copyright � 2015-2020 Brian Lehnen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
