@@ -5,15 +5,15 @@ DotNetWorkQueue
 [![Build status](https://ci.appveyor.com/api/projects/status/vqqq9m0j9xodbfof/branch/master?svg=true)](https://ci.appveyor.com/project/blehnen/dotnetworkqueue/branch/master)
 [![Coverity status](https://scan.coverity.com/projects/10126/badge.svg)](https://scan.coverity.com/projects/blehnen-dotnetworkqueue)
 
-A producer / distributed consumer library for dot net applications. Dot net 4.7.2 and Dot net standard 2.0 are supported
+A producer / distributed consumer library for dot net applications. Dot net 4.6.1, 4.7.2 and Dot net standard 2.0 are supported
 
-| Transport 			| 4.7.2 		| Standard 2.0 |
-| ------------- 		| ------------- |------------- |
-| SqlServer  			| Yes  			| Yes		   |
-| PostgreSQL 			| Yes  			| Yes 		   |
-| Redis 				| Yes  			| Yes		   |
-| SQLite 				| Yes  			| No		   |
-| SQLite.Microsoft 		| No  			| Yes		   |
+| Transport 			| 4.7.2 		| 4.6.1  	   | Standard 2.0 |
+| ------------- 		| ------------- |------------- | -------------
+| SqlServer  			| Yes  			| Yes		   | Yes
+| PostgreSQL 			| Yes  			| Yes 		   | Yes
+| Redis 				| Yes  			| Yes		   | Yes
+| SQLite 				| Yes  			| Yes		   | No
+| SQLite.Microsoft 		| No  			| No		   | Yes
 
 High level features
 
