@@ -122,7 +122,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                             queue.Configuration.Worker.WorkerCount = 4;
                             WaitForRollover(timeFactory);
 
-                            Thread.Sleep(7000);
+                            Thread.Sleep(10000);
 
                             Parallel.For(0, producerCount, (i, loopState) =>
                             {

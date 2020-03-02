@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
     public class JobSchedulerMultipleTests
     {
         [Theory]
-        [InlineData(true, 3)]
+        [InlineData(true, 2)]
         public void Run(
             bool interceptors,
             int producerCount)

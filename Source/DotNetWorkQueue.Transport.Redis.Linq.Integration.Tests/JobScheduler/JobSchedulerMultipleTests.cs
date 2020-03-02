@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerMultipleTests
     {
         [Theory]
-        [InlineData(3, ConnectionInfoTypes.Linux)]
+        [InlineData(2, ConnectionInfoTypes.Linux)]
         public void RunMultiple(
            int producerCount,
            ConnectionInfoTypes type)
