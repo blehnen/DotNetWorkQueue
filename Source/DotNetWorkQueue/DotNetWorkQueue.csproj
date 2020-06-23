@@ -64,7 +64,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="OpenTracing" Version="0.12.1" />
     <PackageReference Include="Polly" Version="7.2.1" />
     <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
-    <PackageReference Include="SimpleInjector" Version="5.0.1" />
+    <PackageReference Include="SimpleInjector" Version="4.10.2" />
   </ItemGroup>
 
 

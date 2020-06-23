@@ -334,14 +334,6 @@ namespace DotNetWorkQueue.IoC
                 container.SuppressDiagnosticWarning(typeof(IPrimaryWorker),
                     DiagnosticTypes.DisposableTransientComponent,
                     "IPrimaryWorker is disposed of via the queue");
-
-                container.SuppressDiagnosticWarning(typeof(Worker),
-                    DiagnosticTypes.DisposableTransientComponent,
-                    "Worker is disposed of via the worker collection");
-
-                container.SuppressDiagnosticWarning(typeof(PrimaryWorker),
-                    DiagnosticTypes.DisposableTransientComponent,
-                    "PrimaryWorker is disposed of via the queue");
             }
         }
 
