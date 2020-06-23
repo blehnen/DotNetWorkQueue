@@ -41,8 +41,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             Guard.NotNull(() => container, container);
 
             //**all
-            container.Register<QueueStatusQueries>(LifeStyles.Singleton);
-            container.Register<IQueueStatusProvider, QueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobTableCreation, JobTableCreation>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);

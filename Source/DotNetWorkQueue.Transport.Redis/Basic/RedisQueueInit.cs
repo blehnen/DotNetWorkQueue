@@ -55,7 +55,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
             //**all
             container.Register<IConnectionInformation>(() => new RedisConnectionInfo(queue, connection), LifeStyles.Singleton);
-            container.Register<IQueueStatusProvider, RedisQueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, RedisJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, RedisSendJobToQueue>(LifeStyles.Singleton);
 

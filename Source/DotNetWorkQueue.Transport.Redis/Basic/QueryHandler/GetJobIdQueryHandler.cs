@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         private readonly RedisNames _redisNames;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetErrorCountQueryHandler" /> class.
+        /// Initializes a new instance of the <see cref="GetJobIdQueryHandler" /> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="redisNames">The redis names.</param>

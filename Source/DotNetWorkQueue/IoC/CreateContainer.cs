@@ -119,6 +119,9 @@ namespace DotNetWorkQueue.IoC
                 container.Options.AllowOverridingRegistrations = false;
                 ComponentRegistration.RegisterFallbacks(containerWrapper, type);
 
+                //disable auto verify - we will verify below
+                container.Options.EnableAutoVerification = false;
+
                 //allow specific warnings to be disabled
                 register.SuppressWarningsIfNeeded(containerWrapper, type);
 

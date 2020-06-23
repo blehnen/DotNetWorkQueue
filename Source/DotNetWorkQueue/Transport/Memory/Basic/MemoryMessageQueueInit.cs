@@ -45,7 +45,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             container.RegisterNonScopedSingleton<ICreationScope>(new CreationScope());
 
             //**all
-            container.Register<IQueueStatusProvider, QueueStatusProvider>(LifeStyles.Singleton);
             container.Register<IJobTableCreation, JobTableCreation>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<ICorrelationIdFactory, CorrelationIdFactory>(LifeStyles.Singleton);

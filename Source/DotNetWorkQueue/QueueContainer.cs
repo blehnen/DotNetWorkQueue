@@ -19,9 +19,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
-using DotNetWorkQueue.QueueStatus;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Validation;
 
@@ -71,30 +69,6 @@ namespace DotNetWorkQueue
             _transportInit = new TTransportInit();
         }
         #endregion
-
-        /// <summary>
-        /// Creates a new status provider.
-        /// </summary>
-        /// <returns></returns>
-        public IQueueStatusProvider CreateStatusProvider(string queue, string connection)
-        {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            try
-            {
-                //disable the time client and the system information module, as they may provide incorrect information when the status provider is not created by the queue itself
-                var container = _createContainerInternal().Create(QueueContexts.QueueStatus, _registerService, queue,
-                    connection, _transportInit, ConnectionTypes.Status, serviceRegister =>
-                    serviceRegister.Register<IGetTimeFactory, GetTimeFactoryNoOp>(LifeStyles.Singleton), _setOptions);
-                Containers.Add(container);
-                return container.GetInstance<IQueueStatusProvider>();
-            }
-            catch (Exception error)
-            {
-                return new QueueStatusProviderError<TTransportInit>(queue, connection, this, error);
-            }
-        }
 
         #region Consuming messages queue
 

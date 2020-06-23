@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
     {
         private readonly CommandStringCache _commandCache;
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetErrorCountQueryPrepareHandler"/> class.
+        /// Initializes a new instance of the <see cref="GetHeaderQueryPrepareHandler"/> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
         public GetHeaderQueryPrepareHandler(CommandStringCache commandCache)

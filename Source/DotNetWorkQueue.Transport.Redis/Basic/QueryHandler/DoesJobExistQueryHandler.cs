@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         private readonly DoesJobExistLua _lua;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetErrorCountQueryHandler" /> class.
+        /// Initializes a new instance of the <see cref="DoesJobExistLua" /> class.
         /// </summary>
         /// <param name="lua">The lua.</param>
         public DoesJobExistQueryHandler(DoesJobExistLua lua)

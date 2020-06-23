@@ -27,12 +27,6 @@ namespace DotNetWorkQueue
     public interface IQueueContainer: IDisposable
     {
         /// <summary>
-        /// Creates a new status provider.
-        /// </summary>
-        /// <returns></returns>
-        IQueueStatusProvider CreateStatusProvider(string queue, string connection);
-
-        /// <summary>
         /// Creates the consumer queue.
         /// </summary>
         /// <param name="queue">The queue.</param>

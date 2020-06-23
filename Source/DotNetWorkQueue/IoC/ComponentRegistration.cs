@@ -31,7 +31,6 @@ using DotNetWorkQueue.Metrics.NoOp;
 using DotNetWorkQueue.Policies;
 using DotNetWorkQueue.Policies.Decorator;
 using DotNetWorkQueue.Queue;
-using DotNetWorkQueue.QueueStatus;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Time;
@@ -43,6 +42,8 @@ using OpenTracing;
 using Polly;
 using Polly.Caching.Memory;
 using Polly.Registry;
+using SimpleInjector;
+using SimpleInjector.Diagnostics;
 
 namespace DotNetWorkQueue.IoC
 {
@@ -277,13 +278,9 @@ namespace DotNetWorkQueue.IoC
             var tracer = new TraceNoOp();
             container.Register<ITracer>(() => tracer, LifeStyles.Singleton);
             #endregion
-            container.Register<IQueueStatus, QueueStatusHttp>(LifeStyles.Singleton);
             container.Register<BaseTimeConfiguration>(LifeStyles.Singleton);
             container.Register<IGetTimeFactory, GetTimeFactory>(LifeStyles.Singleton);
             container.Register<IGetTime, LocalMachineTime>(LifeStyles.Singleton);
-
-            container.Register<QueueStatusHttpConfiguration>(LifeStyles.Singleton);
-            container.Register<IQueueStatusProvider, QueueStatusProviderNoOp>(LifeStyles.Singleton);
 
             container.Register<IInterceptorFactory, InterceptorFactory>(LifeStyles.Singleton);
             container.RegisterCollection<IMessageInterceptor>(Enumerable.Empty<Type>());
@@ -308,6 +305,7 @@ namespace DotNetWorkQueue.IoC
             //register the linq cache decorator
             container.RegisterDecorator<ILinqCompiler, LinqCompileCacheDecorator>(LifeStyles.Singleton);
         }
+
         /// <summary>
         /// Suppress warnings for specific cases.
         /// </summary>
@@ -315,28 +313,33 @@ namespace DotNetWorkQueue.IoC
         /// <param name="registrationType">Type of the registration.</param>
         public static void SuppressWarningsIfNeeded(IContainer container, RegistrationTypes registrationType)
         {
-            if ((registrationType & RegistrationTypes.Receive) == RegistrationTypes.Receive)
-            {
-                container.SuppressDiagnosticWarning(typeof(IMessageContext),
-                    DiagnosticTypes.DisposableTransientComponent,
-                    "IMessageContext is explicitly disposed of via a using statement");
+            container.SuppressDiagnosticWarning(typeof(IMessageContext),
+                DiagnosticTypes.DisposableTransientComponent,
+                "IMessageContext is explicitly disposed of via a using statement");
 
-                container.SuppressDiagnosticWarning(typeof(MessageContext),
-                  DiagnosticTypes.DisposableTransientComponent,
-                  "MessageContext is explicitly disposed of via a using statement");
+            container.SuppressDiagnosticWarning(typeof(MessageContext),
+                DiagnosticTypes.DisposableTransientComponent,
+                "MessageContext is explicitly disposed of via a using statement");
 
-                container.SuppressDiagnosticWarning(typeof(ATaskScheduler),
-                    DiagnosticTypes.DisposableTransientComponent,
-                    "ATaskScheduler is disposed of via its parent queue if created by this library. Otherwise, the caller of this library is responsible for disposing the task scheduler");
+            container.SuppressDiagnosticWarning(typeof(ATaskScheduler),
+                DiagnosticTypes.DisposableTransientComponent,
+                "ATaskScheduler is disposed of via its parent queue if created by this library. Otherwise, the caller of this library is responsible for disposing the task scheduler");
 
-                container.SuppressDiagnosticWarning(typeof(IWorker),
-                   DiagnosticTypes.DisposableTransientComponent,
-                    "IWorker is disposed of via the worker collection");
+            container.SuppressDiagnosticWarning(typeof(IWorker),
+                DiagnosticTypes.DisposableTransientComponent,
+                "IWorker is disposed of via the worker collection");
 
-                container.SuppressDiagnosticWarning(typeof(IPrimaryWorker),
-                   DiagnosticTypes.DisposableTransientComponent,
-                   "IPrimaryWorker is disposed of via the queue");
-            }
+            container.SuppressDiagnosticWarning(typeof(IPrimaryWorker),
+                DiagnosticTypes.DisposableTransientComponent,
+                "IPrimaryWorker is disposed of via the queue");
+
+            container.SuppressDiagnosticWarning(typeof(Worker),
+                DiagnosticTypes.DisposableTransientComponent,
+                "Worker is disposed of via the worker collection");
+
+            container.SuppressDiagnosticWarning(typeof(PrimaryWorker),
+                DiagnosticTypes.DisposableTransientComponent,
+                "PrimaryWorker is disposed of via the queue");
         }
 
         /// <summary>

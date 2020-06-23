@@ -307,7 +307,7 @@ namespace DotNetWorkQueue.IoC
         {
             Guard.NotNull(() => type, type);
 
-            var target = _container.GetRegistration(type);
+            var target = _container.GetRegistration(type, false);
             if (target == null) return this;
             var registration = target.Registration;
             registration?.SuppressDiagnosticWarning((DiagnosticType) warningType, reason);
