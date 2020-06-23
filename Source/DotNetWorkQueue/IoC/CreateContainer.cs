@@ -69,6 +69,7 @@ namespace DotNetWorkQueue.IoC
             lock (ContainerLocker.Locker) //thread safe issue with registration of decorators; should not be needed, but have found no other solution
             {
                 var container = new Container();
+                container.Options.ResolveUnregisteredConcreteTypes = true;
                 var containerWrapper = new ContainerWrapper(container);
 
                 containerWrapper.Register(() => new QueueContext(queueType), LifeStyles.Singleton);
