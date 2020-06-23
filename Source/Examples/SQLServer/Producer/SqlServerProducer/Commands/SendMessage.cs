@@ -303,7 +303,6 @@ namespace SqlServerProducer.Commands
                                 ConfigurationManager.AppSettings["Connection"]));
                         break;
                 }
-                QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<SqlServerMessageQueueInit>(queueName, ConfigurationManager.AppSettings["Connection"]));
             }
         }
     }

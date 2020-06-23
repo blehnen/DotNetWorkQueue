@@ -36,20 +36,12 @@ namespace ConsoleSharedCommands.Commands
 {
     public abstract class SharedCommands: IConsoleCommand, IDisposable
     {
-        protected readonly Lazy<QueueStatusContainer> QueueStatusContainer;
         protected DotNetWorkQueue.AppMetrics.Metrics Metrics;
         private App.Metrics.IMetricsRoot _metricsRoot;
-
-        protected IQueueStatus QueueStatus;
 
         protected bool Gzip;
         protected bool Des;
         protected TripleDesMessageInterceptorConfiguration DesConfiguration;
-
-        protected SharedCommands()
-        {
-            QueueStatusContainer = new Lazy<QueueStatusContainer>(() => new QueueStatusContainer());
-        }
 
         public abstract ConsoleExecuteResult Info { get; }
         public virtual ConsoleExecuteResult Example(string command)
@@ -96,21 +88,6 @@ namespace ConsoleSharedCommands.Commands
             Des = true;
             DesConfiguration = new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String(key), Convert.FromBase64String(iv));
             return new ConsoleExecuteResult("triple des encryption has been enabled");
-        }
-        public ConsoleExecuteResult EnableStatus(string location)
-        {
-            if (QueueStatus != null)
-                return new ConsoleExecuteResult("status listener already enabled");
-
-            if (!Uri.IsWellFormedUriString(location, UriKind.Absolute))
-            {
-                throw new ArgumentException($"{location} is not a valid Uri");
-            }
-
-            QueueStatus = QueueStatusContainer.Value.CreateStatus();
-            QueueStatus.Options().ListenerAddress = new Uri(location);
-            QueueStatus.Start();
-            return new ConsoleExecuteResult($"status listener started at {location}", new ConsoleExecuteAction(ConsoleExecuteActions.StatusUri, location));
         }
 
         public ConsoleExecuteResult ViewMetrics()
@@ -161,11 +138,6 @@ namespace ConsoleSharedCommands.Commands
         protected virtual void Dispose(bool disposing)
         {
             Metrics?.Dispose();
-            QueueStatus?.Dispose();
-            if (QueueStatusContainer.IsValueCreated)
-            {
-                QueueStatusContainer.Value.Dispose();
-            }
         }
     }
 

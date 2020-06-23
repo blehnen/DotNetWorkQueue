@@ -297,10 +297,6 @@ namespace ConsoleSharedCommands.Commands
                           ConfigurationManager.AppSettings["Connection"]));
                     break;
             }
-
-            QueueStatus?.AddStatusProvider(
-                QueueStatusContainer.Value.CreateStatusProvider<TTransportInit>(queueName,
-                    ConfigurationManager.AppSettings["Connection"]));
         }
 
         private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)

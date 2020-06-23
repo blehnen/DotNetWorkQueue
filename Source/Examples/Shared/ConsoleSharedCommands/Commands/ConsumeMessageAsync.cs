@@ -372,9 +372,6 @@ namespace ConsoleSharedCommands.Commands
                 }
 
                 Queues.Add(queueName, queue);
-                QueueStatus?.AddStatusProvider(
-                    QueueStatusContainer.Value.CreateStatusProvider<TTransportInit>(queueName,
-                        ConfigurationManager.AppSettings["Connection"]));
             }
         }
 

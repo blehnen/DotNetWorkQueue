@@ -303,7 +303,6 @@ namespace PostGresSQLProducer.Commands
                                 ConfigurationManager.AppSettings["Connection"]));
                         break;
                 }
-                QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<PostgreSqlMessageQueueInit>(queueName, ConfigurationManager.AppSettings["Connection"]));
             }
         }
     }

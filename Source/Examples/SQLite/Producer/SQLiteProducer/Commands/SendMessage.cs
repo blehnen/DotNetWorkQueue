@@ -302,7 +302,6 @@ namespace SQLiteProducer.Commands
                               ConfigurationManager.AppSettings["Connection"]));
                         break;
                 }
-                QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<SqLiteMessageQueueInit>(queueName, ConfigurationManager.AppSettings["Connection"]));
             }
         }
     }

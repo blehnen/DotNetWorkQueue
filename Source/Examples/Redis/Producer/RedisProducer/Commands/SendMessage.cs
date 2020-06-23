@@ -369,8 +369,6 @@ namespace RedisProducer.Commands
                               ConfigurationManager.AppSettings["Connection"]));
                         break;
                 }
-
-                QueueStatus?.AddStatusProvider(QueueStatusContainer.Value.CreateStatusProvider<RedisQueueInit>(queueName, ConfigurationManager.AppSettings["Connection"]));
             }
         }
     }
