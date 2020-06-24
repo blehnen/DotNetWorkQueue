@@ -12,7 +12,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
     {
         [Theory]
         [InlineData(7, 15, 90, 3, false),
-         InlineData(2, 5, 90, 3, true)]
+         InlineData(2, 5, 90, 3, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

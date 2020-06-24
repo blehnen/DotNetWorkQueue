@@ -13,10 +13,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodCancelWork
     {
         [Theory]
-        [InlineData(2, 45, 90, 3, false, LinqMethodTypes.Dynamic, true),
+        [InlineData(2, 45, 90, 3, false, LinqMethodTypes.Dynamic, false),
         InlineData(2, 45, 90, 3, true, LinqMethodTypes.Dynamic, false),
         InlineData(2, 45, 90, 3, false, LinqMethodTypes.Compiled, false),
-        InlineData(2, 45, 90, 3, true, LinqMethodTypes.Compiled, true)]
+        InlineData(2, 45, 90, 3, true, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

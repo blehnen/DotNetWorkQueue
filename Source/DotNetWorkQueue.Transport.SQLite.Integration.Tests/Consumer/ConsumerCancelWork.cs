@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
         [Theory]
         [InlineData(7, 15, 90, 3, true, false),
         InlineData(2, 45, 90, 3, false, false),
-        InlineData(7, 15, 90, 3, true, true)]
+        InlineData(7, 15, 90, 3, true, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

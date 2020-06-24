@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
     public class ConsumerMethodCancelWork
     {
         [Theory]
-        [InlineData(2, 45, 90, 3, false, LinqMethodTypes.Compiled, true),
+        [InlineData(2, 45, 90, 3, false, LinqMethodTypes.Compiled, false),
         InlineData(2, 45, 190, 3, true, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)

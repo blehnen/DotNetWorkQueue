@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
     public class ConsumerCancelWork
     {
         [Theory]
-        [InlineData(7, 5, 190, 1, true, true),
+        [InlineData(7, 5, 190, 1, true, false),
         InlineData(2, 15, 90, 1, false, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
