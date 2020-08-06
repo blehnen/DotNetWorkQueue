@@ -174,7 +174,8 @@ q) Quit");
             }
         }
 
-        public static void RunLoop(IProducerQueue<SimpleMessage> queue, Func<IAdditionalMessageData> expiredDataInstant, Func<IAdditionalMessageData> expiredDataFuture)
+        public static void RunLoop(IProducerQueue<SimpleMessage> queue, Func<IAdditionalMessageData> expiredDataInstant, Func<IAdditionalMessageData> expiredDataFuture,
+            Func<int, IAdditionalMessageData> delayProcessing)
         {
             var keepRunning = true;
             while (keepRunning)
@@ -214,6 +215,11 @@ y) Send Async 1000 random jobs
 
 Long Running
 z) Send 1 job with a 600 second processing time
+
+Delayed Processing
+
+1) Send 1 job with a 10 second processing delay
+2) Send 10 jobs with a 30 second processing delay
 
 q) Quit");
                 var key = char.ToLower(Console.ReadKey(true).KeyChar);
@@ -314,6 +320,16 @@ q) Quit");
                         break;
                     case 'y':
                         HandleResults.Handle(RunProducer.RunBatchAsync(queue, Messages.CreateSimpleMessageRandomList(1000), expiredDataFuture).Result,
+                            Log.Logger);
+                        break;
+
+                    case '1':
+                        HandleResults.Handle(RunProducer.Run(queue, Messages.CreateSimpleMessage(1, 500, 1000), ()=> delayProcessing(10)),
+                            Log.Logger);
+                        break;
+
+                    case '2':
+                        HandleResults.Handle(RunProducer.Run(queue, Messages.CreateSimpleMessage(10, 500, 1000), () => delayProcessing(30)),
                             Log.Logger);
                         break;
 

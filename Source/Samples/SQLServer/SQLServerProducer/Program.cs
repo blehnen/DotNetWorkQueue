@@ -55,7 +55,7 @@ namespace SQLServerProducer
             {
                 using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
                 {
-                    RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture);
+                    RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture, DelayedProcessing);
                 }
             }
 
@@ -83,6 +83,14 @@ namespace SQLServerProducer
         private static IAdditionalMessageData ExpiredDataFuture()
         {
             var data = new AdditionalMessageData();
+            data.SetExpiration(TimeSpan.FromDays(1));
+            return data;
+        }
+
+        private static IAdditionalMessageData DelayedProcessing(int seconds)
+        {
+            var data = new AdditionalMessageData();
+            data.SetDelay(TimeSpan.FromSeconds(seconds));
             data.SetExpiration(TimeSpan.FromDays(1));
             return data;
         }
