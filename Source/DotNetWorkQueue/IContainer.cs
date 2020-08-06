@@ -182,6 +182,21 @@ namespace DotNetWorkQueue
         /// </value>
         /// <remarks>Intended to aid unit tests, though can be accessed by anything if needed.</remarks>
         dynamic Container { get; }
+
+        /// <summary>
+        /// Adds the type that needs a warning suppression.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <remarks>Adding an exception for a type that was not actually registered in the container causes all sorts of problems</remarks>
+        void AddTypeThatNeedsWarningSuppression(Type type);
+
+        /// <summary>
+        /// Gets the types that can be suppressed.
+        /// </summary>
+        HashSet<Type> TypesThatCanBeSuppressed
+        {
+            get;
+        }
     }
 
     /// <summary>

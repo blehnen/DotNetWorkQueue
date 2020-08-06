@@ -36,7 +36,6 @@ namespace DotNetWorkQueue.IoC
     {
         private Container _container;
         private int _disposeCount;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ContainerWrapper" /> class.
         /// </summary>
@@ -45,6 +44,12 @@ namespace DotNetWorkQueue.IoC
         {
             Guard.NotNull(() => container, container);
             _container = container;
+            TypesThatCanBeSuppressed = new HashSet<Type>();
+        }
+
+        public HashSet<Type> TypesThatCanBeSuppressed
+        {
+            get;
         }
 
         /// <summary>
@@ -307,11 +312,26 @@ namespace DotNetWorkQueue.IoC
         {
             Guard.NotNull(() => type, type);
 
-            var target = _container.GetRegistration(type, false);
-            if (target == null) return this;
-            var registration = target.Registration;
-            registration?.SuppressDiagnosticWarning((DiagnosticType) warningType, reason);
+            if (TypesThatCanBeSuppressed.Contains(type))
+            {
+                var target = _container.GetRegistration(type, false);
+                if (target == null) return this;
+                var registration = target.Registration;
+                registration?.SuppressDiagnosticWarning((DiagnosticType) warningType, reason);
+            }
+
             return this;
+        }
+
+        /// <summary>Adds the type that needs a warning suppression.</summary>
+        /// <param name="type">The type.</param>
+        /// <remarks>Adding an exception for a type that was not actually registered in the container causes all sorts of problems</remarks>
+        public void AddTypeThatNeedsWarningSuppression(Type type)
+        {
+            if (!TypesThatCanBeSuppressed.Contains(type))
+            {
+                TypesThatCanBeSuppressed.Add(type);
+            }
         }
 
         /// <summary>

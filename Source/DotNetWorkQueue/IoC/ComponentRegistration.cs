@@ -63,7 +63,10 @@ namespace DotNetWorkQueue.IoC
             RegisterSharedDefaults(container);
 
             container.Register<ITaskSchedulerConfiguration, TaskSchedulerConfiguration>(LifeStyles.Singleton);
+            
             container.Register<ATaskScheduler, SmartThreadPoolTaskScheduler>(LifeStyles.Singleton);
+            container.AddTypeThatNeedsWarningSuppression(typeof(ATaskScheduler));
+
             container.Register<ITaskFactory, SchedulerTaskFactory>(LifeStyles.Singleton);
             container.Register<IWaitForEventOrCancelThreadPool, WaitForEventOrCancelThreadPool>(LifeStyles.Singleton);
             container.Register<IWaitForEventOrCancelFactory, WaitForEventOrCancelFactory>(LifeStyles.Singleton);
@@ -182,12 +185,19 @@ namespace DotNetWorkQueue.IoC
                 container.Register<IWaitForEventOrCancelThreadPool, WaitForEventOrCancelThreadPool>(LifeStyles.Singleton);
 
                 container.Register<IMessageContext, MessageContext>(LifeStyles.Transient);
+                container.AddTypeThatNeedsWarningSuppression(typeof(IMessageContext));
+                container.AddTypeThatNeedsWarningSuppression(typeof(MessageContext));
+
                 container.Register<IMessageContextFactory, MessageContextFactory>(LifeStyles.Singleton);
 
                 container.Register<IWorkerCollection, WorkerCollection>(LifeStyles.Singleton);
+               
                 container.Register<IWorker, Worker>(LifeStyles.Transient);
+                container.AddTypeThatNeedsWarningSuppression(typeof(IWorker));
 
                 container.Register<IPrimaryWorker, PrimaryWorker>(LifeStyles.Transient);
+                container.AddTypeThatNeedsWarningSuppression(typeof(IPrimaryWorker));
+
                 container.Register<IPrimaryWorkerFactory, PrimaryWorkerFactory>(LifeStyles.Singleton);
 
                 container.Register<IWorkerNameFactory, WorkerNameFactory>(LifeStyles.Singleton);
@@ -313,28 +323,25 @@ namespace DotNetWorkQueue.IoC
         /// <param name="registrationType">Type of the registration.</param>
         public static void SuppressWarningsIfNeeded(IContainer container, RegistrationTypes registrationType)
         {
-            if ((registrationType & RegistrationTypes.Receive) == RegistrationTypes.Receive)
-            {
-                container.SuppressDiagnosticWarning(typeof(IMessageContext),
-                    DiagnosticTypes.DisposableTransientComponent,
-                    "IMessageContext is explicitly disposed of via a using statement");
+            container.SuppressDiagnosticWarning(typeof(IMessageContext),
+                DiagnosticTypes.DisposableTransientComponent,
+                "IMessageContext is explicitly disposed of via a using statement");
 
-                container.SuppressDiagnosticWarning(typeof(MessageContext),
-                    DiagnosticTypes.DisposableTransientComponent,
-                    "MessageContext is explicitly disposed of via a using statement");
+            container.SuppressDiagnosticWarning(typeof(MessageContext),
+                DiagnosticTypes.DisposableTransientComponent,
+                "MessageContext is explicitly disposed of via a using statement");
 
-                container.SuppressDiagnosticWarning(typeof(ATaskScheduler),
-                    DiagnosticTypes.DisposableTransientComponent,
-                    "ATaskScheduler is disposed of via its parent queue if created by this library. Otherwise, the caller of this library is responsible for disposing the task scheduler");
+            container.SuppressDiagnosticWarning(typeof(ATaskScheduler),
+                DiagnosticTypes.DisposableTransientComponent,
+                "ATaskScheduler is disposed of via its parent queue if created by this library. Otherwise, the caller of this library is responsible for disposing the task scheduler");
 
-                container.SuppressDiagnosticWarning(typeof(IWorker),
-                    DiagnosticTypes.DisposableTransientComponent,
-                    "IWorker is disposed of via the worker collection");
+            container.SuppressDiagnosticWarning(typeof(IWorker),
+                DiagnosticTypes.DisposableTransientComponent,
+                "IWorker is disposed of via the worker collection");
 
-                container.SuppressDiagnosticWarning(typeof(IPrimaryWorker),
-                    DiagnosticTypes.DisposableTransientComponent,
-                    "IPrimaryWorker is disposed of via the queue");
-            }
+            container.SuppressDiagnosticWarning(typeof(IPrimaryWorker),
+                DiagnosticTypes.DisposableTransientComponent,
+                "IPrimaryWorker is disposed of via the queue");
         }
 
         /// <summary>
