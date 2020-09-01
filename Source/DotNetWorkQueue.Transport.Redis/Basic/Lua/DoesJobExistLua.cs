@@ -60,8 +60,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             if (Connection.IsDisposed)
                 return QueueStatuses.NotQueued;
 
-            var db = Connection.Connection.GetDatabase();
-            return (QueueStatuses)(int)db.ScriptEvaluate(LoadedLuaScript, GetParameters(jobName, scheduledTime));
+            var result = TryExecute(GetParameters(jobName, scheduledTime));
+            if (result.IsNull)
+                return QueueStatuses.NotQueued;
+            return (QueueStatuses) (int) result;
         }
 
         /// <summary>

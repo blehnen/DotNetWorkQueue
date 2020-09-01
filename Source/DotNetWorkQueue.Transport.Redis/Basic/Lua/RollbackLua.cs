@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
@@ -55,8 +54,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <returns></returns>
         public int? Execute(string messageId)
         {
-            var db = Connection.Connection.GetDatabase();
-            return (int) db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId));
+            var result = TryExecute(GetParameters(messageId));
+            if (result.IsNull)
+                return null;
+            return (int) result;
         }
         /// <summary>
         /// Gets the parameters.

@@ -94,8 +94,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             if (Connection.IsDisposed)
                 return null;
 
-            var db = Connection.Connection.GetDatabase();
-            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, jobName, scheduledTime, eventTime, route));
+            var result = TryExecute(GetParameters(messageId, message, headers, metaData, jobName, scheduledTime,
+                eventTime, route));
+            if (result.IsNull)
+                return null;
+            return (string) result;
         }
         /// <summary>
         /// Executes the specified message identifier.
@@ -112,8 +115,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, string jobName,
              DateTimeOffset scheduledTime, DateTimeOffset eventTime, string route)
         {
-            var db = Connection.Connection.GetDatabase();
-            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, jobName, scheduledTime, eventTime, route)).ConfigureAwait(false);
+            var result = await TryExecuteAsync(GetParameters(messageId, message, headers, metaData, jobName, scheduledTime,
+                eventTime, route)).ConfigureAwait(false);
+            if (result.IsNull)
+                return null;
+            return (string)result;
         }
         /// <summary>
         /// Gets the parameters.

@@ -66,8 +66,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             if (Connection.IsDisposed)
                 return 0;
 
-            var db = Connection.Connection.GetDatabase();
-            return (int) db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, count));
+            var result = TryExecute(GetParameters(unixTime, count));
+            if (result.IsNull)
+                return 0;
+            return (int) result;
         }
         /// <summary>
         /// Gets the parameters.

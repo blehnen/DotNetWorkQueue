@@ -128,18 +128,20 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             if (Connection.IsDisposed)
                 return null;
 
-            var db = Connection.Connection.GetDatabase();
-
             //we need to group by route
             var splitList = messages.GroupBy(x => x.Route);
             var returnData = new List<string>(messages.Count);
             foreach (var group in splitList)
             {
-                var result = (byte[])db.ScriptEvaluate(LoadedLuaScript, GetParameters(group.ToList(), group.Key));
-                if (result == null || result.Length <= 0) continue;
-                var serializer = SerializationContext.Default.GetSerializer<List<string>>();
-                var tempData = serializer.UnpackSingleObject(result);
-                returnData.AddRange(tempData);
+                var result = TryExecute(GetParameters(group.ToList(), group.Key));
+                if (!result.IsNull)
+                {
+                    var data = (byte[]) result;
+                    if (data == null || data.Length <= 0) continue;
+                    var serializer = SerializationContext.Default.GetSerializer<List<string>>();
+                    var tempData = serializer.UnpackSingleObject(data);
+                    returnData.AddRange(tempData);
+                }
             }
             return returnData;
         }
@@ -154,18 +156,20 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             if (Connection.IsDisposed)
                 return null;
 
-            var db = Connection.Connection.GetDatabase();
-
             //we need to group by route
             var splitList = messages.GroupBy(x => x.Route);
             var returnData = new List<string>(messages.Count);
             foreach (var group in splitList)
             {
-                var result = (byte[])await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(group.ToList(), group.Key)).ConfigureAwait(false);
-                if (result == null || result.Length <= 0) continue;
-                var serializer = SerializationContext.Default.GetSerializer<List<string>>();
-                var tempData = serializer.UnpackSingleObject(result);
-                returnData.AddRange(tempData);
+                var result = await TryExecuteAsync(GetParameters(group.ToList(), group.Key)).ConfigureAwait(false);
+                if (!result.IsNull)
+                {
+                    var data = (byte[])result;
+                    if (data == null || data.Length <= 0) continue;
+                    var serializer = SerializationContext.Default.GetSerializer<List<string>>();
+                    var tempData = await serializer.UnpackSingleObjectAsync(data).ConfigureAwait(false);
+                    returnData.AddRange(tempData);
+                }
             }
             return returnData;
         }

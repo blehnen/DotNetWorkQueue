@@ -74,14 +74,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 
             var db = Connection.Connection.GetDatabase();
 
-            if(_routes == null)
-                return (RedisValue[]) db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, null));
-
+            if (_routes == null)
+            {
+                var result = TryExecute(GetParameters(unixTime, null));
+                if (!result.IsNull)
+                {
+                    return (RedisValue[]) result;
+                }
+                return null;
+            }
             var counter = 0;
             while (counter < _routes.Length)
             {
                 var route = _routes[GetNextRoute()];
-                var result = db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, route));
+
+                var result = TryExecute(GetParameters(unixTime, route));
                 if (!result.IsNull)
                 {
                     return (RedisValue[])result;
@@ -106,17 +113,19 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             var db = Connection.Connection.GetDatabase();
             if (_routes == null)
             {
-                var result = await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(unixTime, null))
-                    .ConfigureAwait(false);
-                return (RedisValue[]) result;
+                var result = await TryExecuteAsync(GetParameters(unixTime, null)).ConfigureAwait(false);
+                if (!result.IsNull)
+                {
+                    return (RedisValue[])result;
+                }
+                return null;
             }
 
             var counter = 0;
             while (counter < _routes.Length)
             {
                 var route = _routes[GetNextRoute()];
-                var result =
-                    await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(unixTime, route)).ConfigureAwait(false);
+                var result = await TryExecuteAsync(GetParameters(unixTime, route)).ConfigureAwait(false);
                 if (!result.IsNull)
                 {
                     return (RedisValue[])result;

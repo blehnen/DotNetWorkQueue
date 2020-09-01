@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Exceptions;
 using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
@@ -44,10 +45,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <returns></returns>
         public long Execute()
         {
-            var db = Connection.Connection.GetDatabase();
-            var result = (RedisValue[])db.ScriptEvaluate(LoadedLuaScript);
-            var seconds = (long) result[0];
-            var milliseconds = (long) result[1]/1000; //convert microseconds to milliseconds
+            var result = TryExecute(null);
+            if (result.IsNull)
+            {
+                //we need time for a bunch of actions, so don't continue if we didn't get it.
+                throw new DotNetWorkQueueException("Failed to obtain time from redis server");
+            }
+
+            var redisResult = (RedisValue[]) result;
+            var seconds = (long)redisResult[0];
+            var milliseconds = (long)redisResult[1]/1000; //convert microseconds to milliseconds
             return (long)TimeSpan.FromSeconds(seconds).Add(TimeSpan.FromMilliseconds(milliseconds)).TotalMilliseconds;
         }
     }

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 using StackExchange.Redis;
@@ -77,6 +78,66 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             }
             private set => _loadedLuaScript = value;
         }
+
+        /// <summary>
+        /// Tries to execute the loaded script.  If the script is no longer cached, it will re-cache it and try again.
+        /// </summary>
+        /// <param name="parameters">The parameters. Pass null if there are none.</param>
+        /// <returns></returns>
+        public RedisResult TryExecute(object parameters)
+        {
+            if (Connection.IsDisposed)
+                return RedisResult.Create(RedisValue.Null);
+
+            var db = Connection.Connection.GetDatabase();
+            try
+            {
+                return parameters != null ? db.ScriptEvaluate(LoadedLuaScript, parameters) : db.ScriptEvaluate(LoadedLuaScript);
+            }
+            catch (RedisException e)
+            {
+                if (e.Message.StartsWith("NOSCRIPT",
+                    StringComparison.InvariantCultureIgnoreCase))
+                {
+                    LoadScript();
+                    return parameters != null ? db.ScriptEvaluate(LoadedLuaScript, parameters) : db.ScriptEvaluate(LoadedLuaScript);
+                }
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Tries to execute the loaded script.  If the script is no longer cached, it will re-cache it and try again.
+        /// </summary>
+        /// <param name="parameters">The parameters. Pass null if there are none.</param>
+        /// <returns></returns>
+        public async  Task<RedisResult> TryExecuteAsync(object parameters)
+        {
+            if (Connection.IsDisposed)
+                return RedisResult.Create(RedisValue.Null);
+
+            var db = Connection.Connection.GetDatabase();
+            try
+            {
+                if(parameters != null)
+                    return await db.ScriptEvaluateAsync(LoadedLuaScript, parameters).ConfigureAwait(false);
+                return await db.ScriptEvaluateAsync(LoadedLuaScript).ConfigureAwait(false);
+            }
+            catch (RedisException e)
+            {
+                //there does not appear to be an error code we can look at, so see if the message starts with 'NOSCRIPT'
+                if (e.Message.StartsWith("NOSCRIPT",
+                    StringComparison.InvariantCultureIgnoreCase))
+                {
+                    LoadScript();
+                    if(parameters != null)
+                        return await db.ScriptEvaluateAsync(LoadedLuaScript, parameters).ConfigureAwait(false);
+                    return await db.ScriptEvaluateAsync(LoadedLuaScript).ConfigureAwait(false);
+                }
+                throw;
+            }
+        }
+
         /// <summary>
         /// Loads the script.
         /// </summary>

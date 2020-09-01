@@ -70,8 +70,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             if (Connection.IsDisposed)
                 return null;
 
-            var db = Connection.Connection.GetDatabase();
-            return (string)db.ScriptEvaluate(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, expireTime, route));
+            var result = TryExecute(GetParameters(messageId, message, headers, metaData, expireTime, route));
+            if (result.IsNull)
+                return null;
+            return (string) result;
         }
         /// <summary>
         /// Enqueues a message with an expiration
@@ -85,8 +87,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <returns></returns>
         public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, long expireTime, string route)
         {
-            var db = Connection.Connection.GetDatabase();
-            return (string) await db.ScriptEvaluateAsync(LoadedLuaScript, GetParameters(messageId, message, headers, metaData, expireTime, route)).ConfigureAwait(false);
+            if (Connection.IsDisposed)
+                return null;
+
+            var result = await TryExecuteAsync(GetParameters(messageId, message, headers, metaData, expireTime, route)).ConfigureAwait(false);
+            if (result.IsNull)
+                return null;
+            return (string)result;
         }
         /// <summary>
         /// Gets the parameters.

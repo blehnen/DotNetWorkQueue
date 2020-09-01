@@ -19,8 +19,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Runtime.InteropServices;
 using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
@@ -73,9 +71,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             if (Connection.IsDisposed)
                 return new List<ResetHeartBeatOutput>();
 
-            var db = Connection.Connection.GetDatabase();
             DateTime start = _getTime.GetCurrentUtcDate();
-            var result = db.ScriptEvaluate(LoadedLuaScript, GetParameters(unixTime, count));
+            var result = TryExecute(GetParameters(unixTime, count));
             DateTime end = _getTime.GetCurrentUtcDate();
             if(result.IsNull) return new List<ResetHeartBeatOutput>(0);
             var ids = (RedisResult[]) result;
