@@ -1,3 +1,6 @@
+###0.4.6 2020-09-02
+* Redis Transport - re-cache LUA scripts when they are no longer in the cache; fixes issue with server re-starts.
+
 ###0.4.5 2020-02-28
 * Make the previous error types and count available to message processing
 * Consumer queues will now remove errors by default; messages in an error status will be removed after 30 days. This can be configured on the consumer and disabled if needed.

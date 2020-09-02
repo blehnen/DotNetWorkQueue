@@ -47,6 +47,10 @@ namespace DotNetWorkQueue.IoC
             TypesThatCanBeSuppressed = new HashSet<Type>();
         }
 
+        /// <summary>
+        /// Gets the types that can be suppressed.
+        /// </summary>
+        /// <remarks>Ensures that we only register suppressions for types that we are actually using.</remarks>
         public HashSet<Type> TypesThatCanBeSuppressed
         {
             get;

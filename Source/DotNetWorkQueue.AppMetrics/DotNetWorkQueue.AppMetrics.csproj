@@ -6,7 +6,7 @@
       An implementation of AppMetrics (
       https://github.com/AppMetrics/AppMetrics) for https://github.com/blehnen/DotNetWorkQueue
     </Description>
-    <Version>0.4.5</Version>
+    <Version>0.4.6</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2020</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
