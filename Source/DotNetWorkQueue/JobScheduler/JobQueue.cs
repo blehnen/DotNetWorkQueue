@@ -61,8 +61,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// </summary>
         /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
         /// <typeparam name="TQueue">The type of the queue.</typeparam>
-        /// <param name="queueName">Name of the queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to create the queue. The error message is {createResult.ErrorMessage}</exception>
@@ -126,8 +125,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// </summary>
         /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
         /// <param name="jobQueueCreation">The job queue creation.</param>
-        /// <param name="queueName">Name of the queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to create the queue. The error message is {createResult.ErrorMessage}</exception>

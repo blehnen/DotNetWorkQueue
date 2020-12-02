@@ -33,8 +33,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="queue">The queue.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, QueueConnection queueConnection)
         {
             container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queueConnection), LifeStyles.Singleton);

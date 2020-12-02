@@ -33,8 +33,7 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
         /// <typeparam name="TQueue">The type of the queue.</typeparam>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
         IProducerMethodJobQueue Get<TTransportInit, TQueue>(QueueConnection queueConnection, Action<QueueProducerConfiguration> producerConfiguration = null)
@@ -46,8 +45,7 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
         /// <param name="jobQueueCreation">The job queue creation.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
         IProducerMethodJobQueue Get<TTransportInit>(IJobQueueCreation jobQueueCreation, QueueConnection queueConnection, Action<QueueProducerConfiguration> producerConfiguration = null)

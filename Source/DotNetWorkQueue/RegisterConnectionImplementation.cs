@@ -28,8 +28,7 @@ namespace DotNetWorkQueue
         /// Registers the implementations for base connection and serialization
         /// </summary>
         /// <param name="container">The container.</param>
-        /// <param name="connection">The connection.</param>
-        /// <param name="queue">The queue.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         public static void RegisterImplementations(IContainer container, QueueConnection queueConnection)
         {
             container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queueConnection),

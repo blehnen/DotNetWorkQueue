@@ -32,8 +32,7 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisConnectionInfo"/> class.
         /// </summary>
-        /// <param name="queueName">Name of the queue.</param>
-        /// <param name="connectionString">The connection string.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         public RedisConnectionInfo(QueueConnection queueConnection) : base(queueConnection)
         {
             ValidateConnection(queueConnection.Connection);

@@ -44,8 +44,7 @@ namespace DotNetWorkQueue
         /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
         /// <typeparam name="TQueue">The type of the queue.</typeparam>
         /// <param name="jobname">The jobName.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
         /// <param name="route">The route.</param>
@@ -70,8 +69,7 @@ namespace DotNetWorkQueue
         /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
         /// <param name="queueCreator">The queue creator. Will be used to create the queue if it does not exist.</param>
         /// <param name="jobname">The jobName.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
         /// <param name="route">The route.</param>
@@ -97,8 +95,7 @@ namespace DotNetWorkQueue
         /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
         /// <typeparam name="TQueue">The type of the queue.</typeparam>
         /// <param name="jobName">The jobName.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
         /// <param name="route">The route.</param>
@@ -125,8 +122,7 @@ namespace DotNetWorkQueue
         /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
         /// <param name="queueCreator">The queue creator. Will be used to create the queue if it does not exist.</param>
         /// <param name="jobName">Name of the job.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="job">The job.</param>
         /// <param name="route">The route.</param>

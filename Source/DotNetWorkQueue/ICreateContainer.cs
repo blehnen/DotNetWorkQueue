@@ -34,8 +34,7 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="queueType">Type of the queue.</param>
         /// <param name="registerService">The user defined service overrides</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="register">The transport registration module.</param>
         /// <param name="connectionType">Type of the connection.</param>
         /// <param name="registerServiceInternal">The internal service overrides</param>

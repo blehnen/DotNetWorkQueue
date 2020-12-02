@@ -75,8 +75,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates the consumer queue.
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public IConsumerQueue CreateConsumer(QueueConnection queueConnection)
         {
@@ -90,8 +89,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates the method consumer queue.
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public IConsumerMethodQueue CreateMethodConsumer(QueueConnection queueConnection)
         {
@@ -105,8 +103,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates an async consumer queue
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public IConsumerQueueAsync CreateConsumerAsync(QueueConnection queueConnection)
         {
@@ -122,8 +119,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler. The default task factory will be used.
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection)
         {
@@ -139,8 +135,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler. The default task factory will be used.
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection)
         {
@@ -156,8 +151,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="factory">The task factory.</param>
         /// <returns></returns>
         public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
@@ -169,8 +163,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="factory">The task factory.</param>
         /// <returns></returns>
         public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
@@ -182,8 +175,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="factory">The task factory.</param>
         /// <param name="workGroup">The work group.</param>
         /// <returns></returns>
@@ -196,8 +188,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="factory">The task factory.</param>
         /// <param name="workGroup">The work group.</param>
         /// <returns></returns>
@@ -211,8 +202,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="factory">The factory.</param>
         /// <param name="workGroup">The work group.</param>
         /// <param name="internalFactory">if set to <c>true</c> [internal factory].</param>
@@ -259,8 +249,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates the consumer method queue scheduler.
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="factory">The factory.</param>
         /// <param name="workGroup">The work group.</param>
         /// <param name="internalFactory">if set to <c>true</c> [internal factory].</param>
@@ -327,8 +316,7 @@ namespace DotNetWorkQueue
         /// Creates a producer queue.
         /// </summary>
         /// <typeparam name="TMessage">The type of the message.</typeparam>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public IProducerQueue<TMessage> CreateProducer<TMessage>(
             QueueConnection queueConnection)
@@ -344,8 +332,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates a producer queue for executing linq expressions.
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public IProducerMethodQueue CreateMethodProducer(
             QueueConnection queueConnection)
@@ -360,8 +347,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates a producer queue for executing linq expressions.
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public IProducerMethodJobQueue CreateMethodJobProducer(
             QueueConnection queueConnection)
@@ -379,8 +365,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Creates a re-occurring job scheduler.
         /// </summary>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public IJobSchedulerLastKnownEvent CreateJobSchedulerLastKnownEvent(QueueConnection queueConnection)
         {

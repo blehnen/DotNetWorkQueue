@@ -77,8 +77,7 @@ namespace DotNetWorkQueue
         /// Gets the requested module for creating a queue.
         /// </summary>
         /// <typeparam name="TQueue">Module to use</typeparam>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public TQueue GetQueueCreation<TQueue>(QueueConnection queueConnection) where TQueue : class, IQueueCreation
         {
@@ -149,8 +148,7 @@ namespace DotNetWorkQueue
         /// Gets the requested module for creating a queue.
         /// </summary>
         /// <typeparam name="TQueue">Module to use</typeparam>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         public TQueue GetQueueCreation<TQueue>(QueueConnection queueConnection) where TQueue : class, IJobQueueCreation
         {

@@ -32,8 +32,7 @@ namespace DotNetWorkQueue
         /// Tells the transport to setup and create a queue for handling re-occurring jobs.
         /// </summary>
         /// <param name="registerService">The additional registrations.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="enableRoutes">if set to <c>true</c> route support will be enabled.</param>
         /// <param name="setOptions">the options to set on the scheduler queue</param>
         /// <returns></returns>

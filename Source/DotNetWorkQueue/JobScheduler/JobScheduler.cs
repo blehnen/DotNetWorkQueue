@@ -89,8 +89,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
         /// <typeparam name="TQueue">The type of the queue.</typeparam>
         /// <param name="jobname">The jobname.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="actionToRun">The action to run.</param>
         /// <param name="route">The route.</param>
@@ -123,8 +122,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
         /// <param name="jobQueueCreation">The job queue creation.</param>
         /// <param name="jobname">The jobname.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="actionToRun">The action to run.</param>
         /// <param name="route">The route.</param>
@@ -195,8 +193,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
         /// <typeparam name="TQueue">The type of the queue.</typeparam>
         /// <param name="name">The name.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
@@ -270,8 +267,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
         /// <param name="jobQueueCreation">The job queue creation.</param>
         /// <param name="name">The name.</param>
-        /// <param name="queue">The queue.</param>
-        /// <param name="connection">The connection.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="schedule">The schedule.</param>
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>

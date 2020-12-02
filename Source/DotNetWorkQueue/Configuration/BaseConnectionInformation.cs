@@ -33,8 +33,7 @@ namespace DotNetWorkQueue.Configuration
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseConnectionInformation"/> class.
         /// </summary>
-        /// <param name="queueName">Name of the queue.</param>
-        /// <param name="connectionString">The connection string.</param>
+        /// <param name="queueConnection">Queue and connection information.</param>
         public BaseConnectionInformation(QueueConnection queueConnection)
         {
             _queueName = queueConnection.Queue;
