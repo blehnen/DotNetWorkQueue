@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using SampleShared;
 using Serilog;
@@ -25,13 +26,14 @@ namespace SQLServerConsumer
             //verify that the queue exists
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
+            var queueConnection = new QueueConnection(queueName, connectionString);
 
             using (var createQueueContainer = new QueueCreationContainer<SqlServerMessageQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerConsumer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
-                    createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueName, connectionString))
+                    createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection))
                 {
                     if (!createQueue.QueueExists)
                     {
@@ -46,7 +48,7 @@ namespace SQLServerConsumer
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerConsumer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
-                using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
+                using (var queue = queueContainer.CreateConsumer(queueConnection))
                 {
                     //set some processing options and start looking for work
                     queue.Configuration.Worker.WorkerCount = 4; //lets run 4 worker threads

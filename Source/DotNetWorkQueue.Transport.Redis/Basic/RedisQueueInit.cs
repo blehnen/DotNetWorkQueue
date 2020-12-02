@@ -48,13 +48,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="registrationType">Type of the registration.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="queue">The queue.</param>
-        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
+        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, QueueConnection queueConnection)
         {
             Guard.NotNull(() => container, container);
-            base.RegisterImplementations(container, registrationType, connection, queue);
+            base.RegisterImplementations(container, registrationType, queueConnection);
 
             //**all
-            container.Register<IConnectionInformation>(() => new RedisConnectionInfo(queue, connection), LifeStyles.Singleton);
+            container.Register<IConnectionInformation>(() => new RedisConnectionInfo(queueConnection), LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, RedisJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, RedisSendJobToQueue>(LifeStyles.Singleton);
 

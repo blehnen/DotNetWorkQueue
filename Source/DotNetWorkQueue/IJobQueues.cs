@@ -37,7 +37,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
-        IProducerMethodJobQueue Get<TTransportInit, TQueue>(string queue, string connection, Action<QueueProducerConfiguration> producerConfiguration = null)
+        IProducerMethodJobQueue Get<TTransportInit, TQueue>(QueueConnection queueConnection, Action<QueueProducerConfiguration> producerConfiguration = null)
             where TTransportInit : ITransportInit, new()
             where TQueue : class, IJobQueueCreation;
 
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
-        IProducerMethodJobQueue Get<TTransportInit>(IJobQueueCreation jobQueueCreation, string queue, string connection, Action<QueueProducerConfiguration> producerConfiguration = null)
+        IProducerMethodJobQueue Get<TTransportInit>(IJobQueueCreation jobQueueCreation, QueueConnection queueConnection, Action<QueueProducerConfiguration> producerConfiguration = null)
             where TTransportInit : ITransportInit, new();
     }
 }

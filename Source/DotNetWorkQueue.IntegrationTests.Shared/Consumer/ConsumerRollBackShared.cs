@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using Xunit;
 
@@ -9,8 +10,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
     public class ConsumerRollBackShared<TMessage>
         where TMessage : class
     {
-        public void RunConsumer<TTransportInit>(string queueName,
-            string connectionString,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors,
             int workerCount,
             ILogProvider logProvider,
@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -43,8 +43,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                 {
                     using (
                         var queue =
-                            creator.CreateConsumer(queueName,
-                                connectionString))
+                            creator.CreateConsumer(queueConnection))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                             heartBeatMonitorTime, updateTime, route);
@@ -62,9 +61,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                         waitForFinish.Wait(timeOut*1000);
                     }
                     Assert.Equal(messageCount, processedCount.ProcessedCount);
-                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                    VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 1, 0);
-                    LoggerShared.CheckForErrors(queueName);
+                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
+                    VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 1, 0);
+                    LoggerShared.CheckForErrors(queueConnection.Queue);
                     haveIProcessedYouBefore.Clear();
                 }
             }

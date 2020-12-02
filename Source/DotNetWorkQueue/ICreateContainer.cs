@@ -42,7 +42,7 @@ namespace DotNetWorkQueue
         /// <param name="setOptions">The options. Can be null</param>
         /// <param name="registrations">The registrations for job queue creation. Can be null</param>
         /// <returns></returns>
-        IContainer Create(QueueContexts queueType, Action<IContainer> registerService, string queue, string connection, T register,
+        IContainer Create(QueueContexts queueType, Action<IContainer> registerService, QueueConnection queueConnection, T register,
             ConnectionTypes connectionType, Action<IContainer> registerServiceInternal, Action<IContainer> setOptions, JobQueueContainerRegistrations registrations = null);
 
         /// <summary>

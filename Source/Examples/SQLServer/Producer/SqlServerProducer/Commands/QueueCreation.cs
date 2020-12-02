@@ -30,6 +30,7 @@ using System.Linq;
 using System.Text;
 using ConsoleShared;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
@@ -288,8 +289,8 @@ namespace SqlServerProducer.Commands
             if (!_queueCreators.ContainsKey(queueName))
             {
                 _queueCreators.Add(queueName,
-                    _queueCreation.Value.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                        ConfigurationManager.AppSettings["Connection"]));
+                    _queueCreation.Value.GetQueueCreation<SqlServerMessageQueueCreation>(new QueueConnection(queueName,
+                        ConfigurationManager.AppSettings["Connection"])));
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
@@ -24,20 +25,19 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
             var connectionString = new ConnectionInfo(type).ConnectionString;
             using (var queueContainer = new QueueContainer<RedisQueueInit>(x => { }))
             {
+                var queueConnection = new QueueConnection(queueName, connectionString);
                 try
                 {
                     var tests = new JobSchedulerTestsShared();
                     if (!dynamic)
                     {
-                        tests.RunEnqueueTestCompiled<RedisQueueInit, RedisJobQueueCreation>(queueName,
-                            connectionString, true,
+                        tests.RunEnqueueTestCompiled<RedisQueueInit, RedisJobQueueCreation>(queueConnection, true,
                             Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null, LoggerShared.Create(queueName, GetType().Name));
                     }
 #if NETFULL
                     else
                     {
-                        tests.RunEnqueueTestDynamic<RedisQueueInit, RedisJobQueueCreation>(queueName,
-                            connectionString, true,
+                        tests.RunEnqueueTestDynamic<RedisQueueInit, RedisJobQueueCreation>(queueConnection, true,
                             Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null, LoggerShared.Create(queueName, GetType().Name));
                     }
 #endif
@@ -50,8 +50,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                    connectionString)
+                                queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();

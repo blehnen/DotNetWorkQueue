@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.PostgreSQL;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
@@ -24,13 +25,14 @@ namespace PostgreSQLProducer
 
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
+            var queueConnection = new QueueConnection(queueName, connectionString);
             //create the container for creating a new queue
             using (var createQueueContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlProducer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
-                    createQueueContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName, connectionString))
+                    createQueueContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection))
                 {
                     //Create the queue if it doesn't exist
                     if (!createQueue.QueueExists)
@@ -53,7 +55,7 @@ namespace PostgreSQLProducer
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlProducer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
-                using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
+                using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueConnection))
                 {
                     RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture, DelayedProcessing);
                 }

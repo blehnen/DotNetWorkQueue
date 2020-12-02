@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using Xunit;
 
@@ -8,8 +9,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
     public class ConsumerMethodCancelWorkShared<TTransportInit>
         where TTransportInit : ITransportInit, new()
     {
-        private string _queueName;
-        private string _connectionString;
+        private QueueConnection _queueConnection;
         private int _workerCount;
         private TimeSpan _heartBeatTime;
         private TimeSpan _heartBeatMonitorTime;
@@ -18,14 +18,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
         private QueueContainer<TTransportInit> _badQueueContainer;
         private Action<IContainer> _badQueueAdditions;
 
-        public void RunConsumer(string queueName, string connectionString, bool addInterceptors,
+        public void RunConsumer(QueueConnection queueConnection, bool addInterceptors,
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, Guid id, bool enableChaos)
         {
-            _queueName = queueName;
-            _connectionString = connectionString;
+            _queueConnection = queueConnection;
             _workerCount = workerCount;
             _badQueueAdditions = badQueueAdditions;
             _updatetime = updateTime;
@@ -41,19 +40,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 timeOut *= 2;
 
             //run consumer
-            RunConsumerInternal(queueName, connectionString, addInterceptors, logProvider, runTime,
+            RunConsumerInternal(queueConnection, addInterceptors, logProvider, runTime,
                 messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, id, updateTime, enableChaos);
         }
 
 
-        private void RunConsumerInternal(string queueName, string connectionString, bool addInterceptors,
+        private void RunConsumerInternal(QueueConnection queueConnection, bool addInterceptors,
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, IDisposable queueBad,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos)
         {
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -67,8 +66,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
                     using (
                         var queue =
-                            creator.CreateMethodConsumer(queueName,
-                                connectionString))
+                            creator.CreateMethodConsumer(queueConnection))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                             heartBeatMonitorTime, updateTime, null);
@@ -97,8 +95,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
                     var count = MethodIncrementWrapper.Count(id);
                     Assert.Equal(messageCount, count);
-                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                    LoggerShared.CheckForErrors(queueName);
+                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
+                    LoggerShared.CheckForErrors(queueConnection.Queue);
                 }
             }
         }
@@ -108,8 +106,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             _badQueueContainer = SharedSetup.CreateCreator<TTransportInit>(_badQueueAdditions);
 
             var queue =
-                _badQueueContainer.CreateMethodConsumer(_queueName,
-                    _connectionString);
+                _badQueueContainer.CreateMethodConsumer(_queueConnection);
  
                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime, _heartBeatMonitorTime, _updatetime, null);
                 return queue;        

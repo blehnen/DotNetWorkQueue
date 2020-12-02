@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using SampleShared;
 using Serilog;
@@ -26,7 +27,7 @@ namespace RedisScheduler
 
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
-
+            var queueConnection = new QueueConnection(queueName, connectionString);
             using (var jobContainer = new JobSchedulerContainer(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
@@ -66,24 +67,21 @@ q) Quit");
                             {
                                 case 'a':
                                     job1 = scheduler.AddUpdateJob<RedisQueueInit, RedisJobQueueCreation>("test job1",
-                                        queueName,
-                                        connectionString,
+                                        queueConnection,
                                         "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
                                         (message, workerNotification) => Console.WriteLine("test job1 " + message.MessageId.Id.Value));
                                     log.Information("job scheduled");
                                     break;
                                 case 'b':
                                     job2 = scheduler.AddUpdateJob<RedisQueueInit, RedisJobQueueCreation>("test job2",
-                                        queueName,
-                                        connectionString,
+                                        queueConnection,
                                         "min(*)",
                                         (message, workerNotification) => Console.WriteLine("test job2 " + message.MessageId.Id.Value));
                                     log.Information("job scheduled");
                                     break;
                                 case 'c':
                                     job3 = scheduler.AddUpdateJob<RedisQueueInit, RedisJobQueueCreation>("test job3",
-                                        queueName,
-                                        connectionString,
+                                        queueConnection,
                                         "sec(30)",
                                         (message, workerNotification) => Console.WriteLine("test job3 " + message.MessageId.Id.Value));
                                     log.Information("job scheduled");

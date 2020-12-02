@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -27,13 +28,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                     new QueueCreationContainer<SqLiteMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.Options.EnableDelayedProcessing = true;
@@ -49,21 +50,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
                             var id = Guid.NewGuid();
                             if (linqMethodTypes == LinqMethodTypes.Compiled)
                             {
-                                producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName,
-                               connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                                producer.RunTestCompiled<SqLiteMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope, false);
                             }
 
                             //process data
                             var consumer = new ConsumerMethodPoisonMessageShared();
 
-                            consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
                                 false,
                                 workerCount,
                                 logProvider, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos);
 
-                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, true);
+                            ValidateErrorCounts(queueConnection, messageCount);
+                            new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(messageCount, true, true);
                         }
                     }
                     finally
@@ -71,8 +71,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();
@@ -83,12 +82,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.Cons
             }
         }
 
-        private void ValidateErrorCounts(string queueName, string connectionString, long messageCount)
+        private void ValidateErrorCounts(QueueConnection queueConnection, long messageCount)
         {
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            new VerifyErrorCounts(queueName, connectionString).Verify(messageCount, 0);
+            new VerifyErrorCounts(queueConnection).Verify(messageCount, 0);
         }
     }
 }

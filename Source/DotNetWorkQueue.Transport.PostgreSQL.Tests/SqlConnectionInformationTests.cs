@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
@@ -14,7 +15,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         [Fact]
         public void GetSet_Connection()
         {
-            var test = new SqlConnectionInformation(string.Empty, GoodConnection);
+            var test = new SqlConnectionInformation(new QueueConnection(string.Empty, GoodConnection));
             Assert.NotNull(test);
         }
         [Fact]
@@ -24,13 +25,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             delegate
             {
                 // ReSharper disable once UnusedVariable
-                var test = new SqlConnectionInformation(string.Empty, BadConnection);
+                var test = new SqlConnectionInformation(new QueueConnection(string.Empty, BadConnection));
             });
         }
         [Fact]
         public void Test_Clone()
         {
-            var test = new SqlConnectionInformation("blah", GoodConnection);
+            var test = new SqlConnectionInformation(new QueueConnection("blah", GoodConnection));
             var clone = test.Clone();
 
             Assert.Equal(test.ConnectionString, clone.ConnectionString);

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Logging;
@@ -23,29 +24,28 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
                 new QueueCreationContainer<SqlServerMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
 
-                        RunTest(queueName, messageCount, 10, logProvider, oCreation.Scope, enableChaos);
+                        RunTest(queueConnection, messageCount, 10, logProvider, oCreation.Scope, enableChaos);
                         LoggerShared.CheckForErrors(queueName);
-                        new VerifyQueueData(queueName, oCreation.Options).Verify(messageCount * 10);
+                        new VerifyQueueData(queueConnection, oCreation.Options).Verify(messageCount * 10);
                     }
                 }
                 finally
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();
@@ -54,13 +54,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, ICreationScope scope, bool enableChaos)
+        private void RunTest(QueueConnection queueConnection, int messageCount, int queueCount, ILogProvider logProvider, ICreationScope scope, bool enableChaos)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
             {
                 var producer = new ProducerShared();
-                var task = new Task(() => producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName, ConnectionInfo.ConnectionString, false, messageCount,
+                var task = new Task(() => producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueConnection, false, messageCount,
                     logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, scope, enableChaos));
                 tasks.Add(task); 
             }

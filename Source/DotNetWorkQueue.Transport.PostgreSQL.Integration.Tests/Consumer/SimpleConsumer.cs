@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -26,12 +27,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                     new QueueCreationContainer<PostgreSqlMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
@@ -44,12 +45,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                         Assert.True(result.Success, result.ErrorMessage);
 
                         var producer = new ProducerShared();
-                        producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
-                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, oCreation.Scope, false);
 
                         var consumer = new ConsumerShared<FakeMessage>();
-                        consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                        consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueConnection,
                             false,
                             logProvider,
                             runtime, messageCount,
@@ -62,8 +62,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

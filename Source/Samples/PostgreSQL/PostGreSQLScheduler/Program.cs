@@ -3,6 +3,7 @@ using SampleShared;
 using Serilog;
 using System;
 using System.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 
 namespace PostGreSQLScheduler
@@ -23,14 +24,14 @@ namespace PostGreSQLScheduler
             //verify that the queue exists
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
-
+            var queueConnection = new QueueConnection(queueName, connectionString);
             using (var jobQueueCreation =
                 new JobQueueCreationContainer<PostgreSqlMessageQueueInit>(serviceRegister =>
                     Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
-                    jobQueueCreation.GetQueueCreation<PostgreSqlJobQueueCreation>(queueName, connectionString))
+                    jobQueueCreation.GetQueueCreation<PostgreSqlJobQueueCreation>(queueConnection))
                 {
 
                     //queue options
@@ -40,7 +41,7 @@ namespace PostGreSQLScheduler
                     createQueue.Options.EnableStatus = true;
                     createQueue.Options.EnableStatusTable = true;
                     var result = createQueue.CreateJobSchedulerQueue(serviceRegister =>
-                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister), queueName, connectionString,
+                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister), queueConnection,
                         options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos), false);
                     log.Information(result.Status.ToString());
 
@@ -86,24 +87,21 @@ q) Quit");
                             {
                                 case 'a':
                                     job1 = scheduler.AddUpdateJob<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>("test job1",
-                                        queueName,
-                                        connectionString,
+                                        queueConnection,
                                         "sec(0,5,10,15,20,25,30,35,40,45,50,55)",
                                         (message, workerNotification) => Console.WriteLine("test job1 " + message.MessageId.Id.Value));
                                     log.Information("job scheduled");
                                     break;
                                 case 'b':
                                     job2 = scheduler.AddUpdateJob<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>("test job2",
-                                        queueName,
-                                        connectionString,
+                                        queueConnection,
                                         "min(*)",
                                         (message, workerNotification) => Console.WriteLine("test job2 " + message.MessageId.Id.Value));
                                     log.Information("job scheduled");
                                     break;
                                 case 'c':
                                     job3 = scheduler.AddUpdateJob<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>("test job3",
-                                        queueName,
-                                        connectionString,
+                                        queueConnection,
                                         "sec(30)",
                                         (message, workerNotification) => Console.WriteLine("test job3 " + message.MessageId.Id.Value));
                                     log.Information("job scheduled");

@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -22,13 +23,13 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                     new QueueCreationContainer<MemoryMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
                             )
                         {
                             var result = oCreation.CreateQueue();
@@ -36,13 +37,12 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
 
                             //create data
                             var producer = new ProducerShared();
-                            producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueName,
-                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false);
 
                             //process data
                             var consumer = new ConsumerErrorShared<FakeMessage>();
-                            consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                 false,
                                 logProvider,
                                 workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, false);
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
 
                             //purge error records
-                            consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueConnection,
                                false,  logProvider, true);
 
                             //memory queue doesn't actually keep errors, so nothing to check for...
@@ -61,8 +61,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();

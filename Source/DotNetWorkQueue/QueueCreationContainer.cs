@@ -80,12 +80,10 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        public TQueue GetQueueCreation<TQueue>(string queue, string connection) where TQueue : class, IQueueCreation
+        public TQueue GetQueueCreation<TQueue>(QueueConnection queueConnection) where TQueue : class, IQueueCreation
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            var container = _createContainerInternal().Create(QueueContexts.QueueCreator, _registerService, queue, connection, _transportInit,
+            Guard.NotNull(() => queueConnection, queueConnection);
+            var container = _createContainerInternal().Create(QueueContexts.QueueCreator, _registerService, queueConnection, _transportInit,
                 ConnectionTypes.Send, x => { }, _setOptions);
             lock (Containers)
             {
@@ -154,12 +152,10 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        public TQueue GetQueueCreation<TQueue>(string queue, string connection) where TQueue : class, IJobQueueCreation
+        public TQueue GetQueueCreation<TQueue>(QueueConnection queueConnection) where TQueue : class, IJobQueueCreation
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            var container = _createContainerInternal().Create(QueueContexts.JobQueueCreator, _registerService, queue, connection, _transportInit,
+            Guard.NotNull(() => queueConnection, queueConnection);
+            var container = _createContainerInternal().Create(QueueContexts.JobQueueCreator, _registerService, queueConnection, _transportInit,
                 ConnectionTypes.Send, x => { }, _setOptions);
             lock (Containers)
             {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using SampleShared;
 using Serilog;
@@ -25,6 +26,7 @@ namespace PostGreSQLConsumerLinq
             //verify that the queue exists
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
+            var queueConnection = new QueueConnection(queueName, connectionString);
 
             using (var createQueueContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
@@ -32,7 +34,7 @@ namespace PostGreSQLConsumerLinq
                     serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
-                    createQueueContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName, connectionString))
+                    createQueueContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection))
                 {
                     if (!createQueue.QueueExists)
                     {
@@ -65,7 +67,7 @@ namespace PostGreSQLConsumerLinq
                             "PostgreSqlConsumerLinq", serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
                         using (var queue =
-                            queueContainer.CreateConsumerMethodQueueScheduler(queueName, connectionString, factory))
+                            queueContainer.CreateConsumerMethodQueueScheduler(queueConnection, factory))
                         {
                             //set some processing options and start looking for work
                             //in the async model, the worker count is how many threads are querying the queue - the scheduler runs the work

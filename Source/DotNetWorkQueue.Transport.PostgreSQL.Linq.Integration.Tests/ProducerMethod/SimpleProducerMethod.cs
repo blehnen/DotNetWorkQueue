@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
@@ -62,13 +63,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                 new QueueCreationContainer<PostgreSqlMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
@@ -91,16 +92,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                         var producer = new ProducerMethodShared();
                         if (linqMethodTypes == LinqMethodTypes.Compiled)
                         {
-                            producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueName,
-                            ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
+                            producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
                             Helpers.Verify, false, Guid.NewGuid(), GenerateMethod.CreateCompiled, 0, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
-                            producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueName,
-                            ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
+                            producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
                             Helpers.Verify, false, Guid.NewGuid(), GenerateMethod.CreateDynamic, 0, oCreation.Scope, enableChaos);
                         }
@@ -111,8 +110,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

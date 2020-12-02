@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -34,13 +35,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                 new QueueCreationContainer<PostgreSqlMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
-
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
@@ -55,12 +55,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         if (messageType == 1)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
-                                ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
-                            consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueConnection,
                                 false, logProvider,
                                 runtime, messageCount,
                                 timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos);
@@ -68,12 +67,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         else if (messageType == 2)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessageA>(queueName,
-                                ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessageA>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
-                            consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueConnection,
                                 false, logProvider,
                                 runtime, messageCount,
                                 timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos);
@@ -81,12 +79,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         else if (messageType == 3)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessageB>(queueName,
-                                ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessageB>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
-                            consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueConnection,
                                 false, logProvider,
                                 runtime, messageCount,
                                 timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos);
@@ -100,8 +97,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                     schedulerContainer?.Dispose();
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

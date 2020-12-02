@@ -35,13 +35,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.ConsumerA
                     new QueueCreationContainer<SqLiteMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.Options.EnableDelayedProcessing = true;
@@ -55,12 +55,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.ConsumerA
                             if (messageType == 1)
                             {
                                 var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessage>(queueName,
-                                    connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                                producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                                 var consumer = new ConsumerAsyncShared<FakeMessage> { Factory = Factory };
-                                consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos);
@@ -68,12 +67,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.ConsumerA
                             else if (messageType == 2)
                             {
                                 var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessageA>(queueName,
-                                    connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                                producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessageA>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                                 var consumer = new ConsumerAsyncShared<FakeMessageA> { Factory = Factory };
-                                consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos);
@@ -81,19 +79,18 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.ConsumerA
                             else if (messageType == 3)
                             {
                                 var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessageB>(queueName,
-                                    connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                                producer.RunTestAsync<SqLiteMessageQueueInit, FakeMessageB>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                                 var consumer = new ConsumerAsyncShared<FakeMessageB> { Factory = Factory };
-                                consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount,
                                     TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos);
                             }
 
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
+                            new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
                         }
                     }
                     finally
@@ -101,8 +98,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.ConsumerA
                         schedulerContainer?.Dispose();
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                   connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();

@@ -23,11 +23,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
                 using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(x => {
                 }))
                 {
+                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
                         var tests = new JobSchedulerTestsShared();
-                        tests.RunTestMultipleProducers<SqLiteMessageQueueInit, SqliteJobQueueCreation>(queueName,
-                            connectionInfo.ConnectionString, true, producerCount, queueContainer.CreateTimeSync(connectionInfo.ConnectionString), LoggerShared.Create(queueName, GetType().Name));
+                        tests.RunTestMultipleProducers<SqLiteMessageQueueInit, SqliteJobQueueCreation>(queueConnection, true, producerCount, queueContainer.CreateTimeSync(connectionInfo.ConnectionString), LoggerShared.Create(queueName, GetType().Name));
                     }
                     finally
                     {
@@ -37,8 +37,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
                         {
                             using (
                                 var oCreation =
-                                    queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                        connectionInfo.ConnectionString)
+                                    queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                                 )
                             {
                                 oCreation.RemoveQueue();

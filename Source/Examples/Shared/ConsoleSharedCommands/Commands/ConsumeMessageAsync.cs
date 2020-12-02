@@ -31,6 +31,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ConsoleShared;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using ExampleMessage;
 
@@ -117,12 +118,12 @@ namespace ConsoleSharedCommands.Commands
             return null;
         }
 
-        public ConsoleExecuteResult CreateQueue(string queueName, int type)
+        public ConsoleExecuteResult CreateQueue(QueueConnection queueConnection, int type)
         {
             if (Enum.IsDefined(typeof(ConsumerQueueTypes), type))
             {
-                CreateModuleIfNeeded(queueName, (ConsumerQueueTypes)type);
-                return new ConsoleExecuteResult($"{queueName} has been created");
+                CreateModuleIfNeeded(queueConnection, (ConsumerQueueTypes)type);
+                return new ConsoleExecuteResult($"{queueConnection.Queue} has been created");
             }
             return new ConsoleExecuteResult($"Invalid queue type {type}. Valid values are 0=POCO,1=Linq Expression");
         }
@@ -158,7 +159,7 @@ namespace ConsoleSharedCommands.Commands
             TimeSpan? waitForThreadPoolToFinish = null
             )
         {
-            CreateModuleIfNeeded(string.Empty);
+            CreateModuleIfNeeded(new QueueConnection(string.Empty, string.Empty));
 
             _taskScheduler.Configuration.MaximumThreads = maximumThreads;
             _taskScheduler.Configuration.MaxQueueSize = maxQueueSize;
@@ -236,10 +237,10 @@ namespace ConsoleSharedCommands.Commands
             return new ConsoleExecuteResult($"message expiration configuration set for {queueName}");
         }
 
-        public ConsoleExecuteResult AddWorkGroup(string queueName, ConsumerQueueTypes type, string workGroupName, int concurrencyLevel, int maxQueueSize = 0)
+        public ConsoleExecuteResult AddWorkGroup(QueueConnection queueConnection, ConsumerQueueTypes type, string workGroupName, int concurrencyLevel, int maxQueueSize = 0)
         {
-            CreateModuleIfNeeded(queueName, type, workGroupName, concurrencyLevel, maxQueueSize);
-            return new ConsoleExecuteResult($"Added workgroup {workGroupName} for queue {queueName}");
+            CreateModuleIfNeeded(queueConnection, type, workGroupName, concurrencyLevel, maxQueueSize);
+            return new ConsoleExecuteResult($"Added workgroup {workGroupName} for queue {queueConnection.Queue}");
         }
 
         public ConsoleExecuteResult StopQueue(string queueName)
@@ -325,7 +326,7 @@ namespace ConsoleSharedCommands.Commands
             }
         }
 
-        protected void CreateModuleIfNeeded(string queueName, ConsumerQueueTypes type = ConsumerQueueTypes.Poco, string workGroupName = null, int concurrencyLevel = 0, int maxQueueSize = 0)
+        protected void CreateModuleIfNeeded(QueueConnection queueConnection, ConsumerQueueTypes type = ConsumerQueueTypes.Poco, string workGroupName = null, int concurrencyLevel = 0, int maxQueueSize = 0)
         {
             if (_taskScheduler == null)
             {
@@ -333,7 +334,7 @@ namespace ConsoleSharedCommands.Commands
                 _taskFactory = _schedulerContainer.Value.CreateTaskFactory(_taskScheduler);
             }
 
-            if (!string.IsNullOrWhiteSpace(queueName) && !Queues.ContainsKey(queueName))
+            if (!string.IsNullOrWhiteSpace(queueConnection.Queue) && !Queues.ContainsKey(queueConnection.Queue))
             {
                 IConsumerBaseQueue queue = null;
                 if (workGroupName != null)
@@ -347,12 +348,10 @@ namespace ConsoleSharedCommands.Commands
                     switch (type)
                     {
                         case ConsumerQueueTypes.Poco:
-                            queue = _queueContainer.Value.CreateConsumerQueueScheduler(queueName,
-                                ConfigurationManager.AppSettings["Connection"], _taskFactory, group);
+                            queue = _queueContainer.Value.CreateConsumerQueueScheduler(queueConnection, _taskFactory, group);
                             break;
                         case ConsumerQueueTypes.Method:
-                            queue = _queueContainer.Value.CreateConsumerMethodQueueScheduler(queueName,
-                               ConfigurationManager.AppSettings["Connection"], _taskFactory, group);
+                            queue = _queueContainer.Value.CreateConsumerMethodQueueScheduler(queueConnection, _taskFactory, group);
                             break;
                     }
                 }
@@ -361,17 +360,15 @@ namespace ConsoleSharedCommands.Commands
                     switch (type)
                     {
                         case ConsumerQueueTypes.Poco:
-                            queue = _queueContainer.Value.CreateConsumerQueueScheduler(queueName,
-                                ConfigurationManager.AppSettings["Connection"], _taskFactory);
+                            queue = _queueContainer.Value.CreateConsumerQueueScheduler(queueConnection, _taskFactory);
                             break;
                         case ConsumerQueueTypes.Method:
-                            queue = _queueContainer.Value.CreateConsumerMethodQueueScheduler(queueName,
-                               ConfigurationManager.AppSettings["Connection"], _taskFactory);
+                            queue = _queueContainer.Value.CreateConsumerMethodQueueScheduler(queueConnection, _taskFactory);
                             break;
                     }
                 }
 
-                Queues.Add(queueName, queue);
+                Queues.Add(queueConnection.Queue, queue);
             }
         }
 

@@ -9,21 +9,21 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
 {
     public static class Helpers
     {
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
+        public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
-            new VerifyQueueData(queueName, queueProducerConfiguration.Options()).Verify(messageCount);
+            new VerifyQueueData(queueConnection, queueProducerConfiguration.Options()).Verify(messageCount);
         }
 
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
+        public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
         {
-            new VerifyQueueData(queueName, queueProducerConfiguration.Options()).Verify(messageCount, route);
+            new VerifyQueueData(queueConnection, queueProducerConfiguration.Options()).Verify(messageCount, route);
         }
 
-        public static void Verify(string queueName, string connectionString, long messageCount, ICreationScope scope)
+        public static void Verify(QueueConnection queueConnection, long messageCount, ICreationScope scope)
         {
-            var connection = new SqlConnectionInformation(queueName, connectionString);
+            var connection = new SqlConnectionInformation(queueConnection);
             var helper = new TableNameHelper(connection);
-            using (var conn = new SqlConnection(connectionString))
+            using (var conn = new SqlConnection(queueConnection.Connection))
             {
                 conn.Open();
                 using (var command = conn.CreateCommand())
@@ -39,11 +39,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             }
         }
 
-        public static void SetError(string queueName, string connectionString, ICreationScope scope)
+        public static void SetError(QueueConnection queueConnection, ICreationScope scope)
         {
-            var connection = new SqlConnectionInformation(queueName, connectionString);
+            var connection = new SqlConnectionInformation(queueConnection);
             var helper = new TableNameHelper(connection);
-            using (var conn = new SqlConnection(connectionString))
+            using (var conn = new SqlConnection(queueConnection.Connection))
             {
                 conn.Open();
                 using (var command = conn.CreateCommand())
@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             }
         }
 
-        public static void NoVerification(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
+        public static void NoVerification(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
             
         }

@@ -30,6 +30,7 @@ using System.Linq;
 using System.Text;
 using ConsoleShared;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -287,8 +288,8 @@ namespace PostGresSQLProducer.Commands
             if (!_queueCreators.ContainsKey(queueName))
             {
                 _queueCreators.Add(queueName,
-                    _queueCreation.Value.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                        ConfigurationManager.AppSettings["Connection"]));
+                    _queueCreation.Value.GetQueueCreation<PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
+                        ConfigurationManager.AppSettings["Connection"])));
             }
         }
     }

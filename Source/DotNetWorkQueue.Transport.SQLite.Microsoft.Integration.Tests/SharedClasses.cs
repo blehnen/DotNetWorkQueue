@@ -11,21 +11,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests
 {
     public static class Helpers
     {
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
+        public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
-            new VerifyQueueData(queueName, connectionString, queueProducerConfiguration.Options()).Verify(messageCount, null);
+            new VerifyQueueData(queueConnection, queueProducerConfiguration.Options()).Verify(messageCount, null);
         }
 
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
+        public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
         {
-            new VerifyQueueData(queueName, connectionString, queueProducerConfiguration.Options()).Verify(messageCount, route);
+            new VerifyQueueData(queueConnection, queueProducerConfiguration.Options()).Verify(messageCount, route);
         }
 
-        public static void Verify(string queueName, string connectionString, long messageCount, ICreationScope scope)
+        public static void Verify(QueueConnection queueConnection, long messageCount, ICreationScope scope)
         {
-            var connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
+            var connection = new SqliteConnectionInformation(queueConnection, new DbDataSource());
             var helper = new TableNameHelper(connection);
-            using (var conn = new SqliteConnection(connectionString))
+            using (var conn = new SqliteConnection(queueConnection.Connection))
             {
                 conn.Open();
                 using (var command = conn.CreateCommand())
@@ -41,11 +41,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests
             }
         }
 
-        public static void SetError(string queueName, string connectionString, ICreationScope scope)
+        public static void SetError(QueueConnection queueConnection, ICreationScope scope)
         {
-            var connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
+            var connection = new SqliteConnectionInformation(queueConnection, new DbDataSource());
             var helper = new TableNameHelper(connection);
-            using (var conn = new SqliteConnection(connectionString))
+            using (var conn = new SqliteConnection(queueConnection.Connection))
             {
                 conn.Open();
                 using (var command = conn.CreateCommand())
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests
             }
         }
 
-        public static void NoVerification(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
+        public static void NoVerification(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
             
         }

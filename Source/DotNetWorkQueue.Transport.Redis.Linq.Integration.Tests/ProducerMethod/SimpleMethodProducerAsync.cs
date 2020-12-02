@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.Redis.Basic;
@@ -38,18 +39,17 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                     new QueueCreationContainer<RedisQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, connectionString);
                 try
                 {
-                    await producer.RunTestAsync<RedisQueueInit>(queueName,
-                        connectionString, interceptors, messageCount, logProvider, Helpers.GenerateData,
+                    await producer.RunTestAsync<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateData,
                         Helpers.Verify, batchSending, 0, id, linqMethodTypes, null, false).ConfigureAwait(false);
                 }
                 finally
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                connectionString)
+                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

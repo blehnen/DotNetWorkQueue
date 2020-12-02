@@ -78,13 +78,11 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        public IConsumerQueue CreateConsumer(string queue, string connection)
+        public IConsumerQueue CreateConsumer(QueueConnection queueConnection)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
+            Guard.NotNull(() => queueConnection, queueConnection);
 
-            var container = _createContainerInternal().Create(QueueContexts.ConsumerQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
+            var container = _createContainerInternal().Create(QueueContexts.ConsumerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IConsumerQueue>();
         }
@@ -95,13 +93,11 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        public IConsumerMethodQueue CreateMethodConsumer(string queue, string connection)
+        public IConsumerMethodQueue CreateMethodConsumer(QueueConnection queueConnection)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
+            Guard.NotNull(() => queueConnection, queueConnection);
 
-            var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
+            var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IConsumerMethodQueue>();
         }
@@ -112,14 +108,11 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        public IConsumerQueueAsync CreateConsumerAsync(string queue,
-            string connection)
+        public IConsumerQueueAsync CreateConsumerAsync(QueueConnection queueConnection)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
+            Guard.NotNull(() => queueConnection, queueConnection);
 
-            var container = _createContainerInternal().Create(QueueContexts.ConsumerQueueAsync, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
+            var container = _createContainerInternal().Create(QueueContexts.ConsumerQueueAsync, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IConsumerQueueAsync>();
         }
@@ -132,16 +125,15 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        public IConsumerQueueScheduler CreateConsumerQueueScheduler(string queue, string connection)
+        public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
+            Guard.NotNull(() => queueConnection, queueConnection);
 
             var schedulerCreator = new SchedulerContainer(_registerService);
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
             Containers.Add(schedulerCreator);
-            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null, true);
+            return CreateConsumerQueueSchedulerInternal(queueConnection, factory, null, true);
         }
 
         /// <summary>
@@ -150,16 +142,15 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(string queue, string connection)
+        public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
+            Guard.NotNull(() => queueConnection, queueConnection);
+   
             var schedulerCreator = new SchedulerContainer(_registerService);
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
             Containers.Add(schedulerCreator);
-            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, null, true);
+            return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, null, true);
         }
 
         /// <summary>
@@ -169,12 +160,11 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="factory">The task factory.</param>
         /// <returns></returns>
-        public IConsumerQueueScheduler CreateConsumerQueueScheduler(string queue, string connection, ITaskFactory factory)
+        public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, null, false);
+            Guard.NotNull(() => queueConnection, queueConnection);
+ 
+            return CreateConsumerQueueSchedulerInternal(queueConnection, factory, null, false);
         }
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -183,12 +173,11 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="factory">The task factory.</param>
         /// <returns></returns>
-        public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(string queue, string connection, ITaskFactory factory)
+        public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
+            Guard.NotNull(() => queueConnection, queueConnection);
 
-            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, null, false);
+            return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, null, false);
         }
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -198,12 +187,11 @@ namespace DotNetWorkQueue
         /// <param name="factory">The task factory.</param>
         /// <param name="workGroup">The work group.</param>
         /// <returns></returns>
-        public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(string queue, string connection, ITaskFactory factory, IWorkGroup workGroup)
+        public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            return CreateConsumerMethodQueueSchedulerInternal(queue, connection, factory, workGroup, false);
+            Guard.NotNull(() => queueConnection, queueConnection);
+    
+            return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, workGroup, false);
         }
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -213,12 +201,11 @@ namespace DotNetWorkQueue
         /// <param name="factory">The task factory.</param>
         /// <param name="workGroup">The work group.</param>
         /// <returns></returns>
-        public IConsumerQueueScheduler CreateConsumerQueueScheduler(string queue, string connection, ITaskFactory factory, IWorkGroup workGroup)
+        public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            return CreateConsumerQueueSchedulerInternal(queue, connection, factory, workGroup, false);
+            Guard.NotNull(() => queueConnection, queueConnection);
+     
+            return CreateConsumerQueueSchedulerInternal(queueConnection, factory, workGroup, false);
         }
 
         /// <summary>
@@ -230,24 +217,22 @@ namespace DotNetWorkQueue
         /// <param name="workGroup">The work group.</param>
         /// <param name="internalFactory">if set to <c>true</c> [internal factory].</param>
         /// <returns></returns>
-        private IConsumerQueueScheduler CreateConsumerQueueSchedulerInternal(string queue,
-            string connection, ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
+        private IConsumerQueueScheduler CreateConsumerQueueSchedulerInternal(QueueConnection queueConnection, 
+            ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
+            Guard.NotNull(() => queueConnection, queueConnection);
             IContainer container;
             if (internalFactory) //we own the factory
             {
                 if (workGroup == null)
                 {
-                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive,
                         serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton).
                         Register(() => factory.Scheduler, LifeStyles.Singleton), _setOptions);
                 }
                 else
                 {
-                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive,
                          serviceRegister => serviceRegister.Register(() => factory, LifeStyles.Singleton).Register(() => workGroup, LifeStyles.Singleton).
                         Register(() => factory.Scheduler, LifeStyles.Singleton), _setOptions);
                 }
@@ -256,13 +241,13 @@ namespace DotNetWorkQueue
             {
                 if (workGroup == null)
                 {
-                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive,
                         serviceRegister => serviceRegister.RegisterNonScopedSingleton(factory).Register<IWorkGroup>(() => new WorkGroupNoOp(), LifeStyles.Singleton).
                         RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
                 else
                 {
-                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queue, connection, _transportInit, ConnectionTypes.Receive,
+                    container = _createContainerInternal().Create(QueueContexts.ConsumerQueueScheduler, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive,
                          serviceRegister => serviceRegister.RegisterNonScopedSingleton(factory).Register(() => workGroup, LifeStyles.Singleton).
                         RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
@@ -280,19 +265,17 @@ namespace DotNetWorkQueue
         /// <param name="workGroup">The work group.</param>
         /// <param name="internalFactory">if set to <c>true</c> [internal factory].</param>
         /// <returns></returns>
-        private IConsumerMethodQueueScheduler CreateConsumerMethodQueueSchedulerInternal(string queue,
-            string connection, ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
+        private IConsumerMethodQueueScheduler CreateConsumerMethodQueueSchedulerInternal(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
+            Guard.NotNull(() => queueConnection, queueConnection);
+ 
             IContainer container;
             if (internalFactory) //we own factory
             {
                 if (workGroup == null)
                 {
                     container = _createContainerInternal()
-                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection,
+                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queueConnection,
                             _transportInit, ConnectionTypes.Receive,
                             serviceRegister =>
                                 serviceRegister.Register(() => factory, LifeStyles.Singleton)
@@ -302,7 +285,7 @@ namespace DotNetWorkQueue
                 else
                 {
                     container = _createContainerInternal()
-                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection,
+                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queueConnection,
                             _transportInit, ConnectionTypes.Receive,
                             serviceRegister =>
                                 serviceRegister.Register(() => factory, LifeStyles.Singleton)
@@ -315,7 +298,7 @@ namespace DotNetWorkQueue
                 if (workGroup == null)
                 {
                     container = _createContainerInternal()
-                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection,
+                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queueConnection,
                             _transportInit, ConnectionTypes.Receive,
                             serviceRegister =>
                                 serviceRegister.RegisterNonScopedSingleton(factory)
@@ -325,7 +308,7 @@ namespace DotNetWorkQueue
                 else
                 {
                     container = _createContainerInternal()
-                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queue, connection,
+                        .Create(QueueContexts.ConsumerMethodQueueScheduler, _registerService, queueConnection,
                             _transportInit, ConnectionTypes.Receive,
                             serviceRegister =>
                                 serviceRegister.RegisterNonScopedSingleton(factory)
@@ -348,14 +331,12 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
         public IProducerQueue<TMessage> CreateProducer<TMessage>(
-            string queue, string connection)
+            QueueConnection queueConnection)
             where TMessage : class
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
+            Guard.NotNull(() => queueConnection, queueConnection);
+   
+            var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IProducerQueue<TMessage>>();
         }
@@ -367,13 +348,11 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
         public IProducerMethodQueue CreateMethodProducer(
-            string queue, string connection)
+            QueueConnection queueConnection)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
+            Guard.NotNull(() => queueConnection, queueConnection);
+  
+            var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IProducerMethodQueue>();
         }
@@ -385,13 +364,11 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
         public IProducerMethodJobQueue CreateMethodJobProducer(
-            string queue, string connection)
+            QueueConnection queueConnection)
         {
-            Guard.NotNullOrEmpty(() => queue, queue);
-            Guard.NotNullOrEmpty(() => connection, connection);
-
-            var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
+            Guard.NotNull(() => queueConnection, queueConnection);
+ 
+            var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IProducerMethodJobQueue>();
         }
@@ -405,10 +382,9 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        public IJobSchedulerLastKnownEvent CreateJobSchedulerLastKnownEvent(string queue, string connection)
+        public IJobSchedulerLastKnownEvent CreateJobSchedulerLastKnownEvent(QueueConnection queueConnection)
         {
-            var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queue,
-                connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
+            var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IJobSchedulerLastKnownEvent>();
         }
@@ -421,8 +397,7 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IGetTimeFactory CreateTimeSync(string connection)
         {
-            var container = _createContainerInternal().Create(QueueContexts.Time, _registerService, "TIME",
-               connection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
+            var container = _createContainerInternal().Create(QueueContexts.Time, _registerService, new QueueConnection("TIME", connection), _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             var factory = container.GetInstance<IGetTimeFactory>();
             return factory;
         }

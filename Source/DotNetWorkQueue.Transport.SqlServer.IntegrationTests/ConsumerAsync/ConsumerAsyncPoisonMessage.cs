@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -26,13 +27,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                 new QueueCreationContainer<SqlServerMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
@@ -46,28 +47,26 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 
                         //create data
                         var producer = new ProducerShared();
-                        producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
-                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, oCreation.Scope, false);
 
                         //process data
                         var consumer = new ConsumerAsyncPoisonMessageShared<FakeMessage>();
-                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                             false,
                             workerCount, logProvider,
                             timeOut, readerCount, queueSize, messageCount,
                             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
 
-                        ValidateErrorCounts(queueName, messageCount);
-                        new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, true);
+                        ValidateErrorCounts(queueConnection, messageCount);
+                        new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(messageCount, true, true);
                     }
                 }
                 finally
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();
@@ -76,12 +75,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
             }
         }
 
-        private void ValidateErrorCounts(string queueName, long messageCount)
+        private void ValidateErrorCounts(QueueConnection queueConnection, long messageCount)
         {
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            new VerifyErrorCounts(queueName).Verify(messageCount, 0);
+            new VerifyErrorCounts(queueConnection).Verify(messageCount, 0);
         }
     }
 }

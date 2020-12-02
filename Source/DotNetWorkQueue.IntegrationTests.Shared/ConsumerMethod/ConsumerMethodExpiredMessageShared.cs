@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using Xunit;
 
@@ -7,7 +8,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
     public class ConsumerMethodExpiredMessageShared
     {
-        public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
@@ -20,7 +21,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -33,8 +34,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 {
                     using (
                         var queue =
-                            creator.CreateMethodConsumer(queueName,
-                                connectionString))
+                            creator.CreateMethodConsumer(queueConnection))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                             heartBeatMonitorTime, updateTime, null);
@@ -52,9 +52,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     }
 
                     Assert.Equal(0, MethodIncrementWrapper.Count(id));
-                    VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), 0);
-                    VerifyMetrics.VerifyExpiredMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
-                    LoggerShared.CheckForErrors(queueName);
+                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), 0);
+                    VerifyMetrics.VerifyExpiredMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
+                    LoggerShared.CheckForErrors(queueConnection.Queue);
                 }
             }
         }

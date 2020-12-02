@@ -27,13 +27,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                 new QueueCreationContainer<SqlServerMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
@@ -50,26 +50,24 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         var producer = new ProducerMethodShared();
                         if (linqMethodTypes == LinqMethodTypes.Compiled)
                         {
-                            producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
-                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestCompiled<SqlServerMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, oCreation.Scope, false);
                         }
 #if NETFULL
                         else
                         {
-                            producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
-                           ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestDynamic<SqlServerMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, oCreation.Scope, false);
                         }
 #endif
                         //process data
                         var consumer = new ConsumerMethodAsyncRollBackShared();
-                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                             false,
                             workerCount, logProvider,
                             timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos);
                         LoggerShared.CheckForErrors(queueName);
-                        new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
+                        new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
                         GenerateMethod.ClearRollback(id);
                     }
                 }
@@ -77,8 +75,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

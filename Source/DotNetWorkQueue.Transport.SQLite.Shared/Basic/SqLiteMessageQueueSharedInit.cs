@@ -55,9 +55,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// <param name="connection">The connection.</param>
         /// <param name="queue">The queue.</param>
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
-            string connection, string queue)
+            QueueConnection queueConnection)
         {
-            RegisterImplementations(container, registrationType, connection, queue, Assembly.GetAssembly(GetType()));
+            RegisterImplementations(container, registrationType, queueConnection, Assembly.GetAssembly(GetType()));
         }
 
 
@@ -70,10 +70,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// <param name="queue">The queue.</param>
         /// <param name="assemblies">The assemblies.</param>
         public virtual void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
-            string connection, string queue, params Assembly[] assemblies)
+            QueueConnection queueConnection, params Assembly[] assemblies)
         {
             Guard.NotNull(() => container, container);
-            base.RegisterImplementations(container, registrationType, connection, queue);
+            base.RegisterImplementations(container, registrationType, queueConnection);
             var init = new RelationalDatabaseMessageQueueInit();
             init.RegisterStandardImplementations(container, assemblies);
 
@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             container.Register<IDbCommandStringCache>(LifeStyles.Singleton);
 
             container.Register<IConnectionInformation>(
-                () => new SqliteConnectionInformation(queue, connection, container.GetInstance<IDbDataSource>()),
+                () => new SqliteConnectionInformation(queueConnection, container.GetInstance<IDbDataSource>()),
                 LifeStyles.Singleton);
 
             container.Register<BuildDequeueCommand>(LifeStyles.Singleton);

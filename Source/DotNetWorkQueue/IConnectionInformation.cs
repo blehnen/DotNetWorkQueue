@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -38,6 +41,11 @@ namespace DotNetWorkQueue
         /// The connection string.
         /// </value>
         string ConnectionString { get; }
+
+        /// <summary>
+        /// Gets the additional connection settings.
+        /// </summary>
+        IReadOnlyDictionary<string, string> AdditionalConnectionSettings { get; }
 
         /// <summary>
         /// Gets the server.

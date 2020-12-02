@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
@@ -8,7 +9,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
     public class ConsumerErrorShared<TMessage>
         where TMessage : class
     {
-        public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
             ILogProvider logProvider,
             int workerCount, int timeOut, int messageCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos)
@@ -18,7 +19,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -36,8 +37,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                     bool rollBacks;
                     using (
                         var queue =
-                            creator.CreateConsumer(queueName,
-                                connectionString))
+                            creator.CreateConsumer(queueConnection))
                     {
                         rollBacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
 
@@ -62,16 +62,16 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                     }
 
                     if (rollBacks)
-                        VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 2, 2);
+                        VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 2, 2);
                 }
             }
         }
 
-        public void PurgeErrorMessages<TTransportInit>(string queueName, string connectionString,
+        public void PurgeErrorMessages<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors, ILogProvider logProvider, bool actuallyPurge)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -87,8 +87,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 
                     using (
                         var queue =
-                            creator.CreateConsumer(queueName,
-                                connectionString))
+                            creator.CreateConsumer(queueConnection))
                     {
                         SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
                         SharedSetup.SetupDefaultErrorRetry(queue.Configuration);

@@ -23,13 +23,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                     new QueueCreationContainer<SqlServerMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
@@ -43,25 +43,23 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
 
                         //create data
                         var producer = new ProducerShared();
-                        producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
-                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, oCreation.Scope, false);
 
                         //process data
                         var consumer = new ConsumerRollBackShared<FakeMessage>();
-                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                             false,
                             workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
 
-                        new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
+                        new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
                     }
                 }
                 finally
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -31,17 +32,17 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                 new QueueCreationContainer<RedisQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, connectionString);
                 try
                 {
                     if (messageType == 1)
                     {
                         var producer = new ProducerAsyncShared();
-                        producer.RunTestAsync<RedisQueueInit, FakeMessage>(queueName,
-                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        producer.RunTestAsync<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, null, false).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
-                        consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
+                        consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
                             logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
@@ -49,12 +50,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     else if (messageType == 2)
                     {
                         var producer = new ProducerAsyncShared();
-                        producer.RunTestAsync<RedisQueueInit, FakeMessageA>(queueName,
-                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        producer.RunTestAsync<RedisQueueInit, FakeMessageA>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, null, false).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
-                        consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
+                        consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
                             logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
@@ -62,13 +62,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     else if (messageType == 3)
                     {
                         var producer = new ProducerAsyncShared();
-                        producer.RunTestAsync<RedisQueueInit, FakeMessageB>(queueName,
-                            connectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        producer.RunTestAsync<RedisQueueInit, FakeMessageB>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, null, false).Wait(timeOut * 1000 / 2);
 
 
                         var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
-                        consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
+                        consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
                             logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
@@ -84,8 +83,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     schedulerContainer?.Dispose();
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                               connectionString)
+                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

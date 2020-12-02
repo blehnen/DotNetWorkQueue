@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
 {
     public class ConsumerMethodAsyncErrorShared
     {
-        public void PurgeErrorMessages<TTransportInit>(string queueName, string connectionString,
+        public void PurgeErrorMessages<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors, ILogProvider logProvider, bool actuallyPurge)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                 var queue =
                                     creator
                                         .CreateConsumerMethodQueueScheduler(
-                                            queueName, connectionString, taskFactory))
+                                            queueConnection, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
                                 SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
@@ -49,7 +50,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             }
         }
 
-        public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
             ILogProvider logProvider,
             int messageCount, int workerCount, int timeOut,
             int queueSize, int readerCount,
@@ -61,7 +62,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -91,7 +92,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                 var queue =
                                     creator
                                         .CreateConsumerMethodQueueScheduler(
-                                            queueName, connectionString, taskFactory))
+                                            queueConnection, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
                                     heartBeatMonitorTime, updateTime, null);
@@ -114,7 +115,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                             }
                         }
                         if(rollback)
-                            VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 2, 2);
+                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 2, 2);
                     }
                 }
             }

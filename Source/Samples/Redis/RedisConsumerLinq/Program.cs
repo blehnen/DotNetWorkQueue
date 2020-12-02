@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using SampleShared;
 using Serilog;
@@ -27,6 +28,7 @@ namespace RedisConsumerLinq
 
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
+            var queueConnection = new QueueConnection(queueName, connectionString);
 
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
@@ -49,7 +51,7 @@ namespace RedisConsumerLinq
                             "RedisConsumerLinq", serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
                         using (var queue =
-                            queueContainer.CreateConsumerMethodQueueScheduler(queueName, connectionString, factory))
+                            queueContainer.CreateConsumerMethodQueueScheduler(queueConnection, factory))
                         {
                             //set some processing options and start looking for work
                             //in the async model, the worker count is how many threads are querying the queue - the scheduler runs the work

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Logging;
@@ -28,29 +29,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                     new QueueCreationContainer<SqLiteMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             var result = oCreation.CreateQueue();
                             Assert.True(result.Success, result.ErrorMessage);
 
-                            RunTest(queueName, messageCount, 10, logProvider, connectionInfo.ConnectionString, oCreation.Scope, enableChaos);
+                            RunTest(queueConnection, messageCount, 10, logProvider, oCreation.Scope, enableChaos);
                             LoggerShared.CheckForErrors(queueName);
-                            new VerifyQueueData(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount * 10, null);
+                            new VerifyQueueData(queueConnection, oCreation.Options).Verify(messageCount * 10, null);
                         }
                     }
                     finally
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();
@@ -60,13 +60,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, string connectionString, ICreationScope scope, bool enableChaos)
+        private void RunTest(QueueConnection queueConnection, int messageCount, int queueCount, ILogProvider logProvider, ICreationScope scope, bool enableChaos)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
             {
                 var producer = new ProducerShared();
-                var task = new Task(() => producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName, connectionString, false, messageCount,
+                var task = new Task(() => producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueConnection, false, messageCount,
                     logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, scope, enableChaos));
                 tasks.Add(task); 
             }

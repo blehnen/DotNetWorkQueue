@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using System.Linq;
 using DotNetWorkQueue.Configuration;
 using StackExchange.Redis;
@@ -32,9 +34,9 @@ namespace DotNetWorkQueue.Transport.Redis
         /// </summary>
         /// <param name="queueName">Name of the queue.</param>
         /// <param name="connectionString">The connection string.</param>
-        public RedisConnectionInfo(string queueName, string connectionString): base(queueName, connectionString)
+        public RedisConnectionInfo(QueueConnection queueConnection) : base(queueConnection)
         {
-            ValidateConnection(connectionString);
+            ValidateConnection(queueConnection.Connection);
         }
         #endregion
 
@@ -47,7 +49,12 @@ namespace DotNetWorkQueue.Transport.Redis
         /// </returns>
         public override IConnectionInformation Clone()
         {
-            return new RedisConnectionInfo(QueueName, ConnectionString);
+            var data = new Dictionary<string, string>();
+            foreach (var keyvalue in AdditionalConnectionSettings)
+            {
+                data.Add(keyvalue.Key, keyvalue.Value);
+            }
+            return new RedisConnectionInfo(new QueueConnection(QueueName, ConnectionString, data));
         }
         #endregion
 

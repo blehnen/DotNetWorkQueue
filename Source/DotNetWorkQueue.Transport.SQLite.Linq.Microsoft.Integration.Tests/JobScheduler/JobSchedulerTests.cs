@@ -23,10 +23,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.JobS
                 using (var queueCreator =
                     new QueueCreationContainer<SqLiteMessageQueueInit>())
                 {
+                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                connectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                     )
                     {
                         using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(x => { }))
@@ -35,8 +35,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Microsoft.Integration.Tests.JobS
                             {
                                 var tests = new JobSchedulerTestsShared();
                                 tests.RunEnqueueTestCompiled<SqLiteMessageQueueInit, SqliteJobQueueCreation>(
-                                    queueName,
-                                    connectionInfo.ConnectionString, true,
+                                    queueConnection, true,
                                     Helpers.Verify, Helpers.SetError,
                                     queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
                                     oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));

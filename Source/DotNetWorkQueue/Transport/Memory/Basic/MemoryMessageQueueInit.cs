@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="connection">The connection.</param>
         /// <param name="queue">The queue.</param>
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
-            string connection, string queue)
+            QueueConnection queueConnection)
         {
             Guard.NotNull(() => container, container);
 
@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
 
-            container.Register<IConnectionInformation>(() => new ConnectionInformation(queue, connection),
+            container.Register<IConnectionInformation>(() => new ConnectionInformation(queueConnection),
                 LifeStyles.Singleton);
           
             container.Register<TransportOptions>(LifeStyles.Singleton);

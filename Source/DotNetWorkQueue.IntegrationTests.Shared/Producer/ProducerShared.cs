@@ -11,35 +11,33 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
 {
     public class ProducerShared
     {
-        public void RunTest<TTransportInit, TMessage>(string queueName,
-            string connectionString,
+        public void RunTest<TTransportInit, TMessage>(QueueConnection queueConnection,
             bool addInterceptors,
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
+            Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
             bool sendViaBatch,
             ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
-            RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors, messageCount, logProvider, generateData,
+            RunTest<TTransportInit, TMessage>(queueConnection, addInterceptors, messageCount, logProvider, generateData,
                 verify, sendViaBatch, true, scope, enableChaos);
         }
 
-        public void RunTest<TTransportInit, TMessage>(string queueName,
-            string connectionString,
+        public void RunTest<TTransportInit, TMessage>(QueueConnection queueConnection,
             bool addInterceptors,
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
+            Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
             bool sendViaBatch, bool validateMetricCounts,
             ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorProducer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -54,13 +52,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                     using (var queue =
                         creator
                             .CreateProducer
-                            <TMessage>(queueName, connectionString))
+                            <TMessage>(queueConnection))
                     {
-                        RunProducer(queue, queueName, messageCount, generateData, verify, sendViaBatch, scope);
+                        RunProducer(queue, queueConnection, messageCount, generateData, verify, sendViaBatch, scope);
                     }
 
                     if (validateMetricCounts)
-                        VerifyMetrics.VerifyProducedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                        VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
                 }
             }
         }
@@ -68,17 +66,17 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
         private void RunProducer<TMessage>(
           IProducerQueue
               <TMessage> queue, 
-                string queueName, 
+                QueueConnection queueConnection,
                 long messageCount,
                 Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-                Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify,
+                Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
                 bool sendViaBatch,
                 ICreationScope scope)
             where TMessage: class
         {   
             RunProducerInternal(queue, messageCount, generateData, sendViaBatch);
-            LoggerShared.CheckForErrors(queueName);
-            verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString, queue.Configuration, messageCount, scope);
+            LoggerShared.CheckForErrors(queueConnection.Queue);
+            verify(queueConnection, queue.Configuration, messageCount, scope);
         }
 
         private void RunProducerInternal<TMessage>(

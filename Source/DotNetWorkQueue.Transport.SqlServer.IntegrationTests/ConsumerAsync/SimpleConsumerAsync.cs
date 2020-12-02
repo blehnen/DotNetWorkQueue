@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -31,13 +32,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                 new QueueCreationContainer<SqlServerMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
@@ -52,12 +53,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                         if (messageType == 1)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessage>(queueName,
-                                ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
-                            consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                                 false, logProvider,
                                 runtime, messageCount,
                                 timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos);
@@ -65,12 +65,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                         else if (messageType == 2)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageA>(queueName,
-                                ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageA>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
-                            consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                                 false, logProvider,
                                 runtime, messageCount,
                                 timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos);
@@ -78,18 +77,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                         else if (messageType == 3)
                         {
                             var producer = new ProducerAsyncShared();
-                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageB>(queueName,
-                                ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageB>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
                             var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
-                            consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                            consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                                 false, logProvider,
                                 runtime, messageCount,
                                 timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%10)", enableChaos);
                         }
 
-                        new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
+                        new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
                     }
                 }
                 finally
@@ -97,8 +95,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                     schedulerContainer?.Dispose();
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

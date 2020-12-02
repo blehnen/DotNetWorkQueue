@@ -100,8 +100,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <returns></returns>
         public IScheduledJob AddUpdateJob<TTransportInit, TQueue>(
             string jobname,
-            string queue,
-            string connection,
+            QueueConnection queueConnection,
             string schedule,
             LinqExpressionToRun actionToRun,
             string route = null,
@@ -115,7 +114,7 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
                "The job name length must be 255 characters or less");
 
-            return AddTaskImpl<TTransportInit, TQueue>(jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, false, producerConfiguration);
+            return AddTaskImpl<TTransportInit, TQueue>(jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, false, producerConfiguration);
         }
 
         /// <summary>
@@ -136,8 +135,7 @@ namespace DotNetWorkQueue.JobScheduler
         public IScheduledJob AddUpdateJob<TTransportInit>(
             IJobQueueCreation jobQueueCreation,
             string jobname,
-            string queue,
-            string connection,
+            QueueConnection queueConnection,
             string schedule,
             LinqExpressionToRun actionToRun,
             string route = null,
@@ -150,14 +148,13 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
                "The job name length must be 255 characters or less");
 
-            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, false, producerConfiguration);
+            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, false, producerConfiguration);
         }
 
         /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit, TQueue>(
             string jobName,
-            string queue,
-            string connection,
+            QueueConnection queueConnection,
             string schedule,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
             string route = null,
@@ -171,14 +168,13 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.NotNullOrEmpty(() => schedule, schedule);
             Guard.IsValid(() => jobName, jobName, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit, TQueue>(jobName, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, rawExpression, producerConfiguration);
+            return AddTaskImpl<TTransportInit, TQueue>(jobName, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, rawExpression, producerConfiguration);
         }
         /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit>(
             IJobQueueCreation jobQueueCreation,
             string jobname,
-            string queue,
-            string connection,
+            QueueConnection queueConnection,
             string schedule,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
             string route = null,
@@ -191,7 +187,7 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.NotNullOrEmpty(() => schedule, schedule);
             Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queue, connection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, rawExpression, producerConfiguration);
+            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, rawExpression, producerConfiguration);
         }
         /// <summary>
         /// Adds the task
@@ -213,8 +209,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <exception cref="JobSchedulerException">Cannot add a task after Shutdown has been called.</exception>
         private ScheduledJob AddTaskImpl<TTransportInit,TQueue>(
             string name,
-            string queue,
-            string connection,
+            QueueConnection queueConnection,
             IJobSchedule schedule,
             bool autoRun,
             TimeSpan window,
@@ -242,7 +237,7 @@ namespace DotNetWorkQueue.JobScheduler
                 }
                 if (expressionToRun != null)
                 {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queue, connection, producerConfiguration), expressionToRun, _getTime.Create(), route)
+                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queueConnection, producerConfiguration), expressionToRun, _getTime.Create(), route)
                     {
                         Window = window,
                         IsAttached = true
@@ -251,7 +246,7 @@ namespace DotNetWorkQueue.JobScheduler
                 }
                 else
                 {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queue, connection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
+                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queueConnection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
                     {
                         Window = window,
                         IsAttached = true
@@ -290,8 +285,7 @@ namespace DotNetWorkQueue.JobScheduler
         private ScheduledJob AddTaskImpl<TTransportInit>(
             IJobQueueCreation jobQueueCreation,
             string name,
-            string queue,
-            string connection,
+            QueueConnection queueConnection,
             IJobSchedule schedule,
             bool autoRun,
             TimeSpan window,
@@ -317,7 +311,7 @@ namespace DotNetWorkQueue.JobScheduler
                 }
                 if (expressionToRun != null)
                 {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queue, connection, producerConfiguration), expressionToRun, _getTime.Create(), route)
+                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queueConnection, producerConfiguration), expressionToRun, _getTime.Create(), route)
                     {
                         Window = window,
                         IsAttached = true
@@ -326,7 +320,7 @@ namespace DotNetWorkQueue.JobScheduler
                 }
                 else
                 {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queue, connection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
+                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queueConnection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
                     {
                         Window = window,
                         IsAttached = true

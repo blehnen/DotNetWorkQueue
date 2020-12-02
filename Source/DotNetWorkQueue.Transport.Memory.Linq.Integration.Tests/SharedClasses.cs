@@ -8,7 +8,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
 {
     public static class Helpers
     {
-        public static void Verify(string notused1, string notused2, QueueProducerConfiguration config, long recordCount, ICreationScope scope)
+        public static void Verify(QueueConnection notUsed, QueueProducerConfiguration config, long recordCount, ICreationScope scope)
         {
             var realScope = (CreationScope) scope;
             if (realScope.ContainedClears.TryPeek(out var dataStorage))
@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
             }
         }
 
-        public static void Verify(string notused1, string notused2, long recordCount, ICreationScope scope)
+        public static void Verify(QueueConnection notUsed, long recordCount, ICreationScope scope)
         {
             var realScope = (CreationScope)scope;
             if (realScope.ContainedClears.TryPeek(out var dataStorage))
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
             }
         }
 
-        public static void NoVerification(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
+        public static void NoVerification(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
             
         }
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
             return null;
         }
 
-        public static void SetError(string queueName, string connectionString, ICreationScope scope)
+        public static void SetError(QueueConnection queueConnection, ICreationScope scope)
         {
             //no such thing as an error in the memory queue, as it's a FIFO queue with no rollbacks
             //delete the job instead

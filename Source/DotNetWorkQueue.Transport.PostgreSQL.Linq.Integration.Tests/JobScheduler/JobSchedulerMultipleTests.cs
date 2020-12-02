@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
@@ -19,11 +20,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
             using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>(x => {
             }))
             {
+                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
                     var tests = new JobSchedulerTestsShared();
-                    tests.RunTestMultipleProducers<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(queueName,
-                        ConnectionInfo.ConnectionString, interceptors, producerCount, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), LoggerShared.Create(queueName, GetType().Name));
+                    tests.RunTestMultipleProducers<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(queueConnection, interceptors, producerCount, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), LoggerShared.Create(queueName, GetType().Name));
                 }
                 finally
                 {
@@ -33,8 +34,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                    ConnectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();

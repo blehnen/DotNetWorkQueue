@@ -52,10 +52,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="registrationType">Type of the registration.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="queue">The queue.</param>
-        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
+        public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, QueueConnection queueConnection)
         {
             Guard.NotNull(() => container, container);
-            base.RegisterImplementations(container, registrationType, connection, queue);
+            base.RegisterImplementations(container, registrationType, queueConnection);
 
             var init = new RelationalDatabaseMessageQueueInit();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
             container.Register<SqlServerCommandStringCache>(LifeStyles.Singleton);
 
-            container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queue, connection), LifeStyles.Singleton);
+            container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queueConnection), LifeStyles.Singleton);
 
             container.Register<SqlServerMessageQueueTransportOptions>(LifeStyles.Singleton);
             container.Register<IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand>, ConnectionHeader<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);

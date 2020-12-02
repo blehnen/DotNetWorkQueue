@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Reflection;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -34,12 +35,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     {
         /// <inheritdoc />
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
-            string connection, string queue)
+            QueueConnection queueConnection)
         {
             var myType = Assembly.GetAssembly(GetType());
             var baseType = Assembly.GetAssembly(typeof(IDbFactory));
 
-            base.RegisterImplementations(container, registrationType, connection, queue, myType, baseType);
+            base.RegisterImplementations(container, registrationType, queueConnection, myType, baseType);
 
             container.Register<IDbDataSource, DbDataSource>(LifeStyles.Singleton);
             container.Register<IGetFileNameFromConnectionString, GetFileNameFromConnectionString>(LifeStyles.Singleton);

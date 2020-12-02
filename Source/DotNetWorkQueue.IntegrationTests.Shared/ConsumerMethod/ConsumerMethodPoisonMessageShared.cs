@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
     public class ConsumerMethodPoisonMessageShared
     {
-        public void RunConsumer<TTransportInit>(string queueName,
-            string connectionString,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors,
             int workerCount,
             ILogProvider logProvider,
@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -36,8 +36,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 {
                     using (
                         var queue =
-                            creator.CreateMethodConsumer(queueName,
-                                connectionString))
+                            creator.CreateMethodConsumer(queueConnection))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                             heartBeatMonitorTime, updateTime, null);
@@ -54,7 +53,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                             Thread.Sleep(1000);
                         }
                     }
-                    VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    VerifyMetrics.VerifyPoisonMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
                 }
             }
         }

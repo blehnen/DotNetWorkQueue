@@ -3,6 +3,7 @@
 using System;
 using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Shared;
@@ -19,10 +20,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         private readonly TableNameHelper _tableNameHelper;
         private readonly SqliteConnectionInformation _connection;
 
-        public VerifyQueueData(string queueName, string connectionString, SqLiteMessageQueueTransportOptions options)
+        public VerifyQueueData(QueueConnection queueConnection, SqLiteMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
+            _connection = new SqliteConnectionInformation(queueConnection, new DbDataSource());
             _tableNameHelper = new TableNameHelper(_connection);
         }
         public void Verify(long expectedMessageCount, string route)
@@ -192,7 +193,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         public VerifyQueueRecordCount(string queueName, string connectionString, SqLiteMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
+            _connection = new SqliteConnectionInformation(new QueueConnection(queueName, connectionString), new DbDataSource());
             _tableNameHelper = new TableNameHelper(_connection);
         }
 
@@ -269,7 +270,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 
         public VerifyErrorCounts(string queueName, string connectionString)
         {
-            _connection = new SqliteConnectionInformation(queueName, connectionString, new DbDataSource());
+            _connection = new SqliteConnectionInformation(new QueueConnection(queueName, connectionString), new DbDataSource());
             _tableNameHelper = new TableNameHelper(_connection);
         }
 

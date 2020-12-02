@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
@@ -23,13 +24,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
                 new QueueCreationContainer<PostgreSqlMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
@@ -43,7 +44,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
                         Assert.True(result.Success, result.ErrorMessage);
 
                         var routeTest = new RouteTestsShared();
-                        routeTest.RunTest<PostgreSqlMessageQueueInit, FakeMessageA>(queueName, ConnectionInfo.ConnectionString,
+                        routeTest.RunTest<PostgreSqlMessageQueueInit, FakeMessageA>(queueConnection,
                             true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
                             GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
 
@@ -54,8 +55,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

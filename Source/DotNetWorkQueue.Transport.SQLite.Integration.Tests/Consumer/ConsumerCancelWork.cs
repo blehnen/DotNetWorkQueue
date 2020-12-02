@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -13,8 +14,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     {
         [Theory]
         [InlineData(7, 15, 90, 3, true, false),
-        InlineData(2, 45, 90, 3, false, false),
-        InlineData(7, 15, 90, 3, true, false)]
+        InlineData(2, 45, 90, 3, false, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
@@ -26,12 +26,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                         new QueueCreationContainer<SqLiteMessageQueueInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.Options.EnableDelayedProcessing = true;
@@ -43,12 +43,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                             Assert.True(result.Success, result.ErrorMessage);
 
                             var producer = new ProducerShared();
-                            producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
-                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false);
 
                             var consumer = new ConsumerCancelWorkShared<SqLiteMessageQueueInit, FakeMessage>();
-                            consumer.RunConsumer(queueName, connectionInfo.ConnectionString, false, logProvider,
+                            consumer.RunConsumer(queueConnection, false, logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut, x => { }, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
 
@@ -59,8 +58,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();

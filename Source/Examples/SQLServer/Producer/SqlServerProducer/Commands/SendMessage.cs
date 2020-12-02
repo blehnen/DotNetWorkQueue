@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using ConsoleShared;
 using ConsoleSharedCommands.Commands;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.SqlServer;
@@ -276,31 +277,29 @@ namespace SqlServerProducer.Commands
             return messages;
         }
 
-        public ConsoleExecuteResult CreateQueue(string queueName, int type)
+        public ConsoleExecuteResult CreateQueue(QueueConnection queueConnection, int type)
         {
             if (Enum.IsDefined(typeof(ConsumerQueueTypes), type))
             {
-                CreateModuleIfNeeded(queueName, (ConsumerQueueTypes)type);
-                return new ConsoleExecuteResult($"{queueName} has been created");
+                CreateModuleIfNeeded(queueConnection, (ConsumerQueueTypes)type);
+                return new ConsoleExecuteResult($"{queueConnection.Queue} has been created");
             }
             return new ConsoleExecuteResult($"Invalid queue type {type}. Valid values are 0=POCO,1=Linq Expression");
         }
 
-        private void CreateModuleIfNeeded(string queueName, ConsumerQueueTypes type)
+        private void CreateModuleIfNeeded(QueueConnection queue, ConsumerQueueTypes type)
         {
-            if (!_queues.ContainsKey(queueName))
+            if (!_queues.ContainsKey(queue.Queue))
             {
                 switch (type)
                 {
                     case ConsumerQueueTypes.Poco:
-                        _queues.Add(queueName,
-                             _queueContainer.Value.CreateProducer<SimpleMessage>(queueName,
-                                 ConfigurationManager.AppSettings["Connection"]));
+                        _queues.Add(queue.Queue,
+                             _queueContainer.Value.CreateProducer<SimpleMessage>(queue));
                         break;
                     case ConsumerQueueTypes.Method:
-                        _queues.Add(queueName,
-                            _queueContainer.Value.CreateMethodProducer(queueName,
-                                ConfigurationManager.AppSettings["Connection"]));
+                        _queues.Add(queue.Queue,
+                            _queueContainer.Value.CreateMethodProducer(queue));
                         break;
                 }
             }

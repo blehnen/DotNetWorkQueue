@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
@@ -7,8 +8,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
     public class ConsumerPoisonMessageShared<TMessage>
         where TMessage : class
     {
-        public void RunConsumer<TTransportInit>(string queueName,
-            string connectionString,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors,
             int workerCount,
             ILogProvider logProvider,
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -39,8 +39,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                 {
                     using (
                         var queue =
-                            creator.CreateConsumer(queueName,
-                                connectionString))
+                            creator.CreateConsumer(queueConnection))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                             heartBeatMonitorTime, updateTime, route);
@@ -63,7 +62,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             Thread.Sleep(1000);
                         }
                     }
-                    VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    VerifyMetrics.VerifyPoisonMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
                 }
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -27,13 +28,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                     new QueueCreationContainer<SqlServerMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
@@ -47,36 +48,34 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 
                         //create data
                         var producer = new ProducerShared();
-                        producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueName,
-                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                        producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, oCreation.Scope, false);
 
                         //process data
                         var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
-                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                             false,
                             logProvider,
                             messageCount, workerCount, timeOut, queueSize, readerCount,
                             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
-                        ValidateErrorCounts(queueName, messageCount);
-                        new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
+                        ValidateErrorCounts(queueConnection, messageCount);
+                        new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(messageCount, true, false);
 
-                        consumer.PurgeErrorMessages<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                        consumer.PurgeErrorMessages<SqlServerMessageQueueInit>(queueConnection,
                             false, logProvider, false);
-                        ValidateErrorCounts(queueName, messageCount);
+                        ValidateErrorCounts(queueConnection, messageCount);
 
                         //purge error messages and verify that count is 0
-                        consumer.PurgeErrorMessages<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                        consumer.PurgeErrorMessages<SqlServerMessageQueueInit>(queueConnection,
                             false, logProvider, true);
-                        ValidateErrorCounts(queueName, 0);
+                        ValidateErrorCounts(queueConnection, 0);
                     }
                 }
                 finally
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();
@@ -84,9 +83,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                 }
             }
         }
-        private void ValidateErrorCounts(string queueName, int messageCount)
+        private void ValidateErrorCounts(QueueConnection queueConnection, int messageCount)
         {
-            new VerifyErrorCounts(queueName).Verify(messageCount, 2);
+            new VerifyErrorCounts(queueConnection).Verify(messageCount, 2);
         }
     }
 }

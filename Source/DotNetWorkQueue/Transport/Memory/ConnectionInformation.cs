@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.Memory
@@ -31,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Memory
         /// </summary>
         /// <param name="queueName">Name of the queue.</param>
         /// <param name="connectionString">The connection string.</param>
-        public ConnectionInformation(string queueName, string connectionString): base(queueName, connectionString)
+        public ConnectionInformation(QueueConnection queueConnection) : base(queueConnection)
         {
 
         }
@@ -69,7 +71,12 @@ namespace DotNetWorkQueue.Transport.Memory
         /// </returns>
         public override IConnectionInformation Clone()
         {
-            return new ConnectionInformation(QueueName, ConnectionString);
+            var data = new Dictionary<string, string>();
+            foreach (var keyvalue in AdditionalConnectionSettings)
+            {
+                data.Add(keyvalue.Key, keyvalue.Value);
+            }
+            return new ConnectionInformation(new QueueConnection(QueueName, ConnectionString, data));
         }
         #endregion
     }

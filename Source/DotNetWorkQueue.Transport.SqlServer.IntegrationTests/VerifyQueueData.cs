@@ -2,6 +2,7 @@
 
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
@@ -16,10 +17,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         private readonly TableNameHelper _tableNameHelper;
         private readonly SqlConnectionInformation _connection;
 
-        public VerifyQueueData(string queueName, SqlServerMessageQueueTransportOptions options)
+        public VerifyQueueData(QueueConnection queueConnection, SqlServerMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
+            _connection = new SqlConnectionInformation(queueConnection);
             _tableNameHelper = new TableNameHelper(_connection);
         }
         public void Verify(long expectedMessageCount)
@@ -216,10 +217,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         private readonly TableNameHelper _tableNameHelper;
         private readonly SqlConnectionInformation _connection;
 
-        public VerifyQueueRecordCount(string queueName, SqlServerMessageQueueTransportOptions options)
+        public VerifyQueueRecordCount(QueueConnection queueConnection, SqlServerMessageQueueTransportOptions options)
         {
             _options = options;
-            _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
+            _connection = new SqlConnectionInformation(queueConnection);
             _tableNameHelper = new TableNameHelper(_connection);
         }
 
@@ -294,9 +295,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         private readonly TableNameHelper _tableNameHelper;
         private readonly SqlConnectionInformation _connection;
 
-        public VerifyErrorCounts(string queueName)
+        public VerifyErrorCounts(QueueConnection queueConnection)
         {
-            _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
+            _connection = new SqlConnectionInformation(queueConnection);
             _tableNameHelper = new TableNameHelper(_connection);
         }
 

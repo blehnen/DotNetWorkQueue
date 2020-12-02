@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -40,7 +41,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public ICreationScope Scope => _creation.Scope;
 
         /// <inheritdoc />
-        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, Action<IContainer> setOptions = null, bool enableRoute = false)
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, QueueConnection queueConnection, Action<IContainer> setOptions = null, bool enableRoute = false)
         {
             return _creation.CreateQueue();
         }

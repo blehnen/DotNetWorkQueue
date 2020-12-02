@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using Xunit;
@@ -23,10 +24,10 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                 using (var queueCreator =
                     new QueueCreationContainer<MemoryMessageQueueInit>())
                 {
+                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<MessageQueueCreation>(queueName,
-                                connectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
                     )
                     {
                         using (var queueContainer = new QueueContainer<MemoryMessageQueueInit>(x => { }))
@@ -37,8 +38,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                                 if (!dynamic)
                                 {
                                     tests.RunEnqueueTestCompiled<MemoryMessageQueueInit, JobQueueCreation>(
-                                        queueName,
-                                        connectionInfo.ConnectionString, true,
+                                        queueConnection, true,
                                         Helpers.Verify, Helpers.SetError,
                                         queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
                                             oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
@@ -47,8 +47,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                                 else
                                 {
                                     tests.RunEnqueueTestDynamic<MemoryMessageQueueInit, JobQueueCreation>(
-                                        queueName,
-                                        connectionInfo.ConnectionString, true,
+                                        queueConnection, true,
                                         Helpers.Verify, Helpers.SetError,
                                         queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
                                             oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));

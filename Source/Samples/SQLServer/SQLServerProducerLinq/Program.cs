@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.SqlServer;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
@@ -29,6 +30,7 @@ namespace SQLServerProducerLinq
 
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
+            var queueConnection = new QueueConnection(queueName, connectionString);
 
             //create the container for creating a new queue
             using (var createQueueContainer = new QueueCreationContainer<SqlServerMessageQueueInit>(serviceRegister =>
@@ -36,7 +38,7 @@ namespace SQLServerProducerLinq
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
-                    createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueName, connectionString))
+                    createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection))
                 {
                     //Create the queue if it doesn't exist
                     if (!createQueue.QueueExists)
@@ -59,7 +61,7 @@ namespace SQLServerProducerLinq
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteProducer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
-                using (var queue = queueContainer.CreateMethodProducer(queueName, connectionString))
+                using (var queue = queueContainer.CreateMethodProducer(queueConnection))
                 {
                     RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture);
                 }

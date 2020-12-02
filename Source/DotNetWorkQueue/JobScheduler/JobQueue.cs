@@ -66,11 +66,11 @@ namespace DotNetWorkQueue.JobScheduler
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to create the queue. The error message is {createResult.ErrorMessage}</exception>
-        public IProducerMethodJobQueue Get<TTransportInit, TQueue>(string queueName, string connection, Action<QueueProducerConfiguration> producerConfiguration = null) 
+        public IProducerMethodJobQueue Get<TTransportInit, TQueue>(QueueConnection queueConnection, Action<QueueProducerConfiguration> producerConfiguration = null) 
             where TTransportInit : ITransportInit, new()
             where TQueue : class, IJobQueueCreation
         {
-            var connectionInfo = new BaseConnectionInformation(queueName, connection);
+            var connectionInfo = new BaseConnectionInformation(queueConnection);
             if (_queues.ContainsKey(connectionInfo))
             {
                 return _queues[connectionInfo];
@@ -91,13 +91,13 @@ namespace DotNetWorkQueue.JobScheduler
                 using (var jobQueueCreation =
                     new JobQueueCreationContainer<TTransportInit>(_registrations.QueueCreationRegistrations, _registrations.QueueCreationOptions))
                 {
-                    using (var createQueue = jobQueueCreation.GetQueueCreation<TQueue>(queueName, connection))
+                    using (var createQueue = jobQueueCreation.GetQueueCreation<TQueue>(queueConnection))
                     {
-                        var createResult = createQueue.CreateJobSchedulerQueue(_registrations.QueueCreationRegistrations, queueName, connection, _registrations.QueueCreationOptions);
+                        var createResult = createQueue.CreateJobSchedulerQueue(_registrations.QueueCreationRegistrations, queueConnection, _registrations.QueueCreationOptions);
                         if (createResult.Success)
                         {
                             var scope = createQueue.Scope;
-                            var queue = _containers[transportName].CreateMethodJobProducer(queueName, connection);
+                            var queue = _containers[transportName].CreateMethodJobProducer(queueConnection);
                             producerConfiguration?.Invoke(queue.Configuration);
                             if (!_queues.TryAdd(connectionInfo, queue))
                             {
@@ -131,10 +131,10 @@ namespace DotNetWorkQueue.JobScheduler
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to create the queue. The error message is {createResult.ErrorMessage}</exception>
-        public IProducerMethodJobQueue Get<TTransportInit>(IJobQueueCreation jobQueueCreation, string queueName, string connection, Action<QueueProducerConfiguration> producerConfiguration = null)
+        public IProducerMethodJobQueue Get<TTransportInit>(IJobQueueCreation jobQueueCreation, QueueConnection queueConnection, Action<QueueProducerConfiguration> producerConfiguration = null)
            where TTransportInit : ITransportInit, new()
         {
-            var connectionInfo = new BaseConnectionInformation(queueName, connection);
+            var connectionInfo = new BaseConnectionInformation(queueConnection);
             if (_queues.ContainsKey(connectionInfo))
             {
                 return _queues[connectionInfo];
@@ -153,11 +153,11 @@ namespace DotNetWorkQueue.JobScheduler
             if (!_queues.ContainsKey(connectionInfo))
             {
                 var createResult = jobQueueCreation.CreateJobSchedulerQueue(_registrations.QueueCreationRegistrations,
-                    queueName, connection, _registrations.QueueCreationOptions);
+                    queueConnection, _registrations.QueueCreationOptions);
                 if (createResult.Success)
                 {
                     var scope = jobQueueCreation.Scope;
-                    var queue = _containers[transportName].CreateMethodJobProducer(queueName, connection);
+                    var queue = _containers[transportName].CreateMethodJobProducer(queueConnection);
                     producerConfiguration?.Invoke(queue.Configuration);
                     if (!_queues.TryAdd(connectionInfo, queue))
                     {

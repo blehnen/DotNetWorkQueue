@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Configuration;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -32,7 +34,7 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        IConsumerQueue CreateConsumer(string queue, string connection);
+        IConsumerQueue CreateConsumer(QueueConnection queueConnection);
 
         /// <summary>
         /// Creates the method consumer queue.
@@ -40,7 +42,7 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        IConsumerMethodQueue CreateMethodConsumer(string queue, string connection);
+        IConsumerMethodQueue CreateMethodConsumer(QueueConnection queueConnection);
 
         /// <summary>
         /// Creates an async consumer queue
@@ -48,8 +50,7 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        IConsumerQueueAsync CreateConsumerAsync(string queue,
-            string connection);
+        IConsumerQueueAsync CreateConsumerAsync(QueueConnection queueConnection);
 
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler. The default task factory will be used.
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        IConsumerQueueScheduler CreateConsumerQueueScheduler(string queue, string connection);
+        IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection);
 
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler. The default task factory will be used.
@@ -65,7 +66,7 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(string queue, string connection);
+        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection);
 
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -74,7 +75,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="factory">The task factory.</param>
         /// <returns></returns>
-        IConsumerQueueScheduler CreateConsumerQueueScheduler(string queue, string connection, ITaskFactory factory);
+        IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory);
 
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -83,7 +84,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <param name="factory">The task factory.</param>
         /// <returns></returns>
-        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(string queue, string connection, ITaskFactory factory);
+        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory);
 
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -93,7 +94,7 @@ namespace DotNetWorkQueue
         /// <param name="factory">The task factory.</param>
         /// <param name="workGroup">The work group.</param>
         /// <returns></returns>
-        IConsumerQueueScheduler CreateConsumerQueueScheduler(string queue, string connection, ITaskFactory factory, IWorkGroup workGroup);
+        IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup);
 
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
@@ -103,7 +104,7 @@ namespace DotNetWorkQueue
         /// <param name="factory">The task factory.</param>
         /// <param name="workGroup">The work group.</param>
         /// <returns></returns>
-        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(string queue, string connection,
+        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection,
             ITaskFactory factory, IWorkGroup workGroup);
 
         /// <summary>
@@ -114,7 +115,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
         IProducerQueue<TMessage> CreateProducer<TMessage>(
-            string queue, string connection)
+            QueueConnection queueConnection)
             where TMessage : class;
 
         /// <summary>
@@ -124,7 +125,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
         IProducerMethodQueue CreateMethodProducer(
-            string queue, string connection);
+            QueueConnection queueConnection);
 
         /// <summary>
         /// Creates a producer queue for executing linq expressions
@@ -133,7 +134,7 @@ namespace DotNetWorkQueue
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
         IProducerMethodJobQueue CreateMethodJobProducer(
-            string queue, string connection);
+            QueueConnection queueConnection);
 
         /// <summary>
         /// Creates the job scheduler last known event.
@@ -141,6 +142,6 @@ namespace DotNetWorkQueue
         /// <param name="queue">The queue.</param>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        IJobSchedulerLastKnownEvent CreateJobSchedulerLastKnownEvent(string queue, string connection);
+        IJobSchedulerLastKnownEvent CreateJobSchedulerLastKnownEvent(QueueConnection queueConnection);
     }
 }

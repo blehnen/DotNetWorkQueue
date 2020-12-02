@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
@@ -25,10 +26,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
             using (var queueCreator =
                 new QueueCreationContainer<PostgreSqlMessageQueueInit>())
             {
+                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
+
                 using (
                     var oCreation =
-                        queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                            ConnectionInfo.ConnectionString)
+                        queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                 )
                 {
 
@@ -42,8 +44,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
                             if (!dynamic)
                             {
                                 tests.RunEnqueueTestCompiled<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(
-                                    queueName,
-                                    ConnectionInfo.ConnectionString, interceptors,
+                                    queueConnection, interceptors,
                                     Helpers.Verify, Helpers.SetError,
                                     queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                             }
@@ -51,8 +52,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
                             else
                             {
                                 tests.RunEnqueueTestDynamic<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(
-                                    queueName,
-                                    ConnectionInfo.ConnectionString, interceptors,
+                                    queueConnection, interceptors,
                                     Helpers.Verify, Helpers.SetError,
                                     queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
                             }

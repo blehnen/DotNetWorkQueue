@@ -58,8 +58,7 @@ namespace DotNetWorkQueue.IoC
         /// </returns>
         public IContainer Create(QueueContexts queueType, 
             Action<IContainer> registerService,
-            string queue, 
-            string connection,
+            QueueConnection queueConnection,
             T register, 
             ConnectionTypes connectionType, 
             Action<IContainer> registerServiceInternal,
@@ -84,7 +83,7 @@ namespace DotNetWorkQueue.IoC
 
                 var type = GetRegistrationType(register);
 
-                if (!string.IsNullOrWhiteSpace(queue) && !string.IsNullOrWhiteSpace(connection))
+                if (!string.IsNullOrWhiteSpace(queueConnection.Queue) && !string.IsNullOrWhiteSpace(queueConnection.Connection))
                 {
                     ComponentRegistration.RegisterDefaults(containerWrapper, type);
                 }
@@ -108,7 +107,7 @@ namespace DotNetWorkQueue.IoC
                 container.Options.AllowOverridingRegistrations = true;
 
                 //register transport specific objects
-                register.RegisterImplementations(containerWrapper, type, connection, queue);
+                register.RegisterImplementations(containerWrapper, type, queueConnection);
 
                 //register our internal overrides from outside this container
                 registerServiceInternal(containerWrapper);
@@ -169,7 +168,7 @@ namespace DotNetWorkQueue.IoC
         /// </returns>
         public IContainer Create(QueueContexts queueType, Action<IContainer> registerService, T register, Action<IContainer> registerServiceInternal, Action<IContainer> setOptions = null, JobQueueContainerRegistrations registrations = null)
         {
-            return Create(queueType, registerService, string.Empty, string.Empty, register, ConnectionTypes.NotSpecified, registerServiceInternal, setOptions, registrations);
+            return Create(queueType, registerService, new QueueConnection(string.Empty, string.Empty), register, ConnectionTypes.NotSpecified, registerServiceInternal, setOptions, registrations);
         }
 
         /// <summary>

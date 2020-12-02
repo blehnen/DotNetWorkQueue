@@ -2,6 +2,7 @@
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using AutoFixture.Xunit2;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Tests.IoC;
 using NSubstitute;
 
@@ -23,8 +24,7 @@ namespace DotNetWorkQueue.Tests
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
-                        test.CreateProducer<FakeMessage>(
-                            queue, connection);
+                        test.CreateProducer<FakeMessage>(new QueueConnection(queue, connection));
                     });
             }
         }
@@ -34,8 +34,7 @@ namespace DotNetWorkQueue.Tests
         {
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
-                test.CreateProducer<FakeMessage>(
-                    queue, connection);
+                test.CreateProducer<FakeMessage>(new QueueConnection(queue, connection));
             }
         }
 
@@ -44,7 +43,7 @@ namespace DotNetWorkQueue.Tests
         {
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
-                test.CreateConsumer(queue, connection);
+                test.CreateConsumer(new QueueConnection(queue, connection));
             }
         }
 
@@ -53,7 +52,7 @@ namespace DotNetWorkQueue.Tests
         {
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
-                test.CreateConsumerQueueScheduler(queue, connection);
+                test.CreateConsumerQueueScheduler(new QueueConnection(queue, connection));
             }
         }
 
@@ -67,7 +66,7 @@ namespace DotNetWorkQueue.Tests
             var workGroup = fixture.Create<IWorkGroup>();
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
-                test.CreateConsumerQueueScheduler(queue, connection, factory, workGroup);
+                test.CreateConsumerQueueScheduler(new QueueConnection(queue, connection), factory, workGroup);
             }
         }
 
@@ -76,7 +75,7 @@ namespace DotNetWorkQueue.Tests
         {
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
-                test.CreateConsumerAsync(queue, connection);
+                test.CreateConsumerAsync(new QueueConnection(queue, connection));
             }
         }
     }

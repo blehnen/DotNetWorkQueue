@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Logging;
@@ -30,29 +31,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                     new QueueCreationContainer<SqLiteMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             var result = oCreation.CreateQueue();
                             Assert.True(result.Success, result.ErrorMessage);
 
-                            RunTest(queueName, messageCount, 10, logProvider, connectionInfo.ConnectionString, linqMethodTypes, oCreation.Scope, enableChaos);
+                            RunTest(queueConnection, messageCount, 10, logProvider, linqMethodTypes, oCreation.Scope, enableChaos);
                             LoggerShared.CheckForErrors(queueName);
-                            new VerifyQueueData(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount * 10, null);
+                            new VerifyQueueData(queueConnection, oCreation.Options).Verify(messageCount * 10, null);
                         }
                     }
                     finally
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
             }
         }
 
-        private void RunTest(string queueName, int messageCount, int queueCount, ILogProvider logProvider, string connectionString, LinqMethodTypes linqMethodTypes, ICreationScope scope, bool enableChaos)
+        private void RunTest(QueueConnection queueConnection, int messageCount, int queueCount, ILogProvider logProvider, LinqMethodTypes linqMethodTypes, ICreationScope scope, bool enableChaos)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)
@@ -71,12 +71,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                 var producer = new ProducerMethodShared();
                 if (linqMethodTypes == LinqMethodTypes.Compiled)
                 {
-                    tasks.Add(new Task(() => producer.RunTestCompiled<SqLiteMessageQueueInit>(queueName, connectionString, false, messageCount,
+                    tasks.Add(new Task(() => producer.RunTestCompiled<SqLiteMessageQueueInit>(queueConnection, false, messageCount,
                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateCompiled, 0, scope, enableChaos)));
                 }
                 else
                 {
-                    tasks.Add(new Task(() => producer.RunTestDynamic<SqLiteMessageQueueInit>(queueName, connectionString, false, messageCount,
+                    tasks.Add(new Task(() => producer.RunTestDynamic<SqLiteMessageQueueInit>(queueConnection, false, messageCount,
                         logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateDynamic, 0, scope, enableChaos)));
                 }
             }

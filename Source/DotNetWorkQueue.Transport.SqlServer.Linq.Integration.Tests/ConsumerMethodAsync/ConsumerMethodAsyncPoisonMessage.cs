@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -27,13 +28,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                 new QueueCreationContainer<SqlServerMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = true;
@@ -50,36 +51,33 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                         var producer = new ProducerMethodShared();
                         if (linqMethodTypes == LinqMethodTypes.Compiled)
                         {
-                            producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
-                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestCompiled<SqlServerMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope, false);
                         }
 #if NETFULL
                         else
                         {
-                            producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
-                            ConnectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTestDynamic<SqlServerMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope, false);
                         }
 #endif
                         //process data
                         var consumer = new ConsumerMethodAsyncPoisonMessageShared();
-                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueName, ConnectionInfo.ConnectionString,
+                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                             false,
                             workerCount, logProvider,
                             timeOut, readerCount, queueSize, messageCount,
                             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos);
 
-                        ValidateErrorCounts(queueName, messageCount);
-                        new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, true);
+                        ValidateErrorCounts(queueConnection, messageCount);
+                        new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(messageCount, true, true);
                     }
                 }
                 finally
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();
@@ -88,12 +86,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
             }
         }
 
-        private void ValidateErrorCounts(string queueName, long messageCount)
+        private void ValidateErrorCounts(QueueConnection queueConnection, long messageCount)
         {
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            new VerifyErrorCounts(queueName).Verify(messageCount, 0);
+            new VerifyErrorCounts(queueConnection).Verify(messageCount, 0);
         }
     }
 }

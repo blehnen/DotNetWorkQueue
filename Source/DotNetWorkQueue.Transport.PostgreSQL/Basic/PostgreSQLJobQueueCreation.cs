@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
@@ -49,12 +50,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public PostgreSqlMessageQueueTransportOptions Options => _queueCreation.Options;
 
         /// <inheritdoc />
-        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, Action<IContainer> setOptions = null, bool enableRoute = false)
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, QueueConnection queueConnection, Action<IContainer> setOptions = null, bool enableRoute = false)
         {
             if (_queueCreation.Options.AdditionalColumns.Count == 0)
             {
                 _queueCreation.Options.AdditionalColumns.Add(new Column("JobName", ColumnTypes.Varchar, 255, false));
-                var constraint = new Constraint($"IX_{queue}JobName", ConstraintType.Constraint,
+                var constraint = new Constraint($"IX_{queueConnection.Queue}JobName", ConstraintType.Constraint,
                     "JobName") {Unique = true};
                 _queueCreation.Options.AdditionalConstraints.Add(constraint);
             }

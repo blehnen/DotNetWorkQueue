@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Shared;
@@ -33,6 +34,7 @@ namespace SQLiteProducerLinq
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString =
                 $"Data Source={fileLocation}{ConfigurationManager.AppSettings.ReadSetting("Database")};Version=3;";
+            var queueConnection = new QueueConnection(queueName, connectionString);
 
             //create the container for creating a new queue
             using (var createQueueContainer = new QueueCreationContainer<SqLiteMessageQueueInit>(serviceRegister =>
@@ -40,7 +42,7 @@ namespace SQLiteProducerLinq
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
-                    createQueueContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueName, connectionString))
+                    createQueueContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection))
                 {
                     //Create the queue if it doesn't exist
                     if (!createQueue.QueueExists)
@@ -63,7 +65,7 @@ namespace SQLiteProducerLinq
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteProducer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
-                using (var queue = queueContainer.CreateMethodProducer(queueName, connectionString))
+                using (var queue = queueContainer.CreateMethodProducer(queueConnection))
                 {
                     RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture);
                 }

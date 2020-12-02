@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Logging;
 #if NETFULL
@@ -23,11 +24,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         private IGetTimeFactory _timeFactory;
         private ILogProvider _logProvider;
 
-        public void RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(string queueName,
-            string connectionString,
+        public void RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(QueueConnection queueConnection,
             bool addInterceptors,
-            Action<string, string, long, ICreationScope> verify,
-            Action<string, string, ICreationScope> setErrorFlag,
+            Action<QueueConnection, long, ICreationScope> verify,
+            Action<QueueConnection, ICreationScope> setErrorFlag,
             IGetTimeFactory timeFactory, ICreationScope scope,
             ILogProvider logProvider)
             where TTransportInit : ITransportInit, new()
@@ -35,13 +35,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         {
             _timeFactory = timeFactory;
             _logProvider = logProvider;
-            RunEnqueueTest<TTransportInit>(queueName, connectionString, addInterceptors, verify,
+            RunEnqueueTest<TTransportInit>(queueConnection, addInterceptors, verify,
                 setErrorFlag,
-                (x, name) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueName, connectionString,
+                (x, name) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueConnection,
                     "min(*)",
                     (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null, config => { }),
 
-                (x, name, time) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueName, connectionString,
+                (x, name, time) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueConnection,
                     "min(*)",
                     (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null,  config => { }, true, time), timeFactory, scope, logProvider
 
@@ -49,11 +49,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         }
 
 #if NETFULL
-        public void RunEnqueueTestDynamic<TTransportInit, TJobQueueCreator>(string queueName,
-            string connectionString,
+        public void RunEnqueueTestDynamic<TTransportInit, TJobQueueCreator>(QueueConnection queueConnection,
             bool addInterceptors,
-            Action<string, string, long, ICreationScope> verify,
-            Action<string, string, ICreationScope> setErrorFlag,
+            Action<QueueConnection, long, ICreationScope> verify,
+            Action<QueueConnection, ICreationScope> setErrorFlag,
             IGetTimeFactory timeFactory, ICreationScope scope,
             ILogProvider logProvider)
             where TTransportInit : ITransportInit, new()
@@ -65,19 +64,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                 new JobQueueCreationContainer<TTransportInit>())
             {
                 using (
-                    var createQueue = jobQueueCreation.GetQueueCreation<TJobQueueCreator>(queueName,
-                        connectionString)
+                    var createQueue = jobQueueCreation.GetQueueCreation<TJobQueueCreator>(queueConnection)
                     )
                 {
-                    RunEnqueueTest<TTransportInit>(queueName, connectionString, addInterceptors, verify,
+                    RunEnqueueTest<TTransportInit>(queueConnection, addInterceptors, verify,
                         setErrorFlag,
-                        (x, name) => x.AddUpdateJob<TTransportInit>(createQueue, name, queueName, connectionString,
+                        (x, name) => x.AddUpdateJob<TTransportInit>(createQueue, name, queueConnection,
                             "min(*)",
                             new LinqExpressionToRun(
                                 "(message, workerNotification) => Console.WriteLine(DateTime.Now.Ticks)")),
 
                         (x, name, time) =>
-                            x.AddUpdateJob<TTransportInit>(createQueue, name, queueName, connectionString,
+                            x.AddUpdateJob<TTransportInit>(createQueue, name, queueConnection,
                                 "min(*)",
                                 new LinqExpressionToRun(
                                     "(message, workerNotification) => Console.WriteLine(DateTime.Now.Ticks)"), null, null, true,
@@ -89,8 +87,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 #endif
 
         public
-            void RunTestMultipleProducers<TTransportInit, TJobQueueCreator>(string queueName,
-                string connectionString,
+            void RunTestMultipleProducers<TTransportInit, TJobQueueCreator>(QueueConnection queueConnection,
                 bool addInterceptors,
                 long producerCount,
                 IGetTimeFactory timeFactory,
@@ -108,16 +105,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                 new JobQueueCreationContainer<TTransportInit>())
             {
                 using (
-                    var createQueue = jobQueueCreation.GetQueueCreation<TJobQueueCreator>(queueName,
-                        connectionString)
+                    var createQueue = jobQueueCreation.GetQueueCreation<TJobQueueCreator>(queueConnection)
                     )
                 {
-                    createQueue.CreateJobSchedulerQueue(null, queueName, connectionString);
+                    createQueue.CreateJobSchedulerQueue(null, queueConnection);
 
                     //always run a consumer to clear out jobs
                     using (var queueContainer = new QueueContainer<TTransportInit>(QueueContainer))
                     {
-                        using (var queue = queueContainer.CreateMethodConsumer(queueName, connectionString))
+                        using (var queue = queueContainer.CreateMethodConsumer(queueConnection))
                         {
                             queue.Configuration.Worker.WorkerCount = 4;
                             WaitForRollover(timeFactory);
@@ -136,13 +132,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                                 (job, exception) => lastError = exception;
                                             scheduler.Start();
 
-                                            scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job1, queueName,
-                                                connectionString,
+                                            scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job1, queueConnection,
                                                 "min(*)",
                                                 (message, workerNotification) => Console.Write(""));
 
-                                            scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job2, queueName,
-                                                connectionString,
+                                            scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job2, queueConnection,
                                                 "min(*)",
                                                 (message, workerNotification) =>
                                                     Console.Write(""));
@@ -176,11 +170,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             }
         }
 
-        private void RunEnqueueTest<TTransportInit>(string queueName,
-            string connectionString,
+        private void RunEnqueueTest<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors,
-            Action<string, string, long, ICreationScope> verify,
-            Action<string, string, ICreationScope> setErrorFlag,
+            Action<QueueConnection, long, ICreationScope> verify,
+            Action<QueueConnection, ICreationScope> setErrorFlag,
             Func<IJobScheduler, string, IScheduledJob> enqueue,
             Func<IJobScheduler, string, TimeSpan, IScheduledJob> enqueueWindow,
             IGetTimeFactory timeFactory, ICreationScope scope,
@@ -211,7 +204,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                     WaitForEnQueue();
 
-                    ValidateEnqueue(queueName, connectionString, verify, enqueued, lastError, nonFatal, 2, scope);
+                    ValidateEnqueue(queueConnection, verify, enqueued, lastError, nonFatal, 2, scope);
 
                     enqueued = 0;
 
@@ -224,10 +217,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     WaitForEnQueue();
 
                     //validate job1 is not queued a second time. There will still be 2 jobs in the transport storage (job1, job2)
-                    ValidateNonFatalError(queueName, connectionString, verify, enqueued, lastError, nonFatal, 2, scope);
+                    ValidateNonFatalError(queueConnection, verify, enqueued, lastError, nonFatal, 2, scope);
 
-                    RunConsumer<TTransportInit>(queueName, connectionString);
-                    verify(queueName, connectionString, 0, scope);
+                    RunConsumer<TTransportInit>(queueConnection);
+                    verify(queueConnection, 0, scope);
 
                     enqueued = 0;
                     nonFatal = 0;
@@ -235,18 +228,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                     WaitForEnQueue();
 
-                    ValidateEnqueue(queueName, connectionString, verify, enqueued, lastError, nonFatal, 1, scope);
+                    ValidateEnqueue(queueConnection, verify, enqueued, lastError, nonFatal, 1, scope);
 
                     //validate that errors are replaced
-                    setErrorFlag(queueName, connectionString, scope);
+                    setErrorFlag(queueConnection, scope);
                     enqueued = 0;
                     nonFatal = 0;
                     WaitForRollover(timeFactory);
                     WaitForEnQueue();
-                    ValidateEnqueue(queueName, connectionString, verify, enqueued, lastError, nonFatal, 1, scope);
+                    ValidateEnqueue(queueConnection, verify, enqueued, lastError, nonFatal, 1, scope);
 
-                    RunConsumer<TTransportInit>(queueName, connectionString);
-                    verify(queueName, connectionString, 0, scope);
+                    RunConsumer<TTransportInit>(queueConnection);
+                    verify(queueConnection, 0, scope);
 
                     enqueued = 0;
                     nonFatal = 0;
@@ -256,7 +249,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     WaitForEnQueue(); //nothing will be queued, make sure we are past fire time
                     enqueueWindow(scheduler, Job1, TimeSpan.FromSeconds(40)); //should be fired right away, since we are inside the window
                     Thread.Sleep(5000);
-                    ValidateEnqueue(queueName, connectionString, verify, enqueued, lastError, nonFatal, 1, scope);
+                    ValidateEnqueue(queueConnection, verify, enqueued, lastError, nonFatal, 1, scope);
                 }
             }
         }
@@ -278,7 +271,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                 Thread.Sleep(100);
             }
         }
-        private void ValidateEnqueue(string queueName, string connectionString, Action<string, string, long, ICreationScope> verify,
+        private void ValidateEnqueue(QueueConnection queueConnection, Action<QueueConnection, long, ICreationScope> verify,
             // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             long enqueued, 
             Exception error,
@@ -292,7 +285,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             }
             Assert.Equal(expectedEnqueue, enqueued);
             Assert.Equal(0, nonFatal);
-            verify(queueName, connectionString, expectedEnqueue, scope);
+            verify(queueConnection, expectedEnqueue, scope);
         }
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private void ValidateEnqueueMultipleProducer(long enqueued, Exception error,
@@ -305,7 +298,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             }
             Assert.Equal(expectedEnqueue, enqueued);
         }
-        private void ValidateNonFatalError(string queueName, string connectionString, Action<string, string, long, ICreationScope> verify,
+        private void ValidateNonFatalError(QueueConnection queueConnection, Action<QueueConnection, long, ICreationScope> verify,
             // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             long enqueued, Exception error,
             // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
@@ -314,16 +307,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Assert.Equal(0, enqueued);
             error.Should().BeNull("no errors should occur");
             Assert.Equal(1, nonFatal);
-            verify(queueName, connectionString, inQueueCount, scope);
+            verify(queueConnection, inQueueCount, scope);
         }
-        private void RunConsumer<TTransportInit>(string queueName,
-            string connectionString)
+        private void RunConsumer<TTransportInit>(QueueConnection queueConnection)
             where TTransportInit : ITransportInit, new()
         {
             {
                 using (var queueContainer = new QueueContainer<TTransportInit>(QueueContainer))
                 {
-                    using (var queue = queueContainer.CreateMethodConsumer(queueName, connectionString))
+                    using (var queue = queueContainer.CreateMethodConsumer(queueConnection))
                     {
                         queue.Configuration.Worker.WorkerCount = 1;
                         queue.Start();

@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Logging;
 
@@ -6,7 +7,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
     public class ConsumerMethodHeartBeatShared
     {
-        public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
@@ -19,7 +20,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             var queue = new ConsumerMethodCancelWorkShared<TTransportInit>();
             if (addInterceptors)
             {
-                queue.RunConsumer(queueName, connectionString, true, logProvider, runTime, messageCount, workerCount, timeOut,
+                queue.RunConsumer(queueConnection, true, logProvider, runTime, messageCount, workerCount, timeOut,
                     serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton).Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
                         {
                             typeof (GZipMessageInterceptor), //gzip compression
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             }
             else
             {
-                queue.RunConsumer(queueName, connectionString, false, logProvider, runTime, messageCount, workerCount, timeOut,
+                queue.RunConsumer(queueConnection, false, logProvider, runTime, messageCount, workerCount, timeOut,
                     serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton).Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton),
                     heartBeatTime, heartBeatMonitorTime, updateTime, id, enableChaos);
             }

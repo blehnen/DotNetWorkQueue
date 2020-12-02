@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -25,13 +26,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
                     new QueueCreationContainer<SqLiteMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.Options.EnableDelayedProcessing = true;
@@ -44,31 +45,30 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
 
                             //create data
                             var producer = new ProducerShared();
-                            producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueName,
-                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false);
 
                             //process data
                             var consumer = new ConsumerErrorShared<FakeMessage>();
-                            consumer.RunConsumer<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
                                 false,
                                 logProvider,
                                 workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
-                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, false);
+                            ValidateErrorCounts(queueConnection, messageCount);
+                            new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(messageCount, true, false);
 
-                            consumer.PurgeErrorMessages<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.PurgeErrorMessages<SqLiteMessageQueueInit>(queueConnection,
                                 false, logProvider, false);
 
                             //table should be empty now
-                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
+                            ValidateErrorCounts(queueConnection, messageCount);
 
                             //purge error records
-                            consumer.PurgeErrorMessages<SqLiteMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.PurgeErrorMessages<SqLiteMessageQueueInit>(queueConnection,
                                 false, logProvider, true);
 
                             //table should be empty now
-                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, 0);
+                            ValidateErrorCounts(queueConnection, 0);
                         }
                     }
                     finally
@@ -76,8 +76,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();
@@ -87,9 +86,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests.Consumer
             }
         }
 
-        private void ValidateErrorCounts(string queueName, string connectionString, int messageCount)
+        private void ValidateErrorCounts(QueueConnection queueConnection, int messageCount)
         {
-            new VerifyErrorCounts(queueName, connectionString).Verify(messageCount, 2);
+            new VerifyErrorCounts(queueConnection).Verify(messageCount, 2);
         }
     }
 }

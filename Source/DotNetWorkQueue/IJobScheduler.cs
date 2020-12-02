@@ -54,8 +54,7 @@ namespace DotNetWorkQueue
         /// <param name="window">The window.</param>
         /// <returns></returns>
         IScheduledJob AddUpdateJob<TTransportInit, TQueue>(string jobname,
-            string queue,
-            string connection,
+            QueueConnection queueConnection,
             string schedule,
             LinqExpressionToRun job,
             string route = null,
@@ -82,8 +81,7 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         IScheduledJob AddUpdateJob<TTransportInit>(IJobQueueCreation queueCreator,
             string jobname,
-            string queue,
-            string connection,
+           QueueConnection queueConnection,
             string schedule,
             LinqExpressionToRun job,
             string route = null,
@@ -110,8 +108,7 @@ namespace DotNetWorkQueue
         /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <returns></returns>
         IScheduledJob AddUpdateJob<TTransportInit, TQueue>(string jobName,
-            string queue,
-            string connection,
+            QueueConnection queueConnection,
             string schedule,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> job,
             string route = null,
@@ -140,8 +137,7 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         IScheduledJob AddUpdateJob<TTransportInit>(IJobQueueCreation queueCreator,
             string jobName,
-            string queue,
-            string connection,
+            QueueConnection queueConnection,
             string schedule,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> job,
             string route = null,

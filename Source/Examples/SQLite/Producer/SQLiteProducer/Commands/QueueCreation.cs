@@ -30,6 +30,7 @@ using System.Linq;
 using System.Text;
 using ConsoleShared;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
@@ -279,8 +280,8 @@ namespace SQLiteProducer.Commands
             if (!_queueCreators.ContainsKey(queueName))
             {
                 _queueCreators.Add(queueName,
-                    _queueCreation.Value.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                        ConfigurationManager.AppSettings["Connection"]));
+                    _queueCreation.Value.GetQueueCreation<SqLiteMessageQueueCreation>(new QueueConnection(queueName,
+                        ConfigurationManager.AppSettings["Connection"])));
             }
         }
     }

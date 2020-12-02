@@ -1,5 +1,6 @@
 ﻿#if NETFULL
 using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -24,16 +25,16 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     new QueueCreationContainer<RedisQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, connectionString);
                 try
                 {
                     var id = Guid.NewGuid();
                     var producer = new ProducerMethodMultipleDynamicShared();
-                    producer.RunTestDynamic<RedisQueueInit>(queueName,
-                        connectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                    producer.RunTestDynamic<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                         Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, null, false);
 
                     var consumer = new ConsumerMethodShared();
-                    consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false, logProvider,
+                    consumer.RunConsumer<RedisQueueInit>(queueConnection, false, logProvider,
                         runtime, messageCount,
                         workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", false);
 
@@ -46,8 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                connectionString)
+                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

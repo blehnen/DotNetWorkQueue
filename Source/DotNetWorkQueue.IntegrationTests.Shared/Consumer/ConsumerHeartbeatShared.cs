@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Logging;
 
@@ -7,7 +8,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
     public class ConsumerHeartBeatShared<TMessage>
         where TMessage : class
     {
-        public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
             ILogProvider logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
@@ -23,7 +24,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             var queue = new ConsumerCancelWorkShared<TTransportInit, TMessage>();
             if (addInterceptors)
             {
-                queue.RunConsumer(queueName, connectionString, true, logProvider, runTime, messageCount, workerCount, timeOut,
+                queue.RunConsumer(queueConnection, true, logProvider, runTime, messageCount, workerCount, timeOut,
                     serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
                         {
                             typeof (GZipMessageInterceptor), //gzip compression
@@ -34,7 +35,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             }
             else
             {
-                queue.RunConsumer(queueName, connectionString, false, logProvider, runTime, messageCount, workerCount, timeOut,
+                queue.RunConsumer(queueConnection, false, logProvider, runTime, messageCount, workerCount, timeOut,
                     serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton),
                     heartBeatTime, heartBeatMonitorTime, updateTime, route, enableChaos);
             }

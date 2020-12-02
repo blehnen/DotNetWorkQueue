@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -24,13 +25,13 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                         new QueueCreationContainer<MemoryMessageQueueInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
                             )
                         {
                             var result = oCreation.CreateQueue();
@@ -38,20 +39,19 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
 
                             //create data
                             var producer = new ProducerShared();
-                            producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueName,
-                                connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                            producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                 Helpers.Verify, false, oCreation.Scope, false);
 
                             //process data
                             var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
-                            consumer.RunConsumer<MemoryMessageQueueInit>(queueName,connectionInfo.ConnectionString,
+                            consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                 false,
                                 logProvider,
                                 messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, false);
                             ValidateErrorCounts(oCreation.Scope, messageCount);
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
 
-                            consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueConnection,
                                 false,  logProvider, true);
                         }
                     }
@@ -59,8 +59,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();

@@ -8,7 +8,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
 {
     public static class Helpers
     {
-        public static void Verify(string notused1, string notused2, QueueProducerConfiguration config, long recordCount, ICreationScope scope)
+        public static void Verify(QueueConnection notUsed, QueueProducerConfiguration config, long recordCount, ICreationScope scope)
         {
             var realScope = (CreationScope) scope;
             if (realScope.ContainedClears.TryPeek(out var dataStorage))
@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
             }
         }
 
-        public static void NoVerification(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
+        public static void NoVerification(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
             
         }

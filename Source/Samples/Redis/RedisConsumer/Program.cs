@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using SampleShared;
 using Serilog;
@@ -27,11 +28,12 @@ namespace RedisConsumer
 
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
+            var queueConnection = new QueueConnection(queueName, connectionString);
             using (var queueContainer = new QueueContainer<RedisQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisConsumer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
-                using (var queue = queueContainer.CreateConsumer(queueName, connectionString))
+                using (var queue = queueContainer.CreateConsumer(queueConnection))
                 {
                     //set some processing options and start looking for work
                     queue.Configuration.Worker.WorkerCount = 4; //lets run 4 worker threads

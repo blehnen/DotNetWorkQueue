@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using SampleShared;
@@ -31,12 +32,13 @@ namespace SQLiteSchedulerConsumer
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString =
                 $"Data Source={fileLocation}{ConfigurationManager.AppSettings.ReadSetting("Database")};Version=3;";
+            var queueConnection = new QueueConnection(queueName, connectionString);
             using (var createQueueContainer = new QueueCreationContainer<SqLiteMessageQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteSchedulerConsumer", serviceRegister), 
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
-                    createQueueContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueName, connectionString))
+                    createQueueContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection))
                 {
                     if (!createQueue.QueueExists)
                     {
@@ -64,7 +66,7 @@ namespace SQLiteSchedulerConsumer
                         Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteSchedulerConsumer", serviceRegister), 
                         options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
-                        using (var queue = queueContainer.CreateConsumerMethodQueueScheduler(queueName, connectionString, factory))
+                        using (var queue = queueContainer.CreateConsumerMethodQueueScheduler(queueConnection, factory))
                         {
                             //set some processing options and start looking for work
                             //in the async model, the worker count is how many threads are querying the queue - the scheduler runs the work

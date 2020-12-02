@@ -11,13 +11,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
 {
     public class RouteTestsShared
     {
-        public void RunTest<TTransportInit, TMessage>(string queueName,
-           string connectionString,
+        public void RunTest<TTransportInit, TMessage>(QueueConnection queueConnection,
            bool addInterceptors,
            int messageCount,
            ILogProvider logProvider,
            Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-           Action<string, string, QueueProducerConfiguration, long, string, ICreationScope> verify,
+           Action<QueueConnection, QueueProducerConfiguration, long, string, ICreationScope> verify,
            bool sendViaBatch, 
            List<string> routes,
            int runTime, 
@@ -33,7 +32,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
             //add data with routes - generate data per route passed in
             Parallel.ForEach(routes, route =>
             {
-                RunTest<TTransportInit, TMessage>(queueName, connectionString, addInterceptors,
+                RunTest<TTransportInit, TMessage>(queueConnection, addInterceptors,
                     messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, false);
             });
 
@@ -53,19 +52,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 {
                     var consumer = new ConsumerAsyncShared<TMessage> {Factory = taskFactory};
 
-                    consumer.RunConsumer<TTransportInit>(queueName, connectionString, addInterceptors,
+                    consumer.RunConsumer<TTransportInit>(queueConnection, addInterceptors,
                         logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, enableChaos, new List<string> { route });
                 });
             }
         }
 
-        private void RunTest<TTransportInit, TMessage>(string queueName,
-            string connectionString,
+        private void RunTest<TTransportInit, TMessage>(QueueConnection queueConnection,
             bool addInterceptors,
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long, string, ICreationScope> verify,
+            Action<QueueConnection, QueueProducerConfiguration, long, string, ICreationScope> verify,
             bool sendViaBatch,
             string route,
             ICreationScope scope, bool enableChaos)
@@ -74,13 +72,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
         {
             //generate the test data
             var producer = new ProducerShared();
-            producer.RunTest<TTransportInit, TMessage>(queueName,
-                connectionString,
+            producer.RunTest<TTransportInit, TMessage>(queueConnection,
                 addInterceptors,
                 messageCount,
                 logProvider,
                 g => GenerateDataWithRoute(generateData, g, route),
-                (a, b, c, d, e) => VerifyRoutes(verify, a, b, c, d, route, scope),
+                (a, b, c, d) => VerifyRoutes(verify, a, b, c, route, scope),
                 sendViaBatch,
                 false,
                 scope, enableChaos);
@@ -93,9 +90,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
             return data;
         }
 
-        private void VerifyRoutes(Action<string, string, QueueProducerConfiguration, long, string, ICreationScope> verify, string arg1, string arg2, QueueProducerConfiguration arg3, long arg4, string route, ICreationScope scope)
+        private void VerifyRoutes(Action<QueueConnection, QueueProducerConfiguration, long, string, ICreationScope> verify, QueueConnection arg1, QueueProducerConfiguration arg3, long arg4, string route, ICreationScope scope)
         {
-            verify(arg1, arg2, arg3, arg4, route, scope);
+            verify(arg1, arg3, arg4, route, scope);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
@@ -49,13 +50,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                 new QueueCreationContainer<PostgreSqlMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
@@ -76,8 +77,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                         Assert.True(result.Success, result.ErrorMessage);
 
                         var producer = new ProducerShared();
-                        producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueName,
-                            ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
+                        producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
                             Helpers.Verify, false, oCreation.Scope, enableChaos);
                     }
@@ -86,8 +86,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -36,13 +37,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                     new QueueCreationContainer<MemoryMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
                             )
                         {
                             var result = oCreation.CreateQueue();
@@ -52,12 +53,11 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             {
                                 var id = Guid.NewGuid();
                                 var producer = new ProducerMethodAsyncShared();
-                                producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
-                                    connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                                producer.RunTestAsync<MemoryMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
-                                consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
@@ -66,12 +66,11 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             {
                                 var id = Guid.NewGuid();
                                 var producer = new ProducerMethodAsyncShared();
-                                producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
-                                    connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                                producer.RunTestAsync<MemoryMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
-                                consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
@@ -80,12 +79,11 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             {
                                 var id = Guid.NewGuid();
                                 var producer = new ProducerMethodAsyncShared();
-                                producer.RunTestAsync<MemoryMessageQueueInit>(queueName,
-                                    connectionInfo.ConnectionString, false, messageCount, logProvider, Helpers.GenerateData,
+                                producer.RunTestAsync<MemoryMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                                     Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
 
                                 var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
-                                consumer.RunConsumer<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                                consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
@@ -98,8 +96,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueName,
-                                   connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();

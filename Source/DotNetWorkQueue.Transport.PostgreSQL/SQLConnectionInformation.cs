@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using Npgsql;
 
@@ -33,9 +35,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// </summary>
         /// <param name="queueName">Name of the queue.</param>
         /// <param name="connectionString">The connection string.</param>
-        public SqlConnectionInformation(string queueName, string connectionString): base(queueName, connectionString)
+        public SqlConnectionInformation(QueueConnection queueConnection) : base(queueConnection)
         {
-            ValidateConnection(connectionString);
+            ValidateConnection(queueConnection.Connection);
         }
         #endregion
 
@@ -51,7 +53,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// <inheritdoc />
         public override IConnectionInformation Clone()
         {
-            return new SqlConnectionInformation(QueueName, ConnectionString);
+            var data = new Dictionary<string, string>();
+            foreach (var keyvalue in AdditionalConnectionSettings)
+            {
+                data.Add(keyvalue.Key, keyvalue.Value);
+            }
+            return new SqlConnectionInformation(new QueueConnection(QueueName, ConnectionString, data));
         }
         #endregion
 

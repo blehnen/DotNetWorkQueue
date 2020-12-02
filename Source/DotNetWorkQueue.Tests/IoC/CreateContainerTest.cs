@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Tests.IoC
         public void CreateContainer_NoWarnings_NoOpSendTransport()
         {
             var creator = new CreateContainer<NoOpSendTransport>();
-            var c = creator.Create(QueueContexts.NotSet, x => { }, string.Empty, string.Empty, new NoOpSendTransport(), ConnectionTypes.Send, y => { });
+            var c = creator.Create(QueueContexts.NotSet, x => { }, new QueueConnection(string.Empty, string.Empty), new NoOpSendTransport(), ConnectionTypes.Send, y => { });
 
             // Assert
             Container container = c.Container;
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Tests.IoC
         public void CreateContainer_NoWarnings_NoOpReceiveTransport()
         {
             var creator = new CreateContainer<NoOpReceiveTransport>();
-            var c = creator.Create(QueueContexts.NotSet, x => { }, string.Empty, string.Empty, new NoOpReceiveTransport(), ConnectionTypes.Receive, y => { });
+            var c = creator.Create(QueueContexts.NotSet, x => { },new QueueConnection(string.Empty,  string.Empty), new NoOpReceiveTransport(), ConnectionTypes.Receive, y => { });
 
             // Assert
             Container container = c.Container;
@@ -56,13 +56,13 @@ namespace DotNetWorkQueue.Tests.IoC
               delegate
               {
                   var creator = new CreateContainer<NoOpBadTransport>();
-                  creator.Create(QueueContexts.NotSet, x => { }, string.Empty, string.Empty, new NoOpBadTransport(), ConnectionTypes.NotSpecified, y => { });
+                  creator.Create(QueueContexts.NotSet, x => { }, new QueueConnection(string.Empty, string.Empty), new NoOpBadTransport(), ConnectionTypes.NotSpecified, y => { });
               });
         }
 
         internal class NoOpSendTransport : TransportInitSend
         {
-            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
+            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, QueueConnection queueConnectione)
             {
                 container.Register<ISendMessages, SendMessagesNoOp>(LifeStyles.Singleton);
                 container.Register(() => Substitute.For<IConnectionInformation>(), LifeStyles.Singleton);
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Tests.IoC
         internal class NoOpReceiveTransport : TransportInitReceive
         {
             public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
-                string connection, string queue)
+                QueueConnection queueConnection)
             {
                 container.Register(() => Substitute.For<IConnectionInformation>(),
                     LifeStyles.Singleton);
@@ -96,9 +96,9 @@ namespace DotNetWorkQueue.Tests.IoC
 
         internal class NoOpDuplexTransport : TransportInitDuplex
         {
-            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
+            public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType, QueueConnection queueConnection)
             {
-                container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queue, connection), LifeStyles.Singleton);
+                container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queueConnection), LifeStyles.Singleton);
                 container.Register<ISendMessages, SendMessagesNoOp>(LifeStyles.Singleton);
                 container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTimeNoOp>(LifeStyles.Singleton);
 
@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
         internal class NoOpBadTransport : ITransportInit
         {
-            public void RegisterImplementations(IContainer container, RegistrationTypes registrationType, string connection, string queue)
+            public void RegisterImplementations(IContainer container, RegistrationTypes registrationType, QueueConnection queueConnection)
             {
           
             }

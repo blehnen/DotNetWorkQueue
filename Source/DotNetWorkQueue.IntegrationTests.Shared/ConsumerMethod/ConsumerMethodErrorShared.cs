@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
     public class ConsumerMethodErrorShared
     {
-        public void PurgeErrorMessages<TTransportInit>(string queueName, string connectionString,
+        public void PurgeErrorMessages<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors, ILogProvider logProvider, bool actuallyPurge)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -24,8 +25,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                 {
                     using (
                         var queue =
-                            creator.CreateMethodConsumer(queueName,
-                                connectionString))
+                            creator.CreateMethodConsumer(queueConnection))
                     {
                         SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
                         SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             }
         }
 
-        public void RunConsumer<TTransportInit>(string queueName, string connectionString, bool addInterceptors,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
             ILogProvider logProvider,
             int workerCount, int timeOut, int messageCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos)
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -60,8 +60,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     bool rollbacks;
                     using (
                         var queue =
-                            creator.CreateMethodConsumer(queueName,
-                                connectionString))
+                            creator.CreateMethodConsumer(queueConnection))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                             heartBeatMonitorTime, updateTime, null);
@@ -85,7 +84,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     }
 
                     if(rollbacks)
-                        VerifyMetrics.VerifyRollBackCount(queueName, metrics.GetCurrentMetrics(), messageCount, 2, 2);
+                        VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 2, 2);
                 }
             }
         }

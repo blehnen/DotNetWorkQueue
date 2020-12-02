@@ -30,9 +30,9 @@ namespace DotNetWorkQueue
         /// <param name="container">The container.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="queue">The queue.</param>
-        public static void RegisterImplementations(IContainer container, string connection, string queue)
+        public static void RegisterImplementations(IContainer container, QueueConnection queueConnection)
         {
-            container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queue, connection),
+            container.Register<IConnectionInformation>(() => new BaseConnectionInformation(queueConnection),
                 LifeStyles.Singleton);
             container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
             container.Register<IWorkerNotificationFactory, WorkerNotificationFactoryNoOp>(LifeStyles.Singleton);

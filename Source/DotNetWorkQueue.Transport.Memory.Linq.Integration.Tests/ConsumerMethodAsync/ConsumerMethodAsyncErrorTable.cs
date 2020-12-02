@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -29,13 +30,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                         new QueueCreationContainer<MemoryMessageQueueInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
                             )
                         {
                             var result = oCreation.CreateQueue();
@@ -46,23 +47,21 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             var id = Guid.NewGuid();
                             if (linqMethodTypes == LinqMethodTypes.Compiled)
                             {
-                                producer.RunTestCompiled<MemoryMessageQueueInit>(queueName,
-                                    connectionInfo.ConnectionString, false, messageCount, logProvider,
+                                producer.RunTestCompiled<MemoryMessageQueueInit>(queueConnection, false, messageCount, logProvider,
                                     Helpers.GenerateData,
                                     Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope, false);
                             }
 #if NETFULL
                             else
                             {
-                                producer.RunTestDynamic<MemoryMessageQueueInit>(queueName,
-                                   connectionInfo.ConnectionString, false, messageCount, logProvider,
+                                producer.RunTestDynamic<MemoryMessageQueueInit>(queueConnection, false, messageCount, logProvider,
                                    Helpers.GenerateData,
                                    Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope, false);
                             }
 #endif
                             //process data
                             var consumer = new ConsumerMethodAsyncErrorShared();
-                            consumer.RunConsumer<MemoryMessageQueueInit>(queueName,connectionInfo.ConnectionString,
+                            consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                 false,
                                 logProvider,
                                 messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
@@ -70,7 +69,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
 
                             //purge error messages and verify that count is 0
-                            consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueName, connectionInfo.ConnectionString,
+                            consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueConnection,
                                 false,  logProvider, true);
                         }
                     }
@@ -78,8 +77,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();

@@ -10,25 +10,25 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
     {
         public static string DefaultRoute = "route1";
 
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
+        public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
         {
-            using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration, connectionString))
+            using (var verify = new VerifyQueueData(queueConnection, queueProducerConfiguration))
             {
                 verify.Verify(messageCount, 0, route);
             }
         }
 
-        public static void Verify(string queueName, string connectionString, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
+        public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
-            using (var verify = new VerifyQueueData(queueName, queueProducerConfiguration, connectionString))
+            using (var verify = new VerifyQueueData(queueConnection, queueProducerConfiguration))
             {
                 verify.Verify(messageCount, 0, null);
             }
         }
 
-        public static void Verify(string queueName, string connectionString, long messageCount, ICreationScope scope)
+        public static void Verify(QueueConnection queueConnection, long messageCount, ICreationScope scope)
         {
-            var connectionInfo = new BaseConnectionInformation(queueName, connectionString);
+            var connectionInfo = new BaseConnectionInformation(queueConnection);
             var redisNames = new RedisNames(connectionInfo);
             using (var connection = new RedisConnection(connectionInfo))
             {
@@ -38,9 +38,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             }
         }
 
-        public static void SetError(string queueName, string connectionString, ICreationScope scope)
+        public static void SetError(QueueConnection queueConnection, ICreationScope scope)
         {
-            var connectionInfo = new BaseConnectionInformation(queueName, connectionString);
+            var connectionInfo = new BaseConnectionInformation(queueConnection);
             var conn = new RedisConnection(connectionInfo);
             var redisNames = new RedisNames(connectionInfo);
             var db = conn.Connection.GetDatabase();

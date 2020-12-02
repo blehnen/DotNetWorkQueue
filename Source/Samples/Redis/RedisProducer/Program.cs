@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Redis;
 using DotNetWorkQueue.Transport.Redis.Basic;
@@ -24,13 +25,13 @@ namespace RedisProducer
 
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
-            
+            var queueConnection = new QueueConnection(queueName, connectionString);
             //create the producer
             using (var queueContainer = new QueueContainer<RedisQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisProducer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
-                using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueName, connectionString))
+                using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueConnection))
                 {
                     RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture, DelayedProcessing);
                 }

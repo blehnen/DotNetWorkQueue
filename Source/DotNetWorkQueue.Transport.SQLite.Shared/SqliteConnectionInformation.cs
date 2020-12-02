@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared
@@ -28,10 +30,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared
 
         #region Constructor
         /// <inheritdoc />
-        public SqliteConnectionInformation(string queueName, string connectionString, IDbDataSource dataSource) : base(queueName, connectionString)
+        public SqliteConnectionInformation(QueueConnection queueConnection, IDbDataSource dataSource) : base(queueConnection)
         {
             _dataSource = dataSource;
-            ValidateConnection(connectionString);
+            ValidateConnection(queueConnection.Connection);
         }
         #endregion
 
@@ -48,7 +50,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared
         /// <inheritdoc />
         public override IConnectionInformation Clone()
         {
-            return new SqliteConnectionInformation(QueueName, ConnectionString, _dataSource);
+            var data = new Dictionary<string, string>();
+            foreach (var keyvalue in AdditionalConnectionSettings)
+            {
+                data.Add(keyvalue.Key, keyvalue.Value);
+            }
+            return new SqliteConnectionInformation(new QueueConnection(QueueName, ConnectionString, data), _dataSource);
         }
         #endregion
 

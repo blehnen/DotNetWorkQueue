@@ -52,10 +52,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     {
         /// <inheritdoc />
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
-            string connection, string queue)
+            QueueConnection queueConnection)
         {
             Guard.NotNull(() => container, container);
-            base.RegisterImplementations(container, registrationType, connection, queue);
+            base.RegisterImplementations(container, registrationType, queueConnection);
 
             var init = new RelationalDatabaseMessageQueueInit();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     LifeStyles.Singleton);
 
             container.Register<PostgreSqlCommandStringCache>(LifeStyles.Singleton);
-            container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queue, connection),
+            container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queueConnection),
                 LifeStyles.Singleton);
 
             container.Register<PostgreSqlMessageQueueTransportOptions>(LifeStyles.Singleton);

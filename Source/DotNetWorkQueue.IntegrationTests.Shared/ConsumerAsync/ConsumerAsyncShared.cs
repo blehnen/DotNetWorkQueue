@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using Xunit;
 
@@ -13,8 +14,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
         public ITaskFactory Factory { get; set; }
 
         public
-            void RunConsumer<TTransportInit>(string queueName,
-                string connectionString,
+            void RunConsumer<TTransportInit>(QueueConnection queueConnection,
                 bool addInterceptors,
                 ILogProvider logProvider,
                 int runTime,
@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             if (enableChaos)
                 timeOut *= 2;
 
-            var metricName = queueName;
+            var metricName = queueConnection.Queue;
             if (routes != null)
             {
                 metricName = routes.Aggregate(metricName, (current, route) => current + route + "|-|");
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                         var queue =
                             creator
                                 .CreateConsumerQueueScheduler(
-                                    queueName, connectionString, Factory))
+                                    queueConnection, Factory))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
                             heartBeatMonitorTime, updateTime, null);
@@ -89,14 +89,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                     if (routes != null && routes.Count > 0)
                     {
                         Assert.Equal(messageCount * routes.Count, processedCount.ProcessedCount);
-                        VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount * routes.Count);
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount * routes.Count);
                     }
                     else
                     {
                         Assert.Equal(messageCount, processedCount.ProcessedCount);
-                        VerifyMetrics.VerifyProcessedCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
                     }
-                    LoggerShared.CheckForErrors(queueName);
+                    LoggerShared.CheckForErrors(queueConnection.Queue);
                 }
             }
         }

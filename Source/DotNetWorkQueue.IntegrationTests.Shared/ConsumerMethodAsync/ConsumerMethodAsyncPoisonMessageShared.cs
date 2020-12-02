@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
 {
     public class ConsumerMethodAsyncPoisonMessageShared
     {
-        public void RunConsumer<TTransportInit>(string queueName,
-            string connectionString,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors,
             int workerCount,
             ILogProvider logProvider,
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                 var queue =
                                     creator
                                         .CreateConsumerMethodQueueScheduler(
-                                            queueName, connectionString, taskFactory))
+                                            queueConnection, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
                                     heartBeatMonitorTime, updatetime, null);
@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                 Thread.Sleep(3000);
                             }
                         }
-                        VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                        VerifyMetrics.VerifyPoisonMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
                     }
                 }
             }

@@ -19,11 +19,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
             using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>(x => {
             }))
             {
+                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
                     var tests = new JobSchedulerTestsShared();
-                    tests.RunTestMultipleProducers<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueName,
-                        ConnectionInfo.ConnectionString, interceptors, producerCount, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), LoggerShared.Create(queueName, GetType().Name));
+                    tests.RunTestMultipleProducers<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueConnection, interceptors, producerCount, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), LoggerShared.Create(queueName, GetType().Name));
                 }
                 finally
                 {
@@ -33,8 +33,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                    ConnectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                             )
                         {
                             oCreation.RemoveQueue();

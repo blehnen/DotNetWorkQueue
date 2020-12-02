@@ -26,13 +26,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route
                     new QueueCreationContainer<SqLiteMessageQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
+                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
                     try
                     {
 
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                         )
                         {
                             oCreation.Options.EnableDelayedProcessing = true;
@@ -45,8 +45,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route
                             Assert.True(result.Success, result.ErrorMessage);
 
                             var routeTest = new RouteTestsShared();
-                            routeTest.RunTest<SqLiteMessageQueueInit, FakeMessageA>(queueName,
-                                connectionInfo.ConnectionString,
+                            routeTest.RunTest<SqLiteMessageQueueInit, FakeMessageA>(queueConnection,
                                 true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
                                 GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10),
                                 TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
@@ -58,8 +57,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route
                     {
                         using (
                             var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueName,
-                                    connectionInfo.ConnectionString)
+                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
                         )
                         {
                             oCreation.RemoveQueue();

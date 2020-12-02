@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using ConsoleShared;
 using ConsoleSharedCommands.Commands;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -293,13 +294,13 @@ namespace SQLiteProducer.Commands
                 {
                     case ConsumerQueueTypes.Poco:
                         _queues.Add(queueName,
-                            _queueContainer.Value.CreateProducer<SimpleMessage>(queueName,
-                                ConfigurationManager.AppSettings["Connection"]));
+                            _queueContainer.Value.CreateProducer<SimpleMessage>(new QueueConnection(queueName,
+                                ConfigurationManager.AppSettings["Connection"])));
                         break;
                     case ConsumerQueueTypes.Method:
                         _queues.Add(queueName,
-                          _queueContainer.Value.CreateMethodProducer(queueName,
-                              ConfigurationManager.AppSettings["Connection"]));
+                          _queueContainer.Value.CreateMethodProducer(new QueueConnection(queueName,
+                              ConfigurationManager.AppSettings["Connection"])));
                         break;
                 }
             }

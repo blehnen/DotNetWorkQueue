@@ -1,6 +1,7 @@
 ﻿#region Using
 
 using System.Diagnostics.CodeAnalysis;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
@@ -18,8 +19,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
 
         public VerifyQueueData(string queueName, PostgreSqlMessageQueueTransportOptions options)
         {
+            var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
             _options = options;
-            _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
+            _connection = new SqlConnectionInformation(queueConnection);
             _tableNameHelper = new TableNameHelper(_connection);
         }
         public void Verify(long expectedMessageCount, string route)
@@ -188,8 +190,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
 
         public VerifyQueueRecordCount(string queueName, PostgreSqlMessageQueueTransportOptions options)
         {
+            var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
             _options = options;
-            _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
+            _connection = new SqlConnectionInformation(queueConnection);
             _tableNameHelper = new TableNameHelper(_connection);
         }
 
@@ -266,7 +269,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
 
         public VerifyErrorCounts(string queueName)
         {
-            _connection = new SqlConnectionInformation(queueName, ConnectionInfo.ConnectionString);
+            var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
+            _connection = new SqlConnectionInformation(queueConnection);
             _tableNameHelper = new TableNameHelper(_connection);
         }
 

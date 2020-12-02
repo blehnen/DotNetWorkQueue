@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Configuration;
 using System;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
@@ -51,7 +52,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public TransportOptions Options => _queueCreation.Options;
 
         /// <inheritdoc />
-        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, Action<IContainer> setOptions = null, bool enableRoute = false)
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, QueueConnection queueConnection, Action<IContainer> setOptions = null, bool enableRoute = false)
         {
             return _queueCreation.CreateQueue();
         }

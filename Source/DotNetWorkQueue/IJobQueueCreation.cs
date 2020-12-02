@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue
 {
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue
         /// <param name="enableRoutes">if set to <c>true</c> route support will be enabled.</param>
         /// <param name="setOptions">the options to set on the scheduler queue</param>
         /// <returns></returns>
-        QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, string queue, string connection, Action<IContainer> setOptions = null, bool enableRoutes = false);
+        QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, QueueConnection queueConnection, Action<IContainer> setOptions = null, bool enableRoutes = false);
 
         /// <summary>
         /// Attempts to delete an existing queue

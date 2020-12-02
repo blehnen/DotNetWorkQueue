@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -24,20 +25,19 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     new QueueCreationContainer<RedisQueueInit>(
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new QueueConnection(queueName, connectionString);
                 try
                 {
                     if (route)
                     {
                         var producer = new ProducerShared();
-                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                            connectionString, false, messageCount, logProvider, Helpers.GenerateExpiredDataWithRoute,
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateExpiredDataWithRoute,
                             Helpers.Verify, false, null, false);
                     }
                     else
                     {
                         var producer = new ProducerShared();
-                        producer.RunTest<RedisQueueInit, FakeMessage>(queueName,
-                            connectionString, false, messageCount, logProvider, Helpers.GenerateExpiredData,
+                        producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateExpiredData,
                             Helpers.Verify, false, null, false);
                     }
 
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 
                     var defaultRoute = route ? Helpers.DefaultRoute : null;
                     var consumer = new ConsumerExpiredMessageShared<FakeMessage>();
-                    consumer.RunConsumer<RedisQueueInit>(queueName, connectionString, false,
+                    consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
                         logProvider,
                         runtime, messageCount,
                         workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute, false);
@@ -59,8 +59,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueName,
-                                connectionString)
+                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

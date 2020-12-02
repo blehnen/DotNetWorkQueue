@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using SampleShared;
 using Serilog;
@@ -28,13 +29,14 @@ namespace SQLServerConsumerAsync
             //verify that the queue exists
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
+            var queueConnection = new QueueConnection(queueName, connectionString);
 
             using (var createQueueContainer = new QueueCreationContainer<SqlServerMessageQueueInit>(serviceRegister =>
                 Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerConsumerAsync", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
-                    createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueName, connectionString))
+                    createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection))
                 {
                     if (!createQueue.QueueExists)
                     {
@@ -63,7 +65,7 @@ namespace SQLServerConsumerAsync
                         Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerConsumerAsync", serviceRegister)
                         , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
-                        using (var queue = queueContainer.CreateConsumerQueueScheduler(queueName, connectionString, factory))
+                        using (var queue = queueContainer.CreateConsumerQueueScheduler(queueConnection, factory))
                         {
                             //set some processing options and start looking for work
                             //in the async model, the worker count is how many threads are querying the queue - the scheduler runs the work

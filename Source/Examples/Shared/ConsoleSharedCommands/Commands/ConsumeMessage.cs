@@ -31,6 +31,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ConsoleShared;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using ExampleMessage;
 using Serilog;
@@ -288,13 +289,13 @@ namespace ConsoleSharedCommands.Commands
             {
                 case ConsumerQueueTypes.Poco:
                     Queues.Add(queueName,
-                       _queueContainer.Value.CreateConsumer(queueName,
-                           ConfigurationManager.AppSettings["Connection"]));
+                       _queueContainer.Value.CreateConsumer(new QueueConnection(queueName,
+                           ConfigurationManager.AppSettings["Connection"])));
                     break;
                 case ConsumerQueueTypes.Method:
                     Queues.Add(queueName,
-                      _queueContainer.Value.CreateMethodConsumer(queueName,
-                          ConfigurationManager.AppSettings["Connection"]));
+                      _queueContainer.Value.CreateMethodConsumer(new QueueConnection(queueName,
+                          ConfigurationManager.AppSettings["Connection"])));
                     break;
             }
         }

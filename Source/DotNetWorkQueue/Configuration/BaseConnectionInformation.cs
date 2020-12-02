@@ -16,6 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace DotNetWorkQueue.Configuration
 {
     /// <inheritdoc />
@@ -30,10 +35,11 @@ namespace DotNetWorkQueue.Configuration
         /// </summary>
         /// <param name="queueName">Name of the queue.</param>
         /// <param name="connectionString">The connection string.</param>
-        public BaseConnectionInformation(string queueName, string connectionString)
+        public BaseConnectionInformation(QueueConnection queueConnection)
         {
-            _queueName = queueName;
-            _connectionString = connectionString;
+            _queueName = queueConnection.Queue;
+            _connectionString = queueConnection.Connection;
+            AdditionalConnectionSettings = queueConnection.AdditionalConnectionSettings ?? new Dictionary<string, string>();
             _hashCode = CalculateHashCode();
         }
 
@@ -53,6 +59,9 @@ namespace DotNetWorkQueue.Configuration
         /// The name of the queue.
         /// </value>
         public virtual string QueueName => _queueName;
+
+        ///<inheritdoc/>
+        public virtual IReadOnlyDictionary<string, string> AdditionalConnectionSettings { get; }
 
         /// <summary>
         /// Gets the server.
@@ -82,7 +91,12 @@ namespace DotNetWorkQueue.Configuration
         /// </returns>
         public virtual IConnectionInformation Clone()
         {
-            return new BaseConnectionInformation(QueueName, ConnectionString);
+            var data = new Dictionary<string, string>();
+            foreach (var keyvalue in AdditionalConnectionSettings)
+            {
+                data.Add(keyvalue.Key, keyvalue.Value);
+            }
+            return new BaseConnectionInformation(new QueueConnection(QueueName, ConnectionString, data));
         }
         #endregion
 
@@ -111,7 +125,9 @@ namespace DotNetWorkQueue.Configuration
                 return false;
 
             var connection = (BaseConnectionInformation)obj;
-            return _connectionString == connection.ConnectionString && _queueName == connection.QueueName;
+            var result = (connection.AdditionalConnectionSettings == AdditionalConnectionSettings) || 
+                         (connection.AdditionalConnectionSettings.Count == AdditionalConnectionSettings.Count && !connection.AdditionalConnectionSettings.Except(AdditionalConnectionSettings).Any());
+            return result && _connectionString == connection.ConnectionString && _queueName == connection.QueueName;
         }
 
         /// <summary>
@@ -131,7 +147,13 @@ namespace DotNetWorkQueue.Configuration
         /// <returns></returns>
         protected int CalculateHashCode()
         {
-            return string.Concat(_connectionString, _queueName).GetHashCode();
+            var hashCode = string.Concat(_connectionString, _queueName).GetHashCode();
+            foreach (var keyvalue in AdditionalConnectionSettings)
+            {
+                hashCode = (hashCode * 397) ^ keyvalue.Key.GetHashCode();
+                hashCode = (hashCode * 397) ^ keyvalue.Value.GetHashCode();
+            }
+            return hashCode;
         }
     }
 }

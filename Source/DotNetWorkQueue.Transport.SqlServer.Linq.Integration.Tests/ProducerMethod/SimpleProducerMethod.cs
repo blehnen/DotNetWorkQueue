@@ -62,13 +62,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                 new QueueCreationContainer<SqlServerMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
+                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
                 try
                 {
 
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
@@ -91,16 +91,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                         var producer = new ProducerMethodShared();
                         if (linqMethodTypes == LinqMethodTypes.Compiled)
                         {
-                            producer.RunTestCompiled<SqlServerMessageQueueInit>(queueName,
-                            ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
+                            producer.RunTestCompiled<SqlServerMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
                             Helpers.Verify, false, Guid.NewGuid(), GenerateMethod.CreateCompiled, 0, oCreation.Scope, enableChaos);
                         }
 #if NETFULL
                         else
                         {
-                            producer.RunTestDynamic<SqlServerMessageQueueInit>(queueName,
-                            ConnectionInfo.ConnectionString, interceptors, messageCount, logProvider,
+                            producer.RunTestDynamic<SqlServerMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
                             Helpers.Verify, false, Guid.NewGuid(), GenerateMethod.CreateDynamic, 0, oCreation.Scope, enableChaos);
                         }
@@ -111,8 +109,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                 {
                     using (
                         var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueName,
-                                ConnectionInfo.ConnectionString)
+                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
                         )
                     {
                         oCreation.RemoveQueue();

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Linq.Expressions;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Validation;
@@ -71,7 +72,7 @@ namespace DotNetWorkQueue.Queue
             if (_consumer == null)
                 CreateScheduler();
 
-            return _scheduler.AddUpdateJob<MemoryMessageQueueInit, JobQueueCreation>(jobName, QueueName, Connection, schedule, job, null, null, true, default, true);
+            return _scheduler.AddUpdateJob<MemoryMessageQueueInit, JobQueueCreation>(jobName, new QueueConnection(QueueName, Connection), schedule, job, null, null, true, default, true);
         }
 
         /// <inheritdoc />
@@ -113,7 +114,7 @@ namespace DotNetWorkQueue.Queue
                     _configuration.WaitForThreadPoolToFinish;
                 _taskFactory.Scheduler.Start();
                 _queueContainer = new QueueContainer<MemoryMessageQueueInit>();
-                _consumer = _queueContainer.CreateConsumerMethodQueueScheduler(QueueName, Connection,
+                _consumer = _queueContainer.CreateConsumerMethodQueueScheduler( new QueueConnection(QueueName, Connection),
                     _taskFactory);
                 _consumer.Start();
             }

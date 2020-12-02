@@ -29,6 +29,7 @@ using System.Configuration;
 using System.Text;
 using ConsoleShared;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
 namespace RedisProducer.Commands
 {
@@ -101,8 +102,8 @@ namespace RedisProducer.Commands
             if (!_queueCreators.ContainsKey(queueName))
             {
                 _queueCreators.Add(queueName,
-                    _queueCreation.Value.GetQueueCreation<RedisQueueCreation>(queueName,
-                        ConfigurationManager.AppSettings["Connection"]));
+                    _queueCreation.Value.GetQueueCreation<RedisQueueCreation>(new QueueConnection(queueName,
+                        ConfigurationManager.AppSettings["Connection"])));
             }
         }
     }

@@ -11,19 +11,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
 {
     public class ProducerAsyncShared
     {
-        public async Task RunTestAsync<TTransportInit, TMessage>(string queueName,
-            string connectionString,
+        public async Task RunTestAsync<TTransportInit, TMessage>(QueueConnection queueConnection,
             bool addInterceptors,
             long messageCount,
             ILogProvider logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
+            Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
             ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorProducer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -38,11 +37,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                     using (var queue =
                         creator
                             .CreateProducer
-                            <TMessage>(queueName, connectionString))
+                            <TMessage>(queueConnection))
                     {
-                        await RunProducerAsync(queue, queueName, messageCount, generateData, verify, sendViaBatch, scope).ConfigureAwait(false);
+                        await RunProducerAsync(queue, queueConnection, messageCount, generateData, verify, sendViaBatch, scope).ConfigureAwait(false);
                     }
-                    VerifyMetrics.VerifyProducedAsyncCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                    VerifyMetrics.VerifyProducedAsyncCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
                 }
             }
         }
@@ -50,16 +49,16 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
         private async Task RunProducerAsync<TMessage>(
           IProducerQueue
               <TMessage> queue,
-                string queueName,
+               QueueConnection queueConnection,
                 long messageCount,
                 Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-                Action<string, string, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
+                Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
                 ICreationScope scope)
             where TMessage : class
         {
             await RunProducerInternalAsync(queue, messageCount, generateData, sendViaBatch).ConfigureAwait(false);
-            LoggerShared.CheckForErrors(queueName);
-            verify(queueName, queue.Configuration.TransportConfiguration.ConnectionInfo.ConnectionString, queue.Configuration, messageCount, scope);
+            LoggerShared.CheckForErrors(queueConnection.Queue);
+            verify(queueConnection, queue.Configuration, messageCount, scope);
         }
 
         private async Task RunProducerInternalAsync<TMessage>(

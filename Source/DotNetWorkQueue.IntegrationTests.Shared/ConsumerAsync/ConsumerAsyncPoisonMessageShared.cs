@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
@@ -7,8 +8,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
     public class ConsumerAsyncPoisonMessageShared<TMessage>
         where TMessage : class
     {
-        public void RunConsumer<TTransportInit>(string queueName,
-            string connectionString,
+        public void RunConsumer<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors,
             int workerCount,
             ILogProvider logProvider,
@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueName))
+            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
             {
                 var addInterceptorConsumer = InterceptorAdding.No;
                 if (addInterceptors)
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                 var queue =
                                     creator
                                         .CreateConsumerQueueScheduler(
-                                            queueName, connectionString, taskFactory))
+                                            queueConnection, taskFactory))
                             {
                                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
                                     heartBeatMonitorTime, updateTime, route);
@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                 Thread.Sleep(3000);
                             }
                         }
-                        VerifyMetrics.VerifyPoisonMessageCount(queueName, metrics.GetCurrentMetrics(), messageCount);
+                        VerifyMetrics.VerifyPoisonMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
                     }
                 }
             }
