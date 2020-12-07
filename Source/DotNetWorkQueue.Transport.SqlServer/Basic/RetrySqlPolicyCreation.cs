@@ -32,6 +32,7 @@ using OpenTracing;
 using Polly;
 using Polly.Contrib.Simmy;
 using Polly.Contrib.Simmy.Behavior;
+using Polly.Contrib.Simmy.Outcomes;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -138,52 +139,26 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql;
         }
 
-        private static InjectBehaviourPolicy CreateRetryChaos(IPolicies policies)
+        private static InjectOutcomePolicy CreateRetryChaos(IPolicies policies)
         {
-            return MonkeyPolicy.InjectBehaviour(Behaviour,
-                (context) => ChaosPolicyShared.InjectionRate(context, RetryConstants.RetryCount, RetryAttempts),
-                (context) => policies.EnableChaos);
+            return MonkeyPolicy.InjectException(with =>
+                with.Fault(Behaviour())
+                    .InjectionRate((context, token) => ChaosPolicyShared.InjectionRate(context, RetryConstants.RetryCount, RetryAttempts))
+                    .Enabled(policies.EnableChaos)
+            );
         }
 
-        private static AsyncInjectBehaviourPolicy CreateRetryChaosAsync(IPolicies policies)
+        private static AsyncInjectOutcomePolicy CreateRetryChaosAsync(IPolicies policies)
         {
-            return MonkeyPolicy.InjectBehaviourAsync(Behaviour,
-                (context) => InjectionRate(context, RetryConstants.RetryCount, RetryAttempts),
-                (context) => Enabled(context, policies));
+            return MonkeyPolicy.InjectExceptionAsync(with =>
+                with.Fault(Behaviour())
+                    .InjectionRate((context, token) => ChaosPolicyShared.InjectionRateAsync(context, RetryConstants.RetryCount, RetryAttempts))
+                    .Enabled(policies.EnableChaos)
+            );
 
         }
 
-        private static async Task<bool> Enabled(Context arg, IPolicies policy)
-        {
-            return await ChaosPolicyShared.RunAsync(() => policy.EnableChaos);
-        }
-
-        private static async Task<double> InjectionRate(Context arg, int retryAttempts, string keyName)
-        {
-            return await ChaosPolicyShared.InjectionRateAsync(arg, retryAttempts, keyName);
-        }
-
-        private static Task Behaviour(Context arg1, CancellationToken arg2)
-        {
-            SqlError sqlError = null;
-#if NETFULL
-            sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null);
-#else
-            sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null, null);
-#endif
-            var collection = CreateInstance<SqlErrorCollection>();
-#if NETFULL
-             var errors = collection.GetPrivateFieldValue<ArrayList>("errors");
-             errors.Add(sqlError);
-#else
-            var errors = collection.GetPrivateFieldValue<List<object>>("_errors");
-            errors.Add(sqlError);
-#endif
-            var e = CreateInstance<SqlException>(string.Empty, collection, null, Guid.NewGuid());
-            throw e;
-        }
-
-        private static void Behaviour(Context arg1)
+        private static SqlException Behaviour()
         {
             SqlError sqlError = null;
 #if NETFULL
@@ -200,7 +175,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             errors.Add(sqlError);
 #endif
             var e = CreateInstance<SqlException>(string.Empty, collection, null, Guid.NewGuid());
-            throw e;
+            return e;
         }
 
         private static T CreateInstance<T>(params object[] args)

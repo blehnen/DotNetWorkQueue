@@ -30,6 +30,7 @@ using OpenTracing;
 using Polly;
 using Polly.Contrib.Simmy;
 using Polly.Contrib.Simmy.Behavior;
+using Polly.Contrib.Simmy.Outcomes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
@@ -137,19 +138,28 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql;
         }
 
-        private static InjectBehaviourPolicy CreateRetryChaos(IPolicies policies)
+        private static InjectOutcomePolicy CreateRetryChaos(IPolicies policies)
         {
-            return MonkeyPolicy.InjectBehaviour(
-                (context) => throw new PostgresException(string.Empty, string.Empty, string.Empty, ChaosPolicyShared.GetRandomString(RetryablePostGreErrors.Errors.ToList())),
-                (context) => ChaosPolicyShared.InjectionRate(context, RetryConstants.RetryCount, RetryAttempts),
-                (context) => policies.EnableChaos);
+            var fault = new PostgresException(string.Empty, string.Empty, string.Empty,
+                ChaosPolicyShared.GetRandomString(RetryablePostGreErrors.Errors.ToList()));
+
+            return MonkeyPolicy.InjectException(with =>
+                with.Fault(fault)
+                    .InjectionRate((context, token) => ChaosPolicyShared.InjectionRate(context, RetryConstants.RetryCount, RetryAttempts))
+                    .Enabled(policies.EnableChaos)
+            );
         }
 
-        private static AsyncInjectBehaviourPolicy CreateRetryChaosAsync(IPolicies policies)
+        private static AsyncInjectOutcomePolicy  CreateRetryChaosAsync(IPolicies policies)
         {
-            return MonkeyPolicy.InjectBehaviourAsync(Behaviour,
-                (context) => InjectionRate(context, RetryConstants.RetryCount, RetryAttempts),
-                (context) => Enabled(context, policies));
+            var fault = new PostgresException(string.Empty, string.Empty, string.Empty,
+                ChaosPolicyShared.GetRandomString(RetryablePostGreErrors.Errors.ToList()));
+
+            return MonkeyPolicy.InjectExceptionAsync(with =>
+                with.Fault(fault)
+                    .InjectionRate((context, token) => ChaosPolicyShared.InjectionRateAsync(context, RetryConstants.RetryCount, RetryAttempts))
+                    .Enabled(policies.EnableChaos)
+            );
         }
 
         private static async Task<bool> Enabled(Context arg, IPolicies policy)

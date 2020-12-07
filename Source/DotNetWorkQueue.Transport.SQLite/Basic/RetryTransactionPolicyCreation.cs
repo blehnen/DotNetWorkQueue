@@ -28,6 +28,7 @@ using OpenTracing;
 using Polly;
 using Polly.Contrib.Simmy;
 using Polly.Contrib.Simmy.Behavior;
+using Polly.Contrib.Simmy.Outcomes;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -86,13 +87,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             else policies.Registry[TransportPolicyDefinitions.BeginTransaction] = retrySql;
         }
 
-        private static InjectBehaviourPolicy CreateRetryChaos(IPolicies policies)
+        private static InjectOutcomePolicy CreateRetryChaos(IPolicies policies)
         {
-            return MonkeyPolicy.InjectBehaviour((context) => throw new SQLiteException(
-                    (SQLiteErrorCode) ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>(),
-                    "Policy chaos testing"),
-                (context) => ChaosPolicyShared.InjectionRate(context, RetryConstants.RetryCount, RetryAttempts),
-                (context) => policies.EnableChaos);
+            var fault = new SQLiteException(
+                (SQLiteErrorCode) ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>(),
+                "Policy chaos testing");
+
+            return MonkeyPolicy.InjectException(with =>
+                with.Fault(fault)
+                    .InjectionRate((context, token) => ChaosPolicyShared.InjectionRate(context, RetryConstants.RetryCount, RetryAttempts))
+                    .Enabled(policies.EnableChaos)
+            );
         }
     }
 }
