@@ -14,14 +14,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
     public class VerifyQueueData
     {
         private readonly SqlServerMessageQueueTransportOptions _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqlConnectionInformation _connection;
 
         public VerifyQueueData(QueueConnection queueConnection, SqlServerMessageQueueTransportOptions options)
         {
             _options = options;
             _connection = new SqlConnectionInformation(queueConnection);
-            _tableNameHelper = new TableNameHelper(_connection);
+            _tableNameHelper = new SqlServerTableNameHelper(_connection);
         }
         public void Verify(long expectedMessageCount)
         {
@@ -214,14 +214,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
     public class VerifyQueueRecordCount
     {
         private readonly SqlServerMessageQueueTransportOptions _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqlConnectionInformation _connection;
 
         public VerifyQueueRecordCount(QueueConnection queueConnection, SqlServerMessageQueueTransportOptions options)
         {
             _options = options;
             _connection = new SqlConnectionInformation(queueConnection);
-            _tableNameHelper = new TableNameHelper(_connection);
+            _tableNameHelper = new SqlServerTableNameHelper(_connection);
         }
 
         public void Verify(int recordCount, bool ignoreMeta, bool ignoreErrorTracking)
@@ -292,13 +292,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
     }
     public class VerifyErrorCounts
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqlConnectionInformation _connection;
 
         public VerifyErrorCounts(QueueConnection queueConnection)
         {
             _connection = new SqlConnectionInformation(queueConnection);
-            _tableNameHelper = new TableNameHelper(_connection);
+            _tableNameHelper = new SqlServerTableNameHelper(_connection);
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]

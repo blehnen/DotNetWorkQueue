@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.Transport.RelationalDatabase;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
@@ -150,18 +151,32 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
 
         private SqlServerMessageQueueSchema Create(ISqlServerMessageQueueTransportOptionsFactory options)
         {
-            return Create(options, GetTableNameHelper());
+            var connection = Substitute.For<IConnectionInformation>();
+            connection.QueueName.Returns("test");
+            return Create(options, GetTableNameHelper(connection), connection);
         }
 
         private SqlServerMessageQueueSchema Create(ISqlServerMessageQueueTransportOptionsFactory options, TableNameHelper tableNameHelper)
         {
-            return new SqlServerMessageQueueSchema(tableNameHelper, options);
+            var connection = Substitute.For<IConnectionInformation>();
+            connection.QueueName.Returns("test");
+            return Create(options, tableNameHelper, connection);
+        }
+
+        private SqlServerMessageQueueSchema Create(ISqlServerMessageQueueTransportOptionsFactory options, TableNameHelper tableNameHelper, IConnectionInformation connectionInformation)
+        {
+            return new SqlServerMessageQueueSchema(tableNameHelper, options, new SqlSchema(connectionInformation));
         }
 
         private TableNameHelper GetTableNameHelper()
         {
             var connection = Substitute.For<IConnectionInformation>();
             connection.QueueName.Returns("test");
+            return new TableNameHelper(connection);
+        }
+
+        private TableNameHelper GetTableNameHelper(IConnectionInformation connection)
+        {
             return new TableNameHelper(connection);
         }
     }

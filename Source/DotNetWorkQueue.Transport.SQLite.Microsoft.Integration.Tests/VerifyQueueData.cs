@@ -17,7 +17,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests
     public class VerifyQueueData
     {
         private readonly SqLiteMessageQueueTransportOptions _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqliteConnectionInformation _connection;
 
         public VerifyQueueData(QueueConnection queueConnection, SqLiteMessageQueueTransportOptions options)
@@ -187,7 +187,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests
     public class VerifyQueueRecordCount
     {
         private readonly SqLiteMessageQueueTransportOptions _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqliteConnectionInformation _connection;
 
         public VerifyQueueRecordCount(QueueConnection queueConnection, SqLiteMessageQueueTransportOptions options)
@@ -265,7 +265,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Microsoft.Integration.Tests
     }
     public class VerifyErrorCounts
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqliteConnectionInformation _connection;
 
         public VerifyErrorCounts(QueueConnection queueConnection)

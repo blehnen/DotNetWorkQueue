@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandlerAsync : ICommandHandlerWithOutputAsync<SendMessageCommand, long>
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly ICompositeSerialization _serializer;
         private bool? _messageExpirationEnabled;
         private readonly IHeaders _headers;
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         /// <param name="databaseExists">The database exists.</param>
         /// <param name="readerAsync">The reader asynchronous.</param>
-        public SendMessageCommandHandlerAsync(TableNameHelper tableNameHelper,
+        public SendMessageCommandHandlerAsync(ITableNameHelper tableNameHelper,
             ICompositeSerialization serializer,
             ISqLiteMessageQueueTransportOptionsFactory optionsFactory,
             IHeaders headers,

@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         private readonly CommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _tableExists;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses> _prepareQuery;
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         public DoesJobExistQueryHandler(CommandStringCache commandCache,
             IConnectionInformation connectionInformation,
             IQueryHandler<GetTableExistsQuery, bool> tableExists, 
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             IDbConnectionFactory dbConnectionFactory,
             ITransactionFactory transactionFactory,
             IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses> prepareQuery,

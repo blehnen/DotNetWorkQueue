@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.IBuildMoveToErrorQueueSql" />
     public class BuildMoveToErrorQueueSql : IBuildMoveToErrorQueueSql
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly IGetColumnsFromTable _getColumns;
 
         private readonly object _buildSqlLocker = new object();
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="getColumns">The column query.</param>
-        public BuildMoveToErrorQueueSql(TableNameHelper tableNameHelper,
+        public BuildMoveToErrorQueueSql(ITableNameHelper tableNameHelper,
             IGetColumnsFromTable getColumns)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);

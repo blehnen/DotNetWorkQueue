@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
     /// <inheritdoc />
     internal class SendMessageCommandHandler : ICommandHandlerWithOutput<SendMessageCommand, long>
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly ICompositeSerialization _serializer;
         private bool? _messageExpirationEnabled;
         private readonly IHeaders _headers;
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// <param name="jobExistsHandler">The job exists handler.</param>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
-        public SendMessageCommandHandler(TableNameHelper tableNameHelper, 
+        public SendMessageCommandHandler(ITableNameHelper tableNameHelper, 
             ICompositeSerialization serializer,
             IPostgreSqlMessageQueueTransportOptionsFactory optionsFactory, 
             IHeaders headers,

@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// Initializes a new instance of the <see cref="IDbCommandStringCache" /> class.
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public IDbCommandStringCache(TableNameHelper tableNameHelper): base(tableNameHelper)
+        public IDbCommandStringCache(ITableNameHelper tableNameHelper): base(tableNameHelper)
         {
         }
 

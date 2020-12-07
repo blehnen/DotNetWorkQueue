@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         private readonly IJobSchema _createSchema;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
         private readonly IConnectionInformation _connection;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult>
             _createCommand;
 
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             IJobSchema createSchema,
             ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult> createCommand,
             IConnectionInformation connectionInfo,
-            TableNameHelper tableNameHelper
+            ITableNameHelper tableNameHelper
             )
         {
             Guard.NotNull(() => createSchema, createSchema);

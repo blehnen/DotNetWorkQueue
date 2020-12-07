@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
     internal class ReceiveMessageQueryHandlerAsync : IQueryHandler<ReceiveMessageQueryAsync<IDbConnection, IDbTransaction>, Task<IReceivedMessageInternal>>
     {
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly IDbCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
         private readonly BuildDequeueCommand _buildDequeueCommand;
@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
         /// <param name="databaseExists">The database exists.</param>
         /// <param name="readerAsync">The reader asynchronous.</param>
         public ReceiveMessageQueryHandlerAsync(ISqLiteMessageQueueTransportOptionsFactory optionsFactory,
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             IDbCommandStringCache commandCache,
             IConnectionInformation connectionInformation,
             BuildDequeueCommand buildDequeueCommand,

@@ -59,6 +59,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             var init = new RelationalDatabaseMessageQueueInit();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
 
+            //override so that we can use schema as needed
+            container.Register<ITableNameHelper, SqlServerTableNameHelper>(LifeStyles.Singleton);
+
             //**all
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<SqlServerMessageQueueSchema>(LifeStyles.Singleton);
@@ -74,6 +77,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
             container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrors>(LifeStyles.Singleton);
+            container.Register<ISqlSchema, SqlSchema>(LifeStyles.Singleton);
 
             container.Register<IGetTime, SqlServerTime>(LifeStyles.Singleton);
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
@@ -170,6 +174,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandlerWithOutputAsync<SendMessageCommand, long>),
                 typeof(DotNetWorkQueue.Transport.SqlServer.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator), LifeStyles.Singleton);
+
+            //query exists custom handler for SQL server
+            container
+                .Register<IPrepareQueryHandler<GetTableExistsQuery, bool>,
+                    DotNetWorkQueue.Transport.SqlServer.Basic.QueryPrepareHandler.GetTableExistsQueryPrepareHandler>(LifeStyles.Singleton);
+
+            //query exists custom handler for SQL server
+            container
+                .Register<IPrepareQueryHandler<GetTableExistsTransactionQuery, bool>,
+                    DotNetWorkQueue.Transport.SqlServer.Basic.QueryPrepareHandler.GetTableExistsTransactionQueryPrepareHandler>(LifeStyles.Singleton);
         }
 
         /// <summary>

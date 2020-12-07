@@ -48,7 +48,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
             container.Register<ICorrelationIdFactory, CorrelationIdFactory>(
                 LifeStyles.Singleton);
+
+            container.Register<ITableNameHelper, TableNameHelper>(LifeStyles.Singleton);
             container.Register<TableNameHelper>(LifeStyles.Singleton);
+
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
             container.Register<IClearErrorMessages, ClearErrorMessages>(LifeStyles.Singleton);
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);

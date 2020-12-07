@@ -154,12 +154,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             return Create(options, GetTableNameHelper());
         }
 
-        private PostgreSqlMessageQueueSchema Create(IPostgreSqlMessageQueueTransportOptionsFactory options, TableNameHelper tableNameHelper)
+        private PostgreSqlMessageQueueSchema Create(IPostgreSqlMessageQueueTransportOptionsFactory options, ITableNameHelper tableNameHelper)
         {
             return new PostgreSqlMessageQueueSchema(tableNameHelper, options);
         }
 
-        private TableNameHelper GetTableNameHelper()
+        private ITableNameHelper GetTableNameHelper()
         {
             var connection = Substitute.For<IConnectionInformation>();
             connection.QueueName.Returns("test");

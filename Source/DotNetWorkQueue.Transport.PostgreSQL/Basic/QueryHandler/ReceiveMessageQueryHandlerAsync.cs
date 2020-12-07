@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>>
     {
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly IReceivedMessageFactory _receivedMessageFactory;
         private readonly PostgreSqlCommandStringCache _commandCache;
         private readonly IMessageFactory _messageFactory;
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// <param name="serialization">The serialization.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
         public ReceiveMessageQueryHandlerAsync(IPostgreSqlMessageQueueTransportOptionsFactory optionsFactory,
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             IReceivedMessageFactory receivedMessageFactory,
             PostgreSqlCommandStringCache commandCache,
             IMessageFactory messageFactory,

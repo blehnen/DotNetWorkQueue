@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
     /// </summary>
     public class SqLiteMessageQueueSchema
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="options">The options.</param>
-        public SqLiteMessageQueueSchema(TableNameHelper tableNameHelper,
+        public SqLiteMessageQueueSchema(ITableNameHelper tableNameHelper,
             ISqLiteMessageQueueTransportOptionsFactory options)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);

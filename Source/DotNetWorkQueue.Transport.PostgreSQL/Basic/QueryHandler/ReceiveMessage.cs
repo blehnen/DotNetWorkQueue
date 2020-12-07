@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// <param name="options">The options.</param>
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, TableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, List<string> routes )
+        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, ITableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, List<string> routes )
         {
             if (routes == null || routes.Count == 0)
             {

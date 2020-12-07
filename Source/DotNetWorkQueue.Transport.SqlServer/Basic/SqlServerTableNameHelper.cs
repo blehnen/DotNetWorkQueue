@@ -16,29 +16,34 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
+using System.Text;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Validation;
 
-namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
+namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>
     /// A helper class that outputs the name for a given queue table, given the base name of the queue.
     /// </summary>
-    public class TableNameHelper : ITableNameHelper
+    public class SqlServerTableNameHelper: ITableNameHelper
     {
         private readonly IConnectionInformation _connectionInformation;
+        private readonly ISqlSchema _schema;
         private const string NameNotSet = "Error-Name-Not-Set";
         private const string JobsTableName = "DNWQJobs";
 
         #region Constructor
         /// <summary>
-        /// Initializes a new instance of the <see cref="TableNameHelper" /> class.
+        /// Initializes a new instance of the <see cref="SqlServerTableNameHelper" /> class.
         /// </summary>
         /// <param name="connectionInformation">The connection information.</param>
-        public TableNameHelper(IConnectionInformation connectionInformation)
+        public SqlServerTableNameHelper(IConnectionInformation connectionInformation)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
             _connectionInformation = connectionInformation;
+            _schema = new SqlSchema(connectionInformation);
         }
         #endregion
 
@@ -73,7 +78,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <value>
         /// The name of the queue.
         /// </value>
-        public string QueueName => _connectionInformation.QueueName;
+        public string QueueName => _schema.Schema + "." + _connectionInformation.QueueName;
 
         /// <summary>
         /// Returns the name of the queue meta data table. This table stores the data used to find records to process.
@@ -121,7 +126,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <value>
         /// The name of the job table.
         /// </value>
-        public string JobTableName => JobsTableName;
+        public string JobTableName => _schema.Schema + "." + JobsTableName;
 
         #endregion
     }

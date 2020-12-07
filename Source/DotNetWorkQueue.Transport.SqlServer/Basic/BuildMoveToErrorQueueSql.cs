@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// <seealso cref="DotNetWorkQueue.Transport.RelationalDatabase.IBuildMoveToErrorQueueSql" />
     public class BuildMoveToErrorQueueSql : IBuildMoveToErrorQueueSql
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly IGetColumnsFromTable _getColumns;
         private readonly Lazy<ITransportOptions> _options;
 
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="getColumns">The column query.</param>
         /// <param name="options">The options.</param>
-        public BuildMoveToErrorQueueSql(TableNameHelper tableNameHelper,
+        public BuildMoveToErrorQueueSql(ITableNameHelper tableNameHelper,
             IGetColumnsFromTable getColumns,
             ITransportOptionsFactory options)
         {

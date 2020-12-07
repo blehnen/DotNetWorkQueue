@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
@@ -14,11 +15,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [InlineData(500, 1, 400, 10, 5, 5, false, 1, false),
-         InlineData(500, 0, 180, 10, 5, 0, true, 1, false),
-         InlineData(10, 0, 180, 10, 5, 0, true, 1, true)]
+        [InlineData(500, 1, 400, 10, 5, 5, false, 1, false, "dbo", null),
+         InlineData(500, 0, 180, 10, 5, 0, true, 1, false, "dbo", null),
+         InlineData(10, 0, 180, 10, 5, 0, true, 1, true, "dbo", null)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-            bool useTransactions, int messageType, bool enableChaos)
+            bool useTransactions, int messageType, bool enableChaos, string schema, string queueName)
         {
             SchedulerContainer schedulerContainer = null;
             if (Factory == null)
@@ -26,13 +27,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                 Factory = CreateFactory(workerCount, queueSize, out schedulerContainer);
             }
 
-            var queueName = GenerateQueueName.Create();
+            if(string.IsNullOrEmpty(queueName))
+                queueName = GenerateQueueName.Create();
+
             var logProvider = LoggerShared.Create(queueName, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<SqlServerMessageQueueInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
+                var settings = new Dictionary<string, string>();
+                settings.SetSchema(schema);
+                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString, settings);
                 try
                 {
 
@@ -107,10 +112,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 #pragma warning disable xUnit1013 // Public method should be marked as test
         public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
 #pragma warning restore xUnit1013 // Public method should be marked as test
-            bool useTransactions, int messageType, ITaskFactory factory, bool enableChaos)
+            bool useTransactions, int messageType, ITaskFactory factory, bool enableChaos, string schema, string queueName)
         {
             Factory = factory;
-            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, useTransactions, messageType, enableChaos);
+            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, useTransactions, messageType, enableChaos, schema, queueName);
         }
 
 

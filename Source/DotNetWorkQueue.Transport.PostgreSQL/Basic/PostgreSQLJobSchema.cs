@@ -28,13 +28,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     /// </summary>
     public class PostgreSqlJobSchema: IJobSchema
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgreSqlJobSchema"/> class.
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public PostgreSqlJobSchema(TableNameHelper tableNameHelper)
+        public PostgreSqlJobSchema(ITableNameHelper tableNameHelper)
         {
             _tableNameHelper = tableNameHelper;
         }

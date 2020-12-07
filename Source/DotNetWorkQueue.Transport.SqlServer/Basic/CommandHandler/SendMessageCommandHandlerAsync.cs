@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandlerAsync : ICommandHandlerWithOutputAsync<SendMessageCommand, long>
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly ICompositeSerialization _serializer;
         private bool? _messageExpirationEnabled;
         private readonly IHeaders _headers;
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="sendJobStatus">The send job status.</param>
         /// <param name="jobExistsHandler">The job exists handler.</param>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
-        public SendMessageCommandHandlerAsync(TableNameHelper tableNameHelper,
+        public SendMessageCommandHandlerAsync(ITableNameHelper tableNameHelper,
             ICompositeSerialization serializer,
             ISqlServerMessageQueueTransportOptionsFactory optionsFactory,
             IHeaders headers,

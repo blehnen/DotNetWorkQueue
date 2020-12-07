@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
@@ -134,6 +135,38 @@ namespace DotNetWorkQueue.Transport.SqlServer
                 return options;
             }
             throw new DotNetWorkQueueException("Failed to obtain the options");
+        }
+    }
+
+    /// <summary>
+    /// Extenstion method for setting or obtaining the schema to use for the queue
+    /// </summary>
+    public static class QueueConnectionExtensions
+    {
+        private const string SqlSchemaName = "SqlSchema";
+        /// <summary>
+        /// Sets the key "SqlSchema" equal to the schema value
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        /// <param name="schema">The schema.</param>
+        public static void SetSchema(this IDictionary<string, string> settings, string schema)
+        {
+            if (!settings.ContainsKey(SqlSchemaName))
+            {
+                settings.Add(SqlSchemaName, schema);
+                return;
+            }
+            settings[SqlSchemaName] = schema;
+        }
+
+        /// <summary>
+        /// Gets the schema by returning the value in the "SqlSchema" key, or by return the default value of "dbo"
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        /// <returns></returns>
+        public static string GetSchema(this IReadOnlyDictionary<string, string> settings)
+        {
+            return settings.ContainsKey(SqlSchemaName) ? settings[SqlSchemaName] : "dbo";
         }
     }
 }

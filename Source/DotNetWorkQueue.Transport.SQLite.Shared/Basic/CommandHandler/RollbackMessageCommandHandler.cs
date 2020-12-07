@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
         private readonly IGetTimeFactory _getUtcDateQuery;
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
         private readonly IConnectionInformation _connectionInformation;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly IDbCommandStringCache _commandCache;
         private readonly ConcurrentDictionary<string, string> _rollbackDictionary;
         private readonly IDbFactory _dbFactory;
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
         /// <param name="databaseExists">The database exists.</param>
         public RollbackMessageCommandHandler(IGetTimeFactory getUtcDateQuery,
             ISqLiteMessageQueueTransportOptionsFactory options, 
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             IConnectionInformation connectionInformation,
             IDbCommandStringCache commandCache,
             IDbFactory dbFactory,

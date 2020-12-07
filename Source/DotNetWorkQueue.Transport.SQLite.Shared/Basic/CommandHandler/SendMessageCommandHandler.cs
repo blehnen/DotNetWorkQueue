@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandler : ICommandHandlerWithOutput<SendMessageCommand, long>
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly ICompositeSerialization _serializer;
         private bool? _messageExpirationEnabled;
         private readonly IHeaders _headers;
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
         /// <param name="jobExistsHandler">The job exists handler.</param>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         /// <param name="databaseExists">The database exists.</param>
-        public SendMessageCommandHandler(TableNameHelper tableNameHelper,
+        public SendMessageCommandHandler(ITableNameHelper tableNameHelper,
             ICompositeSerialization serializer,
             ISqLiteMessageQueueTransportOptionsFactory optionsFactory,
             IHeaders headers,

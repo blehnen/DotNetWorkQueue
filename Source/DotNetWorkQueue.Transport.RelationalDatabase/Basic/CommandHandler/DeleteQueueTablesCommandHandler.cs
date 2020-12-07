@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 {
     internal class DeleteQueueTablesCommandHandler : ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult>
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly IPrepareCommandHandler<DeleteTableCommand> _prepareDeleteTable;
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// <param name="prepareDeleteTable">The prepare delete table.</param>
         /// <param name="tableExists">The table exists.</param>
         public DeleteQueueTablesCommandHandler(
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             ITransactionFactory transactionFactory,
             IDbConnectionFactory dbConnectionFactory,
             IPrepareCommandHandler<DeleteTableCommand> prepareDeleteTable,

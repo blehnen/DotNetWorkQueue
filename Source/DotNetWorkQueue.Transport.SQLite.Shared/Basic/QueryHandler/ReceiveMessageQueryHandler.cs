@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
     internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery<IDbConnection, IDbTransaction>, IReceivedMessageInternal>
     {
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly IConnectionInformation _connectionInformation;
         private readonly MessageDeQueue _messageDeQueue;
         private readonly BuildDequeueCommand _buildDequeueCommand;
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
         /// <param name="dbFactory">The transaction factory.</param>
         /// <param name="databaseExists">The database exists.</param>
         public ReceiveMessageQueryHandler(ISqLiteMessageQueueTransportOptionsFactory optionsFactory, 
-            TableNameHelper tableNameHelper, 
+            ITableNameHelper tableNameHelper, 
             IConnectionInformation connectionInformation,
             BuildDequeueCommand buildDequeueCommand,
             MessageDeQueue messageDeQueue,

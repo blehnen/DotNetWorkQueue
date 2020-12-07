@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
     public class VerifyQueueData
     {
         private readonly PostgreSqlMessageQueueTransportOptions _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqlConnectionInformation _connection;
 
         public VerifyQueueData(string queueName, PostgreSqlMessageQueueTransportOptions options)
@@ -185,7 +185,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
     public class VerifyQueueRecordCount
     {
         private readonly PostgreSqlMessageQueueTransportOptions _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqlConnectionInformation _connection;
 
         public VerifyQueueRecordCount(string queueName, PostgreSqlMessageQueueTransportOptions options)
@@ -264,7 +264,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
     }
     public class VerifyErrorCounts
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqlConnectionInformation _connection;
 
         public VerifyErrorCounts(string queueName)

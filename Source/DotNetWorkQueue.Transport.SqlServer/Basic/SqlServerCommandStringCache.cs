@@ -26,13 +26,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// </summary>
     public class SqlServerCommandStringCache: CommandStringCache
     {
+        private readonly ISqlSchema _schema;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlServerCommandStringCache" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="SqlServerCommandStringCache"/> class.</summary>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public SqlServerCommandStringCache(TableNameHelper tableNameHelper): base(tableNameHelper)
+        /// <param name="schema">The schema that the queue is using</param>
+        public SqlServerCommandStringCache(ITableNameHelper tableNameHelper, ISqlSchema schema) : base(tableNameHelper)
         {
+            _schema = schema;
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and (DATEDIFF(SECOND, heartbeat, GETUTCDATE()) > @time)");
 
             CommandCache.Add(CommandStringTypes.GetColumnNamesFromTable,
-                "select c.name from sys.columns c inner join sys.tables t on t.object_id = c.object_id and t.name = @TableName and t.type = 'U'");
+                "SELECT c.name FROM sys.columns c WHERE c.object_id = OBJECT_ID(@TableName)");
 
             CommandCache.Add(CommandStringTypes.GetErrorRecordExists,
                 $"Select 1 from {TableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
@@ -95,7 +96,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 $"select Configuration from {TableNameHelper.ConfigurationName}");
 
             CommandCache.Add(CommandStringTypes.GetTableExists,
-                "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG = @Database AND TABLE_NAME = @Table");
+                $"SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_CATALOG = @Database AND TABLE_NAME = @Table and TABLE_SCHEMA = '{_schema.Schema}'");
 
             CommandCache.Add(CommandStringTypes.GetUtcDate,
                 "select getutcdate()");
@@ -140,7 +141,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 $"select queueid from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where GETUTCDate() > ExpirationTime");
 
             CommandCache.Add(CommandStringTypes.DeleteTable,
-                "IF OBJECT_ID('dbo.{0}', 'U') IS NOT NULL DROP TABLE dbo.{0};");
+                "IF OBJECT_ID('{0}', 'U') IS NOT NULL DROP TABLE {0};");
 
             CommandCache.Add(CommandStringTypes.GetHeader,
                 $"select headers from {TableNameHelper.QueueName} WITH (NOLOCK) where queueid = @queueid ");

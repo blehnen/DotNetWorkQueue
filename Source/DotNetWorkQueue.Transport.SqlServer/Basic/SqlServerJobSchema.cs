@@ -28,15 +28,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// </summary>
     public class SqlServerJobSchema: IJobSchema
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
+        private readonly ISqlSchema _schema;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlServerJobSchema"/> class.
-        /// </summary>
-        /// <param name="tableNameHelper">The table name helper.</param>
-        public SqlServerJobSchema(TableNameHelper tableNameHelper)
+        /// <summary>Initializes a new instance of the <see cref="SqlServerJobSchema"/> class.</summary>
+        /// <param name="tableNameHelper">The table name helper. Note this is the base module</param>
+        /// <param name="schema">The schema that the queue is using</param>
+        public SqlServerJobSchema(TableNameHelper tableNameHelper, ISqlSchema schema)
         {
             _tableNameHelper = tableNameHelper;
+            _schema = schema;
         }
         /// <summary>
         /// Returns our schema as a list of tables.
@@ -72,11 +73,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <summary>
         /// Gets the schema owner
         /// </summary>
-        /// <remarks>This is always 'dbo'</remarks>
         /// <returns></returns>
         private string GetOwner()
         {
-            return "dbo";
+            return _schema.Schema;
         }
     }
 }

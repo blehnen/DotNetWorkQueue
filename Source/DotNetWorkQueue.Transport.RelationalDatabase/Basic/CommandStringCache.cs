@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// The table name helper
         /// </summary>
-        protected readonly TableNameHelper TableNameHelper;
+        protected readonly ITableNameHelper TableNameHelper;
         private bool _commandsBuilt;
         private readonly object _commandBuilder = new object();
 
@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// Initializes a new instance of the <see cref="CommandStringCache" /> class.
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
-        protected CommandStringCache(TableNameHelper tableNameHelper)
+        protected CommandStringCache(ITableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
 

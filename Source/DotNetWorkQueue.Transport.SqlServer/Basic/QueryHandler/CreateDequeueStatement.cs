@@ -28,13 +28,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
     internal class CreateDequeueStatement
     {
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqlServerCommandStringCache _commandCache;
 
         private const string DequeueKey = "dequeueCommand";
 
         public CreateDequeueStatement(ISqlServerMessageQueueTransportOptionsFactory optionsFactory,
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             SqlServerCommandStringCache commandCache)
         {
             Guard.NotNull(() => optionsFactory, optionsFactory);

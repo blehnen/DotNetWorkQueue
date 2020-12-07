@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
     {
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         internal static void BuildStatusCommand(NpgsqlCommand command,
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             IHeaders headers,
             IAdditionalMessageData data,
             IMessage message,
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         internal static void BuildMetaCommand(NpgsqlCommand command, 
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             IHeaders headers,
             IAdditionalMessageData data,
             IMessage message,

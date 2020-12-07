@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
     internal static class SendMessage
     {
         internal static IDbCommand CreateMetaDataRecord(TimeSpan? delay, TimeSpan expiration, IDbConnection connection,
-            IMessage message, IAdditionalMessageData data, TableNameHelper tableNameHelper, 
+            IMessage message, IAdditionalMessageData data, ITableNameHelper tableNameHelper, 
             IHeaders headers, SqLiteMessageQueueTransportOptions options, IGetTime getTime)
         {
             var command = connection.CreateCommand();
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         internal static void BuildStatusCommand(IDbCommand command,
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             IHeaders headers,
             IAdditionalMessageData data,
             IMessage message,
@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         private static void BuildMetaCommand(IDbCommand command, 
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             IAdditionalMessageData data,
             SqLiteMessageQueueTransportOptions options,
             TimeSpan? delay, 

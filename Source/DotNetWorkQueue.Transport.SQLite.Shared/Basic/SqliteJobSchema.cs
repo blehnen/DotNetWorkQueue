@@ -28,13 +28,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
     /// </summary>
     public class SqliteJobSchema: IJobSchema
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqliteJobSchema"/> class.
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public SqliteJobSchema(TableNameHelper tableNameHelper)
+        public SqliteJobSchema(ITableNameHelper tableNameHelper)
         {
             _tableNameHelper = tableNameHelper;
         }

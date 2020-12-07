@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// Initializes a new instance of the <see cref="PostgreSqlCommandStringCache" /> class.
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public PostgreSqlCommandStringCache(TableNameHelper tableNameHelper) : base(tableNameHelper)
+        public PostgreSqlCommandStringCache(ITableNameHelper tableNameHelper) : base(tableNameHelper)
         {
         }
 

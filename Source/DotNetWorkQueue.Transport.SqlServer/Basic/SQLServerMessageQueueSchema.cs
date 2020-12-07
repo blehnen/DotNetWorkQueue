@@ -30,22 +30,23 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// </summary>
     public class SqlServerMessageQueueSchema
     {
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
+        private readonly ISqlSchema _schema;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlServerMessageQueueSchema"/> class.
-        /// </summary>
-        /// <param name="tableNameHelper">The table name helper.</param>
+        /// <summary>Initializes a new instance of the <see cref="SqlServerMessageQueueSchema"/> class.</summary>
+        /// <param name="tableNameHelper">The table name helper. Note this is the base module</param>
         /// <param name="options">The options.</param>
+        /// <param name="schema">The schema that the queue is using</param>
         public SqlServerMessageQueueSchema(TableNameHelper tableNameHelper,
-            ISqlServerMessageQueueTransportOptionsFactory options)
+            ISqlServerMessageQueueTransportOptionsFactory options, ISqlSchema schema)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => options, options);
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(options.Create);
+            _schema = schema;
         } 
 
         /// <summary>
@@ -307,11 +308,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <summary>
         /// Gets the schema owner
         /// </summary>
-        /// <remarks>This is always 'dbo'</remarks>
         /// <returns></returns>
         private string GetOwner()
         {
-            return "dbo";
+            return _schema.Schema;
         }
     }
 }

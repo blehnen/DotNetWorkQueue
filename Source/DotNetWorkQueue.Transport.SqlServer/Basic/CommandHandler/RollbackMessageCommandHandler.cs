@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private readonly IGetTimeFactory _getUtcDateQuery;
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
         private readonly IConnectionInformation _connectionInformation;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly ConcurrentDictionary<string, string> _rollbackDictionary;
         private readonly object _setupSqlLocker = new object();
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="commandCache">The command cache.</param>
         public RollbackMessageCommandHandler(IGetTimeFactory getUtcDateQuery,
             ISqlServerMessageQueueTransportOptionsFactory options, 
-            TableNameHelper tableNameHelper,
+            ITableNameHelper tableNameHelper,
             IConnectionInformation connectionInformation,
             SqlServerCommandStringCache commandCache)
         {

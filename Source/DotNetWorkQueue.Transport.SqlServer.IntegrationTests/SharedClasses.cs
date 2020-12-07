@@ -3,6 +3,7 @@ using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
@@ -22,7 +23,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         public static void Verify(QueueConnection queueConnection, long messageCount, ICreationScope scope)
         {
             var connection = new SqlConnectionInformation(queueConnection);
-            var helper = new TableNameHelper(connection);
+            var helper = new SqlServerTableNameHelper(connection);
             using (var conn = new SqlConnection(queueConnection.Connection))
             {
                 conn.Open();
@@ -42,7 +43,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         public static void SetError(QueueConnection queueConnection, ICreationScope scope)
         {
             var connection = new SqlConnectionInformation(queueConnection);
-            var helper = new TableNameHelper(connection);
+            var helper = new SqlServerTableNameHelper(connection);
             using (var conn = new SqlConnection(queueConnection.Connection))
             {
                 conn.Open();

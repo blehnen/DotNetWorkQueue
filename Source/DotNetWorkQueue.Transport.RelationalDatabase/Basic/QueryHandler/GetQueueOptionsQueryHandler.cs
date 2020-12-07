@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         private readonly IQueryHandler<GetTableExistsQuery, bool> _tableExists;
         private readonly IConnectionInformation _connectionInformation;
         private readonly IPrepareQueryHandler<GetQueueOptionsQuery<TTransportOptions>, TTransportOptions> _prepareQuery;
-        private readonly TableNameHelper _tableNameHelper;
+        private readonly ITableNameHelper _tableNameHelper;
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly IReadColumn _readColumn;
 
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     IQueryHandler<GetTableExistsQuery, bool> tableExists,
                     IConnectionInformation connectionInformation,
                     IPrepareQueryHandler<GetQueueOptionsQuery<TTransportOptions>, TTransportOptions> prepareQuery,
-                    TableNameHelper tableNameHelper,
+                    ITableNameHelper tableNameHelper,
                     IDbConnectionFactory dbConnectionFactory,
                     IReadColumn readColumn)
         {
