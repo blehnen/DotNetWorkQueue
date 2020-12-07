@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net472;net461</TargetFrameworks>
+    <TargetFrameworks>net48;netstandard2.0;net472;net461</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
     <Version>0.4.6</Version>
@@ -32,6 +32,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;NETFULL</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;NETFULL</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
     <DefineConstants>NETSTANDARD2_0;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
     <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
@@ -40,6 +44,13 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
+    <DefineConstants>LIBLOG_PUBLIC;NETFULL</DefineConstants>
+    <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
     <DefineConstants>LIBLOG_PUBLIC;NETFULL</DefineConstants>
     <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -69,6 +80,16 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Schyntax">
+      <HintPath>..\..\Lib\Schyntax\net452\Schyntax.dll</HintPath>
+    </Reference>
+    <Reference Include="Aq.ExpressionJsonSerializer">
+      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net452\Aq.ExpressionJsonSerializer.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Schyntax">
       <HintPath>..\..\Lib\Schyntax\net452\Schyntax.dll</HintPath>
