@@ -140,8 +140,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private static InjectBehaviourPolicy CreateRetryChaos(IPolicies policies)
         {
             return MonkeyPolicy.InjectBehaviour(
-                (context) => throw new PostgresException
-                    {SqlState = ChaosPolicyShared.GetRandomString(RetryablePostGreErrors.Errors.ToList())},
+                (context) => throw new PostgresException(string.Empty, string.Empty, string.Empty, ChaosPolicyShared.GetRandomString(RetryablePostGreErrors.Errors.ToList())),
                 (context) => ChaosPolicyShared.InjectionRate(context, RetryConstants.RetryCount, RetryAttempts),
                 (context) => policies.EnableChaos);
         }
@@ -165,10 +164,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
         private static Task Behaviour(Context arg1, CancellationToken arg2)
         {
-            throw new PostgresException
-            {
-                SqlState = ChaosPolicyShared.GetRandomString(RetryablePostGreErrors.Errors.ToList())
-            };
+            throw new PostgresException(string.Empty, string.Empty, string.Empty,
+                ChaosPolicyShared.GetRandomString(RetryablePostGreErrors.Errors.ToList()));
         }
     }
 }
