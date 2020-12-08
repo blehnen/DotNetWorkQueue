@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;netstandard2.0;net472;net461</TargetFrameworks>
+    <TargetFrameworks>net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
     <Version>0.5.0</Version>
@@ -24,6 +24,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net461|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;NETFULL</DefineConstants>
   </PropertyGroup>
@@ -38,6 +42,13 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
     <DefineConstants>NETSTANDARD2_0;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+    <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0|AnyCPU'">
+    <DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
     <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
@@ -78,34 +89,42 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="SimpleInjector" Version="5.1.0" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
+    <Reference Include="Schyntax">
+      <HintPath>..\..\Lib\Schyntax\net5.0\Schyntax.dll</HintPath>
+    </Reference>
+    <Reference Include="Aq.ExpressionJsonSerializer">
+      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net5.0\Aq.ExpressionJsonSerializer.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Schyntax">
-      <HintPath>..\..\Lib\Schyntax\net452\Schyntax.dll</HintPath>
+      <HintPath>..\..\Lib\Schyntax\net472\Schyntax.dll</HintPath>
     </Reference>
     <Reference Include="Aq.ExpressionJsonSerializer">
-      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net452\Aq.ExpressionJsonSerializer.dll</HintPath>
+      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net472\Aq.ExpressionJsonSerializer.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Schyntax">
-      <HintPath>..\..\Lib\Schyntax\net452\Schyntax.dll</HintPath>
+      <HintPath>..\..\Lib\Schyntax\net48\Schyntax.dll</HintPath>
     </Reference>
     <Reference Include="Aq.ExpressionJsonSerializer">
-      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net452\Aq.ExpressionJsonSerializer.dll</HintPath>
+      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net48\Aq.ExpressionJsonSerializer.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Schyntax">
-      <HintPath>..\..\Lib\Schyntax\net452\Schyntax.dll</HintPath>
+      <HintPath>..\..\Lib\Schyntax\net461\Schyntax.dll</HintPath>
     </Reference>
     <Reference Include="Aq.ExpressionJsonSerializer">
-      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net452\Aq.ExpressionJsonSerializer.dll</HintPath>
+      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net461\Aq.ExpressionJsonSerializer.dll</HintPath>
     </Reference>
   </ItemGroup>
   
