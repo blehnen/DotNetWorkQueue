@@ -5,15 +5,7 @@ DotNetWorkQueue
 [![Build status](https://ci.appveyor.com/api/projects/status/vqqq9m0j9xodbfof/branch/master?svg=true)](https://ci.appveyor.com/project/blehnen/dotnetworkqueue/branch/master)
 [![Coverity status](https://scan.coverity.com/projects/10126/badge.svg)](https://scan.coverity.com/projects/blehnen-dotnetworkqueue)
 
-A producer / distributed consumer library for dot net applications. Dot net 4.6.1, 4.7.2 and Dot net standard 2.0 are supported
-
-| Transport 			| 4.7.2 		| 4.6.1  	   | Standard 2.0 |
-| ------------- 		| ------------- |------------- | -------------
-| SqlServer  			| Yes  			| Yes		   | Yes
-| PostgreSQL 			| Yes  			| Yes 		   | Yes
-| Redis 				| Yes  			| Yes		   | Yes
-| SQLite 				| Yes  			| Yes		   | No
-| SQLite.Microsoft 		| No  			| No		   | Yes
+A producer / distributed consumer library for dot net applications. Dot net 4.6.1, 4.7.2, 4.8 and Dot net standard 2.0 are supported
 
 High level features
 
@@ -34,7 +26,6 @@ Transports
 * NuGet package [DotNetWorkQueue.Transport.Redis](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/)
 * NuGet package [DotNetWorkQueue.Transport.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/)
 * NuGet package [DotNetWorkQueue.Transport.SQLite](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/)
-* NuGet package [DotNetWorkQueue.Transport.SQLite.Microsoft](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite.Microsoft/)
 * NuGet package [DotNetWorkQueue.Transport.PostgreSQL](https://www.nuget.org/packages/DotNetWorkQueue.Transport.PostgreSQL/)
 
 Metrics
@@ -48,7 +39,6 @@ Dot net standard 2.0 is missing the following features from the full framework v
 
 - No support for aborting threads when stopping the consumer queues
 - No support for dynamic linq statements
-- The SQLite transport uses the microsoft driver for SQlite instead of System.Data.SQLite. The microsoft diver is limited to a single conncurent connection. This is because it doesn't handle multiple threads accessing the database file as well as the System.Data driver. At the moment, this lock is per process, and not system wide.
 
 Usage - POCO
 ------

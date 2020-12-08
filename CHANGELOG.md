@@ -1,3 +1,9 @@
+###0.5.0 2020-12-08
+* Change how connections are setup; this is a breaking change.  This was done to support generic connection settings that could not be expressed as part of the connection string
+* Add dot net 4.8 as a target
+* Add dot net standard 2.0 as a target for the SQLite transport. The microsoft SQLite transport will be deprecated as part of this release
+* The SQL server transport now supports creating the queues in schemas other than 'dbo'
+
 ###0.4.6 2020-09-02
 * Redis Transport - re-cache LUA scripts when they are no longer in the cache; fixes issue with server re-starts.
 
