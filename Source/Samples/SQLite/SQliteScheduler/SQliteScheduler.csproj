@@ -56,25 +56,25 @@
     </Reference>
     <Reference Include="DotNetWorkQueue, Version=0.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\DotNetWorkQueue\bin\Debug\net472\DotNetWorkQueue.dll</HintPath>
+      <HintPath>..\..\..\DotNetWorkQueue\bin\Debug\net48\DotNetWorkQueue.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.AppMetrics, Version=0.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\DotNetWorkQueue.AppMetrics\bin\Debug\net472\DotNetWorkQueue.AppMetrics.dll</HintPath>
+      <HintPath>..\..\..\DotNetWorkQueue.AppMetrics\bin\Debug\net48\DotNetWorkQueue.AppMetrics.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.RelationalDatabase">
-      <HintPath>..\..\..\DotNetWorkQueue.Transport.RelationalDatabase\bin\Debug\net472\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
+      <HintPath>..\..\..\DotNetWorkQueue.Transport.RelationalDatabase\bin\Debug\net48\DotNetWorkQueue.Transport.RelationalDatabase.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.Shared">
-      <HintPath>..\..\..\DotNetWorkQueue.Transport.Shared\bin\Debug\net472\DotNetWorkQueue.Transport.Shared.dll</HintPath>
+      <HintPath>..\..\..\DotNetWorkQueue.Transport.Shared\bin\Debug\net48\DotNetWorkQueue.Transport.Shared.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.SQLite, Version=0.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\DotNetWorkQueue.Transport.SQLite\bin\Debug\net472\DotNetWorkQueue.Transport.SQLite.dll</HintPath>
+      <HintPath>..\..\..\DotNetWorkQueue.Transport.SQLite\bin\Debug\net48\DotNetWorkQueue.Transport.SQLite.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue.Transport.SQLite.Shared, Version=0.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\DotNetWorkQueue.Transport.SQLite.Shared\bin\Debug\net472\DotNetWorkQueue.Transport.SQLite.Shared.dll</HintPath>
+      <HintPath>..\..\..\DotNetWorkQueue.Transport.SQLite.Shared\bin\Debug\net48\DotNetWorkQueue.Transport.SQLite.Shared.dll</HintPath>
     </Reference>
     <Reference Include="Jaeger, Version=0.3.7.0, Culture=neutral, PublicKeyToken=9516061555a213a8, processorArchitecture=MSIL">
       <HintPath>..\packages\Jaeger.0.3.7\lib\netstandard2.0\Jaeger.dll</HintPath>
