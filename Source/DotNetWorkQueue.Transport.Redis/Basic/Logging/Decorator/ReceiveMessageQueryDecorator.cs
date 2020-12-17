@@ -27,20 +27,20 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
     internal class ReceiveMessageQueryDecorator : IQueryHandler<ReceiveMessageQuery, RedisMessage>
     {
         private readonly IQueryHandler<ReceiveMessageQuery, RedisMessage> _handler;
-        private readonly ILog _log;
+        private readonly ILogger _log;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessageQueryDecorator" /> class.
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="handler">The handler.</param>
-        public ReceiveMessageQueryDecorator(ILogFactory log,
+        public ReceiveMessageQueryDecorator(ILogger log,
             IQueryHandler<ReceiveMessageQuery, RedisMessage> handler)
         {
             Guard.NotNull(() => log, log);
             Guard.NotNull(() => handler, handler);
 
-            _log = log.Create();
+            _log = log;
             _handler = handler;
         }
 
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
             var result = _handler.Handle(query);
             if (result != null && result.Expired)
             {
-                _log.DebugFormat("Message {0} expired before it could be processed", result.MessageId);
+                _log.LogDebug($"Message {result.MessageId} expired before it could be processed");
             }
             return result;
         }

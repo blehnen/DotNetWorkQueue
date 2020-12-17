@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Logging.Decorator
 {
     internal class ClearExpiredMessagesDecorator: IClearExpiredMessages
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IClearExpiredMessages _handler;
         private readonly IConnectionInformation _connectionInfo;
 
@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Logging.Decorator
         /// <param name="log">The log.</param>
         /// <param name="handler">The handler.</param>
         /// <param name="connectionInfo">The connection information.</param>
-        public ClearExpiredMessagesDecorator(ILogFactory log,
+        public ClearExpiredMessagesDecorator(ILogger log,
             IClearExpiredMessages handler, 
             IConnectionInformation connectionInfo)
         {
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             Guard.NotNull(() => handler, handler);
             Guard.NotNull(() => connectionInfo, connectionInfo);
 
-            _log = log.Create();
+            _log = log;
             _handler = handler;
             _connectionInfo = connectionInfo;
         }
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             var count = _handler.ClearMessages(cancelToken);
             if (count > 0)
             {
-                _log.Info($"Deleted {count} expired messages from {_connectionInfo.QueueName}");
+                _log.LogInformation($"Deleted {count} expired messages from {_connectionInfo.QueueName}");
             }
             return count;
         }

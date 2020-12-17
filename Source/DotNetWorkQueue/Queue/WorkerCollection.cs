@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Queue
         private readonly IWorkerConfiguration _workerConfiguration;
         private List<IWorker> _workers;
         private readonly IWorkerFactory _workerFactory;
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly StopWorker _stopWorker;
         private readonly IWorkerWaitForEventOrCancel _workerPause;
 
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Queue
         public WorkerCollection(IWorkerConfiguration workerConfiguration,
             IWorkerFactory workerFactory,
             StopWorker stopWorker,
-            ILogFactory log,
+            ILogger log,
             IWorkerWaitForEventOrCancel workerPause)
         {
             Guard.NotNull(() => workerConfiguration, workerConfiguration);
@@ -73,7 +73,7 @@ namespace DotNetWorkQueue.Queue
             _workerConfiguration = workerConfiguration;
             _workerFactory = workerFactory;
             _stopWorker = stopWorker;
-            _log = log.Create();
+            _log = log;
             _workerPause = workerPause;
         }
 
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Queue
                 }
             }
 
-            _log.InfoFormat("Initializing with {0} workers", _workerConfiguration.WorkerCount);
+            _log.LogInformation($"Initializing with {_workerConfiguration.WorkerCount} workers");
             CreateWorkers();
 
             lock (_workerLock)

@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="configuration">The configuration.</param>
-        protected BaseUnixTime(ILogFactory log,
+        protected BaseUnixTime(ILogger log,
             BaseTimeConfiguration configuration): base(log, configuration)
         {
 

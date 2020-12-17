@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly IQueueCancelWork _cancelWorkSource;
         private readonly IWorkerConfiguration _configuration;
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IWorkerWaitForEventOrCancel _waitForEventOrCancel;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="waitForEventOrCancel">The wait for event or cancel.</param>
         public StopWorker(IQueueCancelWork cancelWorkSource,
             IWorkerConfiguration configuration,
-            ILogFactory log,
+            ILogger log,
             IWorkerWaitForEventOrCancel waitForEventOrCancel)
         {
             Guard.NotNull(() => cancelWorkSource, cancelWorkSource);
@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Queue
 
             _cancelWorkSource = cancelWorkSource;
             _configuration = configuration;
-            _log = log.Create();
+            _log = log;
             _waitForEventOrCancel = waitForEventOrCancel;
         }
 
@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (Exception e)
                 {
-                    _log.ErrorException("An error has occurred while disposing of a worker", e, null);
+                    _log.LogError("An error has occurred while disposing of a worker", e);
                 }
             }
         }

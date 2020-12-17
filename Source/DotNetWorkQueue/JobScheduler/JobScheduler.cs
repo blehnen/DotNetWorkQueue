@@ -56,30 +56,29 @@ namespace DotNetWorkQueue.JobScheduler
 
         private readonly IJobQueue _jobQueue;
         private readonly IGetTimeFactory _getTime;
-        private readonly ILogFactory _logFactory;
+        private readonly ILogger _log;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JobScheduler"/> class.
         /// </summary>
         /// <param name="jobQueue">The job queue.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
-        /// <param name="logFactory">The log factory.</param>
+        /// <param name="log">The log factory.</param>
         public JobScheduler(IJobQueue jobQueue,
             IGetTimeFactory getTimeFactory,
-            ILogFactory logFactory)
+            ILogger log)
         {
             _jobQueue = jobQueue;
             _getTime = getTimeFactory;
-            _logFactory = logFactory;
+            _log = log;
         }
 
         /// <inheritdoc />
         public void Start()
         {
             //log task time (from time factory) and local machine time to show differences..
-            var log = _logFactory.Create("TIME");
-            log.Log(LogLevel.Info, () => $"Scheduler time is {_getTime.Create().GetCurrentUtcDate()}");
-            log.Log(LogLevel.Info, () => $"Local time is {DateTime.UtcNow}");
+            _log.LogInformation($"Scheduler time is {_getTime.Create().GetCurrentUtcDate()}");
+            _log.LogInformation($"Local time is {DateTime.UtcNow}");
 
             Task.Run(PollAsync);
         }

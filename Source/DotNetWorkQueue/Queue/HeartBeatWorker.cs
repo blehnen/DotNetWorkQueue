@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Queue
     {
         #region Member level Variables
 
-        private readonly ILog _logger;
+        private readonly ILogger _logger;
         private readonly string _checkTime;
         private readonly ISendHeartBeat _sendHeartbeat;
         private readonly IMessageContext _context;
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Queue
             IMessageContext context,
             ISendHeartBeat sendHeartBeat,
             IHeartBeatScheduler scheduler,
-            ILogFactory log,
+            ILogger log,
             IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory)
         {
             Guard.NotNull(() => configuration, configuration);
@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Queue
             _checkTime = configuration.UpdateTime;
             _sendHeartbeat = sendHeartBeat;
             _scheduler = scheduler;
-            _logger = log.Create();
+            _logger = log;
 
             _cancel = new CancellationTokenSource();
             context.WorkerNotification.HeartBeat = heartBeatNotificationFactory.Create(_cancel.Token);
@@ -164,7 +164,7 @@ namespace DotNetWorkQueue.Queue
                     var removed = _scheduler?.RemoveJob(_job.Name);
                     if (removed.HasValue && !removed.Value)
                     {
-                        _logger.WarnFormat("Failed to remove job {0} from the heartbeat scheduler", _job.Name);
+                        _logger.LogWarning($"Failed to remove job {_job.Name} from the heartbeat scheduler");
                     }
                 }
                 lock (_cancelLocker)
@@ -209,43 +209,39 @@ namespace DotNetWorkQueue.Queue
                     if (status.LastHeartBeatTime.HasValue)
                     {
                         _context.WorkerNotification.HeartBeat.Status = status;
-                        _logger.TraceFormat("Set heartbeat for message {0}", status.MessageId.Id.Value);
+                        _logger.LogTrace($"Set heartbeat for message {status.MessageId.Id.Value}");
                     }
                     else
                     {
-                        _logger.DebugFormat(
-                            "Failed to set heartbeat for message ID {0}; since no exception was generated, this probably means that the record no longer exists",
-                            status.MessageId.Id.Value);
+                        _logger.LogDebug(
+                            $"Failed to set heartbeat for message ID {status.MessageId.Id.Value}; since no exception was generated, this probably means that the record no longer exists");
                     }
                 }
             }
             // ReSharper disable once UncatchableException
             catch (ThreadAbortException error)
             {
-                if (_logger.IsWarnEnabled())
-                {
-                    _logger.WarnException(
-                        "The worker thread has been aborted",
-                        error);
-                }
+                _logger.LogWarning(
+                    "The worker thread has been aborted");
+
                 lock (_runningLocker)
                 {
                     _context.WorkerNotification.HeartBeat.SetError(error);
                 }
+
                 SetCancel();
             }
             catch (Exception error)
             {
-                if (_logger.IsErrorEnabled())
-                {
-                    _logger.ErrorException(
-                        "An error has occurred while updating the heartbeat field for a record that is being processed",
-                        error);
-                }
+                _logger.LogError(
+                    "An error has occurred while updating the heartbeat field for a record that is being processed",
+                    error);
+
                 lock (_runningLocker)
                 {
                     _context.WorkerNotification.HeartBeat.SetError(error);
                 }
+
                 SetCancel();
             }
             finally

@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Time
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="configuration">The configuration.</param>
-        public LocalMachineTime(ILogFactory log, BaseTimeConfiguration configuration) : base(log, configuration)
+        public LocalMachineTime(ILogger log, BaseTimeConfiguration configuration) : base(log, configuration)
         {
         }
 

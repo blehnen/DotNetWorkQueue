@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         private readonly ICommandHandler<SetStatusTableStatusCommand> _setStatusCommandHandler;
         private readonly IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> _headers;
         private readonly IIncreaseQueueDelay _increaseQueueDelay;
-        private readonly ILog _log;
+        private readonly ILogger _log;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessage" /> class.
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             ICommandHandler<RollbackMessageCommand> rollbackCommand,
             ICommandHandler<SetStatusTableStatusCommand> setStatusCommandHandler,
             IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> headers,
-            ILogFactory log,
+            ILogger log,
             IIncreaseQueueDelay increaseQueueDelay)
         {
             Guard.NotNull(() => configuration, configuration);
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             _setStatusCommandHandler = setStatusCommandHandler;
             _headers = headers;
             _increaseQueueDelay = increaseQueueDelay;
-            _log = log.Create();
+            _log = log;
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             }
             catch (Exception e)
             {
-                _log.ErrorException("Failed to rollback a transaction; this might be due to a DB timeout", e);
+                _log.LogError("Failed to rollback a transaction; this might be due to a DB timeout", e);
 
                 //don't attempt to use the transaction again at this point.
                 connection.Transaction = null;

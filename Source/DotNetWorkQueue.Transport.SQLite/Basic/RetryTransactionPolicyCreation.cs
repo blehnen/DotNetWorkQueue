@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         {
             var tracer = container.GetInstance<ITracer>();
             var policies = container.GetInstance<IPolicies>();
-            var log = container.GetInstance<ILogFactory>().Create();
+            var log = container.GetInstance<ILogger>();
 
             var chaosPolicy = CreateRetryChaos(policies);
 
@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
                     (exception, timeSpan, retryCount, context) =>
                     {
-                        log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
+                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
                         if (tracer.ActiveSpan != null)
                         {
                             IScope scope = tracer.BuildSpan("RetryTransaction").StartActive(finishSpanOnDispose: false);

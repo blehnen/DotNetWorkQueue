@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Logging;
-using Serilog;
 
 namespace SampleShared
 {
@@ -17,7 +16,7 @@ namespace SampleShared
 
         public static void HandleMessages(IReceivedMessage<SimpleMessage> arg1, IWorkerNotification arg2)
         {
-            Log.Logger.Information($"Processing message {arg1.MessageId.Id.Value.ToString()} - Processing time is {arg1.Body.ProcessingTime}");
+            arg2.Log.LogInformation($"Processing message {arg1.MessageId.Id.Value.ToString()} - Processing time is {arg1.Body.ProcessingTime}");
 
             if (arg1.Body.Error == ErrorTypes.Error)
             {
@@ -26,13 +25,13 @@ namespace SampleShared
 
                 var i = 9 - 9;
                 var result = 100 / i;
-                arg2.Log.Info(result.ToString());
+                arg2.Log.LogInformation(result.ToString());
             }
             else if (arg1.Body.Error == ErrorTypes.RetryableErrorFail)
             {
                 foreach (var error in arg1.PreviousErrors)
                 {
-                    arg2.Log.Log(LogLevel.Info, () => $"previous error {error.Key}, count {error.Value}");
+                    arg2.Log.LogInformation(() => $"previous error {error.Key}, count {error.Value}");
                 }
 
                 //simulate some processing
@@ -54,7 +53,7 @@ namespace SampleShared
                     //complete
                     foreach (var error in arg1.PreviousErrors)
                     {
-                        arg2.Log.Log(LogLevel.Info, () => $"previous error {error.Key}, count {error.Value}");
+                        arg2.Log.LogInformation(() => $"previous error {error.Key}, count {error.Value}");
                     }
                 }
                 else
@@ -62,7 +61,7 @@ namespace SampleShared
                     RetryErrorCount[arg1.MessageId.Id.Value.ToString()] = RetryErrorCount[arg1.MessageId.Id.Value.ToString()] + 1;
                     foreach (var error in arg1.PreviousErrors)
                     {
-                        arg2.Log.Log(LogLevel.Info, () => $"previous error {error.Key}, count {error.Value}");
+                        arg2.Log.LogInformation( () => $"previous error {error.Key}, count {error.Value}");
                     }
                     throw new InvalidDataException("the data is invalid");
                 }
@@ -87,7 +86,7 @@ namespace SampleShared
             else
                 System.Threading.Thread.Sleep(arg1.Body.ProcessingTime);
 
-            Log.Logger.Information($"Message {arg1.MessageId.Id.Value.ToString()} complete");
+            arg2.Log.LogInformation($"Message {arg1.MessageId.Id.Value.ToString()} complete");
         }
     }
 }

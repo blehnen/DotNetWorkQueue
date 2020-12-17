@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         public void RunConsumer<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors,
             int workerCount,
-            ILogProvider logProvider,
+            ILogger logProvider,
             int timeOut,
             int runTime,
             long messageCount,

@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="configuration">The configuration.</param>
-        public SntpUnixTime(ILogFactory log, SntpTimeConfiguration configuration)
+        public SntpUnixTime(ILogger log, SntpTimeConfiguration configuration)
             : base(log, configuration)
         {
             _configuration = configuration;

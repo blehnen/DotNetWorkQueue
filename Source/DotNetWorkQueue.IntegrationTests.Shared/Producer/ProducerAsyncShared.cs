@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
         public async Task RunTestAsync<TTransportInit, TMessage>(QueueConnection queueConnection,
             bool addInterceptors,
             long messageCount,
-            ILogProvider logProvider,
+            ILogger logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
             ICreationScope scope, bool enableChaos)

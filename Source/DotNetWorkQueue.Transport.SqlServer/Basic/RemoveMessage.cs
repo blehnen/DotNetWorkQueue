@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
         private readonly ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> _deleteTransactionalMessageCommand;
         private readonly IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> _headers;
-        private readonly ILog _log;
+        private readonly ILogger _log;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RemoveMessage" /> class.
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
             IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> headers,
             ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand,
-            ILogFactory log)
+            ILogger log)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => deleteStatusCommandHandler, deleteStatusCommandHandler);
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             _deleteMessageCommand = deleteMessageCommand;
             _headers = headers;
             _deleteTransactionalMessageCommand = deleteTransactionalMessageCommand;
-            _log = log.Create();
+            _log = log;
         }
 
         /// <inheritdoc />
@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             }
             catch (Exception e)
             {
-                _log.ErrorException("Failed to commit a transaction; this might be due to a DB timeout", e);
+                _log.LogError("Failed to commit a transaction; this might be due to a DB timeout", e);
 
                 //don't attempt to use the transaction again at this point.
                 connection.Transaction = null;

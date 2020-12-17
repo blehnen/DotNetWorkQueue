@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             var policies = container.GetInstance<IPolicies>();
             var tracer = container.GetInstance<ITracer>();
-            var log = container.GetInstance<ILogFactory>().Create();
+            var log = container.GetInstance<ILogger>();
 
             var chaosPolicy = CreateRetryChaos(policies);
             var chaosPolicyAsync = CreateRetryChaosAsync(policies);
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                      retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
                      (exception, timeSpan, retryCount, context) =>
                      {
-                         log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
+                         log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
                          if (tracer.ActiveSpan != null)
                          {
                              IScope scope = tracer.BuildSpan("RetrySqlPolicy").StartActive(finishSpanOnDispose: false);
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
                     (exception, timeSpan, retryCount, context) =>
                     {
-                        log.WarnException($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occured {retryCount} times", exception);
+                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
                         if (tracer.ActiveSpan != null)
                         {
                             IScope scope = tracer.BuildSpan("RetrySqlPolicy").StartActive(finishSpanOnDispose: false);

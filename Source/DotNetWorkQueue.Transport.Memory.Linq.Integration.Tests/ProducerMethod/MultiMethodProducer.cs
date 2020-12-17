@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
             }
         }
 
-        private void RunTest(QueueConnection queueConnection, int messageCount, int queueCount, ILogProvider logProvider, LinqMethodTypes linqMethodTypes, ICreationScope scope)
+        private void RunTest(QueueConnection queueConnection, int messageCount, int queueCount, ILogger logProvider, LinqMethodTypes linqMethodTypes, ICreationScope scope)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)

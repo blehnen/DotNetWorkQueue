@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Queue
         public WorkerNotification(IHeaders headerNames,
             IQueueCancelWork cancelWork,
             TransportConfigurationReceive configuration,
-            ILogFactory log,
+            ILogger log,
             IMetrics metrics,
             ITracer tracer)
         {
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Queue
             HeaderNames = headerNames;
             WorkerStopping = cancelWork;
             TransportSupportsRollback = configuration.MessageRollbackSupported;
-            Log = log.Create();
+            Log = log;
             Metrics = metrics;
             Tracer = tracer;
         }
@@ -99,7 +99,7 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         /// The log.
         /// </value>
-        public ILog Log { get; }
+        public ILogger Log { get; }
 
         /// <summary>
         /// Allows logging of metrics

@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Logging.Decorator
 {
     internal class ReceivePoisonMessageDecorator: IReceivePoisonMessage
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IReceivePoisonMessage _handler;
 
         /// <summary>
@@ -31,13 +31,13 @@ namespace DotNetWorkQueue.Logging.Decorator
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="handler">The handler.</param>
-        public ReceivePoisonMessageDecorator(ILogFactory log,
+        public ReceivePoisonMessageDecorator(ILogger log,
             IReceivePoisonMessage handler)
         {
             Guard.NotNull(() => log, log);
             Guard.NotNull(() => handler, handler);
 
-            _log = log.Create();
+            _log = log;
             _handler = handler;
         }
 
@@ -52,10 +52,9 @@ namespace DotNetWorkQueue.Logging.Decorator
             {
                 var messageId = context.MessageId.Id.Value.ToString();
                 _handler.Handle(context, exception);
-                _log.ErrorException(
-                    "Message with ID {0} has failed after de-queue, but before finishing loading. This message is considered a poison message, and has been moved to the error queue",
-                    exception,
-                    messageId);
+                _log.LogError(
+                    $"Message with ID {messageId} has failed after de-queue, but before finishing loading. This message is considered a poison message, and has been moved to the error queue",
+                    exception);
             }
             else
             {

@@ -9,7 +9,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
     public class ConsumerMethodShared
     {
         public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
-            ILogProvider logProvider,
+            ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos)

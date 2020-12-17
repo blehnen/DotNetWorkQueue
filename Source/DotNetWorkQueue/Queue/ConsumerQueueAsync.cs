@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Queue
         public ConsumerQueueAsync(
             QueueConsumerConfiguration configuration,
             IPrimaryWorkerFactory workerFactory,
-            ILogFactory log,
+            ILogger log,
             IRegisterMessagesAsync registerMessagesAsync,
             StopWorker stopWorker,
             IQueueMonitor queueMonitor)
@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.Queue
             _queueMonitor.Start();
             _primaryWorker.Value.Start();
             _configuration.SetReadOnly();
-            Log.Info("Queue started");
+            Log.LogInformation("Queue started");
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

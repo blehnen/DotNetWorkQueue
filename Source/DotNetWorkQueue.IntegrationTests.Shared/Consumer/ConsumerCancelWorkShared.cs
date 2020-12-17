@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         private Action<IContainer> _badQueueAdditions;
 
         public void RunConsumer(QueueConnection queueConnection, bool addInterceptors,
-            ILogProvider logProvider,
+            ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos)
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 
 
         private void RunConsumerInternal(QueueConnection queueConnection, bool addInterceptors,
-            ILogProvider logProvider,
+            ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, IDisposable queueBad,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos)

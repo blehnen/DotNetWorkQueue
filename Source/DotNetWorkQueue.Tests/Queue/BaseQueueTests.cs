@@ -97,13 +97,13 @@ namespace DotNetWorkQueue.Tests.Queue
         private BaseQueueTest CreateQueue()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return new BaseQueueTest(fixture.Create<ILogFactory>());
+            return new BaseQueueTest(fixture.Create<ILogger>());
         }
     }
 
     public class BaseQueueTest : BaseQueue
     {
-        public BaseQueueTest(ILogFactory log): base(log)
+        public BaseQueueTest(ILogger log): base(log)
         {
             
         }

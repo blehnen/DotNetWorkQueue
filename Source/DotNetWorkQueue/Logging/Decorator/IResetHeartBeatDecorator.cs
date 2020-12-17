@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Logging.Decorator
 {
     internal class ResetHeartBeatDecorator: IResetHeartBeat
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IResetHeartBeat _handler;
         private readonly QueueConsumerConfiguration _configuration;
 
@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Logging.Decorator
         /// <param name="log">The log.</param>
         /// <param name="handler">The handler.</param>
         /// <param name="configuration">The configuration.</param>
-        public ResetHeartBeatDecorator(ILogFactory log,
+        public ResetHeartBeatDecorator(ILogger log,
             IResetHeartBeat handler,
              QueueConsumerConfiguration configuration)
         {
@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             Guard.NotNull(() => handler, handler);
             Guard.NotNull(() => configuration, configuration);
 
-            _log = log.Create();
+            _log = log;
             _handler = handler;
             _configuration = configuration;
         }
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             var count = _handler.Reset(cancelToken);
             if (count.Count > 0)
             {
-                _log.Info(
+                _log.LogInformation(
                    $"Reset the status of {count.Count} records that where outside of the heartbeat window of {_configuration.HeartBeat.Time.TotalSeconds} seconds");
             }
             return count;

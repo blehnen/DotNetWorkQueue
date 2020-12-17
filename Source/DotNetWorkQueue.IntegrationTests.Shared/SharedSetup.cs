@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
 
         public static QueueContainer<TTransportInit> CreateCreator<TTransportInit>(InterceptorAdding addInterceptors,
-            ILogProvider logProvider, IMetrics metrics, bool createBadSerialization, bool enableChaos)
+            ILogger logProvider, IMetrics metrics, bool createBadSerialization, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
             if (createBadSerialization)

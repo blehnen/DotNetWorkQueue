@@ -10,12 +10,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 {
     public static class LoggerShared
     {
-        public static ILogProvider Create(string queueName, string initText)
+        public static ILogger Create(string queueName, string initText)
         {
-            return Create(queueName, LogLevel.Error, initText);
+            return Create(queueName, LoggingEventType.Error, initText);
         }
 
-        public static ILogProvider Create(string queueName, LogLevel logLevel, string initText)
+        public static ILogger Create(string queueName, LoggingEventType logLevel, string initText)
         {
             if(!Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\"))
                 Directory.CreateDirectory(AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\");
@@ -65,14 +65,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
     }
-    public class TextFileLogProvider : ILogProvider
+    public class TextFileLogProvider : ILogger
     {
-        //private const bool _logEverything = false;
         private readonly object _locker = new object();
 
         private readonly string _fileName;
         private readonly string _fileNameOther;
-        private readonly LogLevel _logLevel;
+        private readonly LoggingEventType _level;
 
         // ReSharper disable once UnusedParameter.Local
         /// <summary>
@@ -81,91 +80,62 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         /// <param name="fileName">Name of the file.</param>
         /// <param name="logLevel">The log level.</param>
         /// <param name="initText">The initialize text.</param>
-        public TextFileLogProvider(string fileName, LogLevel logLevel, string initText)
+        public TextFileLogProvider(string fileName, LoggingEventType logLevel, string initText)
         {
             _fileName = fileName;
             _fileNameOther = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "Other.txt";
-            _logLevel = logLevel;
-
-            //if (_logEverything)
-            //{
-            //    FileWriteLineOther($"{DateTime.UtcNow} | {LogLevel.Trace} | Init | {initText}");
-            //}
+            _level = logLevel;
         }
+
         /// <inheritdoc />
-        public Logger GetLogger(string name)
+        public void Log(Func<LogEntry> entry)
         {
-            return (logLevel, messageFunc, exception, formatParameters) =>
-            {
-                if (messageFunc == null)
-                {
-                    return true; // All log levels are enabled
-                }
-  
-                WriteMessage(logLevel, name, messageFunc, formatParameters, exception);
-                return true;
-            };
+            Log(entry.Invoke());
+        }
+
+        /// <inheritdoc />
+        public void Log(LogEntry entry)
+        {
+            if (entry.Severity == LoggingEventType.Trace && _level <= LoggingEventType.Trace)
+                WriteMessage(entry.Severity, entry.Message, entry.Exception);
+            else if (entry.Severity == LoggingEventType.Debug && _level <= LoggingEventType.Debug)
+                WriteMessage(entry.Severity, entry.Message, entry.Exception);
+            else if (entry.Severity == LoggingEventType.Information && _level <= LoggingEventType.Information)
+                WriteMessage(entry.Severity, entry.Message, entry.Exception);
+            else if (entry.Severity == LoggingEventType.Warning && _level <= LoggingEventType.Warning)
+                WriteMessage(entry.Severity, entry.Message, entry.Exception);
+            else if (entry.Severity == LoggingEventType.Error && _level <= LoggingEventType.Error)
+                WriteMessage(entry.Severity, entry.Message, entry.Exception);
+            else
+                WriteMessage(entry.Severity, entry.Message, entry.Exception);
         }
 
         /// <summary>
         /// Writes the message.
         /// </summary>
         /// <param name="logLevel">The log level.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="messageFunc">The message function.</param>
-        /// <param name="formatParameters">The format parameters.</param>
+        /// <param name="message">The message function.</param>
         /// <param name="exception">The exception.</param>
         private void WriteMessage(
-            LogLevel logLevel,
-            string name,
-            Func<string> messageFunc,
-            object[] formatParameters,
+            LoggingEventType logLevel,
+            string message,
             Exception exception)
         {
             try
             {
-
-                if (formatParameters == null || formatParameters.Length == 0)
+                if (exception != null)
                 {
-                    var message = messageFunc();
-                    if (exception != null)
-                    {
-                        message = message + "|" + exception;
-                    }
-                    if (logLevel >= _logLevel)
-                    {
-                        FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
-                    }
-                    else
-                    {
-                        WriteMessageConsole(logLevel, name, messageFunc, formatParameters, exception);
-                    }
-                    //else if(_logEverything)
-                    //{
-                    //    FileWriteLineOther($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
-                    //}
+                    message = message + "|" + exception;
+                }
+
+                if (logLevel >= _level)
+                {
+                    FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {message}");
                 }
                 else
                 {
-                    var message = string.Format(CultureInfo.InvariantCulture, messageFunc(), formatParameters);
-                    if (exception != null)
-                    {
-                        message = message + "|" + exception;
-                    }
-                    if (logLevel >= _logLevel)
-                    {
-                        FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
-                    }
-                    else
-                    {
-                        WriteMessageConsole(logLevel, name, messageFunc, formatParameters, exception);
-                    }
-                    //else if (_logEverything)
-                    //{
-                    //    FileWriteLineOther($"{DateTime.UtcNow} | {logLevel} | {name} | {message}");
-                    //}
+                    WriteMessageConsole(logLevel, message, exception);
                 }
-
             }
             catch (Exception e)
             {
@@ -186,36 +156,20 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         /// Writes the message.
         /// </summary>
         /// <param name="logLevel">The log level.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="messageFunc">The message function.</param>
-        /// <param name="formatParameters">The format parameters.</param>
+        /// <param name="message">The message function.</param>
         /// <param name="exception">The exception.</param>
         private static void WriteMessageConsole(
-            LogLevel logLevel,
-            string name,
-            Func<string> messageFunc,
-            object[] formatParameters,
+            LoggingEventType logLevel,
+            string message,
             Exception exception)
         {
-            if (formatParameters == null || formatParameters.Length == 0)
+            if (exception != null)
             {
-                var message = messageFunc();
-                if (exception != null)
-                {
-                    message = message + "|" + exception;
-                }
-                Console.WriteLine("{0} | {1} | {2} | {3}", DateTime.UtcNow, logLevel, name, message);
+                message = message + "|" + exception;
             }
-            else
-            {
-                var message = string.Format(CultureInfo.InvariantCulture, messageFunc(), formatParameters);
-                if (exception != null)
-                {
-                    message = message + "|" + exception;
-                }
-                Console.WriteLine("{0} | {1} | {2} | {3}", DateTime.UtcNow, logLevel, name, message);
-            }
+            Console.WriteLine("{0} | {1} | {2}", DateTime.UtcNow, logLevel, message);
         }
+
         // ReSharper disable once UnusedMember.Local
         private void FileWriteLineOther(string message)
         {
@@ -223,18 +177,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             {
                 File.AppendAllText(_fileNameOther, message + Environment.NewLine + Environment.NewLine);
             }
-        }
-
-        /// <inheritdoc />
-        public IDisposable OpenNestedContext(string message)
-        {
-            return NullDisposable.Instance;
-        }
-
-        /// <inheritdoc />
-        public IDisposable OpenMappedContext(string key, object value, bool destructure = false)
-        {
-            return NullDisposable.Instance;
         }
 
         /// <inheritdoc />

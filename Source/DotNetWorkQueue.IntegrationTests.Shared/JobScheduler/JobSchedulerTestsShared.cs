@@ -22,14 +22,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         private bool _queueStarted;
         private readonly object _queueStartLocker = new object();
         private IGetTimeFactory _timeFactory;
-        private ILogProvider _logProvider;
+        private ILogger _logProvider;
 
         public void RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(QueueConnection queueConnection,
             bool addInterceptors,
             Action<QueueConnection, long, ICreationScope> verify,
             Action<QueueConnection, ICreationScope> setErrorFlag,
             IGetTimeFactory timeFactory, ICreationScope scope,
-            ILogProvider logProvider)
+            ILogger logProvider)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Action<QueueConnection, long, ICreationScope> verify,
             Action<QueueConnection, ICreationScope> setErrorFlag,
             IGetTimeFactory timeFactory, ICreationScope scope,
-            ILogProvider logProvider)
+            ILogger logProvider)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                 bool addInterceptors,
                 long producerCount,
                 IGetTimeFactory timeFactory,
-                ILogProvider logProvider)
+                ILogger logProvider)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
@@ -177,7 +177,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Func<IJobScheduler, string, IScheduledJob> enqueue,
             Func<IJobScheduler, string, TimeSpan, IScheduledJob> enqueueWindow,
             IGetTimeFactory timeFactory, ICreationScope scope,
-            ILogProvider logProvider)
+            ILogger logProvider)
             where TTransportInit : ITransportInit, new()
         {
             _timeFactory = timeFactory;

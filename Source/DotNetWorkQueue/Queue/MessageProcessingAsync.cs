@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     public class MessageProcessingAsync : IMessageProcessing
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IReceiveMessagesFactory _receiveMessages;
         private readonly Lazy<IQueueWait> _seriousExceptionProcessBackOffHelper;
         private readonly Lazy<IQueueWait> _noMessageToProcessBackOffHelper;
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Queue
         public MessageProcessingAsync(IReceiveMessagesFactory receiveMessages,
             IMessageContextFactory messageContextFactory,
             IQueueWaitFactory queueWaitFactory,
-            ILogFactory log,
+            ILogger log,
             ProcessMessageAsync processMessage,
             IReceivePoisonMessage receivePoisonMessage, 
             IRollbackMessage rollbackMessage)
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Queue
 
             _receiveMessages = receiveMessages;
             _messageContextFactory = messageContextFactory;
-            _log = log.Create();
+            _log = log;
             _processMessage = processMessage;
             _receivePoisonMessage = receivePoisonMessage;
             _rollbackMessage = rollbackMessage;
@@ -142,7 +142,7 @@ namespace DotNetWorkQueue.Queue
             catch (Exception ex) //not cool - one of the exception events threw an exception
             {
                 //there is not a lot we can do here - log the exception
-                _log.ErrorException("An error has occurred while trying to handle an exception", ex, null);
+                _log.LogError("An error has occurred while trying to handle an exception", ex);
             }
             finally
             {
@@ -177,8 +177,7 @@ namespace DotNetWorkQueue.Queue
                 catch (ReceiveMessageException e)
                 //an exception occurred trying to get the message from the transport
                 {
-                    _log.ErrorException("An error has occurred while receiving a message from the transport", e,
-                        null);
+                    _log.LogError("An error has occurred while receiving a message from the transport", e);
                     _seriousExceptionProcessBackOffHelper.Value.Wait();
                 }
                 catch

@@ -29,15 +29,15 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     public class WaitForThreadToFinish
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         /// <summary>
         /// Initializes a new instance of the <see cref="WaitForThreadToFinish"/> class.
         /// </summary>
         /// <param name="log">The log.</param>
-        public WaitForThreadToFinish(ILogFactory log)
+        public WaitForThreadToFinish(ILogger log)
         {
             Guard.NotNull(() => log, log);
-            _log = log.Create();
+            _log = log;
         }
         /// <summary>
         ///  Waits for specified worker thread to finish, or until the timeout period has been reached.
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public bool Wait(Thread workerThread, TimeSpan? timeout = null)
         {
-            var iLogCount = 0;
+            var ILoggerCount = 0;
             Stopwatch timer = null;
             if (timeout.HasValue)
             {
@@ -56,12 +56,12 @@ namespace DotNetWorkQueue.Queue
             }
             while (workerThread != null && workerThread.IsAlive)
             {
-                if (iLogCount == 0 || iLogCount % 5000 == 0)
+                if (ILoggerCount == 0 || ILoggerCount % 5000 == 0)
                 {
-                    _log?.Warn($"Still waiting for thread {workerThread.Name} to stop or cancel");
+                    _log?.LogWarning($"Still waiting for thread {workerThread.Name} to stop or cancel");
                 }
                 Thread.Sleep(20);
-                iLogCount = iLogCount + 20;
+                ILoggerCount = ILoggerCount + 20;
 
                 if(timer != null && timer.Elapsed >= timeout.Value)
                 {

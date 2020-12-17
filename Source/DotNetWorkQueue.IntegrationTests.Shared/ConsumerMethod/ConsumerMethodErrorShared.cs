@@ -8,7 +8,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
     public class ConsumerMethodErrorShared
     {
         public void PurgeErrorMessages<TTransportInit>(QueueConnection queueConnection,
-            bool addInterceptors, ILogProvider logProvider, bool actuallyPurge)
+            bool addInterceptors, ILogger logProvider, bool actuallyPurge)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueConnection.Queue))
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
         }
 
         public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
-            ILogProvider logProvider,
+            ILogger logProvider,
             int workerCount, int timeOut, int messageCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos)
             where TTransportInit : ITransportInit, new()

@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="clearErrorMessages">The clear messages implementation.</param>
         /// <param name="log">The log.</param>
         public ClearErrorMessagesMonitor(IMessageErrorConfiguration configuration,
-            IClearErrorMessages clearErrorMessages, ILogFactory log)
+            IClearErrorMessages clearErrorMessages, ILogger log)
             : base(Guard.NotNull(() => clearErrorMessages, clearErrorMessages).ClearMessages, configuration, log)
         {
 

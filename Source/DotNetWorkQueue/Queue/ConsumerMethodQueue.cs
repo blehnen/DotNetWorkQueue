@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="messageMethodHandling">The message method handling.</param>
         public ConsumerMethodQueue(
            IConsumerQueue queue,
-           ILogFactory log,
+           ILogger log,
            IMessageMethodHandling messageMethodHandling)
            : base(log)
         {

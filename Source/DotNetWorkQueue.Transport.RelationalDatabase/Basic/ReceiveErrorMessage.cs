@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     public class ReceiveErrorMessage : IReceiveMessagesError
     {
         #region Member Level Variables
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly QueueConsumerConfiguration _configuration;
         private readonly IQueryHandler<GetErrorRetryCountQuery, int> _queryErrorRetryCount;
         private readonly ICommandHandler<SetErrorCountCommand> _commandSetErrorCount;
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public ReceiveErrorMessage(QueueConsumerConfiguration configuration,
             IQueryHandler<GetErrorRetryCountQuery, int> queryErrorRetryCount, ICommandHandler<SetErrorCountCommand> commandSetErrorCount,
             ICommandHandler<MoveRecordToErrorQueueCommand> commandMoveRecord,
-            ILogFactory log,
+            ILogger log,
             IIncreaseQueueDelay headers)
         {
             Guard.NotNull(() => configuration, configuration);
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             _queryErrorRetryCount = queryErrorRetryCount;
             _commandSetErrorCount = commandSetErrorCount;
             _commandMoveRecord = commandMoveRecord;
-            _log = log.Create();
+            _log = log;
             _headers = headers;
         }
         #endregion
@@ -118,8 +118,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 new MoveRecordToErrorQueueCommand(exception, (long)context.MessageId.Id.Value, context));
             //we are done doing any processing - remove the messageID to block other actions
             context.SetMessageAndHeaders(null, context.Headers);
-            _log.ErrorException("Message with ID {0} has failed and has been moved to the error queue", exception,
-                message.MessageId);
+            _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue", exception);
             return ReceiveMessagesErrorResult.Error;
         }
         #endregion

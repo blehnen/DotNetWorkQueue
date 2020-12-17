@@ -39,21 +39,21 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <param name="jobSchedulerLastKnownEvent">The job scheduler last known event.</param>
         /// <param name="sendJobToQueue">The send job to queue.</param>
-        /// <param name="logFactory">The log factory.</param>
+        /// <param name="log">The log.</param>
         /// <param name="createJobQueue">The create job queue.</param>
         public ProducerMethodJobQueue(IJobSchedulerLastKnownEvent jobSchedulerLastKnownEvent,
             ISendJobToQueue sendJobToQueue,
-            ILogFactory logFactory,
+            ILogger log,
             IJobTableCreation createJobQueue)
         {
             Guard.NotNull(() => jobSchedulerLastKnownEvent, jobSchedulerLastKnownEvent);
             Guard.NotNull(() => sendJobToQueue, sendJobToQueue);
-            Guard.NotNull(() => logFactory, logFactory);
+            Guard.NotNull(() => log, log);
             Guard.NotNull(() => createJobQueue, createJobQueue);
 
             LastKnownEvent = jobSchedulerLastKnownEvent;
             _sendJobToQueue = sendJobToQueue;
-            Logger = logFactory.Create();
+            Logger = log;
             _createJobQueue = createJobQueue;
         }
 
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Queue
         public IJobSchedulerLastKnownEvent LastKnownEvent { get; }
 
         /// <inheritdoc />
-        public ILog Logger { get; }
+        public ILogger Logger { get; }
 
 #if NETFULL
         /// <inheritdoc />

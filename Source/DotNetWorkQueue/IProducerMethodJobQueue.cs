@@ -77,6 +77,6 @@ namespace DotNetWorkQueue
         /// <value>
         /// The logger.
         /// </value>
-        ILog Logger { get; }
+        ILogger Logger { get; }
     }
 }

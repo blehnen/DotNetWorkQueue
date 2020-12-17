@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
         private readonly DatabaseExists _databaseExists;
         private readonly ITransportHandleMessage _handleMessage;
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private static bool _loggedMissingDb;
         private static readonly object LoggedMissingDbLock = new object();
 
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             IQueueCancelWork cancelWork,
             ITransportHandleMessage handleMessage,
             ReceiveMessage receiveMessages,
-            ILogFactory log,
+            ILogger log,
             IGetFileNameFromConnectionString getFileNameFromConnection,
             DatabaseExists databaseExists)
         {
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
             Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
             Guard.NotNull(() => databaseExists, databaseExists);
 
-            _log = log.Create();
+            _log = log;
             _configuration = configuration;
             _cancelWork = cancelWork;
             _handleMessage = handleMessage;
@@ -161,7 +161,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         {
             if (!LoggedMissingDb && !_databaseExists.Exists(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString))
             {
-                _log.WarnFormat("Database file {0} does not exist", _getFileNameFromConnection.GetFileName(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString).FileName);
+                _log.LogWarning($"Database file {_getFileNameFromConnection.GetFileName(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString).FileName} does not exist");
                 LoggedMissingDb = true;
             }
 

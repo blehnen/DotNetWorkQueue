@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Queue
             }
         }
 
-        public ILog Log => null;
+        public ILogger Log => null;
 
         public IMetrics Metrics => null;
 

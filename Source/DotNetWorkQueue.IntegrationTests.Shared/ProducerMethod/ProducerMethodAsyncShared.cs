@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
         public async Task RunTestAsync<TTransportInit>(QueueConnection queueConnection,
             bool addInterceptors,
             long messageCount,
-            ILogProvider logProvider,
+            ILogger logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
             int runTime, Guid id, LinqMethodTypes linqMethodTypes,

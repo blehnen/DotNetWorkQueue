@@ -26,20 +26,20 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
     internal class DelayedProcessingActionDecorator: IDelayedProcessingAction
     {
         private readonly IDelayedProcessingAction _handler;
-        private readonly ILog _log;
+        private readonly ILogger _log;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessageQueryDecorator" /> class.
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="handler">The handler.</param>
-        public DelayedProcessingActionDecorator(ILogFactory log,
+        public DelayedProcessingActionDecorator(ILogger log,
             IDelayedProcessingAction handler)
         {
             Guard.NotNull(() => log, log);
             Guard.NotNull(() => handler, handler);
 
-            _log = log.Create();
+            _log = log;
             _handler = handler;
         }
 
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
             var records = _handler.Run(token);
             if (records > 0)
             {
-                _log.InfoFormat("Moved {0} records from the delayed queue to the pending queue", records);
+                _log.LogInformation($"Moved {records} records from the delayed queue to the pending queue");
             }
             return records;
         }

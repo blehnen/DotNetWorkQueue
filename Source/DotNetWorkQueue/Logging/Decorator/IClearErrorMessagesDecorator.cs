@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Logging.Decorator
 {
     internal class ClearErrorMessagesDecorator : IClearErrorMessages
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IClearErrorMessages _handler;
         private readonly IConnectionInformation _connectionInfo;
 
@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Logging.Decorator
         /// <param name="log">The log.</param>
         /// <param name="handler">The handler.</param>
         /// <param name="connectionInfo">The connection information.</param>
-        public ClearErrorMessagesDecorator(ILogFactory log,
+        public ClearErrorMessagesDecorator(ILogger log,
             IClearErrorMessages handler,
             IConnectionInformation connectionInfo)
         {
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             Guard.NotNull(() => handler, handler);
             Guard.NotNull(() => connectionInfo, connectionInfo);
 
-            _log = log.Create();
+            _log = log;
             _handler = handler;
             _connectionInfo = connectionInfo;
         }
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             var count = _handler.ClearMessages(cancelToken);
             if (count > 0)
             {
-                _log.Info($"Deleted {count} error messages from {_connectionInfo.QueueName}");
+                _log.LogInformation($"Deleted {count} error messages from {_connectionInfo.QueueName}");
             }
             return count;
         }

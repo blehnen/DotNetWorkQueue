@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.TaskScheduling
     {
         private readonly Lazy<ATaskScheduler> _scheduler;
         private readonly Lazy<TaskFactory> _factory;
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly object _tryStartNewLocker = new object();
 
         /// <summary>
@@ -38,11 +38,11 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="schedulerFactory">The scheduler factory.</param>
         /// <param name="log">The log.</param>
         public SchedulerTaskFactory(ITaskSchedulerFactory schedulerFactory,
-            ILogFactory log)
+            ILogger log)
         {
             Guard.NotNull(() => schedulerFactory, schedulerFactory);
             _scheduler = new Lazy<ATaskScheduler>(schedulerFactory.Create);
-            _log = log.Create();
+            _log = log;
             _factory = new Lazy<TaskFactory>(() =>
             {
                 lock (_tryStartNewLocker)
@@ -70,9 +70,7 @@ namespace DotNetWorkQueue.TaskScheduling
                         }
                         catch (BulkheadRejectedException e)
                         {
-                            //TODO - metrics
-                            _log.WarnException("Failed to enqueue task", e);
-
+                            _log.LogWarning("Failed to enqueue task", e);
                             task = null;
                             return TryStartNewResult.Rejected;
                         }

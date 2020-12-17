@@ -61,7 +61,7 @@ namespace DotNetWorkQueue
         /// <value>
         /// The log.
         /// </value>
-        ILog Log { get; }
+        ILogger Log { get; }
         /// <summary>
         /// Allows logging of metrics
         /// </summary>

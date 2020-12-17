@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
             }
         }
 
-        private void RunTest(QueueConnection queueConnection, int messageCount, int queueCount, ILogProvider logProvider, ICreationScope scope, bool enableChaos)
+        private void RunTest(QueueConnection queueConnection, int messageCount, int queueCount, ILogger logProvider, ICreationScope scope, bool enableChaos)
         {
             var tasks = new List<Task>(queueCount);
             for (var i = 0; i < queueCount; i++)

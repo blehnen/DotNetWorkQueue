@@ -16,7 +16,7 @@ namespace RedisScheduler
     {
         static void Main(string[] args)
         {
-            //we are using serilog for sample purposes; any https://github.com/damianh/LibLog provider can be used
+            //we are using serilog for sample purposes
             var log = new LoggerConfiguration()
                 .WriteTo.Console()
                 .MinimumLevel.Debug()
@@ -29,13 +29,13 @@ namespace RedisScheduler
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
             var queueConnection = new QueueConnection(queueName, connectionString);
             using (var jobContainer = new JobSchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister)
+                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = jobContainer.CreateJobScheduler(serviceRegister =>
-                    Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister),
+                    Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister),
                     serviceRegister =>
-                        Injectors.AddInjectors(log, SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister)
+                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisScheduler", serviceRegister)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                 {

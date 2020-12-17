@@ -28,13 +28,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     internal class FindExpiredRecordsToDeleteQueryHandlerErrorDecorator : IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>
     {
         private readonly IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> _decorated;
-        private readonly ILog _logger;
+        private readonly ILogger _logger;
         public FindExpiredRecordsToDeleteQueryHandlerErrorDecorator(
             IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> decorated,
-            ILogFactory logger)
+            ILogger logger)
         {
             _decorated = decorated;
-            _logger = logger.Create("FindExpiredRecordsToDeleteQueryHandler");
+            _logger = logger;
         }
 
         public IEnumerable<long> Handle(FindExpiredMessagesToDeleteQuery query)
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             {
                 if (e.Message.IndexOf("abort due to ROLLBACK", StringComparison.InvariantCultureIgnoreCase) >= 0)
                 {
-                    _logger.WarnException("The query has been aborted", e);
+                    _logger.LogWarning("The query has been aborted", e);
                     return Enumerable.Empty<long>();
                 }
                 else

@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="clearExpiredMessages">The clear expired messages implementation.</param>
         /// <param name="log">The log.</param>
         public ClearExpiredMessagesMonitor(IMessageExpirationConfiguration configuration,
-            IClearExpiredMessages clearExpiredMessages, ILogFactory log)
+            IClearExpiredMessages clearExpiredMessages, ILogger log)
             : base(Guard.NotNull(() => clearExpiredMessages, clearExpiredMessages).ClearMessages, configuration, log)
         {
 

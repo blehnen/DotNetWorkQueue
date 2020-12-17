@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Time
         /// <param name="configuration">The configuration.</param>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="dateTimeQueryHandler">The date time query handler.</param>
-        public PostgreSqlTime(ILogFactory log,
+        public PostgreSqlTime(ILogger log,
             BaseTimeConfiguration configuration,
             IConnectionInformation connectionInformation,
             IQueryHandler<GetUtcDateQuery, DateTime> dateTimeQueryHandler) : base(log, configuration)

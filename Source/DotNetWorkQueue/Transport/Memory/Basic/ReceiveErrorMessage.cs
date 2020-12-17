@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     public class ReceiveErrorMessage : IReceiveMessagesError
     {
         #region Member Level Variables
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IDataStorage _dataDataStorage;
 
         #endregion
@@ -40,13 +40,13 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="log">The log.</param>
         /// <param name="dataDataStorage">The data data storage.</param>
         public ReceiveErrorMessage(
-            ILogFactory log,
+            ILogger log,
             IDataStorage dataDataStorage)
         {
             Guard.NotNull(() => dataDataStorage, dataDataStorage);
             Guard.NotNull(() => log, log);
 
-            _log = log.Create();
+            _log = log;
             _dataDataStorage = dataDataStorage;
         }
         #endregion
@@ -67,8 +67,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
             //we are done doing any processing - remove the messageID to block other actions
             context.SetMessageAndHeaders(null, context.Headers);
-            _log.ErrorException("Message with ID {0} has failed and has been moved to the error queue", exception,
-                message.MessageId);
+            _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue", exception);
             return ReceiveMessagesErrorResult.Error;
         }
         #endregion

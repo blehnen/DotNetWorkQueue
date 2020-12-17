@@ -14,7 +14,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenTracing;
 using IMetrics = DotNetWorkQueue.IMetrics;
-using Logger = Serilog.Core.Logger;
 
 namespace SampleShared
 {
@@ -24,7 +23,7 @@ namespace SampleShared
         private static ITracer _tracer;
         private static AppMetricsTaskScheduler _metricScheduler;
 
-        public static void AddInjectors(Logger log,
+        public static void AddInjectors(DotNetWorkQueue.Logging.ILogger log,
             bool addTrace,
             bool addMetrics,
             bool enableGzip,
@@ -32,7 +31,7 @@ namespace SampleShared
             string appName,
             IContainer container)
         {
-            container.Register(() => log, LifeStyles.Singleton);
+            container.Register<DotNetWorkQueue.Logging.ILogger>(() => log, LifeStyles.Singleton);
             if (addMetrics)
             {
                 AddMetrics(container, appName);

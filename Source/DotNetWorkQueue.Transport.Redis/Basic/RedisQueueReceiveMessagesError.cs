@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// </summary>
     internal class RedisQueueReceiveMessagesError : IReceiveMessagesError
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly QueueConsumerConfiguration _configuration;
         private readonly IQueryHandler<GetMetaDataQuery, RedisMetaData> _queryGetMetaData;
         private readonly ICommandHandler<SaveMetaDataCommand> _saveMetaData;
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             IQueryHandler<GetMetaDataQuery, RedisMetaData> queryGetMetaData,
             ICommandHandler<SaveMetaDataCommand> saveMetaData,
             ICommandHandler<MoveRecordToErrorQueueCommand> commandMoveRecord,
-            ILogFactory log,
+            ILogger log,
             RedisHeaders headers)
         {
             Guard.NotNull(() => configuration, configuration);
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _queryGetMetaData = queryGetMetaData;
             _saveMetaData = saveMetaData;
             _commandMoveRecord = commandMoveRecord;
-            _log = log.Create();
+            _log = log;
             _headers = headers;
         }
 
@@ -121,8 +121,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 new MoveRecordToErrorQueueCommand((RedisQueueId)context.MessageId));
             //we are done doing any processing - remove the messageID to block other actions
             context.SetMessageAndHeaders(null, context.Headers);
-            _log.ErrorException("Message with ID {0} has failed and has been moved to the error queue", exception,
-                message.MessageId);
+            _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue", exception);
             return ReceiveMessagesErrorResult.Error;
         }
     }

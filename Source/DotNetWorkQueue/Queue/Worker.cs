@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     internal class Worker : MultiWorkerBase, IWorker
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IWorkerWaitForEventOrCancel _pauseEvent;
         private readonly IWorkerNameFactory _nameFactory;
         private readonly IMessageProcessingFactory _messageProcessingFactory;
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Queue
         public Worker(
             IWorkerNameFactory nameFactory,
             IWorkerWaitForEventOrCancel pauseEvent,
-            ILogFactory log,
+            ILogger log,
             IMessageProcessingFactory messageProcessing,
             WorkerTerminate workerTerminate,
             StopThread stopThread)
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(() => nameFactory, nameFactory);
 
             _pauseEvent = pauseEvent;
-            _log = log.Create();
+            _log = log;
             _nameFactory = nameFactory;
             _messageProcessingFactory = messageProcessing;
             IdleStatus = WorkerIdleStatus.Unknown;
@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Queue
             WorkerThread = new Thread(MainLoop) { Name = _nameFactory.Create() };
             WorkerThread.Start();
 
-            _log.Debug($"{WorkerThread.Name} created");
+            _log.LogDebug($"{WorkerThread.Name} created");
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Queue
             if (WorkerThread == null)
                 return;
 
-            _log.DebugFormat("Stopping worker thread {0}", WorkerThread.Name);
+            _log.LogDebug($"Stopping worker thread {WorkerThread.Name}");
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace DotNetWorkQueue.Queue
             if (MessageProcessing != null && MessageProcessing.AsyncTaskCount > 0)
             {
                 WaitOnAsyncTask.Wait(() => MessageProcessing.AsyncTaskCount > 0,
-                    () => _log.Warn(
+                    () => _log.LogWarning(
                         $"Unable to terminate because async requests have not finished. Current task count is {MessageProcessing.AsyncTaskCount}"));
             }
         }

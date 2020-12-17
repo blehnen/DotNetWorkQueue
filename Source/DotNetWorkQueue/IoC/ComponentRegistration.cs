@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<IObjectPool<DynamicCodeCompiler>>(
                 () =>
                     new ObjectPool<DynamicCodeCompiler>(20,
-                        () => new DynamicCodeCompiler(container.GetInstance<ILogFactory>())), LifeStyles.Singleton);
+                        () => new DynamicCodeCompiler(container.GetInstance<ILogger>())), LifeStyles.Singleton);
 
             //created outside of the queue as part of setup, this must be a singleton.
             //all queues created from the setup class share the same message interceptors
@@ -271,17 +271,15 @@ namespace DotNetWorkQueue.IoC
 
             //register the generic configuration container
             container.Register<IConfiguration, AdditionalConfiguration>(LifeStyles.Singleton);
-#endregion
+            #endregion
 
-#region Logging
+            #region Logging
 
 #if (DEBUG)
-            container.Register<ILogProvider, ColoredConsoleLogProvider>(LifeStyles.Singleton);
+            container.Register<ILogger>(() => new ConsoleLogger(LoggingEventType.Debug), LifeStyles.Singleton);
 #else
-            container.Register<ILogProvider,NoSpecifiedLogProvider>( LifeStyles.Singleton);
+            container.Register<ILogger>(() => new NullLogger(), LifeStyles.Singleton);
 #endif
-            container.Register<ILogFactory, LogFactory>(LifeStyles.Singleton);
-
             #endregion
 
             #region Open Tracing

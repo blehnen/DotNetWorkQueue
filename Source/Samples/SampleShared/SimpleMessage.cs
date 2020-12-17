@@ -30,7 +30,7 @@ namespace SampleShared
             sb.Append(input2);
             sb.Append(" ");
             sb.AppendLine(moreInput.Message);
-            workNotification.Log.Info(sb.ToString());
+            workNotification.Log.LogInformation(sb.ToString());
         }
     }
 

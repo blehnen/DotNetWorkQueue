@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Queue
         public ConsumerQueue(
             QueueConsumerConfiguration configuration,
             IQueueMonitor queueMonitor,
-            ILogFactory log,
+            ILogger log,
             IRegisterMessages registerMessages,
             IPrimaryWorkerFactory primaryWorkerFactory,
             StopWorker stopWorker)
@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Queue
             ShouldWork = true;
             _primaryWorker.Value.Start();
             _configuration.SetReadOnly();
-            Log.Info("Queue started");
+            Log.LogInformation("Queue started");
 
         }
 

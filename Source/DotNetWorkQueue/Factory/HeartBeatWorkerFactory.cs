@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Factory
         private readonly IHeartBeatConfiguration _configuration;
         private readonly ISendHeartBeat _sendHeartBeat;
         private readonly IHeartBeatScheduler _scheduler;
-        private readonly ILogFactory _logFactory;
+        private readonly ILogger _logFactory;
         private readonly IWorkerHeartBeatNotificationFactory _heartBeatNotificationFactory;
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Factory
         public HeartBeatWorkerFactory(IHeartBeatConfiguration configuration,
             ISendHeartBeat sendHeartBeat,
             IHeartBeatScheduler scheduler,
-            ILogFactory logFactory,
+            ILogger logFactory,
             IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory)
         {
             Guard.NotNull(() => configuration, configuration);

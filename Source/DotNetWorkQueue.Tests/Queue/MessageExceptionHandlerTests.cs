@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             IReceiveMessagesError error = fixture.Create<ReceiveMessagesErrorWillCrash>();
             fixture.Inject(error);
-            var test = new MessageExceptionHandler(error, Substitute.For<ILogFactory>());
+            var test = new MessageExceptionHandler(error, Substitute.For<ILogger>());
 
             var message = fixture.Create<IReceivedMessageInternal>();
             var context = fixture.Create<IMessageContext>();

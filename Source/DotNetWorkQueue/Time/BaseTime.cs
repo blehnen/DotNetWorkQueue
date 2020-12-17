@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Time
         /// <summary>
         /// The log
         /// </summary>
-        protected readonly ILog Log;
+        protected readonly ILogger Log;
 
         /// <summary>
         /// The current server offset compared to local time
@@ -61,14 +61,14 @@ namespace DotNetWorkQueue.Time
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="configuration">The configuration.</param>
-        protected BaseTime(ILogFactory log,
+        protected BaseTime(ILogger log,
             BaseTimeConfiguration configuration)
         {
             Guard.NotNull(() => log, log);
             Guard.NotNull(() => configuration, configuration);
 
             Configuration = configuration;
-            Log = log.Create();
+            Log = log;
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Time
                 var localTime = DateTime.UtcNow;
                 Offset = time - localTime;
                 ServerOffsetObtained = localTime;
-                Log.DebugFormat("[{0}] server difference is {1} MS", Name, Offset.TotalMilliseconds);
+                Log.LogDebug($"[{Name}] server difference is {Offset.TotalMilliseconds} MS");
             }
             return DateTime.UtcNow.Add(Offset);
         }

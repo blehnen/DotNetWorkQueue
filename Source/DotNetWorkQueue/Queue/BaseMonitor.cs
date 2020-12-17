@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Queue
         private bool _running;
         private volatile bool _stopping;
         private readonly object _runningLock = new object();
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly object _cancelSync = new object();
         private int _disposeCount;
 
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="log">The log.</param>
         protected BaseMonitor(Func<CancellationToken, long> monitorAction, 
             IMonitorTimespan monitorTimeSpan,
-            ILogFactory log)
+            ILogger log)
         {
             Guard.NotNull(() => monitorAction, monitorAction);
             Guard.NotNull(() => monitorTimeSpan, monitorTimeSpan);
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Queue
             _monitorAction = monitorAction;
             _monitorActionIds = null;
             _monitorTimeSpan = monitorTimeSpan;
-            _log = log.Create();
+            _log = log;
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="log">The log.</param>
         protected BaseMonitor(IMonitorTimespan monitorTimeSpan, 
             Func<CancellationToken, List<ResetHeartBeatOutput>> monitorAction,
-            ILogFactory log)
+            ILogger log)
         {
             Guard.NotNull(() => monitorAction, monitorAction);
             Guard.NotNull(() => monitorTimeSpan, monitorTimeSpan);
@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Queue
             _monitorActionIds = monitorAction;
             _monitorAction = null;
             _monitorTimeSpan = monitorTimeSpan;
-            _log = log.Create();
+            _log = log;
         }
         /// <summary>
         /// Starts the monitor process.
@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (Exception error)
                 {
-                    _log.ErrorException("An exception has occurred in the monitor delegate", error);
+                    _log.LogError("An exception has occurred in the monitor delegate", error);
                 }
                 finally
                 {

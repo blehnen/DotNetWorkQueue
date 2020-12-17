@@ -32,20 +32,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     internal class FindRecordsToResetByHeartBeatErrorDecorator : IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
     {
         private readonly IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>> _decorated;
-        private readonly ILog _logger;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatErrorDecorator"/> class.
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="decorated">The decorated.</param>
-        public FindRecordsToResetByHeartBeatErrorDecorator(ILogFactory logger,
+        public FindRecordsToResetByHeartBeatErrorDecorator(ILogger logger,
             IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>> decorated)
         {
             Guard.NotNull(() => decorated, decorated);
             Guard.NotNull(() => logger, logger);
 
-            _logger = logger.Create("FindRecordsToResetByHeartBeat");
+            _logger = logger;
             _decorated = decorated;
         }
         /// <summary>
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             {
                 if (e.Message.IndexOf("abort due to ROLLBACK", StringComparison.InvariantCultureIgnoreCase) >= 0)
                 {
-                    _logger.WarnException("The query has been aborted", e);
+                    _logger.LogWarning("The query has been aborted", e);
                     return Enumerable.Empty<MessageToReset>();
                 }
                 else

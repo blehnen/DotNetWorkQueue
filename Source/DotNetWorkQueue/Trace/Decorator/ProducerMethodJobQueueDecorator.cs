@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         public QueueProducerConfiguration Configuration => _handler.Configuration;
 
         /// <inheritdoc />
-        public ILog Logger => _handler.Logger;
+        public ILogger Logger => _handler.Logger;
 
         /// <inheritdoc />
         public bool IsDisposed => _handler.IsDisposed;

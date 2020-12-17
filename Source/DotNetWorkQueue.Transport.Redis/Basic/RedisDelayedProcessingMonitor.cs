@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="action">The action.</param>
         /// <param name="log">The log.</param>
         /// <param name="options">The options.</param>
-        public RedisDelayedProcessingMonitor(IDelayedProcessingAction action, ILogFactory log, RedisQueueTransportOptions options)
+        public RedisDelayedProcessingMonitor(IDelayedProcessingAction action, ILogger log, RedisQueueTransportOptions options)
             : base(Guard.NotNull(() => action, action).Run, options.DelayedProcessingConfiguration, log)
         {
 

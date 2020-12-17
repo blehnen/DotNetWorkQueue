@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Queue
         private readonly IMessageFactory _messageFactory;
         private readonly GenerateMessageHeaders _generateMessageHeaders;
         private readonly AddStandardMessageHeaders _addStandardMessageHeaders;
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private int _disposeCount;
         private long _asyncTaskCount;
 
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Queue
             QueueProducerConfiguration configuration,
             ISendMessages sendMessages,
             IMessageFactory messageFactory,
-            ILogFactory log, 
+            ILogger log, 
             GenerateMessageHeaders generateMessageHeaders,
             AddStandardMessageHeaders addStandardMessageHeaders)
         {
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Queue
             _addStandardMessageHeaders = addStandardMessageHeaders;
 
             _messageFactory = messageFactory;
-            _log = log.Create();
+            _log = log;
             _generateMessageHeaders = generateMessageHeaders;
         }
 
@@ -226,7 +226,7 @@ namespace DotNetWorkQueue.Queue
             if (_asyncTaskCount > 0)
             {
                 WaitOnAsyncTask.Wait(() => _asyncTaskCount > 0,
-                    () => _log.Warn(
+                    () => _log.LogWarning(
                         $"Unable to terminate because async requests have not finished. Current task count is {_asyncTaskCount}"));
             }
         }

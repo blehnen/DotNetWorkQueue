@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     public class MessageExceptionHandler
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IReceiveMessagesError _transportErrorHandler;
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageExceptionHandler"/> class.
@@ -36,12 +36,12 @@ namespace DotNetWorkQueue.Queue
         /// <param name="transportErrorHandler">The transport error handler.</param>
         /// <param name="log">The log.</param>
         public MessageExceptionHandler(IReceiveMessagesError transportErrorHandler, 
-            ILogFactory log)
+            ILogger log)
         {
             Guard.NotNull(() => transportErrorHandler, transportErrorHandler);
             Guard.NotNull(() => log, log);
             _transportErrorHandler = transportErrorHandler;
-            _log = log.Create();
+            _log = log;
         }
 
         /// <summary>
@@ -62,9 +62,8 @@ namespace DotNetWorkQueue.Queue
             }
             catch (Exception errorHandlingError)
             {
-                _log.ErrorException(
-                    "An error has occurred while trying to move message {0} to the error queue", exception,
-                    message.MessageId);
+                _log.LogError(
+                    $"An error has occurred while trying to move message {message.MessageId} to the error queue", exception);
                 throw new DotNetWorkQueueException("An error has occurred in the error handling code",
                     errorHandlingError);
             }

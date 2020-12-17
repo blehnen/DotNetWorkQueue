@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="configuration">The configuration.</param>
-        public LocalMachineUnixTime(ILogFactory log,
+        public LocalMachineUnixTime(ILogger log,
             BaseTimeConfiguration configuration): base(log, configuration)
         {
         }

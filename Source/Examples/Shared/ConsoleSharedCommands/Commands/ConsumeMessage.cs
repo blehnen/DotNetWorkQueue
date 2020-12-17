@@ -302,7 +302,7 @@ namespace ConsoleSharedCommands.Commands
 
         private void HandleMessages(IReceivedMessage<SimpleMessage> message, IWorkerNotification notifications)
         {
-            notifications.Log.Debug(
+            notifications.Log.LogDebug(
                 $"Processing Message {message.MessageId} with run time {message.Body.RunTimeInMs}");
 
             if (message.Body.RunTimeInMs > 0)
@@ -321,12 +321,12 @@ namespace ConsoleSharedCommands.Commands
                 { //nope - we probably are being canceled
                     if (notifications.TransportSupportsRollback && notifications.WorkerStopping.CancelWorkToken.IsCancellationRequested)
                     {
-                        notifications.Log.Debug("Cancel has been requested - aborting");
+                        notifications.Log.LogDebug("Cancel has been requested - aborting");
                         notifications.WorkerStopping.CancelWorkToken.ThrowIfCancellationRequested();
                     }
                 }
             }
-            notifications.Log.Debug($"Processed message {message.MessageId}");
+            notifications.Log.LogDebug($"Processed message {message.MessageId}");
         }
     }
 }

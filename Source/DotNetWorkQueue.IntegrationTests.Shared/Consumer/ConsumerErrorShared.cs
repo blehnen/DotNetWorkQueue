@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         where TMessage : class
     {
         public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
-            ILogProvider logProvider,
+            ILogger logProvider,
             int workerCount, int timeOut, int messageCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos)
             where TTransportInit : ITransportInit, new()
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         }
 
         public void PurgeErrorMessages<TTransportInit>(QueueConnection queueConnection,
-            bool addInterceptors, ILogProvider logProvider, bool actuallyPurge)
+            bool addInterceptors, ILogger logProvider, bool actuallyPurge)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueConnection.Queue))

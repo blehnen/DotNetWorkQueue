@@ -128,14 +128,13 @@ namespace DotNetWorkQueue.IoC
                 ComponentRegistration.SuppressWarningsIfNeeded(containerWrapper, type);
 
                 //set the log provider, if one was provided
-                //if no explicit log provider was set, we will use lib log defaults
-                var logProvider = container.GetInstance<ILogProvider>();
-                if (!(logProvider is NoSpecifiedLogProvider))
-                {
-                    LogProvider.SetCurrentLogProvider(logProvider);
-                    var factory = container.GetInstance<ILogFactory>();
-                    factory.Create();
-                }
+                //var logProvider = container.GetInstance<ILoggerProvider>();
+                //if (!(logProvider is NoSpecifiedLogProvider))
+                //{
+                //    LogProvider.SetCurrentLogProvider(logProvider);
+                //    var factory = container.GetInstance<ILogger>();
+                //    factory.Create();
+                //}
 
                 //verify the container configuration.
                 container.Verify();

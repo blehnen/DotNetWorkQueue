@@ -35,14 +35,14 @@ namespace DotNetWorkQueue.LinqCompile
         private static readonly string[] DefaultReferences = { "System.dll", "System.Core.dll", "DotNetWorkQueue.dll" };
         private static readonly string[] DefaultUsing = { "System", "System.Collections.Generic", "System.Linq", "System.Linq.Expressions", "DotNetWorkQueue", "DotNetWorkQueue.Messages" };
         private readonly Compiler _compiler;
-        private readonly ILog _log;
+        private readonly ILogger _log;
 
         private const int MaxAssemblyCount = 10;
 
-        public DynamicCodeCompiler(ILogFactory log)
+        public DynamicCodeCompiler(ILogger log)
         {
             _compiler = new Compiler();
-            _log = log.Create();
+            _log = log;
         }
         /// <summary>
         /// Compiles the input linqExpression into a Linq expression tree
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.LinqCompile
         public void ResetState()
         {
             if (_compiler.DynamicAssembliesCount < MaxAssemblyCount) return;
-            _log.Log(LogLevel.Debug, () => $"Max dynamic assembly count {MaxAssemblyCount} reached; Recycling AppDomain");
+            _log.LogDebug($"Max dynamic assembly count {MaxAssemblyCount} reached; Recycling AppDomain");
             _compiler.RecycleAppDomain();
         }
 

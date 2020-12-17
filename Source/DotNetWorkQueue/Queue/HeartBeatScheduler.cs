@@ -19,6 +19,7 @@
 using System;
 using System.Linq.Expressions;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Validation;
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.Queue
         private readonly IGetTimeFactory _timeFactory;
         private JobSchedulerContainer _container;
         private IJobScheduler _scheduler;
-
+        private readonly ILogger _log;
         private SchedulerContainer _consumerContainer;
         private ATaskScheduler _consumerScheduler;
         private ITaskFactory _taskFactory;
@@ -48,13 +49,15 @@ namespace DotNetWorkQueue.Queue
         /// Initializes a new instance of the <see cref="HeartBeatScheduler"/> class.
         /// </summary>
         public HeartBeatScheduler(IHeartBeatThreadPoolConfiguration configuration,
-            IGetTimeFactory timeFactory)
+            IGetTimeFactory timeFactory, ILogger log)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => timeFactory, timeFactory);
+            Guard.NotNull(() => log, log);
 
             _configuration = configuration;
             _timeFactory = timeFactory;
+            _log = log;
         }
 
         /// <inheritdoc />
@@ -99,11 +102,12 @@ namespace DotNetWorkQueue.Queue
             {
                 if (_consumer != null) return;
                 _container = new JobSchedulerContainer(container =>
-                    container.Register(() => _timeFactory, LifeStyles.Singleton));
+                    container.Register(() => _timeFactory, LifeStyles.Singleton)
+                        .Register<ILogger>(() => _log, LifeStyles.Singleton));
                 _scheduler = _container.CreateJobScheduler();
                 _scheduler.Start();
 
-                _consumerContainer = new SchedulerContainer();
+                _consumerContainer = new SchedulerContainer(container => container.Register<ILogger>(() => _log, LifeStyles.Singleton));
                 _consumerScheduler = _consumerContainer.CreateTaskScheduler();
                 _taskFactory = _consumerContainer.CreateTaskFactory(_consumerScheduler);
 
@@ -113,7 +117,7 @@ namespace DotNetWorkQueue.Queue
                 _taskFactory.Scheduler.Configuration.WaitForThreadPoolToFinish =
                     _configuration.WaitForThreadPoolToFinish;
                 _taskFactory.Scheduler.Start();
-                _queueContainer = new QueueContainer<MemoryMessageQueueInit>();
+                _queueContainer = new QueueContainer<MemoryMessageQueueInit>(container => container.Register<ILogger>(() => _log, LifeStyles.Singleton));
                 _consumer = _queueContainer.CreateConsumerMethodQueueScheduler( new QueueConnection(QueueName, Connection),
                     _taskFactory);
                 _consumer.Start();

@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         /// <param name="log">The log.</param>
         /// <param name="configuration">The configuration.</param>
         public RedisServerUnixTime(TimeLua timeLua,
-            ILogFactory log,
+            ILogger log,
             BaseTimeConfiguration configuration): base(log, configuration)
         {
             Guard.NotNull(() => timeLua, timeLua);

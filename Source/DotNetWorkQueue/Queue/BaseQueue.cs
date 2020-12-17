@@ -41,11 +41,11 @@ namespace DotNetWorkQueue.Queue
         /// Initializes a new instance of the <see cref="BaseQueue" /> class.
         /// </summary>
         /// <param name="log">The log.</param>
-        protected BaseQueue(ILogFactory log)
+        protected BaseQueue(ILogger log)
         {
             Guard.NotNull(() => log, log);
 
-            Log = log.Create();
+            Log = log;
         }
         /// <summary>
         /// Gets or sets the log.
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         /// The log.
         /// </value>
-        protected ILog Log { get; }
+        protected ILogger Log { get; }
         /// <summary>
         /// Logs the system exception.
         /// </summary>
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
         protected void LogSystemException(object sender, WorkerErrorEventArgs e)
         {
-            Log.ErrorException("Unhanded system exception", e.Error);
+            Log.LogError("Unhanded system exception", e.Error);
         }
         /// <summary>
         /// Logs the user exception.
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
         protected void LogUserException(object sender, WorkerErrorEventArgs e)
         {
-            Log.WarnException("User exception", e.Error);
+            Log.LogError("User exception", e.Error);
         }
         /// <summary>
         /// Gets or sets a value indicating whether work can proceed.

@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
         public
             void RunConsumer<TTransportInit>(QueueConnection queueConnection,
                 bool addInterceptors,
-                ILogProvider logProvider,
+                ILogger logProvider,
                 int runTime,
                 int messageCount,
                 int timeOut,

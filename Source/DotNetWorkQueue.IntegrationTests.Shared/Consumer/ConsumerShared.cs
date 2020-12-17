@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
          where TMessage : class
     {
         public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
-            ILogProvider logProvider,
+            ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, bool enableChaos)

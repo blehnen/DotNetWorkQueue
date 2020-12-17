@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Time
         /// <param name="configuration">The configuration.</param>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="dateTimeQueryHandler">The date time query handler.</param>
-        public SqlServerTime(ILogFactory log,
+        public SqlServerTime(ILogger log,
             BaseTimeConfiguration configuration,
             IConnectionInformation connectionInformation,
             IQueryHandler<GetUtcDateQuery, DateTime> dateTimeQueryHandler) : base(log, configuration)

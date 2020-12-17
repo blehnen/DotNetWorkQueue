@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.JobScheduler
         public TimeSpan Window { get; set; }
         public DateTimeOffset NextEvent { get; private set; }
         public DateTimeOffset PrevEvent { get; private set; }
-        public ILog Logger => _queue.Logger;
+        public ILogger Logger => _queue.Logger;
         public string Route { get; }
         public bool RawExpression { get; }
 
@@ -217,24 +217,24 @@ namespace DotNetWorkQueue.JobScheduler
                         if (result.Status == JobQueuedStatus.Success || result.Status == JobQueuedStatus.RequeuedDueToErrorStatus)
                         {
                             RaiseEnQueue(result);
-                            _queue.Logger.Log(LogLevel.Debug, () => $"job {this} queued");
+                            _queue.Logger.LogDebug($"job {this} queued");
                         }
                         else if (result.Status == JobQueuedStatus.AlreadyQueuedWaiting ||
                                  result.Status == JobQueuedStatus.AlreadyQueuedProcessing ||
                                  result.Status == JobQueuedStatus.AlreadyProcessed)
                         {
-                            _queue.Logger.Log(LogLevel.Warn, () => $"Failed to enqueue job {this}, the status is {result.Status}");
+                            _queue.Logger.LogWarning( $"Failed to enqueue job {this}, the status is {result.Status}");
                             RaiseNonFatalFailureEnQueue(result);
                         }
                         else if (result.SendingException != null)
                         {
-                            _queue.Logger.ErrorException($"An error has occurred adding job {this} into the queue", result.SendingException);
+                            _queue.Logger.LogError($"An error has occurred adding job {this} into the queue", result.SendingException);
                             RaiseException(result.SendingException);
                         }
                     }
                     catch (Exception ex)
                     {
-                        _queue.Logger.ErrorException($"A fatal error has occurred trying to add job {this} into the queue", ex);
+                        _queue.Logger.LogError($"A fatal error has occurred trying to add job {this} into the queue", ex);
                         RaiseException(ex);
                     }
                 }

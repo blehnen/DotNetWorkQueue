@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Logging.Decorator
 {
     internal class AbortWorkerThreadDecorator: IAbortWorkerThread
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IAbortWorkerThread _handler;
         private readonly IWorkerConfiguration _configuration;
         private readonly MessageProcessingMode _messageMode;
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Logging.Decorator
         /// <param name="configuration">The configuration.</param>
         /// <param name="messageMode">The message mode.</param>
         /// <param name="handler">The handler.</param>
-        public AbortWorkerThreadDecorator(ILogFactory log,
+        public AbortWorkerThreadDecorator(ILogger log,
             IWorkerConfiguration configuration,
             MessageProcessingMode messageMode,
             IAbortWorkerThread handler)
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => messageMode, messageMode);
 
-            _log = log.Create();
+            _log = log;
             _handler = handler;
             _configuration = configuration;
             _messageMode = messageMode;
@@ -65,17 +65,15 @@ namespace DotNetWorkQueue.Logging.Decorator
             //log a warning message if we are in async mode, and the abort flag is true
             if (_messageMode.Mode == MessageProcessingModes.Async && _configuration.AbortWorkerThreadsWhenStopping)
             {
-                _log.WarnFormat(
-                "AbortWorkerThreadsWhenStopping is true, but we are running in async mode. Async threads cannot be aborted.",
-               workerThread.Name);
+                _log.LogWarning(
+                "AbortWorkerThreadsWhenStopping is true, but we are running in async mode. Async threads cannot be aborted");
             }
 
             var aborted = _handler.Abort(workerThread);
             if (aborted)
             {
-                _log.WarnFormat(
-                    "Worker thread {0} was aborted due to not responding to a stop and a cancel request",
-                    workerThread.Name);
+                _log.LogWarning(
+                    $"Worker thread {workerThread.Name} was aborted due to not responding to a stop and a cancel request");
             }
             return aborted;
         }

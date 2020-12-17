@@ -30,20 +30,20 @@ namespace DotNetWorkQueue.TaskScheduling
     /// </summary>
     public class SchedulerMessageHandler: ISchedulerMessageHandler
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly ICounter _waitingOnFreeThreadCounter;
         /// <summary>
         /// Initializes a new instance of the <see cref="SchedulerMessageHandler"/> class.
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="metrics">metrics factory</param>
-        public SchedulerMessageHandler(ILogFactory log,
+        public SchedulerMessageHandler(ILogger log,
             IMetrics metrics)
         {
             Guard.NotNull(() => log, log);
             Guard.NotNull(() => metrics, metrics);
 
-            _log = log.Create();
+            _log = log;
 
             var name = GetType().Name;
             _waitingOnFreeThreadCounter = metrics.Counter($"{name}.WaitingOnTaskCounter", Units.Items);
@@ -150,13 +150,13 @@ namespace DotNetWorkQueue.TaskScheduling
             if (notifications.TransportSupportsRollback &&
                 notifications.WorkerStopping.Tokens.Any(m => m.IsCancellationRequested))
             {
-                _log.Info("System is preparing to stop - aborting");
+                _log.LogInformation("System is preparing to stop - aborting");
                 notifications.WorkerStopping.Tokens.Find(m => m.IsCancellationRequested).ThrowIfCancellationRequested();
             }
 
             if (notifications.TransportSupportsRollback && notifications.HeartBeat != null && notifications.HeartBeat.ExceptionHasOccured.IsCancellationRequested)
             {
-                _log.Warn(
+                _log.LogWarning(
                     "The heartbeat worker has failed - aborting our work since another thread may pick up this item");
                 notifications.HeartBeat.ExceptionHasOccured.ThrowIfCancellationRequested();
             }

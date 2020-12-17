@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Logging.Decorator
 {
     internal class RollbackMessageDecorator: IRollbackMessage
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly IRollbackMessage _handler;
 
         /// <summary>
@@ -31,13 +31,13 @@ namespace DotNetWorkQueue.Logging.Decorator
         /// </summary>
         /// <param name="log">The log.</param>
         /// <param name="handler">The handler.</param>
-        public RollbackMessageDecorator(ILogFactory log,
+        public RollbackMessageDecorator(ILogger log,
             IRollbackMessage handler)
         {
             Guard.NotNull(() => log, log);
             Guard.NotNull(() => handler, handler);
 
-            _log = log.Create();
+            _log = log;
             _handler = handler;
         }
 
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             }
             catch (Exception e)
             {
-                _log.ErrorException("An error has occurred while trying to rollback a message", e, null);
+                _log.LogError("An error has occurred while trying to rollback a message", e);
                 return false;
             }
         }
