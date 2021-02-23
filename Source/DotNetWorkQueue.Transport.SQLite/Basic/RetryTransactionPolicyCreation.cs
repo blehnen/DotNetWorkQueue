@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             var chaosPolicy = CreateRetryChaos(policies);
 
             var retrySql = Policy
-                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), Convert.ToInt32(ex.ResultCode)))
+                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)Convert.ToInt32(ex.ResultCode)))
                 .WaitAndRetry(
                     RetryConstants.RetryCount,
                     retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
