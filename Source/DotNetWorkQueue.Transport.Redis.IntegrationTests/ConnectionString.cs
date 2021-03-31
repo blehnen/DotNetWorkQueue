@@ -5,7 +5,7 @@
         /// <summary>
         /// The connection string to the redis server for the integration tests. All tests in this project will use this connection string for linux tests
         /// </summary>
-        private const string ConnectionStringLinux = "192.168.0.60,defaultDatabase=1,syncTimeout=15000";
+        private const string ConnectionStringLinux = "192.168.0.40,defaultDatabase=1,syncTimeout=15000";
         /// <summary>
         /// The connection string to the redis server for the integration tests. All tests in this project will use this connection string for windows tests
         /// </summary>
