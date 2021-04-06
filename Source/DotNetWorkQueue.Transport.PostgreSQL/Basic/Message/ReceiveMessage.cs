@@ -25,6 +25,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -36,9 +37,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
     internal class ReceiveMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly RelationalDatabase.IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal> _receiveMessage;
-        private readonly RelationalDatabase.IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>> _receiveMessageAsync;
-        private readonly ICommandHandler<SetStatusTableStatusCommand> _setStatusCommandHandler;
+        private readonly IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal> _receiveMessage;
+        private readonly IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>> _receiveMessageAsync;
+        private readonly ICommandHandler<SetStatusTableStatusCommand<long>> _setStatusCommandHandler;
         private readonly ICancelWork _cancelToken;
 
         /// <summary>
@@ -49,9 +50,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         /// <param name="setStatusCommandHandler">The set status command handler.</param>
         /// <param name="cancelToken">The cancel token.</param>
         /// <param name="receiveMessageAsync">The receive message asynchronous.</param>
-        public ReceiveMessage(QueueConsumerConfiguration configuration, RelationalDatabase.IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal> receiveMessage,
-            ICommandHandler<SetStatusTableStatusCommand> setStatusCommandHandler,
-            IQueueCancelWork cancelToken, RelationalDatabase.IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>> receiveMessageAsync)
+        public ReceiveMessage(QueueConsumerConfiguration configuration, IQueryHandler<ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>, IReceivedMessageInternal> receiveMessage,
+            ICommandHandler<SetStatusTableStatusCommand<long>> setStatusCommandHandler,
+            IQueueCancelWork cancelToken, IQueryHandler<ReceiveMessageQueryAsync<NpgsqlConnection, NpgsqlTransaction>, Task<IReceivedMessageInternal>> receiveMessageAsync)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => receiveMessage, receiveMessage);
@@ -141,7 +142,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             if (_configuration.Options().EnableStatusTable)
             {
                 _setStatusCommandHandler.Handle(
-                    new SetStatusTableStatusCommand(
+                    new SetStatusTableStatusCommand<long>(
                         (long)receivedTransportMessage.MessageId.Id.Value, QueueStatuses.Processing));
             }
             return receivedTransportMessage;

@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -27,12 +28,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// </summary>
     internal class RedisQueueReceivePoisonMessage : IReceivePoisonMessage
     {
-        private readonly ICommandHandler<MoveRecordToErrorQueueCommand> _commandMoveRecord;
+        private readonly ICommandHandler<MoveRecordToErrorQueueCommand<string>> _commandMoveRecord;
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisQueueReceivePoisonMessage"/> class.
         /// </summary>
         /// <param name="commandMoveRecord">The command move record.</param>
-        public RedisQueueReceivePoisonMessage(ICommandHandler<MoveRecordToErrorQueueCommand> commandMoveRecord)
+        public RedisQueueReceivePoisonMessage(ICommandHandler<MoveRecordToErrorQueueCommand<string>> commandMoveRecord)
         {
             _commandMoveRecord = commandMoveRecord;
         }
@@ -46,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (context.MessageId != null && context.MessageId.HasValue)
             {
-                _commandMoveRecord.Handle(new MoveRecordToErrorQueueCommand((RedisQueueId)context.MessageId));
+                _commandMoveRecord.Handle(new MoveRecordToErrorQueueCommand<string>(exception, context.MessageId.Id.Value.ToString(), context));
             }
             context.SetMessageAndHeaders(null, context.Headers);
         }

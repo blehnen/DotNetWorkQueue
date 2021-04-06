@@ -19,12 +19,13 @@
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class DeleteMessageCommandHandler : ICommandHandlerWithOutput<DeleteMessageCommand, bool>
+    internal class DeleteMessageCommandHandler : ICommandHandlerWithOutput<DeleteMessageCommand<string>, bool>
     {
         private readonly DeleteLua _deleteLua;
 
@@ -39,9 +40,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         }
 
         /// <inheritdoc />
-        public bool Handle(DeleteMessageCommand command)
+        public bool Handle(DeleteMessageCommand<string> command)
         {
-            var result = _deleteLua.Execute(command.Id.Id.Value.ToString());
+            var result = _deleteLua.Execute(command.QueueId);
             return result.HasValue && result.Value == 1;
         }
     }

@@ -85,10 +85,10 @@ namespace DotNetWorkQueue.Trace.Decorator
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression)
         {
              using (IScope scope = _tracer.BuildSpan("SendJobAsync").StartActive(finishSpanOnDispose: true))
-            {
-                scope.Span.SetTag("JobName", job.Name);
-                return await _handler.SendAsync(job, scheduledTime, linqExpression);
-            }
+             {
+                 scope.Span.SetTag("JobName", job.Name);
+                 return await _handler.SendAsync(job, scheduledTime, linqExpression);
+             }
         }
 #endif
 

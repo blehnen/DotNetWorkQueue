@@ -22,6 +22,7 @@ using System.Threading;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -32,14 +33,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     public class RedisQueueClearErrorMessages: IClearErrorMessages
     {
         private readonly IQueryHandler<GetErrorRecordsToDeleteQuery, List<string>> _getErrorMessages;
-        private readonly ICommandHandlerWithOutput<DeleteMessageCommand, bool> _deleteMessage;
+        private readonly ICommandHandlerWithOutput<DeleteMessageCommand<string>, bool> _deleteMessage;
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisQueueClearErrorMessages"/> class.
         /// </summary>
         /// <param name="getErrorMessages">The get error messages.</param>
         /// <param name="deleteMessage">The delete message.</param>
         public RedisQueueClearErrorMessages(IQueryHandler<GetErrorRecordsToDeleteQuery, List<string>> getErrorMessages,
-            ICommandHandlerWithOutput<DeleteMessageCommand, bool> deleteMessage)
+            ICommandHandlerWithOutput<DeleteMessageCommand<string>, bool> deleteMessage)
         {
             _getErrorMessages = getErrorMessages;
             _deleteMessage = deleteMessage;
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     if (cancelToken.IsCancellationRequested)
                         return count;
 
-                    if (_deleteMessage.Handle(new DeleteMessageCommand(new RedisQueueId(message))))
+                    if (_deleteMessage.Handle(new DeleteMessageCommand<string>(message)))
                     {
                         count++;
                     }

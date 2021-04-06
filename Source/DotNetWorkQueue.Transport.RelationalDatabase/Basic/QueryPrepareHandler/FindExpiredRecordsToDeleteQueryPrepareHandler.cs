@@ -18,17 +18,17 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
     /// <inheritdoc />
-    public class FindExpiredRecordsToDeleteQueryPrepareHandler : IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>
+    public class FindExpiredRecordsToDeleteQueryPrepareHandler<T> : IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery<T>, IEnumerable<T>>
     {
         private readonly CommandStringCache _commandCache;
         /// <summary>
-        /// Initializes a new instance of the <see cref="FindExpiredRecordsToDeleteQueryPrepareHandler"/> class.
+        /// Initializes a new instance of the <see cref="FindExpiredRecordsToDeleteQueryPrepareHandler{T}"/> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
         public FindExpiredRecordsToDeleteQueryPrepareHandler(CommandStringCache commandCache)
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             _commandCache = commandCache;
         }
         /// <inheritdoc />
-        public void Handle(FindExpiredMessagesToDeleteQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindExpiredMessagesToDeleteQuery<T> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
         }

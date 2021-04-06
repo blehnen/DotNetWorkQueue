@@ -17,13 +17,13 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
 {
     /// <inheritdoc />
-    public class DeleteMessageCommandPrepareHandler : IPrepareCommandHandler<DeleteMessageCommand>
+    public class DeleteMessageCommandPrepareHandler : IPrepareCommandHandler<DeleteMessageCommand<long>>
     {
         private readonly CommandStringCache _commandCache;
 
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
             _commandCache = commandCache;
         }
         /// <inheritdoc />
-        public void Handle(DeleteMessageCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(DeleteMessageCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             //set ID if not set
             if (!dbCommand.Parameters.Contains("@QueueID"))

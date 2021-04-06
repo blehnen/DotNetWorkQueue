@@ -18,11 +18,12 @@
 // ---------------------------------------------------------------------
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
     /// <summary>
-    ///  Prpares the database queryfor execution by setting the command text and adding any needed parameters
+    ///  Prepares the database query for execution by setting the command text and adding any needed parameters
     /// </summary>
     /// <typeparam name="TQuery">The type of the query.</typeparam>
     /// <typeparam name="TResult">The type of the result.</typeparam>

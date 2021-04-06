@@ -20,6 +20,7 @@ using System;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
@@ -35,7 +36,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     {
         private readonly Lazy<ITransportOptions> _options;
         private readonly IConnectionHeader<TConnection, TTransaction, TCommand> _headers;
-        private readonly IPrepareCommandHandler<DeleteMessageCommand> _prepareCommand;
+        private readonly IPrepareCommandHandler<DeleteMessageCommand<long>> _prepareCommand;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteTransactionalMessageCommandHandler{TConnection, TTransaction, TCommand}"/> class.
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// <param name="prepareCommand">The prepare command.</param>
         public DeleteTransactionalMessageCommandHandler(ITransportOptionsFactory options,
             IConnectionHeader<TConnection, TTransaction, TCommand> headers,
-            IPrepareCommandHandler<DeleteMessageCommand> prepareCommand)
+            IPrepareCommandHandler<DeleteMessageCommand<long>> prepareCommand)
         {
             Guard.NotNull(() => options, options);
             Guard.NotNull(() => headers, headers);
@@ -63,21 +64,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             using (var commandSql = connection.CreateCommand())
             {
                 //delete the meta data record
-                _prepareCommand.Handle(new DeleteMessageCommand(command.QueueId), commandSql, CommandStringTypes.DeleteFromMetaData);
+                _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromMetaData);
                 commandSql.ExecuteNonQuery();
 
                 //delete the message body
-                _prepareCommand.Handle(new DeleteMessageCommand(command.QueueId), commandSql, CommandStringTypes.DeleteFromQueue);
+                _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromQueue);
                 commandSql.ExecuteNonQuery();
 
                 //delete any error tracking information
-                _prepareCommand.Handle(new DeleteMessageCommand(command.QueueId), commandSql, CommandStringTypes.DeleteFromErrorTracking);
+                _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromErrorTracking);
                 commandSql.ExecuteNonQuery();
 
                 //delete status record
                 if (!_options.Value.EnableStatusTable) return 1;
 
-                _prepareCommand.Handle(new DeleteMessageCommand(command.QueueId), commandSql, CommandStringTypes.DeleteFromStatus);
+                _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromStatus);
                 commandSql.ExecuteNonQuery();
                 return 1;
             }

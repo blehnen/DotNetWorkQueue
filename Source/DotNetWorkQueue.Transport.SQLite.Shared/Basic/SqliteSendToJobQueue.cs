@@ -21,6 +21,9 @@ using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
 {
@@ -32,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
     {
         private readonly IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> _doesJobExist;
         private readonly IRemoveMessage _removeMessage;
-        private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
+        private readonly IQueryHandler<GetJobIdQuery<long>, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
 
         /// <summary>Initializes a new instance of the <see cref="SqliteSendToJobQueue"/> class.</summary>
@@ -44,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// <param name="getTimeFactory">The get time factory.</param>
         public SqliteSendToJobQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> doesJobExist,
             IRemoveMessage removeMessage,
-            IQueryHandler<GetJobIdQuery, long> getJobId, CreateJobMetaData createJobMetaData,
+            IQueryHandler<GetJobIdQuery<long>, long> getJobId, CreateJobMetaData createJobMetaData,
             IGetTimeFactory getTimeFactory): base(queue, getTimeFactory)
         {
             _doesJobExist = doesJobExist;
@@ -70,7 +73,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic
         /// <param name="name">The name.</param>
         protected override void DeleteJob(string name)
         {
-            _removeMessage.Remove(new MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))), RemoveMessageReason.Error);
+            _removeMessage.Remove(new MessageQueueId<long>(_getJobId.Handle(new GetJobIdQuery<long>(name))), RemoveMessageReason.Error);
         }
 
         /// <summary>

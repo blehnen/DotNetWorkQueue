@@ -24,6 +24,8 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
@@ -90,8 +92,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        /// <exception cref="PoisonMessageException">An error has occured trying to re-assemble a message de-queued from SQLite</exception>
-        /// <exception cref="MessageQueueId"></exception>
+        /// <exception cref="PoisonMessageException">An error has occurred trying to re-assemble a message de-queued from SQLite</exception>
         public async Task<IReceivedMessageInternal> Handle(ReceiveMessageQueryAsync<IDbConnection, IDbTransaction> query)
         {
             if (!_databaseExists.Exists(_connectionInformation.ConnectionString))

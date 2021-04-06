@@ -23,6 +23,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
     /// <summary>
     /// Sends a heart beat for a queue record
     /// </summary>
-    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand, DateTime?>
+    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime?>
     {
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// </summary>
         /// <param name="command">The command.</param>
         /// <returns></returns>
-        public DateTime? Handle(SendHeartBeatCommand command)
+        public DateTime? Handle(SendHeartBeatCommand<long> command)
         {
             using (var conn = new SqlConnection(_connectionInformation.ConnectionString))
             {

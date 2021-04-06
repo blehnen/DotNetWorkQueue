@@ -17,13 +17,13 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
 {
     /// <inheritdoc />
-    public class DeleteStatusTableStatusCommandPrepareHandler: IPrepareCommandHandler<DeleteStatusTableStatusCommand>
+    public class DeleteStatusTableStatusCommandPrepareHandler: IPrepareCommandHandler<DeleteStatusTableStatusCommand<long>>
     {
         private readonly CommandStringCache _commandCache;
         /// <summary>
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
         }
 
         /// <inheritdoc />
-        public void Handle(DeleteStatusTableStatusCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(DeleteStatusTableStatusCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(CommandStringTypes.DeleteFromStatus);
             var param = dbCommand.CreateParameter();

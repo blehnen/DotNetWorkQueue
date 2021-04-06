@@ -18,12 +18,13 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
+using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
     /// <inheritdoc />
     /// <summary>
-    /// Dequeues a message from the queue.
+    /// Dequeue a message from the queue.
     /// </summary>
     public class ReceiveMessageQuery<TConnection, TTransaction> : IQuery<IReceivedMessageInternal>
         where TConnection : IDbConnection

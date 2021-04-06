@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
@@ -26,14 +26,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
     /// <summary>
     /// Performs setup for the command that finds error messages to delete
     /// </summary>
-    public class FindErrorRecordsToDeleteQueryPrepareHandler : IPrepareQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>>
+    public class FindErrorRecordsToDeleteQueryPrepareHandler<T> : IPrepareQueryHandler<FindErrorMessagesToDeleteQuery<T>, IEnumerable<T>>
     {
         private readonly CommandStringCache _commandCache;
         private readonly IMessageErrorConfiguration _configuration;
         private readonly IGetTime _getTime;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FindErrorRecordsToDeleteQueryPrepareHandler"/> class.
+        /// Initializes a new instance of the <see cref="FindErrorRecordsToDeleteQueryPrepareHandler{T}"/> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
         /// <param name="timeFactory">The time factory.</param>
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
         }
 
         /// <inheritdoc />
-        public void Handle(FindErrorMessagesToDeleteQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindErrorMessagesToDeleteQuery<T> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 

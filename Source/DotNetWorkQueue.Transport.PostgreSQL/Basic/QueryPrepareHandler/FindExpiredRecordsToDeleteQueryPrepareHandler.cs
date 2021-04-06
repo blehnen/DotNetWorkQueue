@@ -21,6 +21,7 @@ using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler
     /// <summary>
     /// 
     /// </summary>
-    public class FindExpiredRecordsToDeleteQueryPrepareHandler : IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>
+    public class FindExpiredRecordsToDeleteQueryPrepareHandler : IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery<long>, IEnumerable<long>>
     {
         private readonly CommandStringCache _commandCache;
         private readonly IGetTime _getTime;
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler
         /// <param name="query">The query.</param>
         /// <param name="dbCommand">The database command.</param>
         /// <param name="commandType">Type of the command.</param>
-        public void Handle(FindExpiredMessagesToDeleteQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindExpiredMessagesToDeleteQuery<long> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 

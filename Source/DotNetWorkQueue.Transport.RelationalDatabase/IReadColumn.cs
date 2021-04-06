@@ -58,6 +58,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         long ReadAsInt64(CommandStringTypes command, int column, IDataReader reader, long noValue = 0);
 
         /// <summary>
+        /// Reads as int64
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <param name="noValue">What to return if no value is found</param>
+        /// <returns></returns>
+        T ReadAsType<T>(CommandStringTypes command, int column, IDataReader reader, T noValue = default);
+
+        /// <summary>
         /// Reads as a date time offset
         /// </summary>
         /// <param name="command">The command.</param>

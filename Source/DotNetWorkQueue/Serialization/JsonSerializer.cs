@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Serialization
         {
             Guard.NotNull(() => bytes, bytes);
             var wrapper = JsonConvert.DeserializeObject<SerializationWrapper<T>>(Encoding.UTF8.GetString(bytes), _serializerSettings);
-            return wrapper.Message;
+            return wrapper?.Message;
         }
 
         /// <inheritdoc />

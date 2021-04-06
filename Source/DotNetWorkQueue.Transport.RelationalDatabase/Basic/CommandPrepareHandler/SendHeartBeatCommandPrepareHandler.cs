@@ -18,13 +18,13 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
 {
     /// <inheritdoc />
-    public class SendHeartBeatCommandPrepareHandler: IPrepareCommandHandlerWithOutput<SendHeartBeatCommand, DateTime>
+    public class SendHeartBeatCommandPrepareHandler: IPrepareCommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime>
     {
         private readonly CommandStringCache _commandCache;
         private readonly IGetTime _getTime;
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
             _getTime = getTimeFactory.Create();
         }
         /// <inheritdoc />
-        public DateTime Handle(SendHeartBeatCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public DateTime Handle(SendHeartBeatCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 

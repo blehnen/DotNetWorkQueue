@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using DotNetWorkQueue.Validation;
 
@@ -27,10 +28,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Decorator
     /// <summary>
     /// 
     /// </summary>
-    public class MoveRecordToErrorQueueCommandDecorator : ICommandHandler<MoveRecordToErrorQueueCommand>
+    public class MoveRecordToErrorQueueCommandDecorator : ICommandHandler<MoveRecordToErrorQueueCommand<long>>
     {
         private readonly IConnectionInformation _connectionInformation;
-        private readonly ICommandHandler<MoveRecordToErrorQueueCommand> _decorated;
+        private readonly ICommandHandler<MoveRecordToErrorQueueCommand<long>> _decorated;
         private readonly DatabaseExists _databaseExists;
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Decorator
         /// <param name="decorated">The decorated.</param>
         /// <param name="databaseExists">The database exists.</param>
         public MoveRecordToErrorQueueCommandDecorator(IConnectionInformation connectionInformation,
-            ICommandHandler<MoveRecordToErrorQueueCommand> decorated,
+            ICommandHandler<MoveRecordToErrorQueueCommand<long>> decorated,
             DatabaseExists databaseExists)
         {
             Guard.NotNull(() => decorated, decorated);
@@ -55,7 +56,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Decorator
         /// Handles the specified command.
         /// </summary>
         /// <param name="command">The command.</param>
-        public void Handle(MoveRecordToErrorQueueCommand command)
+        public void Handle(MoveRecordToErrorQueueCommand<long> command)
         {
             if (!_databaseExists.Exists(_connectionInformation.ConnectionString)) return;
             _decorated.Handle(command);

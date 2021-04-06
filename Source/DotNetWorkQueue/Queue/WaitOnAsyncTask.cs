@@ -28,15 +28,15 @@ namespace DotNetWorkQueue.Queue
     {
         public static void Wait(Func<bool> action, Action waitAction)
         {
-            var ILoggerCount = 0;
+            var loggerCount = 0;
             while (action.Invoke())
             {
-                if (ILoggerCount == 0 || ILoggerCount % 50 == 0)
+                if (loggerCount == 0 || loggerCount % 50 == 0)
                 {
                     waitAction?.Invoke();
                 }
                 Thread.Sleep(100);
-                ILoggerCount++;
+                loggerCount++;
             }
         }
     }

@@ -23,13 +23,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Npgsql;
 using NpgsqlTypes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand>
+    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<long>>
     {
         private readonly IGetTimeFactory _getUtcDateQuery;
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
@@ -61,7 +62,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             _rollbackDictionary = new ConcurrentDictionary<string, string>();
         }
         /// <inheritdoc />
-        public void Handle(RollbackMessageCommand rollBackCommand)
+        public void Handle(RollbackMessageCommand<long> rollBackCommand)
         {
             SetupSql();
             using (var connection = new NpgsqlConnection(_connectionInformation.ConnectionString))

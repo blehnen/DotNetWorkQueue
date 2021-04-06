@@ -17,8 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Diagnostics.CodeAnalysis;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
@@ -27,11 +27,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Resets the status for a specific record
     /// </summary>
-    internal class ResetHeartBeatCommandHandler : ICommandHandlerWithOutput<ResetHeartBeatCommand, long>
+    internal class ResetHeartBeatCommandHandler : ICommandHandlerWithOutput<ResetHeartBeatCommand<long>, long>
     {
         private readonly ITransactionFactory _transactionFactory;
         private readonly IDbConnectionFactory _connectionFactory;
-        private readonly IPrepareCommandHandler<ResetHeartBeatCommand> _prepareCommand;
+        private readonly IPrepareCommandHandler<ResetHeartBeatCommand<long>> _prepareCommand;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ResetHeartBeatCommandHandler" /> class.
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// <param name="prepareCommand">The prepare command.</param>
         public ResetHeartBeatCommandHandler(ITransactionFactory transactionFactory,
             IDbConnectionFactory connectionFactory,
-            IPrepareCommandHandler<ResetHeartBeatCommand> prepareCommand)
+            IPrepareCommandHandler<ResetHeartBeatCommand<long>> prepareCommand)
         {
             Guard.NotNull(() => transactionFactory, transactionFactory);
             Guard.NotNull(() => connectionFactory, connectionFactory);
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         }
         /// <inheritdoc />
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        public long Handle(ResetHeartBeatCommand inputCommand)
+        public long Handle(ResetHeartBeatCommand<long> inputCommand)
         {
             using (var connection = _connectionFactory.Create())
             {

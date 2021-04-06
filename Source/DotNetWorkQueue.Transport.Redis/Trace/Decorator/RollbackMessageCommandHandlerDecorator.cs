@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
@@ -25,9 +26,9 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
     /// <summary>
     /// 
     /// </summary>
-    public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand>
+    public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand<string>>
     {
-        private readonly ICommandHandler<RollbackMessageCommand> _handler;
+        private readonly ICommandHandler<RollbackMessageCommand<string>> _handler;
         private readonly ITracer _tracer;
 
         /// <summary>
@@ -35,14 +36,14 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         /// </summary>
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
-        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand> handler, ITracer tracer)
+        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<string>> handler, ITracer tracer)
         {
             _handler = handler;
             _tracer = tracer;
         }
 
         /// <inheritdoc />
-        public void Handle(RollbackMessageCommand command)
+        public void Handle(RollbackMessageCommand<string> command)
         {
             //lets add a bit more information to the active span if possible
             if (_tracer.ActiveSpan != null)

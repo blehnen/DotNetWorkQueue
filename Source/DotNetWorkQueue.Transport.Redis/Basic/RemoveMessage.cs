@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -26,11 +27,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// </summary>
     public class RemoveMessage : IRemoveMessage
     {
-        private readonly ICommandHandlerWithOutput<DeleteMessageCommand, bool> _deleteMessage;
+        private readonly ICommandHandlerWithOutput<DeleteMessageCommand<string>, bool> _deleteMessage;
 
         /// <summary>Initializes a new instance of the <see cref="RemoveMessage"/> class.</summary>
         /// <param name="deleteMessage">The delete message.</param>
-        public RemoveMessage(ICommandHandlerWithOutput<DeleteMessageCommand, bool> deleteMessage)
+        public RemoveMessage(ICommandHandlerWithOutput<DeleteMessageCommand<string>, bool> deleteMessage)
         {
             _deleteMessage = deleteMessage;
         }
@@ -40,7 +41,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (id == null || !id.HasValue)
                 return RemoveMessageStatus.NotFound;
 
-            var result =_deleteMessage.Handle(new DeleteMessageCommand((RedisQueueId)id));
+            var result =_deleteMessage.Handle(new DeleteMessageCommand<string>(id.Id.Value.ToString()));
             return result ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
         }
 

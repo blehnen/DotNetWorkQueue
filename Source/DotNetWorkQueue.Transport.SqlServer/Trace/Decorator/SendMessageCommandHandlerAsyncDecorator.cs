@@ -21,8 +21,9 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Trace;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
-using DotNetWorkQueue.Transport.RelationalDatabase.Trace;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Trace;
 using OpenTracing;
 using OpenTracing.Tag;
 
@@ -67,7 +68,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Trace.Decorator
                     var id = await _handler.HandleAsync(command);
                     if (id == 0)
                         Tags.Error.Set(scope.Span, true);
-                    scope.Span.AddMessageIdTag(id);
+                    scope.Span.AddMessageIdTag<long>(id);
                     return id;
                 }
                 catch (Exception e)

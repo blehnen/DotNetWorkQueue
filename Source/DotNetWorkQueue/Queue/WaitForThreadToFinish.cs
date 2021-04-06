@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public bool Wait(Thread workerThread, TimeSpan? timeout = null)
         {
-            var ILoggerCount = 0;
+            var loggerCount = 0;
             Stopwatch timer = null;
             if (timeout.HasValue)
             {
@@ -56,12 +56,12 @@ namespace DotNetWorkQueue.Queue
             }
             while (workerThread != null && workerThread.IsAlive)
             {
-                if (ILoggerCount == 0 || ILoggerCount % 5000 == 0)
+                if (loggerCount == 0 || loggerCount % 5000 == 0)
                 {
                     _log?.LogWarning($"Still waiting for thread {workerThread.Name} to stop or cancel");
                 }
                 Thread.Sleep(20);
-                ILoggerCount = ILoggerCount + 20;
+                loggerCount = loggerCount + 20;
 
                 if(timer != null && timer.Elapsed >= timeout.Value)
                 {

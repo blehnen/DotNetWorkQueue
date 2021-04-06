@@ -21,6 +21,7 @@ using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler
@@ -28,7 +29,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler
     /// <summary>
     /// 
     /// </summary>
-    public class ResetHeartBeatCommandPrepareHandler : IPrepareCommandHandler<ResetHeartBeatCommand>
+    public class ResetHeartBeatCommandPrepareHandler : IPrepareCommandHandler<ResetHeartBeatCommand<long>>
     {
         private readonly CommandStringCache _commandCache;
         /// <summary>
@@ -47,7 +48,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler
         /// <param name="command">The command.</param>
         /// <param name="dbCommand">The database command.</param>
         /// <param name="commandType">Type of the command.</param>
-        public void Handle(ResetHeartBeatCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(ResetHeartBeatCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(CommandStringTypes.ResetHeartbeat);
 

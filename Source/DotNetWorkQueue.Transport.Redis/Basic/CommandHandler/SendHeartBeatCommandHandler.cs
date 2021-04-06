@@ -18,13 +18,14 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class SendHeartBeatCommandHandler: ICommandHandlerWithOutput<SendHeartBeatCommand, long>
+    internal class SendHeartBeatCommandHandler: ICommandHandlerWithOutput<SendHeartBeatCommand<string>, long>
     {
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly IRedisConnection _connection;
@@ -48,17 +49,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         }
 
         /// <inheritdoc />
-        public long Handle(SendHeartBeatCommand command)
+        public long Handle(SendHeartBeatCommand<string> command)
         {
             if (_connection.IsDisposed)
                 return 0;
 
-            if (!command.QueueId.HasValue)
+            if (string.IsNullOrWhiteSpace(command.QueueId))
                 return 0;
 
             var db = _connection.Connection.GetDatabase();
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-            db.SortedSetAdd(_redisNames.Working, command.QueueId.Id.Value.ToString(), date, When.Exists);
+            db.SortedSetAdd(_redisNames.Working, command.QueueId, date, When.Exists);
 
             return date;
         }

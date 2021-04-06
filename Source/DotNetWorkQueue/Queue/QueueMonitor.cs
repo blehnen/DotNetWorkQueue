@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Xml;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 

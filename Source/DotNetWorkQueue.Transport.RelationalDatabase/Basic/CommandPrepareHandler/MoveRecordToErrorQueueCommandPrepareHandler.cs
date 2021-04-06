@@ -17,13 +17,13 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
 {
     /// <inheritdoc />
-    public class MoveRecordToErrorQueueCommandPrepareHandler: IPrepareCommandHandler<MoveRecordToErrorQueueCommand>
+    public class MoveRecordToErrorQueueCommandPrepareHandler: IPrepareCommandHandler<MoveRecordToErrorQueueCommand<long>>
     {
         private readonly IBuildMoveToErrorQueueSql _buildSql;
 
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
             _buildSql = buildSql;
         }
         /// <inheritdoc />
-        public void Handle(MoveRecordToErrorQueueCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(MoveRecordToErrorQueueCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _buildSql.Create();
 

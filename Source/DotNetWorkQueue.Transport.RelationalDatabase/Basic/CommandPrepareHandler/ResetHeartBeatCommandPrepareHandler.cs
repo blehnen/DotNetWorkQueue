@@ -18,13 +18,13 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
 {
     /// <inheritdoc />
-    public class ResetHeartBeatCommandPrepareHandler : IPrepareCommandHandler<ResetHeartBeatCommand>
+    public class ResetHeartBeatCommandPrepareHandler : IPrepareCommandHandler<ResetHeartBeatCommand<long>>
     {
         private readonly CommandStringCache _commandCache;
         /// <summary>
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
         }
 
         /// <inheritdoc />
-        public void Handle(ResetHeartBeatCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(ResetHeartBeatCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(CommandStringTypes.ResetHeartbeat);
 

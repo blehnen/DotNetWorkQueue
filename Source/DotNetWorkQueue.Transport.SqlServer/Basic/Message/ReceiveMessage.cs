@@ -25,6 +25,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
@@ -35,9 +36,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
     internal class ReceiveMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly RelationalDatabase.IQueryHandler<ReceiveMessageQuery<SqlConnection, SqlTransaction>, IReceivedMessageInternal> _receiveMessage;
-        private readonly RelationalDatabase.IQueryHandler<ReceiveMessageQueryAsync<SqlConnection, SqlTransaction>, Task<IReceivedMessageInternal>> _receiveMessageAsync;
-        private readonly ICommandHandler<SetStatusTableStatusCommand> _setStatusCommandHandler;
+        private readonly IQueryHandler<ReceiveMessageQuery<SqlConnection, SqlTransaction>, IReceivedMessageInternal> _receiveMessage;
+        private readonly IQueryHandler<ReceiveMessageQueryAsync<SqlConnection, SqlTransaction>, Task<IReceivedMessageInternal>> _receiveMessageAsync;
+        private readonly ICommandHandler<SetStatusTableStatusCommand<long>> _setStatusCommandHandler;
         private readonly ICancelWork _cancelToken;
 
         /// <summary>
@@ -48,9 +49,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// <param name="setStatusCommandHandler">The set status command handler.</param>
         /// <param name="cancelToken">The cancel token.</param>
         /// <param name="receiveMessageAsync">The receive message asynchronous.</param>
-        public ReceiveMessage(QueueConsumerConfiguration configuration, RelationalDatabase.IQueryHandler<ReceiveMessageQuery<SqlConnection, SqlTransaction>, IReceivedMessageInternal> receiveMessage,
-            ICommandHandler<SetStatusTableStatusCommand> setStatusCommandHandler,
-            IQueueCancelWork cancelToken, RelationalDatabase.IQueryHandler<ReceiveMessageQueryAsync<SqlConnection, SqlTransaction>, Task<IReceivedMessageInternal>> receiveMessageAsync)
+        public ReceiveMessage(QueueConsumerConfiguration configuration, IQueryHandler<ReceiveMessageQuery<SqlConnection, SqlTransaction>, IReceivedMessageInternal> receiveMessage,
+            ICommandHandler<SetStatusTableStatusCommand<long>> setStatusCommandHandler,
+            IQueueCancelWork cancelToken, IQueryHandler<ReceiveMessageQueryAsync<SqlConnection, SqlTransaction>, Task<IReceivedMessageInternal>> receiveMessageAsync)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => receiveMessage, receiveMessage);
@@ -110,7 +111,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
                 _configuration.Options().EnableStatusTable)
             {
                 _setStatusCommandHandler.Handle(
-                    new SetStatusTableStatusCommand(
+                    new SetStatusTableStatusCommand<long>(
                         (long) receivedTransportMessage.MessageId.Id.Value, QueueStatuses.Processing));
             }
             return receivedTransportMessage;
@@ -161,7 +162,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
                 _configuration.Options().EnableStatusTable)
             {
                 _setStatusCommandHandler.Handle(
-                    new SetStatusTableStatusCommand(
+                    new SetStatusTableStatusCommand<long>(
                         (long)receivedTransportMessage.MessageId.Id.Value, QueueStatuses.Processing));
             }
             return receivedTransportMessage;

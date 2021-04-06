@@ -17,9 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Diagnostics.CodeAnalysis;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
@@ -28,22 +28,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Updates the error count for a record
     /// </summary>
-    internal class SetErrorCountCommandHandler : ICommandHandler<SetErrorCountCommand>
+    internal class SetErrorCountCommandHandler<T> : ICommandHandler<SetErrorCountCommand<T>>
     {
-        private readonly IQueryHandler<GetErrorRecordExistsQuery, bool> _queryHandler;
+        private readonly IQueryHandler<GetErrorRecordExistsQuery<T>, bool> _queryHandler;
         private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly IPrepareCommandHandler<SetErrorCountCommand> _prepareCommand;
+        private readonly IPrepareCommandHandler<SetErrorCountCommand<T>> _prepareCommand;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SetErrorCountCommandHandler" /> class.
+        /// Initializes a new instance of the <see cref="SetErrorCountCommandHandler{T}" /> class.
         /// </summary>
         /// <param name="queryHandler">The query handler.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="prepareCommand">The prepare command.</param>
         public SetErrorCountCommandHandler(
-            IQueryHandler<GetErrorRecordExistsQuery, bool> queryHandler,
+            IQueryHandler<GetErrorRecordExistsQuery<T>, bool> queryHandler,
             IDbConnectionFactory dbConnectionFactory,
-            IPrepareCommandHandler<SetErrorCountCommand> prepareCommand)
+            IPrepareCommandHandler<SetErrorCountCommand<T>> prepareCommand)
         {
             Guard.NotNull(() => queryHandler, queryHandler);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
@@ -55,14 +55,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         }
         /// <inheritdoc />
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        public void Handle(SetErrorCountCommand command)
+        public void Handle(SetErrorCountCommand<T> command)
         {
             using (var connection = _dbConnectionFactory.Create())
             {
                 connection.Open();
                 using (var commandSql = connection.CreateCommand())
                 {
-                    var commandType = _queryHandler.Handle(new GetErrorRecordExistsQuery(command.ExceptionType,
+                    var commandType = _queryHandler.Handle(new GetErrorRecordExistsQuery<T>(command.ExceptionType,
                         command.QueueId))
                         ? CommandStringTypes.UpdateErrorCount
                         : CommandStringTypes.InsertErrorCount;

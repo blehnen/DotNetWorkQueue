@@ -19,7 +19,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
@@ -28,12 +29,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// <summary>
     /// Finds records that are outside of the heartbeat window.
     /// </summary>
-    internal class FindRecordsToResetByHeartBeatQueryHandler
-        : IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
+    internal class FindRecordsToResetByHeartBeatQueryHandler<T>
+        : IQueryHandler<FindMessagesToResetByHeartBeatQuery<T>, IEnumerable<MessageToReset<T>>>
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
-        private readonly IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
+        private readonly IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery<T>, IEnumerable<MessageToReset<T>>>
             _prepareQuery;
 
         private readonly IReadColumn _readColumn;
@@ -42,7 +43,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatQueryHandler"/> class.
+        /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatQueryHandler{T}"/> class.
         /// </summary>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="prepareQuery">The prepare query.</param>
@@ -50,7 +51,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// <param name="serialization">The serialization.</param>
         public FindRecordsToResetByHeartBeatQueryHandler(
             IDbConnectionFactory dbConnectionFactory,
-            IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>> prepareQuery,
+            IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery<T>, IEnumerable<MessageToReset<T>>> prepareQuery,
             IReadColumn readColumn, ICompositeSerialization serialization)
         {
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
@@ -63,11 +64,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _readColumn = readColumn;
             _serialization = serialization;
         }
-        /// <inheritdoc />
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        public IEnumerable<MessageToReset> Handle(FindMessagesToResetByHeartBeatQuery query)
+        public IEnumerable<MessageToReset<T>> Handle(FindMessagesToResetByHeartBeatQuery<T> query)
         {
-            var results = new List<MessageToReset>();
+            var results = new List<MessageToReset<T>>();
 
             if (query.Cancellation.IsCancellationRequested)
             {
@@ -102,10 +102,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                             if (headers != null)
                             {
                                 var allheaders = _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
-                                results.Add(new MessageToReset(_readColumn.ReadAsInt64(CommandStringTypes.GetHeartBeatExpiredMessageIds, 0, reader), _readColumn.ReadAsDateTime(CommandStringTypes.GetHeartBeatExpiredMessageIds, 1, reader), new ReadOnlyDictionary<string, object>(allheaders)));
+                                results.Add(new MessageToReset<T>(_readColumn.ReadAsType<T>(CommandStringTypes.GetHeartBeatExpiredMessageIds, 0, reader), _readColumn.ReadAsDateTime(CommandStringTypes.GetHeartBeatExpiredMessageIds, 1, reader), new ReadOnlyDictionary<string, object>(allheaders)));
                             }
                             else
-                                results.Add(new MessageToReset(_readColumn.ReadAsInt64(CommandStringTypes.GetHeartBeatExpiredMessageIds, 0, reader), _readColumn.ReadAsDateTime(CommandStringTypes.GetHeartBeatExpiredMessageIds, 1, reader), null));
+                                results.Add(new MessageToReset<T>(_readColumn.ReadAsType<T>(CommandStringTypes.GetHeartBeatExpiredMessageIds, 0, reader), _readColumn.ReadAsDateTime(CommandStringTypes.GetHeartBeatExpiredMessageIds, 1, reader), null));
                         }
                     }
                 }

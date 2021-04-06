@@ -17,8 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Diagnostics.CodeAnalysis;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
@@ -27,10 +27,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Updates the status of a status record in the status table
     /// </summary>
-    internal class SetStatusTableStatusCommandHandler : ICommandHandler<SetStatusTableStatusCommand>
+    internal class SetStatusTableStatusCommandHandler : ICommandHandler<SetStatusTableStatusCommand<long>>
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly IPrepareCommandHandler<SetStatusTableStatusCommand> _prepareCommand;
+        private readonly IPrepareCommandHandler<SetStatusTableStatusCommand<long>> _prepareCommand;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SetStatusTableStatusCommandHandler" /> class.
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="prepareCommand">The prepare command.</param>
         public SetStatusTableStatusCommandHandler(IDbConnectionFactory dbConnectionFactory,
-                IPrepareCommandHandler<SetStatusTableStatusCommand> prepareCommand)
+                IPrepareCommandHandler<SetStatusTableStatusCommand<long>> prepareCommand)
         {
             Guard.NotNull(() => prepareCommand, prepareCommand);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 
         /// <inheritdoc />
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        public void Handle(SetStatusTableStatusCommand command)
+        public void Handle(SetStatusTableStatusCommand<long> command)
         {
             using (var connection = _dbConnectionFactory.Create())
             {

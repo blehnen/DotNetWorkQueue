@@ -16,8 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
@@ -26,9 +26,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Deletes a record from the status table 
     /// </summary>
-    internal class DeleteStatusTableStatusCommandHandler : ICommandHandler<DeleteStatusTableStatusCommand>
+    internal class DeleteStatusTableStatusCommandHandler : ICommandHandler<DeleteStatusTableStatusCommand<long>>
     {
-        private readonly IPrepareCommandHandler<DeleteStatusTableStatusCommand> _prepareCommand;
+        private readonly IPrepareCommandHandler<DeleteStatusTableStatusCommand<long>> _prepareCommand;
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// </summary>
         /// <param name="prepareCommand">The command cache.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        public DeleteStatusTableStatusCommandHandler(IPrepareCommandHandler<DeleteStatusTableStatusCommand> prepareCommand, 
+        public DeleteStatusTableStatusCommandHandler(IPrepareCommandHandler<DeleteStatusTableStatusCommand<long>> prepareCommand, 
             IDbConnectionFactory dbConnectionFactory)
         {
             Guard.NotNull(() => prepareCommand, prepareCommand);
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         }
 
         /// <inheritdoc />
-        public void Handle(DeleteStatusTableStatusCommand command)
+        public void Handle(DeleteStatusTableStatusCommand<long> command)
         {
             using (var connection = _dbConnectionFactory.Create())
             {

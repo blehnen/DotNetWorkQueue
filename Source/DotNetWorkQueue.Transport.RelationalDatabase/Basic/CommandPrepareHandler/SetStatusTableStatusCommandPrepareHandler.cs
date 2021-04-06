@@ -18,13 +18,13 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
 {
     /// <inheritdoc />
-    public class SetStatusTableStatusCommandPrepareHandler : IPrepareCommandHandler<SetStatusTableStatusCommand>
+    public class SetStatusTableStatusCommandPrepareHandler : IPrepareCommandHandler<SetStatusTableStatusCommand<long>>
     {
         private readonly CommandStringCache _commandCache;
 
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
             _commandCache = commandCache;
         }
         /// <inheritdoc />
-        public void Handle(SetStatusTableStatusCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(SetStatusTableStatusCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 

@@ -37,6 +37,8 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Transport.Shared.Message;
 using DotNetWorkQueue.Validation;
 using Npgsql;
@@ -57,7 +59,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             Guard.NotNull(() => container, container);
             base.RegisterImplementations(container, registrationType, queueConnection);
 
-            var init = new RelationalDatabaseMessageQueueInit();
+            var init = new RelationalDatabaseMessageQueueInit<long, Guid>();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
 
             //**all
@@ -72,7 +74,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<IJobSchema, PostgreSqlJobSchema>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
             container.Register<ITransportOptionsFactory, TransportOptionsFactory>(LifeStyles.Singleton);
-            container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrors>(LifeStyles.Singleton);
+            container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrors<long>>(LifeStyles.Singleton);
 
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
 
@@ -101,7 +103,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //reset heart beat 
             container
-                .Register<IPrepareCommandHandler<ResetHeartBeatCommand>,
+                .Register<IPrepareCommandHandler<ResetHeartBeatCommand<long>>,
                     ResetHeartBeatCommandPrepareHandler>(LifeStyles.Singleton);
 
             //delete table - need lower case
@@ -111,7 +113,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //explicit registration of our job exists query
             container
-                .Register<RelationalDatabase.IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>,
+                .Register<IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>,
                         QueueStatuses>,
                     DoesJobExistQueryHandler<NpgsqlConnection, NpgsqlTransaction>>(LifeStyles.Singleton);
 
@@ -123,17 +125,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //expired messages
             container
-                .Register<IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>,
+                .Register<IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery<long>, IEnumerable<long>>,
                     FindExpiredRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
 
             //error messages
             container
-                .Register<IPrepareQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>>,
+                .Register<IPrepareQueryHandler<FindErrorMessagesToDeleteQuery<long>, IEnumerable<long>>,
                     FindErrorRecordsToDeleteQueryPrepareHandler>(LifeStyles.Singleton);
 
             //heartbeat
             container
-                .Register<IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>,
+                .Register<IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery<long>, IEnumerable<MessageToReset<long>>>,
                     FindRecordsToResetByHeartBeatQueryPrepareHandler>(LifeStyles.Singleton);
 
             container
@@ -141,12 +143,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     DeleteTransactionalMessageCommandHandler<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
 
             container
-                .Register<ICommandHandler<MoveRecordToErrorQueueCommand>,
+                .Register<ICommandHandler<MoveRecordToErrorQueueCommand<long>>,
                     MoveRecordToErrorQueueCommandHandler<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
 
             //explicit registration of options
             container
-                .Register<RelationalDatabase.IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>,
+                .Register<IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>,
                         PostgreSqlMessageQueueTransportOptions>,
                     GetQueueOptionsQueryHandler<PostgreSqlMessageQueueTransportOptions>>(LifeStyles.Singleton);
 
@@ -173,7 +175,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.RegisterDecorator(typeof(ICommandHandlerWithOutputAsync<,>),
                 typeof(RetryCommandHandlerOutputDecoratorAsync<,>), LifeStyles.Singleton);
 
-            container.RegisterDecorator(typeof(RelationalDatabase.IQueryHandler<,>),
+            container.RegisterDecorator(typeof(IQueryHandler<,>),
                 typeof(RetryQueryHandlerDecorator<,>), LifeStyles.Singleton);
 
             //register our decorator that handles table creation errors
@@ -189,7 +191,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //trace fallback command
             container.RegisterDecorator(
-                typeof(ICommandHandler<RollbackMessageCommand>),
+                typeof(ICommandHandler<RollbackMessageCommand<long>>),
                 typeof(DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator.RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
 
             //trace sending a message so that we can add specific tags
@@ -204,7 +206,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
         {
-            var init = new RelationalDatabaseMessageQueueInit();
+            var init = new RelationalDatabaseMessageQueueInit<long, Guid>();
             init.SetDefaultsIfNeeded(container, "PostgreSQLMessageQueueTransportOptions", "PostgreSQLMessageQueueTransportOptions");
             SetupPolicy(container);
         }

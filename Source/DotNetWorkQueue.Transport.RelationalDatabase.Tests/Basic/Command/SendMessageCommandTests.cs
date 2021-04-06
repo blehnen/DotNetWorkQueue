@@ -1,5 +1,6 @@
 ﻿using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using NSubstitute;
 using Xunit;
 

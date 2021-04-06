@@ -20,6 +20,7 @@ using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandPrepareHandler
@@ -27,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandPrepareHandler
     /// <summary>
     /// 
     /// </summary>
-    public class MoveRecordToErrorQueueCommandPrepareHandler: IPrepareCommandHandler<MoveRecordToErrorQueueCommand>
+    public class MoveRecordToErrorQueueCommandPrepareHandler: IPrepareCommandHandler<MoveRecordToErrorQueueCommand<long>>
     {
         private readonly IBuildMoveToErrorQueueSql _buildSql;
         private readonly IGetTime _getTime;
@@ -51,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandPrepareHandler
         /// <param name="command">The command.</param>
         /// <param name="dbCommand">The database command.</param>
         /// <param name="commandType">Type of the command.</param>
-        public void Handle(MoveRecordToErrorQueueCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(MoveRecordToErrorQueueCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _buildSql.Create();
             var commandSql = dbCommand;

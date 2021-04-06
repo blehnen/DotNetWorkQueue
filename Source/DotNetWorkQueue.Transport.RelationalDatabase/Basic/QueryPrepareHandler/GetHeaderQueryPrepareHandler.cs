@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
@@ -26,11 +26,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
     /// <summary>
     /// Prepares the query
     /// </summary>
-    public class GetHeaderQueryPrepareHandler : IPrepareQueryHandler<GetHeaderQuery, IDictionary<string, object>>
+    public class GetHeaderQueryPrepareHandler<T> : IPrepareQueryHandler<GetHeaderQuery<T>, IDictionary<string, object>>
     {
         private readonly CommandStringCache _commandCache;
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetHeaderQueryPrepareHandler"/> class.
+        /// Initializes a new instance of the <see cref="GetHeaderQueryPrepareHandler{T}"/> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
         public GetHeaderQueryPrepareHandler(CommandStringCache commandCache)
@@ -40,13 +40,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
         }
 
         /// <inheritdoc />
-        public void Handle(GetHeaderQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(GetHeaderQuery<T> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 
             var queueid = dbCommand.CreateParameter();
             queueid.ParameterName = "@queueID";
-            queueid.DbType = DbType.Int64;
+            queueid.DbType = DbType.Int64; //WARN should match T
             queueid.Value = query.Id;
             dbCommand.Parameters.Add(queueid);
         }

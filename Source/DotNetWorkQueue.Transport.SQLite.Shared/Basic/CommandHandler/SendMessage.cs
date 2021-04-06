@@ -23,6 +23,7 @@ using System.Text;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
 {

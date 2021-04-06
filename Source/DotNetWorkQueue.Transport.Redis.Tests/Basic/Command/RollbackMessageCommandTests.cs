@@ -2,7 +2,7 @@
 using AutoFixture.Xunit2;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
-
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
@@ -12,20 +12,19 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
         [Theory, AutoData]
         public void Create_Null_Constructor_Time_Ok(string number)
         {
-            var test = new RollbackMessageCommand(new RedisQueueId(number), null);
+            var test = new RollbackMessageCommand<string>(null, number, null);
             Assert.NotNull(test);
         }
         [Theory, AutoData]
         public void Create_Default(string number)
         {
-            var id = new RedisQueueId(number);
-            var test = new RollbackMessageCommand(id, null);
-            Assert.Equal(id, test.Id);
+            var test = new RollbackMessageCommand<string>(null, number, null);
+            Assert.Equal(number, test.QueueId);
             Assert.Null(test.IncreaseQueueDelay);
 
             TimeSpan? time = TimeSpan.MinValue;
-            test = new RollbackMessageCommand(id, time);
-            Assert.Equal(id, test.Id);
+            test = new RollbackMessageCommand<string>(null, number, time);
+            Assert.Equal(number, test.QueueId);
             Assert.Equal(time, test.IncreaseQueueDelay);
         }
     }

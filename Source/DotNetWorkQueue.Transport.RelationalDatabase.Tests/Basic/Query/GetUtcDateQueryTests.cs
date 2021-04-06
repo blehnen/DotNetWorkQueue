@@ -1,4 +1,5 @@
 ﻿using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query

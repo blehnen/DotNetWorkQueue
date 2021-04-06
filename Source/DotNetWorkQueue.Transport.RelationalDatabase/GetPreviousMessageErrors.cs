@@ -17,27 +17,28 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
     /// <summary>
-    /// Finds any previous errors that have occured while processing a message
+    /// Finds any previous errors that have occurred while processing a message
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IGetPreviousMessageErrors" />
-    public class GetPreviousMessageErrors: IGetPreviousMessageErrors
+    public class GetPreviousMessageErrors<T> : IGetPreviousMessageErrors
     {
         #region Member Level Variables
-        private readonly IQueryHandler<GetMessageErrorsQuery, Dictionary<string, int>> _getErrorMessageQueryHandler;
+        private readonly IQueryHandler<GetMessageErrorsQuery<T>, Dictionary<string, int>> _getErrorMessageQueryHandler;
         #endregion
 
         #region Constructor        
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetPreviousMessageErrors"/> class.
+        /// Initializes a new instance of the <see cref="GetPreviousMessageErrors{T}"/> class.
         /// </summary>
         /// <param name="getErrorMessageQueryHandler">The get error message query handler.</param>
-        public GetPreviousMessageErrors(IQueryHandler<GetMessageErrorsQuery, Dictionary<string, int>> getErrorMessageQueryHandler)
+        public GetPreviousMessageErrors(IQueryHandler<GetMessageErrorsQuery<T>, Dictionary<string, int>> getErrorMessageQueryHandler)
         {
             Guard.NotNull(() => getErrorMessageQueryHandler, getErrorMessageQueryHandler);
             _getErrorMessageQueryHandler = getErrorMessageQueryHandler;
@@ -50,7 +51,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         {
             return !id.HasValue 
                 ? new Dictionary<string, int>() 
-                : _getErrorMessageQueryHandler.Handle(new GetMessageErrorsQuery((long)id.Id.Value));
+                : _getErrorMessageQueryHandler.Handle(new GetMessageErrorsQuery<T>((T)id.Id.Value));
         }
         #endregion
     }

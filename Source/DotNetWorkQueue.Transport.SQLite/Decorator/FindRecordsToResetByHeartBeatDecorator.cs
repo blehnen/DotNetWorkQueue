@@ -22,6 +22,8 @@ using System.Linq;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
@@ -29,9 +31,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     /// <summary>
     /// Handles various SQLite errors as warnings, not errors if they aren't critical
     /// </summary>
-    internal class FindRecordsToResetByHeartBeatErrorDecorator : IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
+    internal class FindRecordsToResetByHeartBeatErrorDecorator : IQueryHandler<FindMessagesToResetByHeartBeatQuery<long>, IEnumerable<MessageToReset<long>>>
     {
-        private readonly IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>> _decorated;
+        private readonly IQueryHandler<FindMessagesToResetByHeartBeatQuery<long>, IEnumerable<MessageToReset<long>>> _decorated;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -40,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// <param name="logger">The logger.</param>
         /// <param name="decorated">The decorated.</param>
         public FindRecordsToResetByHeartBeatErrorDecorator(ILogger logger,
-            IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>> decorated)
+            IQueryHandler<FindMessagesToResetByHeartBeatQuery<long>, IEnumerable<MessageToReset<long>>> decorated)
         {
             Guard.NotNull(() => decorated, decorated);
             Guard.NotNull(() => logger, logger);
@@ -53,7 +55,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public IEnumerable<MessageToReset> Handle(FindMessagesToResetByHeartBeatQuery query)
+        public IEnumerable<MessageToReset<long>> Handle(FindMessagesToResetByHeartBeatQuery<long> query)
         {
             try
             {
@@ -64,7 +66,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
                 if (e.Message.IndexOf("abort due to ROLLBACK", StringComparison.InvariantCultureIgnoreCase) >= 0)
                 {
                     _logger.LogWarning("The query has been aborted", e);
-                    return Enumerable.Empty<MessageToReset>();
+                    return Enumerable.Empty<MessageToReset<long>>();
                 }
                 else
                     throw;

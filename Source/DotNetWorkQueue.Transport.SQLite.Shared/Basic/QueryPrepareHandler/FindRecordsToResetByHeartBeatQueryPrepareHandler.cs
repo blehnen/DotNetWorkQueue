@@ -23,6 +23,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryPrepareHandler
@@ -30,8 +31,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryPrepareHandler
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="MessageToReset" />
-    public class FindRecordsToResetByHeartBeatQueryPrepareHandler : IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
+    /// <seealso cref="MessageToReset{T}" />
+    public class FindRecordsToResetByHeartBeatQueryPrepareHandler : IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery<long>, IEnumerable<MessageToReset<long>>>
     {
         private readonly CommandStringCache _commandCache;
         private readonly QueueConsumerConfiguration _configuration;
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryPrepareHandler
         /// <param name="query">The query.</param>
         /// <param name="dbCommand">The database command.</param>
         /// <param name="commandType">Type of the command.</param>
-        public void Handle(FindMessagesToResetByHeartBeatQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindMessagesToResetByHeartBeatQuery<long> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText =
                 _commandCache.GetCommand(commandType);

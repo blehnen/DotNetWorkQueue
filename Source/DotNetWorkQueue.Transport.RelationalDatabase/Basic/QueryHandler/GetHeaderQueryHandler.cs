@@ -17,7 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
@@ -25,22 +26,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// <summary>
     /// Obtains a header
     /// </summary>
-    public class GetHeaderQueryHandler : IQueryHandler<GetHeaderQuery, IDictionary<string, object>>
+    public class GetHeaderQueryHandler<T> : IQueryHandler<GetHeaderQuery<T>, IDictionary<string, object>>
     {
         private readonly IDbConnectionFactory _connectionFactory;
-        private readonly IPrepareQueryHandler<GetHeaderQuery, IDictionary<string, object>> _prepareQuery;
+        private readonly IPrepareQueryHandler<GetHeaderQuery<T>, IDictionary<string, object>> _prepareQuery;
         private readonly IReadColumn _readColumn;
         private readonly ICompositeSerialization _serialization;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetHeaderQueryHandler"/> class.
+        /// Initializes a new instance of the <see cref="GetHeaderQueryHandler{T}"/> class.
         /// </summary>
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="readColumn">The read column.</param>
         /// <param name="serialization">The serialization.</param>
         public GetHeaderQueryHandler(IDbConnectionFactory connectionFactory,
-            IPrepareQueryHandler<GetHeaderQuery, IDictionary<string, object>> prepareQuery,
+            IPrepareQueryHandler<GetHeaderQuery<T>, IDictionary<string, object>> prepareQuery,
             IReadColumn readColumn, ICompositeSerialization serialization)
         {
             Guard.NotNull(() => connectionFactory, connectionFactory);
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _serialization = serialization;
         }
         /// <inheritdoc />
-        public IDictionary<string, object> Handle(GetHeaderQuery query)
+        public IDictionary<string, object> Handle(GetHeaderQuery<T> query)
         {
             using (var connection = _connectionFactory.Create())
             {

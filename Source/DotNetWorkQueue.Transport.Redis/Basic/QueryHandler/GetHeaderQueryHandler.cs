@@ -18,12 +18,12 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
-using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
-    internal class GetHeaderQueryHandler : IQueryHandler<GetHeaderQuery, IDictionary<string, object>>
+    internal class GetHeaderQueryHandler : IQueryHandler<GetHeaderQuery<string>, IDictionary<string, object>>
     {
         private readonly GetHeaderLua _lua;
         private readonly ICompositeSerialization _serialization;
@@ -34,9 +34,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _lua = lua;
             _serialization = serialization;
         }
-        public IDictionary<string, object> Handle(GetHeaderQuery query)
+        public IDictionary<string, object> Handle(GetHeaderQuery<string> query)
         {
-            var headers = _lua.Execute(query.Id.Id.Value.ToString());
+            var headers = _lua.Execute(query.Id);
             if (headers != null)
             {
                 return _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);

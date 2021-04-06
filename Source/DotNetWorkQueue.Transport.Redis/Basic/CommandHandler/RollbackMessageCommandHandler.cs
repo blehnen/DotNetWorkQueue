@@ -21,12 +21,13 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand>
+    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<string>>
     {
         private readonly RollbackLua _rollbackLua;
         private readonly RollbackDelayLua _rollbackDelayLua;
@@ -51,16 +52,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         }
 
         /// <inheritdoc />
-        public void Handle(RollbackMessageCommand command)
+        public void Handle(RollbackMessageCommand<string> command)
         {
             if (command.IncreaseQueueDelay.HasValue && command.IncreaseQueueDelay.Value != TimeSpan.Zero)
             {
                 var unixTimestamp = _unixTimeFactory.Create().GetAddDifferenceMilliseconds(command.IncreaseQueueDelay.Value);
-                _rollbackDelayLua.Execute(command.Id.Id.Value.ToString(), unixTimestamp);
+                _rollbackDelayLua.Execute(command.QueueId, unixTimestamp);
             }
             else
             {
-                _rollbackLua.Execute(command.Id.Id.Value.ToString());
+                _rollbackLua.Execute(command.QueueId);
             }
         }
     }

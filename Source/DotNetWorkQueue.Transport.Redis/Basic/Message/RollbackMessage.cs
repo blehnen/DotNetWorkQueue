@@ -16,8 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Message
@@ -28,14 +31,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
     internal class RollbackMessage: ITransportRollbackMessage
     {
         private readonly RedisHeaders _headers;
-        private readonly ICommandHandler<RollbackMessageCommand> _command;
+        private readonly ICommandHandler<RollbackMessageCommand<string>> _command;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessage" /> class.
         /// </summary>
         /// <param name="command">The command handler factory.</param>
         /// <param name="headers">The headers.</param>
-        public RollbackMessage(ICommandHandler<RollbackMessageCommand> command, RedisHeaders headers)
+        public RollbackMessage(ICommandHandler<RollbackMessageCommand<string>> command, RedisHeaders headers)
         {
             Guard.NotNull(() => command, command);
             Guard.NotNull(() => headers, headers);
@@ -53,7 +56,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
             if (context.MessageId == null || !context.MessageId.HasValue) return;
 
             var increaseDelay = context.Get(_headers.IncreaseQueueDelay).IncreaseDelay;
-            _command.Handle(new RollbackMessageCommand((RedisQueueId)context.MessageId, increaseDelay));
+            _command.Handle(new RollbackMessageCommand<string>(DateTime.MinValue, context.MessageId.Id.Value.ToString(), increaseDelay));
             context.SetMessageAndHeaders(null, context.Headers);  //this message should not have any more actions performed on it
         }
     }

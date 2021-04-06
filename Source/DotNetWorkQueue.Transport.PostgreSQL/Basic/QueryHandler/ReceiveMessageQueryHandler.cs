@@ -23,6 +23,8 @@ using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
@@ -132,15 +134,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                         var newMessage = _messageFactory.Create(message, headers);
 
                         return _receivedMessageFactory.Create(newMessage,
-                            new MessageQueueId(id),
-                            new MessageCorrelationId(correlationId));
+                            new MessageQueueId<long>(id),
+                            new MessageCorrelationId<Guid>(correlationId));
                     }
                     catch (Exception error)
                     {
                         //at this point, the record has been de-queued, but it can't be processed.
                         throw new PoisonMessageException(
                             "An error has occurred trying to re-assemble a message de-queued from the server ", error,
-                            new MessageQueueId(id), new MessageCorrelationId(correlationId), messagePayload,
+                            new MessageQueueId<long>(id), new MessageCorrelationId<Guid>(correlationId), messagePayload,
                             headerPayload);
 
                     }

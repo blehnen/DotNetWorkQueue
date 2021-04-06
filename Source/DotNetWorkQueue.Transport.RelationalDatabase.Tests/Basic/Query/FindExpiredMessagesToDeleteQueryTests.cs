@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
@@ -11,7 +12,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
         {
             using (var cancel = new CancellationTokenSource())
             {
-                var test = new FindExpiredMessagesToDeleteQuery(cancel.Token);
+                var test = new FindExpiredMessagesToDeleteQuery<long>(cancel.Token);
                 Assert.Equal(cancel.Token, test.Cancellation);
             }
         }

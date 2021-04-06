@@ -71,6 +71,23 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         }
 
         /// <summary>
+        /// Reads a value from the reader as the specified type
+        /// </summary>
+        /// <typeparam name="T">the data type</typeparam>
+        /// <param name="command">The command.</param>
+        /// <param name="column">The column, if known. -1 if the caller has no idea.</param>
+        /// <param name="reader">The reader.</param>
+        /// <param name="noValue">What to return if no value is found</param>
+        /// <returns></returns>
+        public virtual T ReadAsType<T>(CommandStringTypes command, int column, IDataReader reader, T noValue = default)
+        {
+            ValidColumn(column, command);
+            if (!reader.IsDBNull(column))
+                return (T)reader[column];
+            return noValue;
+        }
+
+        /// <summary>
         /// Validates that the column can be used.
         /// </summary>
         /// <param name="column">The column.</param>

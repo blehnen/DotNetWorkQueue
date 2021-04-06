@@ -1,4 +1,5 @@
 ﻿using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
@@ -10,7 +11,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
         {
             const int id = 19334;
             var type = "errorType";
-            var test = new SetErrorCountCommand(type, id);
+            var test = new SetErrorCountCommand<long>(type, id);
             Assert.Equal(id, test.QueueId);
             Assert.Equal(type, test.ExceptionType);
         }

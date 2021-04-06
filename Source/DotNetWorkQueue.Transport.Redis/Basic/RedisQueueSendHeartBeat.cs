@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
@@ -28,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// </summary>
     internal class RedisQueueSendHeartBeat: ISendHeartBeat
     {
-        private readonly ICommandHandlerWithOutput<SendHeartBeatCommand, long> _sendHeartBeat;
+        private readonly ICommandHandlerWithOutput<SendHeartBeatCommand<string>, long> _sendHeartBeat;
         private readonly IUnixTimeFactory _unixTimeFactory;
 
         /// <summary>
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         /// <param name="sendHeartBeat">The send heart beat.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
-        public RedisQueueSendHeartBeat(ICommandHandlerWithOutput<SendHeartBeatCommand, long> sendHeartBeat, 
+        public RedisQueueSendHeartBeat(ICommandHandlerWithOutput<SendHeartBeatCommand<string>, long> sendHeartBeat, 
             IUnixTimeFactory unixTimeFactory)
         {
             Guard.NotNull(() => sendHeartBeat, sendHeartBeat);
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public IHeartBeatStatus Send(IMessageContext context)
         {
             if (context.MessageId == null || !context.MessageId.HasValue) return null;
-            var unixTime = _sendHeartBeat.Handle(new SendHeartBeatCommand((RedisQueueId)context.MessageId));
+            var unixTime = _sendHeartBeat.Handle(new SendHeartBeatCommand<string>(context.MessageId.Id.Value.ToString()));
             return new HeartBeatStatus(context.MessageId, _unixTimeFactory.Create().DateTimeFromUnixTimestampMilliseconds(unixTime)); //UTC 
         }
     }

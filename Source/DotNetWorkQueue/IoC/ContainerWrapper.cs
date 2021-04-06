@@ -36,6 +36,7 @@ namespace DotNetWorkQueue.IoC
     {
         private Container _container;
         private int _disposeCount;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ContainerWrapper" /> class.
         /// </summary>
@@ -51,10 +52,7 @@ namespace DotNetWorkQueue.IoC
         /// Gets the types that can be suppressed.
         /// </summary>
         /// <remarks>Ensures that we only register suppressions for types that we are actually using.</remarks>
-        public HashSet<Type> TypesThatCanBeSuppressed
-        {
-            get;
-        }
+        public HashSet<Type> TypesThatCanBeSuppressed { get; }
 
         /// <summary>
         /// Gets a value indicating whether this instance is verifying.
@@ -75,6 +73,7 @@ namespace DotNetWorkQueue.IoC
 
 
         #region IDispose, IIsDisposed
+
         /// <summary>
         /// Throws an exception if this instance has been disposed.
         /// </summary>
@@ -87,6 +86,7 @@ namespace DotNetWorkQueue.IoC
                 throw new ObjectDisposedException(name);
             }
         }
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
@@ -117,6 +117,7 @@ namespace DotNetWorkQueue.IoC
         /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
         /// </value>
         public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
+
         #endregion
 
         /// <summary>
@@ -249,6 +250,19 @@ namespace DotNetWorkQueue.IoC
         }
 
         /// <summary>
+        /// Registers the specified open generic service type.
+        /// </summary>
+        /// <param name="openGenericServiceType">Type of the open generic service.</param>
+        /// <param name="implementationTypes">The implementation types.</param>
+        /// <param name="lifeStyle">The life style.</param>
+        /// <returns></returns>
+        public IContainer Register(Type openGenericServiceType, IEnumerable<Type> implementationTypes, LifeStyles lifeStyle)
+        {
+            _container.Register(openGenericServiceType, implementationTypes, GetLifeStyle(lifeStyle));
+            return this;
+        }
+
+    /// <summary>
         /// Registers a singleton that will not be scoped and disposed of with the container.
         /// </summary>
         /// <typeparam name="TConcrete">The type of the concrete.</typeparam>

@@ -17,9 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Diagnostics.CodeAnalysis;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
@@ -28,11 +27,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Deletes a message from a queue
     /// </summary>
-    internal class DeleteMessageCommandHandler : ICommandHandlerWithOutput<DeleteMessageCommand, long>
+    internal class DeleteMessageCommandHandler : ICommandHandlerWithOutput<DeleteMessageCommand<long>, long>
     {
         private readonly Lazy<ITransportOptions> _options;
         private readonly ITransactionFactory _transactionFactory;
-        private readonly IPrepareCommandHandler<DeleteMessageCommand> _prepareCommand;
+        private readonly IPrepareCommandHandler<DeleteMessageCommand<long>> _prepareCommand;
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
         /// <summary>
@@ -45,7 +44,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         public DeleteMessageCommandHandler(ITransportOptionsFactory options,
             IDbConnectionFactory dbConnectionFactory,
             ITransactionFactory transactionFactory,
-            IPrepareCommandHandler<DeleteMessageCommand> prepareCommand)
+            IPrepareCommandHandler<DeleteMessageCommand<long>> prepareCommand)
         {
             Guard.NotNull(() => options, options);
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
@@ -59,8 +58,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         }
 
         /// <inheritdoc />
-        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "query is ok")]
-        public long Handle(DeleteMessageCommand command)
+        public long Handle(DeleteMessageCommand<long> command)
         {
             using (var connection = _dbConnectionFactory.Create())
             {

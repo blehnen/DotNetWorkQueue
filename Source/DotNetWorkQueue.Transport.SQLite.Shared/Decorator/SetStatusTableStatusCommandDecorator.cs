@@ -19,16 +19,17 @@
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Decorator
 {
     /// <inheritdoc />
-    public class SetStatusTableStatusCommandDecorator : ICommandHandler<DeleteStatusTableStatusCommand>
+    public class SetStatusTableStatusCommandDecorator : ICommandHandler<DeleteStatusTableStatusCommand<long>>
     {
         private readonly IConnectionInformation _connectionInformation;
-        private readonly ICommandHandler<DeleteStatusTableStatusCommand> _decorated;
+        private readonly ICommandHandler<DeleteStatusTableStatusCommand<long>> _decorated;
         private readonly DatabaseExists _databaseExists;
 
         /// <summary>
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Decorator
         /// <param name="decorated">The decorated.</param>
         /// <param name="databaseExists">The database exists.</param>
         public SetStatusTableStatusCommandDecorator(IConnectionInformation connectionInformation,
-            ICommandHandler<DeleteStatusTableStatusCommand> decorated,
+            ICommandHandler<DeleteStatusTableStatusCommand<long>> decorated,
             DatabaseExists databaseExists)
         {
             Guard.NotNull(() => decorated, decorated);
@@ -50,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Decorator
             _databaseExists = databaseExists;
         }
         /// <inheritdoc />
-        public void Handle(DeleteStatusTableStatusCommand command)
+        public void Handle(DeleteStatusTableStatusCommand<long> command)
         {
             if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
             {

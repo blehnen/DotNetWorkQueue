@@ -19,6 +19,8 @@
 using System;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {

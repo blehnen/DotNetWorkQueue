@@ -16,7 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
@@ -25,19 +26,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// <summary>
     /// Returns the current retry count for a message and a specific exception type
     /// </summary>
-    internal class GetErrorRetryCountQueryHandler : IQueryHandler<GetErrorRetryCountQuery, int>
+    internal class GetErrorRetryCountQueryHandler<T> : IQueryHandler<GetErrorRetryCountQuery<T>, int>
     {
-        private readonly IPrepareQueryHandler<GetErrorRetryCountQuery, int> _prepareQuery;
+        private readonly IPrepareQueryHandler<GetErrorRetryCountQuery<T>, int> _prepareQuery;
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly IReadColumn _readColumn;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetErrorRetryCountQueryHandler" /> class.
+        /// Initializes a new instance of the <see cref="GetErrorRetryCountQueryHandler{T}" /> class.
         /// </summary>
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="readColumn">The read column.</param>
-        public GetErrorRetryCountQueryHandler(IPrepareQueryHandler<GetErrorRetryCountQuery, int> prepareQuery, 
+        public GetErrorRetryCountQueryHandler(IPrepareQueryHandler<GetErrorRetryCountQuery<T>, int> prepareQuery, 
             IDbConnectionFactory connectionFactory,
             IReadColumn readColumn)
         {
@@ -50,7 +51,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _readColumn = readColumn;
         }
         /// <inheritdoc />
-        public int Handle(GetErrorRetryCountQuery query)
+        public int Handle(GetErrorRetryCountQuery<T> query)
         {
             using (var connection = _connectionFactory.Create())
             {

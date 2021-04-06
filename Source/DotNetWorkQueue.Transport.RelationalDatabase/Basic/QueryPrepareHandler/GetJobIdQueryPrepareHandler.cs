@@ -17,17 +17,17 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
     /// <inheritdoc />
-    public class GetJobIdQueryPrepareHandler : IPrepareQueryHandler<GetJobIdQuery, long>
+    public class GetJobIdQueryPrepareHandler<T> : IPrepareQueryHandler<GetJobIdQuery<T>, T>
     {
         private readonly CommandStringCache _commandCache;
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetJobIdQueryPrepareHandler"/> class.
+        /// Initializes a new instance of the <see cref="GetJobIdQueryPrepareHandler{T}"/> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
         public GetJobIdQueryPrepareHandler(CommandStringCache commandCache)
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
         }
 
         /// <inheritdoc />
-        public void Handle(GetJobIdQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(GetJobIdQuery<T> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
             var param = dbCommand.CreateParameter();

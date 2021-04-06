@@ -42,8 +42,6 @@ using OpenTracing;
 using Polly;
 using Polly.Caching.Memory;
 using Polly.Registry;
-using SimpleInjector;
-using SimpleInjector.Diagnostics;
 
 namespace DotNetWorkQueue.IoC
 {

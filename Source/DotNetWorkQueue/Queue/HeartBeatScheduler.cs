@@ -103,11 +103,11 @@ namespace DotNetWorkQueue.Queue
                 if (_consumer != null) return;
                 _container = new JobSchedulerContainer(container =>
                     container.Register(() => _timeFactory, LifeStyles.Singleton)
-                        .Register<ILogger>(() => _log, LifeStyles.Singleton));
+                        .Register(() => _log, LifeStyles.Singleton));
                 _scheduler = _container.CreateJobScheduler();
                 _scheduler.Start();
 
-                _consumerContainer = new SchedulerContainer(container => container.Register<ILogger>(() => _log, LifeStyles.Singleton));
+                _consumerContainer = new SchedulerContainer(container => container.Register(() => _log, LifeStyles.Singleton));
                 _consumerScheduler = _consumerContainer.CreateTaskScheduler();
                 _taskFactory = _consumerContainer.CreateTaskFactory(_consumerScheduler);
 
@@ -117,7 +117,7 @@ namespace DotNetWorkQueue.Queue
                 _taskFactory.Scheduler.Configuration.WaitForThreadPoolToFinish =
                     _configuration.WaitForThreadPoolToFinish;
                 _taskFactory.Scheduler.Start();
-                _queueContainer = new QueueContainer<MemoryMessageQueueInit>(container => container.Register<ILogger>(() => _log, LifeStyles.Singleton));
+                _queueContainer = new QueueContainer<MemoryMessageQueueInit>(container => container.Register(() => _log, LifeStyles.Singleton));
                 _consumer = _queueContainer.CreateConsumerMethodQueueScheduler( new QueueConnection(QueueName, Connection),
                     _taskFactory);
                 _consumer.Start();

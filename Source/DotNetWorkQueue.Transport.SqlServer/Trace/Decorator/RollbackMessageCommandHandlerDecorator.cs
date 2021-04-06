@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Trace.Decorator
@@ -26,9 +27,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Trace.Decorator
     /// <summary>
     /// 
     /// </summary>
-    public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand>
+    public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand<long>>
     {
-        private readonly ICommandHandler<RollbackMessageCommand> _handler;
+        private readonly ICommandHandler<RollbackMessageCommand<long>> _handler;
         private readonly ITracer _tracer;
 
         /// <summary>
@@ -36,14 +37,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Trace.Decorator
         /// </summary>
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
-        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand> handler, ITracer tracer)
+        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<long>> handler, ITracer tracer)
         {
             _handler = handler;
             _tracer = tracer;
         }
 
         /// <inheritdoc />
-        public void Handle(RollbackMessageCommand command)
+        public void Handle(RollbackMessageCommand<long> command)
         {
             //lets add a bit more information to the active span if possible
             if (_tracer.ActiveSpan != null)

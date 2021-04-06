@@ -1,6 +1,6 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Factory;
+using DotNetWorkQueue.Transport.Shared.Basic.Factory;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Factory

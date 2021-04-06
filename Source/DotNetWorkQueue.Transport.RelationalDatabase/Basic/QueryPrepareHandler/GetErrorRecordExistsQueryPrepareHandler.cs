@@ -17,17 +17,17 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
     /// <inheritdoc />
-    public class GetErrorRecordExistsQueryPrepareHandler : IPrepareQueryHandler<GetErrorRecordExistsQuery, bool>
+    public class GetErrorRecordExistsQueryPrepareHandler<T> : IPrepareQueryHandler<GetErrorRecordExistsQuery<T>, bool>
     {
         private readonly CommandStringCache _commandCache;
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetErrorRecordExistsQueryPrepareHandler"/> class.
+        /// Initializes a new instance of the <see cref="GetErrorRecordExistsQueryPrepareHandler{T}"/> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
         public GetErrorRecordExistsQueryPrepareHandler(CommandStringCache commandCache)
@@ -37,13 +37,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
         }
 
         /// <inheritdoc />
-        public void Handle(GetErrorRecordExistsQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(GetErrorRecordExistsQuery<T> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 
             var queueid = dbCommand.CreateParameter();
             queueid.ParameterName = "@QueueID";
-            queueid.DbType = DbType.Int64;
+            queueid.DbType = DbType.Int64; //WARN should match T
             queueid.Value = query.QueueId;
             dbCommand.Parameters.Add(queueid);
 

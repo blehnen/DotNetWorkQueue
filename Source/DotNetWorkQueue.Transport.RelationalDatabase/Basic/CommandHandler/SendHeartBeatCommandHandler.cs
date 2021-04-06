@@ -17,8 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
@@ -27,9 +27,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Sends a heart beat for a queue record
     /// </summary>
-    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand, DateTime?>
+    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime?>
     {
-        private readonly IPrepareCommandHandlerWithOutput<SendHeartBeatCommand, DateTime> _prepareCommand;
+        private readonly IPrepareCommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime> _prepareCommand;
         private readonly IDbConnectionFactory _connectionFactory;
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// <param name="prepareCommand">The prepare command.</param>
         /// <param name="connectionFactory">The connection factory.</param>
         public SendHeartBeatCommandHandler(
-            IPrepareCommandHandlerWithOutput<SendHeartBeatCommand, DateTime> prepareCommand,
+            IPrepareCommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime> prepareCommand,
             IDbConnectionFactory connectionFactory)
         {
 
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             _connectionFactory = connectionFactory;
         }
         /// <inheritdoc />
-        public DateTime? Handle(SendHeartBeatCommand command)
+        public DateTime? Handle(SendHeartBeatCommand<long> command)
         {
             using (var conn = _connectionFactory.Create())
             {

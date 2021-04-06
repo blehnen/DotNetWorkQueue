@@ -16,27 +16,26 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using System.Collections.Generic;
-using System.Text;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
-    internal class GetMessageErrorsQueryHandler : IQueryHandler<GetMessageErrorsQuery, Dictionary<string, int>>
+    internal class GetMessageErrorsQueryHandler<T> : IQueryHandler<GetMessageErrorsQuery<T>, Dictionary<string, int>>
     {
-        private readonly IPrepareQueryHandler<GetMessageErrorsQuery, Dictionary<string, int>> _prepareQuery;
+        private readonly IPrepareQueryHandler<GetMessageErrorsQuery<T>, Dictionary<string, int>> _prepareQuery;
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly IReadColumn _readColumn;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetErrorRetryCountQueryHandler" /> class.
+        /// Initializes a new instance of the <see cref="GetErrorRetryCountQueryHandler{T}" /> class.
         /// </summary>
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="connectionFactory">The connection factory.</param>
         /// <param name="readColumn">The read column.</param>
-        public GetMessageErrorsQueryHandler(IPrepareQueryHandler<GetMessageErrorsQuery, Dictionary<string, int>> prepareQuery,
+        public GetMessageErrorsQueryHandler(IPrepareQueryHandler<GetMessageErrorsQuery<T>, Dictionary<string, int>> prepareQuery,
             IDbConnectionFactory connectionFactory,
             IReadColumn readColumn)
         {
@@ -49,7 +48,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             _readColumn = readColumn;
         }
         /// <inheritdoc />
-        public Dictionary<string, int> Handle(GetMessageErrorsQuery query)
+        public Dictionary<string, int> Handle(GetMessageErrorsQuery<T> query)
         {
             var returnData = new Dictionary<string, int>();
             using (var connection = _connectionFactory.Create())

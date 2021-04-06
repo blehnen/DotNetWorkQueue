@@ -20,7 +20,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
@@ -29,15 +30,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// <summary>
     /// Finds expired messages that should be removed from the queue.
     /// </summary>
-    internal class FindExpiredRecordsToDeleteQueryHandler : IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>
+    internal class FindExpiredRecordsToDeleteQueryHandler<T> : IQueryHandler<FindExpiredMessagesToDeleteQuery<T>, IEnumerable<T>>
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly IReadColumn _readColumn;
-        private readonly IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> _prepareQuery;
+        private readonly IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery<T>, IEnumerable<T>> _prepareQuery;
         private readonly Lazy<ITransportOptions> _options;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FindExpiredRecordsToDeleteQueryHandler" /> class.
+        /// Initializes a new instance of the <see cref="FindExpiredRecordsToDeleteQueryHandler{T}" /> class.
         /// </summary>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="options">The options.</param>
@@ -47,7 +48,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             IDbConnectionFactory dbConnectionFactory,
             ITransportOptionsFactory options, 
             IReadColumn readColumn,
-            IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> prepareQuery)
+            IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery<T>, IEnumerable<T>> prepareQuery)
         {
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
             Guard.NotNull(() => options, options);
@@ -61,14 +62,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         }
         /// <inheritdoc />
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        public IEnumerable<long> Handle(FindExpiredMessagesToDeleteQuery query)
+        public IEnumerable<T> Handle(FindExpiredMessagesToDeleteQuery<T> query)
         {
             if (query.Cancellation.IsCancellationRequested)
             {
-                return Enumerable.Empty<long>();
+                return Enumerable.Empty<T>();
             }
 
-            var results = new List<long>();
+            var results = new List<T>();
             var commandType = _options.Value.EnableStatus
                 ? CommandStringTypes.FindExpiredRecordsWithStatusToDelete
                 : CommandStringTypes.FindExpiredRecordsToDelete;
@@ -80,7 +81,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 //otherwise, there is a chance that the tables no longer exist in memory mode
                 if (query.Cancellation.IsCancellationRequested)
                 {
-                    return Enumerable.Empty<long>();
+                    return Enumerable.Empty<T>();
                 }
 
                 using (var command = connection.CreateCommand())
@@ -94,7 +95,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                             {
                                 break;
                             }
-                            results.Add(_readColumn.ReadAsInt64(commandType, 0, reader));
+                            results.Add(_readColumn.ReadAsType<T>(commandType, 0, reader));
                         }
                     }
                 }

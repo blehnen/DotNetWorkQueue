@@ -19,12 +19,13 @@
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class MoveRecordToErrorQueueCommandHandler : ICommandHandler<MoveRecordToErrorQueueCommand>
+    internal class MoveRecordToErrorQueueCommandHandler : ICommandHandler<MoveRecordToErrorQueueCommand<string>>
     {
         private readonly ErrorLua _errorLua;
         private readonly IUnixTime _unixTime;
@@ -41,9 +42,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         }
 
         /// <inheritdoc />
-        public void Handle(MoveRecordToErrorQueueCommand command)
+        public void Handle(MoveRecordToErrorQueueCommand<string> command)
         {
-            _errorLua.Execute(command.QueueId.Id.Value.ToString(), _unixTime.GetCurrentUnixTimestampMilliseconds());
+            _errorLua.Execute(command.QueueId, _unixTime.GetCurrentUnixTimestampMilliseconds());
         }
     }
 }

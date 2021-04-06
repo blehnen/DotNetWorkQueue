@@ -21,8 +21,9 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Trace;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
-using DotNetWorkQueue.Transport.RelationalDatabase.Trace;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Trace;
 using OpenTracing;
 using OpenTracing.Tag;
 

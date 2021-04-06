@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
     public class SendMessageCommandBatch
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SendMessageCommand" /> class.
+        /// Initializes a new instance of the <see cref="SendMessageCommandBatch" /> class.
         /// </summary>
         /// <param name="messages">The messages.</param>
         public SendMessageCommandBatch(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)

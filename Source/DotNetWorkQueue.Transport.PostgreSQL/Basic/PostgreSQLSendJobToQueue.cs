@@ -17,12 +17,12 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using Npgsql;
-using CreateJobMetaData = DotNetWorkQueue.Transport.RelationalDatabase.Basic.CreateJobMetaData;
+using CreateJobMetaData = DotNetWorkQueue.Transport.Shared.Basic.CreateJobMetaData;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     public class PostgreSqlSendJobToQueue : ASendJobToQueue
     {
         private readonly IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> _doesJobExist;
-        private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
+        private readonly IQueryHandler<GetJobIdQuery<long>, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
         private readonly IRemoveMessage _removeMessage;
 
@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="removeMessage"></param>
         /// <inheritdoc />
         public PostgreSqlSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>, QueueStatuses> doesJobExist,
-            IQueryHandler<GetJobIdQuery, long> getJobId,
+            IQueryHandler<GetJobIdQuery<long>, long> getJobId,
             CreateJobMetaData createJobMetaData,
             IGetTimeFactory getTimeFactory,
             IRemoveMessage removeMessage) : base(queue, getTimeFactory)
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         protected override void DeleteJob(string name)
         {
-            _removeMessage.Remove(new RelationalDatabase.Basic.MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))), RemoveMessageReason.Error);
+            _removeMessage.Remove(new MessageQueueId<long>(_getJobId.Handle(new GetJobIdQuery<long>(name))), RemoveMessageReason.Error);
         }
 
         /// <inheritdoc />

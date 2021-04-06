@@ -25,10 +25,11 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
 {
-    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand>
+    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<long>>
     {
         private readonly IGetTimeFactory _getUtcDateQuery;
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
@@ -72,7 +73,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.CommandHandler
         /// </summary>
         /// <param name="rollBackCommand">The rollBackCommand.</param>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        public void Handle(RollbackMessageCommand rollBackCommand)
+        public void Handle(RollbackMessageCommand<long> rollBackCommand)
         {
             if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
             {

@@ -97,6 +97,15 @@ namespace DotNetWorkQueue
         IContainer Register(Type openGenericServiceType, LifeStyles lifeStyle, params Assembly[] assemblies);
 
         /// <summary>
+        /// Registers the specified open generic service type.
+        /// </summary>
+        /// <param name="openGenericServiceType">Type of the open generic service.</param>
+        /// <param name="implementationTypes">The implementation types.</param>
+        /// <param name="lifeStyle">The life style.</param>
+        /// <returns></returns>
+        IContainer Register(Type openGenericServiceType, IEnumerable<Type> implementationTypes, LifeStyles lifeStyle);
+
+        /// <summary>
         /// Registers a singleton that will not be scoped and disposed of with the container.
         /// </summary>
         /// <typeparam name="TConcrete">The type of the concrete.</typeparam>

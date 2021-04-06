@@ -18,12 +18,13 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
     /// <inheritdoc />
-    public class GetJobIdQueryHandler : IQueryHandler<GetJobIdQuery, string>
+    public class GetJobIdQueryHandler : IQueryHandler<GetJobIdQuery<string>, string>
     {
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         }
 
         /// <inheritdoc />
-        public string Handle(GetJobIdQuery query)
+        public string Handle(GetJobIdQuery<string> query)
         {
             var db = _connection.Connection.GetDatabase();
             return db.HashGet(_redisNames.JobNames, query.JobName);

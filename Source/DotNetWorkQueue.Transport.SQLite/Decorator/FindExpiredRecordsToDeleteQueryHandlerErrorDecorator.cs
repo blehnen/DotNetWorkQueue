@@ -22,22 +22,24 @@ using System.Linq;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
 {
-    internal class FindExpiredRecordsToDeleteQueryHandlerErrorDecorator : IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>
+    internal class FindExpiredRecordsToDeleteQueryHandlerErrorDecorator : IQueryHandler<FindExpiredMessagesToDeleteQuery<long>, IEnumerable<long>>
     {
-        private readonly IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> _decorated;
+        private readonly IQueryHandler<FindExpiredMessagesToDeleteQuery<long>, IEnumerable<long>> _decorated;
         private readonly ILogger _logger;
         public FindExpiredRecordsToDeleteQueryHandlerErrorDecorator(
-            IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>> decorated,
+            IQueryHandler<FindExpiredMessagesToDeleteQuery<long>, IEnumerable<long>> decorated,
             ILogger logger)
         {
             _decorated = decorated;
             _logger = logger;
         }
 
-        public IEnumerable<long> Handle(FindExpiredMessagesToDeleteQuery query)
+        public IEnumerable<long> Handle(FindExpiredMessagesToDeleteQuery<long> query)
         {
             try
             {

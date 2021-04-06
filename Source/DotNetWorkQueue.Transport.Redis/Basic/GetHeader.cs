@@ -19,6 +19,7 @@
 using System.Collections.Generic;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -28,19 +29,19 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <seealso cref="DotNetWorkQueue.IGetHeader" />
     public class GetHeader: IGetHeader
     {
-        private readonly IQueryHandler<GetHeaderQuery, IDictionary<string, object>> _queryHandler;
+        private readonly IQueryHandler<GetHeaderQuery<string>, IDictionary<string, object>> _queryHandler;
         /// <summary>
         /// Initializes a new instance of the <see cref="GetHeader"/> class.
         /// </summary>
         /// <param name="queryHandler">The query handler.</param>
-        public GetHeader(IQueryHandler<GetHeaderQuery, IDictionary<string, object>> queryHandler)
+        public GetHeader(IQueryHandler<GetHeaderQuery<string>, IDictionary<string, object>> queryHandler)
         {
             _queryHandler = queryHandler;
         }
         /// <inheritdoc />
         public IDictionary<string, object> GetHeaders(IMessageId id)
         {
-            return _queryHandler.Handle(new GetHeaderQuery((RedisQueueId)id));
+            return _queryHandler.Handle(new GetHeaderQuery<string>(id.Id.Value.ToString()));
         }
     }
 }

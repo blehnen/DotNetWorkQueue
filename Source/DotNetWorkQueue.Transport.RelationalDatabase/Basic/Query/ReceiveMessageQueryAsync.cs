@@ -19,12 +19,12 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <inheritdoc />
     /// <summary>
-    /// Dequeues a message from the queue.
+    /// Dequeue a message from the queue.
     /// </summary>
     public class ReceiveMessageQueryAsync<TConnection, TTransaction> : IQuery<Task<IReceivedMessageInternal>>
         where TConnection : IDbConnection

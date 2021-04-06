@@ -25,10 +25,11 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 {
-    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand>
+    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<long>>
     {
         private readonly IGetTimeFactory _getUtcDateQuery;
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
@@ -63,7 +64,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// Handles the specified rollback command.
         /// </summary>
         /// <param name="rollBackCommand">The rollBackCommand.</param>
-        public void Handle(RollbackMessageCommand rollBackCommand)
+        public void Handle(RollbackMessageCommand<long> rollBackCommand)
         {
             SetupSql();
             using (var connection = new SqlConnection(_connectionInformation.ConnectionString))

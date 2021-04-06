@@ -24,6 +24,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
 using DotNetWorkQueue.Transport.SQLite.Shared;
 using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
@@ -61,12 +62,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             //some SQLite errors should be warnings, not errors
             container.RegisterDecorator(
-                typeof(RelationalDatabase.IQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>),
+                typeof(IQueryHandler<FindMessagesToResetByHeartBeatQuery<long>, IEnumerable<MessageToReset<long>>>),
                 typeof(FindRecordsToResetByHeartBeatErrorDecorator), LifeStyles.Singleton);
 
             //some SQLite errors should be warnings, not errors
             container.RegisterDecorator(
-                typeof(RelationalDatabase.IQueryHandler<FindExpiredMessagesToDeleteQuery, IEnumerable<long>>),
+                typeof(IQueryHandler<FindExpiredMessagesToDeleteQuery<long>, IEnumerable<long>>),
                 typeof(FindExpiredRecordsToDeleteQueryHandlerErrorDecorator), LifeStyles.Singleton);
         }
 

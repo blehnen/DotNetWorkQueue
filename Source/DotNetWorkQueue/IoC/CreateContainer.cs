@@ -20,7 +20,6 @@ using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.JobScheduler;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
 using SimpleInjector;
 
@@ -137,7 +136,7 @@ namespace DotNetWorkQueue.IoC
                 //}
 
                 //verify the container configuration.
-                container.Verify();
+                container.Verify(VerificationOption.VerifyAndDiagnose);
 
                 //default polices
                 ComponentRegistration.SetupDefaultPolicies(containerWrapper, type);

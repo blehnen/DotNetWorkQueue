@@ -20,6 +20,7 @@ using System;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
@@ -28,17 +29,17 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Moves a record from the meta table to the error table
     /// </summary>
-    public class MoveRecordToErrorQueueCommandHandler<TConnection, TTransaction, TCommand> : ICommandHandler<MoveRecordToErrorQueueCommand>
+    public class MoveRecordToErrorQueueCommandHandler<TConnection, TTransaction, TCommand> : ICommandHandler<MoveRecordToErrorQueueCommand<long>>
         where TConnection : class, IDbConnection
         where TTransaction : class, IDbTransaction
         where TCommand : class, IDbCommand
     {
         private readonly ICommandHandler<DeleteMetaDataCommand> _deleteMetaCommandHandler;
         private readonly ICommandHandler<SetStatusTableStatusTransactionCommand> _setStatusCommandHandler;
-        private readonly ICommandHandler<SetStatusTableStatusCommand> _setStatusNoTransactionCommandHandler;
+        private readonly ICommandHandler<SetStatusTableStatusCommand<long>> _setStatusNoTransactionCommandHandler;
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly ITransactionFactory _transactionFactory;
-        private readonly IPrepareCommandHandler<MoveRecordToErrorQueueCommand> _prepareCommand;
+        private readonly IPrepareCommandHandler<MoveRecordToErrorQueueCommand<long>> _prepareCommand;
         private readonly Lazy<ITransportOptions> _options;
         private readonly IConnectionHeader<TConnection, TTransaction, TCommand> _headers;
 
@@ -59,9 +60,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             ICommandHandler<SetStatusTableStatusTransactionCommand> setStatusCommandHandler,
             IDbConnectionFactory dbConnectionFactory,
             ITransactionFactory transactionFactory,
-            IPrepareCommandHandler<MoveRecordToErrorQueueCommand> prepareCommand,
+            IPrepareCommandHandler<MoveRecordToErrorQueueCommand<long>> prepareCommand,
             IConnectionHeader<TConnection, TTransaction, TCommand> headers,
-            ICommandHandler<SetStatusTableStatusCommand> setCommandHandler)
+            ICommandHandler<SetStatusTableStatusCommand<long>> setCommandHandler)
         {
             Guard.NotNull(() => options, options);
             Guard.NotNull(() => transactionFactory, transactionFactory);
@@ -82,7 +83,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             _setStatusNoTransactionCommandHandler = setCommandHandler;
         }
         /// <inheritdoc />
-        public void Handle(MoveRecordToErrorQueueCommand command)
+        public void Handle(MoveRecordToErrorQueueCommand<long> command)
         {
             if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
             {
@@ -120,7 +121,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             }
         }
 
-        private void HandleForTransaction(MoveRecordToErrorQueueCommand command)
+        private void HandleForTransaction(MoveRecordToErrorQueueCommand<long> command)
         {
             var connHolder = command.MessageContext.Get(_headers.Connection);
             using (var conn = _dbConnectionFactory.Create())
@@ -142,7 +143,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 
                     if (_options.Value.EnableStatusTable)
                     {
-                        _setStatusNoTransactionCommandHandler.Handle(new SetStatusTableStatusCommand(command.QueueId, QueueStatuses.Error));
+                        _setStatusNoTransactionCommandHandler.Handle(new SetStatusTableStatusCommand<long>(command.QueueId, QueueStatuses.Error));
                     }
                 }
             }

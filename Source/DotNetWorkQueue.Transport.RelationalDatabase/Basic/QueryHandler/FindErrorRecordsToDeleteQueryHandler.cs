@@ -16,10 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
@@ -27,46 +27,41 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// <summary>
     /// Finds error messages that need to be deleted
     /// </summary>
-    public class FindErrorRecordsToDeleteQueryHandler : IQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>>
+    public class FindErrorRecordsToDeleteQueryHandler<T> : IQueryHandler<FindErrorMessagesToDeleteQuery<T>, IEnumerable<T>>
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly IReadColumn _readColumn;
-        private readonly IPrepareQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>> _prepareQuery;
-        private readonly Lazy<ITransportOptions> _options;
+        private readonly IPrepareQueryHandler<FindErrorMessagesToDeleteQuery<T>, IEnumerable<T>> _prepareQuery;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FindErrorRecordsToDeleteQueryHandler" /> class.
+        /// Initializes a new instance of the <see cref="FindErrorRecordsToDeleteQueryHandler{T}" /> class.
         /// </summary>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
-        /// <param name="options">The options.</param>
         /// <param name="readColumn">The read column.</param>
         /// <param name="prepareQuery">The prepare query.</param>
         public FindErrorRecordsToDeleteQueryHandler(
             IDbConnectionFactory dbConnectionFactory,
-            ITransportOptionsFactory options,
             IReadColumn readColumn,
-            IPrepareQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>> prepareQuery)
+            IPrepareQueryHandler<FindErrorMessagesToDeleteQuery<T>, IEnumerable<T>> prepareQuery)
         {
             Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => options, options);
             Guard.NotNull(() => prepareQuery, prepareQuery);
             Guard.NotNull(() => readColumn, readColumn);
 
             _dbConnectionFactory = dbConnectionFactory;
             _readColumn = readColumn;
             _prepareQuery = prepareQuery;
-            _options = new Lazy<ITransportOptions>(options.Create);
         }
 
         /// <inheritdoc />
-        public IEnumerable<long> Handle(FindErrorMessagesToDeleteQuery query)
+        public IEnumerable<T> Handle(FindErrorMessagesToDeleteQuery<T> query)
         {
             if (query.Cancellation.IsCancellationRequested)
             {
-                return Enumerable.Empty<long>();
+                return Enumerable.Empty<T>();
             }
 
-            var results = new List<long>();
+            var results = new List<T>();
             using (var connection = _dbConnectionFactory.Create())
             {
                 connection.Open();
@@ -75,7 +70,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 //otherwise, there is a chance that the tables no longer exist in memory mode
                 if (query.Cancellation.IsCancellationRequested)
                 {
-                    return Enumerable.Empty<long>();
+                    return Enumerable.Empty<T>();
                 }
 
                 using (var command = connection.CreateCommand())
@@ -89,7 +84,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                             {
                                 break;
                             }
-                            results.Add(_readColumn.ReadAsInt64(CommandStringTypes.FindErrorRecordsToDelete, 0, reader));
+                            results.Add(_readColumn.ReadAsType<T>(CommandStringTypes.FindErrorRecordsToDelete, 0, reader));
                         }
                     }
                 }

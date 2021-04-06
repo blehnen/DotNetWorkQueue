@@ -23,6 +23,7 @@ using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
@@ -98,16 +99,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Shared.Basic.QueryHandler
                 transaction.Commit();
 
                 return _receivedMessageFactory.Create(newMessage,
-                    new MessageQueueId(id),
-                    new MessageCorrelationId(correlationId));
+                    new MessageQueueId<long>(id),
+                    new MessageCorrelationId<Guid>(correlationId));
             }
             catch (Exception err)
             {
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
-                    "An error has occured trying to re-assemble a message de-queued from SQLite",
-                    err, new MessageQueueId(id),
-                    new MessageCorrelationId(correlationId),
+                    "An error has occurred trying to re-assemble a message de-queued from SQLite",
+                    err, new MessageQueueId<long>(id),
+                    new MessageCorrelationId<Guid>(correlationId),
                     messagePayload,
                     headerPayload);
             }

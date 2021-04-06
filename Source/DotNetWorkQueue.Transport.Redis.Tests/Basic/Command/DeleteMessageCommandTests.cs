@@ -1,6 +1,7 @@
 ﻿using AutoFixture.Xunit2;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
@@ -10,9 +11,8 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
         [Theory, AutoData]
         public void Create_Default(string number)
         {
-            var id = new RedisQueueId(number);
-            var test = new DeleteMessageCommand(id);
-            Assert.Equal(id, test.Id);
+            var test = new DeleteMessageCommand<string>(number);
+            Assert.Equal(number, test.QueueId);
         }
     }
 }

@@ -20,19 +20,19 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
     /// <inheritdoc />
-    public class FindRecordsToResetByHeartBeatQueryPrepareHandler : IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery, IEnumerable<MessageToReset>>
+    public class FindRecordsToResetByHeartBeatQueryPrepareHandler<T> : IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery<T>, IEnumerable<MessageToReset<T>>>
     {
         private readonly CommandStringCache _commandCache;
         private readonly QueueConsumerConfiguration _configuration;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatQueryPrepareHandler"/> class.
+        /// Initializes a new instance of the <see cref="FindRecordsToResetByHeartBeatQueryPrepareHandler{T}"/> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
         /// <param name="configuration">The configuration.</param>
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             _configuration = configuration;
         }
         /// <inheritdoc />
-        public void Handle(FindMessagesToResetByHeartBeatQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindMessagesToResetByHeartBeatQuery<T> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText =
                 _commandCache.GetCommand(commandType);

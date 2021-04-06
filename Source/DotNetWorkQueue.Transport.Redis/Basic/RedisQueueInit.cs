@@ -32,6 +32,7 @@ using DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Redis.Basic.Time;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
@@ -162,7 +163,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
             //trace fallback command
             container.RegisterDecorator(
-                typeof(ICommandHandler<RollbackMessageCommand>),
+                typeof(ICommandHandler<RollbackMessageCommand<string>>),
                 typeof(DotNetWorkQueue.Transport.Redis.Trace.Decorator.RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
 
             //trace sending messages

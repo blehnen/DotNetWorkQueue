@@ -16,25 +16,26 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
     /// <inheritdoc />
-    public class GetJobIdQueryHandler : IQueryHandler<GetJobIdQuery, long>
+    public class GetJobIdQueryHandler<T> : IQueryHandler<GetJobIdQuery<T>, T>
     {
-        private readonly IPrepareQueryHandler<GetJobIdQuery, long> _prepareQuery;
+        private readonly IPrepareQueryHandler<GetJobIdQuery<T>, T> _prepareQuery;
         private readonly IDbConnectionFactory _dbConnectionFactory;
         private readonly IReadColumn _readColumn;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetJobIdQueryHandler" /> class.
+        /// Initializes a new instance of the <see cref="GetJobIdQueryHandler{T}" /> class.
         /// </summary>
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="dbConnectionFactory">The database connection factory.</param>
         /// <param name="readColumn">The read column.</param>
-        public GetJobIdQueryHandler(IPrepareQueryHandler<GetJobIdQuery, long> prepareQuery,
+        public GetJobIdQueryHandler(IPrepareQueryHandler<GetJobIdQuery<T>, T> prepareQuery,
             IDbConnectionFactory dbConnectionFactory,
             IReadColumn readColumn)
         {
@@ -48,7 +49,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         }
 
         /// <inheritdoc />
-        public long Handle(GetJobIdQuery query)
+        public T Handle(GetJobIdQuery<T> query)
         {
             using (var connection = _dbConnectionFactory.Create())
             {
@@ -60,12 +61,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     {
                         if (reader.Read())
                         {
-                            return _readColumn.ReadAsInt64(CommandStringTypes.GetJobId, 0, reader, -1);
+                            return _readColumn.ReadAsType<T>(CommandStringTypes.GetJobId, 0, reader);
                         }
                     }
                 }
             }
-            return -1;
+            return default;
         }
     }
 }

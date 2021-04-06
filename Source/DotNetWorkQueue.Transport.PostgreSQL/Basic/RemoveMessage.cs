@@ -21,6 +21,7 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -33,8 +34,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     public class RemoveMessage: IRemoveMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly ICommandHandler<DeleteStatusTableStatusCommand> _deleteStatusCommandHandler;
-        private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
+        private readonly ICommandHandler<DeleteStatusTableStatusCommand<long>> _deleteStatusCommandHandler;
+        private readonly ICommandHandlerWithOutput<DeleteMessageCommand<long>, long> _deleteMessageCommand;
         private readonly ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> _deleteTransactionalMessageCommand;
         private readonly IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> _headers;
 
@@ -47,8 +48,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="headers">The headers.</param>
         /// <param name="deleteTransactionalMessageCommand">The delete transactional message command.</param>
         public RemoveMessage(QueueConsumerConfiguration configuration,
-            ICommandHandler<DeleteStatusTableStatusCommand> deleteStatusCommandHandler,
-            ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
+            ICommandHandler<DeleteStatusTableStatusCommand<long>> deleteStatusCommandHandler,
+            ICommandHandlerWithOutput<DeleteMessageCommand<long>, long> deleteMessageCommand,
             IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> headers,
             ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand)
         {
@@ -73,7 +74,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             if (id == null || !id.HasValue) return RemoveMessageStatus.NotFound;
 
-            var count = _deleteMessageCommand.Handle(new DeleteMessageCommand((long) id.Id.Value));
+            var count = _deleteMessageCommand.Handle(new DeleteMessageCommand<long>((long) id.Id.Value));
             return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
         }
 
@@ -88,7 +89,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //if transaction held
             if (connection.Connection == null || connection.Transaction == null)
             {
-                var counter = _deleteMessageCommand.Handle(new DeleteMessageCommand((long)context.MessageId.Id.Value));
+                var counter = _deleteMessageCommand.Handle(new DeleteMessageCommand<long>((long)context.MessageId.Id.Value));
                 return counter > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
             }
 
@@ -99,7 +100,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             if (_configuration.Options().EnableStatusTable)
             {
-                _deleteStatusCommandHandler.Handle(new DeleteStatusTableStatusCommand((long)context.MessageId.Id.Value));
+                _deleteStatusCommandHandler.Handle(new DeleteStatusTableStatusCommand<long>((long)context.MessageId.Id.Value));
             }
             return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
         }

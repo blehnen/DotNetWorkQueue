@@ -21,6 +21,7 @@ using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler
     /// <summary>
     /// Prepares the find error message command for execution
     /// </summary>
-    public class FindErrorRecordsToDeleteQueryPrepareHandler : IPrepareQueryHandler<FindErrorMessagesToDeleteQuery, IEnumerable<long>>
+    public class FindErrorRecordsToDeleteQueryPrepareHandler : IPrepareQueryHandler<FindErrorMessagesToDeleteQuery<long>, IEnumerable<long>>
     {
         private readonly CommandStringCache _commandCache;
         private readonly IMessageErrorConfiguration _configuration;
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler
             _getTime = timeFactory.Create();
         }
         /// <inheritdoc />
-        public void Handle(FindErrorMessagesToDeleteQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindErrorMessagesToDeleteQuery<long> query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 

@@ -1,4 +1,5 @@
 ﻿using DotNetWorkQueue.Transport.Redis.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using NSubstitute;
 using Xunit;
 

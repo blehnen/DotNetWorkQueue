@@ -19,6 +19,7 @@
 using System;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _doesJobExist;
         private readonly IRemoveMessage _removeMessage;
-        private readonly IQueryHandler<GetJobIdQuery, string> _getJobId;
+        private readonly IQueryHandler<GetJobIdQuery<string>, string> _getJobId;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
 
         /// <summary>Initializes a new instance of the <see cref="RedisSendJobToQueue"/> class.</summary>
@@ -42,7 +43,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         public RedisSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatuses> doesJobExist,
             IRemoveMessage removeMessage,
-            IQueryHandler<GetJobIdQuery, string> getJobId, 
+            IQueryHandler<GetJobIdQuery<string>, string> getJobId, 
             IGetTimeFactory getTimeFactory, 
             IJobSchedulerMetaData jobSchedulerMetaData): base(queue, getTimeFactory)
         {
@@ -69,7 +70,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="name">The name.</param>
         protected override void DeleteJob(string name)
         {
-            _removeMessage.Remove(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery(name))), RemoveMessageReason.Error);
+            _removeMessage.Remove(new RedisQueueId(_getJobId.Handle(new GetJobIdQuery<string>(name))), RemoveMessageReason.Error);
         }
 
         /// <summary>

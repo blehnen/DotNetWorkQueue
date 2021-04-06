@@ -21,6 +21,9 @@ using System.Data.SqlClient;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -32,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     {
         private readonly IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> _doesJobExist;
         private readonly IRemoveMessage _removeMessage;
-        private readonly IQueryHandler<GetJobIdQuery, long> _getJobId;
+        private readonly IQueryHandler<GetJobIdQuery<long>, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
 
         /// <summary>Initializes a new instance of the <see cref="SqlServerSendJobToQueue"/> class.</summary>
@@ -44,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="getTimeFactory">The get time factory.</param>
         public SqlServerSendJobToQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> doesJobExist,
             IRemoveMessage removeMessage,
-            IQueryHandler<GetJobIdQuery, long> getJobId,
+            IQueryHandler<GetJobIdQuery<long>, long> getJobId,
             CreateJobMetaData createJobMetaData,
             IGetTimeFactory getTimeFactory) : base(queue, getTimeFactory)
         {
@@ -72,7 +75,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <exception cref="NotImplementedException"></exception>
         protected override void DeleteJob(string name)
         {
-            _removeMessage.Remove(new MessageQueueId(_getJobId.Handle(new GetJobIdQuery(name))), RemoveMessageReason.Error);
+            _removeMessage.Remove(new MessageQueueId<long>(_getJobId.Handle(new GetJobIdQuery<long>(name))), RemoveMessageReason.Error);
         }
 
         /// <summary>

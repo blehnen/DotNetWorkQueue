@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Polly;
 

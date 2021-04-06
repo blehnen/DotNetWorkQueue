@@ -24,6 +24,7 @@ using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Message;
 using DotNetWorkQueue.Validation;
 
@@ -36,8 +37,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     public class RemoveMessage: IRemoveMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly ICommandHandler<DeleteStatusTableStatusCommand> _deleteStatusCommandHandler;
-        private readonly ICommandHandlerWithOutput<DeleteMessageCommand, long> _deleteMessageCommand;
+        private readonly ICommandHandler<DeleteStatusTableStatusCommand<long>> _deleteStatusCommandHandler;
+        private readonly ICommandHandlerWithOutput<DeleteMessageCommand<long>, long> _deleteMessageCommand;
         private readonly ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> _deleteTransactionalMessageCommand;
         private readonly IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> _headers;
         private readonly ILogger _log;
@@ -52,8 +53,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="deleteTransactionalMessageCommand">The delete transactional message command.</param>
         /// <param name="log">The log.</param>
         public RemoveMessage(QueueConsumerConfiguration configuration,
-            ICommandHandler<DeleteStatusTableStatusCommand> deleteStatusCommandHandler,
-            ICommandHandlerWithOutput<DeleteMessageCommand, long> deleteMessageCommand,
+            ICommandHandler<DeleteStatusTableStatusCommand<long>> deleteStatusCommandHandler,
+            ICommandHandlerWithOutput<DeleteMessageCommand<long>, long> deleteMessageCommand,
             IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> headers,
             ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand,
             ILogger log)
@@ -81,7 +82,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             if (id == null || !id.HasValue) return RemoveMessageStatus.NotFound;
 
-            var count = _deleteMessageCommand.Handle(new DeleteMessageCommand((long)id.Id.Value));
+            var count = _deleteMessageCommand.Handle(new DeleteMessageCommand<long>((long)id.Id.Value));
             return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
         }
 
@@ -96,7 +97,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             //if transaction held
             if (connection.Connection == null || connection.Transaction == null)
             {
-                var counter = _deleteMessageCommand.Handle(new DeleteMessageCommand((long)context.MessageId.Id.Value));
+                var counter = _deleteMessageCommand.Handle(new DeleteMessageCommand<long>((long)context.MessageId.Id.Value));
                 return counter > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
             }
 
@@ -123,7 +124,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             if (_configuration.Options().EnableStatusTable)
             {
-                _deleteStatusCommandHandler.Handle(new DeleteStatusTableStatusCommand((long)context.MessageId.Id.Value));
+                _deleteStatusCommandHandler.Handle(new DeleteStatusTableStatusCommand<long>((long)context.MessageId.Id.Value));
             }
             return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
         }

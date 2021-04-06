@@ -21,12 +21,13 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class ResetHeartBeatCommandHandler : ICommandHandlerWithOutput<ResetHeartBeatCommand, List<ResetHeartBeatOutput>>
+    internal class ResetHeartBeatCommandHandler : ICommandHandlerWithOutput<ResetHeartBeatCommand<string>, List<ResetHeartBeatOutput>>
     {
         private readonly IHeartBeatConfiguration _configuration;
         private readonly ResetHeartbeatLua _resetHeartbeatLua;
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         }
 
         /// <inheritdoc />
-        public List<ResetHeartBeatOutput> Handle(ResetHeartBeatCommand command)
+        public List<ResetHeartBeatOutput> Handle(ResetHeartBeatCommand<string> command)
         {
             return _resetHeartbeatLua.Execute(_unixTimeFactory.Create().GetSubtractDifferenceMilliseconds(_configuration.Time), _options.ResetHeartBeatBatchLimit);
         }

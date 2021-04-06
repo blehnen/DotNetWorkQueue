@@ -17,7 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Diagnostics.CodeAnalysis;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
@@ -26,17 +27,17 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// <summary>
     /// Determines if an error record for a message already exists with the specific exception type
     /// </summary>
-    internal class GetErrorRecordExistsQueryHandler : IQueryHandler<GetErrorRecordExistsQuery, bool>
+    internal class GetErrorRecordExistsQueryHandler<T> : IQueryHandler<GetErrorRecordExistsQuery<T>, bool>
     {
-        private readonly IPrepareQueryHandler<GetErrorRecordExistsQuery, bool> _prepareQuery;
+        private readonly IPrepareQueryHandler<GetErrorRecordExistsQuery<T>, bool> _prepareQuery;
         private readonly IDbConnectionFactory _connectionFactory;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetErrorRecordExistsQueryHandler" /> class.
+        /// Initializes a new instance of the <see cref="GetErrorRecordExistsQueryHandler{T}" /> class.
         /// </summary>
         /// <param name="prepareQuery">The prepare query.</param>
         /// <param name="connectionFactory">The connection factory.</param>
-        public GetErrorRecordExistsQueryHandler(IPrepareQueryHandler<GetErrorRecordExistsQuery, bool> prepareQuery,
+        public GetErrorRecordExistsQueryHandler(IPrepareQueryHandler<GetErrorRecordExistsQuery<T>, bool> prepareQuery,
             IDbConnectionFactory connectionFactory)
         {
             Guard.NotNull(() => prepareQuery, prepareQuery);
@@ -48,7 +49,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         }
         /// <inheritdoc />
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        public bool Handle(GetErrorRecordExistsQuery query)
+        public bool Handle(GetErrorRecordExistsQuery<T> query)
         {
             using (var connection = _connectionFactory.Create())
             {

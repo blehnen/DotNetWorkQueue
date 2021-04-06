@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Shared.Tests.Basic

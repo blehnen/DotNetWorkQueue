@@ -22,6 +22,7 @@ using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
@@ -35,7 +36,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private readonly QueueConsumerConfiguration _configuration;
         private readonly IQueryHandler<GetMetaDataQuery, RedisMetaData> _queryGetMetaData;
         private readonly ICommandHandler<SaveMetaDataCommand> _saveMetaData;
-        private readonly ICommandHandler<MoveRecordToErrorQueueCommand> _commandMoveRecord;
+        private readonly ICommandHandler<MoveRecordToErrorQueueCommand<string>> _commandMoveRecord;
         private readonly RedisHeaders _headers;
 
         #region Constructor
@@ -52,7 +53,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             QueueConsumerConfiguration configuration,
             IQueryHandler<GetMetaDataQuery, RedisMetaData> queryGetMetaData,
             ICommandHandler<SaveMetaDataCommand> saveMetaData,
-            ICommandHandler<MoveRecordToErrorQueueCommand> commandMoveRecord,
+            ICommandHandler<MoveRecordToErrorQueueCommand<string>> commandMoveRecord,
             ILogger log,
             RedisHeaders headers)
         {
@@ -118,7 +119,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (!bSendErrorQueue) return ReceiveMessagesErrorResult.Retry;
 
             _commandMoveRecord.Handle(
-                new MoveRecordToErrorQueueCommand((RedisQueueId)context.MessageId));
+                new MoveRecordToErrorQueueCommand<string>(exception, context.MessageId.Id.Value.ToString(), context));
             //we are done doing any processing - remove the messageID to block other actions
             context.SetMessageAndHeaders(null, context.Headers);
             _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue", exception);

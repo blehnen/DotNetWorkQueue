@@ -21,6 +21,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 
@@ -32,8 +33,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
     internal class RollbackMessage: ITransportRollbackMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly ICommandHandler<RollbackMessageCommand> _rollbackCommand;
-        private readonly ICommandHandler<SetStatusTableStatusCommand> _setStatusCommandHandler;
+        private readonly ICommandHandler<RollbackMessageCommand<long>> _rollbackCommand;
+        private readonly ICommandHandler<SetStatusTableStatusCommand<long>> _setStatusCommandHandler;
         private readonly IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> _headers;
         private readonly IIncreaseQueueDelay _increaseQueueDelay;
 
@@ -46,8 +47,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         /// <param name="headers">The headers.</param>
         /// <param name="increaseQueueDelay">The increase queue delay.</param>
         public RollbackMessage(QueueConsumerConfiguration configuration,
-            ICommandHandler<RollbackMessageCommand> rollbackCommand,
-            ICommandHandler<SetStatusTableStatusCommand> setStatusCommandHandler,
+            ICommandHandler<RollbackMessageCommand<long>> rollbackCommand,
+            ICommandHandler<SetStatusTableStatusCommand<long>> setStatusCommandHandler,
             IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> headers,
             IIncreaseQueueDelay increaseQueueDelay)
         {
@@ -91,7 +92,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
                 }
 
                 var increaseDelay = context.Get(_increaseQueueDelay.QueueDelay).IncreaseDelay;
-                _rollbackCommand.Handle(new RollbackMessageCommand(lastHeartBeat,
+                _rollbackCommand.Handle(new RollbackMessageCommand<long>(lastHeartBeat,
                     (long)context.MessageId.Id.Value, increaseDelay));
             }
         }
@@ -110,7 +111,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             {
                 if (context.MessageId != null && context.MessageId.HasValue)
                 {
-                    _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand((long)context.MessageId.Id.Value,
+                    _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand<long>((long)context.MessageId.Id.Value,
                         QueueStatuses.Waiting));
                 }
             }

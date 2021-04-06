@@ -16,10 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
@@ -29,13 +33,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// </summary>
     internal class RedisQueueResetHeartBeat: IResetHeartBeat
     {
-        private readonly ICommandHandlerWithOutput<ResetHeartBeatCommand, List<ResetHeartBeatOutput>> _commandReset;
+        private readonly ICommandHandlerWithOutput<ResetHeartBeatCommand<string>, List<ResetHeartBeatOutput>> _commandReset;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisQueueResetHeartBeat"/> class.
         /// </summary>
         /// <param name="commandReset">The command reset.</param>
-        public RedisQueueResetHeartBeat(ICommandHandlerWithOutput<ResetHeartBeatCommand, List<ResetHeartBeatOutput>> commandReset)
+        public RedisQueueResetHeartBeat(ICommandHandlerWithOutput<ResetHeartBeatCommand<string>, List<ResetHeartBeatOutput>> commandReset)
         {
             Guard.NotNull(() => commandReset, commandReset);
             _commandReset = commandReset;
@@ -47,14 +51,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="cancelToken">The cancel token.</param>
         public List<ResetHeartBeatOutput> Reset(CancellationToken cancelToken)
         {
-            var counter = _commandReset.Handle(new ResetHeartBeatCommand());
+            var counter = _commandReset.Handle(new ResetHeartBeatCommand<string>(new MessageToReset<string>(string.Empty, DateTime.MinValue, null)));
             var total = new List<ResetHeartBeatOutput>(counter);
             while (counter.Count > 0)
             {
                 if (cancelToken.IsCancellationRequested)
                     return total;
 
-                counter = _commandReset.Handle(new ResetHeartBeatCommand());
+                counter = _commandReset.Handle(new ResetHeartBeatCommand<string>(new MessageToReset<string>(string.Empty, DateTime.MinValue, null)));
                 total.AddRange(counter);
             }
             return total;
