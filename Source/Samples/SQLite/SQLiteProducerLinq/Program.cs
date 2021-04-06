@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Transport.SQLite;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using DotNetWorkQueue.Transport.SQLite.Shared;
-using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using SampleShared;
 using Serilog;
 

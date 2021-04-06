@@ -33,8 +33,7 @@ using DotNetWorkQueue;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
-using DotNetWorkQueue.Transport.SQLite.Shared.Schema;
+using DotNetWorkQueue.Transport.SQLite.Schema;
 
 namespace SQLiteProducer.Commands
 {

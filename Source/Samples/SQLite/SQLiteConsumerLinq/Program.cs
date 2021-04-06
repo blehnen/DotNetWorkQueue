@@ -5,7 +5,6 @@ using System.IO;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using SampleShared;
 using Serilog;
 

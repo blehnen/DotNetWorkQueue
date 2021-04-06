@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using System.Configuration;
 using DotNetWorkQueue.Configuration;
 

@@ -51,9 +51,6 @@
     <Reference Include="DotNetWorkQueue.Transport.SQLite">
       <HintPath>..\..\..\..\DotNetWorkQueue.Transport.SQLite\bin\Debug\net472\DotNetWorkQueue.Transport.SQLite.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetWorkQueue.Transport.SQLite.Shared">
-      <HintPath>..\..\..\..\DotNetWorkQueue.Transport.SQLite.Shared\bin\Debug\net472\DotNetWorkQueue.Transport.SQLite.Shared.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
