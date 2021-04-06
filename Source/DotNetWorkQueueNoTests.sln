@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite", "DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj", "{AFF668C7-E803-44C6-9FFE-27069A19F9A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SQLite.Shared", "DotNetWorkQueue.Transport.SQLite.Shared\DotNetWorkQueue.Transport.SQLite.Shared.csproj", "{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.AppMetrics", "DotNetWorkQueue.AppMetrics\DotNetWorkQueue.AppMetrics.csproj", "{C81936FA-D05C-4BFF-8DBF-4D1A4E1CD9F7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Shared", "DotNetWorkQueue.Transport.Shared\DotNetWorkQueue.Transport.Shared.csproj", "{35B020AC-19D5-43C2-A659-26D0F3B0835D}"
@@ -51,10 +49,6 @@ Global
 		{AFF668C7-E803-44C6-9FFE-27069A19F9A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFF668C7-E803-44C6-9FFE-27069A19F9A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFF668C7-E803-44C6-9FFE-27069A19F9A9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2328E5ED-8DBA-4795-822E-FE43AD7E35E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C81936FA-D05C-4BFF-8DBF-4D1A4E1CD9F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C81936FA-D05C-4BFF-8DBF-4D1A4E1CD9F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C81936FA-D05C-4BFF-8DBF-4D1A4E1CD9F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
