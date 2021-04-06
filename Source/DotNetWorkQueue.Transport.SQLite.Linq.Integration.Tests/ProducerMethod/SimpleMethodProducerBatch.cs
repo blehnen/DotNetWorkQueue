@@ -3,8 +3,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
-using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
-using DotNetWorkQueue.Transport.SQLite.Shared.Schema;
+using DotNetWorkQueue.Transport.SQLite.Schema;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod

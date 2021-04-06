@@ -4,7 +4,6 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using DotNetWorkQueue.Transport.SQLite.Shared;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests

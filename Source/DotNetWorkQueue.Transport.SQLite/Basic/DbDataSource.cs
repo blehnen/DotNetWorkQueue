@@ -17,14 +17,14 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Shared;
+using DotNetWorkQueue.Transport.SQLite;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     /// <summary>
     /// Returns the 'source' value from a connection string
     /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.SQLite.Shared.IDbDataSource" />
+    /// <seealso cref="DotNetWorkQueue.Transport.SQLite.IDbDataSource" />
     public class DbDataSource : IDbDataSource
     {
         /// <inheritdoc />

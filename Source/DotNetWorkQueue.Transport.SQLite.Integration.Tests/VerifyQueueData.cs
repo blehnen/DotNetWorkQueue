@@ -6,8 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using DotNetWorkQueue.Transport.SQLite.Shared;
-using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
 using Xunit;
 
 #endregion

@@ -19,7 +19,7 @@
 using System.Data;
 using System.Data.SQLite;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Transport.SQLite.Shared;
+using DotNetWorkQueue.Transport.SQLite;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {

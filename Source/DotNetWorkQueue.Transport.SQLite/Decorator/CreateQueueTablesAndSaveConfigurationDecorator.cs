@@ -22,8 +22,8 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
-using DotNetWorkQueue.Transport.SQLite.Shared;
-using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
+using DotNetWorkQueue.Transport.SQLite;
+using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator

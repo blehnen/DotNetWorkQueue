@@ -18,14 +18,14 @@
 // ---------------------------------------------------------------------
 using System.Data;
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Shared;
+using DotNetWorkQueue.Transport.SQLite;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     /// <summary>
     /// Creates new db objects
     /// </summary>
-    /// <seealso cref="DotNetWorkQueue.Transport.SQLite.Shared.IDbFactory" />
+    /// <seealso cref="DotNetWorkQueue.Transport.SQLite.IDbFactory" />
     public class DbFactory: IDbFactory
     {
         private readonly IContainer _container;

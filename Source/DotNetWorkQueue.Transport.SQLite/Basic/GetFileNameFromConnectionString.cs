@@ -18,8 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Shared;
-using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
+using DotNetWorkQueue.Transport.SQLite;
+using DotNetWorkQueue.Transport.SQLite.Basic;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {

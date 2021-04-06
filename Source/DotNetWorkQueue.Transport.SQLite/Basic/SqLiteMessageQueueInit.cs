@@ -26,8 +26,8 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
-using DotNetWorkQueue.Transport.SQLite.Shared;
-using DotNetWorkQueue.Transport.SQLite.Shared.Basic;
+using DotNetWorkQueue.Transport.SQLite;
+using DotNetWorkQueue.Transport.SQLite.Basic;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
