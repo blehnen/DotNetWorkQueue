@@ -156,13 +156,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
         private void RegisterCommandsExplicit(IContainer container)
         {
-            //Type implementation =
-            //    typeof(IQueryHandler<,>).MakeGenericType(
-            //        typeof(IQuery<TQueueId>),
-            //        typeof(IQueryHandler<,>).GetGenericArguments()[1]);
-
-            //container.Register(typeof(IQueryHandler<,>), new List<Type>(){ implementation}, LifeStyles.Singleton);
-
             container
                 .Register<IQueryHandler<GetMessageErrorsQuery<TQueueId>, Dictionary<string, int>>,
                     GetMessageErrorsQueryHandler<TQueueId>>(LifeStyles.Singleton);

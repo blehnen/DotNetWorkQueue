@@ -319,7 +319,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     {
                         queue.Configuration.Worker.WorkerCount = 1;
                         queue.Start();
-                        Thread.Sleep(7500);
+                        Thread.Sleep(9500);
                     }
                 }
             }

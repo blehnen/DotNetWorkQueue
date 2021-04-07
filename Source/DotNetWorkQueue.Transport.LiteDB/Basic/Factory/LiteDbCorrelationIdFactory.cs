@@ -1,6 +1,4 @@
-﻿extensions: designer.cs generated.cs
-extensions: .cs
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2021 Brian Lehnen
 //
@@ -18,3 +16,23 @@ extensions: .cs
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
+using DotNetWorkQueue.Transport.Memory.Basic;
+
+namespace DotNetWorkQueue.Transport.LiteDb.Basic.Factory
+{
+    /// <summary>
+    /// Creates a new correlation id
+    /// </summary>
+    internal class LiteDbCorrelationIdFactory: ICorrelationIdFactory
+    {
+        /// <summary>
+        /// Creates a new instance of <see cref="T:DotNetWorkQueue.ICorrelationId" />
+        /// </summary>
+        /// <returns></returns>
+        public ICorrelationId Create()
+        {
+            return new MessageCorrelationId(Guid.NewGuid());
+        }
+    }
+}

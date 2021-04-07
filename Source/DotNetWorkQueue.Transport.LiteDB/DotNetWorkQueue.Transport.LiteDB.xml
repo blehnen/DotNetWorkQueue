@@ -1,0 +1,1966 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DotNetWorkQueue.Transport.LiteDb</name>
+    </assembly>
+    <members>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateJobTablesCommandHandler">
+            <summary>
+            Creates tables for storing job info
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateJobTablesCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateJobTablesCommandHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="optionsFactory">The options factory.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateJobTablesCommandHandler.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand{DotNetWorkQueue.Transport.LiteDb.Basic.ITable})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler">
+            <summary>
+            Creates a queue and saves the configuration
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IInternalSerializer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="optionsFactory">The options factory.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+            <param name="serializer">The serializer.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand{DotNetWorkQueue.Transport.LiteDb.Basic.ITable})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteMessageCommandHandler">
+            <summary>
+            Deletes a message from a queue
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteMessageCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteMessageCommandHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteMessageCommandHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Command.DeleteMessageCommand{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteQueueTablesCommandHandler">
+            <summary>
+            Deletes the queue tables from the database
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteQueueTablesCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteQueueTablesCommandHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteQueueTablesCommandHandler.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Command.DeleteQueueTablesCommand)">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.MoveRecordToErrorQueueCommandHandler">
+            <summary>
+            Moves a record from the meta table to the error table
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.MoveRecordToErrorQueueCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.MoveRecordToErrorQueueCommandHandler"/> class.
+            </summary>
+            <param name="optionsFactory">The options factory.</param>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.MoveRecordToErrorQueueCommandHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Command.MoveRecordToErrorQueueCommand{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.ResetHeartBeatCommandHandler">
+            <summary>
+            Resets the status for a specific record
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.ResetHeartBeatCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IConnectionInformation)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.ResetHeartBeatCommandHandler"/> class.
+            </summary>
+            <param name="tableNameHelper">The table name helper.</param>
+            <param name="connectionInformation">The connection information.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.ResetHeartBeatCommandHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Command.ResetHeartBeatCommand{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.RollbackMessageCommandHandler">
+            <summary>
+            Marks a message as no longer being processed; i.e. waiting to be processed.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.RollbackMessageCommandHandler.#ctor(DotNetWorkQueue.IGetTimeFactory,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.RollbackMessageCommandHandler" /> class.
+            </summary>
+            <param name="getUtcDateQuery">The get UTC date query.</param>
+            <param name="options">The options.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="databaseExists">The database exists.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.RollbackMessageCommandHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Command.RollbackMessageCommand{System.Int32})">
+            <summary>
+            Handles the specified rollback command.
+            </summary>
+            <param name="rollBackCommand">The rollBackCommand.</param>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendHeartBeatCommandHandler">
+            <inheritdoc />
+            <summary>
+            Sends a heart beat for a queue record
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendHeartBeatCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendHeartBeatCommandHandler" /> class.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendHeartBeatCommandHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Command.SendHeartBeatCommand{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandler">
+            <summary>
+            Sends a message to the queue
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.ICompositeSerialization,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.IHeaders,DotNetWorkQueue.Configuration.TransportConfigurationSend,DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand},DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery,DotNetWorkQueue.QueueStatuses},DotNetWorkQueue.IJobSchedulerMetaData,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+            <param name="serializer">The serializer.</param>
+            <param name="optionsFactory">The options factory.</param>
+            <param name="headers">The headers.</param>
+            <param name="configurationSend">The configuration send.</param>
+            <param name="sendJobStatus">The send job status.</param>
+            <param name="jobExistsHandler">The job exists handler.</param>
+            <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
+            <param name="databaseExists">The database exists.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand)">
+            <summary>
+            Handles the specified command.
+            </summary>
+            <param name="commandSend">The command.</param>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandlerAsync">
+            <summary>
+            Sends a message to the queue
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandlerAsync.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.ICompositeSerialization,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.IHeaders,DotNetWorkQueue.Configuration.TransportConfigurationSend,DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand},DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery,DotNetWorkQueue.QueueStatuses},DotNetWorkQueue.IJobSchedulerMetaData,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandlerAsync"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+            <param name="serializer">The serializer.</param>
+            <param name="optionsFactory">The options factory.</param>
+            <param name="headers">The headers.</param>
+            <param name="configurationSend">The configuration send.</param>
+            <param name="sendJobStatus">The send job status.</param>
+            <param name="jobExistsHandler">The job exists handler.</param>
+            <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
+            <param name="databaseExists">The database exists.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandlerAsync.HandleAsync(DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand)">
+            <summary>
+            Handles the specified command.
+            </summary>
+            <param name="commandSend">The command.</param>
+            <returns></returns>
+            <exception cref="T:DotNetWorkQueue.Exceptions.DotNetWorkQueueException">Failed to insert record - the ID of the new record returned by SQLite was 0</exception>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetErrorCountCommandHandler">
+            <inheritdoc />
+            <summary>
+            Updates the error count for a record
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetErrorCountCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetErrorCountCommandHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetErrorCountCommandHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Command.SetErrorCountCommand{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetJobLastKnownEventCommandHandler">
+            <summary>
+            Sets the last known execution time of a scheduled job
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetJobLastKnownEventCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetJobLastKnownEventCommandHandler"/> class.
+            </summary>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetJobLastKnownEventCommandHandler.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand)">
+            <summary>
+            Handles the specified command.
+            </summary>
+            <param name="command">The command.</param>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1">
+            <summary>
+            Creates tables for storing job info
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1.#ctor(System.Collections.Generic.List{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1"/> class.
+            </summary>
+            <param name="tables">The tables.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1.Tables">
+            <summary>
+            Gets the tables.
+            </summary>
+            <value>
+            The tables.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1">
+            <summary>
+            A command for creating the queue and saving the configuration
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1.#ctor(System.Collections.Generic.List{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1"/> class.
+            </summary>
+            <param name="tables">The tables.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1.Tables">
+            <summary>
+            Gets the tables.
+            </summary>
+            <value>
+            The tables.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.DeleteQueueTablesCommand">
+            <summary>
+            Deletes the tables for a queue
+            </summary>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand">
+            <summary>
+            Sets the last time a job was set to run in the jobs table
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.#ctor(System.String,System.DateTimeOffset,System.DateTimeOffset,LiteDB.LiteDatabase)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand"/> class.
+            </summary>
+            <param name="jobName">Name of the job.</param>
+            <param name="jobEventTime">The job event time.</param>
+            <param name="jobScheduledTime">The job scheduled time.</param>
+            <param name="db">The database.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.JobName">
+            <summary>
+            Gets the name of the job.
+            </summary>
+            <value>
+            The name of the job.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.JobEventTime">
+            <summary>
+            Gets the time.
+            </summary>
+            <value>
+            The time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.JobScheduledTime">
+            <summary>
+            Gets the job scheduled time.
+            </summary>
+            <value>
+            The job scheduled time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.Database">
+            <summary>
+            Gets the database.
+            </summary>
+            <value>
+            The database.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo">
+            <summary>
+            Contains location information
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo"/> class.
+            </summary>
+            <param name="fileName">Name of the file.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo.FileName">
+            <summary>
+            Gets the name of the file.
+            </summary>
+            <value>
+            The name of the file.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo.IsValid">
+            <summary>
+            Returns true if the filename is valid or this is an in-memory database
+            </summary>
+            <value>
+              <c>true</c> if this instance is valid; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists">
+            <summary>
+            Determines if a specified database exists
+            </summary>
+            <remarks>The database could be on the file system or in memory</remarks>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists.#ctor(DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists"/> class.
+            </summary>
+            <param name="getFileNameFromConnection">The get file name from connection.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists.Exists(System.String)">
+            <summary>
+            Returns true if the specified database exists
+            </summary>
+            <param name="connectionString"></param>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbCorrelationIdFactory">
+            <summary>
+            Creates a new correlation id
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbCorrelationIdFactory.Create">
+            <summary>
+            Creates a new instance of <see cref="T:DotNetWorkQueue.ICorrelationId" />
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbMessageQueueTransportOptionsFactory">
+            <summary>
+            Creates new instance of the options classes
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbMessageQueueTransportOptionsFactory.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetQueueOptionsQuery{DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions},DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbMessageQueueTransportOptionsFactory"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="queryOptions">The query options.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbMessageQueueTransportOptionsFactory.Create">
+            <summary>
+            Creates new instance.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbReceiveMessagesFactory">
+            <summary>
+            Creates a new received message
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.IReceiveMessagesFactory" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbReceiveMessagesFactory.#ctor(DotNetWorkQueue.IContainerFactory)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbReceiveMessagesFactory" /> class.
+            </summary>
+            <param name="container">The container.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbReceiveMessagesFactory.Create">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable">
+            <summary>
+            Defines our collections that hold the data for the queue
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.ITable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Creates this table in the database specified by the connection
+            </summary>
+            <param name="connection">The connection.</param>
+            <param name="options">The options.</param>
+            <param name="helper">The helper.</param>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbGetFileNameFromConnectionString">
+            <summary>
+            Determines what the file name is from the connection string
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbGetFirstMessageDeliveryTime.#ctor(DotNetWorkQueue.IGetTimeFactory)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbGetFirstMessageDeliveryTime"/> class.
+            </summary>
+            <param name="getTime">The get time.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbGetFirstMessageDeliveryTime.GetTime(DotNetWorkQueue.IMessage,DotNetWorkQueue.IAdditionalMessageData)">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbGetPreviousMessageErrors.#ctor(DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.Shared.Basic.Query.GetMessageErrorsQuery{System.Int32},System.Collections.Generic.Dictionary{System.String,System.Int32}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbGetPreviousMessageErrors"/> class.
+            </summary>
+            <param name="getErrorMessageQueryHandler">The get error message query handler.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbGetPreviousMessageErrors.Get(DotNetWorkQueue.IMessageId)">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation">
+            <summary>
+            Creates a job queue in a SQL server DB
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.IJobQueueCreation" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation"/> class.
+            </summary>
+            <param name="queueCreation">The queue creation.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation.IsDisposed">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation.Scope">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation.Options">
+            <summary>
+            Gets or sets the options for the queue transport.
+            </summary>
+            <value>
+            The options.
+            </value>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation.CreateJobSchedulerQueue(System.Action{DotNetWorkQueue.IContainer},DotNetWorkQueue.Configuration.QueueConnection,System.Action{DotNetWorkQueue.IContainer},System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation.RemoveQueue">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation.Dispose(System.Boolean)">
+            <summary>
+            Releases unmanaged and - optionally - managed resources.
+            </summary>
+            <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobQueueCreation.Dispose">
+            <summary>
+            Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+            </summary>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobSchedulerLastKnownEvent">
+            <summary>
+            Gets the last known event time for a job
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.IJobSchedulerLastKnownEvent" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobSchedulerLastKnownEvent.#ctor(DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.Shared.Basic.Query.GetJobLastKnownEventQuery,System.DateTimeOffset})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobSchedulerLastKnownEvent" /> class.
+            </summary>
+            <param name="queryGetJobTime">The query get job time.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobSchedulerLastKnownEvent.Get(System.String)">
+            <summary>
+            Gets the last known event time for the specified job.
+            </summary>
+            <param name="jobName">Name of the job.</param>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobSchema">
+            <summary>
+            Creates a table that stores data about scheduled jobs
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobSchema.GetSchema">
+            <summary>
+            Returns our schema as a list of tables.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobSchema.CreateMainTable">
+            <summary>
+            Creates the main table schema
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobTableCreation">
+            <summary>
+            Creates the job table
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.IJobTableCreation" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobTableCreation.#ctor(DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.Transport.LiteDb.IJobSchema,DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand{DotNetWorkQueue.Transport.LiteDb.Basic.ITable},DotNetWorkQueue.QueueCreationResult},DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.Memory.Basic.JobTableCreation" /> class.
+            </summary>
+            <param name="queryTableExists">The query table exists.</param>
+            <param name="createSchema">The create schema.</param>
+            <param name="createCommand">The create command.</param>
+            <param name="connectionInfo">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobTableCreation.JobTableExists">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobTableCreation.CreateJobTable">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobTableCreation.CreateTable">
+            <summary>
+            Creates the queue.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation">
+            <summary>
+            A class that will create the queue tables if needed. No support for updating existing tables is provided.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema,DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand{DotNetWorkQueue.Transport.LiteDb.Basic.ITable},DotNetWorkQueue.QueueCreationResult},DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.LiteDb.Basic.Command.DeleteQueueTablesCommand,DotNetWorkQueue.QueueRemoveResult},DotNetWorkQueue.ICreationScope)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation" /> class.
+            </summary>
+            <param name="connectionInfo">The connection information.</param>
+            <param name="queryTableExists">The query table exists.</param>
+            <param name="options">The options.</param>
+            <param name="createSchema">The create schema.</param>
+            <param name="createCommand">The create command.</param>
+            <param name="deleteCommand">The delete command.</param>
+            <param name="creationScope">The creation scope.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.Options">
+            <summary>
+            Gets or sets the options for the queue transport.
+            </summary>
+            <value>
+            The options.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.ConnectionInfo">
+            <summary>
+            Gets the connection information for the queue.
+            </summary>
+            <value>
+            The connection information.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.Scope">
+            <summary>
+            Gets a disposable creation scope
+            </summary>
+            <value>
+            The scope.
+            </value>
+            <remarks>This is used to prevent queues from going out of scope before you have finished working with them. Generally
+            speaking this only matters for queues that live in-memory. However, a valid object is always returned.</remarks>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.CreateQueue">
+            <summary>
+            Creates the queue if needed.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.RemoveQueue">
+            <summary>
+            Attempts to delete an existing queue
+            </summary>
+            <remarks>Any data in the queue will be lost. Will cause exceptions in any producer/consumer that is connected</remarks>
+            <returns></returns>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.QueueExists">
+             <summary>
+             Returns true if the queue exists in the transport
+             </summary>
+             <value>
+               <c>true</c> if [queue exists]; otherwise, <c>false</c>.
+             </value>
+            
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.ThrowIfDisposed(System.String)">
+            <summary>
+            Throws an exception if this instance has been disposed.
+            </summary>
+            <param name="name">The name.</param>
+            <exception cref="T:System.ObjectDisposedException"></exception>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.Dispose">
+            <summary>
+            Releases unmanaged and - optionally - managed resources.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.Dispose(System.Boolean)">
+            <summary>
+            Releases unmanaged and - optionally - managed resources.
+            </summary>
+            <param name="disposing">
+              <c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.IsDisposed">
+            <summary>
+            Gets a value indicating whether this instance is disposed.
+            </summary>
+            <value>
+            <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.CreateQueueInternal">
+            <summary>
+            Creates the queue.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.RemoveQueueInternal">
+            <summary>
+            Removes the queue if it exists
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueInit">
+            <summary>
+            Registers the implementations for the SQL server queue into the IoC container.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueInit.RegisterImplementations(DotNetWorkQueue.IContainer,DotNetWorkQueue.IoC.RegistrationTypes,DotNetWorkQueue.Configuration.QueueConnection)">
+            <summary>
+            Allows a transport to register its dependencies in the IoC container.
+            </summary>
+            <param name="container">The container.</param>
+            <param name="registrationType">Type of the registration.</param>
+            <param name="queueConnection">Queue and connection information.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueInit.SetDefaultsIfNeeded(DotNetWorkQueue.IContainer,DotNetWorkQueue.IoC.RegistrationTypes,DotNetWorkQueue.Configuration.ConnectionTypes)">
+            <summary>
+            Allows the transport to set default configuration settings or other values
+            </summary>
+            <param name="container">The container.</param>
+            <param name="registrationType">Type of the registration.</param>
+            <param name="connectionType">Type of the connection.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueInit.ExceptionDelay">
+            <summary>
+            Gets the default fatal exception delay time spans
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueInit.DefaultQueueDelay">
+            <summary>
+            Gets the default queue delay time spans
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueInit.SetupHeartBeat(DotNetWorkQueue.IContainer)">
+            <summary>
+            Setup the heart beat.
+            </summary>
+            <param name="container">The container.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueInit.SetupMessageExpiration(DotNetWorkQueue.IContainer)">
+            <summary>
+            Setup the message expiration.
+            </summary>
+            <param name="container">The container.</param>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema">
+            <summary>
+            Defines the schema for a queue
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema.#ctor(DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema"/> class.
+            </summary>
+            <param name="options">The options.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema.GetSchema">
+            <summary>
+            Returns our schema as a list of the collections that use in LiteDb
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema.CreateMainTable">
+            <summary>
+            Creates the main table schema
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema.CreateConfigurationTable">
+            <summary>
+            Creates the configuration table schema.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema.CreateMetaDataTable">
+            <summary>
+            Creates the meta data table schema.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema.CreateErrorTrackingTable">
+            <summary>
+            Creates the error tracking table schema.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema.CreateErrorTable">
+            <summary>
+            Creates the error table schema. This is a copy of the meta table, but with an exception column added. 
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions">
+            <summary>
+            Transport options. Generally speaking, this controls the feature set of the transport.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions" /> class.
+            </summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.EnablePriority">
+            <summary>
+            Gets or sets a value indicating whether [enable priority].
+            </summary>
+            <value>
+              <c>true</c> if [enable priority]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.EnableStatus">
+            <summary>
+            Gets or sets a value indicating whether [enable status].
+            </summary>
+            <value>
+              <c>true</c> if [enable status]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.EnableHeartBeat">
+            <summary>
+            Gets or sets a value indicating whether [enable heart beat].
+            </summary>
+            <value>
+              <c>true</c> if [enable heart beat]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.EnableDelayedProcessing">
+            <summary>
+            Gets or sets a value indicating whether [enable delayed processing].
+            </summary>
+            <value>
+            <c>true</c> if [enable delayed processing]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.EnableStatusTable">
+            <summary>
+            Gets or sets a value indicating whether [enable status table].
+            </summary>
+            <value>
+              <c>true</c> if [enable status table]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.EnableRoute">
+            <summary>
+            Gets or sets a value indicating whether routing is enabled.
+            </summary>
+            <value>
+              <c>true</c> if [enable route]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.EnableMessageExpiration">
+            <summary>
+            Gets or sets a value indicating whether [enable message expiration].
+            </summary>
+            <value>
+            <c>true</c> if [enable message expiration]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.ValidConfiguration">
+            <summary>
+            Validates the configuration settings
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.IsReadOnly">
+            <summary>
+            Gets a value indicating whether this instance is read only.
+            </summary>
+            <value>
+            <c>true</c> if this instance is read only; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.FailIfReadOnly">
+            <summary>
+            Throws an exception if the readonly flag is true.
+            </summary>
+            <exception cref="T:System.Data.ReadOnlyException"></exception>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.SetReadOnly">
+            <summary>
+            Marks this instance as immutable
+            </summary>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.Validation">
+            <summary>
+            Configuration validation status
+            </summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.Validation.Valid">
+            <summary>
+            Gets or sets a value indicating whether the configuration is valid.
+            </summary>
+            <value>
+              <c>true</c> if valid; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.Validation.ErrorMessage">
+            <summary>
+            Gets or sets the error message.
+            </summary>
+            <value>
+            The error message.
+            </value>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.#ctor(DotNetWorkQueue.Configuration.QueueConsumerConfiguration,DotNetWorkQueue.IQueueCancelWork,DotNetWorkQueue.Transport.Shared.ITransportHandleMessage,DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage,DotNetWorkQueue.Logging.ILogger,DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages" /> class.
+            </summary>
+            <param name="configuration">The configuration.</param>
+            <param name="cancelWork">The cancel work.</param>
+            <param name="handleMessage">The handle message.</param>
+            <param name="receiveMessages">The receive messages.</param>
+            <param name="log">The log.</param>
+            <param name="getFileNameFromConnection">The get file name from connection.</param>
+            <param name="databaseExists">The database exists.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.ReceiveMessage(DotNetWorkQueue.IMessageContext)">
+            <summary>
+            Returns a message to process.
+            </summary>
+            <param name="context">The context.</param>
+            <returns>
+            A message to process or null if there are no messages to process
+            </returns>
+            <exception cref="T:DotNetWorkQueue.Exceptions.ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.ReceiveMessageAsync(DotNetWorkQueue.IMessageContext)">
+            <summary>
+            Returns a message to process.
+            </summary>
+            <param name="context">The message context.</param>
+            <returns>
+            A message to process or null if there are no messages to process
+            </returns>
+            <exception cref="T:DotNetWorkQueue.Exceptions.ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.IsBlockingOperation">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.ReceiveSharedLogic(DotNetWorkQueue.IMessageContext)">
+            <summary>
+            Performs pre-checks on context
+            </summary>
+            <param name="context">The context.</param>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.SetActionsOnContext(DotNetWorkQueue.IMessageContext)">
+            <summary>
+            Creates the connection object for the parent caller and stores it on the worker context.
+            </summary>
+            <param name="context">The context.</param>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.Context_Cleanup(System.Object,System.EventArgs)">
+            <summary>
+            Handles the Cleanup event of the context control.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.ContextOnRollback(System.Object,System.EventArgs)">
+            <summary>
+            On Rollback
+            </summary>
+            <param name="sender">The sender.</param>
+            <param name="eventArgs">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.ContextOnCommit(System.Object,System.EventArgs)">
+            <summary>
+            On Commit
+            </summary>
+            <param name="sender">The sender.</param>
+            <param name="eventArgs">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.ContextCleanup(DotNetWorkQueue.IMessageContext)">
+            <summary>
+            Clean up the message context when processing is done
+            </summary>
+            <param name="context">The context.</param>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbRollbackMessage">
+            <summary>
+            Rolls a message back to the pre-processing state
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.Transport.Shared.ITransportRollbackMessage" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbRollbackMessage.#ctor(DotNetWorkQueue.Configuration.QueueConsumerConfiguration,DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.Shared.Basic.Command.RollbackMessageCommand{System.Int32}},DotNetWorkQueue.IIncreaseQueueDelay)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbRollbackMessage"/> class.
+            </summary>
+            <param name="configuration">The configuration.</param>
+            <param name="rollbackCommand">The rollback command.</param>
+            <param name="headers">The headers.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbRollbackMessage.Rollback(DotNetWorkQueue.IMessageContext)">
+            <summary>
+            Rollbacks the specified message by setting the status
+            </summary>
+            <param name="context">The context.</param>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue">
+            <summary>
+            Sends a job to the queue
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.ASendJobToQueue" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.IProducerMethodQueue,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery,DotNetWorkQueue.QueueStatuses},DotNetWorkQueue.IRemoveMessage,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.Shared.Basic.Query.GetJobIdQuery{System.Int32},System.Int32},DotNetWorkQueue.Transport.Shared.Basic.CreateJobMetaData,DotNetWorkQueue.IGetTimeFactory)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="queue">The queue.</param>
+            <param name="doesJobExist">The does job exist.</param>
+            <param name="removeMessage">The remove message.</param>
+            <param name="getJobId">The get job identifier.</param>
+            <param name="createJobMetaData">The create job meta data.</param>
+            <param name="getTimeFactory">The get time factory.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue.DoesJobExist(System.String,System.DateTimeOffset)">
+            <summary>
+            Returns the status of the job based on name and scheduled time.
+            </summary>
+            <param name="name">The name.</param>
+            <param name="scheduledTime">The scheduled time.</param>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue.DeleteJob(System.String)">
+            <summary>
+            Deletes the job based on the job name.
+            </summary>
+            <param name="name">The name.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue.JobAlreadyExistsError(System.Exception)">
+            <summary>
+            Return true if the exception indicates that the job already exists.
+            </summary>
+            <param name="error">The error.</param>
+            <returns></returns>
+            <remarks>
+            Used to determine if we should return specific error messages
+            </remarks>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue.SetMetaDataForJob(System.String,System.DateTimeOffset,System.DateTimeOffset,System.String,DotNetWorkQueue.IAdditionalMessageData)">
+            <summary>
+            Sets the specified meta data on the messageData context
+            </summary>
+            <param name="jobName">Name of the job.</param>
+            <param name="scheduledTime">The scheduled time.</param>
+            <param name="eventTime">The event time.</param>
+            <param name="route">The route.</param>
+            <param name="messageData">The message data.</param>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.MessageExpiration">
+            <summary>
+            Returns the message expiration timespan, if any, for a new message
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.MessageExpiration.GetExpiration(DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand,System.Func{DotNetWorkQueue.IAdditionalMessageData,System.Nullable{System.TimeSpan}})">
+            <summary>
+            Gets the message expiration.
+            </summary>
+            <param name="commandSend">The command send.</param>
+            <param name="getExpirationFromMessageData">The get expiration from message data.</param>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage">
+            <summary>
+            Handles receiving a message
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage.#ctor(DotNetWorkQueue.Configuration.QueueConsumerConfiguration,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery,DotNetWorkQueue.IReceivedMessageInternal},DotNetWorkQueue.IQueueCancelWork,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync,System.Threading.Tasks.Task{DotNetWorkQueue.IReceivedMessageInternal}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage" /> class.
+            </summary>
+            <param name="configuration">The configuration.</param>
+            <param name="receiveMessage">The receive message.</param>
+            <param name="cancelToken">The cancel token.</param>
+            <param name="receiveMessageAsync">The receive message asynchronous.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage.GetMessage(DotNetWorkQueue.IMessageContext)">
+            <summary>
+            Returns the next message, if any.
+            </summary>
+            <param name="context">The context.</param>
+            <returns>
+            A message if one is found; null otherwise
+            </returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage.GetMessageAsync(DotNetWorkQueue.IMessageContext)">
+            <summary>
+            Returns the next message, if any.
+            </summary>
+            <param name="context">The context.</param>
+            <returns>
+            A message if one is found; null otherwise
+            </returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Message.RollbackMessage">
+            <summary>
+            Rolls back a message by either rolling back a transaction or updating a status
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Message.RollbackMessage.#ctor(DotNetWorkQueue.Configuration.QueueConsumerConfiguration,DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.Shared.Basic.Command.RollbackMessageCommand{System.Int32}},DotNetWorkQueue.IIncreaseQueueDelay)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Message.RollbackMessage"/> class.
+            </summary>
+            <param name="configuration">The configuration.</param>
+            <param name="rollbackCommand">The rollback command.</param>
+            <param name="headers">The headers.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Message.RollbackMessage.Rollback(DotNetWorkQueue.IMessageContext)">
+            <summary>
+            Rollbacks the specified message by setting the status
+            </summary>
+            <param name="context">The context.</param>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.DoesJobExistQueryHandler">
+            <summary>
+             Returns if a job is currently pending execution. 'NotQueued' means no
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.DoesJobExistQueryHandler.#ctor(DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.DoesJobExistQueryHandler" /> class.
+            </summary>
+            <param name="tableExists">The table exists.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.DoesJobExistQueryHandler.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery)">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindErrorRecordsToDeleteQueryHandler">
+            <summary>
+            Finds error messages that need to be deleted
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindErrorRecordsToDeleteQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IMessageErrorConfiguration)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindErrorRecordsToDeleteQueryHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+            <param name="configuration">The configuration.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindErrorRecordsToDeleteQueryHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Query.FindErrorMessagesToDeleteQuery{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindExpiredRecordsToDeleteQueryHandler">
+            <summary>
+            Finds error messages that need to be deleted
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindExpiredRecordsToDeleteQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindExpiredRecordsToDeleteQueryHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindExpiredRecordsToDeleteQueryHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Query.FindExpiredMessagesToDeleteQuery{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindRecordsToResetByHeartBeatQueryHandler">
+            <summary>
+            Finds records that are outside of the heartbeat window.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindRecordsToResetByHeartBeatQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IHeartBeatConfiguration,DotNetWorkQueue.ICompositeSerialization)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindRecordsToResetByHeartBeatQueryHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+            <param name="configuration">The configuration.</param>
+            <param name="serialization">The serialization.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindRecordsToResetByHeartBeatQueryHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Query.FindMessagesToResetByHeartBeatQuery{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetErrorRetryCountQueryHandler">
+            <summary>
+            Returns the current retry count for a message and a specific exception type
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetErrorRetryCountQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetErrorRetryCountQueryHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetErrorRetryCountQueryHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Query.GetErrorRetryCountQuery{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetHeaderQueryHandler">
+            <summary>
+            Obtains a header
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetHeaderQueryHandler.#ctor(DotNetWorkQueue.ICompositeSerialization,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetHeaderQueryHandler"/> class.
+            </summary>
+            <param name="serialization">The serialization.</param>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetHeaderQueryHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Query.GetHeaderQuery{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobIdQueryHandler">
+            <summary>
+            Gets the id for a queued job
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobIdQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobIdQueryHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobIdQueryHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Query.GetJobIdQuery{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobLastKnownEventQueryHandler">
+            <summary>
+            Gets the last known scheduled execution time for a job
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobLastKnownEventQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobLastKnownEventQueryHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobLastKnownEventQueryHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Query.GetJobLastKnownEventQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetMessageErrorsQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetMessageErrorsQueryHandler"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetMessageErrorsQueryHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Query.GetMessageErrorsQuery{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetQueueOptionsQueryHandler`1">
+            <summary>
+            Gets the queue options
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetQueueOptionsQueryHandler`1.#ctor(DotNetWorkQueue.IInternalSerializer,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetQueueOptionsQueryHandler`1" /> class.
+            </summary>
+            <param name="serializer">The serializer.</param>
+            <param name="tableExists">The table exists.</param>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetQueueOptionsQueryHandler`1.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetQueueOptionsQuery{`0})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetTableExistsQueryHandler">
+            <summary>
+            Determines if a specific table exists in the schema
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetTableExistsQueryHandler.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery)">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.MessageDeQueue">
+            <summary>
+            Assembles a message from the database tables
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.MessageDeQueue.#ctor(DotNetWorkQueue.IHeaders,DotNetWorkQueue.IMessageFactory,DotNetWorkQueue.IReceivedMessageFactory,DotNetWorkQueue.ICompositeSerialization)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.MessageDeQueue"/> class.
+            </summary>
+            <param name="headers">The headers.</param>
+            <param name="messageFactory">The message factory.</param>
+            <param name="receivedMessageFactory">The received message factory.</param>
+            <param name="serialization">The serialization.</param>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandler">
+            <summary>
+            Dequeues a message.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists,DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.MessageDeQueue)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandler"/> class.
+            </summary>
+            <param name="optionsFactory">The options factory.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="databaseExists">The database exists.</param>
+            <param name="messageDeQueue">The message de queue.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandler.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery)">
+            <summary>
+            Handles the specified query.
+            </summary>
+            <param name="query">The query.</param>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandlerAsync">
+            <summary>
+            Dequeues a message.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandlerAsync.#ctor(DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.MessageDeQueue,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandlerAsync"/> class.
+            </summary>
+            <param name="optionsFactory">The options factory.</param>
+            <param name="tableNameHelper">The table name helper.</param>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="messageDeQueue">The message de queue.</param>
+            <param name="databaseExists">The database exists.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandlerAsync.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync)">
+            <summary>
+            Handles the specified query.
+            </summary>
+            <param name="query">The query.</param>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery">
+            <summary>
+            Job exists params
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.#ctor(System.String,System.DateTimeOffset,LiteDB.LiteDatabase)">
+            <summary>Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery"/> class.</summary>
+            <param name="jobName">Name of the job.</param>
+            <param name="scheduledTime">The expected scheduled time.</param>
+            <param name="db">Database</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.JobName">
+            <summary>
+            Gets the name of the job.
+            </summary>
+            <value>
+            The name of the job.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.ScheduledTime">
+            <summary>
+            Gets the scheduled time.
+            </summary>
+            <value>
+            The scheduled time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.Database">
+            <summary>
+            Gets the database.
+            </summary>
+            <value>
+            The database.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetQueueOptionsQuery`1">
+            <summary>
+            Gets the queue options
+            </summary>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery">
+            <summary>
+            Options for determining if a table exists 
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery.#ctor(LiteDB.LiteDatabase,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery"/> class.
+            </summary>
+            <param name="db">The database.</param>
+            <param name="tableName">Name of the table.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery.Database">
+            <summary>
+            Gets the database.
+            </summary>
+            <value>
+            The database.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery.TableName">
+            <summary>
+            Gets the name of the table.
+            </summary>
+            <value>
+            The name of the table.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery">
+            <summary>
+            Dequeues a message from the queue.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery.#ctor(System.Collections.Generic.List{System.String})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery" /> class.
+            </summary>
+            <param name="routes">The routes.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery.Routes">
+            <summary>
+            Gets the route.
+            </summary>
+            <value>
+            The route.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync">
+            <summary>
+            Dequeues a message from the queue.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync.#ctor(System.Collections.Generic.List{System.String})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery" /> class.
+            </summary>
+            <param name="routes">The routes.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync.Routes">
+            <summary>
+            Gets the route.
+            </summary>
+            <value>
+            The route.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper">
+            <summary>
+            A helper class that outputs the name for a given queue collection, given the base name of the queue.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.#ctor(DotNetWorkQueue.IConnectionInformation)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper" /> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.Tables">
+            <summary>
+            Returns all table names.
+            </summary>
+            <value>
+            The tables.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.QueueName">
+            <summary>
+            Returns the name of the queue table. This table stores the message itself.
+            </summary>
+            <value>
+            The name of the queue.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.MetaDataName">
+            <summary>
+            Returns the name of the queue meta data table. This table stores the data used to find records to process.
+            </summary>
+            <value>
+            The name of the meta data.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.StatusName">
+            <summary>
+            Gets the name of the status table.
+            </summary>
+            <value>
+            The name of the status.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.ConfigurationName">
+            <summary>
+            Returns the name of the queue configuration table.
+            </summary>
+            <value>
+            The name of the configuration.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.ErrorTrackingName">
+            <summary>
+            Returns the name of the queue error tracking table.
+            </summary>
+            <value>
+            The name of the error tracking.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.MetaDataErrorsName">
+            <summary>
+            Returns the name of the queue table that stores records that have failed to process. This is a copy of the meta data table, along with a last exception.
+            </summary>
+            <value>
+            The name of the meta data errors.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.JobTableName">
+            <summary>
+            Gets the name of the job table.
+            </summary>
+            <value>
+            The name of the job table.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData">
+            <summary>
+            Extension methods for setting LiteDB specific properties on the additional message data classes
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData.SetDelay(DotNetWorkQueue.IAdditionalMessageData,System.Nullable{System.TimeSpan})">
+            <summary>
+            Sets the message delay.
+            </summary>
+            <param name="data">The data.</param>
+            <param name="delay">The delay.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData.GetDelay(DotNetWorkQueue.IAdditionalMessageData)">
+            <summary>
+            Gets the message delay.
+            </summary>
+            <param name="data">The data.</param>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData.SetExpiration(DotNetWorkQueue.IAdditionalMessageData,System.Nullable{System.TimeSpan})">
+            <summary>
+            Sets the message expiration.
+            </summary>
+            <param name="data">The data.</param>
+            <param name="expiration">The expiration.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData.GetExpiration(DotNetWorkQueue.IAdditionalMessageData)">
+            <summary>
+            Gets the message expiration.
+            </summary>
+            <param name="data">The data.</param>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData.SetPriority(DotNetWorkQueue.IAdditionalMessageData,System.Nullable{System.UInt16})">
+            <summary>
+            Sets the priority.
+            </summary>
+            <param name="data">The data.</param>
+            <param name="priority">The priority.</param>
+            <remarks>
+            Defaults to 128. Min value is 0, max value is 255.
+            0 = highest priority
+            255 = lowest priority
+            </remarks>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData.GetPriority(DotNetWorkQueue.IAdditionalMessageData)">
+            <summary>
+            Gets the priority.
+            </summary>
+            <param name="data">The data.</param>
+            <returns></returns>
+            <remarks>
+            Defaults to 128. Min value is 0, max value is 255.
+            0 = highest priority
+            255 = lowest priority
+            </remarks>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForQueueConfigurationReceive">
+            <summary>
+            Configuration extensions for setting LiteDB transport options
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForQueueConfigurationReceive.Options(DotNetWorkQueue.Configuration.QueueConfigurationReceive)">
+            <summary>
+            Gets the options.
+            </summary>
+            <value>
+            The options.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForQueueConfigurationSend">
+            <summary>
+            Configuration extensions for setting LiteDB transport options
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForQueueConfigurationSend.Options(DotNetWorkQueue.Configuration.QueueConfigurationSend)">
+            <summary>
+            Gets the options.
+            </summary>
+            <value>
+            The options.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString">
+            <summary>
+            Gets the file name from a connection string
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString.GetFileName(System.String)">
+            <summary>
+            Gets the file name from a connection string
+            </summary>
+            <param name="connectionString">The connection string.</param>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.IJobSchema">
+            <summary>
+            Returns the schema for the jobs as a list of <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable"/>
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.IJobSchema.GetSchema">
+            <summary>
+            Returns the schema for the jobs as a list of <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable"/>
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory">
+            <summary>
+            Returns the options class
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory.Create">
+            <summary>
+            Returns the options class
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.LiteDbConnectionInformation">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.LiteDbConnectionInformation.#ctor(DotNetWorkQueue.Configuration.QueueConnection)">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.LiteDbConnectionInformation.Server">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.LiteDbConnectionInformation.Container">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.LiteDbConnectionInformation.Clone">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Schema.ConfigurationTable">
+            <summary>
+            Configuration table
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.ConfigurationTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.ConfigurationTable.Id">
+            <summary>
+            Gets or sets the identifier.
+            </summary>
+            <value>
+            The identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.ConfigurationTable.Configuration">
+            <summary>
+            Gets or sets the configuration.
+            </summary>
+            <value>
+            The configuration.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Schema.ErrorTrackingTable">
+            <summary>
+            Error table
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.ErrorTrackingTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.ErrorTrackingTable.Id">
+            <summary>
+            Gets or sets the identifier.
+            </summary>
+            <value>
+            The identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.ErrorTrackingTable.QueueId">
+            <summary>
+            Gets or sets the queue identifier.
+            </summary>
+            <value>
+            The queue identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.ErrorTrackingTable.RetryCount">
+            <summary>
+            Gets or sets the retry count.
+            </summary>
+            <value>
+            The retry count.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.ErrorTrackingTable.ExceptionType">
+            <summary>
+            Gets or sets the type of the exception.
+            </summary>
+            <value>
+            The type of the exception.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable">
+            <summary>
+            Jobs table
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable.Id">
+            <summary>
+            Gets or sets the identifier.
+            </summary>
+            <value>
+            The identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable.JobEventTime">
+            <summary>
+            Gets or sets the job event time.
+            </summary>
+            <value>
+            The job event time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable.JobScheduledTime">
+            <summary>
+            Gets or sets the job scheduled time.
+            </summary>
+            <value>
+            The job scheduled time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable.JobName">
+            <summary>
+            Gets or sets the name of the job.
+            </summary>
+            <value>
+            The name of the job.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable">
+            <summary>
+            Error table for meta data record
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.Id">
+            <summary>
+            Gets or sets the identifier.
+            </summary>
+            <value>
+            The identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.QueueId">
+            <summary>
+            Gets or sets the queue identifier.
+            </summary>
+            <value>
+            The queue identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.CorrelationId">
+            <summary>
+            Gets or sets the correlation identifier.
+            </summary>
+            <value>
+            The correlation identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.Status">
+            <summary>
+            Gets or sets the status.
+            </summary>
+            <value>
+            The status.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.QueuedDateTime">
+            <summary>
+            Gets or sets the queued date time.
+            </summary>
+            <value>
+            The queued date time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.QueueProcessTime">
+            <summary>
+            Gets or sets the queue process time.
+            </summary>
+            <value>
+            The queue process time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.HeartBeat">
+            <summary>
+            Gets or sets the heart beat.
+            </summary>
+            <value>
+            The heart beat.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.ExpirationTime">
+            <summary>
+            Gets or sets the expiration time.
+            </summary>
+            <value>
+            The expiration time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.Route">
+            <summary>
+            Gets or sets the route.
+            </summary>
+            <value>
+            The route.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.LastException">
+            <summary>
+            Gets or sets the last exception.
+            </summary>
+            <value>
+            The last exception.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.LastExceptionDate">
+            <summary>
+            Gets or sets the last exception date.
+            </summary>
+            <value>
+            The last exception date.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable">
+            <summary>
+            Meta data table
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.Id">
+            <summary>
+            Gets or sets the identifier.
+            </summary>
+            <value>
+            The identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.QueueId">
+            <summary>
+            Gets or sets the queue identifier.
+            </summary>
+            <value>
+            The queue identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.CorrelationId">
+            <summary>
+            Gets or sets the correlation identifier.
+            </summary>
+            <value>
+            The correlation identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.Status">
+            <summary>
+            Gets or sets the status.
+            </summary>
+            <value>
+            The status.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.QueuedDateTime">
+            <summary>
+            Gets or sets the queued date time.
+            </summary>
+            <value>
+            The queued date time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.QueueProcessTime">
+            <summary>
+            Gets or sets the queue process time.
+            </summary>
+            <value>
+            The queue process time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.HeartBeat">
+            <summary>
+            Gets or sets the heart beat.
+            </summary>
+            <value>
+            The heart beat.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.ExpirationTime">
+            <summary>
+            Gets or sets the expiration time.
+            </summary>
+            <value>
+            The expiration time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.Route">
+            <summary>
+            Gets or sets the route.
+            </summary>
+            <value>
+            The route.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Schema.QueueTable">
+            <summary>
+            Queue table
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.QueueTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.QueueTable.Id">
+            <summary>
+            Gets or sets the identifier.
+            </summary>
+            <value>
+            The identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.QueueTable.Body">
+            <summary>
+            Gets or sets the body.
+            </summary>
+            <value>
+            The body.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.QueueTable.Headers">
+            <summary>
+            Gets or sets the headers.
+            </summary>
+            <value>
+            The headers.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable">
+            <summary>
+            Status table
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable.Id">
+            <summary>
+            Gets or sets the identifier.
+            </summary>
+            <value>
+            The identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable.QueueId">
+            <summary>
+            Gets or sets the queue identifier.
+            </summary>
+            <value>
+            The queue identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable.CorrelationId">
+            <summary>
+            Gets or sets the correlation identifier.
+            </summary>
+            <value>
+            The correlation identifier.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable.Status">
+            <summary>
+            Gets or sets the status.
+            </summary>
+            <value>
+            The status.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable.JobName">
+            <summary>
+            Gets or sets the name of the job.
+            </summary>
+            <value>
+            The name of the job.
+            </value>
+        </member>
+    </members>
+</doc>

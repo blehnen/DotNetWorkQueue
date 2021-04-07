@@ -1,6 +1,4 @@
-﻿extensions: designer.cs generated.cs
-extensions: .cs
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2021 Brian Lehnen
 //
@@ -18,3 +16,20 @@ extensions: .cs
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+namespace DotNetWorkQueue.Transport.LiteDb.Basic
+{
+    /// <summary>
+    /// Defines our collections that hold the data for the queue
+    /// </summary>
+    public interface ITable
+    {
+        /// <summary>
+        /// Creates this table in the database specified by the connection
+        /// </summary>
+        /// <param name="connection">The connection.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="helper">The helper.</param>
+        /// <returns></returns>
+        bool Create(IConnectionInformation connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper);
+    }
+}

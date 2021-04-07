@@ -1,6 +1,4 @@
-﻿extensions: designer.cs generated.cs
-extensions: .cs
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2021 Brian Lehnen
 //
@@ -18,3 +16,20 @@ extensions: .cs
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Transport.LiteDb.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+
+namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
+{
+    /// <summary>
+    /// Determines if a specific table exists in the schema
+    /// </summary>
+    internal class GetTableExistsQueryHandler : IQueryHandler<GetTableExistsQuery, bool>
+    {
+        /// <inheritdoc />
+        public bool Handle(GetTableExistsQuery query)
+        {
+            return query.Database.CollectionExists(query.TableName);
+        }
+    }
+}
