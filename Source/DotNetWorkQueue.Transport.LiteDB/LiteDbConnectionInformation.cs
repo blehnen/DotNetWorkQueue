@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
-using LiteDB;
 
 namespace DotNetWorkQueue.Transport.LiteDb
 {
@@ -29,7 +28,7 @@ namespace DotNetWorkQueue.Transport.LiteDb
 
         #region Constructor
         /// <inheritdoc />
-        public LiteDbConnectionInformation(QueueConnection queueConnection) : base(new QueueConnection(queueConnection.Queue, GetConnection(queueConnection.Connection)))
+        public LiteDbConnectionInformation(QueueConnection queueConnection) : base(queueConnection)
         {
             _server = "TODO; not known";
         }
@@ -56,14 +55,5 @@ namespace DotNetWorkQueue.Transport.LiteDb
             return new LiteDbConnectionInformation(new QueueConnection(QueueName, ConnectionString, data));
         }
         #endregion
-
-        private static string GetConnection(string connectionString)
-        {
-            //enforce shared connection
-            var connection = new ConnectionString(connectionString) {Connection = ConnectionType.Shared};
-
-            //TODO - support all options
-            return $"FileName={connection.Filename};Connection={connection.Connection};";
-        }
     }
 }
