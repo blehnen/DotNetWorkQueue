@@ -27,6 +27,7 @@ using DotNetWorkQueue.Transport.LiteDb.Basic.Factory;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Message;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Query;
 using DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler;
+using DotNetWorkQueue.Transport.LiteDb.Trace.Decorator;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
@@ -149,6 +150,20 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             container
                 .Register<ICommandHandler<SetErrorCountCommand<int>>,
                     SetErrorCountCommandHandler>(LifeStyles.Singleton);
+
+            //trace fallback command
+            container.RegisterDecorator(
+                typeof(ICommandHandler<RollbackMessageCommand<int>>),
+                typeof(RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+
+            //trace sending a message so that we can add specific tags
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutput<SendMessageCommand, int>),
+                typeof(SendMessageCommandHandlerDecorator), LifeStyles.Singleton);
+
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutputAsync<SendMessageCommand, int>),
+                typeof(SendMessageCommandHandlerAsyncDecorator), LifeStyles.Singleton);
         }
 
         /// <summary>

@@ -1,0 +1,14 @@
+﻿{
+  "MetricsOptions": {
+    "DefaultContextLabel": "workqueuesamples",
+    "Enabled": true,
+    "ReportingEnabled": true
+  },
+  "MetricsReportingInfluxDbOptions": {
+    "InfluxDb": {
+      "BaseUri": "http://192.168.0.36:8086",
+      "Database": "dotnetworkqueue-samples",
+      "CreateDataBaseIfNotExists": true
+    }
+  }
+}

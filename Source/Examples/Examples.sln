@@ -37,6 +37,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostGreSQLConsumer", "PostG
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostGreSQLConsumerAsync", "PostGresSQL\Consumer\PostGreSQLConsumerAsync\PostGreSQLConsumerAsync.csproj", "{69073AA5-9B2D-4B46-9478-9BFD7FB9F7FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteDbProducer", "LiteDb\Producer\LiteDbProducer\LiteDbProducer.csproj", "{3C317D22-1893-4AA5-B825-098968147D47}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteDbConsumer", "LiteDb\Consumer\LiteDbConsumer\LiteDbConsumer.csproj", "{20172529-A6B7-4A27-AB03-ADA7AB9A5F32}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteDbConsumerAsync", "LiteDb\Consumer\LiteDbConsumerAsync\LiteDbConsumerAsync.csproj", "{0ECAC960-B1B1-4E8A-B31E-858B05157519}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +117,18 @@ Global
 		{69073AA5-9B2D-4B46-9478-9BFD7FB9F7FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69073AA5-9B2D-4B46-9478-9BFD7FB9F7FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69073AA5-9B2D-4B46-9478-9BFD7FB9F7FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C317D22-1893-4AA5-B825-098968147D47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C317D22-1893-4AA5-B825-098968147D47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C317D22-1893-4AA5-B825-098968147D47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C317D22-1893-4AA5-B825-098968147D47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20172529-A6B7-4A27-AB03-ADA7AB9A5F32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20172529-A6B7-4A27-AB03-ADA7AB9A5F32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20172529-A6B7-4A27-AB03-ADA7AB9A5F32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20172529-A6B7-4A27-AB03-ADA7AB9A5F32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0ECAC960-B1B1-4E8A-B31E-858B05157519}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0ECAC960-B1B1-4E8A-B31E-858B05157519}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0ECAC960-B1B1-4E8A-B31E-858B05157519}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0ECAC960-B1B1-4E8A-B31E-858B05157519}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
