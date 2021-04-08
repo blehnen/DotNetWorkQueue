@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("JobScheduler")]
+    [CollectionDefinition("JobScheduler", DisableParallelization = true)]
     public class JobSchedulerTests
     {
         [Theory]

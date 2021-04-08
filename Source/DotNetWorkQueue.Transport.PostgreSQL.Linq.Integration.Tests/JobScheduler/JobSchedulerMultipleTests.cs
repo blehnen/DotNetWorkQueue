@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("jobscheduler")]
+    [CollectionDefinition("JobScheduler", DisableParallelization = true)]
     public class JobSchedulerMultipleTests
     {
         [Theory]

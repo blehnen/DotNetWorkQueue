@@ -6,7 +6,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("jobscheduler")]
+    [CollectionDefinition("JobScheduler", DisableParallelization = true)]
     public class JobSchedulerTests
     {
         [Theory]
