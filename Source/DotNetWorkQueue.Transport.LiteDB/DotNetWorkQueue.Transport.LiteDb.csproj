@@ -4,7 +4,7 @@
     <TargetFrameworks>net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
     <Description>LiteDB transport for https://github.com/blehnen/DotNetWorkQueue</Description>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2021</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>

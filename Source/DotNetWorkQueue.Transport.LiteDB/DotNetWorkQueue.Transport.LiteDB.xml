@@ -875,16 +875,6 @@
             </returns>
             <exception cref="T:DotNetWorkQueue.Exceptions.ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.ReceiveMessageAsync(DotNetWorkQueue.IMessageContext)">
-            <summary>
-            Returns a message to process.
-            </summary>
-            <param name="context">The message context.</param>
-            <returns>
-            A message to process or null if there are no messages to process
-            </returns>
-            <exception cref="T:DotNetWorkQueue.Exceptions.ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
-        </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.IsBlockingOperation">
             <inheritdoc />
         </member>
@@ -1019,25 +1009,15 @@
             Handles receiving a message
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage.#ctor(DotNetWorkQueue.Configuration.QueueConsumerConfiguration,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery,DotNetWorkQueue.IReceivedMessageInternal},DotNetWorkQueue.IQueueCancelWork,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync,System.Threading.Tasks.Task{DotNetWorkQueue.IReceivedMessageInternal}})">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage.#ctor(DotNetWorkQueue.Configuration.QueueConsumerConfiguration,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery,DotNetWorkQueue.IReceivedMessageInternal},DotNetWorkQueue.IQueueCancelWork)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage" /> class.
             </summary>
             <param name="configuration">The configuration.</param>
             <param name="receiveMessage">The receive message.</param>
             <param name="cancelToken">The cancel token.</param>
-            <param name="receiveMessageAsync">The receive message asynchronous.</param>
         </member>
         <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage.GetMessage(DotNetWorkQueue.IMessageContext)">
-            <summary>
-            Returns the next message, if any.
-            </summary>
-            <param name="context">The context.</param>
-            <returns>
-            A message if one is found; null otherwise
-            </returns>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage.GetMessageAsync(DotNetWorkQueue.IMessageContext)">
             <summary>
             Returns the next message, if any.
             </summary>
@@ -1260,28 +1240,6 @@
             <param name="query">The query.</param>
             <returns></returns>
         </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandlerAsync">
-            <summary>
-            Dequeues a message.
-            </summary>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandlerAsync.#ctor(DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.MessageDeQueue,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
-            <summary>
-            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandlerAsync"/> class.
-            </summary>
-            <param name="optionsFactory">The options factory.</param>
-            <param name="tableNameHelper">The table name helper.</param>
-            <param name="connectionInformation">The connection information.</param>
-            <param name="messageDeQueue">The message de queue.</param>
-            <param name="databaseExists">The database exists.</param>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandlerAsync.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync)">
-            <summary>
-            Handles the specified query.
-            </summary>
-            <param name="query">The query.</param>
-            <returns></returns>
-        </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery">
             <summary>
             Job exists params
@@ -1362,25 +1320,6 @@
             <param name="routes">The routes.</param>
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery.Routes">
-            <summary>
-            Gets the route.
-            </summary>
-            <value>
-            The route.
-            </value>
-        </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync">
-            <summary>
-            Dequeues a message from the queue.
-            </summary>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync.#ctor(System.Collections.Generic.List{System.String})">
-            <summary>
-            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery" /> class.
-            </summary>
-            <param name="routes">The routes.</param>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQueryAsync.Routes">
             <summary>
             Gets the route.
             </summary>
@@ -1495,30 +1434,6 @@
             </summary>
             <param name="data">The data.</param>
             <returns></returns>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData.SetPriority(DotNetWorkQueue.IAdditionalMessageData,System.Nullable{System.UInt16})">
-            <summary>
-            Sets the priority.
-            </summary>
-            <param name="data">The data.</param>
-            <param name="priority">The priority.</param>
-            <remarks>
-            Defaults to 128. Min value is 0, max value is 255.
-            0 = highest priority
-            255 = lowest priority
-            </remarks>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData.GetPriority(DotNetWorkQueue.IAdditionalMessageData)">
-            <summary>
-            Gets the priority.
-            </summary>
-            <param name="data">The data.</param>
-            <returns></returns>
-            <remarks>
-            Defaults to 128. Min value is 0, max value is 255.
-            0 = highest priority
-            255 = lowest priority
-            </remarks>
         </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForQueueConfigurationReceive">
             <summary>
@@ -1961,6 +1876,67 @@
             <value>
             The name of the job.
             </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.RollbackMessageCommandHandlerDecorator">
+            <summary>
+            Tracing for rolling back a message
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.RollbackMessageCommandHandlerDecorator.#ctor(DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.Shared.Basic.Command.RollbackMessageCommand{System.Int32}},OpenTracing.ITracer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.RollbackMessageCommandHandlerDecorator"/> class.
+            </summary>
+            <param name="handler">The handler.</param>
+            <param name="tracer">The tracer.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.RollbackMessageCommandHandlerDecorator.Handle(DotNetWorkQueue.Transport.Shared.Basic.Command.RollbackMessageCommand{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator">
+            <summary>
+            Tracing for sending a message
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator.#ctor(DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutputAsync{DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand,System.Int32},OpenTracing.ITracer,DotNetWorkQueue.IHeaders,DotNetWorkQueue.IConnectionInformation)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator"/> class.
+            </summary>
+            <param name="handler">The handler.</param>
+            <param name="tracer">The tracer.</param>
+            <param name="headers">The headers.</param>
+            <param name="connectionInformation">The connection information.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator.HandleAsync(DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand)">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerDecorator">
+            <summary>
+            Tracing for sending a message
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerDecorator.#ctor(DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand,System.Int32},OpenTracing.ITracer,DotNetWorkQueue.IHeaders,DotNetWorkQueue.IConnectionInformation)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerDecorator"/> class.
+            </summary>
+            <param name="handler">The handler.</param>
+            <param name="tracer">The tracer.</param>
+            <param name="headers">The headers.</param>
+            <param name="connectionInformation">The connection information.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerDecorator.Handle(DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand)">
+            <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Trace.TraceExtensions">
+            <summary>
+            Tracing for sending a message
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.TraceExtensions.Add(OpenTracing.ISpan,DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand)">
+            <summary>
+            Adds tags based on the send command
+            </summary>
+            <param name="span">The span.</param>
+            <param name="command">The command.</param>
         </member>
     </members>
 </doc>

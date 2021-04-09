@@ -1,3 +1,7 @@
+###0.5.1 2021-04-00
+* Add LiteDb transport
+* Add dot.net 5 as a target; however many of the references don't support 5.0 yet, so results may vary
+
 ###0.5.0 2020-12-08
 * Change how connections are setup; this is a breaking change.  This was done to support generic connection settings that could not be expressed as part of the connection string
 * Add dot net 4.8 as a target
