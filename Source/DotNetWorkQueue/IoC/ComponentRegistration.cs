@@ -399,6 +399,8 @@ namespace DotNetWorkQueue.IoC
         private static void RegisterPolicyDecorators(IContainer container)
         {
             container.RegisterDecorator<IReceiveMessages, ReceiveMessagesPolicyDecorator>(LifeStyles.Transient);
+            container.RegisterDecorator<ISendHeartBeat, SendHeartBeatPolicyDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<ISendMessages, SendMessagesPolicyDecorator>(LifeStyles.Singleton);
         }
 
         private static void RegisterTraceDecorators(IContainer container)

@@ -27,7 +27,6 @@ namespace DotNetWorkQueue.Policies.Decorator
         private readonly IReceiveMessages _handler;
         private readonly IPolicies _policies;
         private ISyncPolicy _policy;
-        private IAsyncPolicy _policyAsync;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessagesPolicyDecorator" /> class.
