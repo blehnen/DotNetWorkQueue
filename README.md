@@ -4,6 +4,7 @@ DotNetWorkQueue
 [![License LGPLv2.1](https://img.shields.io/badge/license-LGPLv2.1-green.svg)](http://www.gnu.org/licenses/lgpl-2.1.html)
 [![Build status](https://ci.appveyor.com/api/projects/status/vqqq9m0j9xodbfof/branch/master?svg=true)](https://ci.appveyor.com/project/blehnen/dotnetworkqueue/branch/master)
 [![Coverity status](https://scan.coverity.com/projects/10126/badge.svg)](https://scan.coverity.com/projects/blehnen-dotnetworkqueue)
+[![codecov](https://codecov.io/gh/blehnen/DotNetWorkQueue/branch/master/graph/badge.svg?token=E23UZ6U9CU)](https://codecov.io/gh/blehnen/DotNetWorkQueue)
 
 A producer / distributed consumer library for dot net applications. Dot net 4.6.1, 4.7.2, 4.8 and Dot net standard 2.0 are supported
 
@@ -27,6 +28,7 @@ Transports
 * NuGet package [DotNetWorkQueue.Transport.SqlServer](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/)
 * NuGet package [DotNetWorkQueue.Transport.SQLite](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/)
 * NuGet package [DotNetWorkQueue.Transport.PostgreSQL](https://www.nuget.org/packages/DotNetWorkQueue.Transport.PostgreSQL/)
+* NuGet package [DotNetWorkQueue.Transport.LiteDb](https://www.nuget.org/packages/DotNetWorkQueue.Transport.LiteDb/)
 
 Metrics
 
@@ -60,6 +62,11 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/Redis/Redi
 
 https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/PostgreSQL/PostgreSQLProducer/Program.cs
 
+
+[**Producer - LiteDb**]
+
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/LiteDb/LiteDbProducer/Program.cs
+
 [**Consumer - Sql server**]
 
 https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLServer/SQLServerConsumer/Program.cs
@@ -75,6 +82,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/Redis/Redi
 [**Consumer - PostgreSQL**]
 
 https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/PostgreSQL/PostGreSQLConsumer/Program.cs
+
+[**Consumer - LiteDb**]
+
+https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/LiteDb/LiteDbConsumer/Program.cs
 
 Usage - Linq Expression
 ------
@@ -171,7 +182,7 @@ All references are either in NuGet or the \lib folder - building from Visual stu
 
 License
 --------
-Copyright � 2015-2020 Brian Lehnen
+Copyright � 2015-2021 Brian Lehnen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -239,6 +250,10 @@ This library uses multiple 3rd party libaries, listed below.
 [**DotNetWorkQueue.Transport.PostgreSQL**]
 
 * [Npgsql ](http://www.npgsql.org/)
+
+[**DotNetWorkQueue.Transport.LiteDb**]
+
+* [LiteDb ](https://www.litedb.org/)
 
 [**DotNetWorkQueue.AppMetrics**]
 
