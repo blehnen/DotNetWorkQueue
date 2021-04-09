@@ -86,35 +86,5 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
                 return receivedTransportMessage;
             }
         }
-
-        /// <summary>
-        /// Returns the next message, if any.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <returns>
-        /// A message if one is found; null otherwise
-        /// </returns>
-        public async Task<IReceivedMessageInternal> GetMessageAsync(IMessageContext context)
-        {
-            //if stopping, exit now
-            if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
-            {
-                return null;
-            }
-
-            //ask for the next message, or a specific message if we have a messageID
-            var receivedTransportMessage = await _dataStorage.GetNextMessageAsync(_configuration.Routes).ConfigureAwait(false);
-
-            //if no message (null) run the no message action and return
-            if (receivedTransportMessage == null)
-            {
-                return null;
-            }
-
-            //set the message ID on the context for later usage
-            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
-
-            return receivedTransportMessage;
-        }
     }
 }
