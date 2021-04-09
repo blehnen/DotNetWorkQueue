@@ -68,23 +68,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
             return result;
         }
 
-        /// <summary>
-        /// Returns a message to process.
-        /// </summary>
-        /// <param name="context">The message context.</param>
-        /// <returns>
-        /// A message to process or null if there are no messages to process
-        /// </returns>
-        public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
-        {
-            var result = await _handler.ReceiveMessageAsync(context).ConfigureAwait(false);
-            if (result != null)
-            {
-                ProcessResult(result);
-            }
-            return result;
-        }
-
         /// <inheritdoc />
         public bool IsBlockingOperation => _handler.IsBlockingOperation;
 

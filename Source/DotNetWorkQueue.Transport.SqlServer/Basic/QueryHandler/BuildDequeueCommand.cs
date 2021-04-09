@@ -39,13 +39,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(optionsFactory.Create);
             _createDequeueStatement = createDequeueStatement;
         }
+
         public void BuildCommand(SqlCommand selectCommand, ReceiveMessageQuery<SqlConnection, SqlTransaction> query)
         {
             BuildCommandInternal(selectCommand, query.Transaction,  query.Routes);
-        }
-        public void BuildCommand(SqlCommand selectCommand, ReceiveMessageQueryAsync<SqlConnection, SqlTransaction> query)
-        {
-            BuildCommandInternal(selectCommand, query.Transaction, query.Routes);
         }
 
         private void BuildCommandInternal(SqlCommand selectCommand,

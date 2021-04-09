@@ -9,32 +9,21 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
     public class SimpleProducer
     {
         [Theory]
-        [InlineData(1000, true, true, true, false, false, true, false, false),
-         InlineData(100, false, true, true, false, false, true, false, false),
-         InlineData(100, false, false, false, false, false, false, false, false),
-         InlineData(100, true, false, false, false, false, false, false, false),
-         InlineData(100, false, false, false, false, false, false, true, false),
-         InlineData(100, false, false, false, false, false, true, true, false),
-         InlineData(100, false, true, false, true, true, false, true,  false),
-         InlineData(100, false, true, true, true, true, true, true,  false),
-         InlineData(100, true, true, true, false, false, true, false, false),
+        [InlineData(1000, true, true, true),
+         InlineData(100, false, true, true),
+         InlineData(100, false, false, false),
+         InlineData(100, true, false, false),
+         InlineData(100, false, true, false),
+         InlineData(100, true, true, true),
 
-         InlineData(10, true, true, true, false, false, true, false,  true),
-         InlineData(10, false, true, true, false, false, true, false,  true),
-         InlineData(10, false, false, false, false, false, false, false, true),
-         InlineData(10, true, false, false, false, false, false, false, true),
-         InlineData(10, false, false, false, false, false, false, true, true),
-         InlineData(10, false, false, false, false, false, true, true,  true),
-         InlineData(10, false, true, false, true, true, false, true, true),
-         InlineData(10, false, true, true, true, true, true, true, true)]
+         InlineData(10, true, true, true),
+         InlineData(10, false, true, true),
+         InlineData(10, false, false, false),
+         InlineData(10, true, false, false),
+         InlineData(10, false, true, false)]
         public void Run(
             int messageCount,
             bool interceptors,
-            bool enableDelayedProcessing,
-            bool enableHeartBeat,
-            bool enableMessageExpiration,
-            bool enablePriority,
-            bool enableStatus,
             bool enableStatusTable,
             bool enableChaos)
         {

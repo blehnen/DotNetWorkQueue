@@ -59,22 +59,6 @@ namespace DotNetWorkQueue.Policies.Decorator
         }
 
         /// <inheritdoc />
-        public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
-        {
-            IReceivedMessageInternal result = null;
-            if (_policyAsync == null)
-                _policies.Registry.TryGet(_policies.Definition.ReceiveMessageFromTransportAsync, out _policyAsync);
-
-            if (_policyAsync != null)
-            {
-                await _policyAsync.ExecuteAsync(async () => result = await _handler.ReceiveMessageAsync(context).ConfigureAwait(false)).ConfigureAwait(false);
-            }
-            else //no policy found
-                result = await _handler.ReceiveMessageAsync(context).ConfigureAwait(false);
-            return result;
-        }
-
-        /// <inheritdoc />
         public bool IsBlockingOperation => _handler.IsBlockingOperation;
     }
 }

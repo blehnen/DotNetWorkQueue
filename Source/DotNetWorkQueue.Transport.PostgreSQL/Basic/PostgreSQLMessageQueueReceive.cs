@@ -141,50 +141,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         }
 
         /// <inheritdoc />
-        public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
-        {
-            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
-            {
-                _commitConnection = (c, b) => _handleMessage.CommitMessage.Commit(context);
-                _rollbackConnection = (c, b) => _handleMessage.RollbackMessage.Rollback(context);
-            }
-
-            try
-            {
-                if (_cancelWork.Tokens.Any(m => m.IsCancellationRequested))
-                {
-                    return null;
-                }
-
-                var connection = GetConnectionAndSetOnContext(context);
-                try
-                {
-                    return await _receiveMessages.GetMessageAsync(context, connection, connection1 => _disposeConnection(connection), _configuration.Routes).ConfigureAwait(false);
-                }
-                finally
-                {
-                    if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
-                    {
-                        _disposeConnection(connection);
-                    }
-                }
-            }
-            catch (PoisonMessageException exception)
-            {
-                if (exception.MessageId != null && exception.MessageId.HasValue)
-                {
-                    context.SetMessageAndHeaders(exception.MessageId, context.Headers);
-                }
-                throw;
-            }
-            catch (Exception exception)
-            {
-                throw new ReceiveMessageException("An error occurred while attempting to read messages from the queue",
-                    exception);
-            }
-        }
-
-        /// <inheritdoc />
         public bool IsBlockingOperation => false; //nope
 
         #endregion

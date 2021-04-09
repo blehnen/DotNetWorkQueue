@@ -84,34 +84,6 @@ namespace DotNetWorkQueue.Trace.Decorator
         }
 
         /// <inheritdoc />
-        public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
-        {
-            //we can't attach the span since we don't have the parent until after we get a message
-            //so save off the start and end times, and replace those in the child span below
-            var start = DateTime.UtcNow;
-            var message = await _handler.ReceiveMessageAsync(context);
-            var end = DateTime.UtcNow;
-            if (message == null) return null;
-            var spanContext = message.Extract(_tracer, _headers.StandardHeaders);
-            if (spanContext != null)
-            {
-                using (IScope scope = _tracer.BuildSpan("ReceiveMessage").AddReference(References.FollowsFrom, spanContext).WithStartTimestamp(start)
-                    .StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.AddMessageIdTag(message);
-                    scope.Span.Finish(end);
-                    return message;
-                }
-            }
-            using (IScope scope = _tracer.BuildSpan("ReceiveMessage").WithStartTimestamp(start).StartActive(finishSpanOnDispose: true))
-            {
-                scope.Span.AddMessageIdTag(message);
-                scope.Span.Finish(end);
-                return message;
-            }
-        }
-
-        /// <inheritdoc />
         public bool IsBlockingOperation => _handler.IsBlockingOperation;
     }
 }

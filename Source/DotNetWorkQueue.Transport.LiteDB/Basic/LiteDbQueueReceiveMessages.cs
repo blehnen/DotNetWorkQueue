@@ -112,39 +112,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             }
         }
 
-        /// <summary>
-        /// Returns a message to process.
-        /// </summary>
-        /// <param name="context">The message context.</param>
-        /// <returns>
-        /// A message to process or null if there are no messages to process
-        /// </returns>
-        /// <exception cref="ReceiveMessageException">An error occurred while attempting to read messages from the queue</exception>
-        public async Task<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context)
-        {
-            try
-            {
-                if (ReceiveSharedLogic(context))
-                {
-                    return await _receiveMessages.GetMessageAsync(context).ConfigureAwait(false);
-                }
-                return null;
-            }
-            catch (PoisonMessageException exception)
-            {
-                if (exception.MessageId != null && exception.MessageId.HasValue)
-                {
-                    context.SetMessageAndHeaders(exception.MessageId, context.Headers);
-                }
-                throw;
-            }
-            catch (Exception exception)
-            {
-                throw new ReceiveMessageException("An error occurred while attempting to read messages from the queue",
-                    exception);
-            }
-        }
-
         /// <inheritdoc />
         public bool IsBlockingOperation => false; //nope
 
