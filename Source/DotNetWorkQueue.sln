@@ -61,7 +61,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.L
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.LiteDb.IntegrationTests", "DotNetWorkQueue.Transport.LiteDB.IntegrationTests\DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj", "{A6EDF903-67C2-423A-A95F-FA0B14455F0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests", "DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests\DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj", "{23B7B9DC-EF36-4905-ADF9-B7123D5DB874}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests", "DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests\DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj", "{23B7B9DC-EF36-4905-ADF9-B7123D5DB874}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Transport.LiteDb.Tests", "DotNetWorkQueue.Transport.LiteDb.Tests\DotNetWorkQueue.Transport.LiteDb.Tests.csproj", "{D5E4B960-93BC-4C1F-88F6-44550C0BAE39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -189,6 +191,10 @@ Global
 		{23B7B9DC-EF36-4905-ADF9-B7123D5DB874}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23B7B9DC-EF36-4905-ADF9-B7123D5DB874}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23B7B9DC-EF36-4905-ADF9-B7123D5DB874}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5E4B960-93BC-4C1F-88F6-44550C0BAE39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5E4B960-93BC-4C1F-88F6-44550C0BAE39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5E4B960-93BC-4C1F-88F6-44550C0BAE39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5E4B960-93BC-4C1F-88F6-44550C0BAE39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

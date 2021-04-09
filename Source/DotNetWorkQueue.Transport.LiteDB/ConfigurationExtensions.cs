@@ -64,34 +64,6 @@ namespace DotNetWorkQueue.Transport.LiteDb
         {
             return data.TryGetSetting("LiteDBMessageQueueExpiration", out dynamic value) ? value : null;
         }
-        /// <summary>
-        /// Sets the priority.
-        /// </summary>
-        /// <param name="data">The data.</param>
-        /// <param name="priority">The priority.</param>
-        /// <remarks>
-        /// Defaults to 128. Min value is 0, max value is 255.
-        /// 0 = highest priority
-        /// 255 = lowest priority
-        /// </remarks>
-        public static void SetPriority(this IAdditionalMessageData data, ushort? priority)
-        {
-            data.SetSetting("LiteDBMessageQueuePriority", priority);
-        }
-        /// <summary>
-        /// Gets the priority.
-        /// </summary>
-        /// <param name="data">The data.</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// Defaults to 128. Min value is 0, max value is 255.
-        /// 0 = highest priority
-        /// 255 = lowest priority
-        /// </remarks>
-        public static ushort? GetPriority(this IAdditionalMessageData data)
-        {
-            return data.TryGetSetting("LiteDBMessageQueuePriority", out dynamic value) ? value : (ushort)128;
-        }
     }
 
     /// <summary>
