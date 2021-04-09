@@ -130,13 +130,12 @@ namespace LiteDbProducer.Commands
             int runtime = 100,
             bool batched = false,
             TimeSpan? delay = null,
-            TimeSpan? expiration = null,
-            ushort? priority = null)
+            TimeSpan? expiration = null)
         {
             var valid = ValidateQueue(queueName);
             if (valid != null) return valid;
             var returnMessage = new StringBuilder();
-            var messages = GenerateMessages(CreateMessages(itemCount, runtime).ToList(), delay, expiration, priority);
+            var messages = GenerateMessages(CreateMessages(itemCount, runtime).ToList(), delay, expiration);
             if (batched)
             {
                 var result = ((IProducerQueue<SimpleMessage>)_queues[queueName]).Send(messages);
@@ -173,13 +172,12 @@ namespace LiteDbProducer.Commands
             int runtime = 100,
             bool batched = false,
             TimeSpan? delay = null,
-            TimeSpan? expiration = null,
-            ushort? priority = null)
+            TimeSpan? expiration = null)
         {
             var valid = ValidateQueue(queueName);
             if (valid != null) return valid;
             var returnMessage = new StringBuilder();
-            var messages = GenerateMessages(CreateMessages(itemCount, runtime).ToList(), delay, expiration, priority);
+            var messages = GenerateMessages(CreateMessages(itemCount, runtime).ToList(), delay, expiration);
             if (batched)
             {
                 var result = await ((IProducerQueue<SimpleMessage>)_queues[queueName]).SendAsync(messages).ConfigureAwait(false);
@@ -245,20 +243,15 @@ namespace LiteDbProducer.Commands
 
         private List<QueueMessage<SimpleMessage, IAdditionalMessageData>> GenerateMessages(List<SimpleMessage> jobs,
             TimeSpan? delay = null,
-            TimeSpan? expiration = null,
-            ushort? priority = null
-            )
+            TimeSpan? expiration = null
+        )
         {
             var messages = new List<QueueMessage<SimpleMessage, IAdditionalMessageData>>(jobs.Count);
             foreach (var message in jobs)
             {
-                if (delay.HasValue || expiration.HasValue || priority.HasValue)
+                if (delay.HasValue || expiration.HasValue)
                 {
                     var data = new AdditionalMessageData();
-                    if (priority.HasValue)
-                    {
-                        data.SetPriority(priority.Value);
-                    }
                     if (delay.HasValue)
                     {
                         data.SetDelay(delay.Value);
