@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
     /// <summary>
     /// Rolls back a message by either rolling back a transaction or updating a status
     /// </summary>
-    internal class RollbackMessage
+    public class RollbackMessage
     {
         /// <summary>
         /// Rollbacks the specified message

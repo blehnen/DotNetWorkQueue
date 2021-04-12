@@ -20,7 +20,7 @@ using DotNetWorkQueue.Queue;
 
 namespace DotNetWorkQueue.Factory
 {
-    internal class WorkerNotificationFactoryNoOp : IWorkerNotificationFactory
+    public class WorkerNotificationFactoryNoOp : IWorkerNotificationFactory
     {
         public IWorkerNotification Create()
         {
