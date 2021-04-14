@@ -4,6 +4,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
+using DotNetWorkQueue.Transport.SQLite.Schema;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
@@ -87,6 +88,27 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             }
 
             return null;
+        }
+
+        public static void SetOptions(SqLiteMessageQueueCreation oCreation, bool enableDelayedProcessing,
+            bool enableHeartBeat,
+            bool enableMessageExpiration,
+            bool enablePriority,
+            bool enableStatus,
+            bool enableStatusTable,
+            bool additionalColumn)
+        {
+            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
+            oCreation.Options.EnableHeartBeat = enableHeartBeat;
+            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
+            oCreation.Options.EnablePriority = enablePriority;
+            oCreation.Options.EnableStatus = enableStatus;
+            oCreation.Options.EnableStatusTable = enableStatusTable;
+
+            if (additionalColumn)
+            {
+                oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, true, null));
+            }
         }
     }
 

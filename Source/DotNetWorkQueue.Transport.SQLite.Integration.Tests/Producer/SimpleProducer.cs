@@ -68,30 +68,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
                 producer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(queueName,
                     connectionInfo.ConnectionString,
-                    messageCount, interceptors, enableChaos, false, x => SetOptions(x,
+                    messageCount, interceptors, enableChaos, false, x => Helpers.SetOptions(x,
                         enableDelayedProcessing, enableHeartBeat, enableMessageExpiration,
                         enablePriority, enableStatus, enableStatusTable, additionalColumn),
                     Helpers.GenerateData, Helpers.Verify);
-            }
-        }
-        private void SetOptions(SqLiteMessageQueueCreation oCreation, bool enableDelayedProcessing,
-            bool enableHeartBeat,
-            bool enableMessageExpiration,
-            bool enablePriority,
-            bool enableStatus,
-            bool enableStatusTable,
-            bool additionalColumn)
-        {
-            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-            oCreation.Options.EnableHeartBeat = enableHeartBeat;
-            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-            oCreation.Options.EnablePriority = enablePriority;
-            oCreation.Options.EnableStatus = enableStatus;
-            oCreation.Options.EnableStatusTable = enableStatusTable;
-
-            if (additionalColumn)
-            {
-                oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, true, null));
             }
         }
     }

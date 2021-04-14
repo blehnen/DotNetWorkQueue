@@ -88,7 +88,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         /// <inheritdoc />
         /// <remarks>This does nothing for the Redis transport, as pre-creating the queue is not necessary.</remarks>
-        /// <returns></returns>
         public QueueCreationResult CreateQueue()
         {
             return new QueueCreationResult(QueueCreationStatus.NoOp);

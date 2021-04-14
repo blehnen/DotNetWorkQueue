@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.Configuration;
+﻿using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.Memory.Basic;
@@ -12,50 +13,18 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
         [Theory]
         [InlineData(1000, true),
          InlineData(1000, false)]
-        public async void Run(
+        public async Task Run(
             int messageCount,
             bool interceptors)
         {
-
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (
-                    var queueCreator =
-                        new QueueCreationContainer<MemoryMessageQueueInit>(
-                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
-
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            var producer = new ProducerAsyncShared();
-                            await producer.RunTestAsync<MemoryMessageQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider,
-                                Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, false).ConfigureAwait(false);
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-
-                    }
-                }
+                var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducerAsync();
+                await producer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, interceptors, false, false, x => { },
+                    Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
             }
         }
     }

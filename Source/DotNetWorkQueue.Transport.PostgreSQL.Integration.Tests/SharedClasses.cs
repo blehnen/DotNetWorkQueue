@@ -1,6 +1,8 @@
 ﻿using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
 using Xunit;
@@ -86,6 +88,29 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             }
 
             return null;
+        }
+
+        public static void SetOptions(PostgreSqlMessageQueueCreation oCreation, bool enableDelayedProcessing,
+            bool enableHeartBeat,
+            bool enableHoldTransactionUntilMessageCommitted,
+            bool enableMessageExpiration,
+            bool enablePriority,
+            bool enableStatus,
+            bool enableStatusTable,
+            bool additionalColumn)
+        {
+            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
+            oCreation.Options.EnableHeartBeat = enableHeartBeat;
+            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
+            oCreation.Options.EnableHoldTransactionUntilMessageCommitted = enableHoldTransactionUntilMessageCommitted;
+            oCreation.Options.EnablePriority = enablePriority;
+            oCreation.Options.EnableStatus = enableStatus;
+            oCreation.Options.EnableStatusTable = enableStatusTable;
+
+            if (additionalColumn)
+            {
+                oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, true));
+            }
         }
     }
 
