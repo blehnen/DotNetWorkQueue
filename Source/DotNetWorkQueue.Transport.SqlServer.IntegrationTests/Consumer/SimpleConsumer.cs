@@ -25,12 +25,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                     true, !useTransactions, useTransactions,
                     false,
                     false, !useTransactions, true, false),
-                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
-        }
-
-        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
-        {
-            new VerifyQueueRecordCount(new QueueConnection(arg1, arg2), (SqlServerMessageQueueTransportOptions)arg3).Verify(arg5, arg6, arg7);
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
         }
     }
 }

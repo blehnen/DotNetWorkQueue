@@ -23,14 +23,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
                 consumer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(queueName,
                     connectionInfo.ConnectionString,
                     messageCount, runtime, timeOut, workerCount, enableChaos, x => { },
-                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
-        }
-
-        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
-        {
-            new VerifyQueueRecordCount(arg1, arg2, (LiteDbMessageQueueTransportOptions)arg3, arg4)
-                .Verify(arg5, arg6, arg7);
         }
     }
 }

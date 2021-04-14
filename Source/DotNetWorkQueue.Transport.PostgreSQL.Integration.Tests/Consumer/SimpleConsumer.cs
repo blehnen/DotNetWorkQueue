@@ -28,12 +28,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
                 messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions, false,
                     false, !useTransactions, true, false),
-                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
-        }
-
-        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
-        {
-            new VerifyQueueRecordCount(arg1, (PostgreSqlMessageQueueTransportOptions)arg3).Verify(arg5, arg6, arg7);
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
         }
     }
 }

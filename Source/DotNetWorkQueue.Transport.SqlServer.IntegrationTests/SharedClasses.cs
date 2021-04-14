@@ -90,6 +90,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             return null;
         }
 
+        public static void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            new VerifyQueueRecordCount(new QueueConnection(arg1, arg2), (SqlServerMessageQueueTransportOptions)arg3).Verify(arg5, arg6, arg7);
+        }
+
         public static void SetOptions(SqlServerMessageQueueCreation oCreation, bool enableDelayedProcessing,
             bool enableHeartBeat,
             bool enableHoldTransactionUntilMessageCommitted,

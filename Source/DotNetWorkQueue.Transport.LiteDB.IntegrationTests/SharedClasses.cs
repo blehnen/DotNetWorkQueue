@@ -100,6 +100,22 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
 
             return new AdditionalMessageData();
         }
+
+        public static void SetOptions(LiteDbMessageQueueCreation oCreation, 
+            bool enableDelayedProcessing,
+            bool enableMessageExpiration,
+            bool enableStatusTable)
+        {
+            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
+            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
+            oCreation.Options.EnableStatusTable = enableStatusTable;
+        }
+
+        public static void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            new VerifyQueueRecordCount(arg1, arg2, (LiteDbMessageQueueTransportOptions)arg3, arg4)
+                .Verify(arg5, arg6, arg7);
+        }
     }
 
     public class IncrementWrapper
