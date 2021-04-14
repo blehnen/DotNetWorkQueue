@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Queue
         /// </remarks>
         public void AddScopedObject(IDisposable disposable)
         {
-            throw new NotImplementedException();
+            
         }
 
         /// <summary>
@@ -46,13 +46,14 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="System.NotImplementedException"></exception>
         public void AddScopedObject(IClear disposable)
         {
-            throw new NotImplementedException();
+           
         }
 
         T ICreationScope.GetDisposable<T>()
         {
             return null;
         }
+
         #region IDisposable Support
         private bool _disposedValue; // To detect redundant calls
         /// <summary>
