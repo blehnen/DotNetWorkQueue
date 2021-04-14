@@ -30,12 +30,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     if (route)
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateRouteData,
-                            Helpers.Verify, false, null, false);
+                            Helpers.Verify, false, new CreationScopeNoOp(), false);
                     }
                     else
                     {
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null, false);
+                            Helpers.Verify, false, new CreationScopeNoOp(), false);
                     }
 
                     var defaultRoute = route ? Helpers.DefaultRoute : null;

@@ -1,6 +1,7 @@
 ﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
 using Xunit;
@@ -32,13 +33,13 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                     if (!dynamic)
                     {
                         tests.RunEnqueueTestCompiled<RedisQueueInit, RedisJobQueueCreation>(queueConnection, true,
-                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null, LoggerShared.Create(queueName, GetType().Name));
+                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), new CreationScopeNoOp(), LoggerShared.Create(queueName, GetType().Name));
                     }
 #if NETFULL
                     else
                     {
                         tests.RunEnqueueTestDynamic<RedisQueueInit, RedisJobQueueCreation>(queueConnection, true,
-                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), null, LoggerShared.Create(queueName, GetType().Name));
+                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), new CreationScopeNoOp(), LoggerShared.Create(queueName, GetType().Name));
                     }
 #endif
                 }

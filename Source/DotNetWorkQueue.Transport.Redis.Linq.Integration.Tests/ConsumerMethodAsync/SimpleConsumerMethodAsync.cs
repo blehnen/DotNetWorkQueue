@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     {
                         var producer = new ProducerMethodAsyncShared();
                         producer.RunTestAsync<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, runtime, id, linqMethodTypes, null, false).Wait(timeOut);
+                            Helpers.Verify, false, runtime, id, linqMethodTypes, new CreationScopeNoOp(), false).Wait(timeOut);
 
                         var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     {
                         var producer = new ProducerMethodAsyncShared();
                         producer.RunTestAsync<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, runtime, id, linqMethodTypes, null, false).Wait(timeOut);
+                            Helpers.Verify, false, runtime, id, linqMethodTypes, new CreationScopeNoOp(), false).Wait(timeOut);
 
                         var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     {
                         var producer = new ProducerMethodAsyncShared();
                         producer.RunTestAsync<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, runtime, id, linqMethodTypes, null, false).Wait(timeOut);
+                            Helpers.Verify, false, runtime, id, linqMethodTypes, new CreationScopeNoOp(), false).Wait(timeOut);
 
 
                         var consumer = new ConsumerMethodAsyncShared { Factory = Factory};

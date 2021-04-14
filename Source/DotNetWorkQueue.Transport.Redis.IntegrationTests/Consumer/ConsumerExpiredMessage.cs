@@ -33,13 +33,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     {
                         var producer = new ProducerShared();
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateExpiredDataWithRoute,
-                            Helpers.Verify, false, null, false);
+                            Helpers.Verify, false, new CreationScopeNoOp(), false);
                     }
                     else
                     {
                         var producer = new ProducerShared();
                         producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateExpiredData,
-                            Helpers.Verify, false, null, false);
+                            Helpers.Verify, false, new CreationScopeNoOp(), false);
                     }
 
                     Thread.Sleep(2000);

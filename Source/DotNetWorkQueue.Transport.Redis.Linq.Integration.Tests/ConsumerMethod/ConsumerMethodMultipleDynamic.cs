@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     var id = Guid.NewGuid();
                     var producer = new ProducerMethodMultipleDynamicShared();
                     producer.RunTestDynamic<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, null, false);
+                        Helpers.Verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, new CreationScopeNoOp(), false);
 
                     var consumer = new ConsumerMethodShared();
                     consumer.RunConsumer<RedisQueueInit>(queueConnection, false, logProvider,

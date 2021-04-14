@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                 {
                     var producer = new ProducerShared();
                     producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, false, null, false);
+                        Helpers.Verify, false, new CreationScopeNoOp(), false);
 
                     var consumer = new ConsumerShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueConnection, false, logProvider,

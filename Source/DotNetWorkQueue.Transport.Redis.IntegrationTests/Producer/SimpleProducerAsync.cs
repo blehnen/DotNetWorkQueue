@@ -1,6 +1,7 @@
 ﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
 
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
                 try
                 {
                     await producer.RunTestAsync<RedisQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, batchSending, null, false).ConfigureAwait(false);
+                        Helpers.Verify, batchSending, new CreationScopeNoOp(), false).ConfigureAwait(false);
                 }
                 finally
                 {

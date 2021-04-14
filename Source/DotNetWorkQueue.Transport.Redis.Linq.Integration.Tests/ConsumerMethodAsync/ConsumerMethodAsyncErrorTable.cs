@@ -39,13 +39,13 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     if (linqMethodTypes == LinqMethodTypes.Compiled)
                     {
                         producer.RunTestCompiled<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, null, false);
+                            Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, new CreationScopeNoOp(), false);
                     }
 #if NETFULL
                     else
                     {
                         producer.RunTestDynamic<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, null, false);
+                            Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, new CreationScopeNoOp(), false);
                     }
 #endif
                     //process data

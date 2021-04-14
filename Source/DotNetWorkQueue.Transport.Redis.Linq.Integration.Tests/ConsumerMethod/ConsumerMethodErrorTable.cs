@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     if (linqMethodTypes == LinqMethodTypes.Compiled)
                     {
                         producer.RunTestCompiled<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, null, false);
+                            Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, new CreationScopeNoOp(), false);
                     }
 #if NETFULL
                     else

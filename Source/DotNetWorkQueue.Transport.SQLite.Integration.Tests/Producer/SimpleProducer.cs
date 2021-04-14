@@ -65,52 +65,33 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<SqLiteMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
+                var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
+                producer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, interceptors, enableChaos, false, x => SetOptions(x,
+                        enableDelayedProcessing, enableHeartBeat, enableMessageExpiration,
+                        enablePriority, enableStatus, enableStatusTable, additionalColumn),
+                    Helpers.GenerateData, Helpers.Verify);
+            }
+        }
+        private void SetOptions(SqLiteMessageQueueCreation oCreation, bool enableDelayedProcessing,
+            bool enableHeartBeat,
+            bool enableMessageExpiration,
+            bool enablePriority,
+            bool enableStatus,
+            bool enableStatusTable,
+            bool additionalColumn)
+        {
+            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
+            oCreation.Options.EnableHeartBeat = enableHeartBeat;
+            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
+            oCreation.Options.EnablePriority = enablePriority;
+            oCreation.Options.EnableStatus = enableStatus;
+            oCreation.Options.EnableStatusTable = enableStatusTable;
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-                            oCreation.Options.EnableHeartBeat = enableHeartBeat;
-                            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                            oCreation.Options.EnablePriority = enablePriority;
-                            oCreation.Options.EnableStatus = enableStatus;
-                            oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                            if (additionalColumn)
-                            {
-                                oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, true, null));
-                            }
-
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            var producer = new ProducerShared();
-                            producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider,
-                                Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, enableChaos);
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
+            if (additionalColumn)
+            {
+                oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, true, null));
             }
         }
     }

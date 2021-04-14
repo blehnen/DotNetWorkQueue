@@ -31,48 +31,35 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
         {
 
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            var producer = new ProducerShared();
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<RedisQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
+            if (enableExpiration && enableDelay)
             {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-                    if (enableExpiration && enableDelay)
-                    {
-                       producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateDelayExpiredData,
-                       Helpers.Verify, batchSending, null, false);
-                    }
-                    else if (enableDelay)
-                    {
-                       producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
-                       Helpers.Verify, batchSending, null, false);
-                    }
-                    else if (enableExpiration)
-                    {
-                        producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
-                       Helpers.Verify, batchSending, null, false);
-                    }
-                    else
-                    {
-                        producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, batchSending, null, false);
-                    }
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
+                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
+                    connectionString,
+                    messageCount, interceptors, false, batchSending,x => { },
+                    Helpers.GenerateDelayExpiredData, Helpers.Verify);
+            }
+            else if (enableDelay)
+            {
+                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
+                    connectionString,
+                    messageCount, interceptors, false, batchSending,x => { },
+                    Helpers.GenerateDelayData, Helpers.Verify);
+            }
+            else if (enableExpiration)
+            {
+                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
+                    connectionString,
+                    messageCount, interceptors, false, batchSending,x => { },
+                    Helpers.GenerateExpiredData, Helpers.Verify);
+            }
+            else
+            {
+                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
+                    connectionString,
+                    messageCount, interceptors, false, batchSending,x => { },
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     {
                         var producer = new ProducerAsyncShared();
                         producer.RunTestAsync<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null, false).Wait(timeOut * 1000 / 2);
+                            Helpers.Verify, false, new CreationScopeNoOp(), false).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     {
                         var producer = new ProducerAsyncShared();
                         producer.RunTestAsync<RedisQueueInit, FakeMessageA>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null, false).Wait(timeOut * 1000 / 2);
+                            Helpers.Verify, false, new CreationScopeNoOp(), false).Wait(timeOut * 1000 / 2);
 
                         var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
                         consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                     {
                         var producer = new ProducerAsyncShared();
                         producer.RunTestAsync<RedisQueueInit, FakeMessageB>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, null, false).Wait(timeOut * 1000 / 2);
+                            Helpers.Verify, false, new CreationScopeNoOp(), false).Wait(timeOut * 1000 / 2);
 
 
                         var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};

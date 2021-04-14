@@ -19,40 +19,11 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<MemoryMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
-
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            var producer = new ProducerShared();
-                            producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider,
-                                Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, false);
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
+                var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
+                producer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, interceptors, false, false,x => { },
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

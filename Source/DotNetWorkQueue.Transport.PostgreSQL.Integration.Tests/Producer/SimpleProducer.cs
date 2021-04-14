@@ -1,6 +1,4 @@
-﻿using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+﻿using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using Xunit;
@@ -40,53 +38,39 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
             bool enablePriority,
             bool enableStatus,
             bool enableStatusTable,
-            bool additionalColumn, 
+            bool additionalColumn,
             bool enableChaos)
         {
-
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (var queueCreator =
-                new QueueCreationContainer<PostgreSqlMessageQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
+            producer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, interceptors, enableChaos, false, x => SetOptions(x,
+                    enableDelayedProcessing, enableHeartBeat, enableHoldTransactionUntilMessageCommitted, enableMessageExpiration, 
+                    enablePriority, enableStatus, enableStatusTable, additionalColumn),
+                Helpers.GenerateData, Helpers.Verify);
+        }
+
+        private void SetOptions(PostgreSqlMessageQueueCreation oCreation, bool enableDelayedProcessing,
+            bool enableHeartBeat,
+            bool enableHoldTransactionUntilMessageCommitted,
+            bool enableMessageExpiration,
+            bool enablePriority,
+            bool enableStatus,
+            bool enableStatusTable,
+            bool additionalColumn)
+        {
+            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
+            oCreation.Options.EnableHeartBeat = enableHeartBeat;
+            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
+            oCreation.Options.EnableHoldTransactionUntilMessageCommitted = enableHoldTransactionUntilMessageCommitted;
+            oCreation.Options.EnablePriority = enablePriority;
+            oCreation.Options.EnableStatus = enableStatus;
+            oCreation.Options.EnableStatusTable = enableStatusTable;
+
+            if (additionalColumn)
             {
-                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                ICreationScope scope = null;
-                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
-                try
-                {
-
-                   
-                        oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-                        oCreation.Options.EnableHeartBeat = enableHeartBeat;
-                        oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted =
-                            enableHoldTransactionUntilMessageCommitted;
-                        oCreation.Options.EnablePriority = enablePriority;
-                        oCreation.Options.EnableStatus = enableStatus;
-                        oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                        if (additionalColumn)
-                        {
-                            oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, true));
-                        }
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-
-                    var producer = new ProducerShared();
-                        producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider,
-                            Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope, enableChaos);
-                    
-                }
-                finally
-                {
-                    oCreation.RemoveQueue();
-                    oCreation.Dispose();
-                    scope?.Dispose();
-                }
+                oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, true));
             }
         }
     }

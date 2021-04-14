@@ -44,53 +44,36 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
         {
 
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (var queueCreator =
-                new QueueCreationContainer<SqlServerMessageQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
+            producer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, interceptors, enableChaos, false, x => SetOptions(x,
+                    enableDelayedProcessing, enableHeartBeat, enableHoldTransactionUntilMessageCommitted,
+                    enableMessageExpiration,
+                    enablePriority, enableStatus, enableStatusTable, additionalColumn),
+                Helpers.GenerateData, Helpers.Verify);
+        }
+        private void SetOptions(SqlServerMessageQueueCreation oCreation, bool enableDelayedProcessing,
+            bool enableHeartBeat,
+            bool enableHoldTransactionUntilMessageCommitted,
+            bool enableMessageExpiration,
+            bool enablePriority,
+            bool enableStatus,
+            bool enableStatusTable,
+            bool additionalColumn)
+        {
+            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
+            oCreation.Options.EnableHeartBeat = enableHeartBeat;
+            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
+            oCreation.Options.EnableHoldTransactionUntilMessageCommitted =
+                enableHoldTransactionUntilMessageCommitted;
+            oCreation.Options.EnablePriority = enablePriority;
+            oCreation.Options.EnableStatus = enableStatus;
+            oCreation.Options.EnableStatusTable = enableStatusTable;
+
+            if (additionalColumn)
             {
-                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                try
-                {
-
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-                        oCreation.Options.EnableHeartBeat = enableHeartBeat;
-                        oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted =
-                            enableHoldTransactionUntilMessageCommitted;
-                        oCreation.Options.EnablePriority = enablePriority;
-                        oCreation.Options.EnableStatus = enableStatus;
-                        oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                        if (additionalColumn)
-                        {
-                            oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Int, true, null));
-                        }
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-
-                        var producer = new ProducerShared();
-                        producer.RunTest<SqlServerMessageQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider,
-                            Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope, enableChaos);
-                    }
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
+                oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Int, true, null));
             }
         }
     }
