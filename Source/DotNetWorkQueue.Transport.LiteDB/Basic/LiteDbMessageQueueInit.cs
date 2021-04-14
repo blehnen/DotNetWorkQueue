@@ -53,11 +53,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             base.RegisterImplementations(container, registrationType, queueConnection);
 
             //**all
+            container.RegisterNonScopedSingleton<ICreationScope>(new CreationScope());
+
             container.Register<IConnectionInformation>(() => new LiteDbConnectionInformation(queueConnection), LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, LiteDbJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, LiteDbSendJobToQueue>(LifeStyles.Singleton);
             container.Register<DatabaseExists>(LifeStyles.Singleton);
             container.Register<LiteDbMessageQueueSchema>(LifeStyles.Singleton);
+            container.Register<LiteDbConnectionManager>(LifeStyles.Singleton);
 
             container.Register<IJobTableCreation, LiteDbJobTableCreation>(LifeStyles.Singleton);
 
@@ -77,7 +80,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             container.Register<IGetFileNameFromConnectionString, LiteDbGetFileNameFromConnectionString>(LifeStyles.Singleton);
             container.Register<ILiteDbMessageQueueTransportOptionsFactory, LiteDbMessageQueueTransportOptionsFactory>(LifeStyles.Singleton);
             container.Register<IIncreaseQueueDelay, IncreaseQueueDelay>(LifeStyles.Singleton);
-            container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
             container.Register<IJobSchema, LiteDbJobSchema>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             //**all
@@ -174,6 +176,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="connectionType">Type of the connection.</param>
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
         {
+            //direct (or memory) connection
+            //create in memory hold
+            var connection = container.GetInstance<LiteDbConnectionManager>();
+            if (!connection.IsSharedConnection)
+            {
+                var scope = container.GetInstance<ICreationScope>();
+                scope.AddScopedObject(connection);
+            }
+
             var factory = container.GetInstance<LiteDbMessageQueueTransportOptionsFactory>();
             var options = factory.Create();
             var configurationSend = container.GetInstance<QueueProducerConfiguration>();

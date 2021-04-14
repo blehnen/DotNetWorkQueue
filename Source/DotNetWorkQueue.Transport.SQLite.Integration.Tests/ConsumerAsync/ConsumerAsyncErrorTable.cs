@@ -2,6 +2,7 @@
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using Xunit;
 
@@ -53,17 +54,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
                                 false,
                                 logProvider,
-                                messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
+                                messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos, new CreationScopeNoOp());
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, false);
 
                             consumer.PurgeErrorMessages<SqLiteMessageQueueInit>(queueConnection,
-                                false, logProvider, false);
+                                false, logProvider, false, new CreationScopeNoOp());
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
 
                             //purge error messages and verify that count is 0
                             consumer.PurgeErrorMessages<SqLiteMessageQueueInit>(queueConnection,
-                                false, logProvider, true);
+                                false, logProvider, true, new CreationScopeNoOp());
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, 0);
                         }
                     }

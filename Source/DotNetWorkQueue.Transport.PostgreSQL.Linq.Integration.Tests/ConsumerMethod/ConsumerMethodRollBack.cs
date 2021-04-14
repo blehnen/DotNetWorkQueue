@@ -31,14 +31,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
                 var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
+                ICreationScope scope = null;
+                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
                 try
                 {
 
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
+                 
                         oCreation.Options.EnableDelayedProcessing = true;
                         oCreation.Options.EnableHeartBeat = !useTransactions;
                         oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
@@ -47,6 +45,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
 
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
                         var id = Guid.NewGuid();
 
                         //create data
@@ -67,21 +66,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                         var consumer = new ConsumerMethodRollBackShared();
                         consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueConnection,
                             false,
-                            workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id, enableChaos);
+                            workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id, enableChaos, scope);
 
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
                         GenerateMethod.ClearRollback(id);
-                    }
+                    
                 }
                 finally
                 {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
+                    scope?.Dispose();
                 }
             }
         }

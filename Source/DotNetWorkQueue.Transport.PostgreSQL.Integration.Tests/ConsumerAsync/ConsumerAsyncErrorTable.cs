@@ -27,14 +27,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
                 var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
+                ICreationScope scope = null;
+                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
                 try
                 {
 
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
+                 
                         oCreation.Options.EnableDelayedProcessing = true;
                         oCreation.Options.EnableHeartBeat = !useTransactions;
                         oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
@@ -43,9 +41,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
 
-                        //create data
-                        var producer = new ProducerShared();
+                    //create data
+                    var producer = new ProducerShared();
                         producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
                             Helpers.Verify, false, oCreation.Scope, false);
 
@@ -55,29 +54,25 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                             false,
                             logProvider,
                             messageCount, workerCount, timeOut, queueSize, readerCount,
-                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
+                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos, scope);
                         ValidateErrorCounts(queueName, messageCount);
                         new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
 
                         consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueConnection,
-                            false, logProvider, false);
+                            false, logProvider, false, scope);
                         ValidateErrorCounts(queueName, messageCount);
 
                         //purge error messages and verify that count is 0
                         consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueConnection,
-                            false,  logProvider, true);
+                            false,  logProvider, true, scope);
                         ValidateErrorCounts(queueName, 0);
-                    }
+                    
                 }
                 finally
                 {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
+                    scope?.Dispose();
                 }
             }
         }

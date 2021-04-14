@@ -34,6 +34,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     {
         #region Member level variables
 
+        private readonly LiteDbConnectionManager _connectionManager;
         private readonly LiteDbMessageQueueSchema _createSchema;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
 
@@ -48,9 +49,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
 
         #region Constructor
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LiteDbMessageQueueCreation" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="LiteDbMessageQueueCreation"/> class.</summary>
         /// <param name="connectionInfo">The connection information.</param>
         /// <param name="queryTableExists">The query table exists.</param>
         /// <param name="options">The options.</param>
@@ -58,12 +57,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="createCommand">The create command.</param>
         /// <param name="deleteCommand">The delete command.</param>
         /// <param name="creationScope">The creation scope.</param>
+        /// <param name="connectionManager">DB Connection manager</param>
         public LiteDbMessageQueueCreation(IConnectionInformation connectionInfo, IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             ILiteDbMessageQueueTransportOptionsFactory options,
             LiteDbMessageQueueSchema createSchema,
             ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> createCommand,
             ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> deleteCommand,
-            ICreationScope creationScope
+            ICreationScope creationScope,
+            LiteDbConnectionManager connectionManager
             )
         {
             Guard.NotNull(() => options, options);
@@ -72,6 +73,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             Guard.NotNull(() => createCommand, createCommand);
             Guard.NotNull(() => deleteCommand, deleteCommand);
             Guard.NotNull(() => creationScope, creationScope);
+            Guard.NotNull(() => connectionManager, connectionManager);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(options.Create);
             _createSchema = createSchema;
@@ -80,6 +82,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             _deleteCommand = deleteCommand;
             ConnectionInfo = connectionInfo;
             Scope = creationScope;
+            _connectionManager = connectionManager;
         }
 
         #endregion
@@ -142,9 +145,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         {
             get
             {
-                using (var db = new LiteDatabase(ConnectionInfo.ConnectionString))
+                using (var db = _connectionManager.GetDatabase())
                 {
-                    return _queryTableExists.Handle(new GetTableExistsQuery(db,
+                    return _queryTableExists.Handle(new GetTableExistsQuery(db.Database,
                         ConnectionInfo.QueueName));
                 }
             }

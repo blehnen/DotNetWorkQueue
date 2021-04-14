@@ -1,6 +1,7 @@
 ﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
 using Xunit;
@@ -25,7 +26,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                 try
                 {
                     var tests = new JobSchedulerTestsShared();
-                    tests.RunTestMultipleProducers<RedisQueueInit, RedisJobQueueCreation>(queueConnection, true, producerCount, queueContainer.CreateTimeSync(connectionString), LoggerShared.Create(queueName, GetType().Name));
+                    tests.RunTestMultipleProducers<RedisQueueInit, RedisJobQueueCreation>(queueConnection, true, producerCount, queueContainer.CreateTimeSync(connectionString), LoggerShared.Create(queueName, GetType().Name), new CreationScopeNoOp());
                 }
                 finally
                 {

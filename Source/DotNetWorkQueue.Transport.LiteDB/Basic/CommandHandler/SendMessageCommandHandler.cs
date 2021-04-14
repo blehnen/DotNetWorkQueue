@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Command;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Query;
@@ -34,7 +35,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandler : ICommandHandlerWithOutput<SendMessageCommand, int>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private static readonly object Locker = new object();
+
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
         private readonly ICompositeSerialization _serializer;
         private bool? _messageExpirationEnabled;
@@ -63,7 +66,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         /// <param name="databaseExists">The database exists.</param>
         public SendMessageCommandHandler(
-            IConnectionInformation connectionInformation,
+            LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper,
             ICompositeSerialization serializer,
             ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
@@ -103,7 +106,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <returns></returns>
         public int Handle(SendMessageCommand commandSend)
         {
-            if (!_databaseExists.Exists(_configurationSend.ConnectionInfo.ConnectionString))
+            if (!_databaseExists.Exists())
             {
                 return 0;
             }
@@ -129,94 +132,104 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             }
 
             var id = 0;
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                try
+                lock (Locker) //we need to block due to jobs
                 {
-                    db.BeginTrans();
-                    if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(
-                            new DoesJobExistQuery(jobName, scheduledTime, db)) ==
-                        QueueStatuses.NotQueued)
+                    try
                     {
-                        var serialization =
-                            _serializer.Serializer.MessageToBytes(
-                                new MessageBody {Body = commandSend.MessageToSend.Body},
-                                commandSend.MessageToSend.Headers);
-
-                        //create queue
-                        var queueData = new QueueTable() {Body = serialization.Output};
-                        commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph,
-                            serialization.Graph);
-                        queueData.Headers =
-                            _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
-
-                        var col = db.GetCollection<QueueTable>(_tableNameHelper.QueueName);
-                        id = col.Insert(queueData).AsInt32;
-
-                        //create metadata
-                        var metaData = new MetaDataTable
+                        db.Database.BeginTrans(); //only blocks on shared connections
+                        if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(
+                                new DoesJobExistQuery(jobName, scheduledTime, db.Database)) ==
+                            QueueStatuses.NotQueued)
                         {
-                            QueueId = id,
-                            CorrelationId = (Guid) commandSend.MessageData.CorrelationId.Id.Value,
-                            QueuedDateTime = DateTime.UtcNow
-                        };
+                            var serialization =
+                                _serializer.Serializer.MessageToBytes(
+                                    new MessageBody {Body = commandSend.MessageToSend.Body},
+                                    commandSend.MessageToSend.Headers);
 
-                        if (!string.IsNullOrWhiteSpace(jobName))
-                        {
-                            metaData.QueueProcessTime = scheduledTime.UtcDateTime;
-                        } 
-                        else if (_options.Value.EnableDelayedProcessing)
-                        {
-                            var delay = commandSend.MessageData.GetDelay();
-                            if (delay.HasValue)
+                            //create queue
+                            var queueData = new QueueTable() {Body = serialization.Output};
+                            commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph,
+                                serialization.Graph);
+                            queueData.Headers =
+                                _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
+
+                            var col = db.Database.GetCollection<QueueTable>(_tableNameHelper.QueueName);
+                            id = col.Insert(queueData).AsInt32;
+
+                            //create metadata
+                            var metaData = new MetaDataTable
                             {
-                                metaData.QueueProcessTime = DateTime.UtcNow.Add(delay.Value);
-                            }
-                        }
-
-                        if (_options.Value.EnableMessageExpiration && expiration.HasValue)
-                            metaData.ExpirationTime = DateTime.UtcNow.Add(expiration.Value);
-
-                        if (_options.Value.EnableStatus)
-                            metaData.Status = QueueStatuses.Waiting;
-
-                        if (_options.Value.EnableRoute && !string.IsNullOrWhiteSpace(commandSend.MessageData.Route))
-                        {
-                            metaData.Route = commandSend.MessageData.Route;
-                        }
-
-                        var colMeta = db.GetCollection<MetaDataTable>(_tableNameHelper.MetaDataName);
-                        colMeta.Insert(metaData);
-
-                        //create status table record
-                        if (_options.Value.EnableStatusTable || !string.IsNullOrWhiteSpace(jobName))
-                        {
-                            var statusData = new StatusTable()
-                            {
-                                Status = metaData.Status, CorrelationId = metaData.CorrelationId, QueueId = id
+                                QueueId = id,
+                                CorrelationId = (Guid) commandSend.MessageData.CorrelationId.Id.Value,
+                                QueuedDateTime = DateTime.UtcNow
                             };
 
                             if (!string.IsNullOrWhiteSpace(jobName))
-                                statusData.JobName = jobName;
+                            {
+                                metaData.QueueProcessTime = scheduledTime.UtcDateTime;
+                            }
+                            else if (_options.Value.EnableDelayedProcessing)
+                            {
+                                var delay = commandSend.MessageData.GetDelay();
+                                if (delay.HasValue)
+                                {
+                                    metaData.QueueProcessTime = DateTime.UtcNow.Add(delay.Value);
+                                }
+                            }
 
-                            var colStatus = db.GetCollection<StatusTable>(_tableNameHelper.StatusName);
-                            colStatus.Insert(statusData);
+                            if (_options.Value.EnableMessageExpiration && expiration.HasValue)
+                                metaData.ExpirationTime = DateTime.UtcNow.Add(expiration.Value);
+
+                            if (_options.Value.EnableStatus)
+                                metaData.Status = QueueStatuses.Waiting;
+
+                            if (_options.Value.EnableRoute && !string.IsNullOrWhiteSpace(commandSend.MessageData.Route))
+                            {
+                                metaData.Route = commandSend.MessageData.Route;
+                            }
+
+                            var colMeta = db.Database.GetCollection<MetaDataTable>(_tableNameHelper.MetaDataName);
+                            colMeta.Insert(metaData);
+
+                            //create status table record
+                            if (_options.Value.EnableStatusTable || !string.IsNullOrWhiteSpace(jobName))
+                            {
+                                var statusData = new StatusTable()
+                                {
+                                    Status = metaData.Status, CorrelationId = metaData.CorrelationId, QueueId = id
+                                };
+
+                                if (!string.IsNullOrWhiteSpace(jobName))
+                                    statusData.JobName = jobName;
+
+                                var colStatus = db.Database.GetCollection<StatusTable>(_tableNameHelper.StatusName);
+                                colStatus.Insert(statusData);
+                            }
+
+                            //job name
+                            if (!string.IsNullOrWhiteSpace(jobName))
+                            {
+                                _sendJobStatus.Handle(new SetJobLastKnownEventCommand(jobName, eventTime,
+                                    scheduledTime, db.Database));
+                            }
                         }
-
-                        //job name
-                        if (!string.IsNullOrWhiteSpace(jobName))
+                        else
                         {
-                            _sendJobStatus.Handle(new SetJobLastKnownEventCommand(jobName, eventTime,
-                                scheduledTime, db));
+                            throw new DotNetWorkQueueException(
+                                "Failed to insert record - the job has already been queued or processed");
                         }
+
+                        db.Database.Commit();
                     }
-                    db.Commit();
+                    catch
+                    {
+                        db.Database.Rollback();
+                        throw;
+                    }
                 }
-                catch
-                {
-                    db.Rollback();
-                    throw;
-                }
+
                 return id;
             }
         }

@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     {
         private readonly IJobSchema _createSchema;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
-        private readonly IConnectionInformation _connection;
+        private readonly LiteDbConnectionManager _connection;
         private readonly TableNameHelper _tableNameHelper;
         private readonly ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult>
             _createCommand;
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         public LiteDbJobTableCreation(IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             IJobSchema createSchema,
             ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult> createCommand,
-            IConnectionInformation connectionInfo,
+            LiteDbConnectionManager connectionInfo,
             TableNameHelper tableNameHelper
             )
         {
@@ -71,9 +71,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         {
             get
             {
-                using (var db = new LiteDatabase(_connection.ConnectionString))
+                using (var db = _connection.GetDatabase())
                 {
-                    return _queryTableExists.Handle(new GetTableExistsQuery(db,
+                    return _queryTableExists.Handle(new GetTableExistsQuery(db.Database,
                         _tableNameHelper.JobTableName));
                 }
             }

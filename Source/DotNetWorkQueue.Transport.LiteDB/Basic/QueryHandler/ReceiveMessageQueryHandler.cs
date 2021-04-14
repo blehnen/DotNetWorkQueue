@@ -31,9 +31,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     /// </summary>
     internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery, IReceivedMessageInternal>
     {
+        private static readonly object Reader = new object();
+
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly DatabaseExists _databaseExists;
         private readonly MessageDeQueue _messageDeQueue;
 
@@ -46,8 +48,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="databaseExists">The database exists.</param>
         /// <param name="messageDeQueue">The message de queue.</param>
         public ReceiveMessageQueryHandler(ILiteDbMessageQueueTransportOptionsFactory optionsFactory, 
-            TableNameHelper tableNameHelper, 
-            IConnectionInformation connectionInformation,
+            TableNameHelper tableNameHelper,
+            LiteDbConnectionManager connectionInformation,
             DatabaseExists databaseExists,
             MessageDeQueue messageDeQueue)
         {
@@ -71,8 +73,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <returns></returns>
         public IReceivedMessageInternal Handle(ReceiveMessageQuery query)
         {
-            if(!_databaseExists.Exists(_connectionInformation.ConnectionString))
-            {           
+            if (!_databaseExists.Exists())
+            {
                 return null;
             }
 
@@ -80,20 +82,24 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             if (!_options.IsValueCreated)
                 _options.Value.ValidConfiguration();
 
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                db.BeginTrans();
-                try
+                lock (Reader) //we have to enforce a single de-queue action per process, as BeginTrans does not block in direct or memory mode
                 {
-                    var record = DequeueRecord(query, db);
-                    if (record != null)
+                    db.Database.BeginTrans(); //will block in shared mode, but not direct or memory
+                    try
                     {
-                        return _messageDeQueue.HandleMessage(record.Item1, record.Item2.QueueId, record.Item2.CorrelationId);
+                        var record = DequeueRecord(query, db.Database);
+                        if (record != null)
+                        {
+                            return _messageDeQueue.HandleMessage(record.Item1, record.Item2.QueueId,
+                                record.Item2.CorrelationId);
+                        }
                     }
-                }
-                finally
-                {
-                    db.Commit();
+                    finally
+                    {
+                        db.Database.Commit();
+                    }
                 }
             }
 

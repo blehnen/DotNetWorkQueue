@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class SetErrorCountCommandHandler : ICommandHandler<SetErrorCountCommand<int>>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         public SetErrorCountCommandHandler(
-            IConnectionInformation connectionInformation,
+            LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -51,12 +51,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <inheritdoc />
         public void Handle(SetErrorCountCommand<int> command)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                db.BeginTrans();
+                db.Database.BeginTrans();
                 try
                 {
-                    var meta = db.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
+                    var meta = db.Database.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
                     var results = meta.Query()
                         .Where(x => x.QueueId == command.QueueId)
                         .Where(x => x.ExceptionType == command.ExceptionType)
@@ -78,11 +78,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         meta.Insert(record);
                     }
 
-                    db.Commit();
+                    db.Database.Commit();
                 }
                 catch
                 {
-                    db.Rollback();
+                    db.Database.Rollback();
                     throw;
                 }
             }

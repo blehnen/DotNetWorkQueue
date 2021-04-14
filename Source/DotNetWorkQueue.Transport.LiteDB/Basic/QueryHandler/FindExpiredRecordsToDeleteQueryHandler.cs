@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     /// </summary>
     public class FindExpiredRecordsToDeleteQueryHandler : IQueryHandler<FindExpiredMessagesToDeleteQuery<int>, IEnumerable<int>>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// </summary>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public FindExpiredRecordsToDeleteQueryHandler(IConnectionInformation connectionInformation,
+        public FindExpiredRecordsToDeleteQueryHandler(LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                 return Enumerable.Empty<int>();
             }
 
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
                 //before executing a query, double check that we aren't stopping
                 if (query.Cancellation.IsCancellationRequested)
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                     return Enumerable.Empty<int>();
                 }
 
-                var col = db.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                var col = db.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
 
                 var results = col.Query()
                     .Where(x => x.ExpirationTime < DateTime.UtcNow)

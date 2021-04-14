@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class ResetHeartBeatCommandHandler : ICommandHandlerWithOutput<ResetHeartBeatCommand<int>, long>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="connectionInformation">The connection information.</param>
         public ResetHeartBeatCommandHandler(TableNameHelper tableNameHelper,
-            IConnectionInformation connectionInformation)
+            LiteDbConnectionManager connectionInformation)
         {
             _tableNameHelper = tableNameHelper;
             _connectionInformation = connectionInformation;
@@ -45,15 +45,16 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
         }
+
         /// <inheritdoc />
         public long Handle(ResetHeartBeatCommand<int> inputCommand)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                db.BeginTrans();
+                db.Database.BeginTrans();
                 try
                 {
-                    var col = db.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var col = db.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
 
                     var results = col.Query()
                         .Where(x => x.Status == QueueStatuses.Processing)
@@ -69,12 +70,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         col.Update(results[0]);
                     }
 
-                    db.Commit();
+                    db.Database.Commit();
                     return results.Count;
                 }
                 catch
                 {
-                    db.Rollback();
+                    db.Database.Rollback();
                     throw;
                 }
             }

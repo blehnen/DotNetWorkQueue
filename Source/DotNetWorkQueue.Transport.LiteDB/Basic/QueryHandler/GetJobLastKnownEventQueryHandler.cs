@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     /// </summary>
     public class GetJobLastKnownEventQueryHandler : IQueryHandler<GetJobLastKnownEventQuery, DateTimeOffset>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// </summary>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public GetJobLastKnownEventQueryHandler(IConnectionInformation connectionInformation,
+        public GetJobLastKnownEventQueryHandler(LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -46,12 +46,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;
         }
+
         /// <inheritdoc />
         public DateTimeOffset Handle(GetJobLastKnownEventQuery query)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                var col = db.GetCollection<Schema.JobsTable>(_tableNameHelper.JobTableName);
+                var col = db.Database.GetCollection<Schema.JobsTable>(_tableNameHelper.JobTableName);
 
                 var results = col.Query()
                     .Where(x => x.JobName == query.JobName)
@@ -62,9 +63,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                 {
                     return results[0].JobEventTime;
                 }
-            }
 
-            return default;
+                return default;
+            }
         }
     }
 }

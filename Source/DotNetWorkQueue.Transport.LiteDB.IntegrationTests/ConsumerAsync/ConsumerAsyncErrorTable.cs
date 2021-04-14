@@ -11,13 +11,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncErrorTable
     {
         [Theory]
-        [InlineData(1, 60, 1, 1, 0,  false),
-        InlineData(25, 200, 20, 1, 5,  false),
-        InlineData(5, 60, 20, 1, 5, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, 
-            int readerCount, int queueSize, bool enableChaos)
+        [InlineData(1, 60, 1, 1, 0, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(25, 200, 20, 1, 5, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(5, 60, 20, 1, 5, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        public void Run(int messageCount, int timeOut, int workerCount,
+            int readerCount, int queueSize, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -27,60 +27,58 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
                     try
                     {
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.Options.EnableStatusTable = true;
-                            oCreation.Options.EnableDelayedProcessing = true;
 
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
+                        oCreation.Options.EnableStatusTable = true;
+                        oCreation.Options.EnableDelayedProcessing = true;
 
-                            //create data
-                            var producer = new ProducerShared();
-                            producer.RunTest<LiteDbMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, false);
+                        var result = oCreation.CreateQueue();
+                        Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
 
-                            //process data
-                            var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
-                            consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
-                                false,
-                                logProvider,
-                                messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
-                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, false);
+                        //create data
+                        var producer = new ProducerShared();
+                        producer.RunTest<LiteDbMessageQueueInit, FakeMessage>(queueConnection, false, messageCount,
+                            logProvider, Helpers.GenerateData,
+                            Helpers.Verify, false, scope, false);
 
-                            consumer.PurgeErrorMessages<LiteDbMessageQueueInit>(queueConnection,
-                                false, logProvider, false);
-                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
+                        //process data
+                        var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
+                        consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
+                            false,
+                            logProvider,
+                            messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30),
+                            TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos, scope);
+                        ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount, scope);
+                        new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options, scope)
+                            .Verify(messageCount, true, false);
 
-                            //purge error messages and verify that count is 0
-                            consumer.PurgeErrorMessages<LiteDbMessageQueueInit>(queueConnection,
-                                false, logProvider, true);
-                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, 0);
-                        }
+                        consumer.PurgeErrorMessages<LiteDbMessageQueueInit>(queueConnection,
+                            false, logProvider, false, scope);
+                        ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount, scope);
+
+                        //purge error messages and verify that count is 0
+                        consumer.PurgeErrorMessages<LiteDbMessageQueueInit>(queueConnection,
+                            false, logProvider, true, scope);
+                        ValidateErrorCounts(queueName, connectionInfo.ConnectionString, 0, scope);
+
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
+                        oCreation?.RemoveQueue();
+                        oCreation?.Dispose();
+                        scope?.Dispose();
                     }
                 }
             }
         }
-        private void ValidateErrorCounts(string queueName, string connectionString, int messageCount)
+        private void ValidateErrorCounts(string queueName, string connectionString, int messageCount, ICreationScope scope)
         {
-            new VerifyErrorCounts(queueName, connectionString).Verify(messageCount, 2);
+            new VerifyErrorCounts(queueName, connectionString, scope).Verify(messageCount, 2);
         }
     }
 }

@@ -31,16 +31,13 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection);
                     try
                     {
-
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
+                        var result = oCreation.CreateQueue();
                             Assert.True(result.Success, result.ErrorMessage);
+                            scope = oCreation.Scope;
 
                             //create data
                             var producer = new ProducerMethodShared();
@@ -64,24 +61,21 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                             consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                 false,
                                 logProvider,
-                                messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false);
+                                messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false, scope);
                             ValidateErrorCounts(oCreation.Scope, messageCount);
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
 
                             //purge error messages and verify that count is 0
                             consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueConnection,
-                                false,  logProvider, true);
-                        }
+                                false,  logProvider, true, scope);
+                        
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
+                     
                             oCreation.RemoveQueue();
-                        }
+                            oCreation.Dispose();
+                            scope?.Dispose();
                     }
                 }
             }

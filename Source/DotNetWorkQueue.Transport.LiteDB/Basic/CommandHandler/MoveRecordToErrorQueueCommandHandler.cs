@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     public class MoveRecordToErrorQueueCommandHandler : ICommandHandler<MoveRecordToErrorQueueCommand<int>>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
 
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="tableNameHelper">The table name helper.</param>
         public MoveRecordToErrorQueueCommandHandler(
             ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
-            IConnectionInformation connectionInformation,
+            LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -57,13 +57,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <inheritdoc />
         public void Handle(MoveRecordToErrorQueueCommand<int> command)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
                 bool delete = false;
-                db.BeginTrans();
+                db.Database.BeginTrans();
                 try
                 {
-                    var meta = db.GetCollection<MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var meta = db.Database.GetCollection<MetaDataTable>(_tableNameHelper.MetaDataName);
                     var results = meta.Query()
                         .Where(x => x.QueueId == command.QueueId)
                         .ToList();
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         };
 
                         var errorCol =
-                            db.GetCollection<MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
+                            db.Database.GetCollection<MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
                         errorCol.Insert(errorRecord);
 
                         //delete record from metadata table
@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         //update status table
                         if (_options.Value.EnableStatusTable)
                         {
-                            var colStatus = db.GetCollection<StatusTable>(_tableNameHelper.StatusName);
+                            var colStatus = db.Database.GetCollection<StatusTable>(_tableNameHelper.StatusName);
                             var resultsStatus = colStatus.Query()
                                 .Where(x => x.QueueId == command.QueueId)
                                 .ToList();
@@ -109,13 +109,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                     }
 
                     if (delete)
-                        db.Commit();
+                        db.Database.Commit();
                     else
-                        db.Rollback();
+                        db.Database.Rollback();
                 }
                 catch
                 {
-                    db.Rollback();
+                    db.Database.Rollback();
                     throw;
                 }
             }

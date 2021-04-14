@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Trace;
+using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Trace;

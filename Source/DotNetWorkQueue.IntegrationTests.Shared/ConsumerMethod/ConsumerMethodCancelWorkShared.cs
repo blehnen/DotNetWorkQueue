@@ -2,6 +2,7 @@
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
+using Polly.Caching;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
@@ -22,7 +23,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, Guid id, bool enableChaos)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, Guid id, bool enableChaos, ICreationScope scope)
         {
             _queueConnection = queueConnection;
             _workerCount = workerCount;
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             _heartBeatTime = heartBeatTime;
             _heartBeatMonitorTime = heartBeatMonitorTime;
 
-            _queue = CreateConsumerInternalThread();
+            _queue = CreateConsumerInternalThread(scope);
             var t = new Thread(RunBadQueue);
             t.Start();
 
@@ -41,7 +42,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
             //run consumer
             RunConsumerInternal(queueConnection, addInterceptors, logProvider, runTime,
-                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, id, updateTime, enableChaos);
+                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, id, updateTime, enableChaos, scope);
         }
 
 
@@ -49,7 +50,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, IDisposable queueBad,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos, ICreationScope scope)
         {
 
             using (var metrics = new Metrics.Metrics(queueConnection.Queue))
@@ -60,13 +61,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly; 
                 }
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
                     )
                 {
 
                     using (
                         var queue =
-                            creator.CreateMethodConsumer(queueConnection))
+                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                             heartBeatMonitorTime, updateTime, null);
@@ -101,12 +102,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             }
         }
 
-        private IConsumerMethodQueue CreateConsumerInternalThread()
+        private IConsumerMethodQueue CreateConsumerInternalThread(ICreationScope scope)
         {
             _badQueueContainer = SharedSetup.CreateCreator<TTransportInit>(_badQueueAdditions);
 
             var queue =
-                _badQueueContainer.CreateMethodConsumer(_queueConnection);
+                _badQueueContainer.CreateMethodConsumer(_queueConnection, x => x.RegisterNonScopedSingleton(scope));
  
                 SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime, _heartBeatMonitorTime, _updatetime, null);
                 return queue;        

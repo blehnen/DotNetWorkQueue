@@ -22,12 +22,9 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
-using DotNetWorkQueue.Transport.SQLite;
-using DotNetWorkQueue.Transport.SQLite.Basic;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {

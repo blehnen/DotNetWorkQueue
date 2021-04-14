@@ -30,13 +30,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<int>, DateTime?>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendHeartBeatCommandHandler" /> class.
         /// </summary>
-        public SendHeartBeatCommandHandler(IConnectionInformation connectionInformation,
+        public SendHeartBeatCommandHandler(LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -45,15 +45,16 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;
         }
+
         /// <inheritdoc />
         public DateTime? Handle(SendHeartBeatCommand<int> command)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                db.BeginTrans();
+                db.Database.BeginTrans();
                 try
                 {
-                    var col = db.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var col = db.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
 
                     var results = col.Query()
                         .Where(x => x.QueueId == command.QueueId)
@@ -69,12 +70,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         col.Update(record);
                     }
 
-                    db.Commit();
+                    db.Database.Commit();
                     return date;
                 }
                 catch
                 {
-                    db.Rollback();
+                    db.Database.Rollback();
                     throw;
                 }
             }

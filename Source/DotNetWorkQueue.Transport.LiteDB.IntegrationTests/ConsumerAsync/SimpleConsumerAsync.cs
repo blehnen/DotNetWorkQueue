@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [InlineData(50, 1, 400, 10, 5, 5, 1,  false),
-         InlineData(10, 1, 400, 10, 5, 5, 1,true)]
+        [InlineData(50, 1, 400, 10, 5, 5, 1,  false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(10, 1, 400, 10, 5, 5, 1,true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-           int messageType, bool enableChaos)
+           int messageType, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             SchedulerContainer schedulerContainer = null;
             if (Factory == null)
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
             }
 
 
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -35,70 +35,72 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
                     try
                     {
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
+
+                        oCreation.Options.EnableStatusTable = true;
+
+                        var result = oCreation.CreateQueue();
+                        Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
+
+                        if (messageType == 1)
                         {
-                            oCreation.Options.EnableStatusTable = true;
+                            var producer = new ProducerAsyncShared();
+                            producer.RunTestAsync<LiteDbMessageQueueInit, FakeMessage>(queueConnection, false,
+                                messageCount, logProvider, Helpers.GenerateData,
+                                Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
 
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            if (messageType == 1)
-                            {
-                                var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<LiteDbMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
-                                var consumer = new ConsumerAsyncShared<FakeMessage> { Factory = Factory };
-                                consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
-                                    false, logProvider,
-                                    runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos);
-                            }
-                            else if (messageType == 2)
-                            {
-                                var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<LiteDbMessageQueueInit, FakeMessageA>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
-                                var consumer = new ConsumerAsyncShared<FakeMessageA> { Factory = Factory };
-                                consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
-                                    false, logProvider,
-                                    runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos);
-                            }
-                            else if (messageType == 3)
-                            {
-                                var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<LiteDbMessageQueueInit, FakeMessageB>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
-                                var consumer = new ConsumerAsyncShared<FakeMessageB> { Factory = Factory };
-                                consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
-                                    false, logProvider,
-                                    runtime, messageCount,
-                                    timeOut, readerCount,
-                                    TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos);
-                            }
-
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
+                            var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
+                            consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
+                                false, logProvider,
+                                runtime, messageCount,
+                                timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35),
+                                "second(*%10)", enableChaos, scope, null);
                         }
+                        else if (messageType == 2)
+                        {
+                            var producer = new ProducerAsyncShared();
+                            producer.RunTestAsync<LiteDbMessageQueueInit, FakeMessageA>(queueConnection, false,
+                                messageCount, logProvider, Helpers.GenerateData,
+                                Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
+
+                            var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
+                            consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
+                                false, logProvider,
+                                runtime, messageCount,
+                                timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35),
+                                "second(*%10)", enableChaos, scope, null);
+                        }
+                        else if (messageType == 3)
+                        {
+                            var producer = new ProducerAsyncShared();
+                            producer.RunTestAsync<LiteDbMessageQueueInit, FakeMessageB>(queueConnection, false,
+                                messageCount, logProvider, Helpers.GenerateData,
+                                Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
+
+                            var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
+                            consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
+                                false, logProvider,
+                                runtime, messageCount,
+                                timeOut, readerCount,
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos, scope,
+                                null);
+                        }
+
+                        new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options, scope)
+                            .Verify(0, false, false);
+
                     }
                     finally
                     {
                         schedulerContainer?.Dispose();
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
+                        oCreation?.RemoveQueue();
+                        oCreation?.Dispose();
+                        scope?.Dispose();
                     }
                 }
             }
@@ -107,10 +109,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
 #pragma warning disable xUnit1013 // Public method should be marked as test
         public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
 #pragma warning restore xUnit1013 // Public method should be marked as test
-            int messageType, ITaskFactory factory, bool enableChaos)
+            int messageType, ITaskFactory factory, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             Factory = factory;
-            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, enableChaos);
+            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, enableChaos, connectionType);
         }
 
 

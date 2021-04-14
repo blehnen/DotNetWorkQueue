@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     {
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly IInternalSerializer _serializer;
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="optionsFactory">The options factory.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="serializer">The serializer.</param>
-        public CreateQueueTablesAndSaveConfigurationCommandHandler(IConnectionInformation connectionInformation,
+        public CreateQueueTablesAndSaveConfigurationCommandHandler(LiteDbConnectionManager connectionInformation,
             ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
             TableNameHelper tableNameHelper,
             IInternalSerializer serializer)
@@ -62,32 +62,31 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         public QueueCreationResult Handle(CreateQueueTablesAndSaveConfigurationCommand<ITable> command)
         {
             //create database and enforce UTC date de-serialization
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-               db.Pragma("UTC_DATE", true);
-            }
+                db.Database.Pragma("UTC_DATE", true);
 
-            //create all tables
-            foreach (var table in command.Tables)
-            {
-                table.Create(_connectionInformation, _options.Value, _tableNameHelper);
-            }
 
-            //save configuration
-            foreach (var table in command.Tables)
-            {
-                if (table is ConfigurationTable configTable)
+                //create all tables
+                foreach (var table in command.Tables)
                 {
-                    using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+                    table.Create(_connectionInformation, _options.Value, _tableNameHelper);
+                }
+
+                //save configuration
+                foreach (var table in command.Tables)
+                {
+                    if (table is ConfigurationTable configTable)
                     {
-                        var col = db.GetCollection<ConfigurationTable>(_tableNameHelper.ConfigurationName);
+                        var col = db.Database.GetCollection<ConfigurationTable>(_tableNameHelper.ConfigurationName);
                         configTable.Configuration = _serializer.ConvertToBytes(_options.Value);
                         col.Insert(configTable);
+                        break;
                     }
-                    break;
                 }
+
+                return new QueueCreationResult(QueueCreationStatus.Success);
             }
-            return new QueueCreationResult(QueueCreationStatus.Success);
         }
     }
 }

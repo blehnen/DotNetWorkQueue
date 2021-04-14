@@ -65,14 +65,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
                 var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
+                ICreationScope scope = null;
+                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
                 try
                 {
 
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
+                    
                         oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
                         oCreation.Options.EnableHeartBeat = enableHeartBeat;
                         oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
@@ -89,23 +87,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
 
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
-
+                        scope = oCreation.Scope;
                         var id = Guid.NewGuid();
                         var producer = new ProducerMethodAsyncShared();
                         await producer.RunTestAsync<PostgreSqlMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
                             Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope, enableChaos).ConfigureAwait(false);
-                    }
+                    
                 }
                 finally
                 {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
+                    scope?.Dispose();
 
                 }
             }

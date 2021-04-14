@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             TimeSpan heartBeatMonitorTime,
             string updateTime,
             string route,
-            bool enableChaos)
+            bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
 
                 using (
                     var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics,
-                        true, enableChaos))
+                        true, enableChaos, scope))
                 {
                     using (var schedulerCreator = new SchedulerContainer())
                     {

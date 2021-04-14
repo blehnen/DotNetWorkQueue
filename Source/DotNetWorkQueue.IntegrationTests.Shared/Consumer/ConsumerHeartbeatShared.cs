@@ -15,7 +15,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
             string updateTime,
             string route, 
-            bool enableChaos)
+            bool enableChaos,
+            ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
             if (enableChaos)
@@ -30,14 +31,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             typeof (GZipMessageInterceptor), //gzip compression
                             typeof (TripleDesMessageInterceptor) //encryption
                         }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton),
-                    heartBeatTime, heartBeatMonitorTime, updateTime, route, enableChaos);
+                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope),
+                    heartBeatTime, heartBeatMonitorTime, updateTime, route, enableChaos, scope);
             }
             else
             {
                 queue.RunConsumer(queueConnection, false, logProvider, runTime, messageCount, workerCount, timeOut,
-                    serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton),
-                    heartBeatTime, heartBeatMonitorTime, updateTime, route, enableChaos);
+                    serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton).RegisterNonScopedSingleton(scope),
+                    heartBeatTime, heartBeatMonitorTime, updateTime, route, enableChaos, scope);
             }
         }
 

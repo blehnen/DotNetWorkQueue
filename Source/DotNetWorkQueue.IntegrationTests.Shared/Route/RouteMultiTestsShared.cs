@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                     var consumer = new ConsumerAsyncShared<TMessage> { Factory = taskFactory };
 
                     consumer.RunConsumer<TTransportInit>(queueConnection, addInterceptors,
-                        logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, enableChaos, route);
+                        logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, enableChaos, scope, route);
                 });
             }
         }

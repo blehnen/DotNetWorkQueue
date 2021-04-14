@@ -15,7 +15,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
             string updateTime,
             string route,
-            bool enableChaos)
+            bool enableChaos,
+            ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
 
                 var processedCount = new IncrementWrapper();
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
                     )
                 {
 
@@ -85,7 +86,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             }
         }
         public void PurgeErrorMessages<TTransportInit>(QueueConnection queueConnection,
-            bool addInterceptors, ILogger logProvider, bool actuallyPurge)
+            bool addInterceptors, ILogger logProvider, bool actuallyPurge, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueConnection.Queue))
@@ -98,7 +99,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
 
                 var processedCount = new IncrementWrapper();
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false, scope)
                     )
                 {
 

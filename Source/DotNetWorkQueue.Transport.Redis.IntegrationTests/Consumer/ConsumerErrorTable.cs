@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
 
@@ -46,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     var consumer = new ConsumerErrorShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
                         logProvider,
-                        workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute, false);
+                        workerCount, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute, false, new CreationScopeNoOp());
                     ValidateErrorCounts(queueName, connectionString, messageCount);
                     using (
                         var count = new VerifyQueueRecordCount(queueName, connectionString))
@@ -55,14 +56,14 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     }
 
                     consumer.PurgeErrorMessages<RedisQueueInit>(queueConnection,
-                        false, logProvider, false);
+                        false, logProvider, false, new CreationScopeNoOp());
 
                     //table should be empty now
                     ValidateErrorCounts(queueName, connectionString, messageCount);
 
                     //purge error records
                     consumer.PurgeErrorMessages<RedisQueueInit>(queueConnection,
-                        false, logProvider, true);
+                        false, logProvider, true, new CreationScopeNoOp());
 
                     //table should be empty now
                     ValidateErrorCounts(queueName, connectionString, 0);

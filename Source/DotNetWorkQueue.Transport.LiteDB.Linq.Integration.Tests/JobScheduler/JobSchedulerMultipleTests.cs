@@ -14,31 +14,32 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.JobScheduler
         public void Run(
             int producerCount)
         {
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(IntegrationConnectionInfo.ConnectionTypes.Direct))
             {
-                var queueName = GenerateQueueName.Create();
-                using (var queueContainer = new QueueContainer<LiteDbMessageQueueInit>(x => {
-                }))
+                using (var queueCreator =
+                    new QueueCreationContainer<LiteDbMessageQueueInit>())
                 {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
+                    var queueName = GenerateQueueName.Create();
+                    var queueConnection =
+                        new DotNetWorkQueue.Configuration.QueueConnection(queueName,
+                            connectionInfo.ConnectionString);
+                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
+                    var scope = oCreation.Scope;
+                    using (var queueContainer = new QueueContainer<LiteDbMessageQueueInit>(x => x.RegisterNonScopedSingleton(scope)))
                     {
-                        var tests = new JobSchedulerTestsShared();
-                        tests.RunTestMultipleProducers<LiteDbMessageQueueInit, LiteDbJobQueueCreation>(queueConnection, true, producerCount, queueContainer.CreateTimeSync(connectionInfo.ConnectionString), LoggerShared.Create(queueName, GetType().Name));
-                    }
-                    finally
-                    {
-
-                        using (var queueCreator =
-                            new QueueCreationContainer<LiteDbMessageQueueInit>())
+                        try
                         {
-                            using (
-                                var oCreation =
-                                    queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                                )
-                            {
-                                oCreation.RemoveQueue();
-                            }
+                            var tests = new JobSchedulerTestsShared();
+                            tests.RunTestMultipleProducers<LiteDbMessageQueueInit, LiteDbJobQueueCreation>(
+                                queueConnection, true, producerCount,
+                                queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
+                                LoggerShared.Create(queueName, GetType().Name), scope);
+                        }
+                        finally
+                        {
+                            oCreation.RemoveQueue();
+                            oCreation.Dispose();
+                            scope?.Dispose();
                         }
                     }
                 }

@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     public class GetHeaderQueryHandler : IQueryHandler<GetHeaderQuery<int>, IDictionary<string, object>>
     {
         private readonly ICompositeSerialization _serialization;
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         public GetHeaderQueryHandler(ICompositeSerialization serialization,
-            IConnectionInformation connectionInformation,
+            LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -55,9 +55,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <inheritdoc />
         public IDictionary<string, object> Handle(GetHeaderQuery<int> query)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                var queue = db.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
+                var queue = db.Database.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
 
                 var queueRecord = queue.FindById(query.Id);
                 if (queueRecord != null)
@@ -68,6 +68,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                     return headers;
                 }
             }
+
             return null;
         }
     }

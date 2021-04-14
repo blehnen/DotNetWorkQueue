@@ -3,7 +3,6 @@ using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using NSubstitute;
-using NSubstitute.ReceivedExtensions;
 using Xunit;
 
 namespace DotNetWorkQueue.Tests.Transport.Memory.Basic

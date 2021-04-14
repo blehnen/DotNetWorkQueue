@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
 
@@ -46,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     var defaultRoute = route ? Helpers.DefaultRoute : null;
                     var consumer = new ConsumerRollBackShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
-                        workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute, false);
+                        workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute, false, new CreationScopeNoOp());
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, bool enableChaos)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 
                 var processedCount = new IncrementWrapper();
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
                     )
                 {
                     using (

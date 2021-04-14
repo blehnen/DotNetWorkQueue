@@ -33,12 +33,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             Guard.NotNullOrEmpty(() => connectionString, connectionString);
             var connection = new ConnectionString(connectionString);
 
-            if (string.IsNullOrWhiteSpace(connection.Filename)) return null;
+            var inMemory = connectionString.Contains(":memory:");
 
-            if (connection.Filename == ":memory")
-                throw new NotSupportedException(
-                    "Memory based databases are not supported, as they don't travel between connections");
-            return new ConnectionStringInfo(connection.Filename);
+            if (inMemory || !string.IsNullOrWhiteSpace(connection.Filename))
+                return new ConnectionStringInfo(inMemory, connection.Filename);
+
+            return null;
         }
     }
 }

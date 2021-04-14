@@ -29,22 +29,23 @@ namespace DotNetWorkQueue.Transport.LiteDb.Schema
     public class MetaDataTable: ITable
     {
         /// <inheritdoc />
-        public bool Create(IConnectionInformation connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper)
+        public bool Create(LiteDbConnectionManager connection, LiteDbMessageQueueTransportOptions options,
+            TableNameHelper helper)
         {
-            using (var db = new LiteDatabase(connection.ConnectionString))
+            using (var db = connection.GetDatabase())
             {
-                var col = db.GetCollection<MetaDataTable>(helper.MetaDataName);
+                var col = db.Database.GetCollection<MetaDataTable>(helper.MetaDataName);
 
                 col.EnsureIndex(x => x.Id);
                 col.EnsureIndex(x => x.QueueId, true);
 
-                if(options.EnableStatus)
+                if (options.EnableStatus)
                     col.EnsureIndex(x => x.Status);
-                if(options.EnableMessageExpiration)
+                if (options.EnableMessageExpiration)
                     col.EnsureIndex(x => x.ExpirationTime);
-                if(options.EnableHeartBeat)
+                if (options.EnableHeartBeat)
                     col.EnsureIndex(x => x.HeartBeat);
-                if(options.EnableRoute)
+                if (options.EnableRoute)
                     col.EnsureIndex(x => x.Route);
 
                 return true;

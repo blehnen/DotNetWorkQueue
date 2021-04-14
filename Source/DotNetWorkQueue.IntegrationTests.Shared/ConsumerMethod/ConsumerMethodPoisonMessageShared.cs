@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             TimeSpan heartBeatTime, 
             TimeSpan heartBeatMonitorTime,
             string updateTime,
-            bool enableChaos)
+            bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
             if (enableChaos)
@@ -32,11 +32,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
                 using (
                     var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics,
-                        true, enableChaos))
+                        true, enableChaos, scope))
                 {
                     using (
                         var queue =
-                            creator.CreateMethodConsumer(queueConnection))
+                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                             heartBeatMonitorTime, updateTime, null);

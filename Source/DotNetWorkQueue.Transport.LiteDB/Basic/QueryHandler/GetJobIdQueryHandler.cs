@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     /// </summary>
     public class GetJobIdQueryHandler : IQueryHandler<GetJobIdQuery<int>, int>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// </summary>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public GetJobIdQueryHandler(IConnectionInformation connectionInformation,
+        public GetJobIdQueryHandler(LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -49,9 +49,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <inheritdoc />
         public int Handle(GetJobIdQuery<int> query)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                var col = db.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
+                var col = db.Database.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
 
                 var results = col.Query()
                     .Where(x => x.JobName == query.JobName)
@@ -62,8 +62,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                 {
                     return results[0].QueueId;
                 }
+
+                return default;
             }
-            return default;
         }
     }
 }

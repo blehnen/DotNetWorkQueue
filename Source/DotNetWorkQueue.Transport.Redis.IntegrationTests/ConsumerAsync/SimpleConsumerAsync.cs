@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
 
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
                             logProvider,
                             runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
+                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false, new CreationScopeNoOp(), null);
                     }
                     else if (messageType == 2)
                     {
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
                             logProvider,
                             runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
+                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false, new CreationScopeNoOp(), null);
                     }
                     else if (messageType == 3)
                     {
@@ -70,7 +71,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                         consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
                             logProvider,
                             runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
+                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false, new CreationScopeNoOp(), null);
                     }
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))

@@ -12,11 +12,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
     public class ConsumerCancelWork
     {
         [Theory]
-        [InlineData(7, 15, 90, 3, false),
-        InlineData(2, 45, 90, 3, false)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos)
+        [InlineData(7, 15, 90, 3, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        InlineData(2, 45, 90, 3, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -26,18 +26,17 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
                     try
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
+
                             oCreation.Options.EnableStatusTable = true;
                             oCreation.Options.EnableDelayedProcessing = true;
 
                             var result = oCreation.CreateQueue();
                             Assert.True(result.Success, result.ErrorMessage);
+                            scope = oCreation.Scope;
 
                             var producer = new ProducerShared();
                             producer.RunTest<LiteDbMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
@@ -46,20 +45,16 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
                             var consumer = new ConsumerCancelWorkShared<LiteDbMessageQueueInit, FakeMessage>();
                             consumer.RunConsumer(queueConnection, false, logProvider,
                                 runtime, messageCount,
-                                workerCount, timeOut, x => { }, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
+                                workerCount, timeOut, x => x.RegisterNonScopedSingleton(scope), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos, scope);
 
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
-                        }
+                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options, scope).Verify(0, false, false);
+                        
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
+                        oCreation?.RemoveQueue();
+                        oCreation?.Dispose();
+                        scope?.Dispose();
                     }
                 }
             }

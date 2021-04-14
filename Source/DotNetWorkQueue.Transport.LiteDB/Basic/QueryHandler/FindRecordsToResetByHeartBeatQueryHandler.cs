@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     /// </summary>
     internal class FindRecordsToResetByHeartBeatQueryHandler : IQueryHandler<FindMessagesToResetByHeartBeatQuery<int>, IEnumerable<MessageToReset<int>>>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
         private readonly IHeartBeatConfiguration _configuration;
         private readonly ICompositeSerialization _serialization;
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="configuration">The configuration.</param>
         /// <param name="serialization">The serialization.</param>
-        public FindRecordsToResetByHeartBeatQueryHandler(IConnectionInformation connectionInformation,
+        public FindRecordsToResetByHeartBeatQueryHandler(LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper,
             IHeartBeatConfiguration configuration,
             ICompositeSerialization serialization)
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                 return Enumerable.Empty<MessageToReset<int>>();
             }
 
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
                 //before executing a query, double check that we aren't stopping
                 //otherwise, there is a chance that the tables no longer exist in memory mode
@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                     return Enumerable.Empty<MessageToReset<int>>();
                 }
 
-                var col = db.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                var col = db.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
                 var date = DateTime.UtcNow.Subtract(_configuration.Time);
 
                 var results = col.Query()
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                     .ToList();
 
                 var data = new List<MessageToReset<int>>(results.Count);
-                var queue = db.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
+                var queue = db.Database.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
                 foreach (var record in results)
                 {
                     if (record.HeartBeat.HasValue)
@@ -94,8 +94,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                         var queueRecord = queue.FindById(record.QueueId);
                         if (queueRecord != null)
                         {
-                            var headers = _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(queueRecord.Headers);
-                            var reset = new MessageToReset<int>(record.QueueId, record.HeartBeat.Value, new ReadOnlyDictionary<string, object>(headers));
+                            var headers =
+                                _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(
+                                    queueRecord
+                                        .Headers);
+                            var reset = new MessageToReset<int>(record.QueueId, record.HeartBeat.Value,
+                                new ReadOnlyDictionary<string, object>(headers));
                             data.Add(reset);
                         }
                     }

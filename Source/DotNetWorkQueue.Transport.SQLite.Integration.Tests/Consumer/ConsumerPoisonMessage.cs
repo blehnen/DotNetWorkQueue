@@ -2,6 +2,7 @@
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using Xunit;
 
@@ -52,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                             consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
                                 false,
                                 workerCount,
-                                logProvider, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos);
+                                logProvider, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos, new CreationScopeNoOp());
 
                             ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
                             new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, true);

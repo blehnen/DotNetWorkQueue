@@ -49,6 +49,10 @@ namespace DotNetWorkQueue.Queue
             throw new NotImplementedException();
         }
 
+        T ICreationScope.GetDisposable<T>()
+        {
+            return null;
+        }
         #region IDisposable Support
         private bool _disposedValue; // To detect redundant calls
         /// <summary>

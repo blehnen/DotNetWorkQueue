@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
 
         public static QueueContainer<TTransportInit> CreateCreator<TTransportInit>(InterceptorAdding addInterceptors,
-            ILogger logProvider, IMetrics metrics, bool createBadSerialization, bool enableChaos)
+            ILogger logProvider, IMetrics metrics, bool createBadSerialization, bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
             if (createBadSerialization)
@@ -56,6 +56,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
                                 .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton)
+                                .RegisterNonScopedSingleton(scope)
                                 .Register(() => metrics,
                                     LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(
                                     Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
@@ -65,6 +66,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
                                 .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton)
+                                .RegisterNonScopedSingleton(scope)
                                 .Register(() => metrics,
                                     LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
                                 {
@@ -78,6 +80,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
                                 .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton)
+                                .RegisterNonScopedSingleton(scope)
                                 .Register(() => metrics,
                                     LifeStyles.Singleton), options => SetOptions(options, enableChaos));
                 }
@@ -90,7 +93,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
                                 LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope), options => SetOptions(options, enableChaos));
                     case InterceptorAdding.Yes:
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
@@ -99,11 +102,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                                 typeof (GZipMessageInterceptor), //gzip compression
                                 typeof (TripleDesMessageInterceptor) //encryption
                             }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope), options => SetOptions(options, enableChaos));
                     default:
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
-                                LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                                LifeStyles.Singleton).RegisterNonScopedSingleton(scope), options => SetOptions(options, enableChaos));
                 }
             }
         }

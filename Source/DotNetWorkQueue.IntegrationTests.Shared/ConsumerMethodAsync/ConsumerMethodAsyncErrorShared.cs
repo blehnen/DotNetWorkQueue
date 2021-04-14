@@ -8,7 +8,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
     public class ConsumerMethodAsyncErrorShared
     {
         public void PurgeErrorMessages<TTransportInit>(QueueConnection queueConnection,
-            bool addInterceptors, ILogger logProvider, bool actuallyPurge)
+            bool addInterceptors, ILogger logProvider, bool actuallyPurge, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
             using (var metrics = new Metrics.Metrics(queueConnection.Queue))
@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                 }
 
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false, scope)
                     )
                 {
                     using (var schedulerCreator =
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             int messageCount, int workerCount, int timeOut,
             int queueSize, int readerCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
-            Guid id, string updateTime, bool enableChaos)
+            Guid id, string updateTime, bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                 }
 
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
                     )
                 {
                     using (var schedulerCreator =

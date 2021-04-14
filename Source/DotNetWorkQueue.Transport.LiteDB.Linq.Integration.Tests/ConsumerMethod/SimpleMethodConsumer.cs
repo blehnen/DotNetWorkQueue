@@ -12,12 +12,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumer
     {
         [Theory]
-        [InlineData(100, 0, 240, 5, LinqMethodTypes.Dynamic, false),
-         InlineData(10, 15, 180, 7,  LinqMethodTypes.Compiled, true)]
+        [InlineData(100, 0, 240, 5, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(10, 15, 180, 7,  LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int runtime, 
-            int timeOut, int workerCount,  LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int timeOut, int workerCount,  LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -27,52 +27,53 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
+                    var oCreation =
+                        queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
+                    ICreationScope scope = null;
                     try
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
+
+                        oCreation.Options.EnableDelayedProcessing = true;
+                        oCreation.Options.EnableStatusTable = true;
+
+                        var result = oCreation.CreateQueue();
+                        Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
+
+                        var producer = new ProducerMethodShared();
+                        var id = Guid.NewGuid();
+                        if (linqMethodTypes == LinqMethodTypes.Compiled)
                         {
-                            oCreation.Options.EnableDelayedProcessing = true;
-                            oCreation.Options.EnableStatusTable = true;
-
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            var producer = new ProducerMethodShared();
-                            var id = Guid.NewGuid();
-                            if (linqMethodTypes == LinqMethodTypes.Compiled)
-                            {
-                                producer.RunTestCompiled<LiteDbMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope, false);
-                            }
-                            else
-                            {
-                                producer.RunTestDynamic<LiteDbMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope, false);
-                            }
-
-                            var consumer = new ConsumerMethodShared();
-                            consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
-                                false,
-                                logProvider,
-                                runtime, messageCount,
-                                workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
-
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
+                            producer.RunTestCompiled<LiteDbMessageQueueInit>(queueConnection, false, messageCount,
+                                logProvider, Helpers.GenerateData,
+                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope,
+                                false);
                         }
+                        else
+                        {
+                            producer.RunTestDynamic<LiteDbMessageQueueInit>(queueConnection, false, messageCount,
+                                logProvider, Helpers.GenerateData,
+                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope,
+                                false);
+                        }
+
+                        var consumer = new ConsumerMethodShared();
+                        consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
+                            false,
+                            logProvider,
+                            runtime, messageCount,
+                            workerCount, timeOut,
+                            TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos,
+                            scope);
+
+                        new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options,
+                            scope).Verify(0, false, false);
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
+                        oCreation.RemoveQueue();
+                        oCreation.Dispose();;
+                        scope?.Dispose();
                     }
                 }
             }

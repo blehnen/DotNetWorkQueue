@@ -28,14 +28,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class DeleteMessageCommandHandler : ICommandHandlerWithOutput<DeleteMessageCommand<int>, long>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteMessageCommandHandler"/> class.
         /// </summary>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public DeleteMessageCommandHandler(IConnectionInformation connectionInformation,
+        public DeleteMessageCommandHandler(LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -48,33 +48,33 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <inheritdoc />
         public long Handle(DeleteMessageCommand<int> command)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                db.BeginTrans();
+                db.Database.BeginTrans();
                 try
                 {
-                    var col = db.GetCollection(_tableNameHelper.QueueName);
+                    var col = db.Database.GetCollection(_tableNameHelper.QueueName);
                     var result = col.Delete(command.QueueId);
 
                     //note - continue in case we have orphaned records, regardless of result.
-                    var meta = db.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var meta = db.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
                     meta.DeleteMany(x => x.QueueId == command.QueueId);
 
-                    var status = db.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
+                    var status = db.Database.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
                     status.DeleteMany(x => x.QueueId == command.QueueId);
 
-                    var errorTrack = db.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
+                    var errorTrack = db.Database.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
                     errorTrack.DeleteMany(x => x.QueueId == command.QueueId);
 
-                    var metaErrors = db.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
+                    var metaErrors = db.Database.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
                     metaErrors.DeleteMany(x => x.QueueId == command.QueueId);
 
-                    db.Commit();
+                    db.Database.Commit();
                     return result ? 1 : 0;
                 }
                 catch
                 {
-                    db.Rollback();
+                    db.Database.Rollback();
                     throw;
                 }
             }

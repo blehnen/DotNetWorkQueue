@@ -29,11 +29,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Schema
     public class JobsTable: ITable
     {
         /// <inheritdoc />
-        public bool Create(IConnectionInformation connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper)
+        public bool Create(LiteDbConnectionManager connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper)
         {
-            using (var db = new LiteDatabase(connection.ConnectionString))
+            var db = connection.GetDatabase();
             {
-                var col = db.GetCollection<JobsTable>(helper.JobTableName);
+                var col = db.Database.GetCollection<JobsTable>(helper.JobTableName);
 
                 //indexed by Id
                 col.EnsureIndex(x => x.Id);

@@ -16,12 +16,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
         private readonly LiteDbMessageQueueTransportOptions _options;
         private readonly TableNameHelper _tableNameHelper;
         private readonly LiteDbConnectionInformation _connection;
+        private readonly ICreationScope _scope;
 
-        public VerifyQueueData(QueueConnection queueConnection, LiteDbMessageQueueTransportOptions options)
+        public VerifyQueueData(QueueConnection queueConnection, LiteDbMessageQueueTransportOptions options, ICreationScope scope)
         {
             _options = options;
             _connection = new LiteDbConnectionInformation(queueConnection);
             _tableNameHelper = new TableNameHelper(_connection);
+            _scope = scope;
         }
         public void Verify(long expectedMessageCount, string route)
         {
@@ -49,39 +51,66 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
         }
 
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities",
+            Justification = "Query OK")]
         private void VerifyCount(long messageCount, string route)
         {
-            using (var conn = new LiteDatabase(_connection.ConnectionString))
+            var connScope = _scope.GetDisposable<LiteDbConnectionManager>();
+            if (connScope == null)
             {
-                if (string.IsNullOrEmpty(route))
+                using (var conn = new LiteDatabase(_connection.ConnectionString))
                 {
-                    var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
-                    Assert.Equal(messageCount, col.Count());
+                    if (string.IsNullOrEmpty(route))
+                    {
+                        var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                        Assert.Equal(messageCount, col.Count());
+                    }
+                    else
+                    {
+                        var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                        var results = col.Query()
+                            .Where(x => x.Route.Equals(route))
+                            .ToList();
+                        Assert.Equal(messageCount, results.Count);
+                    }
                 }
-                else
-                {
-                    var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
-                    var results = col.Query()
-                        .Where(x => x.Route.Equals(route))
-                        .ToList();
-                    Assert.Equal(messageCount, results.Count);
-                }
+            }
+            else
+            {
+                
             }
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyDelayedProcessing()
         {
-            using (var conn = new LiteDatabase(_connection.ConnectionString))
+            var connScope = _scope.GetDisposable<LiteDbConnectionManager>();
+            if (connScope == null)
             {
-
-                var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
-                var results = col.Query()
-                    .ToList();
-                foreach (var record in results)
+                using (var conn = new LiteDatabase(_connection.ConnectionString))
                 {
-                    Assert.NotEqual(record.QueueProcessTime, record.QueuedDateTime);
+
+                    var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var results = col.Query()
+                        .ToList();
+                    foreach (var record in results)
+                    {
+                        Assert.NotEqual(record.QueueProcessTime, record.QueuedDateTime);
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = connScope.GetDatabase())
+                {
+
+                    var col = conn.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var results = col.Query()
+                        .ToList();
+                    foreach (var record in results)
+                    {
+                        Assert.NotEqual(record.QueueProcessTime, record.QueuedDateTime);
+                    }
                 }
             }
         }
@@ -89,14 +118,31 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyMessageExpiration()
         {
-            using (var conn = new LiteDatabase(_connection.ConnectionString))
+            var connScope = _scope.GetDisposable<LiteDbConnectionManager>();
+            if (connScope == null)
             {
-                var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
-                var results = col.Query()
-                    .ToList();
-                foreach (var record in results)
+                using (var conn = new LiteDatabase(_connection.ConnectionString))
                 {
-                    Assert.NotEqual(record.ExpirationTime, record.QueuedDateTime);
+                    var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var results = col.Query()
+                        .ToList();
+                    foreach (var record in results)
+                    {
+                        Assert.NotEqual(record.ExpirationTime, record.QueuedDateTime);
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = connScope.GetDatabase())
+                {
+                    var col = conn.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var results = col.Query()
+                        .ToList();
+                    foreach (var record in results)
+                    {
+                        Assert.NotEqual(record.ExpirationTime, record.QueuedDateTime);
+                    }
                 }
             }
         }
@@ -104,32 +150,70 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private void VerifyStatus()
         {
-            using (var conn = new LiteDatabase(_connection.ConnectionString))
+            var connScope = _scope.GetDisposable<LiteDbConnectionManager>();
+            if (connScope == null)
             {
-                var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
-                var results = col.Query()
-                    .ToList();
-                foreach (var record in results)
+                using (var conn = new LiteDatabase(_connection.ConnectionString))
                 {
-                    Assert.Equal(QueueStatuses.Waiting, record.Status);
+                    var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var results = col.Query()
+                        .ToList();
+                    foreach (var record in results)
+                    {
+                        Assert.Equal(QueueStatuses.Waiting, record.Status);
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = connScope.GetDatabase())
+                {
+                    var col = conn.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var results = col.Query()
+                        .ToList();
+                    foreach (var record in results)
+                    {
+                        Assert.Equal(QueueStatuses.Waiting, record.Status);
+                    }
                 }
             }
         }
 
         private void VerifyStatusTable(long expectedMessageCount, string route)
         {
-            using (var conn = new LiteDatabase(_connection.ConnectionString))
+            var connScope = _scope.GetDisposable<LiteDbConnectionManager>();
+            if (connScope == null)
             {
-                var col = conn.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
-                var results = col.Query()
-                    .ToList();
-
-                if(string.IsNullOrWhiteSpace(route))
-                    Assert.Equal(results.Count, expectedMessageCount);
-
-                foreach (var record in results)
+                using (var conn = new LiteDatabase(_connection.ConnectionString))
                 {
-                    Assert.Equal(QueueStatuses.Waiting, record.Status);
+                    var col = conn.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
+                    var results = col.Query()
+                        .ToList();
+
+                    if (string.IsNullOrWhiteSpace(route))
+                        Assert.Equal(results.Count, expectedMessageCount);
+
+                    foreach (var record in results)
+                    {
+                        Assert.Equal(QueueStatuses.Waiting, record.Status);
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = connScope.GetDatabase())
+                {
+                    var col = conn.Database.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
+                    var results = col.Query()
+                        .ToList();
+
+                    if (string.IsNullOrWhiteSpace(route))
+                        Assert.Equal(results.Count, expectedMessageCount);
+
+                    foreach (var record in results)
+                    {
+                        Assert.Equal(QueueStatuses.Waiting, record.Status);
+                    }
                 }
             }
         }
@@ -140,12 +224,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
         private readonly LiteDbMessageQueueTransportOptions _options;
         private readonly TableNameHelper _tableNameHelper;
         private readonly LiteDbConnectionInformation _connection;
+        private readonly ICreationScope _scope;
 
-        public VerifyQueueRecordCount(string queueName, string connectionString, LiteDbMessageQueueTransportOptions options)
+        public VerifyQueueRecordCount(string queueName, string connectionString, LiteDbMessageQueueTransportOptions options, ICreationScope scope)
         {
             _options = options;
             _connection = new LiteDbConnectionInformation(new QueueConnection(queueName, connectionString));
             _tableNameHelper = new TableNameHelper(_connection);
+            _scope = scope;
         }
 
         public void Verify(int recordCount, bool ignoreMeta, bool ignoreErrorTracking)
@@ -155,30 +241,63 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
 
         private void AllTablesRecordCount(int recordCount, bool ignoreMeta, bool ignoreErrorTracking)
         {
-            using (var conn = new LiteDatabase(_connection.ConnectionString))
+            var connScope = _scope.GetDisposable<LiteDbConnectionManager>();
+            if (connScope == null)
             {
-                if (!ignoreMeta)
+                using (var conn = new LiteDatabase(_connection.ConnectionString))
                 {
-                    var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
-                    Assert.Equal(recordCount, col.Count());
+                    if (!ignoreMeta)
+                    {
+                        var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                        Assert.Equal(recordCount, col.Count());
+                    }
+
+                    if (!ignoreErrorTracking)
+                    {
+                        var col = conn.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
+                        Assert.Equal(recordCount, col.Count());
+                    }
+
+                    var col2 = conn.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
+                    Assert.Equal(recordCount, col2.Count());
+
+                    var col3 = conn.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
+                    Assert.Equal(recordCount, col3.Count());
+
+                    if (_options.EnableStatusTable)
+                    {
+                        var col = conn.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
+                        Assert.Equal(recordCount, col.Count());
+                    }
                 }
-
-                if (!ignoreErrorTracking)
+            }
+            else
+            {
+                using (var conn = connScope.GetDatabase())
                 {
-                    var col = conn.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
-                    Assert.Equal(recordCount, col.Count());
-                }
+                    if (!ignoreMeta)
+                    {
+                        var col = conn.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                        Assert.Equal(recordCount, col.Count());
+                    }
 
-                var col2 = conn.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
-                Assert.Equal(recordCount, col2.Count());
+                    if (!ignoreErrorTracking)
+                    {
+                        var col = conn.Database.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
+                        Assert.Equal(recordCount, col.Count());
+                    }
 
-                var col3 = conn.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
-                Assert.Equal(recordCount, col3.Count());
+                    var col2 = conn.Database.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
+                    Assert.Equal(recordCount, col2.Count());
 
-                if (_options.EnableStatusTable)
-                {
-                    var col = conn.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
-                    Assert.Equal(recordCount, col.Count());
+                    var col3 = conn.Database.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
+                    Assert.Equal(recordCount, col3.Count());
+
+                    if (_options.EnableStatusTable)
+                    {
+                        var col = conn.Database.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
+                        Assert.Equal(recordCount, col.Count());
+                    }
                 }
             }
         }
@@ -188,34 +307,62 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
     {
         private readonly TableNameHelper _tableNameHelper;
         private readonly LiteDbConnectionInformation _connection;
-
-        public VerifyErrorCounts(string queueName, string connectionString)
+        private readonly ICreationScope _scope;
+        public VerifyErrorCounts(string queueName, string connectionString, ICreationScope scope)
         {
             _connection = new LiteDbConnectionInformation(new QueueConnection(queueName, connectionString));
             _tableNameHelper = new TableNameHelper(_connection);
+            _scope = scope;
         }
 
-        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         public void Verify(long messageCount, int errorCount)
         {
-            using (var conn = new LiteDatabase(_connection.ConnectionString))
+            var connScope = _scope.GetDisposable<LiteDbConnectionManager>();
+            if (connScope == null)
             {
-                var col = conn.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
-                Assert.Equal(messageCount, col.Count());
-
-                //only check the two below tables if the error count is > 0.
-                //error count of 0 means we are processing poison messages
-                //poison messages go right into the error queue, without updating the tracking table
-                if (errorCount > 0)
+                using (var conn = new LiteDatabase(_connection.ConnectionString))
                 {
-                    var col2 = conn.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
-                    Assert.Equal(messageCount, col2.Count());
+                    var col = conn.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
+                    Assert.Equal(messageCount, col.Count());
 
-                    var results = col2.Query()
-                        .ToList();
-                    foreach (var record in results)
+                    //only check the two below tables if the error count is > 0.
+                    //error count of 0 means we are processing poison messages
+                    //poison messages go right into the error queue, without updating the tracking table
+                    if (errorCount > 0)
                     {
-                        Assert.Equal(errorCount, record.RetryCount);
+                        var col2 = conn.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
+                        Assert.Equal(messageCount, col2.Count());
+
+                        var results = col2.Query()
+                            .ToList();
+                        foreach (var record in results)
+                        {
+                            Assert.Equal(errorCount, record.RetryCount);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = connScope.GetDatabase())
+                {
+                    var col = conn.Database.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
+                    Assert.Equal(messageCount, col.Count());
+
+                    //only check the two below tables if the error count is > 0.
+                    //error count of 0 means we are processing poison messages
+                    //poison messages go right into the error queue, without updating the tracking table
+                    if (errorCount > 0)
+                    {
+                        var col2 = conn.Database.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
+                        Assert.Equal(messageCount, col2.Count());
+
+                        var results = col2.Query()
+                            .ToList();
+                        foreach (var record in results)
+                        {
+                            Assert.Equal(errorCount, record.RetryCount);
+                        }
                     }
                 }
             }

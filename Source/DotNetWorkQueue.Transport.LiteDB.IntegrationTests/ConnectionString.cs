@@ -9,19 +9,33 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
     [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
     public class IntegrationConnectionInfo: IDisposable
     {
-        private readonly string _fileName;
+        private string _fileName;
 
-        public IntegrationConnectionInfo()
+        public IntegrationConnectionInfo(ConnectionTypes connectionType)
         {
-            //setup connection string
-            var localPath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
-            _fileName = localPath + "\\" + GenerateQueueName.CreateFileName();
-            ConnectionString = $"Filename={_fileName};Connection=shared;";
+            SetConnection(connectionType);
+        }
+
+        private void SetConnection(ConnectionTypes connectionType)
+        {
+            switch (connectionType)
+            {
+                case ConnectionTypes.Memory:
+                    ConnectionString = ":memory:";
+                    break;
+                case ConnectionTypes.Direct:
+                case ConnectionTypes.Shared:
+                    var localPath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+                    _fileName = localPath + "\\" + GenerateQueueName.CreateFileName();
+                    ConnectionString = connectionType == ConnectionTypes.Direct ? $"Filename={_fileName};Connection=direct;" : $"Filename={_fileName};Connection=shared;";
+                    break;
+            }
         }
 
         public string ConnectionString
         {
             get;
+            private set;
         }
 
         [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
@@ -46,6 +60,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                     }
                 }
             }
+        }
+
+        public enum ConnectionTypes
+        {
+            Shared = 0,
+            Direct = 1, 
+            Memory = 2
         }
     }
 }

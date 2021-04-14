@@ -28,11 +28,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Schema
     public class ConfigurationTable: ITable
     {
         /// <inheritdoc />
-        public bool Create(IConnectionInformation connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper)
+        public bool Create(LiteDbConnectionManager connection, LiteDbMessageQueueTransportOptions options,
+            TableNameHelper helper)
         {
-            using (var db = new LiteDatabase(connection.ConnectionString))
+            using (var db = connection.GetDatabase())
             {
-                var col = db.GetCollection<ConfigurationTable>(helper.ConfigurationName);
+                var col = db.Database.GetCollection<ConfigurationTable>(helper.ConfigurationName);
 
                 //indexed by Id only
                 col.EnsureIndex(x => x.Id);

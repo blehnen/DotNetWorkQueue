@@ -28,17 +28,19 @@ namespace DotNetWorkQueue.Transport.LiteDb.Schema
     public class ErrorTrackingTable: ITable
     {
         /// <inheritdoc />
-        public bool Create(IConnectionInformation connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper)
+        public bool Create(LiteDbConnectionManager connection, LiteDbMessageQueueTransportOptions options,
+            TableNameHelper helper)
         {
-            using (var db = new LiteDatabase(connection.ConnectionString))
+            using (var db = connection.GetDatabase())
             {
-                var col = db.GetCollection<ErrorTrackingTable>(helper.ErrorTrackingName);
+                var col = db.Database.GetCollection<ErrorTrackingTable>(helper.ErrorTrackingName);
 
                 col.EnsureIndex(x => x.Id);
                 col.EnsureIndex(x => x.QueueId, false); //multiple exceptions per record are possible
 
                 return true;
             }
+
         }
 
         /// <summary>

@@ -38,6 +38,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                 var settings = new Dictionary<string, string>();
                 settings.SetSchema(schema);
                 var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString, settings);
+                ICreationScope scope = null;
                 try
                 {
 
@@ -54,6 +55,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
 
                         if (messageType == 1)
                         {
@@ -65,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                                 false, logProvider,
                                 runtime, messageCount,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos);
+                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos, scope, null);
                         }
                         else if (messageType == 2)
                         {
@@ -77,7 +79,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                                 false, logProvider,
                                 runtime, messageCount,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos);
+                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos, scope, null);
                         }
                         else if (messageType == 3)
                         {
@@ -89,7 +91,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                                 false, logProvider,
                                 runtime, messageCount,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%10)", enableChaos);
+                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%10)", enableChaos, scope, null);
                         }
 
                         new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
@@ -105,6 +107,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                     {
                         oCreation.RemoveQueue();
                     }
+                    scope?.Dispose();
                 }
             }
         }

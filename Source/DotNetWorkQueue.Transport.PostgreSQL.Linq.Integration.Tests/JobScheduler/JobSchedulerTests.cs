@@ -27,42 +27,39 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
                 new QueueCreationContainer<PostgreSqlMessageQueueInit>())
             {
                 var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
-
-                using (
-                    var oCreation =
-                        queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                )
+                ICreationScope scope = null;
+                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
+                scope = oCreation.Scope;
+                using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>(x => { }))
                 {
-
-                    using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>(x =>
+                    try
                     {
-                    }))
-                    {
-                        try
+                        var tests = new JobSchedulerTestsShared();
+                        if (!dynamic)
                         {
-                            var tests = new JobSchedulerTestsShared();
-                            if (!dynamic)
-                            {
-                                tests.RunEnqueueTestCompiled<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(
-                                    queueConnection, interceptors,
-                                    Helpers.Verify, Helpers.SetError,
-                                    queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
-                            }
+                            tests.RunEnqueueTestCompiled<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(
+                                queueConnection, interceptors,
+                                Helpers.Verify, Helpers.SetError,
+                                queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope,
+                                LoggerShared.Create(queueName, GetType().Name));
+                        }
 #if NETFULL
-                            else
-                            {
-                                tests.RunEnqueueTestDynamic<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(
-                                    queueConnection, interceptors,
-                                    Helpers.Verify, Helpers.SetError,
-                                    queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
-                            }
-#endif
-                        }
-                        finally
+                        else
                         {
-
-                            oCreation.RemoveQueue();
+                            tests.RunEnqueueTestDynamic<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(
+                                queueConnection, interceptors,
+                                Helpers.Verify, Helpers.SetError,
+                                queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope,
+                                LoggerShared.Create(queueName, GetType().Name));
                         }
+#endif
+                    }
+                    finally
+                    {
+
+                        oCreation.RemoveQueue();
+                        oCreation.Dispose();
+                        scope?.Dispose();
                     }
                 }
             }

@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using Xunit;
 
@@ -45,13 +46,13 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                             consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                 false,
                                 logProvider,
-                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, false);
+                                workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, false, new CreationScopeNoOp());
                             ValidateErrorCounts(oCreation.Scope, messageCount);
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
 
                             //purge error records
                             consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueConnection,
-                               false,  logProvider, true);
+                               false,  logProvider, true, new CreationScopeNoOp());
 
                             //memory queue doesn't actually keep errors, so nothing to check for...
                         }

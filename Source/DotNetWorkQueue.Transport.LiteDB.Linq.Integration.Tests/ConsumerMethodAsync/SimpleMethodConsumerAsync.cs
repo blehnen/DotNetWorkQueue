@@ -14,18 +14,18 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
         private ITaskFactory Factory { get; set; }
 
         [Theory]
-        [InlineData(10, 45, 260, 7, 1, 1, 1, LinqMethodTypes.Dynamic, false),
-         InlineData(50, 5, 200, 10, 1, 2, 1, LinqMethodTypes.Compiled, false)]
+        [InlineData(10, 45, 260, 7, 1, 1, 1, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(50, 5, 200, 10, 1, 2, 1, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, int readerCount, int queueSize,
-           int messageType, LinqMethodTypes linqMethodTypes, bool enableChaos)
+           int messageType, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             if (Factory == null)
             {
                 Factory = CreateFactory(workerCount, queueSize);
             }
 
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -34,19 +34,18 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
                     try
                     {
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
+   
                             oCreation.Options.EnableDelayedProcessing = true;
                             oCreation.Options.EnableStatusTable = true;
 
                             var result = oCreation.CreateQueue();
                             Assert.True(result.Success, result.ErrorMessage);
+                            scope = oCreation.Scope;
 
                             if (messageType == 1)
                             {
@@ -59,7 +58,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                                 consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos, scope);
                             }
                             else if (messageType == 2)
                             {
@@ -72,7 +71,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                                 consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos, scope);
                             }
                             else if (messageType == 3)
                             {
@@ -85,21 +84,18 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                                 consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos);
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos, scope);
                             }
 
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
-                        }
+                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options, scope).Verify(0, false, false);
+                        
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
+                       
                             oCreation.RemoveQueue();
-                        }
+                        oCreation.Dispose();
+                        scope?.Dispose();
                     }
                 }
             }
@@ -108,10 +104,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
 #pragma warning disable xUnit1013 // Public method should be marked as test
         public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
 #pragma warning restore xUnit1013 // Public method should be marked as test
-            int messageType, ITaskFactory factory, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int messageType, ITaskFactory factory, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             Factory = factory;
-            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, linqMethodTypes, enableChaos);
+            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, linqMethodTypes, enableChaos, connectionType);
         }
 
 

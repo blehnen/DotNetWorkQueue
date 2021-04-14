@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     /// </summary>
     internal class GetErrorRetryCountQueryHandler : IQueryHandler<GetErrorRetryCountQuery<int>, int>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// </summary>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public GetErrorRetryCountQueryHandler(IConnectionInformation connectionInformation,
+        public GetErrorRetryCountQueryHandler(LiteDbConnectionManager connectionInformation,
         TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -45,12 +45,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;
         }
+
         /// <inheritdoc />
         public int Handle(GetErrorRetryCountQuery<int> query)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                var col = db.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
+                var col = db.Database.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
 
                 var results = col.Query()
                     .Where(x => x.QueueId.Equals(query.QueueId))
@@ -64,6 +65,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                     return record.RetryCount;
                 }
             }
+
             return 0;
         }
     }

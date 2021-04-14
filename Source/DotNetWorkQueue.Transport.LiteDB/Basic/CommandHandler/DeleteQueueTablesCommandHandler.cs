@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class DeleteQueueTablesCommandHandler : ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         public DeleteQueueTablesCommandHandler(
-            IConnectionInformation connectionInformation,
+            LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -51,17 +51,17 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <inheritdoc />
         public QueueRemoveResult Handle(DeleteQueueTablesCommand inputCommand)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
                 var dbs = _tableNameHelper.Tables;
-                var delete = db.GetCollectionNames().Where(database => dbs.Contains(database)).ToList();
+                var delete = db.Database.GetCollectionNames().Where(database => dbs.Contains(database)).ToList();
                 foreach (var toDelete in delete)
                 {
-                    db.DropCollection(toDelete);
+                    db.Database.DropCollection(toDelete);
                 }
-            }
 
-            return new QueueRemoveResult(QueueRemoveStatus.Success);
+                return new QueueRemoveResult(QueueRemoveStatus.Success);
+            }
         }
     }
 }

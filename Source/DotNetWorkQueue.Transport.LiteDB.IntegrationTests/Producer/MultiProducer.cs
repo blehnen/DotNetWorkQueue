@@ -14,11 +14,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
     public class MultiProducer
     {
         [Theory]
-        [InlineData(100,  false),
-        InlineData(10, true)]
-        public void Run(int messageCount, bool enableChaos)
+        [InlineData(100,  false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+        InlineData(10, true, IntegrationConnectionInfo.ConnectionTypes.Direct)]
+        public void Run(int messageCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -27,31 +27,23 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
                     try
                     {
+                        var result = oCreation.CreateQueue();
+                        Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            RunTest(queueConnection, messageCount, 10, logProvider, oCreation.Scope, enableChaos);
-                            LoggerShared.CheckForErrors(queueName);
-                            new VerifyQueueData(queueConnection, oCreation.Options).Verify(messageCount * 10, null);
-                        }
+                        RunTest(queueConnection, messageCount, 10, logProvider, oCreation.Scope, enableChaos);
+                        LoggerShared.CheckForErrors(queueName);
+                        new VerifyQueueData(queueConnection, oCreation.Options, scope).Verify(messageCount * 10, null);
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
+                        oCreation?.RemoveQueue();
+                        oCreation?.Dispose();
+                        scope?.Dispose();
                     }
                 }
             }

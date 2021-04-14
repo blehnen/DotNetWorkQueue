@@ -29,17 +29,19 @@ namespace DotNetWorkQueue.Transport.LiteDb.Schema
     public class MetaDataErrorsTable: ITable
     {
         /// <inheritdoc />
-        public bool Create(IConnectionInformation connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper)
+        public bool Create(LiteDbConnectionManager connection, LiteDbMessageQueueTransportOptions options,
+            TableNameHelper helper)
         {
-            using (var db = new LiteDatabase(connection.ConnectionString))
+            using (var db = connection.GetDatabase())
             {
-                var col = db.GetCollection<MetaDataErrorsTable>(helper.MetaDataErrorsName);
+                var col = db.Database.GetCollection<MetaDataErrorsTable>(helper.MetaDataErrorsName);
 
                 col.EnsureIndex(x => x.Id);
                 col.EnsureIndex(x => x.QueueId, true);
 
                 return true;
             }
+
         }
 
         /// <summary>

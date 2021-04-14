@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -53,6 +54,16 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 _clears = new ConcurrentBag<IClear>();
 
             _clears.Add(input);
+        }
+
+        ///<inheritdoc/>
+        public T GetDisposable<T>()
+            where T : class, IDisposable
+        {
+            if (_disposables == null)
+                return null;
+
+            return _disposables.Where(item => item.GetType() == typeof(T)).Cast<T>().FirstOrDefault();
         }
 
         /// <summary>

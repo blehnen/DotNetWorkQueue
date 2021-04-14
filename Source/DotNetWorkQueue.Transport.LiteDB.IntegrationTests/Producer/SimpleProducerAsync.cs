@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using System.CodeDom;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using Xunit;
@@ -9,64 +10,59 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
     public class SimpleProducerAsync
     {
         [Theory]
-        [InlineData(1000, true, true, true),
-         InlineData(100, false, true, true),
-         InlineData(100, false, false, false),
-         InlineData(100, true, false, false),
-         InlineData(100, false, true, false),
-         InlineData(100, true, true, true),
+        [InlineData(1000, true, true, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(100, false, true, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(100, false, false, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(100, true, false, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(100, false, true, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(100, true, true, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
 
-         InlineData(10, true, true, true),
-         InlineData(10, false, true, true),
-         InlineData(10, false, false, false),
-         InlineData(10, true, false, false),
-         InlineData(10, false, true, false)]
+         InlineData(10, true, true, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(10, false, true, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(10, false, false, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(10, true, false, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(10, false, true, false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public async void Run(
             int messageCount,
             bool interceptors,
             bool enableStatusTable,
-            bool enableChaos)
+            bool enableChaos,
+            IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
 
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+                var logProvider = LoggerShared.Create(queueName, GetType().Name);
                 using (
                     var queueCreator =
                         new QueueCreationContainer<LiteDbMessageQueueInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
+                    var queueConnection =
+                        new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
                     try
                     {
+                        oCreation.Options.EnableStatusTable = enableStatusTable;
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.Options.EnableStatusTable = enableStatusTable;
+                        var result = oCreation.CreateQueue();
+                        Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
 
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
+                        var producer = new ProducerAsyncShared();
+                        await producer.RunTestAsync<LiteDbMessageQueueInit, FakeMessage>(queueConnection,
+                            interceptors, messageCount, logProvider,
+                            Helpers.GenerateData,
+                            Helpers.Verify, false, oCreation.Scope, enableChaos).ConfigureAwait(false);
 
-                            var producer = new ProducerAsyncShared();
-                            await producer.RunTestAsync<LiteDbMessageQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider,
-                                Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, enableChaos).ConfigureAwait(false);
-                        }
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-
+                        oCreation?.RemoveQueue();
+                        oCreation?.Dispose();
+                        scope?.Dispose();
                     }
                 }
             }

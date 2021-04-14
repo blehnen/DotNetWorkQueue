@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                                 logProvider,
                                 runtime, messageCount,
                                 workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false);
+                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false, new CreationScopeNoOp());
 
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);
                         }

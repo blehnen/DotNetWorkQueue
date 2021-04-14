@@ -23,6 +23,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         private readonly object _queueStartLocker = new object();
         private IGetTimeFactory _timeFactory;
         private ILogger _logProvider;
+        private ICreationScope _scope;
 
         public void RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(QueueConnection queueConnection,
             bool addInterceptors,
@@ -35,6 +36,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         {
             _timeFactory = timeFactory;
             _logProvider = logProvider;
+            _scope = scope;
             RunEnqueueTest<TTransportInit>(queueConnection, addInterceptors, verify,
                 setErrorFlag,
                 (x, name) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueConnection,
@@ -60,8 +62,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         {
             _timeFactory = timeFactory;
             _logProvider = logProvider;
+            _scope = scope;
             using (var jobQueueCreation =
-                new JobQueueCreationContainer<TTransportInit>())
+                new JobQueueCreationContainer<TTransportInit>(x => x.RegisterNonScopedSingleton(scope)))
             {
                 using (
                     var createQueue = jobQueueCreation.GetQueueCreation<TJobQueueCreator>(queueConnection)
@@ -91,7 +94,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                 bool addInterceptors,
                 long producerCount,
                 IGetTimeFactory timeFactory,
-                ILogger logProvider)
+                ILogger logProvider,
+                ICreationScope scope)
             where TTransportInit : ITransportInit, new()
             where TJobQueueCreator : class, IJobQueueCreation
         {
@@ -100,20 +104,21 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             _queueStarted = false;
             _timeFactory = timeFactory;
             _logProvider = logProvider;
+            _scope = scope;
 
             using (var jobQueueCreation =
-                                new JobQueueCreationContainer<TTransportInit>())
+                new JobQueueCreationContainer<TTransportInit>(x => x.RegisterNonScopedSingleton(scope)))
             {
                 using (
                     var createQueue = jobQueueCreation.GetQueueCreation<TJobQueueCreator>(queueConnection)
-                    )
+                )
                 {
-                    createQueue.CreateJobSchedulerQueue(null, queueConnection);
+                    createQueue.CreateJobSchedulerQueue(x => x.RegisterNonScopedSingleton(scope), queueConnection);
 
                     //always run a consumer to clear out jobs
-                    using (var queueContainer = new QueueContainer<TTransportInit>(QueueContainer))
+                    using (var queueContainer = new QueueContainer<TTransportInit>((x) => QueueContainer(x, scope)))
                     {
-                        using (var queue = queueContainer.CreateMethodConsumer(queueConnection))
+                        using (var queue = queueContainer.CreateMethodConsumer(queueConnection,  x=> x.RegisterNonScopedSingleton(scope)))
                         {
                             queue.Configuration.Worker.WorkerCount = 4;
                             WaitForRollover(timeFactory);
@@ -122,33 +127,33 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                             Parallel.For(0, producerCount, (i, loopState) =>
                             {
-                                    using (var jobContainer = new JobSchedulerContainer())
+                                using (var jobContainer =
+                                    new JobSchedulerContainer(x => x.RegisterNonScopedSingleton(scope)))
+                                {
+                                    using (var scheduler = CreateScheduler(jobContainer, addInterceptors, scope))
                                     {
-                                        using (var scheduler = CreateScheduler(jobContainer, addInterceptors))
-                                        {
-                                            scheduler.OnJobQueue +=
-                                                (job, message) => Interlocked.Increment(ref enqueued);
-                                            scheduler.OnJobQueueException +=
-                                                (job, exception) => lastError = exception;
-                                            scheduler.Start();
+                                        scheduler.OnJobQueue +=
+                                            (job, message) => Interlocked.Increment(ref enqueued);
+                                        scheduler.OnJobQueueException +=
+                                            (job, exception) => lastError = exception;
+                                        scheduler.Start();
 
-                                            scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job1, queueConnection,
-                                                "min(*)",
-                                                (message, workerNotification) => Console.Write(""));
+                                        scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job1, queueConnection,
+                                            "min(*)",
+                                            (message, workerNotification) => Console.Write(""));
 
-                                            scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job2, queueConnection,
-                                                "min(*)",
-                                                (message, workerNotification) =>
-                                                    Console.Write(""));
+                                        scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job2, queueConnection,
+                                            "min(*)",
+                                            (message, workerNotification) =>
+                                                Console.Write(""));
 
-                                            WaitForRollover(timeFactory);
-                                            StartConsumer(queue);
-                                            WaitForEnQueue();
-                                        }
+                                        WaitForRollover(timeFactory);
+                                        StartConsumer(queue);
+                                        WaitForEnQueue();
                                     }
-                                });
-
-                            ValidateEnqueueMultipleProducer(enqueued,lastError, 2);
+                                }
+                            });
+                            ValidateEnqueueMultipleProducer(enqueued, lastError, 2);
                         }
                     }
                 }
@@ -182,10 +187,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         {
             _timeFactory = timeFactory;
             _logProvider = logProvider;
+            _scope = scope;
 
             using (var jobContainer = new JobSchedulerContainer(RegisterService))
             {
-                using (var scheduler = CreateScheduler(jobContainer, addInterceptors))
+                using (var scheduler = CreateScheduler(jobContainer, addInterceptors, scope))
                 {
                     var enqueued = 0;
                     var nonFatal = 0;
@@ -219,7 +225,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     //validate job1 is not queued a second time. There will still be 2 jobs in the transport storage (job1, job2)
                     ValidateNonFatalError(queueConnection, verify, enqueued, lastError, nonFatal, 2, scope);
 
-                    RunConsumer<TTransportInit>(queueConnection);
+                    RunConsumer<TTransportInit>(queueConnection, scope);
                     verify(queueConnection, 0, scope);
 
                     enqueued = 0;
@@ -238,7 +244,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     WaitForEnQueue();
                     ValidateEnqueue(queueConnection, verify, enqueued, lastError, nonFatal, 1, scope);
 
-                    RunConsumer<TTransportInit>(queueConnection);
+                    RunConsumer<TTransportInit>(queueConnection, scope);
                     verify(queueConnection, 0, scope);
 
                     enqueued = 0;
@@ -257,6 +263,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         private void RegisterService(IContainer container)
         {
             container.Register(() => _timeFactory, LifeStyles.Singleton);
+            container.RegisterNonScopedSingleton(_scope);
         }
 
         private void WaitForEnQueue()
@@ -309,13 +316,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             Assert.Equal(1, nonFatal);
             verify(queueConnection, inQueueCount, scope);
         }
-        private void RunConsumer<TTransportInit>(QueueConnection queueConnection)
+        private void RunConsumer<TTransportInit>(QueueConnection queueConnection, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
             {
-                using (var queueContainer = new QueueContainer<TTransportInit>(QueueContainer))
+                using (var queueContainer = new QueueContainer<TTransportInit>((x) => QueueContainer(x, scope)))
                 {
-                    using (var queue = queueContainer.CreateMethodConsumer(queueConnection))
+                    using (var queue = queueContainer.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
                     {
                         queue.Configuration.Worker.WorkerCount = 1;
                         queue.Start();
@@ -325,16 +332,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             }
         }
 
-        private IJobScheduler CreateScheduler(JobSchedulerContainer container, bool addInterceptors)
+        private IJobScheduler CreateScheduler(JobSchedulerContainer container, bool addInterceptors, ICreationScope scope)
         {
             if (!addInterceptors)
             {
-                return container.CreateJobScheduler();
+                return container.CreateJobScheduler( y => y.RegisterNonScopedSingleton(scope),  y => y.RegisterNonScopedSingleton(scope),
+                    z => { });
             }
-            return container.CreateJobScheduler(x => { }, QueueContainer);
+            return container.CreateJobScheduler(((x) => QueueContainer(x, scope)), y => y.RegisterNonScopedSingleton(scope),
+                z => { });
         }
 
-        private void QueueContainer(IContainer container)
+        private void QueueContainer(IContainer container, ICreationScope scope)
         {
             container.RegisterCollection<IMessageInterceptor>(new[]
             {
@@ -348,6 +357,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                             Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton);
 
             container.Register(() => _logProvider, LifeStyles.Singleton);
+            container.RegisterNonScopedSingleton(scope);
         }
     }
 }

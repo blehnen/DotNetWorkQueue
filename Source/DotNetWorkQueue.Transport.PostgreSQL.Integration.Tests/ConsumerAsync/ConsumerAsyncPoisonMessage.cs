@@ -27,48 +27,44 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
                 var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
+                ICreationScope scope = null;
+                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
                 try
                 {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.Options.EnableDelayedProcessing = true;
-                        oCreation.Options.EnableHeartBeat = !useTransactions;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
-                        oCreation.Options.EnableStatus = !useTransactions;
-                        oCreation.Options.EnableStatusTable = true;
 
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
+                    oCreation.Options.EnableDelayedProcessing = true;
+                    oCreation.Options.EnableHeartBeat = !useTransactions;
+                    oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
+                    oCreation.Options.EnableStatus = !useTransactions;
+                    oCreation.Options.EnableStatusTable = true;
 
-                        //create data
-                        var producer = new ProducerShared();
-                        producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope, false);
+                    var result = oCreation.CreateQueue();
+                    Assert.True(result.Success, result.ErrorMessage);
+                    scope = oCreation.Scope;
 
-                        //process data
-                        var consumer = new ConsumerAsyncPoisonMessageShared<FakeMessage>();
-                        consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueConnection,
-                            false,
-                            workerCount, logProvider,
-                            timeOut, readerCount, queueSize, messageCount,
-                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
+                    //create data
+                    var producer = new ProducerShared();
+                    producer.RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueConnection, false, messageCount,
+                        logProvider, Helpers.GenerateData,
+                        Helpers.Verify, false, oCreation.Scope, false);
 
-                        ValidateErrorCounts(queueName, messageCount);
-                        new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, true);
-                    }
+                    //process data
+                    var consumer = new ConsumerAsyncPoisonMessageShared<FakeMessage>();
+                    consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueConnection,
+                        false,
+                        workerCount, logProvider,
+                        timeOut, readerCount, queueSize, messageCount,
+                        TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos, scope);
+
+                    ValidateErrorCounts(queueName, messageCount);
+                    new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, true);
+
                 }
                 finally
                 {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
+                    scope?.Dispose();
                 }
             }
         }

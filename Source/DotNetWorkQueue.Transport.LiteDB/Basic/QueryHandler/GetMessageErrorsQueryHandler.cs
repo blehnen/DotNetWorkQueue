@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
 {
     internal class GetMessageErrorsQueryHandler : IQueryHandler<GetMessageErrorsQuery<int>, Dictionary<string, int>>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// </summary>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public GetMessageErrorsQueryHandler (IConnectionInformation connectionInformation,
+        public GetMessageErrorsQueryHandler (LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -48,9 +48,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         public Dictionary<string, int> Handle(GetMessageErrorsQuery<int> query)
         {
             var returnData = new Dictionary<string, int>();
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                var col = db.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
+                var col = db.Database.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
 
                 var results = col.Query()
                     .Where(x => x.QueueId.Equals(query.QueueId))
@@ -60,8 +60,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                 {
                     returnData.Add(record.ExceptionType, record.RetryCount);
                 }
+
+                return returnData;
             }
-            return returnData;
         }
     }
 }

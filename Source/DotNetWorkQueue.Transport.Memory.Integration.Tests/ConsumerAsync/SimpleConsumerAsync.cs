@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using Xunit;
 
@@ -56,7 +57,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                                 consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false);
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false, new CreationScopeNoOp(), null);
                             }
                             else if (messageType == 2)
                             {
@@ -68,7 +69,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                                 consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
                                     false, logProvider,
                                     runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false);
+                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false, new CreationScopeNoOp(), null);
                             }
                             else if (messageType == 3)
                             {
@@ -81,7 +82,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                                     false, logProvider,
                                     runtime, messageCount,
                                     timeOut, readerCount,
-                                    TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false);
+                                    TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false, new CreationScopeNoOp(), null);
                             }
 
                             new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);

@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     /// <seealso cref="DotNetWorkQueue.ASendJobToQueue" />
     internal class LiteDbSendJobToQueue: ASendJobToQueue
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _doesJobExist;
         private readonly IRemoveMessage _removeMessage;
         private readonly IQueryHandler<GetJobIdQuery<int>, int> _getJobId;
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="createJobMetaData">The create job meta data.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
-        public LiteDbSendJobToQueue(IConnectionInformation connectionInformation, IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatuses> doesJobExist,
+        public LiteDbSendJobToQueue(LiteDbConnectionManager connectionInformation, IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery, QueueStatuses> doesJobExist,
             IRemoveMessage removeMessage,
             IQueryHandler<GetJobIdQuery<int>, int> getJobId, CreateJobMetaData createJobMetaData,
             IGetTimeFactory getTimeFactory) : base(queue, getTimeFactory)
@@ -67,9 +67,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <returns></returns>
         protected override QueueStatuses DoesJobExist(string name, DateTimeOffset scheduledTime)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                return _doesJobExist.Handle(new DoesJobExistQuery(name, scheduledTime, db));
+                return _doesJobExist.Handle(new DoesJobExistQuery(name, scheduledTime, db.Database));
             }
         }
 
@@ -92,7 +92,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// </remarks>
         protected override bool JobAlreadyExistsError(Exception error)
         {
-            return false;
+            if (error == null)
+                return false;
+
+            var message = error.Message.Replace(Environment.NewLine, " ");
+            return message.Contains("Failed to insert record - the job has already been queued or processed");
         }
 
         /// <summary>

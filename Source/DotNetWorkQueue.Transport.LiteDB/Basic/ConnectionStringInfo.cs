@@ -28,12 +28,21 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionStringInfo"/> class.
         /// </summary>
+        /// <param name="inMemory">if set to <c>true</c> [in memory].</param>
         /// <param name="fileName">Name of the file.</param>
-        public ConnectionStringInfo(string fileName)
+        public ConnectionStringInfo(bool inMemory, string fileName)
         {
-            Guard.NotNullOrEmpty(() => fileName, fileName);
+            IsInMemory = inMemory;
             FileName = fileName;
         }
+        /// <summary>
+        /// Gets a value indicating whether this instance is in memory.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is in memory; otherwise, <c>false</c>.
+        /// </value>
+        /// <remarks>If true, <seealso cref="FileName"/> will be empty </remarks>
+        public bool IsInMemory { get; }
         /// <summary>
         /// Gets the name of the file.
         /// </summary>
@@ -48,6 +57,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <value>
         ///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
         /// </value>
-        public bool IsValid => !string.IsNullOrWhiteSpace(FileName);
+        public bool IsValid => IsInMemory || !string.IsNullOrWhiteSpace(FileName);
     }
 }

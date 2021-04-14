@@ -35,12 +35,11 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         IConsumerQueue CreateConsumer(QueueConnection queueConnection);
 
-        /// <summary>
-        /// Creates the method consumer queue.
-        /// </summary>
+        /// <summary>Creates the method consumer queue.</summary>
         /// <param name="queueConnection">Queue and connection information.</param>
+        /// <param name="registerServiceInternal">Items to register in the internal container</param>
         /// <returns></returns>
-        IConsumerMethodQueue CreateMethodConsumer(QueueConnection queueConnection);
+        IConsumerMethodQueue CreateMethodConsumer(QueueConnection queueConnection, Action<IContainer> registerServiceInternal);
 
         /// <summary>
         /// Creates an async consumer queue

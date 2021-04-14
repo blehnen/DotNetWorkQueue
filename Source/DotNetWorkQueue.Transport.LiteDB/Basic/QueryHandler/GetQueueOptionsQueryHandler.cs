@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     {
         private readonly IInternalSerializer _serializer;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _tableExists;
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="tableNameHelper">The table name helper.</param>
         public GetQueueOptionsQueryHandler(IInternalSerializer serializer,
                     IQueryHandler<GetTableExistsQuery, bool> tableExists,
-                    IConnectionInformation connectionInformation,
+                    LiteDbConnectionManager connectionInformation,
                     TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => serializer, serializer);
@@ -57,17 +57,20 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;
         }
+
         /// <inheritdoc />
         public TTransportOptions Handle(GetQueueOptionsQuery<TTransportOptions> query)
         {
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                if (!_tableExists.Handle(new GetTableExistsQuery(db,
+                if (!_tableExists.Handle(new GetTableExistsQuery(db.Database,
                     _tableNameHelper.ConfigurationName))) return null;
 
-                var col = db.GetCollection<ConfigurationTable>(_tableNameHelper.ConfigurationName);
+                var col = db.Database.GetCollection<ConfigurationTable>(_tableNameHelper.ConfigurationName);
                 var result = col.FindOne(global::LiteDB.Query.All());
-                return result?.Configuration != null ? _serializer.ConvertBytesTo<TTransportOptions>(result.Configuration) : null;
+                return result?.Configuration != null
+                    ? _serializer.ConvertBytesTo<TTransportOptions>(result.Configuration)
+                    : null;
             }
         }
     }

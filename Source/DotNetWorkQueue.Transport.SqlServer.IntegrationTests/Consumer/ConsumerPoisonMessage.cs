@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
 
@@ -51,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                             false,
                             workerCount,
-                            logProvider, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
+                            logProvider, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos, new CreationScopeNoOp());
 
                         ValidateErrorCounts(queueConnection, messageCount);
                         new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(messageCount, true, true);

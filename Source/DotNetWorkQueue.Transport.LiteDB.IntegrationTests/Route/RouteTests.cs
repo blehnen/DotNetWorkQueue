@@ -11,13 +11,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
     public class RouteTests
     {
         [Theory]
-        [InlineData(10, 0, 60, 1, 1, false),
-         InlineData(20, 0, 180, 1, 2, false),
-         InlineData(10, 0, 60, 1,  1, true)]
+        [InlineData(10, 0, 60, 1, 1, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(20, 0, 180, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(10, 0, 60, 1,  1, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
-           int routeCount, bool enableChaos)
+           int routeCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -26,38 +26,32 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
                     try
                     {
+                        oCreation.Options.EnableStatusTable = true;
+                        oCreation.Options.EnableRoute = true;
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                        )
-                        {
-                            oCreation.Options.EnableStatusTable = true;
-                            oCreation.Options.EnableRoute = true;
+                        var result = oCreation.CreateQueue();
+                        Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
 
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
+                        var routeTest = new RouteTestsShared();
+                        routeTest.RunTest<LiteDbMessageQueueInit, FakeMessageA>(queueConnection,
+                            true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
+                            GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10),
+                            TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
 
-                            var routeTest = new RouteTestsShared();
-                            routeTest.RunTest<LiteDbMessageQueueInit, FakeMessageA>(queueConnection,
-                                true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
-                                GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10),
-                                TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
+                        new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options, scope)
+                            .Verify(0, false, false);
 
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
-                        }
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                        )
-                        {
-                            oCreation.RemoveQueue();
-                        }
+                        oCreation?.RemoveQueue();
+                        oCreation?.Dispose();
+                        scope?.Dispose();
                     }
                 }
             }

@@ -9,7 +9,7 @@
             Creates tables for storing job info
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateJobTablesCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateJobTablesCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateJobTablesCommandHandler"/> class.
             </summary>
@@ -25,7 +25,7 @@
             Creates a queue and saves the configuration
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IInternalSerializer)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IInternalSerializer)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler"/> class.
             </summary>
@@ -42,7 +42,7 @@
             Deletes a message from a queue
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteMessageCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteMessageCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteMessageCommandHandler"/> class.
             </summary>
@@ -57,7 +57,7 @@
             Deletes the queue tables from the database
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteQueueTablesCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteQueueTablesCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.DeleteQueueTablesCommandHandler"/> class.
             </summary>
@@ -72,7 +72,7 @@
             Moves a record from the meta table to the error table
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.MoveRecordToErrorQueueCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.MoveRecordToErrorQueueCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.MoveRecordToErrorQueueCommandHandler"/> class.
             </summary>
@@ -88,7 +88,7 @@
             Resets the status for a specific record
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.ResetHeartBeatCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IConnectionInformation)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.ResetHeartBeatCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.ResetHeartBeatCommandHandler"/> class.
             </summary>
@@ -103,7 +103,7 @@
             Marks a message as no longer being processed; i.e. waiting to be processed.
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.RollbackMessageCommandHandler.#ctor(DotNetWorkQueue.IGetTimeFactory,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.RollbackMessageCommandHandler.#ctor(DotNetWorkQueue.IGetTimeFactory,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.RollbackMessageCommandHandler" /> class.
             </summary>
@@ -125,7 +125,7 @@
             Sends a heart beat for a queue record
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendHeartBeatCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendHeartBeatCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendHeartBeatCommandHandler" /> class.
             </summary>
@@ -138,7 +138,7 @@
             Sends a message to the queue
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.ICompositeSerialization,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.IHeaders,DotNetWorkQueue.Configuration.TransportConfigurationSend,DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand},DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery,DotNetWorkQueue.QueueStatuses},DotNetWorkQueue.IJobSchedulerMetaData,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.ICompositeSerialization,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.IHeaders,DotNetWorkQueue.Configuration.TransportConfigurationSend,DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand},DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery,DotNetWorkQueue.QueueStatuses},DotNetWorkQueue.IJobSchedulerMetaData,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandler"/> class.
             </summary>
@@ -165,7 +165,7 @@
             Sends a message to the queue
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandlerAsync.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.ICompositeSerialization,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.IHeaders,DotNetWorkQueue.Configuration.TransportConfigurationSend,DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand},DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery,DotNetWorkQueue.QueueStatuses},DotNetWorkQueue.IJobSchedulerMetaData,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandlerAsync.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.ICompositeSerialization,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.IHeaders,DotNetWorkQueue.Configuration.TransportConfigurationSend,DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand},DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery,DotNetWorkQueue.QueueStatuses},DotNetWorkQueue.IJobSchedulerMetaData,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SendMessageCommandHandlerAsync"/> class.
             </summary>
@@ -194,7 +194,7 @@
             Updates the error count for a record
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetErrorCountCommandHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetErrorCountCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.SetErrorCountCommandHandler"/> class.
             </summary>
@@ -315,11 +315,21 @@
             Contains location information
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo.#ctor(System.String)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo.#ctor(System.Boolean,System.String)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo"/> class.
             </summary>
+            <param name="inMemory">if set to <c>true</c> [in memory].</param>
             <param name="fileName">Name of the file.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo.IsInMemory">
+            <summary>
+            Gets a value indicating whether this instance is in memory.
+            </summary>
+            <value>
+            <c>true</c> if this instance is in memory; otherwise, <c>false</c>.
+            </value>
+            <remarks>If true, <seealso cref="P:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo.FileName"/> will be empty </remarks>
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo.FileName">
             <summary>
@@ -337,23 +347,55 @@
               <c>true</c> if this instance is valid; otherwise, <c>false</c>.
             </value>
         </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CreationScope">
+            <summary>
+            A scope that allows components to still exist after the container has been disposed.
+            </summary>
+            <seealso cref="T:DotNetWorkQueue.ICreationScope" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CreationScope.AddScopedObject(System.IDisposable)">
+            <summary>
+            Adds the scoped Disposable object to the scope.
+            </summary>
+            <remarks>All objects added here will be disposed of when the scope is disposed</remarks>
+            <param name="disposable">The disposable.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CreationScope.AddScopedObject(DotNetWorkQueue.IClear)">
+            <summary>
+            Adds the scoped object.
+            </summary>
+            <param name="input">The input.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CreationScope.DotNetWorkQueue#ICreationScope#GetDisposable``1">
+            <inheritdoc/>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CreationScope.Dispose(System.Boolean)">
+            <summary>
+            Releases unmanaged and - optionally - managed resources.
+            </summary>
+            <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CreationScope.Dispose">
+            <summary>
+            Releases unmanaged and - optionally - managed resources.
+            </summary>
+        </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists">
             <summary>
             Determines if a specified database exists
             </summary>
             <remarks>The database could be on the file system or in memory</remarks>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists.#ctor(DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString)">
-            <summary>
-            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists"/> class.
-            </summary>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists.#ctor(DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Logging.ILogger)">
+            <summary>Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists"/> class.</summary>
             <param name="getFileNameFromConnection">The get file name from connection.</param>
+            <param name="connectionInformation">Connection info</param>
+            <param name="logger">Logger</param>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists.Exists(System.String)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists.Exists">
             <summary>
             Returns true if the specified database exists
             </summary>
-            <param name="connectionString"></param>
             <returns></returns>
         </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbCorrelationIdFactory">
@@ -405,7 +447,7 @@
             Defines our collections that hold the data for the queue
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.ITable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.ITable.Create(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Creates this table in the database specified by the connection
             </summary>
@@ -413,6 +455,71 @@
             <param name="options">The options.</param>
             <param name="helper">The helper.</param>
             <returns></returns>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnection">
+            <summary>
+            Wraps a LiteDatabase. If direct/memory will leave the instance alone on dispose. If shared, database will be disposed.
+            </summary>
+            <seealso cref="T:System.IDisposable" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnection.#ctor(LiteDB.LiteDatabase,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnection"/> class.
+            </summary>
+            <param name="database">The database.</param>
+            <param name="shared">if set to <c>true</c> [shared].</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnection.Database">
+            <summary>
+            Gets the database.
+            </summary>
+            <value>
+            The database.
+            </value>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnection.Dispose">
+            <summary>
+            Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+            </summary>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager">
+            <summary>
+            Returns a connection for LiteDb
+            </summary>
+            <seealso cref="T:System.IDisposable" />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.ICreationScope)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager"/> class.
+            </summary>
+            <param name="connectionInformation">The connection information.</param>
+            <param name="scope">The scope.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager.IsSharedConnection">
+            <summary>
+            Gets a value indicating whether this instance is shared connection.
+            </summary>
+            <value>
+              <c>true</c> if this instance is shared connection; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager.GetDatabase">
+            <summary>
+            Gets the database.
+            </summary>
+            <returns></returns>
+            <exception cref="T:System.ObjectDisposedException">_db</exception>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager.Dispose(System.Boolean)">
+            <summary>
+            Releases unmanaged and - optionally - managed resources.
+            </summary>
+            <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager.Dispose">
+            <summary>
+            Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+            </summary>
         </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbGetFileNameFromConnectionString">
             <summary>
@@ -523,7 +630,7 @@
             </summary>
             <seealso cref="T:DotNetWorkQueue.IJobTableCreation" />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobTableCreation.#ctor(DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.Transport.LiteDb.IJobSchema,DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand{DotNetWorkQueue.Transport.LiteDb.Basic.ITable},DotNetWorkQueue.QueueCreationResult},DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbJobTableCreation.#ctor(DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.Transport.LiteDb.IJobSchema,DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand{DotNetWorkQueue.Transport.LiteDb.Basic.ITable},DotNetWorkQueue.QueueCreationResult},DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.Memory.Basic.JobTableCreation" /> class.
             </summary>
@@ -550,10 +657,8 @@
             A class that will create the queue tables if needed. No support for updating existing tables is provided.
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema,DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand{DotNetWorkQueue.Transport.LiteDb.Basic.ITable},DotNetWorkQueue.QueueCreationResult},DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.LiteDb.Basic.Command.DeleteQueueTablesCommand,DotNetWorkQueue.QueueRemoveResult},DotNetWorkQueue.ICreationScope)">
-            <summary>
-            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation" /> class.
-            </summary>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueSchema,DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand{DotNetWorkQueue.Transport.LiteDb.Basic.ITable},DotNetWorkQueue.QueueCreationResult},DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.LiteDb.Basic.Command.DeleteQueueTablesCommand,DotNetWorkQueue.QueueRemoveResult},DotNetWorkQueue.ICreationScope,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager)">
+            <summary>Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation"/> class.</summary>
             <param name="connectionInfo">The connection information.</param>
             <param name="queryTableExists">The query table exists.</param>
             <param name="options">The options.</param>
@@ -561,6 +666,7 @@
             <param name="createCommand">The create command.</param>
             <param name="deleteCommand">The delete command.</param>
             <param name="creationScope">The creation scope.</param>
+            <param name="connectionManager">DB Connection manager</param>
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.Options">
             <summary>
@@ -945,7 +1051,7 @@
             </summary>
             <seealso cref="T:DotNetWorkQueue.ASendJobToQueue" />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.IProducerMethodQueue,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery,DotNetWorkQueue.QueueStatuses},DotNetWorkQueue.IRemoveMessage,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.Shared.Basic.Query.GetJobIdQuery{System.Int32},System.Int32},DotNetWorkQueue.Transport.Shared.Basic.CreateJobMetaData,DotNetWorkQueue.IGetTimeFactory)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.IProducerMethodQueue,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery,DotNetWorkQueue.QueueStatuses},DotNetWorkQueue.IRemoveMessage,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.Shared.Basic.Query.GetJobIdQuery{System.Int32},System.Int32},DotNetWorkQueue.Transport.Shared.Basic.CreateJobMetaData,DotNetWorkQueue.IGetTimeFactory)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbSendJobToQueue"/> class.
             </summary>
@@ -1065,7 +1171,7 @@
             Finds error messages that need to be deleted
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindErrorRecordsToDeleteQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IMessageErrorConfiguration)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindErrorRecordsToDeleteQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IMessageErrorConfiguration)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindErrorRecordsToDeleteQueryHandler"/> class.
             </summary>
@@ -1081,7 +1187,7 @@
             Finds error messages that need to be deleted
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindExpiredRecordsToDeleteQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindExpiredRecordsToDeleteQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindExpiredRecordsToDeleteQueryHandler"/> class.
             </summary>
@@ -1096,7 +1202,7 @@
             Finds records that are outside of the heartbeat window.
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindRecordsToResetByHeartBeatQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IHeartBeatConfiguration,DotNetWorkQueue.ICompositeSerialization)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindRecordsToResetByHeartBeatQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IHeartBeatConfiguration,DotNetWorkQueue.ICompositeSerialization)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.FindRecordsToResetByHeartBeatQueryHandler"/> class.
             </summary>
@@ -1113,7 +1219,7 @@
             Returns the current retry count for a message and a specific exception type
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetErrorRetryCountQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetErrorRetryCountQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetErrorRetryCountQueryHandler"/> class.
             </summary>
@@ -1128,7 +1234,7 @@
             Obtains a header
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetHeaderQueryHandler.#ctor(DotNetWorkQueue.ICompositeSerialization,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetHeaderQueryHandler.#ctor(DotNetWorkQueue.ICompositeSerialization,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetHeaderQueryHandler"/> class.
             </summary>
@@ -1144,7 +1250,7 @@
             Gets the id for a queued job
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobIdQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobIdQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobIdQueryHandler"/> class.
             </summary>
@@ -1159,7 +1265,7 @@
             Gets the last known scheduled execution time for a job
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobLastKnownEventQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobLastKnownEventQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobLastKnownEventQueryHandler"/> class.
             </summary>
@@ -1169,7 +1275,7 @@
         <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetJobLastKnownEventQueryHandler.Handle(DotNetWorkQueue.Transport.Shared.Basic.Query.GetJobLastKnownEventQuery)">
             <inheritdoc />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetMessageErrorsQueryHandler.#ctor(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetMessageErrorsQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetMessageErrorsQueryHandler"/> class.
             </summary>
@@ -1184,7 +1290,7 @@
             Gets the queue options
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetQueueOptionsQueryHandler`1.#ctor(DotNetWorkQueue.IInternalSerializer,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetQueueOptionsQueryHandler`1.#ctor(DotNetWorkQueue.IInternalSerializer,DotNetWorkQueue.Transport.Shared.IQueryHandler{DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery,System.Boolean},DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.GetQueueOptionsQueryHandler`1" /> class.
             </summary>
@@ -1223,7 +1329,7 @@
             Dequeues a message.
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists,DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.MessageDeQueue)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists,DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.MessageDeQueue)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.ReceiveMessageQueryHandler"/> class.
             </summary>
@@ -1516,7 +1622,7 @@
             </summary>
             <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.ConfigurationTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.ConfigurationTable.Create(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <inheritdoc />
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.ConfigurationTable.Id">
@@ -1541,7 +1647,7 @@
             </summary>
             <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.ErrorTrackingTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.ErrorTrackingTable.Create(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <inheritdoc />
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.ErrorTrackingTable.Id">
@@ -1582,7 +1688,7 @@
             </summary>
             <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable.Create(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <inheritdoc />
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable.Id">
@@ -1623,7 +1729,7 @@
             </summary>
             <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.Create(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <inheritdoc />
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataErrorsTable.Id">
@@ -1720,7 +1826,7 @@
             </summary>
             <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.Create(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <inheritdoc />
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.MetaDataTable.Id">
@@ -1801,7 +1907,7 @@
             </summary>
             <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.QueueTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.QueueTable.Create(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <inheritdoc />
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.QueueTable.Id">
@@ -1834,7 +1940,7 @@
             </summary>
             <seealso cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.ITable" />
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable.Create(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable.Create(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
             <inheritdoc />
         </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.StatusTable.Id">

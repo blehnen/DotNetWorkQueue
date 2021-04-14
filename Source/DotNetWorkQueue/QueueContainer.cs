@@ -86,16 +86,15 @@ namespace DotNetWorkQueue
             return container.GetInstance<IConsumerQueue>();
         }
 
-        /// <summary>
-        /// Creates the method consumer queue.
-        /// </summary>
+        /// <summary>Creates the method consumer queue.</summary>
         /// <param name="queueConnection">Queue and connection information.</param>
+        /// <param name="registerServiceInternal">overrides for the internal container</param>
         /// <returns></returns>
-        public IConsumerMethodQueue CreateMethodConsumer(QueueConnection queueConnection)
+        public IConsumerMethodQueue CreateMethodConsumer(QueueConnection queueConnection, Action<IContainer> registerServiceInternal)
         {
             Guard.NotNull(() => queueConnection, queueConnection);
 
-            var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
+            var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, registerServiceInternal, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IConsumerMethodQueue>();
         }

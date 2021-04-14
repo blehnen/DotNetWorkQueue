@@ -16,13 +16,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
     public class MultiMethodProducer
     {
         [Theory]
-        [InlineData(100, LinqMethodTypes.Dynamic, false),
-        InlineData(10, LinqMethodTypes.Dynamic, true),
-        InlineData(10,  LinqMethodTypes.Compiled, true),
-        InlineData(100,  LinqMethodTypes.Compiled, false)]
-        public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
+        [InlineData(100, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        InlineData(10, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+        InlineData(10,  LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Shared),
+        InlineData(100,  LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct)]
+        public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
-            using (var connectionInfo = new IntegrationConnectionInfo())
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
                 var logProvider = LoggerShared.Create(queueName, GetType().Name);
@@ -31,31 +31,27 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
                     try
                     {
+                        var result = oCreation.CreateQueue();
+                        Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
+                        RunTest(queueConnection, messageCount, 10, logProvider, linqMethodTypes, oCreation.Scope,
+                            enableChaos);
+                        LoggerShared.CheckForErrors(queueName);
+                        new VerifyQueueData(queueConnection, oCreation.Options, scope).Verify(messageCount * 10, null);
 
-                            RunTest(queueConnection, messageCount, 10, logProvider, linqMethodTypes, oCreation.Scope, enableChaos);
-                            LoggerShared.CheckForErrors(queueName);
-                            new VerifyQueueData(queueConnection, oCreation.Options).Verify(messageCount * 10, null);
-                        }
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
+
+                        oCreation.RemoveQueue();
+                        oCreation.Dispose();
+                        scope?.Dispose();
+
                     }
                 }
             }

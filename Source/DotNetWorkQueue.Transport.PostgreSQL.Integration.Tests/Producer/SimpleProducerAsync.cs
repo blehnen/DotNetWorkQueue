@@ -52,13 +52,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
                 var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
+                ICreationScope scope = null;
+                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
                 try
                 {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
+                   
                         oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
                         oCreation.Options.EnableHeartBeat = enableHeartBeat;
                         oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
@@ -75,22 +73,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
 
                         var result = oCreation.CreateQueue();
                         Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
 
-                        var producer = new ProducerAsyncShared();
+                    var producer = new ProducerAsyncShared();
                         await producer.RunTestAsync<PostgreSqlMessageQueueInit, FakeMessage>(queueConnection, interceptors, messageCount, logProvider,
                             Helpers.GenerateData,
                             Helpers.Verify, false, oCreation.Scope, enableChaos).ConfigureAwait(false);
-                    }
+                    
                 }
                 finally
                 {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
+                    scope?.Dispose();
 
                 }
             }

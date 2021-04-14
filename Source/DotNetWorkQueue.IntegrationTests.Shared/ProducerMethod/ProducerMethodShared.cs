@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     addInterceptorProducer = InterceptorAdding.Yes;
                 }
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, false, enableChaos)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, false, enableChaos, scope)
                     )
                 {
                     //create the queue
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     addInterceptorProducer = InterceptorAdding.Yes;
                 }
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, false, enableChaos)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, false, enableChaos, scope)
                     )
                 {
                     //create the queue

@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     {
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateJobTablesCommandHandler"/> class.
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="optionsFactory">The options factory.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
-        public CreateJobTablesCommandHandler(IConnectionInformation connectionInformation,
+        public CreateJobTablesCommandHandler(LiteDbConnectionManager connectionInformation,
             ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
             TableNameHelper tableNameHelper)
         {

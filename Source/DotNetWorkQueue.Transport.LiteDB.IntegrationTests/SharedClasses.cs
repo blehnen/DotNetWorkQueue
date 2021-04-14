@@ -11,22 +11,34 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
     {
         public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
-            new VerifyQueueData(queueConnection, queueProducerConfiguration.Options()).Verify(messageCount, null);
+            new VerifyQueueData(queueConnection, queueProducerConfiguration.Options(), scope).Verify(messageCount, null);
         }
 
         public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
         {
-            new VerifyQueueData(queueConnection, queueProducerConfiguration.Options()).Verify(messageCount, route);
+            new VerifyQueueData(queueConnection, queueProducerConfiguration.Options(), scope).Verify(messageCount, route);
         }
 
         public static void Verify(QueueConnection queueConnection, long messageCount, ICreationScope scope)
         {
             var connection = new LiteDbConnectionInformation(queueConnection);
             var helper = new TableNameHelper(connection);
-            using (var conn = new LiteDatabase(connection.ConnectionString))
+            var connScope = scope.GetDisposable<LiteDbConnectionManager>();
+            if (connScope == null)
             {
-                var col = conn.GetCollection<Schema.MetaDataTable>(helper.MetaDataName);
-                Assert.Equal(messageCount, col.Count());
+                using (var conn = new LiteDatabase(connection.ConnectionString))
+                {
+                    var col = conn.GetCollection<Schema.MetaDataTable>(helper.MetaDataName);
+                    Assert.Equal(messageCount, col.Count());
+                }
+            }
+            else
+            {
+                using (var conn = connScope.GetDatabase())
+                {
+                    var col = conn.Database.GetCollection<Schema.MetaDataTable>(helper.MetaDataName);
+                    Assert.Equal(messageCount, col.Count());
+                }
             }
         }
 
@@ -34,15 +46,33 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
         {
             var connection = new LiteDbConnectionInformation(queueConnection);
             var helper = new TableNameHelper(connection);
-            using (var conn = new LiteDatabase(connection.ConnectionString))
+            var connScope = scope.GetDisposable<LiteDbConnectionManager>();
+            if (connScope == null)
             {
-                var col = conn.GetCollection<Schema.StatusTable>(helper.StatusName);
-                var results = col.Query()
-                    .ToList();
-                foreach (var result in results)
+                using (var conn = new LiteDatabase(connection.ConnectionString))
                 {
-                    result.Status = QueueStatuses.Error;
-                    col.Update(result);
+                    var col = conn.GetCollection<Schema.StatusTable>(helper.StatusName);
+                    var results = col.Query()
+                        .ToList();
+                    foreach (var result in results)
+                    {
+                        result.Status = QueueStatuses.Error;
+                        col.Update(result);
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = connScope.GetDatabase())
+                {
+                    var col = conn.Database.GetCollection<Schema.StatusTable>(helper.StatusName);
+                    var results = col.Query()
+                        .ToList();
+                    foreach (var result in results)
+                    {
+                        result.Status = QueueStatuses.Error;
+                        col.Update(result);
+                    }
                 }
             }
         }

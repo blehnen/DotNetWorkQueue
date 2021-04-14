@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     {
         private readonly IGetTimeFactory _getUtcDateQuery;
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
         private readonly DatabaseExists _databaseExists;
 
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         public RollbackMessageCommandHandler(IGetTimeFactory getUtcDateQuery,
             ILiteDbMessageQueueTransportOptionsFactory options, 
             TableNameHelper tableNameHelper,
-            IConnectionInformation connectionInformation,
+            LiteDbConnectionManager connectionInformation,
             DatabaseExists databaseExists)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
@@ -61,26 +61,27 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             _connectionInformation = connectionInformation;
             _databaseExists = databaseExists;
         }
+
         /// <summary>
         /// Handles the specified rollback command.
         /// </summary>
         /// <param name="rollBackCommand">The rollBackCommand.</param>
         public void Handle(RollbackMessageCommand<int> rollBackCommand)
         {
-            if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
+            if (!_databaseExists.Exists())
             {
                 return;
             }
 
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
-                db.BeginTrans();
+                db.Database.BeginTrans();
                 try
                 {
-                    var col = db.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
+                    var col = db.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
 
                     var results2 = col.Query()
-                        .Where(x => x.QueueId.Equals(rollBackCommand.QueueId))              
+                        .Where(x => x.QueueId.Equals(rollBackCommand.QueueId))
                         .Limit(1)
                         .ToList();
 
@@ -93,7 +94,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                             if (rollBackCommand.LastHeartBeat.HasValue)
                             {
                                 //heartbeat must match
-                                if (TrimMilliseconds(record.HeartBeat) != TrimMilliseconds(rollBackCommand.LastHeartBeat))
+                                if (TrimMilliseconds(record.HeartBeat) !=
+                                    TrimMilliseconds(rollBackCommand.LastHeartBeat))
                                 {
                                     process = false;
                                 }
@@ -120,7 +122,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
 
                                 if (_options.Value.EnableStatusTable)
                                 {
-                                    var statusCol = db.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
+                                    var statusCol = db.Database.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
                                     var results = statusCol.Query()
                                         .Where(x => x.QueueId.Equals(record.QueueId))
                                         .Limit(1)
@@ -137,11 +139,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         }
                     }
 
-                    db.Commit();
+                    db.Database.Commit();
                 }
                 catch
                 {
-                    db.Rollback();
+                    db.Database.Rollback();
                     throw;
                 }
             }

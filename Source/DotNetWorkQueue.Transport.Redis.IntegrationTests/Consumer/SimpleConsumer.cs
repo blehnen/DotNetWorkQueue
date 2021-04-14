@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
 
@@ -34,7 +35,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
                     var consumer = new ConsumerShared<FakeMessage>();
                     consumer.RunConsumer<RedisQueueInit>(queueConnection, false, logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false);
+                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false, new CreationScopeNoOp());
 
                     using (var count = new VerifyQueueRecordCount(queueName, connectionString))
                     {

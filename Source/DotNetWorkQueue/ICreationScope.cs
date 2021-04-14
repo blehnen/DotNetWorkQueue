@@ -40,5 +40,13 @@ namespace DotNetWorkQueue
         /// <remarks>All objects added here will have clear called when the parent is disposed</remarks>
         /// <param name="clear">The input.</param>
         void AddScopedObject(IClear clear);
+
+        /// <summary>
+        /// Will attempt to return the 1st instance of the type in the disposable collection
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>null if not found</returns>
+        T GetDisposable<T>()
+            where T : class, IDisposable;
     }
 }

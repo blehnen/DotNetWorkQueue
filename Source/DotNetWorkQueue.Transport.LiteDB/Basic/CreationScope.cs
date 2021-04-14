@@ -16,11 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 
-namespace DotNetWorkQueue.Transport.SQLite.Basic
+namespace DotNetWorkQueue.Transport.LiteDb.Basic
 {
     /// <summary>
     /// A scope that allows components to still exist after the container has been disposed.

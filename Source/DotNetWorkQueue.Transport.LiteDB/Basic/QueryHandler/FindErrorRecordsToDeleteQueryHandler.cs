@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     /// </summary>
     public class FindErrorRecordsToDeleteQueryHandler : IQueryHandler<FindErrorMessagesToDeleteQuery<int>, IEnumerable<int>>
     {
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
         private readonly IMessageErrorConfiguration _configuration;
 
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="configuration">The configuration.</param>
-        public FindErrorRecordsToDeleteQueryHandler(IConnectionInformation connectionInformation,
+        public FindErrorRecordsToDeleteQueryHandler(LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper,
             IMessageErrorConfiguration configuration)
         {
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                 return Enumerable.Empty<int>();
             }
 
-            using (var db = new LiteDatabase(_connectionInformation.ConnectionString))
+            using (var db = _connectionInformation.GetDatabase())
             {
                 //before executing a query, double check that we aren't stopping
                 //otherwise, there is a chance that the tables no longer exist in memory mode
@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                     return Enumerable.Empty<int>();
                 }
 
-                var col = db.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
+                var col = db.Database.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
 
                 var date = DateTime.UtcNow.Subtract(_configuration.MessageAge);
                 var results = col.Query()

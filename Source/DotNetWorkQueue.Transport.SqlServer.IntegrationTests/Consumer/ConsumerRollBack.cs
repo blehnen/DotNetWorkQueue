@@ -2,6 +2,7 @@
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
 
@@ -50,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                         var consumer = new ConsumerRollBackShared<FakeMessage>();
                         consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
                             false,
-                            workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
+                            workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos, new CreationScopeNoOp());
 
                         new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
                     }

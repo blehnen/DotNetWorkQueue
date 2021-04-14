@@ -29,11 +29,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Schema
     public class StatusTable: ITable
     {
         /// <inheritdoc />
-        public bool Create(IConnectionInformation connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper)
+        public bool Create(LiteDbConnectionManager connection, LiteDbMessageQueueTransportOptions options,
+            TableNameHelper helper)
         {
-            using (var db = new LiteDatabase(connection.ConnectionString))
+            using (var db = connection.GetDatabase())
             {
-                var col = db.GetCollection<StatusTable>(helper.StatusName);
+                var col = db.Database.GetCollection<StatusTable>(helper.StatusName);
 
                 col.EnsureIndex(x => x.Id);
                 col.EnsureIndex(x => x.QueueId, true);

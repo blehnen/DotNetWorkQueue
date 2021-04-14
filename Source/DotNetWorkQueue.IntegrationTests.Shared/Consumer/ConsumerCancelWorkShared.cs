@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos, ICreationScope scope)
         {
             _queueConnection = queueConnection;
             _workerCount = workerCount;
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 
             //run consumer
             RunConsumerInternal(queueConnection, addInterceptors, logProvider, runTime,
-                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, updateTime, route, enableChaos);
+                messageCount, workerCount, timeOut, _queue, heartBeatTime, heartBeatMonitorTime, updateTime, route, enableChaos, scope);
         }
 
 
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, IDisposable queueBad,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos, ICreationScope scope)
         {
 
             using (var metrics = new Metrics.Metrics(queueConnection.Queue))
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                     addInterceptorConsumer = InterceptorAdding.ConfigurationOnly; 
                 }
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos)
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
                     )
                 {
 

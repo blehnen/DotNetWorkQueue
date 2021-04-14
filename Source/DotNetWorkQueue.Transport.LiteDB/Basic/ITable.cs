@@ -30,6 +30,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="options">The options.</param>
         /// <param name="helper">The helper.</param>
         /// <returns></returns>
-        bool Create(IConnectionInformation connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper);
+        bool Create(LiteDbConnectionManager connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper);
     }
 }

@@ -262,7 +262,7 @@ namespace DotNetWorkQueue.IoC
             return this;
         }
 
-    /// <summary>
+        /// <summary>
         /// Registers a singleton that will not be scoped and disposed of with the container.
         /// </summary>
         /// <typeparam name="TConcrete">The type of the concrete.</typeparam>

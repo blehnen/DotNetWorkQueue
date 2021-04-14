@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
 
@@ -57,17 +58,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             false,
                             logProvider,
                             messageCount, workerCount, timeOut, queueSize, readerCount,
-                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos);
+                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", null, enableChaos, new CreationScopeNoOp());
                         ValidateErrorCounts(queueConnection, messageCount);
                         new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(messageCount, true, false);
 
                         consumer.PurgeErrorMessages<SqlServerMessageQueueInit>(queueConnection,
-                            false, logProvider, false);
+                            false, logProvider, false, new CreationScopeNoOp());
                         ValidateErrorCounts(queueConnection, messageCount);
 
                         //purge error messages and verify that count is 0
                         consumer.PurgeErrorMessages<SqlServerMessageQueueInit>(queueConnection,
-                            false, logProvider, true);
+                            false, logProvider, true, new CreationScopeNoOp());
                         ValidateErrorCounts(queueConnection, 0);
                     }
                 }

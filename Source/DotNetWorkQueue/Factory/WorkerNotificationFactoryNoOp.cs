@@ -20,8 +20,16 @@ using DotNetWorkQueue.Queue;
 
 namespace DotNetWorkQueue.Factory
 {
+    /// <summary>
+    /// Returns a worker notification engine that is a no-op implementation
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.IWorkerNotificationFactory" />
     public class WorkerNotificationFactoryNoOp : IWorkerNotificationFactory
     {
+        /// <summary>
+        /// Returns a worker notification that is a no-op implementation
+        /// </summary>
+        /// <seealso cref="DotNetWorkQueue.IWorkerNotificationFactory" />
         public IWorkerNotification Create()
         {
             return new WorkerNotificationNoOp();

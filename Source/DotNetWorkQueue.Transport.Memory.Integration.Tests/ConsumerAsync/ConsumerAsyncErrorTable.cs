@@ -3,6 +3,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using Xunit;
 
@@ -26,44 +27,40 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                 {
                     var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
+                    ICreationScope scope = null;
+                    var oCreation = queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection);
                     try
                     {
+                        var result = oCreation.CreateQueue();
+                        Assert.True(result.Success, result.ErrorMessage);
+                        scope = oCreation.Scope;
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
+                        //create data
+                        var producer = new ProducerShared();
+                        producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueConnection, false, messageCount,
+                            logProvider, Helpers.GenerateData,
+                            Helpers.Verify, false, oCreation.Scope, false);
 
-                            //create data
-                            var producer = new ProducerShared();
-                            producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, false);
+                        //process data
+                        var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
+                        consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
+                            false,
+                            logProvider,
+                            messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30),
+                            TimeSpan.FromSeconds(35), "second(*%10)", null, false, scope);
+                        ValidateErrorCounts(oCreation.Scope, messageCount);
+                        new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
 
-                            //process data
-                            var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
-                            consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
-                                false,
-                                logProvider,
-                                messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, false);
-                            ValidateErrorCounts(oCreation.Scope, messageCount);
-                            new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
-
-                            consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueConnection,
-                                false,  logProvider, true);
-                        }
+                        consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueConnection,
+                            false, logProvider, true, scope);
                     }
                     finally
                     {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
+                        
                             oCreation.RemoveQueue();
-                        }
+                            oCreation.Dispose();
+                            scope?.Dispose();
+                        
                     }
                 }
             }
