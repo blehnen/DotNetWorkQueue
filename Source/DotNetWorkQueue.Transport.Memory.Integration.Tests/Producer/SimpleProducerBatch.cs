@@ -26,6 +26,5 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
                     Helpers.GenerateData, Helpers.Verify);
             }
         }
-        }
     }
 }
