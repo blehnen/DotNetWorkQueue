@@ -295,7 +295,7 @@ namespace ConsoleSharedCommands.Commands
                 case ConsumerQueueTypes.Method:
                     Queues.Add(queueName,
                       _queueContainer.Value.CreateMethodConsumer(new QueueConnection(queueName,
-                          ConfigurationManager.AppSettings["Connection"])));
+                          ConfigurationManager.AppSettings["Connection"]), x => { }));
                     break;
             }
         }
