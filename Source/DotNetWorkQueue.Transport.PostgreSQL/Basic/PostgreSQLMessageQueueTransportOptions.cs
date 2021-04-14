@@ -26,7 +26,7 @@ using NpgsqlTypes;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
     /// <inheritdoc cref="ITransportOptions" />
-    public class PostgreSqlMessageQueueTransportOptions: ITransportOptions, IReadonly, ISetReadonly
+    public class PostgreSqlMessageQueueTransportOptions: ITransportOptions, IReadonly, ISetReadonly, IBaseTransportOptions
     {
         private bool _enableStatusTable;
         private bool _enablePriority;

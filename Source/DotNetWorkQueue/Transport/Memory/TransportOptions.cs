@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Memory
     /// <summary>
     /// Transport options. Generally speaking, this controls the feature set of the transport.
     /// </summary>
-    public class TransportOptions: IReadonly, ISetReadonly
+    public class TransportOptions: IReadonly, ISetReadonly, IBaseTransportOptions
     {
         #region Validation
         /// <summary>
@@ -91,5 +91,20 @@ namespace DotNetWorkQueue.Transport.Memory
             /// </value>
             public string ErrorMessage { get; set; }
         }
+
+        /// <inheritdoc/>
+        public bool EnablePriority => false;
+        /// <inheritdoc/>
+        public bool EnableStatus => false;
+        /// <inheritdoc/>
+        public bool EnableHeartBeat => false;
+        /// <inheritdoc/>
+        public bool EnableDelayedProcessing => false;
+        /// <inheritdoc/>
+        public bool EnableStatusTable => false;
+        /// <inheritdoc/>
+        public bool EnableRoute => false;
+        /// <inheritdoc/>
+        public bool EnableMessageExpiration => false;
     }
 }

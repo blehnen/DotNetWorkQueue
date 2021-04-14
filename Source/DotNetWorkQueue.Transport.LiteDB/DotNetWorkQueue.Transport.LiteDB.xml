@@ -676,6 +676,11 @@
             The options.
             </value>
         </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.BaseTransportOptions">
+            <summary>
+            Gets the base transport options.
+            </summary>
+        </member>
         <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueCreation.ConnectionInfo">
             <summary>
             Gets the connection information for the queue.

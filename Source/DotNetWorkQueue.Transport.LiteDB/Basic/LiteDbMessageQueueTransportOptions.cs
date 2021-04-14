@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     /// <summary>
     /// Transport options. Generally speaking, this controls the feature set of the transport.
     /// </summary>
-    public class LiteDbMessageQueueTransportOptions: IReadonly, ISetReadonly
+    public class LiteDbMessageQueueTransportOptions: IReadonly, ISetReadonly, IBaseTransportOptions
     {
         private bool _enableStatusTable;
         private bool _enableRoute;

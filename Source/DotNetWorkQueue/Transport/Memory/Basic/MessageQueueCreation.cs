@@ -60,6 +60,11 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public TransportOptions Options => _options.Value;
 
         /// <summary>
+        /// Gets the base transport options.
+        /// </summary>
+        public IBaseTransportOptions BaseTransportOptions => _options.Value;
+
+        /// <summary>
         /// Gets the connection information for the queue.
         /// </summary>
         /// <value>

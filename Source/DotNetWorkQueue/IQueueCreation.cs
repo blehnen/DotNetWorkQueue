@@ -63,6 +63,11 @@ namespace DotNetWorkQueue
         /// <remarks>This is used to prevent queues from going out of scope before you have finished working with them. Generally
         /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.</remarks>
         ICreationScope Scope { get; }
+
+        /// <summary>
+        /// Gets the base transport options.
+        /// </summary>
+        IBaseTransportOptions BaseTransportOptions { get; }
     }
 
     /// <summary>

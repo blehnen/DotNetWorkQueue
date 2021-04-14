@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// <summary>
     /// Transport options. Generally speaking, this controls the feature set of the transport.
     /// </summary>
-    public class SqlServerMessageQueueTransportOptions: ITransportOptions, IReadonly, ISetReadonly
+    public class SqlServerMessageQueueTransportOptions: ITransportOptions, IReadonly, ISetReadonly, IBaseTransportOptions
     {
         private bool _enableStatusTable;
         private bool _enablePriority;

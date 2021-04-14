@@ -49,6 +49,11 @@ namespace DotNetWorkQueue.Metrics.Decorator
         public IConnectionInformation ConnectionInfo => _handler.ConnectionInfo;
 
         /// <summary>
+        /// Gets the base transport options.
+        /// </summary>
+        public IBaseTransportOptions BaseTransportOptions => _handler.BaseTransportOptions;
+
+        /// <summary>
         /// Gets or sets a value indicating whether [queue exists].
         /// </summary>
         /// <value>

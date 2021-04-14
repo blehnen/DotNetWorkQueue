@@ -30,31 +30,34 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly RedisNames _redisNames;
         private readonly IRedisConnection _redisConnection;
+        private readonly RedisBaseTransportOptions _options;
         private int _disposeCount;
 
         #region Constructor
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RedisQueueCreation" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="RedisQueueCreation"/> class.</summary>
         /// <param name="connectionInfo">The connection information.</param>
         /// <param name="redisConnection">The redis connection.</param>
         /// <param name="redisNames">The redis names.</param>
         /// <param name="creationScope">The creation scope.</param>
+        /// <param name="options">Options for queue configuration</param>
         public RedisQueueCreation(IConnectionInformation connectionInfo,
             IRedisConnection redisConnection,
             RedisNames redisNames,
-            ICreationScope creationScope)
+            ICreationScope creationScope,
+            RedisBaseTransportOptions options)
         {
             Guard.NotNull(() => connectionInfo, connectionInfo);
             Guard.NotNull(() => redisConnection, redisConnection);
             Guard.NotNull(() => redisNames, redisNames);
             Guard.NotNull(() => creationScope, creationScope);
+            Guard.NotNull(() => options, options);
 
             _redisConnection = redisConnection;
             _redisNames = redisNames;
             ConnectionInfo = connectionInfo;
             Scope = creationScope;
+            _options = options;
         }
 
         #endregion
@@ -90,6 +93,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             return new QueueCreationResult(QueueCreationStatus.NoOp);
         }
+
+        /// <inheritdoc />
+        public IBaseTransportOptions BaseTransportOptions => _options;
 
         /// <inheritdoc />
         public QueueRemoveResult RemoveQueue()

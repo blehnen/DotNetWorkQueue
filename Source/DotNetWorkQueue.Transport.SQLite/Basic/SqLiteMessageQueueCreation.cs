@@ -95,6 +95,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public SqLiteMessageQueueTransportOptions Options => _options.Value;
 
+        /// <inheritdoc />
+        public IBaseTransportOptions BaseTransportOptions => _options.Value;
+
         /// <summary>
         /// Gets the connection information for the queue.
         /// </summary>

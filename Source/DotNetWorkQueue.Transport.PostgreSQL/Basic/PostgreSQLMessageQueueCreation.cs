@@ -94,6 +94,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public PostgreSqlMessageQueueTransportOptions Options => _options.Value;
 
         /// <inheritdoc />
+        public IBaseTransportOptions BaseTransportOptions => _options.Value;
+
+        /// <inheritdoc />
         public IConnectionInformation ConnectionInfo { get; }
 
         /// <inheritdoc />
