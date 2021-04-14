@@ -19,48 +19,18 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (
-                    var queueCreator =
-                        new QueueCreationContainer<LiteDbMessageQueueInit>(
-                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection =
-                        new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    ICreationScope scope = null;
-                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                    try
-                    {
-                        oCreation.Options.EnableStatusTable = true;
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-
-                        var producer = new ProducerShared();
-                        producer.RunTest<LiteDbMessageQueueInit, FakeMessage>(queueConnection, false, messageCount,
-                            logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, scope, false);
-
-                        var consumer = new ConsumerShared<FakeMessage>();
-                        consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
-                            false,
-                            logProvider,
-                            runtime, messageCount,
-                            workerCount, timeOut,
-                            TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos, scope);
-
-                        new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options, scope)
-                            .Verify(0, false, false);
-                    }
-                    finally
-                    {
-                        oCreation?.RemoveQueue();
-                        oCreation?.Dispose();
-                        scope?.Dispose();
-                    }
-                }
+                var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.SimpleConsumer();
+                consumer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, runtime, timeOut, workerCount, enableChaos, x => { },
+                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
             }
+        }
+
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            new VerifyQueueRecordCount(arg1, arg2, (LiteDbMessageQueueTransportOptions)arg3, arg4)
+                .Verify(arg5, arg6, arg7);
         }
     }
 }
