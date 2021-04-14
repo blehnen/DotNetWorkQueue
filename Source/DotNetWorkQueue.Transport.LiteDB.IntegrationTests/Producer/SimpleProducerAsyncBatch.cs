@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using System.Threading.Tasks;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using Xunit;
@@ -21,47 +22,21 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
          InlineData(10, false, false, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
          InlineData(10, true, false, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
          InlineData(10, false, true, false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
-        public async void Run(
+        public async Task Run(
             int messageCount,
             bool interceptors,
             bool enableStatusTable,
             bool enableChaos,
             IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
-
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (
-                    var queueCreator =
-                        new QueueCreationContainer<LiteDbMessageQueueInit>(
-                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    ICreationScope scope = null;
-                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                    try
-                    {
-                        oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-
-                        var producer = new ProducerAsyncShared();
-                        await producer.RunTestAsync<LiteDbMessageQueueInit, FakeMessage>(queueConnection, interceptors,
-                            messageCount, logProvider,
-                            Helpers.GenerateData,
-                            Helpers.Verify, true, oCreation.Scope, enableChaos).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        oCreation?.RemoveQueue();
-                        oCreation?.Dispose();
-                        scope?.Dispose();
-                    }
-                }
+                var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducerAsync();
+                await producer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, interceptors, enableChaos, true, x => x.Options.EnableStatusTable = enableStatusTable,
+                    Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
             }
         }
     }

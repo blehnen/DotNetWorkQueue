@@ -31,35 +31,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<LiteDbMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    ICreationScope scope = null;
-                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                    try
-                    {
-                        oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-
-                        var producer = new ProducerShared();
-                        producer.RunTest<LiteDbMessageQueueInit, FakeMessage>(queueConnection, interceptors,
-                            messageCount, logProvider,
-                            Helpers.GenerateData,
-                            Helpers.Verify, true, oCreation.Scope, enableChaos);
-                    }
-                    finally
-                    {
-                        oCreation?.RemoveQueue();
-                        oCreation?.Dispose();
-                        scope?.Dispose();
-                    }
-                }
+                var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
+                producer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, interceptors, enableChaos, true, x => x.Options.EnableStatusTable = enableStatusTable,
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }
