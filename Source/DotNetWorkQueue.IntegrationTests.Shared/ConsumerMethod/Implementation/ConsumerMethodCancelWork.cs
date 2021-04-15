@@ -46,13 +46,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                         producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
                             logProvider, generateData,
                             verify, false, id, GenerateMethod.CreateCancelCompiled, runtime,
-                            oCreation.Scope, false);
+                            scope, false);
                     }
                     else
                     {
                         producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
                             logProvider, generateData,
-                            verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, oCreation.Scope,
+                            verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, scope,
                             false);
 
                     }

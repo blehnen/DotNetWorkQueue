@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("ConsumerAsync")]
+    [Collection("Consumer")]
     public class ConsumerMethodAsyncRollBack
     {
         [Theory]
@@ -20,63 +20,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<LiteDbMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection =
-                        new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    ICreationScope scope = null;
-                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                    try
-                    {
-                        oCreation.Options.EnableDelayedProcessing = true;
-                        oCreation.Options.EnableStatusTable = true;
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
+                        ConsumerMethodAsyncRollBack();
 
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-
-                        //create data
-                        var producer = new ProducerMethodShared();
-                        var id = Guid.NewGuid();
-                        if (linqMethodTypes == LinqMethodTypes.Compiled)
-                        {
-                            producer.RunTestCompiled<LiteDbMessageQueueInit>(queueConnection, false, messageCount,
-                                logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, scope,
-                                false);
-                        }
-                        else
-                        {
-                            producer.RunTestDynamic<LiteDbMessageQueueInit>(queueConnection, false, messageCount,
-                                logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, scope, false);
-                        }
-
-                        //process data
-                        var consumer = new ConsumerMethodAsyncRollBackShared();
-                        consumer.RunConsumer<LiteDbMessageQueueInit>(queueConnection,
-                            false,
-                            workerCount, logProvider,
-                            timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(30),
-                            TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos, scope);
-                        LoggerShared.CheckForErrors(queueName);
-                        new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options, scope)
-                            .Verify(0, false, false);
-                        GenerateMethod.ClearRollback(id);
-
-                    }
-                    finally
-                    {
-
-                        oCreation.RemoveQueue();
-                        oCreation.Dispose();
-                        scope?.Dispose();
-
-                    }
-                }
+                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x, true, false, true),
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
         }
     }

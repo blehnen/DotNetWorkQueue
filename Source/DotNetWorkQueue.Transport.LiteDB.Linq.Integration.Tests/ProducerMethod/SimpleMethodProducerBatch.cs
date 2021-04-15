@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("Producer")]
+    [Collection("Consumer")]
     public class SimpleMethodProducerBatch
     {
         [Theory]
@@ -41,50 +41,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<LiteDbMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    ICreationScope scope = null;
-                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                    try
-                    {
-
-                       
-                            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-                            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                            oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-                            scope = oCreation.Scope;
-
-                            var producer = new ProducerMethodShared();
-                            var id = Guid.NewGuid();
-                            if (linqMethodTypes == LinqMethodTypes.Compiled)
-                            {
-                                producer.RunTestCompiled<LiteDbMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                               Helpers.GenerateData,
-                               Helpers.Verify, true, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope, enableChaos);
-                            }
-                            else
-                            {
-                                producer.RunTestDynamic<LiteDbMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                               Helpers.GenerateData,
-                               Helpers.Verify, true, id, GenerateMethod.CreateDynamic, 0, oCreation.Scope, enableChaos);
-                            }
-                        
-                    }
-                    finally
-                    {
-                       
-                            oCreation.RemoveQueue();
-                        oCreation.Dispose();
-                        scope?.Dispose();
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
+                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, linqMethodTypes, interceptors, enableChaos, true, x => Helpers.SetOptions(x, enableDelayedProcessing, enableMessageExpiration, enableStatusTable),
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

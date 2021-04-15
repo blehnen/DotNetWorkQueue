@@ -6,7 +6,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.JobScheduler
 {
-    [CollectionDefinition("JobScheduler", DisableParallelization = true)]
+    [Collection("Consumer")]
     public class JobSchedulerMultipleTests
     {
         [Theory]
@@ -16,33 +16,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.JobScheduler
         {
             using (var connectionInfo = new IntegrationConnectionInfo(IntegrationConnectionInfo.ConnectionTypes.Direct))
             {
-                using (var queueCreator =
-                    new QueueCreationContainer<LiteDbMessageQueueInit>())
-                {
-                    var queueName = GenerateQueueName.Create();
-                    var queueConnection =
-                        new DotNetWorkQueue.Configuration.QueueConnection(queueName,
-                            connectionInfo.ConnectionString);
-                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                    var scope = oCreation.Scope;
-                    using (var queueContainer = new QueueContainer<LiteDbMessageQueueInit>(x => x.RegisterNonScopedSingleton(scope)))
-                    {
-                        try
-                        {
-                            var tests = new JobSchedulerTestsShared();
-                            tests.RunTestMultipleProducers<LiteDbMessageQueueInit, LiteDbJobQueueCreation>(
-                                queueConnection, true, producerCount,
-                                queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
-                                LoggerShared.Create(queueName, GetType().Name), scope);
-                        }
-                        finally
-                        {
-                            oCreation.RemoveQueue();
-                            oCreation.Dispose();
-                            scope?.Dispose();
-                        }
-                    }
-                }
+                var queueName = GenerateQueueName.Create();
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();
+
+                consumer.Run<LiteDbMessageQueueInit, LiteDbJobQueueCreation, LiteDbMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString, producerCount);
             }
         }
     }
