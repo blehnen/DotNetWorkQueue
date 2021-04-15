@@ -1,0 +1,69 @@
+﻿using System;
+using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
+using DotNetWorkQueue.Messages;
+using Xunit;
+
+namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
+{
+    public class ConsumerMethodMultipleDynamic
+    {
+        public void Run<TTransportInit, TTransportCreate>(
+            string queueName,
+            string connectionString,
+            int messageCount, int runtime,
+            int timeOut, int workerCount, bool enableChaos,
+            Action<TTransportCreate> setOptions,
+            Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
+            Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
+            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
+            where TTransportInit : ITransportInit, new()
+            where TTransportCreate : class, IQueueCreation
+        {
+            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            using (
+                var queueCreator =
+                    new QueueCreationContainer<TTransportInit>(
+                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            {
+                var queueConnection =
+                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
+                ICreationScope scope = null;
+                var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
+                try
+                {
+                    setOptions(oCreation);
+
+                    var result = oCreation.CreateQueue();
+                    Assert.True(result.Success, result.ErrorMessage);
+                    scope = oCreation.Scope;
+
+                    var producer = new ProducerMethodMultipleDynamicShared();
+                    var id = Guid.NewGuid();
+                    producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
+                        logProvider,
+                        generateData,
+                        verify, false, id, GenerateMethod.CreateMultipleDynamic, runtime, oCreation.Scope,
+                        false);
+
+                    var consumer = new ConsumerMethodShared();
+                    consumer.RunConsumer<TTransportInit>(queueConnection,
+                        false,
+                        logProvider,
+                        runtime, messageCount,
+                        workerCount, timeOut,
+                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos, scope);
+
+                    verifyQueueCount(queueName, connectionString, oCreation.BaseTransportOptions, scope, 0, false, false);
+                }
+                finally
+                {
+
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
+                    scope?.Dispose();
+                }
+            }
+        }
+    }
+}
