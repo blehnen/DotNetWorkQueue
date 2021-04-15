@@ -24,53 +24,18 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<MemoryMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            var producer = new ProducerMethodShared();
-                            var id = Guid.NewGuid();
-                            if (linqMethodTypes == LinqMethodTypes.Compiled)
-                            {
-                               producer.RunTestCompiled<MemoryMessageQueueInit>(queueConnection, true, messageCount, logProvider,
-                               Helpers.GenerateData,
-                               Helpers.Verify, true, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope, false);
-                            }
-#if NETFULL
-                            else
-                            {
-                               producer.RunTestDynamic<MemoryMessageQueueInit>(queueConnection, true, messageCount, logProvider,
-                               Helpers.GenerateData,
-                               Helpers.Verify, true, id, GenerateMethod.CreateDynamic, 0, oCreation.Scope, false);
-                            }
-#endif
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
+                consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString, messageCount, linqMethodTypes, false, false, true,
+                    x => { }, Helpers.GenerateData, Verify);
             }
+        }
+
+        private void Verify(QueueConnection arg1, QueueProducerConfiguration arg2, long arg3, ICreationScope arg4)
+        {
+            //noop
         }
     }
 }

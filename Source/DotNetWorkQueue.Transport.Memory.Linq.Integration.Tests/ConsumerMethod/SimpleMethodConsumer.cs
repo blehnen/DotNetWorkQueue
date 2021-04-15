@@ -22,63 +22,23 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
         public void Run(int messageCount, int runtime, 
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {
+
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (
-                    var queueCreator =
-                        new QueueCreationContainer<MemoryMessageQueueInit>(
-                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            var producer = new ProducerMethodShared();
-                            var id = Guid.NewGuid();
-                            if (linqMethodTypes == LinqMethodTypes.Compiled)
-                            {
-                                producer.RunTestCompiled<MemoryMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope, false);
-                            }
-#if NETFULL
-                            else
-                            {
-                                producer.RunTestDynamic<MemoryMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope, false);
-                            }
-#endif
-                            var consumer = new ConsumerMethodShared();
-                            consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
-                                false,
-                                logProvider,
-                                runtime, messageCount,
-                                workerCount, timeOut,
-                                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", false, new CreationScopeNoOp());
-
-                            new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
+                        SimpleMethodConsumer();
+                consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, runtime, timeOut, workerCount, linqMethodTypes, false, x => { },
+                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
             }
+        }
+
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            new VerifyQueueRecordCount().Verify(arg4, 0, true);
         }
     }
 }

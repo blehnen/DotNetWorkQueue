@@ -21,46 +21,11 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
-                using (var queueCreator =
-                    new QueueCreationContainer<MemoryMessageQueueInit>())
-                {
-                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                    )
-                    {
-                        using (var queueContainer = new QueueContainer<MemoryMessageQueueInit>(x => { }))
-                        {
-                            try
-                            {
-                                var tests = new JobSchedulerTestsShared();
-                                if (!dynamic)
-                                {
-                                    tests.RunEnqueueTestCompiled<MemoryMessageQueueInit, JobQueueCreation>(
-                                        queueConnection, true,
-                                        Helpers.Verify, Helpers.SetError,
-                                        queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
-                                            oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
-                                }
-#if NETFULL
-                                else
-                                {
-                                    tests.RunEnqueueTestDynamic<MemoryMessageQueueInit, JobQueueCreation>(
-                                        queueConnection, true,
-                                        Helpers.Verify, Helpers.SetError,
-                                        queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
-                                            oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
-                                }
-#endif
-                            }
-                            finally
-                            {
-                                oCreation.RemoveQueue();
-                            }
-                        }
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
+
+                consumer.Run<MemoryMessageQueueInit, JobQueueCreation, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString, false, dynamic, Helpers.Verify, Helpers.SetError);
             }
         }
     }

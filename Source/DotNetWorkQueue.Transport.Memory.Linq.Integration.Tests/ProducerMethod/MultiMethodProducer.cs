@@ -26,63 +26,18 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<MemoryMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.MultiMethodProducer();
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            RunTest(queueConnection, 100, 10, logProvider, linqMethodTypes, oCreation.Scope);
-                            LoggerShared.CheckForErrors(queueName);
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
+                consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString, 100, 10, linqMethodTypes, false,
+                    Helpers.GenerateData, VerifyQueueCount);
             }
         }
 
-        private void RunTest(QueueConnection queueConnection, int messageCount, int queueCount, ILogger logProvider, LinqMethodTypes linqMethodTypes, ICreationScope scope)
+        private void VerifyQueueCount(QueueConnection arg1, IBaseTransportOptions arg2, ICreationScope arg3, int arg4, string arg5)
         {
-            var tasks = new List<Task>(queueCount);
-            for (var i = 0; i < queueCount; i++)
-            {
-                var id = Guid.NewGuid();
-                var producer = new ProducerMethodShared();
-                if (linqMethodTypes == LinqMethodTypes.Compiled)
-                {
-                    tasks.Add(new Task(() => producer.RunTestCompiled<MemoryMessageQueueInit>(queueConnection, false, messageCount,
-                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateCompiled, 0, scope, false)));
-                }
-#if NETFULL
-                else
-                {
-                    tasks.Add(new Task(() => producer.RunTestDynamic<MemoryMessageQueueInit>(queueConnection, false, messageCount,
-                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id, GenerateMethod.CreateDynamic, 0, scope, false)));
-                }
-#endif
-            }
-            tasks.AsParallel().ForAll(x => x.Start());
-            Task.WaitAll(tasks.ToArray());
+            //noop
         }
     }
 }

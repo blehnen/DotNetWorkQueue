@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
@@ -12,117 +13,27 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
     [Collection("consumerasync")]
     public class SimpleConsumerAsync
     {
-        private ITaskFactory Factory { get; set; }
-
         [Theory]
         [InlineData(10, 5, 60, 7, 1, 1, 1),
          InlineData(100, 0, 30, 10, 5, 0, 1)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
            int messageType)
         {
-            SchedulerContainer schedulerContainer = null;
-            if (Factory == null)
-            {
-                Factory = CreateFactory(workerCount, queueSize, out schedulerContainer);
-            }
-
-
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<MemoryMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
-
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            if (messageType == 1)
-                            {
-                                var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<MemoryMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
-                                var consumer = new ConsumerAsyncShared<FakeMessage> { Factory = Factory };
-                                consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
-                                    false, logProvider,
-                                    runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false, new CreationScopeNoOp(), null);
-                            }
-                            else if (messageType == 2)
-                            {
-                                var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<MemoryMessageQueueInit, FakeMessageA>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
-                                var consumer = new ConsumerAsyncShared<FakeMessageA> { Factory = Factory };
-                                consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
-                                    false, logProvider,
-                                    runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false, new CreationScopeNoOp(), null);
-                            }
-                            else if (messageType == 3)
-                            {
-                                var producer = new ProducerAsyncShared();
-                                producer.RunTestAsync<MemoryMessageQueueInit, FakeMessageB>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
-                                var consumer = new ConsumerAsyncShared<FakeMessageB> { Factory = Factory };
-                                consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
-                                    false, logProvider,
-                                    runtime, messageCount,
-                                    timeOut, readerCount,
-                                    TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", false, new CreationScopeNoOp(), null);
-                            }
-
-                            new VerifyQueueRecordCount().Verify(oCreation.Scope, 0, true);
-                        }
-                    }
-                    finally
-                    {
-                        schedulerContainer?.Dispose();
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.SimpleConsumerAsync();
+                await consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, false, x => { },
+                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount).ConfigureAwait(false);
             }
         }
 
-#pragma warning disable xUnit1013 // Public method should be marked as test
-        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-#pragma warning restore xUnit1013 // Public method should be marked as test
-            int messageType, ITaskFactory factory)
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
-            Factory = factory;
-            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType);
-        }
-
-
-        public static ITaskFactory CreateFactory(int maxThreads, int maxQueueSize, out SchedulerContainer schedulerCreator)
-        {
-            schedulerCreator = new SchedulerContainer();
-            var taskScheduler = schedulerCreator.CreateTaskScheduler();
-
-            taskScheduler.Configuration.MaximumThreads = maxThreads;
-            taskScheduler.Configuration.MaxQueueSize = maxQueueSize;
-
-            taskScheduler.Start();
-            return schedulerCreator.CreateTaskFactory(taskScheduler);
+            new VerifyQueueRecordCount().Verify(arg4, 0, true);
         }
     }
 }

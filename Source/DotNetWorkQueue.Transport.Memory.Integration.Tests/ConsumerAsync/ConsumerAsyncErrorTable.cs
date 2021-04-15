@@ -20,54 +20,23 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (
-                    var queueCreator =
-                        new QueueCreationContainer<MemoryMessageQueueInit>(
-                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
-                    ICreationScope scope = null;
-                    var oCreation = queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection);
-                    try
-                    {
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-
-                        //create data
-                        var producer = new ProducerShared();
-                        producer.RunTest<MemoryMessageQueueInit, FakeMessage>(queueConnection, false, messageCount,
-                            logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, oCreation.Scope, false);
-
-                        //process data
-                        var consumer = new ConsumerAsyncErrorShared<FakeMessage>();
-                        consumer.RunConsumer<MemoryMessageQueueInit>(queueConnection,
-                            false,
-                            logProvider,
-                            messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30),
-                            TimeSpan.FromSeconds(35), "second(*%10)", null, false, scope);
-                        ValidateErrorCounts(oCreation.Scope, messageCount);
-                        new VerifyQueueRecordCount().Verify(oCreation.Scope, messageCount, false);
-
-                        consumer.PurgeErrorMessages<MemoryMessageQueueInit>(queueConnection,
-                            false, logProvider, true, scope);
-                    }
-                    finally
-                    {
-                        
-                            oCreation.RemoveQueue();
-                            oCreation.Dispose();
-                            scope?.Dispose();
-                        
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.ConsumerAsyncErrorTable();
+                consumer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, timeOut, workerCount,  readerCount, queueSize, false, x => { },
+                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts);
             }
         }
-        private void ValidateErrorCounts(ICreationScope scope, int messageCount)
+
+        private void ValidateErrorCounts(string arg1, string arg2, int arg3, ICreationScope arg4)
         {
-            new VerifyErrorCounts().Verify(scope, messageCount, 2);
+            new VerifyErrorCounts().Verify(arg4, arg3, 2);
+        }
+
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            new VerifyQueueRecordCount().Verify(arg4, arg5, false);
         }
     }
 }

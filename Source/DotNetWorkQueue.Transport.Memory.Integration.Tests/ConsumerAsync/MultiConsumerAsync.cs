@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using DotNetWorkQueue.Transport.Memory.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
@@ -12,39 +13,21 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
          InlineData(100, 0, 30, 10, 5, 0)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize)
         {
-            var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out var schedulerContainer);
-            using (schedulerContainer)
+            using (var connectionInfo = new IntegrationConnectionInfo())
             {
-                using (factory.Scheduler)
-                {
-                    var task1 =
-                        Task.Factory.StartNew(
-                            () =>
-                                RunConsumer(messageCount, runtime, timeOut, workerCount, readerCount,
-                                    queueSize, 1, factory));
-
-                    var task2 =
-                        Task.Factory.StartNew(
-                            () =>
-                                RunConsumer(messageCount, runtime, timeOut, workerCount, readerCount,
-                                    queueSize, 2, factory));
-
-                    var task3 =
-                        Task.Factory.StartNew(
-                            () =>
-                                RunConsumer(messageCount, runtime, timeOut, workerCount, readerCount,
-                                    queueSize, 3, factory));
-
-                    Task.WaitAll(task1, task2, task3);
-                }
+                var queueName = GenerateQueueName.Create();
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.MultiConsumerAsync();
+                consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, false, x => { },
+                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
             }
         }
 
-        private void RunConsumer(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-           int messageType, ITaskFactory factory)
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
-            var queue = new SimpleConsumerAsync();
-            queue.RunWithFactory(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, factory);
+            //noop
         }
     }
 }

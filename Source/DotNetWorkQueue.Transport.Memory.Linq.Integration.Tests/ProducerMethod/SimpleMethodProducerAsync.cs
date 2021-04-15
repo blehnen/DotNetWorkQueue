@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -17,7 +18,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
 #else
         [InlineData(1000, LinqMethodTypes.Compiled)]
 #endif
-        public async void Run(
+        public async Task Run(
             int messageCount,
             LinqMethodTypes linqMethodTypes)
         {
@@ -25,45 +26,19 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (
-                    var queueCreator =
-                        new QueueCreationContainer<MemoryMessageQueueInit>(
-                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.
+                        SimpleMethodProducerAsync();
 
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            var producer = new ProducerMethodAsyncShared();
-                            var id = Guid.NewGuid();
-                            await producer.RunTestAsync<MemoryMessageQueueInit>(queueConnection, true, messageCount, logProvider,
-                                Helpers.GenerateData,
-                                Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope, false).ConfigureAwait(false);
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<MessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-
-                    }
-                }
+                await consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString, messageCount, linqMethodTypes, false, false, false,
+                    x => { }, Helpers.GenerateData, Verify).ConfigureAwait(false);
             }
+        }
+
+        private void Verify(QueueConnection arg1, QueueProducerConfiguration arg2, long arg3, ICreationScope arg4)
+        {
+            //noop
         }
     }
 }
