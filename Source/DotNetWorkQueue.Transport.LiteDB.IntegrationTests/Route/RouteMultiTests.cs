@@ -17,6 +17,17 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
          int routeCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
+
+            using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
+            {
+                var queueName = GenerateQueueName.Create();
+                var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteMultiTests();
+                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, runtime, timeOut, readerCount, routeCount, enableChaos, x => { Helpers.SetOptions(x, false, false, true, true);},
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
+            }
+
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();

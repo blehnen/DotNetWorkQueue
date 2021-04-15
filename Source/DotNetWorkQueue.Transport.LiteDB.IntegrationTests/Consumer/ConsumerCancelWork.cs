@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
     {
         [Theory]
         [InlineData(7, 15, 90, 3, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-        InlineData(2, 45, 90, 3, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+        InlineData(3, 45, 90, 3, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))

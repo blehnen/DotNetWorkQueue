@@ -1,7 +1,4 @@
-﻿using System;
-using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+﻿using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using Xunit;
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Messages;
@@ -10,7 +12,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
     {
         private ITaskFactory Factory { get; set; }
 
-        public void Run<TTransportInit, TTransportCreate>(
+        public async Task Run<TTransportInit, TTransportCreate>(
             string queueName,
             string connectionString,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
@@ -36,6 +38,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                 var queueConnection = new QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
+                var time = runtime * 1000 / 2;
                 try
                 {
                     setOptions(oCreation);
@@ -46,10 +49,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                     if (messageType == 1)
                     {
                         var producer = new ProducerAsyncShared();
-                        producer.RunTestAsync<TTransportInit, FakeMessage>(queueConnection, false,
+                        await producer.RunTestAsync<TTransportInit, FakeMessage>(queueConnection, false,
                             messageCount, logProvider, generateData,
-                            verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
+                            verify, false, scope, false).ConfigureAwait(false);
+                        Thread.Sleep(time);
                         var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
                         consumer.RunConsumer<TTransportInit>(queueConnection,
                             false, logProvider,
@@ -60,10 +63,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                     else if (messageType == 2)
                     {
                         var producer = new ProducerAsyncShared();
-                        producer.RunTestAsync<TTransportInit, FakeMessageA>(queueConnection, false,
+                        await producer.RunTestAsync<TTransportInit, FakeMessageA>(queueConnection, false,
                             messageCount, logProvider, generateData,
-                            verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
+                            verify, false, scope, false).ConfigureAwait(false);
+                        Thread.Sleep(time);
                         var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
                         consumer.RunConsumer<TTransportInit>(queueConnection,
                             false, logProvider,
@@ -74,10 +77,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                     else if (messageType == 3)
                     {
                         var producer = new ProducerAsyncShared();
-                        producer.RunTestAsync<TTransportInit, FakeMessageB>(queueConnection, false,
+                        await producer.RunTestAsync<TTransportInit, FakeMessageB>(queueConnection, false,
                             messageCount, logProvider, generateData,
-                            verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
+                            verify, false, oCreation.Scope, false).ConfigureAwait(false);
+                        Thread.Sleep(time);
                         var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
                         consumer.RunConsumer<TTransportInit>(queueConnection,
                             false, logProvider,

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.Route;
-using DotNetWorkQueue.Transport.LiteDb.Basic;
+﻿using DotNetWorkQueue.Transport.LiteDb.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
@@ -20,50 +16,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<LiteDbMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    ICreationScope scope = null;
-                    var oCreation = queueCreator.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                    try
-                    {
-                        oCreation.Options.EnableStatusTable = true;
-                        oCreation.Options.EnableRoute = true;
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-
-                        var routeTest = new RouteTestsShared();
-                        routeTest.RunTest<LiteDbMessageQueueInit, FakeMessageA>(queueConnection,
-                            true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
-                            GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10),
-                            TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
-
-                        new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options, scope)
-                            .Verify(0, false, false);
-
-                    }
-                    finally
-                    {
-                        oCreation?.RemoveQueue();
-                        oCreation?.Dispose();
-                        scope?.Dispose();
-                    }
-                }
+                var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteTests();
+                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, runtime, timeOut, readerCount, routeCount, enableChaos, x => { Helpers.SetOptions(x, false, false, true, true); },
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
-        }
-        private List<string> GenerateRoutes(int routeCount)
-        {
-            var data = new List<string>();
-            for(var i = 1; i <= routeCount; i++)
-            {
-                data.Add("Route" + i);
-            }
-            return data;
         }
     }
 }

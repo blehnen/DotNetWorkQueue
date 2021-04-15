@@ -16,8 +16,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
-            Action<string, string, int, ICreationScope> validateErrorCounts)
+            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
             where TTransportCreate : class, IQueueCreation

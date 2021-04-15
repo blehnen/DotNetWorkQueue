@@ -104,11 +104,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
         public static void SetOptions(LiteDbMessageQueueCreation oCreation, 
             bool enableDelayedProcessing,
             bool enableMessageExpiration,
-            bool enableStatusTable)
+            bool enableStatusTable,
+            bool enableRoute = false)
         {
             oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
             oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
             oCreation.Options.EnableStatusTable = enableStatusTable;
+            oCreation.Options.EnableRoute = enableRoute;
         }
 
         public static void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
