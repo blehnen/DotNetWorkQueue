@@ -20,31 +20,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();
-                using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(x => {
-                }))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
-                        var tests = new JobSchedulerTestsShared();
-                        tests.RunTestMultipleProducers<SqLiteMessageQueueInit, SqliteJobQueueCreation>(queueConnection, true, producerCount, queueContainer.CreateTimeSync(connectionInfo.ConnectionString), LoggerShared.Create(queueName, GetType().Name), new CreationScopeNoOp());
-                    }
-                    finally
-                    {
-
-                        using (var queueCreator =
-                            new QueueCreationContainer<SqLiteMessageQueueInit>())
-                        {
-                            using (
-                                var oCreation =
-                                    queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                                )
-                            {
-                                oCreation.RemoveQueue();
-                            }
-                        }
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();
+                consumer.Run<SqLiteMessageQueueInit, SqliteJobQueueCreation, SqLiteMessageQueueCreation>(
+                    queueName,
+                    connectionInfo.ConnectionString, producerCount);
             }
         }
     }

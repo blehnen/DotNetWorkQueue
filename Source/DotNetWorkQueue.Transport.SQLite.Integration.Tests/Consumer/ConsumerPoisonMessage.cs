@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
     {
         [Theory]
         [InlineData(1, 60, 1, true, false),
-         InlineData(10, 60, 5, false, false),
+         InlineData(10, 60, 1, false, false),
          InlineData(1, 60, 1, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                 consumer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(queueName,
                     connectionInfo.ConnectionString,
                     messageCount, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
-                        true, true, false,
+                        false, true, false,
                         false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
             }

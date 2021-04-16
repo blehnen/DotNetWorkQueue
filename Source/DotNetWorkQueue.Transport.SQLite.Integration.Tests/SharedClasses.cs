@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
                 return data;
             }
 
-            return null;
+            return new AdditionalMessageData();
         }
 
         public static void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
@@ -101,7 +101,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             bool enablePriority,
             bool enableStatus,
             bool enableStatusTable,
-            bool additionalColumn)
+            bool additionalColumn,
+            bool enableRoute = false)
         {
             oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
             oCreation.Options.EnableHeartBeat = enableHeartBeat;
@@ -109,6 +110,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             oCreation.Options.EnablePriority = enablePriority;
             oCreation.Options.EnableStatus = enableStatus;
             oCreation.Options.EnableStatusTable = enableStatusTable;
+            oCreation.Options.EnableRoute = enableRoute;
 
             if (additionalColumn)
             {

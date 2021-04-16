@@ -21,8 +21,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
             consumer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(queueName,
                 ConnectionInfo.ConnectionString,
                 messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
-                    false, true, false,
-                    true,
+                    true, true, false,
+                    false,
                     false, true, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
         }

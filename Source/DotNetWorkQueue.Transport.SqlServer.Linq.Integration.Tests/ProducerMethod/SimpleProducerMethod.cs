@@ -55,67 +55,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
             LinqMethodTypes linqMethodTypes,
             bool enableChaos)
         {
-
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (var queueCreator =
-                new QueueCreationContainer<SqlServerMessageQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                try
-                {
-
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-                        oCreation.Options.EnableHeartBeat = enableHeartBeat;
-                        oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted =
-                            enableHoldTransactionUntilMessageCommitted;
-                        oCreation.Options.EnablePriority = enablePriority;
-                        oCreation.Options.EnableStatus = enableStatus;
-                        oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                        if (additionalColumn)
-                        {
-                            oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Int, true, null));
-                        }
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-
-                        var producer = new ProducerMethodShared();
-                        if (linqMethodTypes == LinqMethodTypes.Compiled)
-                        {
-                            producer.RunTestCompiled<SqlServerMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                            Helpers.GenerateData,
-                            Helpers.Verify, false, Guid.NewGuid(), GenerateMethod.CreateCompiled, 0, oCreation.Scope, enableChaos);
-                        }
-#if NETFULL
-                        else
-                        {
-                            producer.RunTestDynamic<SqlServerMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                            Helpers.GenerateData,
-                            Helpers.Verify, false, Guid.NewGuid(), GenerateMethod.CreateDynamic, 0, oCreation.Scope, enableChaos);
-                        }
-#endif
-                    }
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
-            }
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
+            consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, linqMethodTypes, interceptors, enableChaos, false, x => Helpers.SetOptions(x,
+                enableDelayedProcessing, !enableHoldTransactionUntilMessageCommitted, enableHoldTransactionUntilMessageCommitted,
+                enableMessageExpiration,
+                enablePriority, !enableHoldTransactionUntilMessageCommitted, enableStatusTable, additionalColumn),
+            Helpers.GenerateData, Helpers.Verify);
         }
     }
 }

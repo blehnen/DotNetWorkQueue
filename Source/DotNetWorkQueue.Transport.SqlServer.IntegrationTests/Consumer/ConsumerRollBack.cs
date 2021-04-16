@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
             consumer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(queueName,
                 ConnectionInfo.ConnectionString,
                 messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
-                    false, !useTransactions, useTransactions,
+                    true, !useTransactions, useTransactions,
                     false,
                     false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

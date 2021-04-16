@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -29,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
          InlineData(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
          InlineData(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true),
          InlineData(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
-        public async void Run(
+        public async Task Run(
             int messageCount,
             bool interceptors,
             bool enableDelayedProcessing,
@@ -47,55 +48,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (
-                    var queueCreator =
-                        new QueueCreationContainer<SqLiteMessageQueueInit>(
-                            serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
-
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-                            oCreation.Options.EnableHeartBeat = enableHeartBeat;
-                            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                            oCreation.Options.EnablePriority = enablePriority;
-                            oCreation.Options.EnableStatus = enableStatus;
-                            oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                            if (additionalColumn)
-                            {
-                                oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, false, null));
-                            }
-
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            var producer = new ProducerMethodAsyncShared();
-                            var id = Guid.NewGuid();
-                            await producer.RunTestAsync<SqLiteMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                                Helpers.GenerateData,
-                                Helpers.Verify, false, 0, id, linqMethodTypes, oCreation.Scope, enableChaos).ConfigureAwait(false);
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.
+                        SimpleMethodProducerAsync();
+                await consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, linqMethodTypes, interceptors, enableChaos, false, x =>
+                        Helpers.SetOptions(x,
+                            enableDelayedProcessing, enableHeartBeat, enableMessageExpiration, enablePriority, enableStatus,
+                            enableStatusTable, additionalColumn, false),
+                    Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
             }
         }
     }

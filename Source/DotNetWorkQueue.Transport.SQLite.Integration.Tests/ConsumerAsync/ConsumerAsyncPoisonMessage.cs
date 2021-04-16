@@ -8,76 +8,36 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [Collection("Consumer")]
     public class ConsumerAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 60, 1, 1, 0, true, false),
-         InlineData(50, 60, 10, 2, 2, false, false),
+        [InlineData(1, 60, 2, 2, 0, true, false),
+         InlineData(25, 60, 10, 2, 2, false, false),
          InlineData(5, 60, 10, 2, 2, false, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<SqLiteMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
-
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.Options.EnableDelayedProcessing = true;
-                            oCreation.Options.EnableHeartBeat = true;
-                            oCreation.Options.EnableStatus = true;
-                            oCreation.Options.EnableStatusTable = true;
-
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            //create data
-                            var producer = new ProducerShared();
-                            producer.RunTest<SqLiteMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, false);
-
-                            //process data
-                            var consumer = new ConsumerAsyncPoisonMessageShared<FakeMessage>();
-                            consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
-                                false,
-                                workerCount, logProvider,
-                                timeOut, readerCount, queueSize, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos, new CreationScopeNoOp());
-
-                            ValidateErrorCounts(queueName, connectionInfo.ConnectionString, messageCount);
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(messageCount, true, true);
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.
+                        ConsumerAsyncPoisonMessage();
+                consumer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
+                        false, false, false,
+                        false, true, false, false),
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
             }
         }
 
-        private void ValidateErrorCounts(string queueName, string connectionString, long messageCount)
+        private void ValidateErrorCounts(string arg1, string arg2, int arg3, ICreationScope arg4)
         {
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            new VerifyErrorCounts(queueName, connectionString).Verify(messageCount, 0);
+            new VerifyErrorCounts(arg1, arg2).Verify(arg3, 0);
         }
     }
 }

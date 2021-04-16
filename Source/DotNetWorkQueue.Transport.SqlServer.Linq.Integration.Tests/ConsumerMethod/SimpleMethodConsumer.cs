@@ -22,61 +22,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<SqlServerMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                ICreationScope scope = null;
-                var oCreation = queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection);
-                try
-                {
-                    oCreation.Options.EnableDelayedProcessing = true;
-                    oCreation.Options.EnableHeartBeat = !useTransactions;
-                    oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
-                    oCreation.Options.EnableStatus = !useTransactions;
-                    oCreation.Options.EnableStatusTable = true;
-
-                    var result = oCreation.CreateQueue();
-                    Assert.True(result.Success, result.ErrorMessage);
-                    scope = oCreation.Scope;
-
-                    var id = Guid.NewGuid();
-                    var producer = new ProducerMethodShared();
-                    if (linqMethodTypes == LinqMethodTypes.Compiled)
-                    {
-                        producer.RunTestCompiled<SqlServerMessageQueueInit>(queueConnection, false, messageCount,
-                            logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope, false);
-                    }
-#if NETFULL
-                    else
-                    {
-                        producer.RunTestDynamic<SqlServerMessageQueueInit>(queueConnection, false, messageCount,
-                            logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateDynamic, runtime, oCreation.Scope, false);
-                    }
-#endif
-                    var consumer = new ConsumerMethodShared();
-                    consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
-                        false,
-                        logProvider,
-                        runtime, messageCount,
-                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)",
-                        enableChaos, scope);
-
-                    new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
-                }
-                finally
-                {
-                    oCreation.RemoveQueue();
-                    oCreation.Dispose();
-                    scope?.Dispose();
-                }
-            }
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
+                    SimpleMethodConsumer();
+            consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    true, !useTransactions, useTransactions,
+                    false,
+                    false, !useTransactions, true, false),
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
         }
     }
 }

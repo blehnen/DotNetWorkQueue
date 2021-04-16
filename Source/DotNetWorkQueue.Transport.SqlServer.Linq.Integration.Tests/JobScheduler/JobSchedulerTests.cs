@@ -20,43 +20,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
             bool interceptors,
             bool dynamic)
         {
-            var queueName = GenerateQueueName.Create();
-            using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>(x => {
-            }))
-            {
-                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                try
-                {
-                    var tests = new JobSchedulerTestsShared();
-                    if (!dynamic)
-                    {
-                        tests.RunEnqueueTestCompiled<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueConnection, interceptors,
-                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), null, LoggerShared.Create(queueName, GetType().Name));
-                    }
-#if NETFULL
-                    else
-                    {
-                        tests.RunEnqueueTestDynamic<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueConnection, interceptors,
-                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), null, LoggerShared.Create(queueName, GetType().Name));
-                    }
-#endif
-                }
-                finally
-                {
 
-                    using (var queueCreator =
-                        new QueueCreationContainer<SqlServerMessageQueueInit>())
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
-            }
+            var queueName = GenerateQueueName.Create();
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
+            consumer.Run<SqlServerMessageQueueInit, SqlServerJobQueueCreation, SqlServerMessageQueueCreation>(
+                queueName,
+                ConnectionInfo.ConnectionString, interceptors, dynamic, Helpers.Verify, Helpers.SetError);
         }
     }
 }

@@ -48,62 +48,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<SqLiteMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
-
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-                            oCreation.Options.EnableHeartBeat = enableHeartBeat;
-                            oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                            oCreation.Options.EnablePriority = enablePriority;
-                            oCreation.Options.EnableStatus = enableStatus;
-                            oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                            if (additionalColumn)
-                            {
-                                oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, false, null));
-                            }
-
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            var producer = new ProducerMethodShared();
-                            var id = Guid.NewGuid();
-                            if (linqMethodTypes == LinqMethodTypes.Compiled)
-                            {
-                                producer.RunTestCompiled<SqLiteMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                               Helpers.GenerateData,
-                               Helpers.Verify, true, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope, enableChaos);
-                            }
-                            else
-                            {
-                                producer.RunTestDynamic<SqLiteMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                               Helpers.GenerateData,
-                               Helpers.Verify, true, id, GenerateMethod.CreateDynamic, 0, oCreation.Scope, enableChaos);
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
+                consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, linqMethodTypes, interceptors, enableChaos, true, x =>
+                        Helpers.SetOptions(x,
+                            enableDelayedProcessing, enableHeartBeat, enableMessageExpiration, enablePriority, enableStatus,
+                            enableStatusTable, additionalColumn, false),
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

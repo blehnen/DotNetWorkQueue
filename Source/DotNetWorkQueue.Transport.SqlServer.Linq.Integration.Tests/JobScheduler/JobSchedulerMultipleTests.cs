@@ -11,37 +11,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
     public class JobSchedulerMultipleTests
     {
         [Theory]
-        [InlineData(true, 2)]
+        [InlineData(2)]
         public void Run(
-            bool interceptors,
             int producerCount)
         {
             var queueName = GenerateQueueName.Create();
-            using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>(x => {
-            }))
-            {
-                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                try
-                {
-                    var tests = new JobSchedulerTestsShared();
-                    tests.RunTestMultipleProducers<SqlServerMessageQueueInit, SqlServerJobQueueCreation>(queueConnection, interceptors, producerCount, queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), LoggerShared.Create(queueName, GetType().Name), new CreationScopeNoOp());
-                }
-                finally
-                {
-
-                    using (var queueCreator =
-                        new QueueCreationContainer<SqlServerMessageQueueInit>())
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
-            }
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();
+            consumer.Run<SqlServerMessageQueueInit, SqlServerJobQueueCreation, SqlServerMessageQueueCreation>(
+                queueName,
+                ConnectionInfo.ConnectionString, producerCount);
         }
     }
 }

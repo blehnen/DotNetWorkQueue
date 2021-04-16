@@ -17,58 +17,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
            bool useTransactions, int routeCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (var queueCreator =
-                new QueueCreationContainer<SqlServerMessageQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                try
-                {
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteTests();
+            consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, runtime, timeOut, readerCount, routeCount, enableChaos, x => Helpers.SetOptions(x,
+                    true, !useTransactions, useTransactions,
+                    false,
+                    false, !useTransactions, true, false, true),
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
 
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.Options.EnableDelayedProcessing = true;
-                        oCreation.Options.EnableHeartBeat = !useTransactions;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
-                        oCreation.Options.EnableStatus = !useTransactions;
-                        oCreation.Options.EnableStatusTable = true;
-                        oCreation.Options.EnableRoute = true;
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-
-                        var routeTest = new RouteTestsShared();
-                        routeTest.RunTest<SqlServerMessageQueueInit, FakeMessageA>(queueConnection,
-                            true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
-                            GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
-
-                        new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
-                    }
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
-            }
-        }
-        private List<string> GenerateRoutes(int routeCount)
-        {
-            var data = new List<string>();
-            for(var i = 1; i <= routeCount; i++)
-            {
-                data.Add("Route" + i);
-            }
-            return data;
         }
     }
 }

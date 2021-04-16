@@ -56,56 +56,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
         {
 
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<SqlServerMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                try
-                {
-
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-                        oCreation.Options.EnableHeartBeat = enableHeartBeat;
-                        oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted =
-                            enableHoldTransactionUntilMessageCommitted;
-                        oCreation.Options.EnablePriority = enablePriority;
-                        oCreation.Options.EnableStatus = enableStatus;
-                        oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                        if (additionalColumn)
-                        {
-                            oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Int, false, null));
-                        }
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-
-                        var id = Guid.NewGuid();
-                        var producer = new ProducerMethodAsyncShared();
-                        await producer.RunTestAsync<SqlServerMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                            Helpers.GenerateData,
-                            Helpers.Verify, true, 0, id, linqMethodTypes, oCreation.Scope, enableChaos).ConfigureAwait(false);
-                    }
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
-            }
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducerAsync();
+            await consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, linqMethodTypes, interceptors, enableChaos, true, x => Helpers.SetOptions(x,
+                    enableDelayedProcessing, !enableHoldTransactionUntilMessageCommitted, enableHoldTransactionUntilMessageCommitted,
+                    enableMessageExpiration,
+                    enablePriority, !enableHoldTransactionUntilMessageCommitted, enableStatusTable, additionalColumn),
+                Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
         }
     }
 }

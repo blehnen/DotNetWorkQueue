@@ -23,66 +23,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (var queueCreator =
-                new QueueCreationContainer<SqlServerMessageQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                try
-                {
-
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.Options.EnableDelayedProcessing = true;
-                        oCreation.Options.EnableHeartBeat = !useTransactions;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
-                        oCreation.Options.EnableStatus = !useTransactions;
-                        oCreation.Options.EnableStatusTable = true;
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-
-                        //create data
-                        var id = Guid.NewGuid();
-                        var producer = new ProducerMethodShared();
-                        if (linqMethodTypes == LinqMethodTypes.Compiled)
-                        {
-                            producer.RunTestCompiled<SqlServerMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, oCreation.Scope, false);
-                        }
-#if NETFULL
-                        else
-                        {
-                            producer.RunTestDynamic<SqlServerMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, oCreation.Scope, false);
-                        }
-#endif
-                        //process data
-                        var consumer = new ConsumerMethodAsyncRollBackShared();
-                        consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
-                            false,
-                            workerCount, logProvider,
-                            timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos, new CreationScopeNoOp());
-                        LoggerShared.CheckForErrors(queueName);
-                        new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
-                        GenerateMethod.ClearRollback(id);
-                    }
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
-            }
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
+                    ConsumerMethodAsyncRollBack();
+            consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    true, !useTransactions, useTransactions,
+                    false,
+                    false, !useTransactions, true, false),
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
         }
     }
 }

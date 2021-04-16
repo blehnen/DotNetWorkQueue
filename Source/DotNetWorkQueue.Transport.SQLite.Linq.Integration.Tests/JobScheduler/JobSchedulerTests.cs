@@ -20,44 +20,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();
-                using (var queueCreator =
-                    new QueueCreationContainer<SqLiteMessageQueueInit>())
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                    )
-                    {
-                        using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(x => { }))
-                        {
-                            try
-                            {
-                                var tests = new JobSchedulerTestsShared();
-                                if (!dynamic)
-                                {
-                                    tests.RunEnqueueTestCompiled<SqLiteMessageQueueInit, SqliteJobQueueCreation>(
-                                        queueConnection, true,
-                                        Helpers.Verify, Helpers.SetError,
-                                        queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
-                                            oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
-                                }
-                                else
-                                {
-                                    tests.RunEnqueueTestDynamic<SqLiteMessageQueueInit, SqliteJobQueueCreation>(
-                                        queueConnection, true,
-                                        Helpers.Verify, Helpers.SetError,
-                                        queueContainer.CreateTimeSync(connectionInfo.ConnectionString),
-                                            oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
-                                }
-                            }
-                            finally
-                            {
-                                oCreation.RemoveQueue();
-                            }
-                        }
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
+                consumer.Run<SqLiteMessageQueueInit, SqliteJobQueueCreation, SqLiteMessageQueueCreation>(
+                    queueName,
+                    connectionInfo.ConnectionString, false, dynamic, Helpers.Verify, Helpers.SetError);
             }
         }
     }

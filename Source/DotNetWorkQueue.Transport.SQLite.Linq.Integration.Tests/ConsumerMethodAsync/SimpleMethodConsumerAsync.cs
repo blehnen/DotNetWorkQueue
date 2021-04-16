@@ -9,7 +9,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("ConsumerAsync")]
+    [Collection("Consumer")]
     public class SimpleMethodConsumerAsync
     {
         private ITaskFactory Factory { get; set; }
@@ -23,113 +23,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
             int workerCount, int readerCount, int queueSize,
            int messageType, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
-            if (Factory == null)
-            {
-                Factory = CreateFactory(workerCount, queueSize);
-            }
-
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-                using (var queueCreator =
-                    new QueueCreationContainer<SqLiteMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-                {
-                    var queueConnection = new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionInfo.ConnectionString);
-                    try
-                    {
-
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.Options.EnableDelayedProcessing = true;
-                            oCreation.Options.EnableHeartBeat = true;
-                            oCreation.Options.EnableStatus = true;
-                            oCreation.Options.EnableStatusTable = true;
-
-                            var result = oCreation.CreateQueue();
-                            Assert.True(result.Success, result.ErrorMessage);
-
-                            if (messageType == 1)
-                            {
-                                var id = Guid.NewGuid();
-                                var producer = new ProducerMethodAsyncShared();
-                                producer.RunTestAsync<SqLiteMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
-
-                                var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
-                                consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
-                                    false, logProvider,
-                                    runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos, new CreationScopeNoOp());
-                            }
-                            else if (messageType == 2)
-                            {
-                                var id = Guid.NewGuid();
-                                var producer = new ProducerMethodAsyncShared();
-                                producer.RunTestAsync<SqLiteMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
-
-                                var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
-                                consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
-                                    false, logProvider,
-                                    runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos, new CreationScopeNoOp());
-                            }
-                            else if (messageType == 3)
-                            {
-                                var id = Guid.NewGuid();
-                                var producer = new ProducerMethodAsyncShared();
-                                producer.RunTestAsync<SqLiteMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                    Helpers.Verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
-
-                                var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
-                                consumer.RunConsumer<SqLiteMessageQueueInit>(queueConnection,
-                                    false, logProvider,
-                                    runtime, messageCount,
-                                    timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id, "second(*%10)", enableChaos, new CreationScopeNoOp());
-                            }
-
-                            new VerifyQueueRecordCount(queueName, connectionInfo.ConnectionString, oCreation.Options).Verify(0, false, false);
-                        }
-                    }
-                    finally
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
+                        SimpleMethodConsumerAsync();
+                consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                        false, true, false,
+                        false, true, true, false),
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
-        }
-
-#pragma warning disable xUnit1013 // Public method should be marked as test
-        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-#pragma warning restore xUnit1013 // Public method should be marked as test
-            int messageType, bool inMemoryDb, ITaskFactory factory, LinqMethodTypes linqMethodTypes, bool enableChaos)
-        {
-            Factory = factory;
-            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, inMemoryDb, linqMethodTypes, enableChaos);
-        }
-
-
-        public static ITaskFactory CreateFactory(int maxThreads, int maxQueueSize)
-        {
-            var schedulerCreator = new SchedulerContainer();
-            var taskScheduler = schedulerCreator.CreateTaskScheduler();
-
-            taskScheduler.Configuration.MaximumThreads = maxThreads;
-            taskScheduler.Configuration.MaxQueueSize = maxQueueSize;
-
-            taskScheduler.Start();
-            return schedulerCreator.CreateTaskFactory(taskScheduler);
         }
     }
 }

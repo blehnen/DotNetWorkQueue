@@ -1,51 +1,32 @@
-﻿using System.Threading.Tasks;
+﻿using DotNetWorkQueue.Transport.SQLite.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [Collection("Consumer")]
     public class MultiConsumerAsync
     {
         [Theory]
         [InlineData(250, 1, 400, 10, 5, 5, true, false),
          InlineData(100, 0, 180, 10, 5, 0, false, false),
          InlineData(10, 0, 180, 10, 5, 0, false, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, 
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {
-            var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out var schedulerContainer);
-            using (schedulerContainer)
+            using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
-                using (factory.Scheduler)
-                {
-                    var task1 =
-                        Task.Factory.StartNew(
-                            () =>
-                                RunConsumer(messageCount, runtime, timeOut, workerCount, readerCount,
-                                    queueSize, 1, inMemoryDb, factory, enableChaos));
-
-                    var task2 =
-                        Task.Factory.StartNew(
-                            () =>
-                                RunConsumer(messageCount, runtime, timeOut, workerCount, readerCount,
-                                    queueSize, 2, inMemoryDb, factory, enableChaos));
-
-                    var task3 =
-                        Task.Factory.StartNew(
-                            () =>
-                                RunConsumer(messageCount, runtime, timeOut, workerCount, readerCount,
-                                    queueSize, 3, inMemoryDb, factory, enableChaos));
-
-                    Task.WaitAll(task1, task2, task3);
-                }
+                var queueName = GenerateQueueName.Create();
+                var consumer =
+                    new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.
+                        MultiConsumerAsync();
+                consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(queueName,
+                    connectionInfo.ConnectionString,
+                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x =>
+                        Helpers.SetOptions(x,
+                            false, true, false,
+                            false, true, true, false),
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
-        }
-
-        private void RunConsumer(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-           int messageType, bool inMemoryDb, ITaskFactory factory, bool enableChaos)
-        {
-            var queue = new SimpleConsumerAsync();
-            queue.RunWithFactory(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, inMemoryDb, factory, enableChaos);
         }
     }
 }

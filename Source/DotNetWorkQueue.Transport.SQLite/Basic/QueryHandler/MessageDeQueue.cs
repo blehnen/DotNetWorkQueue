@@ -71,6 +71,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 headerPayload = (byte[])reader["Headers"];
                 messagePayload = (byte[])reader["Body"];
 
+                //before we continue, run the commands and commit the transaction
+                //otherwise, poison messages will conflict
+                foreach (var additionalCommand in commandString.AdditionalCommands)
+                {
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.Transaction = transaction;
+                        command.CommandText = additionalCommand;
+                        command.ExecuteNonQuery();
+                    }
+                }
+                transaction.Commit();
+
                 correlationId = new Guid(cId);
                 var headers =
                     _serialization.InternalSerializer
@@ -86,17 +99,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                         messagePayload,
                         messageGraph, headers).Body;
                 var newMessage = _messageFactory.Create(message, headers);
-
-                foreach (var additionalCommand in commandString.AdditionalCommands)
-                {
-                    using (var command = connection.CreateCommand())
-                    {
-                        command.Transaction = transaction;
-                        command.CommandText = additionalCommand;
-                        command.ExecuteNonQuery();
-                    }
-                }
-                transaction.Commit();
 
                 return _receivedMessageFactory.Create(newMessage,
                     new MessageQueueId<long>(id),

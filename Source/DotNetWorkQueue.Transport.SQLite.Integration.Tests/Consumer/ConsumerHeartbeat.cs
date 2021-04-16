@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
                 consumer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(queueName,
                     connectionInfo.ConnectionString,
                     messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
-                        true, true, true,
+                        true, true, false,
                         false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
