@@ -21,44 +21,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
             bool dynamic,
             ConnectionInfoTypes type)
         {
-
             var queueName = GenerateQueueName.Create();
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (var queueContainer = new QueueContainer<RedisQueueInit>(x => { }))
-            {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-                    var tests = new JobSchedulerTestsShared();
-                    if (!dynamic)
-                    {
-                        tests.RunEnqueueTestCompiled<RedisQueueInit, RedisJobQueueCreation>(queueConnection, true,
-                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), new CreationScopeNoOp(), LoggerShared.Create(queueName, GetType().Name));
-                    }
-#if NETFULL
-                    else
-                    {
-                        tests.RunEnqueueTestDynamic<RedisQueueInit, RedisJobQueueCreation>(queueConnection, true,
-                            Helpers.Verify, Helpers.SetError, queueContainer.CreateTimeSync(connectionString), new CreationScopeNoOp(), LoggerShared.Create(queueName, GetType().Name));
-                    }
-#endif
-                }
-                finally
-                {
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
 
-                    using (var queueCreator =
-                        new QueueCreationContainer<RedisQueueInit>())
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
-            }
+            consumer.Run<RedisQueueInit, RedisJobQueueCreation, RedisQueueCreation>(
+                queueName,
+                connectionString, false, dynamic, Helpers.Verify, Helpers.SetError);
         }
     }
 }

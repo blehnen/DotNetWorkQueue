@@ -23,68 +23,34 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
             int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<RedisQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-                    //create data
-                    var id = Guid.NewGuid();
-                    var producer = new ProducerMethodShared();
-                    if (linqMethodTypes == LinqMethodTypes.Compiled)
-                    {
-                        producer.RunTestCompiled<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, new CreationScopeNoOp(), false);
-                    }
-#if NETFULL
-                    else
-                    {
-                        producer.RunTestDynamic<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, new CreationScopeNoOp(), false);
-                    }
-#endif
-                    //process data
-                    var consumer = new ConsumerMethodPoisonMessageShared();
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
+                    ConsumerMethodPoisonMessage();
 
-                    consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
-                        workerCount,
-                        logProvider, timeOut, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", false, new CreationScopeNoOp());
-
-                    ValidateErrorCounts(queueName, connectionString, messageCount);
-                    using (
-                        var count = new VerifyQueueRecordCount(queueName, connectionString))
-                    {
-                        count.Verify(messageCount, true, 2);
-                    }
-
-                }
-                finally
-                {
-
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-
-                }
-            }
+            consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                connectionString,
+                messageCount, timeOut, workerCount, linqMethodTypes, false, x => { },
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts );
         }
-        private void ValidateErrorCounts(string queueName, string connectionString, long messageCount)
+
+        private void ValidateErrorCounts(string arg1, string arg2, int arg3, ICreationScope arg4)
         {
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            using (var error = new VerifyErrorCounts(queueName, connectionString))
+            using (var error = new VerifyErrorCounts(arg1, arg2))
             {
-                error.Verify(messageCount, 0);
+                error.Verify(arg3, 0);
+            }
+        }
+
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            using (
+                var count = new VerifyQueueRecordCount(arg1, arg2))
+            {
+                count.Verify(arg5, true, 2);
             }
         }
     }

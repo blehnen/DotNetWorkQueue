@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -22,41 +23,22 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
         InlineData(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
         InlineData(100, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
         InlineData(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
-        public async void Run(
+        public async Task Run(
            int messageCount,
            bool interceptors,
            bool batchSending,
            ConnectionInfoTypes type,
            LinqMethodTypes linqMethodTypes)
         {
-
-            var id = Guid.NewGuid();
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            var producer = new ProducerMethodAsyncShared();
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<RedisQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-                    await producer.RunTestAsync<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                        Helpers.Verify, batchSending, 0, id, linqMethodTypes, new CreationScopeNoOp(), false).ConfigureAwait(false);
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
-            }
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducerAsync();
+
+            await consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                connectionString,
+                messageCount, linqMethodTypes, interceptors, false, batchSending, x => { },
+                Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
         }
     }
 }

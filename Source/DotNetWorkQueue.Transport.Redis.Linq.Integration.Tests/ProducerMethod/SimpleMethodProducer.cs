@@ -2,6 +2,7 @@
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
@@ -15,7 +16,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
         [Theory]
         [InlineData(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
 #if NETFULL
-        InlineData(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         InlineData(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
          InlineData(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
@@ -44,96 +45,45 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
             bool enableDelay,
             bool enableExpiration,
             ConnectionInfoTypes type,
-             LinqMethodTypes linqMethodTypes)
+            LinqMethodTypes linqMethodTypes)
         {
 
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            var producer = new ProducerMethodShared();
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<RedisQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
+
+            if (enableExpiration && enableDelay)
             {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-                    var id = Guid.NewGuid();
-                    if (enableExpiration && enableDelay)
-                    {
-                        if (linqMethodTypes == LinqMethodTypes.Compiled)
-                        {
-                            producer.RunTestCompiled<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                                Helpers.GenerateDelayExpiredData,
-                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, new CreationScopeNoOp(), false);
-                        }
-#if NETFULL
-                        else
-                        {
-                            producer.RunTestDynamic<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                               Helpers.GenerateDelayExpiredData,
-                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, new CreationScopeNoOp(), false);
-                        }
-#endif
-                    }
-                    else if (enableDelay)
-                    {
-                        if (linqMethodTypes == LinqMethodTypes.Compiled)
-                        {
-                            producer.RunTestCompiled<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
-                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, new CreationScopeNoOp(), false);
-                        }
-#if NETFULL
-                        else
-                        {
-                            producer.RunTestDynamic<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateDelayData,
-                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, new CreationScopeNoOp(), false);
-                        }
-#endif
-                    }
-                    else if (enableExpiration)
-                    {
-                        if (linqMethodTypes == LinqMethodTypes.Compiled)
-                        {
-                            producer.RunTestCompiled<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
-                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, new CreationScopeNoOp(), false);
-                        }
-#if NETFULL
-                        else
-                        {
-                            producer.RunTestDynamic<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateExpiredData,
-                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, new CreationScopeNoOp(), false);
-                        }
-#endif
-                    }
-                    else
-                    {
-                        if (linqMethodTypes == LinqMethodTypes.Compiled)
-                        {
-                            producer.RunTestCompiled<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, batchSending, id, GenerateMethod.CreateCompiled, 0, new CreationScopeNoOp(), false);
-                        }
-#if NETFULL
-                        else
-                        {
-                            producer.RunTestDynamic<RedisQueueInit>(queueConnection, interceptors, messageCount, logProvider, Helpers.GenerateData,
-                               Helpers.Verify, batchSending, id, GenerateMethod.CreateDynamic, 0, new CreationScopeNoOp(), false);
-                        }
-#endif
-                    }
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
+                consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                    connectionString,
+                    messageCount, linqMethodTypes, interceptors, false, batchSending, creation => { }, Helpers.GenerateDelayExpiredData, Verify);
             }
+
+            else if (enableDelay)
+            {
+                consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                    connectionString,
+                    messageCount, linqMethodTypes, interceptors, false, batchSending, creation => { }, Helpers.GenerateDelayData, Verify);
+            }
+
+            else if (enableExpiration)
+            {
+                consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                    connectionString,
+                    messageCount, linqMethodTypes, interceptors, false, batchSending, creation => { }, Helpers.GenerateExpiredData, Verify);
+            }
+            else
+            {
+                consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                    connectionString,
+                    messageCount, linqMethodTypes, interceptors, false, batchSending, creation => { }, Helpers.GenerateData, Verify);
+            }
+        }
+
+        private void Verify(QueueConnection arg1, QueueProducerConfiguration arg2, long arg3, ICreationScope arg4)
+        {
+            //noop
         }
     }
 }

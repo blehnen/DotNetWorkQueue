@@ -23,65 +23,28 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<RedisQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
+                    ConsumerMethodAsyncErrorTable();
+
+            consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                connectionString,
+                messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, false, x => { },
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts);
+        }
+
+        private void ValidateErrorCounts(string arg1, string arg2, int arg3, ICreationScope arg4)
+        {
+            using (var error = new VerifyErrorCounts(arg1, arg2))
             {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-                    //create data
-                    var id = Guid.NewGuid();
-                    var producer = new ProducerMethodShared();
-                    if (linqMethodTypes == LinqMethodTypes.Compiled)
-                    {
-                        producer.RunTestCompiled<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, new CreationScopeNoOp(), false);
-                    }
-#if NETFULL
-                    else
-                    {
-                        producer.RunTestDynamic<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, new CreationScopeNoOp(), false);
-                    }
-#endif
-                    //process data
-                    var consumer = new ConsumerMethodAsyncErrorShared();
-                    consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
-                        logProvider,
-                        messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(10),
-                        TimeSpan.FromSeconds(12), id, "second(*%3)", false, new CreationScopeNoOp());
-                    ValidateErrorCounts(queueName, messageCount, connectionString);
-                    using (
-                        var count = new VerifyQueueRecordCount(queueName, connectionString))
-                    {
-                        count.Verify(messageCount, false, 2);
-                    }
-
-                    consumer.PurgeErrorMessages<RedisQueueInit>(queueConnection,
-                        false, logProvider, false, new CreationScopeNoOp());
-                    ValidateErrorCounts(queueName, messageCount, connectionString);
-
-                    //purge error messages and verify that count is 0
-                    consumer.PurgeErrorMessages<RedisQueueInit>(queueConnection,
-                        false, logProvider, true, new CreationScopeNoOp());
-                    ValidateErrorCounts(queueName, 0, connectionString);
-
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                    )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
+                error.Verify(arg3, 2);
             }
+        }
+
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            //noop
         }
 
         private void ValidateErrorCounts(string queueName, int messageCount, string connectionString)

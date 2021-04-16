@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
             consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
                 connectionString,
                 messageCount, timeOut, workerCount, false, x => { },
-                Helpers.GenerateExpiredData, Verify, VerifyQueueCount, ValidateErrorCounts);
+                Helpers.GenerateData, Verify, VerifyQueueCount, ValidateErrorCounts);
         }
 
         private void ValidateErrorCounts(string arg1, string arg2, long arg3, ICreationScope arg4)
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
         {
             using (var count = new VerifyQueueRecordCount(arg1, arg2))
             {
-                count.Verify(0, false, 2);
+                count.Verify(arg5, false, 2);
             }
         }
     }

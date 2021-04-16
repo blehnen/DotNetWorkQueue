@@ -17,55 +17,20 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
           int routeCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (var queueCreator =
-                new QueueCreationContainer<RedisQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                        )
-                    {
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-
-                        var routeTest = new RouteMultiTestsShared();
-                        routeTest.RunTest<RedisQueueInit, FakeMessageA>(queueConnection,
-                            true, messageCount, logProvider, Helpers.GenerateData, Helpers.Verify, false,
-                            GenerateRoutes(routeCount, 1), GenerateRoutes(routeCount, routeCount + 1), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", false);
-
-                        using (var count = new VerifyQueueRecordCount(queueName, connectionString))
-                        {
-                            count.Verify(0, false, -1);
-                        }
-                    }
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
-            }
+            var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteMultiTests();
+            consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                connectionString,
+                messageCount, runtime, timeOut, readerCount, routeCount, false, x => { },
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
         }
-        private List<string> GenerateRoutes(int routeCount, int seed)
+
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
-            var data = new List<string>();
-            for (var i = seed; i < routeCount + seed; i++)
+            using (var count = new VerifyQueueRecordCount(arg1, arg2))
             {
-                data.Add("Route" + i);
+                count.Verify(0, false, -1);
             }
-            return data;
         }
     }
 }

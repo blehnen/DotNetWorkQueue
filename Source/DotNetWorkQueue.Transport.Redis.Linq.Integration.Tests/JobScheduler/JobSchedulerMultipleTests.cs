@@ -19,31 +19,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (var queueContainer = new QueueContainer<RedisQueueInit>(x => {
-            }))
-            {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-                    var tests = new JobSchedulerTestsShared();
-                    tests.RunTestMultipleProducers<RedisQueueInit, RedisJobQueueCreation>(queueConnection, true, producerCount, queueContainer.CreateTimeSync(connectionString), LoggerShared.Create(queueName, GetType().Name), new CreationScopeNoOp());
-                }
-                finally
-                {
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();
 
-                    using (var queueCreator =
-                        new QueueCreationContainer<RedisQueueInit>())
-                    {
-                        using (
-                            var oCreation =
-                                queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                            )
-                        {
-                            oCreation.RemoveQueue();
-                        }
-                    }
-                }
-            }
+            consumer.Run<RedisQueueInit, RedisJobQueueCreation, RedisQueueCreation>(
+                queueName,
+                connectionString, producerCount);
         }
     }
 }

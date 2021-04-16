@@ -13,8 +13,6 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     [Collection("ConsumerAsync")]
     public class SimpleConsumerMethodAsync
     {
-        private ITaskFactory Factory { get; set; }
-
         [Theory]
 #if NETFULL
          [InlineData(100, 0, 180, 10, 5, 0, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
@@ -24,99 +22,24 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
-            if (Factory == null)
-            {
-                Factory = CreateFactory(workerCount, queueSize);
-            }
-
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (var queueCreator =
-                new QueueCreationContainer<RedisQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
+                    SimpleMethodConsumerAsync();
+
+            consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                connectionString,
+                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, linqMethodTypes, false, x => { },
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
+        }
+
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            using (var count = new VerifyQueueRecordCount(arg1, arg2))
             {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-                    var id = Guid.NewGuid();
-                    if (messageType == 1)
-                    {
-                        var producer = new ProducerMethodAsyncShared();
-                        producer.RunTestAsync<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, runtime, id, linqMethodTypes, new CreationScopeNoOp(), false).Wait(timeOut);
-
-                        var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
-                        consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
-                            logProvider,
-                            runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", false, new CreationScopeNoOp());
-                    }
-                    else if (messageType == 2)
-                    {
-                        var producer = new ProducerMethodAsyncShared();
-                        producer.RunTestAsync<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, runtime, id, linqMethodTypes, new CreationScopeNoOp(), false).Wait(timeOut);
-
-                        var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
-                        consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
-                            logProvider,
-                            runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", false, new CreationScopeNoOp());
-                    }
-                    else if (messageType == 3)
-                    {
-                        var producer = new ProducerMethodAsyncShared();
-                        producer.RunTestAsync<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, runtime, id, linqMethodTypes, new CreationScopeNoOp(), false).Wait(timeOut);
-
-
-                        var consumer = new ConsumerMethodAsyncShared { Factory = Factory};
-                        consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
-                            logProvider,
-                            runtime, messageCount,
-                            timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", false, new CreationScopeNoOp());
-                    }
-
-                    using (var count = new VerifyQueueRecordCount(queueName, connectionString))
-                    {
-                        count.Verify(0, false, -1);
-                    }
-                }
-                finally
-                {
-
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
+                count.Verify(0, false, -1);
             }
-        }
-
-#pragma warning disable xUnit1013 // Public method should be marked as test
-        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-#pragma warning restore xUnit1013 // Public method should be marked as test
-            int messageType, ITaskFactory factory, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
-        {
-            Factory = factory;
-            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, type, linqMethodTypes);
-        }
-
-
-        public static ITaskFactory CreateFactory(int maxThreads, int maxQueueSize)
-        {
-            var schedulerCreator = new SchedulerContainer();
-            var taskScheduler = schedulerCreator.CreateTaskScheduler();
-
-            taskScheduler.Configuration.MaximumThreads = maxThreads;
-            taskScheduler.Configuration.MaxQueueSize = maxQueueSize;
-
-            taskScheduler.Start();
-            return schedulerCreator.CreateTaskFactory(taskScheduler);
         }
     }
 }

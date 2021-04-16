@@ -13,57 +13,26 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncRollBack
     {
         [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, false),
-         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Linux, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, bool route)
+        [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux),
+         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Linux)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<RedisQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-                    //create data
-                    if (route)
-                    {
-                        var producer = new ProducerShared();
-                        producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateRouteData,
-                            Helpers.Verify, false, new CreationScopeNoOp(), false);
-                    }
-                    else
-                    {
-                        var producer = new ProducerShared();
-                        producer.RunTest<RedisQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, new CreationScopeNoOp(), false);
-                    }
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.ConsumerAsyncRollBack();
 
-                    //process data
-                    var defaultRoute = route ? Helpers.DefaultRoute : null;
-                    var consumer = new ConsumerAsyncRollBackShared<FakeMessage>();
-                    consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
-                        workerCount, logProvider,
-                        timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", defaultRoute, false, new CreationScopeNoOp());
-                    LoggerShared.CheckForErrors(queueName);
-                    using (var count = new VerifyQueueRecordCount(queueName, connectionString))
-                    {
-                        count.Verify(0, false, -1);
-                    }
-                }
-                finally
-                {
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                }
+            consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
+                connectionString,
+                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, false, x => { },
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
+        }
+
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            using (var count = new VerifyQueueRecordCount(arg1, arg2))
+            {
+                count.Verify(0, false, -1);
             }
         }
     }

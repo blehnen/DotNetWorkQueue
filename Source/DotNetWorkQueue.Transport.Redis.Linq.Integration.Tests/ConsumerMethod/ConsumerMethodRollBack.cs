@@ -23,55 +23,22 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
             var connectionString = new ConnectionInfo(type).ConnectionString;
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<RedisQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
+                    ConsumerMethodRollBack();
+
+            consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
+                connectionString,
+                messageCount, runtime, timeOut, workerCount, linqMethodTypes, false, x => { },
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
+        }
+
+        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            using (var count = new VerifyQueueRecordCount(arg1, arg2))
             {
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                try
-                {
-
-                    //create data
-                    var id = Guid.NewGuid();
-                    var producer = new ProducerMethodShared();
-                    if (linqMethodTypes == LinqMethodTypes.Compiled)
-                    {
-                        producer.RunTestCompiled<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                            Helpers.Verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, new CreationScopeNoOp(), false);
-                    }
-#if NETFULL
-                    else
-                    {
-                        producer.RunTestDynamic<RedisQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, new CreationScopeNoOp(), false);
-                    }
-#endif
-                    //process data
-                    var consumer = new ConsumerMethodRollBackShared();
-                    consumer.RunConsumer<RedisQueueInit>(queueConnection, false,
-                        workerCount, logProvider, timeOut, runtime, messageCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", id, false, new CreationScopeNoOp());
-
-                    using (var count = new VerifyQueueRecordCount(queueName, connectionString))
-                    {
-                        count.Verify(0, false, -1);
-                    }
-                    GenerateMethod.ClearRollback(id);
-                }
-                finally
-                {
-
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<RedisQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-
-                }
+                count.Verify(0, false, -1);
             }
         }
     }

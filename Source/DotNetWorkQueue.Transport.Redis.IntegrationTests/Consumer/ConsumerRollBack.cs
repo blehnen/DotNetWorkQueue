@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
             consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
                 connectionString,
                 messageCount, runtime, timeOut, workerCount, false, x => { },
-                Helpers.GenerateExpiredData, Verify, VerifyQueueCount);
+                Helpers.GenerateData, Verify, VerifyQueueCount);
         }
         private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
