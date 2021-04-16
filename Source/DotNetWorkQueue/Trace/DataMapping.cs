@@ -32,11 +32,5 @@ namespace DotNetWorkQueue.Trace
         {
             this[key] = value;
         }
-
-        /// <inheritdoc />
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
     }
 }

@@ -34,11 +34,11 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Time;
-using DotNetWorkQueue.Trace.NoOp;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Caching.Memory;
 using OpenTracing;
+using OpenTracing.Noop;
 using Polly;
 using Polly.Caching.Memory;
 using Polly.Registry;
@@ -281,7 +281,8 @@ namespace DotNetWorkQueue.IoC
             #endregion
 
             #region Open Tracing
-            var tracer = new TraceNoOp();
+
+            var tracer = NoopTracerFactory.Create();
             container.Register<ITracer>(() => tracer, LifeStyles.Singleton);
             #endregion
             container.Register<BaseTimeConfiguration>(LifeStyles.Singleton);

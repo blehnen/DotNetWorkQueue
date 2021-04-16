@@ -21,7 +21,7 @@ using OpenTracing;
 
 namespace DotNetWorkQueue.Queue
 {
-    internal class WorkerNotificationNoOp : IWorkerNotification
+    public class WorkerNotificationNoOp : IWorkerNotification
     {
         public IHeaders HeaderNames => null;
 

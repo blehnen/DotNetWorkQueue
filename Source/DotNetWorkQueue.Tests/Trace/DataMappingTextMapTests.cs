@@ -13,10 +13,6 @@ namespace DotNetWorkQueue.Tests.Trace
             map.Set("test1", "test2");
             Assert.True(map.ContainsKey("test1"));
             Assert.False(map.ContainsKey("test2"));
-            foreach (var mapped in map)
-            {
-                Assert.NotNull(mapped.Value);
-            }
         }
     }
 }
