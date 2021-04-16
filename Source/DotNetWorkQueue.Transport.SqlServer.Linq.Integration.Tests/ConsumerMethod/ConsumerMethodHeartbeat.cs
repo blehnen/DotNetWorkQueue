@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
-                    ConsumerMethodExpiredMessage();
+                    ConsumerMethodHeartbeat();
             consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(queueName,
                 ConnectionInfo.ConnectionString,
                 messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
