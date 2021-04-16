@@ -22,59 +22,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<PostgreSqlMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                ICreationScope scope = null;
-                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
-                try
-                {
-                  
-                        oCreation.Options.EnableDelayedProcessing = true;
-                        oCreation.Options.EnableHeartBeat = true;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted = false;
-                        oCreation.Options.EnableStatus = true;
-                        oCreation.Options.EnableStatusTable = true;
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-                        var id = Guid.NewGuid();
-                        var producer = new ProducerMethodShared();
-                        if (linqMethodTypes == LinqMethodTypes.Compiled)
-                        {
-                            producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateCancelCompiled, runtime, oCreation.Scope, false);
-                        }
-#if NETFULL
-                        else
-                        {
-                            producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                           Helpers.Verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, oCreation.Scope, false);
-                        }
-#endif
-                        var consumer = new ConsumerMethodHeartBeatShared();
-                        consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueConnection,
-                            false,
-                            logProvider,
-                            runtime, messageCount,
-                            workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos, scope);
-
-                        new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(0, false, false);
-                        GenerateMethod.ClearCancel(id);
-                    
-                }
-                finally
-                {
-                    oCreation.RemoveQueue();
-                    oCreation.Dispose();
-                    scope?.Dispose();
-                }
-            }
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
+                    ConsumerMethodHeartbeat();
+            consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    true, true, false, false,
+                    false, true, true, false),
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
         }
     }
 }

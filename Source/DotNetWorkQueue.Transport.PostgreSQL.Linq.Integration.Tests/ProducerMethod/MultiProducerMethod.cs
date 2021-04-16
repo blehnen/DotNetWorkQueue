@@ -26,65 +26,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
         public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (var queueCreator =
-                new QueueCreationContainer<PostgreSqlMessageQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                ICreationScope scope = null;
-                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
-                try
-                {
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.MultiMethodProducer();
 
-                  
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-                        RunTest(queueConnection, messageCount, 10, logProvider, Guid.NewGuid(), 0, linqMethodTypes, null, enableChaos);
-                        LoggerShared.CheckForErrors(queueName);
-                        new VerifyQueueData(queueName, oCreation.Options).Verify(messageCount * 10, null);
-                    
-                }
-                finally
-                {
-                    oCreation.RemoveQueue();
-                    oCreation.Dispose();
-                    scope?.Dispose();
-                }
-            }
+            consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, 10, linqMethodTypes, enableChaos, Helpers.GenerateData, VerifyQueueCount);
         }
 
-        private void RunTest(QueueConnection queueConnection, int messageCount, int queueCount, ILogger logProvider, Guid id, int runTime, LinqMethodTypes linqMethodTypes, ICreationScope scope, bool enableChaos)
+        private void VerifyQueueCount(QueueConnection arg1, IBaseTransportOptions arg2, ICreationScope arg3, int arg4, string arg5)
         {
-            var tasks = new List<Task>(queueCount);
-            for (var i = 0; i < queueCount; i++)
-            {
-                var producer = new ProducerMethodShared();
-                switch (linqMethodTypes)
-                {
-#if NETFULL
-                    case LinqMethodTypes.Dynamic:
-                        tasks.Add(
-                            new Task(
-                                () =>
-                                    producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueConnection, false, messageCount,
-                                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateDynamic, runTime, scope, enableChaos)));
-                        break;
-#endif
-                    case LinqMethodTypes.Compiled:
-                        tasks.Add(
-                            new Task(
-                                () =>
-                                    producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueConnection, false, messageCount,
-                                        logProvider, Helpers.GenerateData, Helpers.NoVerification, true, false, id,
-                                        GenerateMethod.CreateCompiled, runTime, scope, enableChaos)));
-                        break;
-                }
-            }
-            tasks.AsParallel().ForAll(x => x.Start());
-            Task.WaitAll(tasks.ToArray());
+            new VerifyQueueData(arg1.Queue, (PostgreSqlMessageQueueTransportOptions)arg2).Verify(arg4, null);
         }
     }
 }

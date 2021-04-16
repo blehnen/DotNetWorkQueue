@@ -23,74 +23,22 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
             int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<PostgreSqlMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                ICreationScope scope = null;
-                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
-                try
-                {
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
+                    ConsumerMethodAsyncErrorTable();
 
-                  
-                        oCreation.Options.EnableDelayedProcessing = true;
-                        oCreation.Options.EnableHeartBeat = !useTransactions;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
-                        oCreation.Options.EnableStatus = !useTransactions;
-                        oCreation.Options.EnableStatusTable = true;
+            consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    true, !useTransactions, useTransactions, false,
+                    false, !useTransactions, true, false),
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
 
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-                        var id = Guid.NewGuid();
-                        //create data
-                        var producer = new ProducerMethodShared();
-                        if (linqMethodTypes == LinqMethodTypes.Compiled)
-                        {
-                            producer.RunTestCompiled<PostgreSqlMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                          Helpers.Verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope, false);
-                        }
-#if NETFULL
-                        else
-                        {
-                            producer.RunTestDynamic<PostgreSqlMessageQueueInit>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                          Helpers.Verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope, enableChaos);
-                        }
-#endif
-                        //process data
-                        var consumer = new ConsumerMethodAsyncErrorShared();
-                        consumer.RunConsumer<PostgreSqlMessageQueueInit>(queueConnection,
-                            false,
-                            logProvider,
-                            messageCount, workerCount, timeOut, queueSize, readerCount,
-                            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), id, "second(*%3)", enableChaos, scope);
-                        ValidateErrorCounts(queueName, messageCount);
-                        new VerifyQueueRecordCount(queueName, oCreation.Options).Verify(messageCount, true, false);
-
-                        consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueConnection,
-                            false, logProvider, false, scope);
-                        ValidateErrorCounts(queueName, messageCount);
-
-                        //purge error messages and verify that count is 0
-                        consumer.PurgeErrorMessages<PostgreSqlMessageQueueInit>(queueConnection,
-                            false,  logProvider, true, scope);
-                        ValidateErrorCounts(queueName, 0);
-                    
-                }
-                finally
-                {
-                    oCreation.RemoveQueue();
-                    oCreation.Dispose();
-                    scope?.Dispose();
-                }
-            }
         }
-        private void ValidateErrorCounts(string queueName, int messageCount)
+
+        private void ValidateErrorCounts(string arg1, string arg2, int arg3, ICreationScope arg4)
         {
-            new VerifyErrorCounts(queueName).Verify(messageCount, 2);
+            new VerifyErrorCounts(arg1).Verify(arg3, 2);
         }
     }
 }

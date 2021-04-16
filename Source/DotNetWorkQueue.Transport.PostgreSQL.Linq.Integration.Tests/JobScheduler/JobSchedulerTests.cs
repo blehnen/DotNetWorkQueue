@@ -23,46 +23,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
             bool dynamic)
         {
             var queueName = GenerateQueueName.Create();
-            using (var queueCreator =
-                new QueueCreationContainer<PostgreSqlMessageQueueInit>())
-            {
-                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                ICreationScope scope = null;
-                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
-                scope = oCreation.Scope;
-                using (var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>(x => { }))
-                {
-                    try
-                    {
-                        var tests = new JobSchedulerTestsShared();
-                        if (!dynamic)
-                        {
-                            tests.RunEnqueueTestCompiled<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(
-                                queueConnection, interceptors,
-                                Helpers.Verify, Helpers.SetError,
-                                queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope,
-                                LoggerShared.Create(queueName, GetType().Name));
-                        }
-#if NETFULL
-                        else
-                        {
-                            tests.RunEnqueueTestDynamic<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation>(
-                                queueConnection, interceptors,
-                                Helpers.Verify, Helpers.SetError,
-                                queueContainer.CreateTimeSync(ConnectionInfo.ConnectionString), oCreation.Scope,
-                                LoggerShared.Create(queueName, GetType().Name));
-                        }
-#endif
-                    }
-                    finally
-                    {
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
 
-                        oCreation.RemoveQueue();
-                        oCreation.Dispose();
-                        scope?.Dispose();
-                    }
-                }
-            }
+            consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation, PostgreSqlMessageQueueCreation>(
+                queueName,
+                ConnectionInfo.ConnectionString, interceptors, dynamic, Helpers.Verify, Helpers.SetError);
         }
     }
 }

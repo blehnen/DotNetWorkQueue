@@ -1,4 +1,6 @@
 ﻿using System.Threading.Tasks;
+using DotNetWorkQueue.IntegrationTests.Shared;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
@@ -16,39 +18,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, bool enableChaos)
         {
-            var factory = SimpleConsumerAsync.CreateFactory(workerCount, queueSize, out var schedulerContainer);
-            using (schedulerContainer)
-            {
-                using (factory.Scheduler)
-                {
-                    var task1 =
-                        Task.Factory.StartNew(
-                            () =>
-                                RunConsumer(messageCount, runtime, timeOut, workerCount, readerCount,
-                                    queueSize, useTransactions, 1, factory, enableChaos));
+            var queueName = GenerateQueueName.Create();
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.MultiConsumerAsync();
+            consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
+                    true, !useTransactions, useTransactions, false,
+                    false, !useTransactions, true, false),
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
 
-                    var task2 =
-                        Task.Factory.StartNew(
-                            () =>
-                                RunConsumer(messageCount, runtime, timeOut, workerCount, readerCount,
-                                    queueSize, useTransactions, 2, factory, enableChaos));
-
-                    var task3 =
-                        Task.Factory.StartNew(
-                            () =>
-                                RunConsumer(messageCount, runtime, timeOut, workerCount, readerCount,
-                                    queueSize, useTransactions, 3, factory, enableChaos));
-
-                    Task.WaitAll(task1, task2, task3);
-                }
-            }
-        }
-
-        private void RunConsumer(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-           bool useTransactions, int messageType, ITaskFactory factory, bool enableChaos)
-        {
-            var queue = new SimpleConsumerAsync();
-            queue.RunWithFactory(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, useTransactions, messageType, factory, enableChaos);
         }
     }
 }

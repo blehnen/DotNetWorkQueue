@@ -102,7 +102,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             bool enablePriority,
             bool enableStatus,
             bool enableStatusTable,
-            bool additionalColumn)
+            bool additionalColumn,
+            bool enableRoute = false)
         {
             oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
             oCreation.Options.EnableHeartBeat = enableHeartBeat;
@@ -111,6 +112,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             oCreation.Options.EnablePriority = enablePriority;
             oCreation.Options.EnableStatus = enableStatus;
             oCreation.Options.EnableStatusTable = enableStatusTable;
+            oCreation.Options.EnableRoute = enableRoute;
 
             if (additionalColumn)
             {

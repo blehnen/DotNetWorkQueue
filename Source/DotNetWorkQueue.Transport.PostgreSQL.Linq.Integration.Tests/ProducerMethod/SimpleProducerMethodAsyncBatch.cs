@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -42,7 +43,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
          InlineData(10, false, true, false, true, true, true, false, true, false, LinqMethodTypes.Compiled, true),
          InlineData(10, false, true, true, false, true, true, true, true, false, LinqMethodTypes.Compiled, true),
          InlineData(10, true, true, true, false, false, false, true, false, true, LinqMethodTypes.Compiled, true)]
-        public async void Run(
+        public async Task Run(
             int messageCount,
             bool interceptors,
             bool enableDelayedProcessing,
@@ -58,49 +59,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
         {
 
             var queueName = GenerateQueueName.Create();
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (
-                var queueCreator =
-                    new QueueCreationContainer<PostgreSqlMessageQueueInit>(
-                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
-                ICreationScope scope = null;
-                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
-                try
-                {
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducerAsync();
 
-                        oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
-                        oCreation.Options.EnableHeartBeat = enableHeartBeat;
-                        oCreation.Options.EnableMessageExpiration = enableMessageExpiration;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted =
-                            enableHoldTransactionUntilMessageCommitted;
-                        oCreation.Options.EnablePriority = enablePriority;
-                        oCreation.Options.EnableStatus = enableStatus;
-                        oCreation.Options.EnableStatusTable = enableStatusTable;
-
-                        if (additionalColumn)
-                        {
-                            oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, false));
-                        }
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-                        var id = Guid.NewGuid();
-                        var producer = new ProducerMethodAsyncShared();
-                        await producer.RunTestAsync<PostgreSqlMessageQueueInit>(queueConnection, interceptors, messageCount, logProvider,
-                            Helpers.GenerateData,
-                            Helpers.Verify, true, 0, id, linqMethodTypes, oCreation.Scope, enableChaos).ConfigureAwait(false);
-                    
-                }
-                finally
-                {
-                    oCreation.RemoveQueue();
-                    oCreation.Dispose();
-                    scope?.Dispose();
-                }
-            }
+            await consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(queueName,
+                ConnectionInfo.ConnectionString,
+                messageCount, linqMethodTypes, interceptors, enableChaos, true, x => Helpers.SetOptions(x,
+                    enableDelayedProcessing, !enableHoldTransactionUntilMessageCommitted, enableHoldTransactionUntilMessageCommitted, enableMessageExpiration,
+                    enablePriority, !enableHoldTransactionUntilMessageCommitted, enableStatusTable, additionalColumn),
+                Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
         }
     }
 }
