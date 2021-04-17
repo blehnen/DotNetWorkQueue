@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
@@ -8,7 +9,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
     public class MultiConsumerAsync
     {
         public async Task Run<TTransportInit, TTransportCreate>(
-            QueueConnection queueConnection,
+            List<QueueConnection> queueConnections,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
@@ -25,7 +26,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                     var task1 = await
                         Task.Factory.StartNew(
                             () =>
-                                RunConsumer<TTransportInit, TTransportCreate>(queueConnection, messageCount,
+                                RunConsumer<TTransportInit, TTransportCreate>(queueConnections[0], messageCount,
                                     runtime,
                                     timeOut, workerCount, readerCount, queueSize, 1, enableChaos, setOptions,
                                     generateData, verify, verifyQueueCount, factory)).ConfigureAwait(false);
@@ -33,7 +34,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                     var task2 = await
                         Task.Factory.StartNew(
                             () =>
-                                RunConsumer<TTransportInit, TTransportCreate>(queueConnection, messageCount,
+                                RunConsumer<TTransportInit, TTransportCreate>(queueConnections[1], messageCount,
                                     runtime,
                                     timeOut, workerCount, readerCount, queueSize, 2, enableChaos, setOptions,
                                     generateData, verify, verifyQueueCount, factory)).ConfigureAwait(false);
@@ -41,7 +42,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                     var task3 = await
                         Task.Factory.StartNew(
                             () =>
-                                RunConsumer<TTransportInit, TTransportCreate>(queueConnection, messageCount,
+                                RunConsumer<TTransportInit, TTransportCreate>(queueConnections[2], messageCount,
                                     runtime,
                                     timeOut, workerCount, readerCount, queueSize, 3, enableChaos, setOptions,
                                     generateData, verify, verifyQueueCount, factory)).ConfigureAwait(false);

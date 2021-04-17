@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using Xunit;
@@ -18,7 +19,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.MultiConsumerAsync();
 
-            await consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
+            await consumer.Run<RedisQueueInit, RedisQueueCreation>(GetConnections(connectionString),
                 messageCount, runtime, timeOut, workerCount, readerCount, queueSize, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount).ConfigureAwait(false);
         }
@@ -26,6 +27,18 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
         private void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
             //noop
+        }
+
+        private List<QueueConnection> GetConnections(string connectionString)
+        {
+            var list = new List<QueueConnection>(3);
+            var connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            return list;
         }
     }
 }

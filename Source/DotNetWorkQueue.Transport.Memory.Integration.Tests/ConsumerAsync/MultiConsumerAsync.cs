@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Memory.Basic;
@@ -17,16 +18,25 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
         {
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
-                var queueName = GenerateQueueName.Create();
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.MultiConsumerAsync();
-                await consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
-                        connectionInfo.ConnectionString),
+                await consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(GetConnections(connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, readerCount, queueSize, false, x => { },
                     Helpers.GenerateData, Helpers.Verify, VerifyQueueCount).ConfigureAwait(false);
             }
         }
 
+        private List<QueueConnection> GetConnections(string connectionString)
+        {
+            var list = new List<QueueConnection>(3);
+            var connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            return list;
+        }
         private void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
             //noop

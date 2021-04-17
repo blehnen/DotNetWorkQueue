@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using Xunit;
@@ -17,17 +18,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
-                var queueName = GenerateQueueName.Create();
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.
                         MultiConsumerAsync();
-                await consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
+                await consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(GetConnections(connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x =>
                         Helpers.SetOptions(x,
                             false, true, false,
                             false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount).ConfigureAwait(false);
             }
+        }
+
+        private List<QueueConnection> GetConnections(string connectionString)
+        {
+            var list = new List<QueueConnection>(3);
+            var connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            return list;
         }
     }
 }

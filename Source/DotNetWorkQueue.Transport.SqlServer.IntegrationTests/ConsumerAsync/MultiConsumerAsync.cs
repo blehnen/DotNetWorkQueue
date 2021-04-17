@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
@@ -19,13 +20,25 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.MultiConsumerAsync();
             await consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(
-                new QueueConnection(queueName, ConnectionInfo.ConnectionString),
+                GetConnections(ConnectionInfo.ConnectionString),
                 messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x =>
                     Helpers.SetOptions(x,
                         true, !useTransactions, useTransactions,
                         false,
                         false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount).ConfigureAwait(false);
+        }
+
+        private List<QueueConnection> GetConnections(string connectionString)
+        {
+            var list = new List<QueueConnection>(3);
+            var connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            connection = new QueueConnection(GenerateQueueName.Create(), connectionString);
+            list.Add(connection);
+            return list;
         }
     }
 }
