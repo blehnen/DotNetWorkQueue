@@ -18,8 +18,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
         {
             var queueName = GenerateQueueName.Create();
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerHeartbeat();
-            consumer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            consumer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
+                    ConnectionInfo.ConnectionString),
                 messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                     true, true, false, false,
                     false, true, true, false),

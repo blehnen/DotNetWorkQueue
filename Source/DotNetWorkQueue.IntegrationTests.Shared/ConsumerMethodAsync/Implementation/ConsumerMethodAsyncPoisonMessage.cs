@@ -9,27 +9,24 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
     public class ConsumerMethodAsyncPoisonMessage
     {
         public void Run<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
             LinqMethodTypes linqMethodTypes,
             bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
-            Action<string, string, int, ICreationScope> validateErrorCounts)
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
+            Action<QueueConnection, int, ICreationScope> validateErrorCounts)
             where TTransportInit : ITransportInit, new()
             where TTransportCreate : class, IQueueCreation
         {
 
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<TTransportInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try
@@ -66,8 +63,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                         timeOut, readerCount, queueSize, messageCount, TimeSpan.FromSeconds(30),
                         TimeSpan.FromSeconds(35), "second(*%10)", enableChaos, scope);
 
-                    validateErrorCounts(queueName, connectionString, messageCount, scope);
-                    verifyQueueCount(queueName, connectionString, oCreation.BaseTransportOptions, scope, messageCount, true, true);
+                    validateErrorCounts(queueConnection, messageCount, scope);
+                    verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, messageCount, true, true);
 
                 }
                 finally

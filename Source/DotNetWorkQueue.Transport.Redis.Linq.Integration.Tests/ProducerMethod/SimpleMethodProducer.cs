@@ -55,28 +55,24 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
 
             if (enableExpiration && enableDelay)
             {
-                consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
-                    connectionString,
+                consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                     messageCount, linqMethodTypes, interceptors, false, batchSending, creation => { }, Helpers.GenerateDelayExpiredData, Verify);
             }
 
             else if (enableDelay)
             {
-                consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
-                    connectionString,
+                consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                     messageCount, linqMethodTypes, interceptors, false, batchSending, creation => { }, Helpers.GenerateDelayData, Verify);
             }
 
             else if (enableExpiration)
             {
-                consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
-                    connectionString,
+                consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                     messageCount, linqMethodTypes, interceptors, false, batchSending, creation => { }, Helpers.GenerateExpiredData, Verify);
             }
             else
             {
-                consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
-                    connectionString,
+                consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                     messageCount, linqMethodTypes, interceptors, false, batchSending, creation => { }, Helpers.GenerateData, Verify);
             }
         }

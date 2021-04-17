@@ -17,8 +17,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
             {
                 var queueName = GenerateQueueName.Create();
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.MultiProducer();
-                producer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                producer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
+                        connectionInfo.ConnectionString),
                     messageCount, enableChaos, 10,x => { }, Helpers.GenerateData, Helpers.Verify, VerifyQueueData);
             }
         }

@@ -35,29 +35,25 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
             var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
             if (enableExpiration && enableDelay)
             {
-                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
-                    connectionString,
+                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                     messageCount, interceptors, false, batchSending,x => { },
                     Helpers.GenerateDelayExpiredData, Helpers.Verify);
             }
             else if (enableDelay)
             {
-                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
-                    connectionString,
+                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                     messageCount, interceptors, false, batchSending,x => { },
                     Helpers.GenerateDelayData, Helpers.Verify);
             }
             else if (enableExpiration)
             {
-                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
-                    connectionString,
+                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                     messageCount, interceptors, false, batchSending,x => { },
                     Helpers.GenerateExpiredData, Helpers.Verify);
             }
             else
             {
-                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
-                    connectionString,
+                producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                     messageCount, interceptors, false, batchSending,x => { },
                     Helpers.GenerateData, Helpers.Verify);
             }

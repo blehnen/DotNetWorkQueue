@@ -9,26 +9,23 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation
     public class ConsumerErrorTable
     {
         public void Run<TTransportInit, TMessage, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             int messageCount, int timeOut, int workerCount, bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
-            Action<string, string, int, ICreationScope> validateErrorCounts)
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
+            Action<QueueConnection, int, ICreationScope> validateErrorCounts)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
             where TTransportCreate : class, IQueueCreation
         {
 
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<TTransportInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try
@@ -52,22 +49,22 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation
                         workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35),
                         "second(*%10)", null, enableChaos, scope);
 
-                    validateErrorCounts(queueName, connectionString, messageCount, scope);
-                    verifyQueueCount(queueName, connectionString, oCreation.BaseTransportOptions, scope,
+                    validateErrorCounts(queueConnection, messageCount, scope);
+                    verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope,
                         messageCount, true, false);
 
                     consumer.PurgeErrorMessages<TTransportInit>(queueConnection,
                         false, logProvider, false, scope);
 
                     //table should not be empty yet
-                    validateErrorCounts(queueName, connectionString, messageCount, scope);
+                    validateErrorCounts(queueConnection, messageCount, scope);
 
                     //purge error records
                     consumer.PurgeErrorMessages<TTransportInit>(queueConnection,
                         false, logProvider, true, scope);
 
                     //table should be empty now
-                    validateErrorCounts(queueName, connectionString, 0, scope);
+                    validateErrorCounts(queueConnection, 0, scope);
 
                 }
                 finally

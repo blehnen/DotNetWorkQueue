@@ -24,15 +24,15 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                     ConsumerMethodMultipleDynamic();
 
-            consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
-                connectionString,
+            consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName,
+                    connectionString),
                 messageCount, runtime, timeOut, workerCount, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
         }
 
-        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        private void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
-            using (var count = new VerifyQueueRecordCount(arg1, arg2))
+            using (var count = new VerifyQueueRecordCount(queueConnection.Queue, queueConnection.Connection))
             {
                 count.Verify(0, false, -1);
             }

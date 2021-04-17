@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
@@ -19,8 +20,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteMultiTests();
-            consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
                 messageCount, runtime, timeOut,  readerCount, routeCount, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions,
                     false,

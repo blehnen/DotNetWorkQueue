@@ -21,23 +21,22 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
             var connectionString = new ConnectionInfo(type).ConnectionString;
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerErrorTable();
 
-            consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
-                connectionString,
+            consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, timeOut, workerCount, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts);
         }
 
-        private void ValidateErrorCounts(string arg1, string arg2, int arg3, ICreationScope arg4)
+        private void ValidateErrorCounts(QueueConnection queueConnection, int arg3, ICreationScope arg4)
         {
-            using (var error = new VerifyErrorCounts(arg1, arg2))
+            using (var error = new VerifyErrorCounts(queueConnection.Queue, queueConnection.Connection))
             {
                 error.Verify(arg3, 2);
             }
         }
 
-        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        private void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
-            using (var count = new VerifyQueueRecordCount(arg1, arg2))
+            using (var count = new VerifyQueueRecordCount(queueConnection.Queue, queueConnection.Connection))
             {
                 count.Verify(arg5, arg6, 2);
             }

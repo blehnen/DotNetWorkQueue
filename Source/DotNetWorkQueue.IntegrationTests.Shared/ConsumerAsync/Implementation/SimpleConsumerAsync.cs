@@ -13,14 +13,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
         private ITaskFactory Factory { get; set; }
 
         public async Task Run<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
             where TTransportInit : ITransportInit, new()
             where TTransportCreate : class, IQueueCreation
         {
@@ -30,12 +29,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                 Factory = CreateFactory(workerCount, queueSize, out schedulerContainer);
             }
 
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<TTransportInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection = new QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 var time = runtime * 1000 / 2;
@@ -90,7 +88,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                             null);
                     }
 
-                    verifyQueueCount(queueName, connectionString, oCreation.BaseTransportOptions, scope, 0, false,
+                    verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false,
                         false);
 
                 }
@@ -105,23 +103,21 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
         }
 
 #pragma warning disable xUnit1013 // Public method should be marked as test
-        public void RunWithFactory<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString,
+        public async Task RunWithFactory<TTransportInit, TTransportCreate>(
+            QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
             ITaskFactory factory)
             where TTransportInit : ITransportInit, new()
             where TTransportCreate : class, IQueueCreation
         {
             Factory = factory;
-            Run<TTransportInit, TTransportCreate>(queueName, connectionString, messageCount, runtime, timeOut,
-                workerCount, readerCount, queueSize, messageType, enableChaos, setOptions, generateData, verify,
-                verifyQueueCount);
+            await Run<TTransportInit, TTransportCreate>(queueConnection, messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType,
+                enableChaos, setOptions, generateData, verify, verifyQueueCount).ConfigureAwait(false);
         }
 
 

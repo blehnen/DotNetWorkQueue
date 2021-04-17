@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
@@ -44,8 +45,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
         {
             var queueName = GenerateQueueName.Create();
             var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
-            producer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            producer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
                 messageCount, interceptors, enableChaos, true, x => Helpers.SetOptions(x,
                     enableDelayedProcessing, enableHeartBeat, enableHoldTransactionUntilMessageCommitted,
                     enableMessageExpiration,

@@ -61,8 +61,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducerAsync();
 
-            await consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            await consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
+                    ConnectionInfo.ConnectionString),
                 messageCount, linqMethodTypes, interceptors, enableChaos, false, x => Helpers.SetOptions(x,
                     enableDelayedProcessing, !enableHoldTransactionUntilMessageCommitted, enableHoldTransactionUntilMessageCommitted, enableMessageExpiration,
                     enablePriority, !enableHoldTransactionUntilMessageCommitted, enableStatusTable, additionalColumn),

@@ -19,8 +19,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
         {
             var queueName = GenerateQueueName.Create();
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.SimpleConsumer();
-            consumer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            consumer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
                 messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                     false, !useTransactions, useTransactions,
                     false,

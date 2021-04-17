@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -21,8 +22,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route
             {
                 var queueName = GenerateQueueName.Create();
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteMultiTests();
-                producer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString, messageCount, runtime, timeOut, readerCount, routeCount,
+                producer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString), messageCount, runtime, timeOut, readerCount, routeCount,
                     enableChaos, x => Helpers.SetOptions(x,
                         false, true, false, false, true, true, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

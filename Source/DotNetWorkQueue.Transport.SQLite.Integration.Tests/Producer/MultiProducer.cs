@@ -24,8 +24,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
             {
                 var queueName = GenerateQueueName.Create();
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.MultiProducer();
-                producer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                producer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount, enableChaos, 10, x => { }, Helpers.GenerateData, Helpers.Verify, VerifyQueueData);
             }
         }

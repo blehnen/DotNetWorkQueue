@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
@@ -25,8 +26,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
             consumer.Run<SqlServerMessageQueueInit, SqlServerJobQueueCreation, SqlServerMessageQueueCreation>(
-                queueName,
-                ConnectionInfo.ConnectionString, interceptors, dynamic, Helpers.Verify, Helpers.SetError);
+                new QueueConnection(queueName, ConnectionInfo.ConnectionString), interceptors, dynamic, Helpers.Verify, Helpers.SetError);
         }
     }
 }

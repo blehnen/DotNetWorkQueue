@@ -21,8 +21,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
         {
             var queueName = GenerateQueueName.Create();
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteMultiTests();
-            consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
+                    ConnectionInfo.ConnectionString),
                 messageCount, runtime, timeOut, readerCount, routeCount, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions, false,
                     false, !useTransactions, true, false, true),

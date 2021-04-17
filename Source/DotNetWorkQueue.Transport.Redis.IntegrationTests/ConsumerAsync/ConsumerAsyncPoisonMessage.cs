@@ -23,27 +23,26 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.ConsumerAsyncPoisonMessage();
 
-            consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
-                connectionString,
+            consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, timeOut, workerCount, readerCount, queueSize, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts );
         }
 
-        private void ValidateErrorCounts(string arg1, string arg2, int arg3, ICreationScope arg4)
+        private void ValidateErrorCounts(QueueConnection queueConnection, int arg3, ICreationScope arg4)
         {
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            using (var error = new VerifyErrorCounts(arg1, arg2))
+            using (var error = new VerifyErrorCounts(queueConnection.Queue, queueConnection.Connection))
             {
                 error.Verify(arg3, 0);
             }
         }
 
-        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        private void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
             using (
-                var count = new VerifyQueueRecordCount(arg1, arg2))
+                var count = new VerifyQueueRecordCount(queueConnection.Queue, queueConnection.Connection))
             {
                 count.Verify(arg5, true, 2);
             }

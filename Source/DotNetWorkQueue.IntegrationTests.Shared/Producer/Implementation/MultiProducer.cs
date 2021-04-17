@@ -12,8 +12,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
     public class MultiProducer
     {
         public void Run<TTransportInit, TMessage, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             int messageCount, 
             bool enableChaos,
             int queueCount,
@@ -26,13 +25,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
             where TTransportCreate : class, IQueueCreation
         {
 
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<TTransportInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try
@@ -44,7 +41,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
 
                     RunTest<TTransportInit, TMessage>(queueConnection, messageCount, queueCount, logProvider, oCreation.Scope, enableChaos,
                          generateData, verify);
-                    LoggerShared.CheckForErrors(queueName);
+                    LoggerShared.CheckForErrors(queueConnection.Queue);
                     verifyQueueData(queueConnection, oCreation.BaseTransportOptions, oCreation.Scope, messageCount, queueCount, null);
                 }
                 finally

@@ -20,8 +20,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
         {
             var queueName = GenerateQueueName.Create();
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerExpiredMessage();
-            consumer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            consumer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
+                    ConnectionInfo.ConnectionString),
                 messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions, true,
                     false, !useTransactions, true, false),

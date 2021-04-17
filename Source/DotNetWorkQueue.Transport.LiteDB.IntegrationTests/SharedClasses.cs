@@ -113,9 +113,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
             oCreation.Options.EnableRoute = enableRoute;
         }
 
-        public static void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        public static void VerifyQueueCount(QueueConnection connection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
-            new VerifyQueueRecordCount(arg1, arg2, (LiteDbMessageQueueTransportOptions)arg3, arg4)
+            new VerifyQueueRecordCount(connection.Queue, connection.Connection, (LiteDbMessageQueueTransportOptions)arg3, arg4)
                 .Verify(arg5, arg6, arg7);
         }
     }

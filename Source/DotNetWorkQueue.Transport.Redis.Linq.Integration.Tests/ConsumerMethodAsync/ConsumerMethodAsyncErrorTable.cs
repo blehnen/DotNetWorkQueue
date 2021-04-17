@@ -28,21 +28,20 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                     ConsumerMethodAsyncErrorTable();
 
-            consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
-                connectionString,
+            consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts);
         }
 
-        private void ValidateErrorCounts(string arg1, string arg2, int arg3, ICreationScope arg4)
+        private void ValidateErrorCounts(QueueConnection queueConnection, int arg3, ICreationScope arg4)
         {
-            using (var error = new VerifyErrorCounts(arg1, arg2))
+            using (var error = new VerifyErrorCounts(queueConnection.Queue, queueConnection.Connection))
             {
                 error.Verify(arg3, 2);
             }
         }
 
-        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        private void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
             //noop
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
@@ -22,8 +23,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
             {
                 var queueName = GenerateQueueName.Create();
                 var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteMultiTests();
-                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
+                    connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, readerCount, routeCount, enableChaos, x => { Helpers.SetOptions(x, false, false, true, true);},
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }

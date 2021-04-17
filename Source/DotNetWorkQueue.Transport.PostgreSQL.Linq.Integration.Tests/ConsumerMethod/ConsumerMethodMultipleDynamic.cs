@@ -29,8 +29,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                         ConsumerMethodMultipleDynamic();
-                        consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(queueName,
-                    ConnectionInfo.ConnectionString,
+                        consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
+                                ConnectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                         true, !useTransactions, useTransactions, false,
                         false, !useTransactions, true, false),

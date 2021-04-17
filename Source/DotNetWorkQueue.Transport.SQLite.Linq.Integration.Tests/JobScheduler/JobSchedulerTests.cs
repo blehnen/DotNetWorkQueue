@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
@@ -23,8 +24,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
                 consumer.Run<SqLiteMessageQueueInit, SqliteJobQueueCreation, SqLiteMessageQueueCreation>(
-                    queueName,
-                    connectionInfo.ConnectionString, false, dynamic, Helpers.Verify, Helpers.SetError);
+                    new QueueConnection(queueName, connectionInfo.ConnectionString), false, dynamic, Helpers.Verify, Helpers.SetError);
             }
         }
     }

@@ -15,8 +15,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
         {
             var queueName = GenerateQueueName.Create();
             var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.MultiProducer();
-            producer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            producer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
+                ConnectionInfo.ConnectionString),
                 messageCount, enableChaos, 10, x => { }, Helpers.GenerateData, Helpers.Verify, VerifyQueueData);
         }
 

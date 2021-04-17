@@ -22,14 +22,14 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
             {
                 var queueName = GenerateQueueName.Create();
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.SimpleConsumer();
-                producer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                producer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(new QueueConnection(queueName,
+                    connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, false, x => { },
                     Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
             }
         }
 
-        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        private void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
             new VerifyQueueRecordCount().Verify(arg4, arg5, true);
         }

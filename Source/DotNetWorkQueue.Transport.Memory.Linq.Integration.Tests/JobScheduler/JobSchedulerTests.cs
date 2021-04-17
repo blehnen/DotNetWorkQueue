@@ -24,8 +24,8 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
 
-                consumer.Run<MemoryMessageQueueInit, JobQueueCreation, MessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString, false, dynamic, Helpers.Verify, Helpers.SetError);
+                consumer.Run<MemoryMessageQueueInit, JobQueueCreation, MessageQueueCreation>(new QueueConnection(queueName,
+                    connectionInfo.ConnectionString), false, dynamic, Helpers.Verify, Helpers.SetError);
             }
         }
     }

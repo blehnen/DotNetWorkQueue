@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
@@ -20,8 +21,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
             {
                 var queueName = GenerateQueueName.Create();
                 var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.SimpleConsumer();
-                consumer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
+                        connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, enableChaos, x => { },
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }

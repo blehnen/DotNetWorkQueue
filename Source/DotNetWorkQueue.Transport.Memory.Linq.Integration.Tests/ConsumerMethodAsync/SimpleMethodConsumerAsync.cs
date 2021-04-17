@@ -30,14 +30,14 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                         SimpleMethodConsumerAsync();
 
-                consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
+                        connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, linqMethodTypes, false, x => { },
                     Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
             }
         }
 
-        private void VerifyQueueCount(string arg1, string arg2, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        private void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
             new VerifyQueueRecordCount().Verify(arg4, 0, true);
         }

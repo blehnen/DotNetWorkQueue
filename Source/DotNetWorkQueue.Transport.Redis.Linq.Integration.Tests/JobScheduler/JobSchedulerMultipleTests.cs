@@ -23,8 +23,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();
 
             consumer.Run<RedisQueueInit, RedisJobQueueCreation, RedisQueueCreation>(
-                queueName,
-                connectionString, producerCount);
+                new QueueConnection(queueName, connectionString), producerCount);
         }
     }
 }

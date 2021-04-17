@@ -25,8 +25,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.
                         ConsumerAsyncRollBack();
-                consumer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
                         true, true, false,
                         false, true, true, false),

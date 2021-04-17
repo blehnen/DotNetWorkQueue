@@ -29,8 +29,8 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.MultiMethodProducer();
 
-                consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString, 100, 10, linqMethodTypes, false,
+                consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
+                        connectionInfo.ConnectionString), 100, 10, linqMethodTypes, false,
                     Helpers.GenerateData, VerifyQueueCount);
             }
         }

@@ -26,8 +26,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.ConsumerMethodErrorTable();
-            consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
                 messageCount, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions,
                     false,
@@ -35,9 +34,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
         }
 
-        private void ValidateErrorCounts(string arg1, string arg2, int arg3, ICreationScope arg4)
+        private void ValidateErrorCounts(QueueConnection queueConnection, int arg3, ICreationScope arg4)
         {
-            new VerifyErrorCounts(new QueueConnection(arg1, arg2)).Verify(arg3, 2);
+            new VerifyErrorCounts(queueConnection).Verify(arg3, 2);
         }
     }
 }

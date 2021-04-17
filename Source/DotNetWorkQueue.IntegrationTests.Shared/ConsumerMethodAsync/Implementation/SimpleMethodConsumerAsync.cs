@@ -12,8 +12,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
         private ITaskFactory Factory { get; set; }
 
         public void Run<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType,
             LinqMethodTypes linqMethodTypes,
@@ -21,7 +20,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
             where TTransportInit : ITransportInit, new()
             where TTransportCreate : class, IQueueCreation
         {
@@ -30,13 +29,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                 Factory = CreateFactory(workerCount, queueSize);
             }
 
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<TTransportInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try
@@ -92,7 +89,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             "second(*%10)", enableChaos, scope);
                     }
 
-                    verifyQueueCount(queueName, connectionString, oCreation.BaseTransportOptions, scope, 0, false, false);
+                    verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
                 }
                 finally
                 {
@@ -105,8 +102,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
         }
 
         public void RunWithFactory<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ITaskFactory factory,
             LinqMethodTypes linqMethodTypes,
@@ -114,12 +110,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
             where TTransportInit : ITransportInit, new()
             where TTransportCreate : class, IQueueCreation
         {
             Factory = factory;
-            Run<TTransportInit, TTransportCreate>(queueName, connectionString, messageCount, runtime, timeOut, workerCount, readerCount,
+            Run<TTransportInit, TTransportCreate>(queueConnection, messageCount, runtime, timeOut, workerCount, readerCount,
                 queueSize, messageType, linqMethodTypes, enableChaos, setOptions, generateData,
                 verify, verifyQueueCount);
         }

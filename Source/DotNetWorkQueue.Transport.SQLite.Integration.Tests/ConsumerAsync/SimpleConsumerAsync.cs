@@ -27,8 +27,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.
                         SimpleConsumerAsync();
-                await consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                await consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, enableChaos, x =>
                         Helpers.SetOptions(x,
                             false, true, false,

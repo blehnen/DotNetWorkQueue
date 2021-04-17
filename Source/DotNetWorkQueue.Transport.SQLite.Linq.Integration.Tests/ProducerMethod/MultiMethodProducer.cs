@@ -27,8 +27,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                 var queueName = GenerateQueueName.Create();
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.MultiMethodProducer();
-                consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount, 10, linqMethodTypes, enableChaos, Helpers.GenerateData, VerifyQueueCount);
             }
         }

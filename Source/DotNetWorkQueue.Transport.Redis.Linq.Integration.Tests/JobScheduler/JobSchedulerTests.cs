@@ -27,8 +27,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
 
             consumer.Run<RedisQueueInit, RedisJobQueueCreation, RedisQueueCreation>(
-                queueName,
-                connectionString, false, dynamic, Helpers.Verify, Helpers.SetError);
+                new QueueConnection(queueName, connectionString), false, dynamic, Helpers.Verify, Helpers.SetError);
         }
     }
 }

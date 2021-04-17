@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -23,8 +24,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                         ConsumerMethodMultipleDynamic();
-                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
+                        connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x, false, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }

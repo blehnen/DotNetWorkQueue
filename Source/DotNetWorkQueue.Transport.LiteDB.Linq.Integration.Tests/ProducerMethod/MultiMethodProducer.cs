@@ -22,8 +22,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
                 var queueName = GenerateQueueName.Create();
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.MultiMethodProducer();
-                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
+                    connectionInfo.ConnectionString),
                     messageCount, 10, linqMethodTypes, enableChaos,
                     Helpers.GenerateData, VerifyQueueCount);
             }

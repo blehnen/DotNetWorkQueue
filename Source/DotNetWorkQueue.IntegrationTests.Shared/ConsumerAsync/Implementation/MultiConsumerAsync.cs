@@ -7,14 +7,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
 {
     public class MultiConsumerAsync
     {
-        public void Run<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString,
+        public async Task Run<TTransportInit, TTransportCreate>(
+            QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
             where TTransportInit : ITransportInit, new()
             where TTransportCreate : class, IQueueCreation
         {
@@ -23,52 +22,51 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
             {
                 using (factory.Scheduler)
                 {
-                    var task1 =
+                    var task1 = await
                         Task.Factory.StartNew(
                             () =>
-                                RunConsumer<TTransportInit, TTransportCreate>(queueName, connectionString, messageCount,
+                                RunConsumer<TTransportInit, TTransportCreate>(queueConnection, messageCount,
                                     runtime,
                                     timeOut, workerCount, readerCount, queueSize, 1, enableChaos, setOptions,
-                                    generateData, verify, verifyQueueCount, factory));
+                                    generateData, verify, verifyQueueCount, factory)).ConfigureAwait(false);
 
-                    var task2 =
+                    var task2 = await
                         Task.Factory.StartNew(
                             () =>
-                                RunConsumer<TTransportInit, TTransportCreate>(queueName, connectionString, messageCount,
+                                RunConsumer<TTransportInit, TTransportCreate>(queueConnection, messageCount,
                                     runtime,
                                     timeOut, workerCount, readerCount, queueSize, 2, enableChaos, setOptions,
-                                    generateData, verify, verifyQueueCount, factory));
+                                    generateData, verify, verifyQueueCount, factory)).ConfigureAwait(false);
 
-                    var task3 =
+                    var task3 = await
                         Task.Factory.StartNew(
                             () =>
-                                RunConsumer<TTransportInit, TTransportCreate>(queueName, connectionString, messageCount,
+                                RunConsumer<TTransportInit, TTransportCreate>(queueConnection, messageCount,
                                     runtime,
                                     timeOut, workerCount, readerCount, queueSize, 3, enableChaos, setOptions,
-                                    generateData, verify, verifyQueueCount, factory));
+                                    generateData, verify, verifyQueueCount, factory)).ConfigureAwait(false);
 
                     Task.WaitAll(task1, task2, task3);
                 }
             }
         }
 
-        private void RunConsumer<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString,
+        private async Task RunConsumer<TTransportInit, TTransportCreate>(
+            QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
             ITaskFactory factory)
             where TTransportInit : ITransportInit, new()
             where TTransportCreate : class, IQueueCreation
         {
             var queue = new SimpleConsumerAsync();
-            queue.RunWithFactory<TTransportInit, TTransportCreate>(queueName, connectionString, messageCount, runtime, timeOut, workerCount, readerCount,
+            await queue.RunWithFactory<TTransportInit, TTransportCreate>(queueConnection, messageCount, runtime, timeOut, workerCount, readerCount,
                 queueSize,
-                messageType, enableChaos, setOptions, generateData, verify, verifyQueueCount, factory);
+                messageType, enableChaos, setOptions, generateData, verify, verifyQueueCount, factory).ConfigureAwait(false);
         }
     }
 }

@@ -9,8 +9,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
     public class SimpleMethodProducer
     {
         public void Run<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             int messageCount,
             LinqMethodTypes linqMethodTypes,
             bool interceptors,
@@ -23,13 +22,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
             where TTransportCreate : class, IQueueCreation
         {
 
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<TTransportInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try

@@ -32,6 +32,11 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
         {
             return null;
         }
+
+        public static void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
+        {
+            new VerifyQueueRecordCount().Verify(arg4, arg5, false);
+        }
     }
 
     public class IncrementWrapper

@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -50,8 +51,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                 var queueName = GenerateQueueName.Create();
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
-                consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount, linqMethodTypes, interceptors, enableChaos, true, x =>
                         Helpers.SetOptions(x,
                             enableDelayedProcessing, enableHeartBeat, enableMessageExpiration, enablePriority, enableStatus,

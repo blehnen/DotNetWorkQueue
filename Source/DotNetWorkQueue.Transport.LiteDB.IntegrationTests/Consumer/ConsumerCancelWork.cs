@@ -20,8 +20,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
             {
                 var queueName = GenerateQueueName.Create();
                 var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerCancelWork();
-                consumer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
+                    connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x, true, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }

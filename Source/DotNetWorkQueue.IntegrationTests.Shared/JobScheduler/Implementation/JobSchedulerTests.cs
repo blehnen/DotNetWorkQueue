@@ -6,8 +6,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation
     public class JobSchedulerTests
     {
         public void Run<TTransportInit, TJobQueueCreator, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             bool interceptors,
             bool dynamic,
             Action<QueueConnection, long, ICreationScope> verify,
@@ -20,8 +19,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation
             using (var queueCreator =
                     new QueueCreationContainer<TTransportInit>())
             {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 ICreationScope scope = oCreation.Scope;
                 using (var queueContainer = new QueueContainer<TTransportInit>(x => x.RegisterNonScopedSingleton(scope)))
@@ -34,16 +31,16 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation
                             tests.RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(
                                 queueConnection, interceptors,
                                 verify, setErrorFlag,
-                                queueContainer.CreateTimeSync(connectionString),
-                                oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
+                                queueContainer.CreateTimeSync(queueConnection.Connection),
+                                oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
                         }
                         else
                         {
                             tests.RunEnqueueTestDynamic<TTransportInit, TJobQueueCreator>(
                                 queueConnection, interceptors,
                                 verify, setErrorFlag,
-                                queueContainer.CreateTimeSync(connectionString),
-                                oCreation.Scope, LoggerShared.Create(queueName, GetType().Name));
+                                queueContainer.CreateTimeSync(queueConnection.Connection),
+                                oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
                         }
                     }
                     finally

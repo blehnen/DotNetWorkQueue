@@ -20,8 +20,8 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
             {
                 var queueName = GenerateQueueName.Create();
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
-                producer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                producer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(new QueueConnection(queueName,
+                        connectionInfo.ConnectionString),
                     messageCount, interceptors, false, true, x => { },
                     Helpers.GenerateData, Helpers.Verify);
             }

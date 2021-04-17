@@ -9,25 +9,22 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation
     public class RouteTests
     {
         public void Run<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString, 
+            QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int readerCount,
             int routeCount, bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, string, ICreationScope> verify,
-            Action<string, string, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
             where TTransportInit : ITransportInit, new()
             where TTransportCreate : class, IQueueCreation
         {
 
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<TTransportInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try
@@ -43,7 +40,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation
                         GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10),
                         TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
 
-                    verifyQueueCount(queueName, connectionString, oCreation.BaseTransportOptions, scope, 0, false, false);
+                    verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
 
                 }
                 finally

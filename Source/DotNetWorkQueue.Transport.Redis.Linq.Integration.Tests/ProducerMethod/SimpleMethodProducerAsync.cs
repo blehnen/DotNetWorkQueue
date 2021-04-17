@@ -35,8 +35,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducerAsync();
 
-            await consumer.Run<RedisQueueInit, RedisQueueCreation>(queueName,
-                connectionString,
+            await consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, linqMethodTypes, interceptors, false, batchSending, x => { },
                 Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
         }

@@ -8,8 +8,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
     public class SimpleProducer
     {
         public void Run<TTransportInit, TMessage, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             int messageCount,
             bool interceptors,
             bool enableChaos,
@@ -21,13 +20,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
             where TMessage : class
             where TTransportCreate : class, IQueueCreation
         {
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<TTransportInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try

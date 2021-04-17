@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -68,8 +69,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
             {
                 var queueName = GenerateQueueName.Create();
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducerAsync();
-                await producer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                await producer.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount, interceptors, enableChaos, false, x => Helpers.SetOptions(x,
                         enableDelayedProcessing, enableHeartBeat, enableMessageExpiration,
                         enablePriority, enableStatus, enableStatusTable, additionalColumn),

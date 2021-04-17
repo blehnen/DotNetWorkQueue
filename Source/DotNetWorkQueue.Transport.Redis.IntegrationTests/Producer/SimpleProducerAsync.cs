@@ -27,8 +27,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
             var queueName = GenerateQueueName.Create();
             var connectionString = new ConnectionInfo(type).ConnectionString;
             var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducerAsync();
-            await producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(queueName,
-                connectionString,
+            await producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, interceptors, false, batchSending, x => { },
                 Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
         }

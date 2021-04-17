@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.IntegrationTests;
 using Xunit;
@@ -20,16 +21,16 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                         ConsumerMethodErrorTable();
-                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
+                        connectionInfo.ConnectionString),
                     messageCount, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x, true, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
             }
         }
 
-        private void ValidateErrorCounts(string queueName, string connectionString, int messageCount, ICreationScope scope)
+        private void ValidateErrorCounts(QueueConnection queueConnection, int messageCount, ICreationScope scope)
         {
-            new VerifyErrorCounts(queueName, connectionString, scope).Verify(messageCount, 2);
+            new VerifyErrorCounts(queueConnection.Queue, queueConnection.Connection, scope).Verify(messageCount, 2);
         }
     }
 }

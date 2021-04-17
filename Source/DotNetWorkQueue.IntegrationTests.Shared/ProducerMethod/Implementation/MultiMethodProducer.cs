@@ -12,8 +12,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
     public class MultiMethodProducer
     {
         public void Run<TTransportInit, TTransportCreate>(
-            string queueName,
-            string connectionString,
+            QueueConnection queueConnection,
             int messageCount, int queueCount, LinqMethodTypes linqMethodTypes, bool enableChaos,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, string> verifyQueueCount)
@@ -21,13 +20,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
             where TTransportCreate : class, IQueueCreation
         {
 
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+            var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (var queueCreator =
                 new QueueCreationContainer<TTransportInit>(
                     serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueConnection =
-                    new DotNetWorkQueue.Configuration.QueueConnection(queueName, connectionString);
                 ICreationScope scope = null;
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try
@@ -38,7 +35,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
 
                     RunTest<TTransportInit>(queueConnection, messageCount, queueCount, logProvider, linqMethodTypes, oCreation.Scope,
                         enableChaos, generateData);
-                    LoggerShared.CheckForErrors(queueName);
+                    LoggerShared.CheckForErrors(queueConnection.Queue);
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, messageCount * queueCount, null);
 
                 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -28,8 +29,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                         ConsumerMethodAsyncPoisonMessage();
-                consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
                         false, true, false,
                         false, true, true, false),
@@ -37,12 +37,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
             }
         }
 
-        private void ValidateErrorCounts(string queueName, string connectionString, int messageCount, ICreationScope arg4)
+        private void ValidateErrorCounts(QueueConnection queueConnection, int messageCount, ICreationScope arg4)
         {
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            new VerifyErrorCounts(queueName, connectionString).Verify(messageCount, 0);
+            new VerifyErrorCounts(queueConnection.Queue, queueConnection.Connection).Verify(messageCount, 0);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.IntegrationTests;
@@ -44,8 +45,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.
                         SimpleMethodProducerAsync();
-                await consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString,
+                await consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
+                        connectionInfo.ConnectionString),
                     messageCount, linqMethodTypes, interceptors, enableChaos, true,
                     x => Helpers.SetOptions(x, enableDelayedProcessing, enableMessageExpiration, enableStatusTable),
                     Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);

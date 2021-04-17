@@ -27,8 +27,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
 
             consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation, PostgreSqlMessageQueueCreation>(
-                queueName,
-                ConnectionInfo.ConnectionString, interceptors, dynamic, Helpers.Verify, Helpers.SetError);
+                new QueueConnection(queueName,
+                    ConnectionInfo.ConnectionString), interceptors, dynamic, Helpers.Verify, Helpers.SetError);
         }
     }
 }

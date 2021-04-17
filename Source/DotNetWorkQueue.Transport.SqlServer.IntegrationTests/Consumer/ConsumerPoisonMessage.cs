@@ -19,8 +19,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
         {
             var queueName = GenerateQueueName.Create();
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerPoisonMessage();
-            consumer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(queueName,
-                ConnectionInfo.ConnectionString,
+            consumer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
                 messageCount, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                     false, !useTransactions, useTransactions,
                     false,
@@ -28,12 +27,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
         }
 
-        private void ValidateErrorCounts(string arg1, string arg2, long arg3, ICreationScope arg4)
+        private void ValidateErrorCounts(QueueConnection queueConnection, long arg3, ICreationScope arg4)
         {
             //poison messages are moved to the error queue right away
             //they don't update the tracking table, so specify 0 for the error count.
             //They still update the error table itself
-            new VerifyErrorCounts(new QueueConnection(arg1, arg2)).Verify(arg3, 0);
+            new VerifyErrorCounts(queueConnection).Verify(arg3, 0);
         }
     }
 }

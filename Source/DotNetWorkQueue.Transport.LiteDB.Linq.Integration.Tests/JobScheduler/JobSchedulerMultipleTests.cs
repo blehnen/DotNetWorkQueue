@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.IntegrationTests;
@@ -20,8 +21,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.JobScheduler
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();
 
-                consumer.Run<LiteDbMessageQueueInit, LiteDbJobQueueCreation, LiteDbMessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString, producerCount);
+                consumer.Run<LiteDbMessageQueueInit, LiteDbJobQueueCreation, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
+                    connectionInfo.ConnectionString), producerCount);
             }
         }
     }

@@ -30,8 +30,8 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.
                         SimpleMethodProducerAsync();
 
-                await consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(queueName,
-                    connectionInfo.ConnectionString, messageCount, linqMethodTypes, false, false, true,
+                await consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
+                        connectionInfo.ConnectionString), messageCount, linqMethodTypes, false, false, true,
                     x => { }, Helpers.GenerateData, Verify).ConfigureAwait(false);
             }
         }

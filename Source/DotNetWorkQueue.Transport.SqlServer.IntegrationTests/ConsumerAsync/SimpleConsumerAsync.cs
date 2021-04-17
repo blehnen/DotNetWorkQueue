@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
@@ -12,126 +13,28 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
     [Collection("ConsumerAsync")]
     public class SimpleConsumerAsync
     {
-        private ITaskFactory Factory { get; set; }
-
         [Theory]
         [InlineData(500, 1, 400, 10, 5, 5, false, 1, false, "dbo", null),
          InlineData(500, 0, 180, 10, 5, 0, true, 1, false, "dbo", null),
          InlineData(10, 0, 180, 10, 5, 0, true, 1, true, "dbo", null)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType, bool enableChaos, string schema, string queueName)
         {
-            SchedulerContainer schedulerContainer = null;
-            if (Factory == null)
-            {
-                Factory = CreateFactory(workerCount, queueSize, out schedulerContainer);
-            }
-
-            if(string.IsNullOrEmpty(queueName))
+            if (string.IsNullOrEmpty(queueName))
                 queueName = GenerateQueueName.Create();
 
-            var logProvider = LoggerShared.Create(queueName, GetType().Name);
-            using (var queueCreator =
-                new QueueCreationContainer<SqlServerMessageQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
-            {
-                var settings = new Dictionary<string, string>();
-                settings.SetSchema(schema);
-                var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString, settings);
-                ICreationScope scope = null;
-                try
-                {
+            var settings = new Dictionary<string, string>();
+            settings.SetSchema(schema);
+            var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString, settings);
 
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.Options.EnableDelayedProcessing = true;
-                        oCreation.Options.EnableHeartBeat = !useTransactions;
-                        oCreation.Options.EnableHoldTransactionUntilMessageCommitted = useTransactions;
-                        oCreation.Options.EnableStatus = !useTransactions;
-                        oCreation.Options.EnableStatusTable = true;
-
-                        var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
-                        scope = oCreation.Scope;
-
-                        if (messageType == 1)
-                        {
-                            var producer = new ProducerAsyncShared();
-                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessage>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
-                            var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
-                            consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
-                                false, logProvider,
-                                runtime, messageCount,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos, scope, null);
-                        }
-                        else if (messageType == 2)
-                        {
-                            var producer = new ProducerAsyncShared();
-                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageA>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
-                            var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
-                            consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
-                                false, logProvider,
-                                runtime, messageCount,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%3)", enableChaos, scope, null);
-                        }
-                        else if (messageType == 3)
-                        {
-                            var producer = new ProducerAsyncShared();
-                            producer.RunTestAsync<SqlServerMessageQueueInit, FakeMessageB>(queueConnection, false, messageCount, logProvider, Helpers.GenerateData,
-                                Helpers.Verify, false, oCreation.Scope, false).Wait(timeOut / 2 * 1000);
-
-                            var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
-                            consumer.RunConsumer<SqlServerMessageQueueInit>(queueConnection,
-                                false, logProvider,
-                                runtime, messageCount,
-                                timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), "second(*%10)", enableChaos, scope, null);
-                        }
-
-                        new VerifyQueueRecordCount(queueConnection, oCreation.Options).Verify(0, false, false);
-                    }
-                }
-                finally
-                {
-                    schedulerContainer?.Dispose();
-                    using (
-                        var oCreation =
-                            queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection)
-                        )
-                    {
-                        oCreation.RemoveQueue();
-                    }
-                    scope?.Dispose();
-                }
-            }
-        }
-
-#pragma warning disable xUnit1013 // Public method should be marked as test
-        public void RunWithFactory(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-#pragma warning restore xUnit1013 // Public method should be marked as test
-            bool useTransactions, int messageType, ITaskFactory factory, bool enableChaos, string schema, string queueName)
-        {
-            Factory = factory;
-            Run(messageCount, runtime, timeOut, workerCount, readerCount, queueSize, useTransactions, messageType, enableChaos, schema, queueName);
-        }
-
-
-        public static ITaskFactory CreateFactory(int maxThreads, int maxQueueSize, out SchedulerContainer schedulerCreator)
-        {
-            schedulerCreator = new SchedulerContainer();
-            var taskScheduler = schedulerCreator.CreateTaskScheduler();
-
-            taskScheduler.Configuration.MaximumThreads = maxThreads;
-            taskScheduler.Configuration.MaxQueueSize = maxQueueSize;
-
-            taskScheduler.Start();
-            return schedulerCreator.CreateTaskFactory(taskScheduler);
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.SimpleConsumerAsync();
+            await consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(queueConnection,
+                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, enableChaos, x => Helpers.SetOptions(x,
+                    false, !useTransactions, useTransactions,
+                    false,
+                    false, !useTransactions, true, false),
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount).ConfigureAwait(false);
         }
     }
 }
