@@ -12,8 +12,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
     {
         [Theory]
         [InlineData(100, 1, 400, 10, 1, 5, false, IntegrationConnectionInfo.ConnectionTypes.Shared),
-         InlineData(50, 0, 180, 10, 1, 0,  false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(10, 0, 180, 10, 1, 0,  true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+         InlineData(50, 0, 180, 10, 1, 0,  false, IntegrationConnectionInfo.ConnectionTypes.Shared),
+         InlineData(10, 0, 180, 10, 1, 0,  true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, 
             int readerCount, int queueSize, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
