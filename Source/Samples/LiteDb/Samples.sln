@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteDbScheduler", "LiteDbSc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteDbSchedulerConsumer", "LiteDbSchedulerConsumer\LiteDbSchedulerConsumer.csproj", "{6BEC5AC1-CF7B-4673-B4EF-6B371CB18771}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteDbProducerConsumer", "LiteDbProducerConsumer\LiteDbProducerConsumer.csproj", "{B507C5C6-7F58-4D7E-9122-751E9C842A22}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{6BEC5AC1-CF7B-4673-B4EF-6B371CB18771}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BEC5AC1-CF7B-4673-B4EF-6B371CB18771}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BEC5AC1-CF7B-4673-B4EF-6B371CB18771}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B507C5C6-7F58-4D7E-9122-751E9C842A22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B507C5C6-7F58-4D7E-9122-751E9C842A22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B507C5C6-7F58-4D7E-9122-751E9C842A22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B507C5C6-7F58-4D7E-9122-751E9C842A22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
