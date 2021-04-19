@@ -1,3 +1,6 @@
+###0.5.2 2021-04-18
+* LiteDb transport now supports direct and memory connections; all connections must be made in the same process.
+
 ###0.5.1 2021-04-00
 * Add LiteDb transport
 * Add dot.net 5 as a target; however many of the references don't support 5.0 yet, so results may vary
