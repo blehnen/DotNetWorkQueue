@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
-    <Version>0.5.2</Version>
+    <Version>0.5.3</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2021</Copyright>
     <Description>Shared libaries for relational transports</Description>
