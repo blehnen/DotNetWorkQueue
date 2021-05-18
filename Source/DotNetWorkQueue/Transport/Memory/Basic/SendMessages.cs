@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     {
         #region Member Level Variables
         private readonly ISentMessageFactory _sentMessageFactory;
-        private readonly IDataStorage _dataStorage;
+        private readonly IDataStorageSendMessage _dataStorage;
 
         #endregion
 
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="sentMessageFactory">The sent message factory.</param>
         /// <param name="dataStorage">The data storage.</param>
         public SendMessages(ISentMessageFactory sentMessageFactory,
-            IDataStorage dataStorage)
+            IDataStorageSendMessage dataStorage)
         {
             Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
             Guard.NotNull(() => dataStorage, dataStorage);

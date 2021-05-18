@@ -30,20 +30,6 @@ namespace DotNetWorkQueue.Transport.Memory
     public interface IDataStorage: IClear
     {
         /// <summary>
-        /// Sends the message.
-        /// </summary>
-        /// <param name="messageToSend">The message to send.</param>
-        /// <param name="data">The data.</param>
-        /// <returns></returns>
-        Guid SendMessage(IMessage messageToSend, IAdditionalMessageData data);
-        /// <summary>
-        /// Sends the message asynchronous.
-        /// </summary>
-        /// <param name="messageToSend">The message to send.</param>
-        /// <param name="data">The data.</param>
-        /// <returns></returns>
-        Task<Guid> SendMessageAsync(IMessage messageToSend, IAdditionalMessageData data);
-        /// <summary>
         /// Moves to error queue.
         /// </summary>
         /// <param name="exception">The exception.</param>
@@ -56,13 +42,7 @@ namespace DotNetWorkQueue.Transport.Memory
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
         IReceivedMessageInternal GetNextMessage(List<string> routes);
-        /// <summary>
-        /// Gets the next message asynchronous.
-        /// </summary>
-        /// <param name="routes">The routes.</param>
-        /// <returns></returns>
-        Task<IReceivedMessageInternal> GetNextMessageAsync(List<string> routes);
-
+        
         /// <summary>
         /// Gets the headers for the specified message if possible
         /// </summary>

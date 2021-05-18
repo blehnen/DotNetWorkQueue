@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.Memory.Basic.Factory;
+using DotNetWorkQueue.Transport.Memory.Trace.Decorator;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
@@ -50,6 +51,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
             container.Register<IClearErrorMessages, ClearErrorMessages>(LifeStyles.Singleton);
             container.Register<IDataStorage, DataStorage>(LifeStyles.Singleton);
+            container.Register<IDataStorageSendMessage, DataStorage>(LifeStyles.Singleton);
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
             container.Register<IGetHeader, GetHeader>(LifeStyles.Singleton);
             container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrorsNoOp>(LifeStyles.Singleton);
@@ -87,6 +89,11 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             //**receive
             container.Register<IReceiveMessages, MessageQueueReceive>(LifeStyles.Transient);
             //**receive
+
+            //decorators
+
+            //this is required for tracing to correctly add the root trace
+            container.RegisterDecorator<IDataStorageSendMessage, DataStorageSendMessageDecorator>(LifeStyles.Singleton);
         }
 
         /// <summary>

@@ -29,8 +29,12 @@ using Polly.Caching.Memory;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
-    /// <inheritdoc />
-    public class DataStorage: IDataStorage
+    /// <summary>
+    /// Storage for memory transport; all active messages are contained here
+    /// </summary>
+    /// <seealso cref="DotNetWorkQueue.Transport.Memory.IDataStorage" />
+    /// <seealso cref="DotNetWorkQueue.Transport.Memory.IDataStorageSendMessage" />
+    public class DataStorage: IDataStorage, IDataStorageSendMessage
     {
         //next item to de-queue
         private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentQueue<Guid>> Queues;
