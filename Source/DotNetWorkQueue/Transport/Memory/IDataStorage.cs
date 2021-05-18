@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.Memory
         /// <value>
         /// The signal.
         /// </value>
-        AutoResetEvent Signal { get; }
+        ManualResetEvent Signal { get; }
 
         /// <summary>
         /// Gets the job last known event.

@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 QueueWorking.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
             }
 
-            Signal = new AutoResetEvent(false);
+            Signal = new ManualResetEvent(false);
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         }
 
         /// <inheritdoc />
-        public AutoResetEvent Signal { get; }
+        public ManualResetEvent Signal { get; }
 
         /// <inheritdoc />
         public Guid SendMessage(IMessage message, IAdditionalMessageData inputData)
@@ -197,8 +197,17 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if(routes != null && routes.Count > 0)
                 throw new NotSupportedException("The in-memory transport does not support routes");
 
-            if (!Queues[_connectionInformation].TryDequeue(out var id)) return null;
-            if (!QueueData[_connectionInformation].TryRemove(id, out var item)) return null;
+            if (!Queues[_connectionInformation].TryDequeue(out var id))
+            {
+                Signal.Reset();
+                return null;
+            }
+
+            if (!QueueData[_connectionInformation].TryRemove(id, out var item))
+            {
+                Signal.Reset();
+                return null;
+            }
 
             var hasError = false;
             try
@@ -234,15 +243,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     QueueWorking[_connectionInformation].TryAdd(item.Id, item);
             }
         }
-        /// <inheritdoc />
-        public async Task<IReceivedMessageInternal> GetNextMessageAsync(List<string> routes)
-        {
-            if (routes != null && routes.Count > 0)
-                throw new NotSupportedException("The in-memory transport does not support routes");
-
-            return await Task.Run(() => GetNextMessage(routes)).ConfigureAwait(false);
-        }
-
         /// <summary>
         /// Gets the headers for the specified message if possible
         /// </summary>
