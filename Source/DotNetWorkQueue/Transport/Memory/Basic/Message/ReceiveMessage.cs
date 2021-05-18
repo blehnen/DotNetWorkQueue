@@ -70,13 +70,11 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
                 }
 
                 //ask for the next message
-                var receivedTransportMessage = _dataStorage.GetNextMessage(_configuration.Routes);
+                var receivedTransportMessage = _dataStorage.GetNextMessage(_configuration.Routes, TimeSpan.FromSeconds(5));
 
                 //if no message (null) run the no message action and return
                 if (receivedTransportMessage == null)
                 {
-                    var wasSet = _dataStorage.Signal.WaitOne(TimeSpan.FromSeconds(5));
-                    if (wasSet) continue;
                     return null;
                 }
 

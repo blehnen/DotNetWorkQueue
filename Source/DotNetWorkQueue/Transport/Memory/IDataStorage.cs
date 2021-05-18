@@ -36,12 +36,13 @@ namespace DotNetWorkQueue.Transport.Memory
         /// <param name="id">The identifier.</param>
         /// <param name="context">The context.</param>
         void MoveToErrorQueue(Exception exception, Guid id, IMessageContext context);
-        /// <summary>
-        /// Gets the next message.
-        /// </summary>
+        /// <summary>Gets the next message.</summary>
         /// <param name="routes">The routes.</param>
-        /// <returns></returns>
-        IReceivedMessageInternal GetNextMessage(List<string> routes);
+        /// <param name="timeout">how long to block while waiting for a message</param>
+        /// <returns>
+        ///   <br />
+        /// </returns>
+        IReceivedMessageInternal GetNextMessage(List<string> routes, TimeSpan timeout);
         
         /// <summary>
         /// Gets the headers for the specified message if possible
@@ -57,14 +58,6 @@ namespace DotNetWorkQueue.Transport.Memory
         /// </summary>
         /// <param name="id">The identifier.</param>
         bool DeleteMessage(Guid id);
-
-        /// <summary>
-        /// Used to inform consumers if work has been added to the queue
-        /// </summary>
-        /// <value>
-        /// The signal.
-        /// </value>
-        ManualResetEvent Signal { get; }
 
         /// <summary>
         /// Gets the job last known event.

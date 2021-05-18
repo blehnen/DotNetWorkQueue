@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     public class DataStorage: IDataStorage, IDataStorageSendMessage
     {
         //next item to de-queue
-        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentQueue<Guid>> Queues;
+        private static readonly ConcurrentDictionary<IConnectionInformation, BlockingCollection<Guid>> Queues;
        
         //actual data
         private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueData;
@@ -60,28 +60,32 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         private readonly IConnectionInformation _connectionInformation;
         private readonly IReceivedMessageFactory _receivedMessageFactory;
         private readonly IMessageFactory _messageFactory;
+        private readonly IQueueCancelWork _cancelToken;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataStorage" /> class.
-        /// </summary>
+        private bool _complete;
+
+        /// <summary>Initializes a new instance of the <see cref="DataStorage" /> class.</summary>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="receivedMessageFactory">The received message factory.</param>
         /// <param name="messageFactory">The message factory.</param>
+        /// <param name="cancelToken">cancel token for stopping</param>
         public DataStorage(
             IJobSchedulerMetaData jobSchedulerMetaData,
             IConnectionInformation connectionInformation,
             IReceivedMessageFactory receivedMessageFactory,
-            IMessageFactory messageFactory)
+            IMessageFactory messageFactory,
+            IQueueCancelWork cancelToken)
         {
             _jobSchedulerMetaData = jobSchedulerMetaData;
             _connectionInformation = connectionInformation;
             _receivedMessageFactory = receivedMessageFactory;
             _messageFactory = messageFactory;
+            _cancelToken = cancelToken;
 
             if (!Queues.ContainsKey(_connectionInformation))
             {
-                Queues.TryAdd(_connectionInformation, new ConcurrentQueue<Guid>());
+                Queues.TryAdd(_connectionInformation, new BlockingCollection<Guid>());
             }
 
             if (!QueueData.ContainsKey(_connectionInformation))
@@ -109,7 +113,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 QueueWorking.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
             }
 
-            Signal = new ManualResetEvent(false);
+            _complete = false;
         }
 
         /// <summary>
@@ -117,7 +121,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// </summary>
         static DataStorage()
         {
-            Queues = new ConcurrentDictionary<IConnectionInformation, ConcurrentQueue<Guid>>();
+            Queues = new ConcurrentDictionary<IConnectionInformation, BlockingCollection<Guid>>();
             QueueData = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
             ErrorCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
             DequeueCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
@@ -130,9 +134,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             JobLastEventCache = Policy.Cache<DateTimeOffset>(cacheProvider: memoryCacheProvider, ttlStrategy: new JobTimeStrategy(),
                 cacheKeyStrategy: new CacheKeyStrategy(), onCacheError: (context, s, arg3) => { });
         }
-
-        /// <inheritdoc />
-        public ManualResetEvent Signal { get; }
 
         /// <inheritdoc />
         public Guid SendMessage(IMessage message, IAdditionalMessageData inputData)
@@ -159,15 +160,12 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     JobScheduledTime = scheduledTime
                 };
                 QueueData[_connectionInformation].TryAdd(newItem.Id, newItem);
-                Queues[_connectionInformation].Enqueue(newItem.Id);
+                Queues[_connectionInformation].Add(newItem.Id);
 
                 if (!string.IsNullOrWhiteSpace(jobName))
                 {
                     Jobs[_connectionInformation].TryAdd(jobName, newItem.Id);
                 }
-
-                //data added
-                Signal.Set();
                 return newItem.Id;
             }
             throw new DotNetWorkQueueException(
@@ -192,55 +190,69 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             //3) Delete the work item when a delete message call is received
         }
         /// <inheritdoc />
-        public IReceivedMessageInternal GetNextMessage(List<string> routes)
+        public IReceivedMessageInternal GetNextMessage(List<string> routes, TimeSpan timeout)
         {
+            if (_complete)
+                return null;
+
             if(routes != null && routes.Count > 0)
                 throw new NotSupportedException("The in-memory transport does not support routes");
 
-            if (!Queues[_connectionInformation].TryDequeue(out var id))
+            using (CancellationTokenSource linkedCts =
+                CancellationTokenSource.CreateLinkedTokenSource(_cancelToken.CancelWorkToken,
+                    _cancelToken.StopWorkToken))
             {
-                Signal.Reset();
-                return null;
-            }
-
-            if (!QueueData[_connectionInformation].TryRemove(id, out var item))
-            {
-                Signal.Reset();
-                return null;
-            }
-
-            var hasError = false;
-            try
-            {
-                var newMessage = _messageFactory.Create(item.Body, item.Headers);
-
-                if (!string.IsNullOrEmpty(item.JobName))
+                Guid id = Guid.Empty;
+                try
                 {
-                    var key = GenerateKey(item.JobName);
-
-                    //add it to the cache
-                    JobLastEventCache.Execute(context => item.JobEventTime, new Context(key));
+                    if (!Queues[_connectionInformation].TryTake(out id, Convert.ToInt32(timeout.TotalMilliseconds), linkedCts.Token))
+                    {
+                        return null;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    return null;
                 }
 
-                Interlocked.Increment(ref DequeueCounts[_connectionInformation].ProcessedCount);
+                if (!QueueData[_connectionInformation].TryRemove(id, out var item))
+                {
+                    return null;
+                }
 
-                return _receivedMessageFactory.Create(newMessage,
-                    new MessageQueueId(id),
-                    new MessageCorrelationId(item.CorrelationId));
-            }
-            catch (Exception error)
-            {
-                hasError = true;
-                //at this point, the record has been de-queued, but it can't be processed.
-                throw new PoisonMessageException(
-                    "An error has occurred trying to re-assemble a message", error,
-                    new MessageQueueId(id), null, null, null);
+                var hasError = false;
+                try
+                {
+                    var newMessage = _messageFactory.Create(item.Body, item.Headers);
 
-            }
-            finally
-            {
-                if (!hasError)
-                    QueueWorking[_connectionInformation].TryAdd(item.Id, item);
+                    if (!string.IsNullOrEmpty(item.JobName))
+                    {
+                        var key = GenerateKey(item.JobName);
+
+                        //add it to the cache
+                        JobLastEventCache.Execute(context => item.JobEventTime, new Context(key));
+                    }
+
+                    Interlocked.Increment(ref DequeueCounts[_connectionInformation].ProcessedCount);
+
+                    return _receivedMessageFactory.Create(newMessage,
+                        new MessageQueueId(id),
+                        new MessageCorrelationId(item.CorrelationId));
+                }
+                catch (Exception error)
+                {
+                    hasError = true;
+                    //at this point, the record has been de-queued, but it can't be processed.
+                    throw new PoisonMessageException(
+                        "An error has occurred trying to re-assemble a message", error,
+                        new MessageQueueId(id), null, null, null);
+
+                }
+                finally
+                {
+                    if (!hasError)
+                        QueueWorking[_connectionInformation].TryAdd(item.Id, item);
+                }
             }
         }
         /// <summary>
@@ -319,16 +331,20 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public void Clear()
         {
-            Signal.Set();
-            Signal.Dispose();
+            _complete = true;
             if (Queues.ContainsKey(_connectionInformation))
             {
-                while (Queues[_connectionInformation].TryDequeue(out var id))
+                if (!Queues[_connectionInformation].IsAddingCompleted)
                 {
-                    QueueData[_connectionInformation].TryRemove(id, out _);
+                    Queues[_connectionInformation].CompleteAdding();
+                    while (Queues[_connectionInformation].TryTake(out var id))
+                    {
+                        QueueData[_connectionInformation].TryRemove(id, out _);
+                    }
+
+                    Jobs[_connectionInformation].Clear();
+                    QueueWorking[_connectionInformation].Clear();
                 }
-                Jobs[_connectionInformation].Clear();
-                QueueWorking[_connectionInformation].Clear();
             }
         }
 
