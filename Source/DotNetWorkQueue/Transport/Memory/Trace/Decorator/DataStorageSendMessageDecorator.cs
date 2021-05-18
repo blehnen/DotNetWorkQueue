@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
                 messageToSend.Inject(_tracer, scope.Span.Context, _headers.StandardHeaders);
                 try
                 {
-                    var id = await _handler.SendMessageAsync(messageToSend, data);
+                    var id = await _handler.SendMessageAsync(messageToSend, data).ConfigureAwait(false);
                     if (id == Guid.Empty)
                         Tags.Error.Set(scope.Span, true);
                     scope.Span.AddMessageIdTag(id.ToString());
