@@ -138,6 +138,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public Guid SendMessage(IMessage message, IAdditionalMessageData inputData)
         {
+            if (Queues[_connectionInformation].IsAddingCompleted)
+                return Guid.Empty;
+
             var jobName = _jobSchedulerMetaData.GetJobName(inputData);
             var scheduledTime = DateTimeOffset.MinValue;
             var eventTime = DateTimeOffset.MinValue;
