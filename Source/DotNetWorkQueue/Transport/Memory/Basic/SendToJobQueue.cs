@@ -76,6 +76,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// </remarks>
         protected override bool JobAlreadyExistsError(Exception error)
         {
+            if (error == null)
+                return false;
             var message = error.Message.Replace(Environment.NewLine, " ");
             return message.Contains("Failed to insert record - the job has already been queued or processed");
         }

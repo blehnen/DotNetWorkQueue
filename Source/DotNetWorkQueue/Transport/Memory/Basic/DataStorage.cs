@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         private readonly IMessageFactory _messageFactory;
         private readonly IQueueCancelWork _cancelToken;
 
-        private bool _complete;
+        private volatile bool _complete;
 
         /// <summary>Initializes a new instance of the <see cref="DataStorage" /> class.</summary>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
@@ -138,7 +138,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public Guid SendMessage(IMessage message, IAdditionalMessageData inputData)
         {
-            if (Queues[_connectionInformation].IsAddingCompleted)
+            if (_complete)
                 return Guid.Empty;
 
             var jobName = _jobSchedulerMetaData.GetJobName(inputData);
@@ -339,7 +339,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             {
                 if (!Queues[_connectionInformation].IsAddingCompleted)
                 {
-                    Queues[_connectionInformation].CompleteAdding();
                     while (Queues[_connectionInformation].TryTake(out var id))
                     {
                         QueueData[_connectionInformation].TryRemove(id, out _);
