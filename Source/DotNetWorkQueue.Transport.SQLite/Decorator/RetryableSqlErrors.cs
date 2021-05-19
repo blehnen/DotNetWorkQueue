@@ -24,6 +24,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     public enum RetryableSqlErrors
     {
         /// <summary>
+        /// The query was canceled by the engine
+        /// </summary>
+        QueryAborted = 4,
+        /// <summary>
         /// The database is busy
         /// </summary>
         DatabaseIsBusy = 5,

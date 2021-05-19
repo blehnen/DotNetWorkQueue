@@ -65,7 +65,12 @@ namespace DotNetWorkQueue
             where THeader : class;
 
         /// <summary>
-        /// A list of the previous errors, if any, that have occured.
+        /// True if the previous error messages have been loaded into <see cref="PreviousErrors"/>
+        /// </summary>
+        bool PreviousErrorsLoaded { get; }
+
+        /// <summary>
+        /// A list of the previous errors, if any, that have occurred.
         /// </summary>
         /// <remarks>The string is the type of the exception; the int is the count. Items will only be in the collection if the count is > 0</remarks>
         IReadOnlyDictionary<string, int> PreviousErrors { get; }

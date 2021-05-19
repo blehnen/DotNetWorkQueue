@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Messages
@@ -28,15 +29,16 @@ namespace DotNetWorkQueue.Messages
     public class GenerateReceivedMessage : IGenerateReceivedMessage
     {
         private readonly IGetPreviousMessageErrors _getErrors;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GenerateReceivedMessage"/> class.
-        /// </summary>
+        private readonly ILogger _logger;
+        /// <summary>Initializes a new instance of the <see cref="GenerateReceivedMessage" /> class.</summary>
         /// <param name="getErrors">The get errors.</param>
-        public GenerateReceivedMessage(IGetPreviousMessageErrors getErrors)
+        /// <param name="logger">logger</param>
+        public GenerateReceivedMessage(IGetPreviousMessageErrors getErrors, ILogger logger)
         {
             Guard.NotNull(() => getErrors, getErrors);
+            Guard.NotNull(() => getErrors, getErrors);
             _getErrors = getErrors;
+            _logger = logger;
         }
 
         /// <summary>
@@ -67,7 +69,7 @@ namespace DotNetWorkQueue.Messages
             // ReSharper disable once PossibleNullReferenceException
             var make = d1.MakeGenericType(typeArgs);
 
-            return (IReceivedMessage<T>)Activator.CreateInstance(make, internalMessage, _getErrors);
+            return (IReceivedMessage<T>)Activator.CreateInstance(make, internalMessage, _getErrors, _logger);
         }
     }
 }

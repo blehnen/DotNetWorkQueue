@@ -16,9 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Messages
@@ -31,23 +34,29 @@ namespace DotNetWorkQueue.Messages
     {
         private IReadOnlyDictionary<string, int> _previousErrors = null;
         private readonly IGetPreviousMessageErrors _getErrors;
+        private readonly ILogger _logger;
 
-        /// <summary>Initializes a new instance of the <see cref="IReceivedMessage{T}"/> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="IReceivedMessage{T}" /> class.</summary>
         /// <param name="message">The internal message.</param>
-        /// <param name="getErrors">Gets any previous errors that have occured for this specific message</param>
-        public ReceivedMessage(IReceivedMessageInternal message, IGetPreviousMessageErrors getErrors)
+        /// <param name="getErrors">Gets any previous errors that have occurred for this specific message</param>
+        /// <param name="logger">logger</param>
+        public ReceivedMessage(IReceivedMessageInternal message, IGetPreviousMessageErrors getErrors,
+            ILogger logger)
         {
             Guard.NotNull(() => message, message);
             Guard.NotNull(() => getErrors, getErrors);
+            Guard.NotNull(() => logger, logger);
 
             _getErrors = getErrors;
+            _logger = logger;
 
-            Body = (T)message.Body;
+            Body = (T) message.Body;
             Headers = new ReadOnlyDictionary<string, object>(message.Headers.ToDictionary(entry => entry.Key,
-                                               entry => entry.Value));
+                entry => entry.Value));
             MessageId = message.MessageId;
             CorrelationId = message.CorrelationId;
         }
+
         /// <summary>
         /// Gets or sets the identifier.
         /// </summary>
@@ -55,6 +64,7 @@ namespace DotNetWorkQueue.Messages
         /// The identifier.
         /// </value>
         public IMessageId MessageId { get; }
+
         /// <summary>
         /// Gets or sets the correlation identifier.
         /// </summary>
@@ -80,9 +90,31 @@ namespace DotNetWorkQueue.Messages
         public IReadOnlyDictionary<string, object> Headers { get; }
 
         /// <inheritdoc/>
-        public IReadOnlyDictionary<string, int> PreviousErrors => _previousErrors ?? (_previousErrors = _getErrors.Get(MessageId));
+        public bool PreviousErrorsLoaded { get; private set; }
 
-        /// <summary>
+        /// <inheritdoc/>
+        public IReadOnlyDictionary<string, int> PreviousErrors 
+        {
+            get
+            {
+                if (_previousErrors != null)
+                    return _previousErrors;
+
+                try
+                { //failing to load the previous error messages should not throw an exception
+                    _previousErrors = _getErrors.Get(
+                        MessageId);
+                    PreviousErrorsLoaded = true;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(() => $"Failed to load the previous error messages {System.Environment.NewLine}{e}");
+                }
+                return _previousErrors;
+            }
+        }
+
+    /// <summary>
         /// Returns typed data from the headers collection
         /// </summary>
         /// <typeparam name="THeader">data type</typeparam>

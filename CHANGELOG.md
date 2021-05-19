@@ -1,3 +1,7 @@
+###0.5.4 2021-05-19
+* Fix error with adding items to a memory queue that has started the shutdown process
+* Asking for the list of error messages should not throw an exception if the transport fails; A flag has been added to indicate if the errors are loaded or not.
+
 ###0.5.3 2021-05-18
 * Fix performance issue with in-memory queues
 
