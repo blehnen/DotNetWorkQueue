@@ -17,7 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Messages;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     public class MessageMethodHandlingDecorator: IMessageMethodHandling
     {
         private readonly IMessageMethodHandling _handler;
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly IStandardHeaders _headers;
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public MessageMethodHandlingDecorator(IMessageMethodHandling handler, ITracer tracer, IStandardHeaders headers)
+        public MessageMethodHandlingDecorator(IMessageMethodHandling handler, Tracer tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -54,24 +54,14 @@ namespace DotNetWorkQueue.Trace.Decorator
         public bool IsDisposed => _handler.IsDisposed;
 
         /// <inheritdoc />
-        public void HandleExecution(IReceivedMessage<MessageExpression> receivedMessage, IWorkerNotification workerNotification)
+        public void HandleExecution(IReceivedMessage<MessageExpression> receivedMessage,
+            IWorkerNotification workerNotification)
         {
             var spanContext = receivedMessage.Headers.Extract(_tracer, _headers);
-            if (spanContext != null)
+            using (var scope = _tracer.StartActiveSpan("LinqExecution", parentContext: spanContext))
             {
-                using (IScope scope = _tracer.BuildSpan("LinqExecution").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.SetTag("ActionType", receivedMessage.Body.PayLoad.ToString());
-                    _handler.HandleExecution(receivedMessage, workerNotification);
-                }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan("LinqExecution").StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.SetTag("ActionType", receivedMessage.Body.PayLoad.ToString());
-                    _handler.HandleExecution(receivedMessage, workerNotification);
-                }
+                scope.SetAttribute("ActionType", receivedMessage.Body.PayLoad.ToString());
+                _handler.HandleExecution(receivedMessage, workerNotification);
             }
         }
     }

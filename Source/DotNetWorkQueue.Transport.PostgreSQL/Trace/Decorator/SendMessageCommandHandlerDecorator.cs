@@ -20,8 +20,7 @@ using System;
 using DotNetWorkQueue.Trace;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
-using OpenTracing;
-using OpenTracing.Tag;
+using OpenTelemetry.Trace;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Trace;
@@ -34,7 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator
     public class SendMessageCommandHandlerDecorator : ICommandHandlerWithOutput<SendMessageCommand, long>
     {
         private readonly ICommandHandlerWithOutput<SendMessageCommand, long> _handler;
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly IHeaders _headers;
         private readonly IConnectionInformation _connectionInformation;
 
@@ -45,7 +44,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="connectionInformation">The connection information.</param>
-        public SendMessageCommandHandlerDecorator(ICommandHandlerWithOutput<SendMessageCommand, long> handler, ITracer tracer,
+        public SendMessageCommandHandlerDecorator(ICommandHandlerWithOutput<SendMessageCommand, long> handler, Tracer tracer,
             IHeaders headers, IConnectionInformation connectionInformation)
         {
             _handler = handler;
@@ -57,23 +56,23 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator
         /// <inheritdoc />
         public long Handle(SendMessageCommand command)
         {
-            using (IScope scope = _tracer.BuildSpan("SendMessage").StartActive(finishSpanOnDispose: true))
+            using (var scope = _tracer.StartActiveSpan("SendMessage"))
             {
-                scope.Span.AddCommonTags(command.MessageData, _connectionInformation);
-                scope.Span.Add(command);
-                command.MessageToSend.Inject(_tracer, scope.Span.Context, _headers.StandardHeaders);
+                scope.AddCommonTags(command.MessageData, _connectionInformation);
+                scope.Add(command);
+                command.MessageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
                     var id = _handler.Handle(command);
                     if (id == 0)
-                        Tags.Error.Set(scope.Span, true);
-                    scope.Span.AddMessageIdTag(id);
+                        scope.SetStatus(Status.Error);
+                    scope.AddMessageIdTag(id);
                     return id;
                 }
                 catch (Exception e)
                 {
-                    Tags.Error.Set(scope.Span, true);
-                    scope.Span.Log(e.ToString());
+                    scope.SetStatus(Status.Error);
+                    scope.RecordException(e);
                     throw;
                 }
             }

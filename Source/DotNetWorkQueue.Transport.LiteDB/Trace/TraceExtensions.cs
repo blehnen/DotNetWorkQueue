@@ -17,7 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Trace
 {
@@ -31,16 +31,16 @@ namespace DotNetWorkQueue.Transport.LiteDb.Trace
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="command">The command.</param>
-        public static void Add(this ISpan span, SendMessageCommand command)
+        public static void Add(this TelemetrySpan span, SendMessageCommand command)
         {
             var delay = command.MessageData.GetDelay();
             if (delay.HasValue)
-                span.SetTag("MessageDelay",
+                span.SetAttribute("MessageDelay",
                     delay.Value.ToString());
 
             var expiration = command.MessageData.GetExpiration();
             if (expiration.HasValue)
-                span.SetTag("MessageExpiration",
+                span.SetAttribute("MessageExpiration",
                     expiration.Value.ToString());
         }
     }

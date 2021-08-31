@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Trace.Decorator
 {
@@ -28,14 +28,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Trace.Decorator
     public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand<int>>
     {
         private readonly ICommandHandler<RollbackMessageCommand<int>> _handler;
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessageCommandHandlerDecorator"/> class.
         /// </summary>
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
-        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<int>> handler, ITracer tracer)
+        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<int>> handler, Tracer tracer)
         {
             _handler = handler;
             _tracer = tracer;
@@ -45,14 +45,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Trace.Decorator
         public void Handle(RollbackMessageCommand<int> command)
         {
             //lets add a bit more information to the active span if possible
-            if (_tracer.ActiveSpan != null)
+            if (OpenTelemetry.Trace.Tracer.CurrentSpan != null)
             {
                 if (command.IncreaseQueueDelay.HasValue)
-                    _tracer.ActiveSpan.SetTag("MessageDelay",
+                    OpenTelemetry.Trace.Tracer.CurrentSpan.SetAttribute("MessageDelay",
                         command.IncreaseQueueDelay.Value.ToString());
 
                 if (command.LastHeartBeat.HasValue)
-                    _tracer.ActiveSpan.SetTag("LastHeartBeatValue",
+                    OpenTelemetry.Trace.Tracer.CurrentSpan.SetAttribute("LastHeartBeatValue",
                         command.LastHeartBeat.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             _handler.Handle(command);

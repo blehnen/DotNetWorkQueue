@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading.Tasks;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.ISchedulerMessageHandler" />
     public class SchedulerMessageHandlerDecorator: ISchedulerMessageHandler
     {
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly ISchedulerMessageHandler _handler;
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// </summary>
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
-        public SchedulerMessageHandlerDecorator(ISchedulerMessageHandler handler, ITracer tracer)
+        public SchedulerMessageHandlerDecorator(ISchedulerMessageHandler handler, Tracer tracer)
         {
             _handler = handler;
             _tracer = tracer;
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public Task HandleAsync<T>(IWorkGroup workGroup, IReceivedMessage<T> message, IWorkerNotification notifications, Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ITaskFactory taskFactory) where T : class
         {
-            using (IScope scope = _tracer.BuildSpan("SchedulerMessageHandler").StartActive(finishSpanOnDispose: true))
+            using (var scope = _tracer.StartActiveSpan("SchedulerMessageHandler"))
             {
                 return _handler.HandleAsync(workGroup, message, notifications, functionToRun, taskFactory);
             }

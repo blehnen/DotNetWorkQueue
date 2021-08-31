@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IRemoveMessage" />
     public class RemoveMessageDecorator: IRemoveMessage
     {
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly IRemoveMessage _handler;
         private readonly IStandardHeaders _headers;
         private readonly IGetHeader _getHeader;
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="getHeader">The get header.</param>
-        public RemoveMessageDecorator(IRemoveMessage handler, ITracer tracer, IStandardHeaders headers, IGetHeader getHeader)
+        public RemoveMessageDecorator(IRemoveMessage handler,  Tracer tracer, IStandardHeaders headers, IGetHeader getHeader)
         {
             _handler = handler;
             _tracer = tracer;
@@ -53,32 +53,18 @@ namespace DotNetWorkQueue.Trace.Decorator
             if (header != null)
             {
                 var spanContext = header.Extract(_tracer, _headers);
-                if (spanContext != null)
+                using (var scope = _tracer.StartActiveSpan("Remove", parentContext: spanContext))
                 {
-                    using (IScope scope = _tracer.BuildSpan("Remove").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                    {
-                        scope.Span.SetTag("RemovedBecause", reason.ToString());
-                        return _handler.Remove(id, reason);
-                    }
-                }
-                else
-                {
-                    using (IScope scope = _tracer.BuildSpan("Remove").StartActive(finishSpanOnDispose: true))
-                    {
-                        scope.Span.AddMessageIdTag(id);
-                        scope.Span.SetTag("RemovedBecause", reason.ToString());
-                        return _handler.Remove(id, reason);
-                    }
-                }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan("Remove").StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.AddMessageIdTag(id);
-                    scope.Span.SetTag("RemovedBecause", reason.ToString());
+                    scope.AddMessageIdTag(id);
+                    scope.SetAttribute("RemovedBecause", reason.ToString());
                     return _handler.Remove(id, reason);
                 }
+            }
+            using (var scope = _tracer.StartActiveSpan("Remove"))
+            {
+                scope.AddMessageIdTag(id);
+                scope.SetAttribute("RemovedBecause", reason.ToString());
+                return _handler.Remove(id, reason);
             }
         }
 
@@ -86,22 +72,11 @@ namespace DotNetWorkQueue.Trace.Decorator
         public RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason)
         {
             var spanContext = context.Extract(_tracer, _headers);
-            if (spanContext != null)
+            using (var scope = _tracer.StartActiveSpan("Remove", parentContext: spanContext))
             {
-                using (IScope scope = _tracer.BuildSpan("Remove").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.SetTag("RemovedBecause", reason.ToString());
-                    return _handler.Remove(context, reason);
-                }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan("Remove").StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.AddMessageIdTag(context);
-                    scope.Span.SetTag("RemovedBecause", reason.ToString());
-                    return _handler.Remove(context, reason);
-                }
+                scope.AddMessageIdTag(context);
+                scope.SetAttribute("RemovedBecause", reason.ToString());
+                return _handler.Remove(context, reason);
             }
         }
     }

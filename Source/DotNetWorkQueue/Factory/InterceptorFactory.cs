@@ -19,7 +19,7 @@
 using System;
 using DotNetWorkQueue.Metrics.Decorator;
 using DotNetWorkQueue.Validation;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Factory
 {
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Factory
 
             //HACK for now - it's not clear to me if simple injector supports this pattern
             var decorator = new MessageInterceptorDecorator(_container.Create().GetInstance<IMetrics>(), interceptor, _container.Create().GetInstance<IConnectionInformation>());
-            var decorator2 = new Trace.Decorator.MessageInterceptorDecorator(decorator, _container.Create().GetInstance<ITracer>(), _container.Create().GetInstance<IStandardHeaders>());
+            var decorator2 = new Trace.Decorator.MessageInterceptorDecorator(decorator, _container.Create().GetInstance<Tracer>(), _container.Create().GetInstance<IStandardHeaders>());
             return decorator2;
         }
     }

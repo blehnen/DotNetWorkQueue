@@ -21,8 +21,7 @@ using System;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Trace;
-using OpenTracing;
-using OpenTracing.Tag;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
 {
@@ -32,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
     public class DataStorageSendMessageDecorator : IDataStorageSendMessage
     {
         private readonly IDataStorageSendMessage _handler;
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly IHeaders _headers;
         private readonly IConnectionInformation _connectionInformation;
 
@@ -41,7 +40,7 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="connectionInformation">The connection information.</param>
-        public DataStorageSendMessageDecorator(IDataStorageSendMessage handler, ITracer tracer,
+        public DataStorageSendMessageDecorator(IDataStorageSendMessage handler, Tracer tracer,
             IHeaders headers, IConnectionInformation connectionInformation)
         {
             _handler = handler;
@@ -53,22 +52,22 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
         /// <inheritdoc />
         public Guid SendMessage(IMessage messageToSend, IAdditionalMessageData data)
         {
-            using (IScope scope = _tracer.BuildSpan("SendMessage").StartActive(finishSpanOnDispose: true))
+            using (var scope = _tracer.StartActiveSpan("SendMessage"))
             {
-                scope.Span.AddCommonTags(data, _connectionInformation);
-                messageToSend.Inject(_tracer, scope.Span.Context, _headers.StandardHeaders);
+                scope.AddCommonTags(data, _connectionInformation);
+                messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
                     var id = _handler.SendMessage(messageToSend, data);
-                    if (id == Guid.Empty)
-                        Tags.Error.Set(scope.Span, true);
-                    scope.Span.AddMessageIdTag(id.ToString());
+                    //if (id == Guid.Empty)
+                    //    scope.SetStatus(Status.Error);;
+                    scope.AddMessageIdTag(id.ToString());
                     return id;
                 }
                 catch (Exception e)
                 {
-                    Tags.Error.Set(scope.Span, true);
-                    scope.Span.Log(e.ToString());
+                    scope.SetStatus(Status.Error);;
+                    scope.RecordException(e);
                     throw;
                 }
             }
@@ -77,22 +76,22 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
         /// <inheritdoc />
         public async Task<Guid> SendMessageAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
-            using (IScope scope = _tracer.BuildSpan("SendMessage").StartActive(finishSpanOnDispose: true))
+            using (var scope = _tracer.StartActiveSpan("SendMessage"))
             {
-                scope.Span.AddCommonTags(data, _connectionInformation);
-                messageToSend.Inject(_tracer, scope.Span.Context, _headers.StandardHeaders);
+                scope.AddCommonTags(data, _connectionInformation);
+                messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
                     var id = await _handler.SendMessageAsync(messageToSend, data).ConfigureAwait(false);
-                    if (id == Guid.Empty)
-                        Tags.Error.Set(scope.Span, true);
-                    scope.Span.AddMessageIdTag(id.ToString());
+                    //if (id == Guid.Empty)
+                    //    scope.SetStatus(Status.Error);;
+                    scope.AddMessageIdTag(id.ToString());
                     return id;
                 }
                 catch (Exception e)
                 {
-                    Tags.Error.Set(scope.Span, true);
-                    scope.Span.Log(e.ToString());
+                    scope.SetStatus(Status.Error);;
+                    scope.RecordException(e);
                     throw;
                 }
             }

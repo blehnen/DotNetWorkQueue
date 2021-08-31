@@ -25,7 +25,7 @@ using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Chaos;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
-using OpenTracing;
+using OpenTelemetry.Trace;
 using Polly;
 using Polly.Contrib.Simmy;
 using Polly.Contrib.Simmy.Behavior;
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="container">The container.</param>
         public static void Register(IContainer container)
         {
-            var tracer = container.GetInstance<ITracer>();
+            var tracer = container.GetInstance<Tracer>();
             var policies = container.GetInstance<IPolicies>();
             var log = container.GetInstance<ILogger>();
 
@@ -60,17 +60,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     (exception, timeSpan, retryCount, context) =>
                     {
                         log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
-                        if (tracer.ActiveSpan != null)
+                        if (Tracer.CurrentSpan != null)
                         {
-                            IScope scope = tracer.BuildSpan("RetryTransaction").StartActive(finishSpanOnDispose: false);
+                            var scope = tracer.StartActiveSpan("RetryTransaction");
                             try
                             {
-                                scope.Span.SetTag("RetryTime", timeSpan.ToString());
-                                scope.Span.Log(exception.ToString());
+                                scope.SetAttribute("RetryTime", timeSpan.ToString());
+                                scope.RecordException(exception);
                             }
                             finally
                             {
-                                scope.Span.Finish(DateTimeOffset.UtcNow.Add(timeSpan));
+                                scope.End(DateTimeOffset.UtcNow.Add(timeSpan));
                             }
                         }
                     });

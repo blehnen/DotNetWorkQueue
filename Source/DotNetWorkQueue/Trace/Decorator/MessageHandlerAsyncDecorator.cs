@@ -17,7 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Threading.Tasks;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     public class MessageHandlerAsyncDecorator : IMessageHandlerAsync
     {
         private readonly IMessageHandlerAsync _handler;
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly IHeaders _headers;
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public MessageHandlerAsyncDecorator(IMessageHandlerAsync handler, ITracer tracer, IHeaders headers)
+        public MessageHandlerAsyncDecorator(IMessageHandlerAsync handler, Tracer tracer, IHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -53,21 +53,10 @@ namespace DotNetWorkQueue.Trace.Decorator
         public async Task HandleAsync(IReceivedMessageInternal message, IWorkerNotification workerNotification)
         {
             var spanContext = message.Extract(_tracer, _headers.StandardHeaders);
-            if (spanContext != null)
+            using (var scope = _tracer.StartActiveSpan("MessageHandlerAsync", parentContext: spanContext))
             {
-                using (IScope scope = _tracer.BuildSpan("MessageHandlerAsync").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.AddMessageIdTag(message);
-                    await _handler.HandleAsync(message, workerNotification);
-                }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan("MessageHandlerAsync").StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.AddMessageIdTag(message);
-                    await _handler.HandleAsync(message, workerNotification);
-                }
+                scope.AddMessageIdTag(message);
+                await _handler.HandleAsync(message, workerNotification);
             }
         }
     }

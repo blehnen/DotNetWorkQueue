@@ -17,9 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using OpenTracing;
-using OpenTracing.Tag;
-
+using OpenTelemetry.Trace;
 namespace DotNetWorkQueue.Trace.Decorator
 {
     /// <summary>
@@ -28,7 +26,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IReceiveMessagesError" />
     public class ReceiveMessagesErrorDecorator: IReceiveMessagesError
     {
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly IReceiveMessagesError _handler;
         private readonly IStandardHeaders _headers;
 
@@ -38,7 +36,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public ReceiveMessagesErrorDecorator(IReceiveMessagesError handler, ITracer tracer, IStandardHeaders headers)
+        public ReceiveMessagesErrorDecorator(IReceiveMessagesError handler,  Tracer tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -49,28 +47,14 @@ namespace DotNetWorkQueue.Trace.Decorator
         public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
             var spanContext = message.Extract(_tracer, _headers);
-            if (spanContext != null)
+            using (var scope = _tracer.StartActiveSpan("Error", parentContext: spanContext))
             {
-                using (IScope scope = _tracer.BuildSpan("Error").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.Log(exception.ToString());
-                    Tags.Error.Set(scope.Span, true);
-                    var result = _handler.MessageFailedProcessing(message, context, exception);
-                    scope.Span.SetTag("WillRetry", result == ReceiveMessagesErrorResult.Retry);
-                    return result;
-                }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan("Error").StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.AddMessageIdTag(message);
-                    scope.Span.Log(exception.ToString());
-                    Tags.Error.Set(scope.Span, true);
-                    var result = _handler.MessageFailedProcessing(message, context, exception);
-                    scope.Span.SetTag("WillRetry", result == ReceiveMessagesErrorResult.Retry);
-                    return result;
-                }
+                scope.AddMessageIdTag(message);
+                scope.RecordException(exception);
+                scope.SetStatus(Status.Error);;
+                var result = _handler.MessageFailedProcessing(message, context, exception);
+                scope.SetAttribute("WillRetry", result == ReceiveMessagesErrorResult.Retry);
+                return result;
             }
         }
     }

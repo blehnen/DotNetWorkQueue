@@ -17,7 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Transport.Redis.Trace
 {
@@ -31,16 +31,16 @@ namespace DotNetWorkQueue.Transport.Redis.Trace
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="data">The data.</param>
-        public static void Add(this ISpan span, IAdditionalMessageData data)
+        public static void Add(this TelemetrySpan span, IAdditionalMessageData data)
         {
             var delay = data.GetDelay();
             if (delay.HasValue)
-                span.SetTag("MessageDelay",
+                span.SetAttribute("MessageDelay",
                     delay.Value.ToString());
 
             var expiration = data.GetExpiration();
             if (expiration.HasValue)
-                span.SetTag("MessageExpiration",
+                span.SetAttribute("MessageExpiration",
                     expiration.Value.ToString());
         }
     }

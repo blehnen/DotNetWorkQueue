@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     public class MessageHandlerDecorator: IMessageHandler
     {
         private readonly IMessageHandler _handler;
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly IStandardHeaders _headers;
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public MessageHandlerDecorator(IMessageHandler handler, ITracer tracer, IStandardHeaders headers)
+        public MessageHandlerDecorator(IMessageHandler handler,  Tracer tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -47,19 +47,9 @@ namespace DotNetWorkQueue.Trace.Decorator
         public void Handle(IReceivedMessageInternal message, IWorkerNotification workerNotification)
         {
             var spanContext = message.Extract(_tracer, _headers);
-            if (spanContext != null)
+            using (var scope = _tracer.StartActiveSpan("MessageHandler", parentContext: spanContext))
             {
-                using (IScope scope = _tracer.BuildSpan("MessageHandler").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                {
-                    _handler.Handle(message, workerNotification);
-                }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan("MessageHandler").StartActive(finishSpanOnDispose: true))
-                {
-                    _handler.Handle(message, workerNotification);
-                }
+                _handler.Handle(message, workerNotification);
             }
         }
     }

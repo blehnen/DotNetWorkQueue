@@ -1,7 +1,7 @@
 ﻿{
   "Jaeger": {
     "JAEGER_SERVICE_NAME": "dotnetworkqueue-LiteDb-sample",
-    "JAEGER_AGENT_HOST": "192.168.0.33",
+    "JAEGER_AGENT_HOST": "192.168.0.2",
     "JAEGER_AGENT_PORT": "6831",
     "JAEGER_SAMPLER_TYPE": "const",
     "JAEGER_SAMPLER_PARAM": "1"

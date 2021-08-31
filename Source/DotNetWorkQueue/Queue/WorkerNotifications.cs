@@ -19,7 +19,7 @@
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Queue
             TransportConfigurationReceive configuration,
             ILogger log,
             IMetrics metrics,
-            ITracer tracer)
+            Tracer tracer)
         {
             Guard.NotNull(() => headerNames, headerNames);
             Guard.NotNull(() => cancelWork, cancelWork);
@@ -110,6 +110,6 @@ namespace DotNetWorkQueue.Queue
         public IMetrics Metrics { get; }
 
         /// <inheritdoc/>
-        public ITracer Tracer { get; }
+        public Tracer Tracer { get; }
     }
 }

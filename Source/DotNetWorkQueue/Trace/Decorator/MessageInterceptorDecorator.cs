@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IMessageInterceptor" />
     public class MessageInterceptorDecorator: IMessageInterceptor
     {
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly IMessageInterceptor _handler;
         private readonly IStandardHeaders _headers;
 
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public MessageInterceptorDecorator(IMessageInterceptor handler, ITracer tracer, IStandardHeaders headers)
+        public MessageInterceptorDecorator(IMessageInterceptor handler,  Tracer tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -50,33 +50,17 @@ namespace DotNetWorkQueue.Trace.Decorator
         public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
             var spanContext = headers.Extract(_tracer, _headers);
-            if (spanContext != null && _tracer.ActiveSpan == null)
+            using (var scope = _tracer.StartActiveSpan($"MessageInterceptorMessageToBytes{_handler.DisplayName}",
+                parentContext: spanContext))
             {
-                using (IScope scope = _tracer.BuildSpan($"MessageInterceptorMessageToBytes{_handler.DisplayName}").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
+                scope.SetAttribute("InputLength", input.Length.ToString());
+                var result = _handler.MessageToBytes(input, headers);
+                scope.SetAttribute("AddedToGraph", result.AddToGraph);
+                if (result.AddToGraph)
                 {
-                    scope.Span.SetTag("InputLength", input.Length.ToString());
-                    var result = _handler.MessageToBytes(input, headers);
-                    scope.Span.SetTag("AddedToGraph", result.AddToGraph);
-                    if (result.AddToGraph)
-                    {
-                        scope.Span.SetTag("OutputLength", result.Output.Length.ToString());
-                    }
-                    return result;
+                    scope.SetAttribute("OutputLength", result.Output.Length.ToString());
                 }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan($"MessageInterceptorMessageToBytes{_handler.DisplayName}").StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.SetTag("InputLength", input.Length.ToString());
-                    var result = _handler.MessageToBytes(input, headers);
-                    scope.Span.SetTag("AddedToGraph", result.AddToGraph);
-                    if (result.AddToGraph)
-                    {
-                        scope.Span.SetTag("OutputLength", result.Output.Length.ToString());
-                    }
-                    return result;
-                }
+                return result;
             }
         }
 
@@ -84,19 +68,10 @@ namespace DotNetWorkQueue.Trace.Decorator
         public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
             var spanContext = headers.Extract(_tracer, _headers);
-            if (spanContext != null)
+            using (var scope = _tracer.StartActiveSpan($"MessageInterceptorBytesToMessage{_handler.DisplayName}",
+                parentContext: spanContext))
             {
-                using (IScope scope = _tracer.BuildSpan($"MessageInterceptorBytesToMessage{_handler.DisplayName}").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                {
-                    return _handler.BytesToMessage(input, headers);
-                }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan($"MessageInterceptorBytesToMessage{_handler.DisplayName}").StartActive(finishSpanOnDispose: true))
-                {
-                    return _handler.BytesToMessage(input, headers);
-                }
+                return _handler.BytesToMessage(input, headers);
             }
         }
 

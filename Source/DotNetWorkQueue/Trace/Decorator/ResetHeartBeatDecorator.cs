@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Threading;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IResetHeartBeat" />
     public class ResetHeartBeatDecorator: IResetHeartBeat
     {
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly IResetHeartBeat _handler;
         private readonly IStandardHeaders _headers;
 
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public ResetHeartBeatDecorator(IResetHeartBeat handler, ITracer tracer, IStandardHeaders headers)
+        public ResetHeartBeatDecorator(IResetHeartBeat handler,  Tracer tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -54,27 +54,18 @@ namespace DotNetWorkQueue.Trace.Decorator
                 if (result.Headers != null)
                 {
                     var spanContext = result.Headers.Extract(_tracer, _headers);
-                    if (spanContext != null)
+                    using (var scope = _tracer.StartActiveSpan("ResetHeartBeat", parentContext: spanContext, startTime: result.ApproximateResetTimeStart))
                     {
-                        IScope scope = _tracer.BuildSpan("ResetHeartBeat")
-                            .AddReference(References.FollowsFrom, spanContext).WithStartTimestamp(result.ApproximateResetTimeStart).StartActive(finishSpanOnDispose: true);
-                        scope.Span.Finish(result.ApproximateResetTimeEnd);
-                    }
-                    else
-                    {
-                        using (IScope scope = _tracer.BuildSpan("ResetHeartBeat").WithStartTimestamp(result.ApproximateResetTimeStart).StartActive(finishSpanOnDispose: true))
-                        {
-                            scope.Span.AddMessageIdTag(result.MessageId);
-                            scope.Span.Finish(result.ApproximateResetTimeEnd);
-                        }
+                        scope.AddMessageIdTag(result.MessageId);
+                        scope.End(result.ApproximateResetTimeEnd);
                     }
                 }
                 else
                 {
-                    using (IScope scope = _tracer.BuildSpan("ResetHeartBeat").WithStartTimestamp(result.ApproximateResetTimeStart).StartActive(finishSpanOnDispose: true))
+                    using (var scope = _tracer.StartActiveSpan("ResetHeartBeat", startTime: result.ApproximateResetTimeStart))
                     {
-                        scope.Span.AddMessageIdTag(result.MessageId);
-                        scope.Span.Finish(result.ApproximateResetTimeEnd);
+                        scope.AddMessageIdTag(result.MessageId);
+                        scope.End(result.ApproximateResetTimeEnd);
                     }
                 }
             }

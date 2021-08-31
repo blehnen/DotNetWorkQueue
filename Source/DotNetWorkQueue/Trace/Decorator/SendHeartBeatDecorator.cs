@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.ISendHeartBeat" />
     public class SendHeartBeatDecorator: ISendHeartBeat
     {
-        private readonly ITracer _tracer;
+        private readonly Tracer _tracer;
         private readonly ISendHeartBeat _handler;
         private readonly IStandardHeaders _headers;
 
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public SendHeartBeatDecorator(ISendHeartBeat handler, ITracer tracer, IStandardHeaders headers)
+        public SendHeartBeatDecorator(ISendHeartBeat handler, Tracer tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -47,26 +47,13 @@ namespace DotNetWorkQueue.Trace.Decorator
         public IHeartBeatStatus Send(IMessageContext context)
         {
             var spanContext = context.Extract(_tracer, _headers);
-            if (spanContext != null)
+            using (var scope = _tracer.StartActiveSpan("SendHeartBeat", parentContext: spanContext))
             {
-                using (IScope scope = _tracer.BuildSpan("SendHeartBeat").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                {
-                    var status = _handler.Send(context);
-                    if (status.LastHeartBeatTime.HasValue)
-                        scope.Span.SetTag("HeartBeatValue", status.LastHeartBeatTime.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    return status;
-                }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan("SendHeartBeat").StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.AddMessageIdTag(context);
-                    var status = _handler.Send(context);
-                    if (status.LastHeartBeatTime.HasValue)
-                        scope.Span.SetTag("HeartBeatValue", status.LastHeartBeatTime.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    return status;
-                }
+                scope.AddMessageIdTag(context);
+                var status = _handler.Send(context);
+                if (status.LastHeartBeatTime.HasValue)
+                    scope.SetAttribute("HeartBeatValue", status.LastHeartBeatTime.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                return status;
             }
         }
     }

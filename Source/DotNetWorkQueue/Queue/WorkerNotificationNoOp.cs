@@ -17,7 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Logging;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Queue
         public IMetrics Metrics => null;
 
         /// <inheritdoc/>
-        public ITracer Tracer => null;
+        public Tracer Tracer => null;
 
         /// <inheritdoc/>
         public bool TransportSupportsRollback => false;

@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (Exception error)
                 {
-                    _log.LogError("An exception has occurred in the monitor delegate", error);
+                    _log.LogError($"An exception has occurred in the monitor delegate {System.Environment.NewLine}{error}");
                 }
                 finally
                 {
