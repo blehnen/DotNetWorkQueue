@@ -1993,7 +1993,7 @@
             Tracing for rolling back a message
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.RollbackMessageCommandHandlerDecorator.#ctor(DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.Shared.Basic.Command.RollbackMessageCommand{System.Int32}},OpenTracing.ITracer)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.RollbackMessageCommandHandlerDecorator.#ctor(DotNetWorkQueue.Transport.Shared.ICommandHandler{DotNetWorkQueue.Transport.Shared.Basic.Command.RollbackMessageCommand{System.Int32}},System.Diagnostics.ActivitySource)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.RollbackMessageCommandHandlerDecorator"/> class.
             </summary>
@@ -2008,7 +2008,7 @@
             Tracing for sending a message
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator.#ctor(DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutputAsync{DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand,System.Int32},OpenTracing.ITracer,DotNetWorkQueue.IHeaders,DotNetWorkQueue.IConnectionInformation)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator.#ctor(DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutputAsync{DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand,System.Int32},System.Diagnostics.ActivitySource,DotNetWorkQueue.IHeaders,DotNetWorkQueue.IConnectionInformation)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator"/> class.
             </summary>
@@ -2025,7 +2025,7 @@
             Tracing for sending a message
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerDecorator.#ctor(DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand,System.Int32},OpenTracing.ITracer,DotNetWorkQueue.IHeaders,DotNetWorkQueue.IConnectionInformation)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerDecorator.#ctor(DotNetWorkQueue.Transport.Shared.ICommandHandlerWithOutput{DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand,System.Int32},System.Diagnostics.ActivitySource,DotNetWorkQueue.IHeaders,DotNetWorkQueue.IConnectionInformation)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Trace.Decorator.SendMessageCommandHandlerDecorator"/> class.
             </summary>
@@ -2042,7 +2042,7 @@
             Tracing for sending a message
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.TraceExtensions.Add(OpenTracing.ISpan,DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Trace.TraceExtensions.Add(System.Diagnostics.Activity,DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand)">
             <summary>
             Adds tags based on the send command
             </summary>
