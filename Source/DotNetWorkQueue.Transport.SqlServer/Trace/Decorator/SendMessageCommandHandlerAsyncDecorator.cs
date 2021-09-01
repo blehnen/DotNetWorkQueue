@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Trace;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -34,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Trace.Decorator
     public class SendMessageCommandHandlerAsyncDecorator : ICommandHandlerWithOutputAsync<SendMessageCommand, long>
     {
         private readonly ICommandHandlerWithOutputAsync<SendMessageCommand, long> _handler;
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly IHeaders _headers;
         private readonly IConnectionInformation _connectionInformation;
 
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Trace.Decorator
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="connectionInformation">The connection information.</param>
-        public SendMessageCommandHandlerAsyncDecorator(ICommandHandlerWithOutputAsync<SendMessageCommand, long> handler, Tracer tracer,
+        public SendMessageCommandHandlerAsyncDecorator(ICommandHandlerWithOutputAsync<SendMessageCommand, long> handler, ActivitySource tracer,
             IHeaders headers, IConnectionInformation connectionInformation)
         {
             _handler = handler;
@@ -57,23 +58,24 @@ namespace DotNetWorkQueue.Transport.SqlServer.Trace.Decorator
         /// <inheritdoc />
         public async Task<long> HandleAsync(SendMessageCommand command)
         {
-            using (var scope = _tracer.StartActiveSpan("SendMessage"))
+            using (var scope = _tracer.StartActivity("SendMessage"))
             {
-                scope.AddCommonTags(command.MessageData, _connectionInformation);
-                scope.Add(command);
-                command.MessageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
+                scope?.AddCommonTags(command.MessageData, _connectionInformation);
+                scope?.Add(command);
+                if(scope?.Context != null)
+                    command.MessageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
                     var id = await _handler.HandleAsync(command);
                     if (id == 0)
-                        scope.SetStatus(Status.Error);
-                    scope.AddMessageIdTag<long>(id);
+                        scope?.SetStatus(Status.Error);
+                    scope?.AddMessageIdTag<long>(id);
                     return id;
                 }
                 catch (Exception e)
                 {
-                    scope.SetStatus(Status.Error);
-                    scope.RecordException(e);
+                    scope?.SetStatus(Status.Error);
+                    scope?.RecordException(e);
                     throw;
                 }
             }

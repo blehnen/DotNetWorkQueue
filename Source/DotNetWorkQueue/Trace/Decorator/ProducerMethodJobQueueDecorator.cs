@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IProducerMethodJobQueue" />
     public class ProducerMethodJobQueueDecorator: IProducerMethodJobQueue
     {
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly IProducerMethodJobQueue _handler;
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// </summary>
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
-        public ProducerMethodJobQueueDecorator(IProducerMethodJobQueue handler, Tracer tracer)
+        public ProducerMethodJobQueueDecorator(IProducerMethodJobQueue handler, ActivitySource tracer)
         {
             _handler = handler;
             _tracer = tracer;
@@ -67,9 +68,9 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method, bool rawExpression = false)
         {
-            using (var scope = _tracer.StartActiveSpan("SendJobAsync"))
+            using (var scope = _tracer.StartActivity("SendJobAsync"))
             {
-                scope.SetAttribute("JobName", job.Name);
+                scope?.SetTag("JobName", job.Name);
                 return await _handler.SendAsync(job, scheduledTime, method, rawExpression);
             }
         }
@@ -84,9 +85,9 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <returns></returns>
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression)
         {
-            using (var scope = _tracer.StartActiveSpan("SendJobAsync"))
+            using (var scope = _tracer.StartActivity("SendJobAsync"))
             {
-                scope.SetAttribute("JobName", job.Name);
+                scope?.SetTag("JobName", job.Name);
                 return await _handler.SendAsync(job, scheduledTime, linqExpression);
             }
         }

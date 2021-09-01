@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IRemoveMessage" />
     public class RemoveMessageDecorator: IRemoveMessage
     {
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly IRemoveMessage _handler;
         private readonly IStandardHeaders _headers;
         private readonly IGetHeader _getHeader;
@@ -38,7 +40,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="getHeader">The get header.</param>
-        public RemoveMessageDecorator(IRemoveMessage handler,  Tracer tracer, IStandardHeaders headers, IGetHeader getHeader)
+        public RemoveMessageDecorator(IRemoveMessage handler,  ActivitySource tracer, IStandardHeaders headers, IGetHeader getHeader)
         {
             _handler = handler;
             _tracer = tracer;
@@ -52,18 +54,18 @@ namespace DotNetWorkQueue.Trace.Decorator
             var header = _getHeader.GetHeaders(id);
             if (header != null)
             {
-                var spanContext = header.Extract(_tracer, _headers);
-                using (var scope = _tracer.StartActiveSpan("Remove", parentContext: spanContext))
+                var activityContext = header.Extract(_tracer, _headers);
+                using (var scope = _tracer.StartActivity("Remove", ActivityKind.Internal, parentContext: activityContext))
                 {
-                    scope.AddMessageIdTag(id);
-                    scope.SetAttribute("RemovedBecause", reason.ToString());
+                    scope?.AddMessageIdTag(id);
+                    scope?.SetTag("RemovedBecause", reason.ToString());
                     return _handler.Remove(id, reason);
                 }
             }
-            using (var scope = _tracer.StartActiveSpan("Remove"))
+            using (var scope = _tracer.StartActivity("Remove"))
             {
-                scope.AddMessageIdTag(id);
-                scope.SetAttribute("RemovedBecause", reason.ToString());
+                scope?.AddMessageIdTag(id);
+                scope?.SetTag("RemovedBecause", reason.ToString());
                 return _handler.Remove(id, reason);
             }
         }
@@ -71,11 +73,11 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason)
         {
-            var spanContext = context.Extract(_tracer, _headers);
-            using (var scope = _tracer.StartActiveSpan("Remove", parentContext: spanContext))
+            var activityContext = context.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity("Remove", ActivityKind.Internal, parentContext: activityContext))
             {
-                scope.AddMessageIdTag(context);
-                scope.SetAttribute("RemovedBecause", reason.ToString());
+                scope?.AddMessageIdTag(context);
+                scope?.SetTag("RemovedBecause", reason.ToString());
                 return _handler.Remove(context, reason);
             }
         }

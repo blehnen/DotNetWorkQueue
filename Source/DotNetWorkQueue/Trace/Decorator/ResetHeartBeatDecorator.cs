@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using OpenTelemetry.Trace;
 
@@ -28,7 +29,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IResetHeartBeat" />
     public class ResetHeartBeatDecorator: IResetHeartBeat
     {
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly IResetHeartBeat _handler;
         private readonly IStandardHeaders _headers;
 
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public ResetHeartBeatDecorator(IResetHeartBeat handler,  Tracer tracer, IStandardHeaders headers)
+        public ResetHeartBeatDecorator(IResetHeartBeat handler, ActivitySource tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -53,19 +54,19 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 if (result.Headers != null)
                 {
-                    var spanContext = result.Headers.Extract(_tracer, _headers);
-                    using (var scope = _tracer.StartActiveSpan("ResetHeartBeat", parentContext: spanContext, startTime: result.ApproximateResetTimeStart))
+                    var activityContext = result.Headers.Extract(_tracer, _headers);
+                    using (var scope = _tracer.StartActivity("ResetHeartBeat", ActivityKind.Internal, activityContext, startTime: result.ApproximateResetTimeStart))
                     {
-                        scope.AddMessageIdTag(result.MessageId);
-                        scope.End(result.ApproximateResetTimeEnd);
+                        scope?.AddMessageIdTag(result.MessageId);
+                        scope?.SetEndTime(result.ApproximateResetTimeEnd);
                     }
                 }
                 else
                 {
-                    using (var scope = _tracer.StartActiveSpan("ResetHeartBeat", startTime: result.ApproximateResetTimeStart))
+                    using (var scope = _tracer.StartActivity("ResetHeartBeat", ActivityKind.Internal, null, startTime: result.ApproximateResetTimeStart))
                     {
-                        scope.AddMessageIdTag(result.MessageId);
-                        scope.End(result.ApproximateResetTimeEnd);
+                        scope?.AddMessageIdTag(result.MessageId);
+                        scope?.SetEndTime(result.ApproximateResetTimeEnd);
                     }
                 }
             }

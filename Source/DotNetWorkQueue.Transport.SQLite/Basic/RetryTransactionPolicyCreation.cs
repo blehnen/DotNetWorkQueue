@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data.SQLite;
+using System.Diagnostics;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Policies;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -46,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="container">The container.</param>
         public static void Register(IContainer container)
         {
-            var tracer = container.GetInstance<Tracer>();
+            var tracer = container.GetInstance<ActivitySource>();
             var policies = container.GetInstance<IPolicies>();
             var log = container.GetInstance<ILogger>();
 
@@ -60,17 +61,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     (exception, timeSpan, retryCount, context) =>
                     {
                         log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
-                        if (Tracer.CurrentSpan != null)
+                        if (Activity.Current != null)
                         {
-                            var scope = tracer.StartActiveSpan("RetryTransaction");
+                            var scope = tracer.StartActivity("RetryTransaction");
                             try
                             {
-                                scope.SetAttribute("RetryTime", timeSpan.ToString());
-                                scope.RecordException(exception);
+                                scope?.SetTag("RetryTime", timeSpan.ToString());
+                                scope?.RecordException(exception);
                             }
                             finally
                             {
-                                scope.End(DateTimeOffset.UtcNow.Add(timeSpan));
+                                scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
                             }
                         }
                     });

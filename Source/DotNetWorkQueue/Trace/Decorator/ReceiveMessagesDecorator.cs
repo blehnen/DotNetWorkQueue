@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 
@@ -29,7 +30,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     public class ReceiveMessagesDecorator : IReceiveMessages
     {
         private readonly IReceiveMessages _handler;
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly IHeaders _headers;
 
         /// <summary>
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public ReceiveMessagesDecorator(IReceiveMessages handler,  Tracer tracer, IHeaders headers)
+        public ReceiveMessagesDecorator(IReceiveMessages handler, ActivitySource tracer, IHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -54,18 +55,18 @@ namespace DotNetWorkQueue.Trace.Decorator
             var message = _handler.ReceiveMessage(context);
             var end = DateTime.UtcNow;
             if (message == null) return null;
-            var spanContext = message.Extract(_tracer, _headers.StandardHeaders);
+            var activityContext = message.Extract(_tracer, _headers.StandardHeaders);
 
             //blocking operations can last forever for queues that can signal for new messages
             //so, we will treat this is a 0 ms operation, rather than have it possibly last for N
             if (IsBlockingOperation)
                 start = end;
 
-            using (var scope = _tracer.StartActiveSpan("ReceiveMessage", parentContext: spanContext, startTime: start))
+            using (var scope = _tracer.StartActivity("ReceiveMessage", ActivityKind.Internal, activityContext, startTime: start))
             {
-                scope.AddMessageIdTag(message);
-                scope.SetAttribute("IsBlockingOperation", IsBlockingOperation);
-                scope.End(end);
+                scope?.AddMessageIdTag(message);
+                scope?.SetTag("IsBlockingOperation", IsBlockingOperation);
+                scope?.SetEndTime(end);
                 return message;
             }
         }

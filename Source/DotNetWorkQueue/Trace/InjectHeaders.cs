@@ -20,11 +20,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace
 {
@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Trace
         /// <param name="tracer">The tracer.</param>
         /// <param name="context">The context.</param>
         /// <param name="headers">The headers.</param>
-        public static void Inject(this IMessage message, Tracer tracer, SpanContext context,
+        public static void Inject(this IMessage message, ActivitySource tracer, ActivityContext context,
             IStandardHeaders headers)
         {
             var mapping = Propagators.DefaultTextMapPropagator;;
@@ -73,13 +73,13 @@ namespace DotNetWorkQueue.Trace
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <returns></returns>
-        public static SpanContext Extract(this IReceivedMessageInternal message, Tracer tracer,
+        public static ActivityContext Extract(this IReceivedMessageInternal message, ActivitySource tracer,
             IStandardHeaders headers)
         {
             TextMapPropagator propagator = new TraceContextPropagator();
             var parentContext = propagator.Extract(default, message.Headers, ExtractTraceContextFromBasicProperties);
             Baggage.Current = parentContext.Baggage;
-            return new SpanContext(parentContext.ActivityContext);
+            return parentContext.ActivityContext;
         }
 
         /// <summary>
@@ -89,12 +89,12 @@ namespace DotNetWorkQueue.Trace
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <returns></returns>
-        public static SpanContext Extract(this IMessage message, Tracer tracer, IStandardHeaders headers)
+        public static ActivityContext Extract(this IMessage message, ActivitySource tracer, IStandardHeaders headers)
         {
             TextMapPropagator propagator = new TraceContextPropagator();
             var parentContext = propagator.Extract(default, new ReadOnlyDictionary<string, object>(message.Headers), ExtractTraceContextFromBasicProperties);
             Baggage.Current = parentContext.Baggage;
-            return new SpanContext(parentContext.ActivityContext);
+            return parentContext.ActivityContext;
         }
 
         /// <summary>
@@ -104,12 +104,12 @@ namespace DotNetWorkQueue.Trace
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <returns></returns>
-        public static SpanContext Extract(this IDictionary<string, object> inputHeaders, Tracer tracer, IStandardHeaders headers)
+        public static ActivityContext Extract(this IDictionary<string, object> inputHeaders, ActivitySource tracer, IStandardHeaders headers)
         {
             TextMapPropagator propagator = new TraceContextPropagator();
             var parentContext = propagator.Extract(default, new ReadOnlyDictionary<string, object>(inputHeaders), ExtractTraceContextFromBasicProperties);
             Baggage.Current = parentContext.Baggage;
-            return new SpanContext(parentContext.ActivityContext);
+            return parentContext.ActivityContext;
         }
 
         /// <summary>
@@ -119,12 +119,12 @@ namespace DotNetWorkQueue.Trace
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <returns></returns>
-        public static SpanContext Extract(this IReadOnlyDictionary<string, object> inputHeaders, Tracer tracer, IStandardHeaders headers)
+        public static ActivityContext Extract(this IReadOnlyDictionary<string, object> inputHeaders, ActivitySource tracer, IStandardHeaders headers)
         {
             TextMapPropagator propagator = new TraceContextPropagator();
             var parentContext = propagator.Extract(default, inputHeaders, ExtractTraceContextFromBasicProperties);
             Baggage.Current = parentContext.Baggage;
-            return new SpanContext(parentContext.ActivityContext);
+            return parentContext.ActivityContext;
         }
 
         /// <summary>
@@ -134,12 +134,12 @@ namespace DotNetWorkQueue.Trace
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <returns></returns>
-        public static SpanContext Extract(this IMessageContext context, Tracer tracer, IStandardHeaders headers)
+        public static ActivityContext Extract(this IMessageContext context, ActivitySource tracer, IStandardHeaders headers)
         {
             TextMapPropagator propagator = new TraceContextPropagator();
             var parentContext = propagator.Extract(default, context.Headers, ExtractTraceContextFromBasicProperties);
             Baggage.Current = parentContext.Baggage;
-            return new SpanContext(parentContext.ActivityContext);
+            return parentContext.ActivityContext;
         }
         /// <summary>
         /// Adds the common tags.
@@ -147,17 +147,17 @@ namespace DotNetWorkQueue.Trace
         /// <param name="span">The span.</param>
         /// <param name="data">The data.</param>
         /// <param name="connectionInformation">The connection information.</param>
-        public static void AddCommonTags(this TelemetrySpan span, IAdditionalMessageData data, IConnectionInformation connectionInformation)
+        public static void AddCommonTags(this Activity span, IAdditionalMessageData data, IConnectionInformation connectionInformation)
         {
-            span.SetAttribute("Server", connectionInformation.Server);
-            span.SetAttribute("Queue", connectionInformation.QueueName);
-            span.SetAttribute("CorrelationId", data.CorrelationId.ToString());
+            span.SetTag("Server", connectionInformation.Server);
+            span.SetTag("Queue", connectionInformation.QueueName);
+            span.SetTag("CorrelationId", data.CorrelationId.ToString());
             if(!string.IsNullOrEmpty(data.Route))
-                span.SetAttribute("Route", data.Route);
+                span.SetTag("Route", data.Route);
 
             foreach(var userTag in data.TraceTags)
             {
-                span.SetAttribute(userTag.Key, userTag.Value);
+                span.SetTag(userTag.Key, userTag.Value);
             }
         }
         /// <summary>
@@ -165,50 +165,50 @@ namespace DotNetWorkQueue.Trace
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="message">The message.</param>
-        public static void AddMessageIdTag(this TelemetrySpan span, IQueueOutputMessage message)
+        public static void AddMessageIdTag(this Activity span, IQueueOutputMessage message)
         {
             if(message.SentMessage.MessageId.HasValue)
-                span.SetAttribute("MessageId", message.SentMessage.MessageId.Id.Value.ToString());
+                span.SetTag("MessageId", message.SentMessage.MessageId.Id.Value.ToString());
         }
         /// <summary>
         /// Adds the message identifier tag.
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="message">The message.</param>
-        public static void AddMessageIdTag(this TelemetrySpan span, IReceivedMessageInternal message)
+        public static void AddMessageIdTag(this Activity span, IReceivedMessageInternal message)
         {
             if (message.MessageId.HasValue)
-                span.SetAttribute("MessageId", message.MessageId.Id.Value.ToString());
+                span.SetTag("MessageId", message.MessageId.Id.Value.ToString());
         }
         /// <summary>
         /// Adds the message identifier tag.
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="context">The context.</param>
-        public static void AddMessageIdTag(this TelemetrySpan span, IMessageContext context)
+        public static void AddMessageIdTag(this Activity span, IMessageContext context)
         {
             if (context.MessageId.HasValue)
-                span.SetAttribute("MessageId", context.MessageId.Id.Value.ToString());
+                span.SetTag("MessageId", context.MessageId.Id.Value.ToString());
         }
         /// <summary>
         /// Adds the message identifier tag.
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="id">The identifier.</param>
-        public static void AddMessageIdTag(this TelemetrySpan span, IMessageId id)
+        public static void AddMessageIdTag(this Activity span, IMessageId id)
         {
             if (id != null && id.HasValue)
-                span.SetAttribute("MessageId", id.Id.Value.ToString());
+                span.SetTag("MessageId", id.Id.Value.ToString());
         }
         /// <summary>
         /// Adds the message identifier tag.
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="id">The identifier.</param>
-        public static void AddMessageIdTag(this TelemetrySpan span, string id)
+        public static void AddMessageIdTag(this Activity span, string id)
         {
             if (!string.IsNullOrEmpty(id))
-                span.SetAttribute("MessageId", id);
+                span.SetTag("MessageId", id);
         }
     }
 }

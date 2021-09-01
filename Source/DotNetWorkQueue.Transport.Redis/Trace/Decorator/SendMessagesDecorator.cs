@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Messages;
@@ -33,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
     public class SendMessagesDecorator: ISendMessages
     {
         private readonly ISendMessages _handler;
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly IHeaders _headers;
         private readonly IConnectionInformation _connectionInformation;
 
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="connectionInformation">The connection information.</param>
-        public SendMessagesDecorator(ISendMessages handler, Tracer tracer, IHeaders headers, IConnectionInformation connectionInformation)
+        public SendMessagesDecorator(ISendMessages handler, ActivitySource tracer, IHeaders headers, IConnectionInformation connectionInformation)
         {
             _handler = handler;
             _tracer = tracer;
@@ -61,28 +62,29 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         /// <returns></returns>
         public IQueueOutputMessage Send(IMessage messageToSend, IAdditionalMessageData data)
         {
-            using (var scope = _tracer.StartActiveSpan("SendMessage"))
+            using (var scope = _tracer.StartActivity("SendMessage"))
             {
-                scope.AddCommonTags(data, _connectionInformation);
-                scope.Add(data);
-                scope.SetAttribute("IsBatch", false);
-                messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
+                scope?.AddCommonTags(data, _connectionInformation);
+                scope?.Add(data);
+                scope?.SetTag("IsBatch", false);
+                if(scope != null)
+                    messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
                     var outputMessage = _handler.Send(messageToSend, data);
                     if (outputMessage.HasError)
                     {
-                        scope.SetStatus(Status.Error);
+                        scope?.SetStatus(Status.Error);
                         if (outputMessage.SendingException != null)
-                            scope.RecordException(outputMessage.SendingException);
+                            scope?.RecordException(outputMessage.SendingException);
                     }
-                    scope.AddMessageIdTag(outputMessage.SentMessage.MessageId);
+                    scope?.AddMessageIdTag(outputMessage.SentMessage.MessageId);
                     return outputMessage;
                 }
                 catch (Exception e)
                 {
-                    scope.SetStatus(Status.Error);
-                    scope.RecordException(e);
+                    scope?.SetStatus(Status.Error);
+                    scope?.RecordException(e);
                     throw;
                 }
             }
@@ -97,12 +99,13 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         {
             foreach (var message in messages)
             {
-                using (var scope = _tracer.StartActiveSpan("SendMessage"))
+                using (var scope = _tracer.StartActivity("SendMessage"))
                 {
-                    scope.AddCommonTags(message.MessageData, _connectionInformation);
-                    scope.Add(message.MessageData);
-                    scope.SetAttribute("IsBatch", true);
-                    message.Message.Inject(_tracer, scope.Context, _headers.StandardHeaders);
+                    scope?.AddCommonTags(message.MessageData, _connectionInformation);
+                    scope?.Add(message.MessageData);
+                    scope?.SetTag("IsBatch", true);
+                    if(scope != null)
+                        message.Message.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 }
             }
             return _handler.Send(messages);
@@ -117,28 +120,29 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         public async Task<IQueueOutputMessage> SendAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
             //lets add a bit more information to the active span if possible
-            using (var scope = _tracer.StartActiveSpan("SendMessage"))
+            using (var scope = _tracer.StartActivity("SendMessage"))
             {
-                scope.AddCommonTags(data, _connectionInformation);
-                scope.Add(data);
-                scope.SetAttribute("IsBatch", false);
-                messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
+                scope?.AddCommonTags(data, _connectionInformation);
+                scope?.Add(data);
+                scope?.SetTag("IsBatch", false);
+                if(scope?.Context != null)
+                    messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
                     var outputMessage = await _handler.SendAsync(messageToSend, data);
                     if (outputMessage.HasError)
                     {
-                        scope.SetStatus(Status.Error);
+                        scope?.SetStatus(Status.Error);
                         if (outputMessage.SendingException != null)
-                            scope.RecordException(outputMessage.SendingException);
+                            scope?.RecordException(outputMessage.SendingException);
                     }
-                    scope.AddMessageIdTag(outputMessage.SentMessage.MessageId);
+                    scope?.AddMessageIdTag(outputMessage.SentMessage.MessageId);
                     return outputMessage;
                 }
                 catch (Exception e)
                 {
-                    scope.SetStatus(Status.Error);
-                    scope.RecordException(e);
+                    scope?.SetStatus(Status.Error);
+                    scope?.RecordException(e);
                     throw;
                 }
             }
@@ -153,12 +157,13 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         {
             foreach (var message in messages)
             {
-                using (var scope = _tracer.StartActiveSpan("SendMessage"))
+                using (var scope = _tracer.StartActivity("SendMessage"))
                 {
-                    scope.AddCommonTags(message.MessageData, _connectionInformation);
-                    scope.Add(message.MessageData);
-                    scope.SetAttribute("IsBatch", true);
-                    message.Message.Inject(_tracer, scope.Context, _headers.StandardHeaders);
+                    scope?.AddCommonTags(message.MessageData, _connectionInformation);
+                    scope?.Add(message.MessageData);
+                    scope?.SetTag("IsBatch", true);
+                    if(scope?.Context != null)
+                        message.Message.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 }
             }
             return await _handler.SendAsync(messages);

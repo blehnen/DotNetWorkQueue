@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,7 +50,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public static void Register(IContainer container)
         {
             var policies = container.GetInstance<IPolicies>();
-            var tracer = container.GetInstance<Tracer>();
+            var tracer = container.GetInstance<ActivitySource>();
             var log = container.GetInstance<ILogger>();
 
             var chaosPolicy = CreateRetryChaos(policies);
@@ -63,17 +64,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     (exception, timeSpan, retryCount, context) =>
                     {
                         log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
-                        if (Tracer.CurrentSpan != null)
+                        if (Activity.Current != null)
                         {
-                            var scope = tracer.StartActiveSpan("RetrySqlPolicy");
+                            var scope = tracer.StartActivity("RetrySqlPolicy");
                             try
                             {
-                                scope.SetAttribute("RetryTime", timeSpan.ToString());
-                                scope.RecordException(exception);
+                                scope?.SetTag("RetryTime", timeSpan.ToString());
+                                scope?.RecordException(exception);
                             }
                             finally
                             {
-                                scope.End(DateTimeOffset.UtcNow.Add(timeSpan));
+                                scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
                             }
                         }
                     });
@@ -86,17 +87,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     (exception, timeSpan, retryCount, context) =>
                     {
                         log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
-                        if (Tracer.CurrentSpan != null)
+                        if (Activity.Current != null)
                         {
-                            var scope = tracer.StartActiveSpan("RetrySqlPolicy");
+                            var scope = tracer.StartActivity("RetrySqlPolicy");
                             try
                             {
-                                scope.SetAttribute("RetryTime", timeSpan.ToString());
-                                scope.RecordException(exception);
+                                scope?.SetTag("RetryTime", timeSpan.ToString());
+                                scope?.RecordException(exception);
                             }
                             finally
                             {
-                                scope.End(DateTimeOffset.UtcNow.Add(timeSpan));
+                                scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
                             }
                         }
                     });

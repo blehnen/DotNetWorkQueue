@@ -16,8 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.Redis.Basic.Command;
-using OpenTelemetry.Trace;
+
+using System.Diagnostics;
 
 namespace DotNetWorkQueue.Transport.Redis.Trace
 {
@@ -31,16 +31,16 @@ namespace DotNetWorkQueue.Transport.Redis.Trace
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="data">The data.</param>
-        public static void Add(this TelemetrySpan span, IAdditionalMessageData data)
+        public static void Add(this Activity span, IAdditionalMessageData data)
         {
             var delay = data.GetDelay();
             if (delay.HasValue)
-                span.SetAttribute("MessageDelay",
+                span.SetTag("MessageDelay",
                     delay.Value.ToString());
 
             var expiration = data.GetExpiration();
             if (expiration.HasValue)
-                span.SetAttribute("MessageExpiration",
+                span.SetTag("MessageExpiration",
                     expiration.Value.ToString());
         }
     }

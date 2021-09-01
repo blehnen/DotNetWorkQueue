@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
@@ -28,7 +29,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IMessageInterceptor" />
     public class MessageInterceptorDecorator: IMessageInterceptor
     {
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly IMessageInterceptor _handler;
         private readonly IStandardHeaders _headers;
 
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public MessageInterceptorDecorator(IMessageInterceptor handler,  Tracer tracer, IStandardHeaders headers)
+        public MessageInterceptorDecorator(IMessageInterceptor handler,  ActivitySource tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -49,16 +50,16 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
-            var spanContext = headers.Extract(_tracer, _headers);
-            using (var scope = _tracer.StartActiveSpan($"MessageInterceptorMessageToBytes{_handler.DisplayName}",
-                parentContext: spanContext))
+            var ActivityContext = headers.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity($"MessageInterceptorMessageToBytes{_handler.DisplayName}", ActivityKind.Internal,
+                parentContext: ActivityContext))
             {
-                scope.SetAttribute("InputLength", input.Length.ToString());
+                scope?.SetTag("InputLength", input.Length.ToString());
                 var result = _handler.MessageToBytes(input, headers);
-                scope.SetAttribute("AddedToGraph", result.AddToGraph);
+                scope?.SetTag("AddedToGraph", result.AddToGraph);
                 if (result.AddToGraph)
                 {
-                    scope.SetAttribute("OutputLength", result.Output.Length.ToString());
+                    scope?.SetTag("OutputLength", result.Output.Length.ToString());
                 }
                 return result;
             }
@@ -67,9 +68,9 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
-            var spanContext = headers.Extract(_tracer, _headers);
-            using (var scope = _tracer.StartActiveSpan($"MessageInterceptorBytesToMessage{_handler.DisplayName}",
-                parentContext: spanContext))
+            var ActivityContext = headers.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity($"MessageInterceptorBytesToMessage{_handler.DisplayName}", ActivityKind.Internal,
+                parentContext: ActivityContext))
             {
                 return _handler.BytesToMessage(input, headers);
             }

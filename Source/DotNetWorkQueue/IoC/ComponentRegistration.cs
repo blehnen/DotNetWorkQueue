@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics;
 using System.Linq;
 using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
@@ -281,8 +282,9 @@ namespace DotNetWorkQueue.IoC
 
             #region Open Tracing
 
-            var tracer = OpenTelemetry.Trace.TracerProvider.Default.GetTracer("noop");
-            container.Register<Tracer>(() => tracer, LifeStyles.Singleton);
+            var tracer = new ActivitySource(
+                "dotnetworkqueue.instrumentationlibrary");
+            container.Register<ActivitySource>(() => tracer, LifeStyles.Singleton);
             #endregion
             container.Register<BaseTimeConfiguration>(LifeStyles.Singleton);
             container.Register<IGetTimeFactory, GetTimeFactory>(LifeStyles.Singleton);

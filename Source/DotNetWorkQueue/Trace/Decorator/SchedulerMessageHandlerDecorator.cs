@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 
@@ -28,7 +29,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.ISchedulerMessageHandler" />
     public class SchedulerMessageHandlerDecorator: ISchedulerMessageHandler
     {
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly ISchedulerMessageHandler _handler;
 
         /// <summary>
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// </summary>
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
-        public SchedulerMessageHandlerDecorator(ISchedulerMessageHandler handler, Tracer tracer)
+        public SchedulerMessageHandlerDecorator(ISchedulerMessageHandler handler, ActivitySource tracer)
         {
             _handler = handler;
             _tracer = tracer;
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public Task HandleAsync<T>(IWorkGroup workGroup, IReceivedMessage<T> message, IWorkerNotification notifications, Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ITaskFactory taskFactory) where T : class
         {
-            using (var scope = _tracer.StartActiveSpan("SchedulerMessageHandler"))
+            using (var scope = _tracer.StartActivity("SchedulerMessageHandler"))
             {
                 return _handler.HandleAsync(workGroup, message, notifications, functionToRun, taskFactory);
             }

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
+using System.Diagnostics;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
@@ -27,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.ISerializer" />
     public class SerializerDecorator: ISerializer
     {
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly ISerializer _handler;
         private readonly IStandardHeaders _headers;
 
@@ -37,7 +38,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public SerializerDecorator(ISerializer handler, Tracer tracer, IStandardHeaders headers)
+        public SerializerDecorator(ISerializer handler, ActivitySource tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -56,11 +57,11 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// </returns>
         public byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers) where T : class
         {
-            var spanContext = headers.Extract(_tracer, _headers);
-            using (var scope = _tracer.StartActiveSpan($"MessageSerializerMessageToBytes{_handler.DisplayName}", SpanKind.Internal, spanContext))
+            var activityContext = headers.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity($"MessageSerializerMessageToBytes{_handler.DisplayName}", ActivityKind.Internal, activityContext))
             {
                 var output = _handler.ConvertMessageToBytes(message, headers);
-                scope.SetAttribute("Length", output.Length.ToString());
+                scope?.SetTag("Length", output.Length.ToString());
                 return output;
             }
         }
@@ -76,8 +77,8 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// </returns>
         public T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers) where T : class
         {
-            var spanContext = headers.Extract(_tracer, _headers);
-            using (var scope = _tracer.StartActiveSpan($"MessageSerializerBytesToMessage{_handler.DisplayName}", SpanKind.Internal, spanContext))
+            var ActivityContext = headers.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity($"MessageSerializerBytesToMessage{_handler.DisplayName}", ActivityKind.Internal, ActivityContext))
             {
                 return _handler.ConvertBytesToMessage<T>(bytes, headers);
             }

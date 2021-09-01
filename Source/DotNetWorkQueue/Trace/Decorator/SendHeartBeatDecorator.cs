@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.ISendHeartBeat" />
     public class SendHeartBeatDecorator: ISendHeartBeat
     {
-        private readonly Tracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly ISendHeartBeat _handler;
         private readonly IStandardHeaders _headers;
 
@@ -36,7 +38,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public SendHeartBeatDecorator(ISendHeartBeat handler, Tracer tracer, IStandardHeaders headers)
+        public SendHeartBeatDecorator(ISendHeartBeat handler, ActivitySource tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -46,13 +48,13 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public IHeartBeatStatus Send(IMessageContext context)
         {
-            var spanContext = context.Extract(_tracer, _headers);
-            using (var scope = _tracer.StartActiveSpan("SendHeartBeat", parentContext: spanContext))
+            var activityContext = context.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity("SendHeartBeat", ActivityKind.Internal, activityContext))
             {
-                scope.AddMessageIdTag(context);
+                scope?.AddMessageIdTag(context);
                 var status = _handler.Send(context);
                 if (status.LastHeartBeatTime.HasValue)
-                    scope.SetAttribute("HeartBeatValue", status.LastHeartBeatTime.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    scope?.SetTag("HeartBeatValue", status.LastHeartBeatTime.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 return status;
             }
         }

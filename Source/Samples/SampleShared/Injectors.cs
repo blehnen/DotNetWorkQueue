@@ -24,7 +24,7 @@ namespace SampleShared
     public static class Injectors
     {
         private static DotNetWorkQueue.AppMetrics.Metrics _metrics;
-        private static Tracer _tracer;
+        private static ActivitySource _tracer;
         private static AppMetricsTaskScheduler _metricScheduler;
 
         public static void AddInjectors(DotNetWorkQueue.Logging.ILogger log,
@@ -173,7 +173,7 @@ namespace SampleShared
                 })
                 .Build();
 
-            _tracer = openTelemetry.GetTracer(configuration["JAEGER_SERVICE_NAME"]);
+            _tracer = new ActivitySource(configuration["JAEGER_SERVICE_NAME"]);
             container.RegisterNonScopedSingleton(_tracer);
         }
     }

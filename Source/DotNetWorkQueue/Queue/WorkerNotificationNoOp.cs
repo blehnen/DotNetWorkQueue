@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics;
 using DotNetWorkQueue.Logging;
 using OpenTelemetry.Trace;
 
@@ -47,7 +49,7 @@ namespace DotNetWorkQueue.Queue
         public IMetrics Metrics => null;
 
         /// <inheritdoc/>
-        public Tracer Tracer => null;
+        public ActivitySource Tracer => null;
 
         /// <inheritdoc/>
         public bool TransportSupportsRollback => false;
