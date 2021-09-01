@@ -16,9 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using OpenTracing;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Trace
 {
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Trace
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="command">The command.</param>
-        public static void Add(this ISpan span, SendMessageCommand command)
+        public static void Add(this Activity span, SendMessageCommand command)
         {
             var delay = command.MessageData.GetDelay();
             if (delay.HasValue)

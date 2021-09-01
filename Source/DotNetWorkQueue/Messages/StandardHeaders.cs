@@ -38,7 +38,6 @@ namespace DotNetWorkQueue.Messages
             MessageInterceptorGraph =
                 messageContextDataFactory.Create("Queue-MessageInterceptorGraph",
                     new MessageInterceptorsGraph());
-            TraceSpan = messageContextDataFactory.Create<DataMappingTextMap>("Queue-TraceSpan", null);
         }
 
         /// <inheritdoc/>
@@ -46,8 +45,5 @@ namespace DotNetWorkQueue.Messages
 
         /// <inheritdoc/>
         public IMessageContextData<MessageInterceptorsGraph> MessageInterceptorGraph { get; }
-
-        /// <inheritdoc/>
-        public IMessageContextData<DataMappingTextMap> TraceSpan { get; }
     }
 }

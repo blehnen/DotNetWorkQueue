@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics;
 using System.Linq;
 using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
@@ -37,8 +38,7 @@ using DotNetWorkQueue.Time;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Caching.Memory;
-using OpenTracing;
-using OpenTracing.Noop;
+using OpenTelemetry.Trace;
 using Polly;
 using Polly.Caching.Memory;
 using Polly.Registry;
@@ -282,8 +282,9 @@ namespace DotNetWorkQueue.IoC
 
             #region Open Tracing
 
-            var tracer = NoopTracerFactory.Create();
-            container.Register<ITracer>(() => tracer, LifeStyles.Singleton);
+            var tracer = new ActivitySource(
+                "dotnetworkqueue.instrumentationlibrary");
+            container.Register<ActivitySource>(() => tracer, LifeStyles.Singleton);
             #endregion
             container.Register<BaseTimeConfiguration>(LifeStyles.Singleton);
             container.Register<IGetTimeFactory, GetTimeFactory>(LifeStyles.Singleton);

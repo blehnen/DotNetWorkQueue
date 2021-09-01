@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using OpenTracing;
+
+using System.Diagnostics;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -26,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.ICommitMessage" />
     public class CommitMessageDecorator: ICommitMessage
     {
-        private readonly ITracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly ICommitMessage _handler;
         private readonly IStandardHeaders _headers;
 
@@ -36,7 +38,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public CommitMessageDecorator(ICommitMessage handler, ITracer tracer, IStandardHeaders headers)
+        public CommitMessageDecorator(ICommitMessage handler, ActivitySource tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -46,21 +48,10 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public bool Commit(IMessageContext context)
         {
-            var spanContext = context.Extract(_tracer, _headers);
-            if (spanContext != null)
+            var activityContext = context.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity("Commit", ActivityKind.Internal, activityContext))
             {
-                using (IScope scope = _tracer.BuildSpan("Commit").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                {
-                    return _handler.Commit(context);
-                }
-            }
-            else
-            {
-                using (IScope scope = _tracer.BuildSpan("Commit").StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.AddMessageIdTag(context);
-                    return _handler.Commit(context);
-                }
+                return _handler.Commit(context);
             }
         }
     }

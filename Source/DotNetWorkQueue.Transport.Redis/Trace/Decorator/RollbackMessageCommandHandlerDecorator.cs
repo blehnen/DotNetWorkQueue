@@ -16,10 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using OpenTracing;
+
 
 namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
 {
@@ -29,14 +31,14 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
     public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand<string>>
     {
         private readonly ICommandHandler<RollbackMessageCommand<string>> _handler;
-        private readonly ITracer _tracer;
+        private readonly ActivitySource _tracer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessageCommandHandlerDecorator"/> class.
         /// </summary>
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
-        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<string>> handler, ITracer tracer)
+        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<string>> handler, ActivitySource tracer)
         {
             _handler = handler;
             _tracer = tracer;
@@ -46,10 +48,10 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         public void Handle(RollbackMessageCommand<string> command)
         {
             //lets add a bit more information to the active span if possible
-            if (_tracer.ActiveSpan != null)
+            if (Activity.Current != null)
             {
                 if (command.IncreaseQueueDelay.HasValue)
-                    _tracer.ActiveSpan.SetTag("MessageDelay",
+                    Activity.Current.SetTag("MessageDelay",
                         command.IncreaseQueueDelay.Value.ToString());
             }
             _handler.Handle(command);

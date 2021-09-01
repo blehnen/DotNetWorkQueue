@@ -42,14 +42,6 @@ namespace DotNetWorkQueue
         /// The message interceptor graph.
         /// </value>
         IMessageContextData<MessageInterceptorsGraph> MessageInterceptorGraph { get; }
-
-        /// <summary>
-        /// Stores information allowing us to re-create a trace on the other side of a queue
-        /// </summary>
-        /// <value>
-        /// The trace span.
-        /// </value>
-        IMessageContextData<DataMappingTextMap> TraceSpan { get; }
     }
 
     /// <summary>

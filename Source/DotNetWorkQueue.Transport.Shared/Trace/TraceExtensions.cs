@@ -16,7 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using OpenTracing;
+
+using System.Diagnostics;
 
 namespace DotNetWorkQueue.Transport.Shared.Trace
 {
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Shared.Trace
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="id">The identifier.</param>
-        public static void AddMessageIdTag<T>(this ISpan span, T id)
+        public static void AddMessageIdTag<T>(this Activity span, T id)
         {
             span.SetTag("MessageId", id.ToString());
         }

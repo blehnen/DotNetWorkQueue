@@ -1,9 +1,7 @@
 ﻿{
   "Jaeger": {
     "JAEGER_SERVICE_NAME": "dotnetworkqueue-SQLite-sample",
-    "JAEGER_AGENT_HOST": "192.168.0.76",
-    "JAEGER_AGENT_PORT": "6831",
-    "JAEGER_SAMPLER_TYPE": "const",
-    "JAEGER_SAMPLER_PARAM": "1"
-  },
+    "JAEGER_AGENT_HOST": "192.168.0.2",
+    "JAEGER_AGENT_PORT": "6831"
+  }
 }

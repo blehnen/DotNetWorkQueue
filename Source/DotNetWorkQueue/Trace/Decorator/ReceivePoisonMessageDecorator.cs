@@ -16,9 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics;
 using DotNetWorkQueue.Exceptions;
-using OpenTracing;
-using OpenTracing.Tag;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -28,7 +29,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IReceivePoisonMessage" />
     public class ReceivePoisonMessageDecorator: IReceivePoisonMessage
     {
-        private readonly ITracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly IReceivePoisonMessage _handler;
         private readonly IStandardHeaders _headers;
         private readonly IGetHeader _getHeader;
@@ -40,7 +41,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="getHeader">The get header.</param>
-        public ReceivePoisonMessageDecorator(IReceivePoisonMessage handler, ITracer tracer, IStandardHeaders headers, IGetHeader getHeader)
+        public ReceivePoisonMessageDecorator(IReceivePoisonMessage handler, ActivitySource tracer, IStandardHeaders headers, IGetHeader getHeader)
         {
             _handler = handler;
             _tracer = tracer;
@@ -54,33 +55,21 @@ namespace DotNetWorkQueue.Trace.Decorator
             var header = _getHeader.GetHeaders(context.MessageId);
             if (header != null)
             {
-                var spanContext = header.Extract(_tracer, _headers);
-                if (spanContext != null)
+                var activityContext = header.Extract(_tracer, _headers);
+                using (var scope = _tracer.StartActivity("PoisonMessage", ActivityKind.Internal, activityContext))
                 {
-                    using (IScope scope = _tracer.BuildSpan("PoisonMessage").AddReference(References.FollowsFrom, spanContext).StartActive(finishSpanOnDispose: true))
-                    {
-                        scope.Span.Log(exception.ToString());
-                        Tags.Error.Set(scope.Span, true);
-                        _handler.Handle(context, exception);
-                    }
-                }
-                else
-                {
-                    using (IScope scope = _tracer.BuildSpan("PoisonMessage").StartActive(finishSpanOnDispose: true))
-                    {
-                        scope.Span.AddMessageIdTag(context);
-                        scope.Span.Log(exception.ToString());
-                        Tags.Error.Set(scope.Span, true);
-                        _handler.Handle(context, exception);
-                    }
+                    scope?.AddMessageIdTag(context);
+                    scope?.RecordException(exception);
+                    scope?.SetStatus(Status.Error);
+                    _handler.Handle(context, exception);
                 }
             }
             else
             {
-                using (IScope scope = _tracer.BuildSpan("PoisonMessage").StartActive(finishSpanOnDispose: true))
+                using (var scope = _tracer.StartActivity("PoisonMessage"))
                 {
-                    scope.Span.AddMessageIdTag(context);
-                    scope.Span.Log(exception.ToString());
+                    scope?.AddMessageIdTag(context);
+                    scope?.RecordException(exception);
                     _handler.Handle(context, exception);
                 }
             }

@@ -16,8 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.Redis.Basic.Command;
-using OpenTracing;
+
+using System.Diagnostics;
 
 namespace DotNetWorkQueue.Transport.Redis.Trace
 {
@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace
         /// </summary>
         /// <param name="span">The span.</param>
         /// <param name="data">The data.</param>
-        public static void Add(this ISpan span, IAdditionalMessageData data)
+        public static void Add(this Activity span, IAdditionalMessageData data)
         {
             var delay = data.GetDelay();
             if (delay.HasValue)

@@ -20,6 +20,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Chaos;
 using DotNetWorkQueue.Transport.SqlServer.Decorator;
-using OpenTracing;
+using OpenTelemetry.Trace;
 using Polly;
 using Polly.Contrib.Simmy;
 using Polly.Contrib.Simmy.Behavior;
@@ -51,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public static void Register(IContainer container)
         {
             var policies = container.GetInstance<IPolicies>();
-            var tracer = container.GetInstance<ITracer>();
+            var tracer = container.GetInstance<ActivitySource>();
             var log = container.GetInstance<ILogger>();
 
             var chaosPolicy = CreateRetryChaos(policies);
@@ -65,17 +66,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                      (exception, timeSpan, retryCount, context) =>
                      {
                          log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
-                         if (tracer.ActiveSpan != null)
+                         if (Activity.Current != null)
                          {
-                             IScope scope = tracer.BuildSpan("RetrySqlPolicy").StartActive(finishSpanOnDispose: false);
+                             var scope = tracer.StartActivity("RetrySqlPolicy");
                              try
                              {
-                                 scope.Span.SetTag("RetryTime", timeSpan.ToString());
-                                 scope.Span.Log(exception.ToString());
+                                 scope?.SetTag("RetryTime", timeSpan.ToString());
+                                 scope?.RecordException(exception);
                              }
                              finally
                              {
-                                 scope.Span.Finish(DateTimeOffset.UtcNow.Add(timeSpan));
+                                 scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
                              }
                          }
                      });
@@ -88,17 +89,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     (exception, timeSpan, retryCount, context) =>
                     {
                         log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
-                        if (tracer.ActiveSpan != null)
+                        if (Activity.Current != null)
                         {
-                            IScope scope = tracer.BuildSpan("RetrySqlPolicy").StartActive(finishSpanOnDispose: false);
+                            var scope = tracer.StartActivity("RetrySqlPolicy");
                             try
                             {
-                                scope.Span.SetTag("RetryTime", timeSpan.ToString());
-                                scope.Span.Log(exception.ToString());
+                                scope?.SetTag("RetryTime", timeSpan.ToString());
+                                scope?.RecordException(exception);
                             }
                             finally
                             {
-                                scope.Span.Finish(DateTimeOffset.UtcNow.Add(timeSpan));
+                                scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
                             }
                         }
                     });

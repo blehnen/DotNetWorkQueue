@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Configuration;
 using System.Threading.Tasks;
@@ -9,10 +11,12 @@ using App.Metrics.Reporting.InfluxDB;
 using App.Metrics.Scheduling;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Interceptors;
-using Jaeger;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using OpenTracing;
+using OpenTelemetry;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using ConfigurationBuilder = Microsoft.Extensions.Configuration.ConfigurationBuilder;
 using IMetrics = DotNetWorkQueue.IMetrics;
 
 namespace SampleShared
@@ -20,7 +24,7 @@ namespace SampleShared
     public static class Injectors
     {
         private static DotNetWorkQueue.AppMetrics.Metrics _metrics;
-        private static ITracer _tracer;
+        private static ActivitySource _tracer;
         private static AppMetricsTaskScheduler _metricScheduler;
 
         public static void AddInjectors(DotNetWorkQueue.Logging.ILogger log,
@@ -139,15 +143,38 @@ namespace SampleShared
                 container.RegisterNonScopedSingleton(_tracer);
                 return;
             }
-            var loggerFactory = new LoggerFactory();
-
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("tracesettings.json")
                 .Build()
                 .GetSection("Jaeger");
-            var tracer = Configuration.FromIConfiguration(loggerFactory, configuration).GetTracer();
-            container.RegisterNonScopedSingleton(tracer);
-            _tracer = tracer;
+
+            var openTelemetry = Sdk.CreateTracerProviderBuilder()
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(configuration["JAEGER_SERVICE_NAME"]))
+                .AddSource(configuration["JAEGER_SERVICE_NAME"], configuration["JAEGER_SERVICE_NAME"])
+                .AddJaegerExporter(o =>
+                {
+                    o.AgentHost = configuration["JAEGER_AGENT_HOST"];
+                    o.AgentPort = int.Parse(configuration["JAEGER_AGENT_PORT"]);
+
+                    // Examples for the rest of the options, defaults unless otherwise specified
+                    // Omitting Process Tags example as Resource API is recommended for additional tags
+                    o.MaxPayloadSizeInBytes = 4096;
+
+                    // Using Batch Exporter (which is default)
+                    // The other option is ExportProcessorType.Simple
+                    o.ExportProcessorType = ExportProcessorType.Batch;
+                    o.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity>()
+                    {
+                        MaxQueueSize = 2048,
+                        ScheduledDelayMilliseconds = 5000,
+                        ExporterTimeoutMilliseconds = 30000,
+                        MaxExportBatchSize = 512,
+                    };
+                })
+                .Build();
+
+            _tracer = new ActivitySource(configuration["JAEGER_SERVICE_NAME"]);
+            container.RegisterNonScopedSingleton(_tracer);
         }
     }
 }

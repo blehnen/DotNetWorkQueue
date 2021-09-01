@@ -17,8 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
-using OpenTracing;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -29,7 +30,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     public class ReceiveMessagesDecorator : IReceiveMessages
     {
         private readonly IReceiveMessages _handler;
-        private readonly ITracer _tracer;
+        private readonly ActivitySource _tracer;
         private readonly IHeaders _headers;
 
         /// <summary>
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public ReceiveMessagesDecorator(IReceiveMessages handler, ITracer tracer, IHeaders headers)
+        public ReceiveMessagesDecorator(IReceiveMessages handler, ActivitySource tracer, IHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -54,33 +55,20 @@ namespace DotNetWorkQueue.Trace.Decorator
             var message = _handler.ReceiveMessage(context);
             var end = DateTime.UtcNow;
             if (message == null) return null;
-            var spanContext = message.Extract(_tracer, _headers.StandardHeaders);
+            var activityContext = message.Extract(_tracer, _headers.StandardHeaders);
 
             //blocking operations can last forever for queues that can signal for new messages
             //so, we will treat this is a 0 ms operation, rather than have it possibly last for N
             if (IsBlockingOperation)
                 start = end;
 
-            if (spanContext != null)
+            using (var scope = _tracer.StartActivity("ReceiveMessage", ActivityKind.Internal, activityContext, startTime: start))
             {
-                using (IScope scope = _tracer.BuildSpan("ReceiveMessage").AddReference(References.FollowsFrom, spanContext).WithStartTimestamp(start)
-                    .StartActive(finishSpanOnDispose: true))
-                {
-                    scope.Span.AddMessageIdTag(message);
-                    scope.Span.SetTag("IsBlockingOperation", IsBlockingOperation);
-                    scope.Span.Finish(end);
-                    return message;
-                }
-            }
-
-            using (IScope scope = _tracer.BuildSpan("ReceiveMessage").WithStartTimestamp(start).StartActive(finishSpanOnDispose: true))
-            {
-                scope.Span.AddMessageIdTag(message);
-                scope.Span.SetTag("IsBlockingOperation", IsBlockingOperation);
-                scope.Span.Finish(end);
+                scope?.AddMessageIdTag(message);
+                scope?.SetTag("IsBlockingOperation", IsBlockingOperation);
+                scope?.SetEndTime(end);
                 return message;
             }
-
         }
 
         /// <inheritdoc />

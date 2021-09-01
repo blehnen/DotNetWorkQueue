@@ -16,11 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Diagnostics;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using OpenTracing;
+
 
 namespace DotNetWorkQueue.Transport.SQLite.Trace.Decorator
 {
@@ -30,14 +32,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Trace.Decorator
     public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand<long>>
     {
         private readonly ICommandHandler<RollbackMessageCommand<long>> _handler;
-        private readonly ITracer _tracer;
+        private readonly ActivitySource _tracer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessageCommandHandlerDecorator"/> class.
         /// </summary>
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
-        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<long>> handler, ITracer tracer)
+        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<long>> handler, ActivitySource tracer)
         {
             _handler = handler;
             _tracer = tracer;
@@ -47,14 +49,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Trace.Decorator
         public void Handle(RollbackMessageCommand<long> command)
         {
             //lets add a bit more information to the active span if possible
-            if (_tracer.ActiveSpan != null)
+            if (Activity.Current != null)
             {
                 if (command.IncreaseQueueDelay.HasValue)
-                    _tracer.ActiveSpan.SetTag("MessageDelay",
+                    Activity.Current.SetTag("MessageDelay",
                         command.IncreaseQueueDelay.Value.ToString());
 
                 if (command.LastHeartBeat.HasValue)
-                    _tracer.ActiveSpan.SetTag("LastHeartBeatValue",
+                    Activity.Current.SetTag("LastHeartBeatValue",
                         command.LastHeartBeat.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             _handler.Handle(command);
