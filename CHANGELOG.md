@@ -1,3 +1,6 @@
+###0.6.0 2021-09-07
+* Switch from https://opentracing.io/ to https://opentelemetry.io/.  This is a breaking change, due to how an entry for opentracing was always added to the headers, even if not being used. OpenTelemetry will only add entires if enabled.  Any existing queues must be empty before updating to the new version.
+
 ###0.5.4 2021-05-19
 * Fix error with adding items to a memory queue that has started the shutdown process
 * Asking for the list of error messages should not throw an exception if the transport fails; A flag has been added to indicate if the errors are loaded or not.
