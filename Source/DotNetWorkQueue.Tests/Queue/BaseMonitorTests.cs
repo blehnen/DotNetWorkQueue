@@ -7,8 +7,6 @@ using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
 using NSubstitute;
-
-
 using Xunit;
 
 namespace DotNetWorkQueue.Tests.Queue
@@ -49,7 +47,7 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var test = CreateMonitor(action, monitor, fixture.Create<ILogger>()))
             {
                 test.Start();
-                Thread.Sleep(2000);
+                Thread.Sleep(3000);
             }
             Assert.Single(action.ReceivedCalls());
         }
@@ -145,7 +143,8 @@ namespace DotNetWorkQueue.Tests.Queue
             return CreateMonitor(Func, fixture.Create<IMonitorTimespan>(), fixture.Create<ILogger>());
         }
     }
-    public class BaseMonitorTest : BaseMonitor
+
+    internal class BaseMonitorTest : BaseMonitor
     {
         public BaseMonitorTest(Func<CancellationToken, long> monitorAction, IMonitorTimespan monitorTimeSpan, ILogger log)
             : base(monitorAction, monitorTimeSpan, log)
