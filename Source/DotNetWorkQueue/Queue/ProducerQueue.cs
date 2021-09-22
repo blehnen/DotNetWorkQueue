@@ -95,6 +95,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public IQueueOutputMessage Send(T message, IAdditionalMessageData data = null)
         {
+            CheckMessageType();
             ThrowIfDisposed();
             if (data != null)
             {
@@ -110,6 +111,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public IQueueOutputMessages Send(List<T> messages)
         {
+            CheckMessageType();
             ThrowIfDisposed();
             var data = new List<QueueMessage<T, IAdditionalMessageData>>(messages.Count);
             data.AddRange(messages.Select(t => new QueueMessage<T, IAdditionalMessageData>(t, new AdditionalMessageData())));
@@ -123,6 +125,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public IQueueOutputMessages Send(List<QueueMessage<T, IAdditionalMessageData>> messages)
         {
+            CheckMessageType();
             ThrowIfDisposed();
             return InternalSend(messages);
         }
@@ -135,6 +138,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public async Task<IQueueOutputMessage> SendAsync(T message, IAdditionalMessageData data = null)
         {
+            CheckMessageType();
             ThrowIfDisposed();
             Interlocked.Increment(ref _asyncTaskCount);
             try
@@ -158,6 +162,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public async Task<IQueueOutputMessages> SendAsync(List<T> messages)
         {
+            CheckMessageType();
             ThrowIfDisposed();
             var data = new List<QueueMessage<T, IAdditionalMessageData>>(messages.Count);
             data.AddRange(messages.Select(t => new QueueMessage<T, IAdditionalMessageData>(t, new AdditionalMessageData())));
@@ -179,6 +184,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<T, IAdditionalMessageData>> messages)
         {
+            CheckMessageType();
             ThrowIfDisposed();
             Interlocked.Increment(ref _asyncTaskCount);
             try
@@ -241,6 +247,19 @@ namespace DotNetWorkQueue.Queue
 
         #endregion
 
+        /// <summary>
+        /// Checks that the message type is public and throws an exception if it is not
+        /// </summary>
+        /// <remarks>Might remove this requirement in the future; a bit tricky since we use dynamic types to avoid passing the message type all over the consumer queue implementations</remarks>
+        private void CheckMessageType()
+        {
+            var messageType = typeof(T);
+            if (messageType.IsNotPublic)
+            {
+                throw new NotSupportedException($@"{messageType} must be a public class. Non-public message type are not currently supported; 
+The queue uses dynamic instances to run the user delegate and the queue cannot create internal/private classes correctly with this method.  This might be changed in a future version");
+            }
+        }
         /// <summary>
         /// Sends the specified message.
         /// </summary>
