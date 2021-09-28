@@ -1,3 +1,6 @@
+###0.6.1 2021-09-28
+* The producer will throw an exception on a non-public class used as a message. This is a limitation due to how the queue internally handles the delegate; it cannot correctly create internal/private classes
+
 ###0.6.0 2021-09-07
 * Switch from https://opentracing.io/ to https://opentelemetry.io/.  This is a breaking change, due to how an entry for opentracing was always added to the headers, even if not being used. OpenTelemetry will only add entires if enabled.  Any existing queues must be empty before updating to the new version.
 
