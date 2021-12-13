@@ -14,9 +14,9 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     {
 
         [Theory]
-        [InlineData(500, 0, 240, 5, ConnectionInfoTypes.Linux, false),
-        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type, bool route)
+        [InlineData(500, 0, 240, 5, ConnectionInfoTypes.Linux),
+        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = new ConnectionInfo(type).ConnectionString;

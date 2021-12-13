@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
+    <TargetFrameworks>net6.0;net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
     <Version>0.6.1</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2021</Copyright>
@@ -24,6 +24,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
@@ -50,6 +54,13 @@
     <WarningsAsErrors />
     <DocumentationFile>DotNetWorkQueue.Transport.Shared.xml</DocumentationFile>
   </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+		<DefineConstants></DefineConstants>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+		<DocumentationFile>DotNetWorkQueue.Transport.Shared.xml</DocumentationFile>
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
     <DefineConstants>NETFULL</DefineConstants>

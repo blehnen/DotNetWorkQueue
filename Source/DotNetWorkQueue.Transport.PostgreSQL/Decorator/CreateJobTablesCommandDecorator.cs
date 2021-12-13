@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
                 {
                     return new QueueCreationResult(QueueCreationStatus.AttemptedToCreateAlreadyExists);
                 }
-                throw new DotNetWorkQueueException($"Failed to create job table(s). SQL script was {error.Statement}",
+                throw new DotNetWorkQueueException($"Failed to create job table(s). SQL script was {error.MessageText}",
                     error);
             }
         }

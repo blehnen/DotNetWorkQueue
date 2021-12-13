@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
+    <TargetFrameworks>net6.0;net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
     <Version>0.6.1</Version>
-    <Description>Work queue for dot net 4.6.1, 4.7.2, 4.8 and dot net standard 2.0 
+    <Description>Work queue for dot net 4.6.1, 4.7.2, 4.8, dot net standard 2.0, dot net 5 and dot net 6
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
     <Copyright>Copyright © Brian Lehnen 2015-2021</Copyright>
@@ -27,6 +27,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
   </PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net461|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;NETFULL</DefineConstants>
@@ -53,6 +57,13 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+		<DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+		<DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
     <DefineConstants>LIBLOG_PUBLIC;NETFULL</DefineConstants>
@@ -83,7 +94,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="Polly" Version="7.2.2" />
     <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
     <PackageReference Include="SimpleInjector" Version="5.3.2" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.1" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
@@ -94,6 +105,15 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
       <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net5.0\Aq.ExpressionJsonSerializer.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+		<Reference Include="Schyntax">
+			<HintPath>..\..\Lib\Schyntax\net6.0\Schyntax.dll</HintPath>
+		</Reference>
+		<Reference Include="Aq.ExpressionJsonSerializer">
+			<HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net6.0\Aq.ExpressionJsonSerializer.dll</HintPath>
+		</Reference>
+	</ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <Reference Include="Microsoft.CSharp" />

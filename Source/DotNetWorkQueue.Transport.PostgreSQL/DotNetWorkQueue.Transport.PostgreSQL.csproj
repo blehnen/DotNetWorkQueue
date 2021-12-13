@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
+    <TargetFrameworks>net6.0;net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
     <Description>PostgreSQL transport for https://github.com/blehnen/DotNetWorkQueue</Description>
     <Version>0.6.1</Version>
     <Authors>Brian Lehnen</Authors>
@@ -26,6 +26,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
@@ -52,6 +56,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+		<DefineConstants></DefineConstants>
+		<DocumentationFile>DotNetWorkQueue.Transport.PostgreSQL.xml</DocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
     <DefineConstants>NETFULL</DefineConstants>
@@ -91,7 +102,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql" Version="5.0.10" />
+    <PackageReference Include="Npgsql" Version="6.0.1" />
     <PackageReference Include="Polly" Version="7.2.2" />
     <PackageReference Include="Polly.Contrib.Simmy" Version="0.3.0" />
   </ItemGroup>

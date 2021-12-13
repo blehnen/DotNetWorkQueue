@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
+    <TargetFrameworks>net6.0;net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
     <Description>Redis transport for https://github.com/blehnen/DotNetWorkQueue</Description>  
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Version>0.6.1</Version>
@@ -24,6 +24,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
@@ -50,6 +54,13 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+		<DefineConstants></DefineConstants>
+		<DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
     <DefineConstants>NETFULL</DefineConstants>
@@ -105,6 +116,12 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     </Reference>
   </ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<Reference Include="GuerrillaNtp">
+			<HintPath>..\..\Lib\GuerrillaNtp\net6.0\GuerrillaNtp.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
   <ItemGroup>
     <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader" Link="DotNetWorkQueue.licenseheader" />
   </ItemGroup>
@@ -113,7 +130,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="MsgPack.Cli" Version="1.0.1" />
     <PackageReference Include="Polly.Contrib.Simmy" Version="0.3.0" />
-    <PackageReference Include="StackExchange.Redis" Version="2.2.79" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
   </ItemGroup>
 
   <ItemGroup>
