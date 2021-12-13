@@ -34,32 +34,32 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="App.Metrics, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>packages\App.Metrics.4.2.0\lib\net461\App.Metrics.dll</HintPath>
+    <Reference Include="App.Metrics, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>packages\App.Metrics.4.3.0\lib\net461\App.Metrics.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Abstractions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>packages\App.Metrics.Abstractions.4.2.0\lib\net461\App.Metrics.Abstractions.dll</HintPath>
+    <Reference Include="App.Metrics.Abstractions, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>packages\App.Metrics.Abstractions.4.3.0\lib\net461\App.Metrics.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Concurrency, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>packages\App.Metrics.Concurrency.4.2.0\lib\netstandard1.1\App.Metrics.Concurrency.dll</HintPath>
+    <Reference Include="App.Metrics.Concurrency, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>packages\App.Metrics.Concurrency.4.3.0\lib\netstandard2.0\App.Metrics.Concurrency.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Core, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>packages\App.Metrics.Core.4.2.0\lib\net461\App.Metrics.Core.dll</HintPath>
+    <Reference Include="App.Metrics.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>packages\App.Metrics.Core.4.3.0\lib\net461\App.Metrics.Core.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Extensions.Configuration, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>packages\App.Metrics.Extensions.Configuration.4.2.0\lib\netstandard2.0\App.Metrics.Extensions.Configuration.dll</HintPath>
+    <Reference Include="App.Metrics.Extensions.Configuration, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>packages\App.Metrics.Extensions.Configuration.4.3.0\lib\netstandard2.0\App.Metrics.Extensions.Configuration.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Formatters.Ascii, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>packages\App.Metrics.Formatters.Ascii.4.2.0\lib\net461\App.Metrics.Formatters.Ascii.dll</HintPath>
+    <Reference Include="App.Metrics.Formatters.Ascii, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>packages\App.Metrics.Formatters.Ascii.4.3.0\lib\net461\App.Metrics.Formatters.Ascii.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Formatters.InfluxDB, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>packages\App.Metrics.Formatters.InfluxDB.4.2.0\lib\netstandard2.0\App.Metrics.Formatters.InfluxDB.dll</HintPath>
+    <Reference Include="App.Metrics.Formatters.InfluxDB, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>packages\App.Metrics.Formatters.InfluxDB.4.3.0\lib\netstandard2.0\App.Metrics.Formatters.InfluxDB.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Formatters.Json, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>packages\App.Metrics.Formatters.Json.4.2.0\lib\net461\App.Metrics.Formatters.Json.dll</HintPath>
+    <Reference Include="App.Metrics.Formatters.Json, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>packages\App.Metrics.Formatters.Json.4.3.0\lib\net461\App.Metrics.Formatters.Json.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Reporting.InfluxDB, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>packages\App.Metrics.Reporting.InfluxDB.4.2.0\lib\netstandard2.0\App.Metrics.Reporting.InfluxDB.dll</HintPath>
+    <Reference Include="App.Metrics.Reporting.InfluxDB, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>packages\App.Metrics.Reporting.InfluxDB.4.3.0\lib\netstandard2.0\App.Metrics.Reporting.InfluxDB.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue">
       <HintPath>..\..\DotNetWorkQueue\bin\Debug\net472\DotNetWorkQueue.dll</HintPath>
@@ -141,8 +141,8 @@
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>packages\Serilog.2.10.0\lib\net46\Serilog.dll</HintPath>
     </Reference>
-    <Reference Include="Serilog.Sinks.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>packages\Serilog.Sinks.Console.4.0.0\lib\net45\Serilog.Sinks.Console.dll</HintPath>
+    <Reference Include="Serilog.Sinks.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>packages\Serilog.Sinks.Console.4.0.1\lib\net45\Serilog.Sinks.Console.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
