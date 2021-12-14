@@ -1,3 +1,6 @@
+###0.6.2 2021-12-19
+* Add dot net 6.0 as a target
+
 ###0.6.1 2021-09-28
 * The producer will throw an exception on a non-public class used as a message. This is a limitation due to how the queue internally handles the delegate; it cannot correctly create internal/private classes
 
