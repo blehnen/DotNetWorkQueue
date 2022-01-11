@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Bulkhead;
 
@@ -37,6 +38,7 @@ namespace DotNetWorkQueue.TaskScheduling
     {
         private readonly ITaskSchedulerConfiguration _configuration;
         private BulkheadPolicy _smartThreadPool;
+        private readonly ILogger _logger;
         private readonly ConcurrentDictionary<IWorkGroup, WorkGroupWithItem> _groups;
         private readonly ConcurrentDictionary<int, int> _clients;
         private readonly IWaitForEventOrCancelThreadPool _waitForFreeThread;
@@ -54,14 +56,18 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="configuration">The configuration.</param>
         /// <param name="waitForFreeThread">The wait for free thread.</param>
         /// <param name="metrics">the metrics factory</param>
+        /// <param name="log">the logger</param>
         public SmartThreadPoolTaskScheduler(ITaskSchedulerConfiguration configuration, 
             IWaitForEventOrCancelThreadPool waitForFreeThread,
-            IMetrics metrics)
+            IMetrics metrics,
+            ILogger log)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => waitForFreeThread, waitForFreeThread);
             Guard.NotNull(() => metrics, metrics);
+            Guard.NotNull(() => log, log);
 
+            _logger = log;
             _configuration = configuration;
             _waitForFreeThread = waitForFreeThread;
             _metrics = metrics;
@@ -96,7 +102,8 @@ namespace DotNetWorkQueue.TaskScheduling
 
         private void OnBulkheadRejected(Context context)
         {
-            //log me
+            if(_logger.IsEnabled(LogLevel.Trace))
+                _logger.Log(LogLevel.Trace, $"Rejected work item due to bulkhead {context.CorrelationId}");
         }
 
         /// <inheritdoc />
@@ -157,7 +164,9 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="group">The group.</param>
         protected virtual void IncrementGroup(IWorkGroup group)
         {
-            Interlocked.Increment(ref _groups[group].CurrentWorkItems);
+            var current = Interlocked.Increment(ref _groups[group].CurrentWorkItems);
+            if(_logger.IsEnabled(LogLevel.Trace))
+                _logger.Log(LogLevel.Trace, $"Task count for group {group.Name} is {current}");
         }
 
         /// <summary>
@@ -165,7 +174,11 @@ namespace DotNetWorkQueue.TaskScheduling
         /// </summary>
         protected virtual void IncrementCounter()
         {
-            Interlocked.Increment(ref _currentTaskCount);
+            var current = Interlocked.Increment(ref _currentTaskCount);
+
+            //note - _smartThreadPool vars below can and will be slightly out of date
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.Log(LogLevel.Trace, $"Task count (including queue) is {current} with {_smartThreadPool.BulkheadAvailableCount} free slots and {_smartThreadPool.QueueAvailableCount} free queue");
         }
 
         /// <summary>
@@ -173,7 +186,11 @@ namespace DotNetWorkQueue.TaskScheduling
         /// </summary>
         protected virtual void DecrementCounter()
         {
-            Interlocked.Decrement(ref _currentTaskCount);
+            var current = Interlocked.Decrement(ref _currentTaskCount);
+
+            //note - _smartThreadPool vars below can and will be slightly out of date
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.Log(LogLevel.Trace, $"Task count (including queue) is {current} with {_smartThreadPool.BulkheadAvailableCount} free slots and {_smartThreadPool.QueueAvailableCount} free queue");
         }
 
         /// <summary>
@@ -182,7 +199,9 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="group">The group.</param>
         protected virtual void DecrementGroup(IWorkGroup group)
         {
-            Interlocked.Decrement(ref _groups[group].CurrentWorkItems);
+            var current = Interlocked.Decrement(ref _groups[group].CurrentWorkItems);
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.Log(LogLevel.Trace, $"Task count for group {group.Name} is {current}");
         }
 
         /// <inheritdoc />

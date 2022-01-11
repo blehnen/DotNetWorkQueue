@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using Polly.Bulkhead;
@@ -71,7 +70,7 @@ namespace DotNetWorkQueue.TaskScheduling
                         }
                         catch (BulkheadRejectedException e)
                         {
-                            _log.LogWarning($"Failed to enqueue task{System.Environment.NewLine}{e}");
+                            _log.LogWarning($"Failed to enqueue task{System.Environment.NewLine}{e} due to maximum thread count being reached");
                             task = null;
                             return TryStartNewResult.Rejected;
                         }

@@ -17,7 +17,7 @@ namespace RedisConsumerAsync
             //we are using serilog for sample purposes
             var log = new LoggerConfiguration()
                 .WriteTo.Console()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Verbose()
                 .CreateLogger();
             Log.Logger = log;
             log.Information("Startup");
