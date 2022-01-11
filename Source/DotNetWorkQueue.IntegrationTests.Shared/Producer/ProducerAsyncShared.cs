@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Producer

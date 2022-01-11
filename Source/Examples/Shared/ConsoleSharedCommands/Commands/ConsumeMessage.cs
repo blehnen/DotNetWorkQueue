@@ -34,6 +34,7 @@ using DotNetWorkQueue;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using ExampleMessage;
+using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace ConsoleSharedCommands.Commands

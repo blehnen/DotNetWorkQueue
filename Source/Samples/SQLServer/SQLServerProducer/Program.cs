@@ -28,7 +28,7 @@ namespace SQLServerProducer
             var queueConnection = new QueueConnection(queueName, connectionString);
             //create the container for creating a new queue
             using (var createQueueContainer = new QueueCreationContainer<SqlServerMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerProducer", serviceRegister), 
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerProducer", serviceRegister), 
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
@@ -52,7 +52,7 @@ namespace SQLServerProducer
 
             //create the producer
             using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerProducer", serviceRegister)
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerProducer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueConnection))

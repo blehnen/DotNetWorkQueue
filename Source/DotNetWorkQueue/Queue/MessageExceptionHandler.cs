@@ -20,6 +20,7 @@ using System;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -63,7 +64,7 @@ namespace DotNetWorkQueue.Queue
             catch (Exception errorHandlingError)
             {
                 _log.LogError(
-                    $"An error has occurred while trying to move message {message.MessageId} to the error queue", exception);
+                    $"An error has occurred while trying to move message {message.MessageId} to the error queue{System.Environment.NewLine}{exception}");
                 throw new DotNetWorkQueueException("An error has occurred in the error handling code",
                     errorHandlingError);
             }

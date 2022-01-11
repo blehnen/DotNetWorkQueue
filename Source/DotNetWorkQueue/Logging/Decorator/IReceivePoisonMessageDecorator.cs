@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Logging.Decorator
 {
@@ -53,8 +54,7 @@ namespace DotNetWorkQueue.Logging.Decorator
                 var messageId = context.MessageId.Id.Value.ToString();
                 _handler.Handle(context, exception);
                 _log.LogError(
-                    $"Message with ID {messageId} has failed after de-queue, but before finishing loading. This message is considered a poison message, and has been moved to the error queue",
-                    exception);
+                    $"Message with ID {messageId} has failed after de-queue, but before finishing loading. This message is considered a poison message, and has been moved to the error queue{System.Environment.NewLine}{exception}");
             }
             else
             {

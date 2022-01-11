@@ -26,6 +26,7 @@ using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Chaos;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using Polly;
 using Polly.Contrib.Simmy;
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
                     (exception, timeSpan, retryCount, context) =>
                     {
-                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
+                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
                         if (Activity.Current != null)
                         {
                             var scope = tracer.StartActivity("RetryTransaction");

@@ -20,6 +20,7 @@ using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Time;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Time
 {

@@ -20,6 +20,7 @@ using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
 {

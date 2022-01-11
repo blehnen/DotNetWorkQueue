@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -61,7 +62,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
         protected void LogSystemException(object sender, WorkerErrorEventArgs e)
         {
-            Log.LogError("Unhanded system exception", e.Error);
+            Log.LogError($"Unhanded system exception{System.Environment.NewLine}{e.Error}");
         }
         /// <summary>
         /// Logs the user exception.
@@ -70,7 +71,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
         protected void LogUserException(object sender, WorkerErrorEventArgs e)
         {
-            Log.LogError("User exception", e.Error);
+            Log.LogError($"User exception{System.Environment.NewLine}{e.Error}");
         }
         /// <summary>
         /// Gets or sets a value indicating whether work can proceed.

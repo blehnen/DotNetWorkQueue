@@ -38,10 +38,13 @@ using DotNetWorkQueue.Time;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using OpenTelemetry.Trace;
 using Polly;
 using Polly.Caching.Memory;
 using Polly.Registry;
+using SimpleInjector;
 
 namespace DotNetWorkQueue.IoC
 {
@@ -272,12 +275,13 @@ namespace DotNetWorkQueue.IoC
             #endregion
 
             #region Logging
-
-#if (DEBUG)
-            container.Register<ILogger>(() => new ConsoleLogger(LoggingEventType.Debug), LifeStyles.Singleton);
-#else
-            container.Register<ILogger>(() => new NullLogger(), LifeStyles.Singleton);
-#endif
+            container.Register<ILoggerFactory>(() => NullLoggerFactory.Instance, LifeStyles.Singleton);
+            var realContainer = (SimpleInjector.Container)container.Container;
+            realContainer.RegisterConditional(
+                typeof(ILogger),
+                c => typeof(Logger<>).MakeGenericType(c.Consumer.ImplementationType),
+                Lifestyle.Singleton,
+                c => true);
             #endregion
 
             #region Open Tracing

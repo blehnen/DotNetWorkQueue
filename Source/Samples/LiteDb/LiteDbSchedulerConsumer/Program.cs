@@ -32,7 +32,7 @@ namespace LiteDbSchedulerConsumer
             var connectionString = $"Filename={fileLocation}{ConfigurationManager.AppSettings.ReadSetting("Database")};Connection=shared;";
             var queueConnection = new QueueConnection(queueName, connectionString);
             using (var createQueueContainer = new QueueCreationContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbSchedulerConsumer", serviceRegister), 
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbSchedulerConsumer", serviceRegister), 
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
@@ -48,7 +48,7 @@ namespace LiteDbSchedulerConsumer
             }
 
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbSchedulerConsumer", serviceRegister), 
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbSchedulerConsumer", serviceRegister), 
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = schedulerContainer.CreateTaskScheduler())
@@ -61,7 +61,7 @@ namespace LiteDbSchedulerConsumer
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 
                     using (var queueContainer = new QueueContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbSchedulerConsumer", serviceRegister), 
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbSchedulerConsumer", serviceRegister), 
                         options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
                         using (var queue = queueContainer.CreateConsumerMethodQueueScheduler(queueConnection, factory))

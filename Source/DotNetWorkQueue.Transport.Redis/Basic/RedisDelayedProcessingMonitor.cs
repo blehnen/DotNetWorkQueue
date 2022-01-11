@@ -22,6 +22,7 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {

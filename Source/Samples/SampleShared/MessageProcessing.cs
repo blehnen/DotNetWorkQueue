@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace SampleShared
 {
@@ -31,7 +32,7 @@ namespace SampleShared
             {
                 foreach (var error in arg1.PreviousErrors)
                 {
-                    arg2.Log.LogInformation(() => $"previous error {error.Key}, count {error.Value}");
+                    arg2.Log.LogInformation( $"previous error {error.Key}, count {error.Value}");
                 }
 
                 //simulate some processing
@@ -53,7 +54,7 @@ namespace SampleShared
                     //complete
                     foreach (var error in arg1.PreviousErrors)
                     {
-                        arg2.Log.LogInformation(() => $"previous error {error.Key}, count {error.Value}");
+                        arg2.Log.LogInformation($"previous error {error.Key}, count {error.Value}");
                     }
                 }
                 else
@@ -61,7 +62,7 @@ namespace SampleShared
                     RetryErrorCount[arg1.MessageId.Id.Value.ToString()] = RetryErrorCount[arg1.MessageId.Id.Value.ToString()] + 1;
                     foreach (var error in arg1.PreviousErrors)
                     {
-                        arg2.Log.LogInformation( () => $"previous error {error.Key}, count {error.Value}");
+                        arg2.Log.LogInformation(  $"previous error {error.Key}, count {error.Value}");
                     }
                     throw new InvalidDataException("the data is invalid");
                 }

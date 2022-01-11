@@ -23,6 +23,7 @@ using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {

@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator

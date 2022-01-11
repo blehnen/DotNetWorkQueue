@@ -27,7 +27,7 @@ namespace RedisConsumerAsync
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
             var queueConnection = new QueueConnection(queueName, connectionString);
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisConsumerAsync",
                     serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
@@ -41,7 +41,7 @@ namespace RedisConsumerAsync
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 
                     using (var queueContainer = new QueueContainer<RedisQueueInit>(serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisConsumerAsync", serviceRegister)
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisConsumerAsync", serviceRegister)
                         , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
                         using (var queue = queueContainer.CreateConsumerQueueScheduler(queueConnection, factory))

@@ -22,6 +22,7 @@ using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -234,8 +235,7 @@ namespace DotNetWorkQueue.Queue
             catch (Exception error)
             {
                 _logger.LogError(
-                    "An error has occurred while updating the heartbeat field for a record that is being processed",
-                    error);
+                    $"An error has occurred while updating the heartbeat field for a record that is being processed{System.Environment.NewLine}{error}");
 
                 lock (_runningLocker)
                 {

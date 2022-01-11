@@ -31,7 +31,7 @@ namespace LiteDbProducer
             var queueConnection = new QueueConnection(queueName, connectionString);
             //create the container for creating a new queue
             using (var createQueueContainer = new QueueCreationContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbProducer", serviceRegister)
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbProducer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
@@ -53,7 +53,7 @@ namespace LiteDbProducer
 
             //create the producer
             using (var queueContainer = new QueueContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbProducer", serviceRegister), 
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbProducer", serviceRegister), 
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueConnection))

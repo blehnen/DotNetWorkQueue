@@ -28,7 +28,7 @@ namespace SQLServerScheduler
 
             using (var jobQueueCreation =
                 new JobQueueCreationContainer<SqlServerMessageQueueInit>(serviceRegister =>
-                    Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)
+                    Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
@@ -42,7 +42,7 @@ namespace SQLServerScheduler
                     createQueue.Options.EnableStatus = true;
                     createQueue.Options.EnableStatusTable = true;
                     var result = createQueue.CreateJobSchedulerQueue(serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister), queueConnection, 
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister), queueConnection, 
                         options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos), false);
                     log.Information(result.Status.ToString());
 
@@ -50,13 +50,13 @@ namespace SQLServerScheduler
             }
 
             using (var jobContainer = new JobSchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = jobContainer.CreateJobScheduler(serviceRegister =>
-                    Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister),
+                    Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister),
                     serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLServerScheduler", serviceRegister)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                 {

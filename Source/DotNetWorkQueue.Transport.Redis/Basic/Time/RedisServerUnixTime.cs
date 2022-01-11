@@ -22,6 +22,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Time
 {

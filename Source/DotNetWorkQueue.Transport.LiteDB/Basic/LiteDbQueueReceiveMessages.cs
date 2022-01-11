@@ -25,6 +25,7 @@ using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Message;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Basic
 {

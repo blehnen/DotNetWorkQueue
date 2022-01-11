@@ -73,7 +73,7 @@ namespace LiteDbProducerConsumer
             var queueConnection = new QueueConnection(queueName, connectionString);
             //create the container for creating a new queue
             using (var createQueueContainer = new QueueCreationContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                    Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace,
+                    Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace,
                         SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression,
                         SharedConfiguration.EnableEncryption, "LiteDbProducer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
@@ -140,7 +140,7 @@ namespace LiteDbProducerConsumer
 
         private static void RegisterService(IContainer container, Logger log, ICreationScope scope)
         {
-            Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace,
+            Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace,
                 SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression,
                 SharedConfiguration.EnableEncryption, "LiteDbProducerConsumer", container);
 

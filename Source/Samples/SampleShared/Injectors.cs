@@ -27,7 +27,7 @@ namespace SampleShared
         private static ActivitySource _tracer;
         private static AppMetricsTaskScheduler _metricScheduler;
 
-        public static void AddInjectors(DotNetWorkQueue.Logging.ILogger log,
+        public static void AddInjectors(ILoggerFactory logFactory,
             bool addTrace,
             bool addMetrics,
             bool enableGzip,
@@ -35,7 +35,7 @@ namespace SampleShared
             string appName,
             IContainer container)
         {
-            container.Register<DotNetWorkQueue.Logging.ILogger>(() => log, LifeStyles.Singleton);
+            container.Register<ILoggerFactory>(() => logFactory, LifeStyles.Singleton);
             if (addMetrics)
             {
                 AddMetrics(container, appName);

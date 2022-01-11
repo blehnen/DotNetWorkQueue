@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using DotNetWorkQueue.Logging;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
@@ -12,10 +13,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     {
         public static ILogger Create(string queueName, string initText)
         {
-            return Create(queueName, LoggingEventType.Error, initText);
+            return Create(queueName, LogLevel.Error, initText);
         }
 
-        public static ILogger Create(string queueName, LoggingEventType logLevel, string initText)
+        public static ILogger Create(string queueName, LogLevel logLevel, string initText)
         {
             if(!Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\"))
                 Directory.CreateDirectory(AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\");
@@ -71,7 +72,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         private readonly string _fileName;
         private readonly string _fileNameOther;
-        private readonly LoggingEventType _level;
+        private readonly LogLevel _level;
 
         // ReSharper disable once UnusedParameter.Local
         /// <summary>
@@ -80,34 +81,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         /// <param name="fileName">Name of the file.</param>
         /// <param name="logLevel">The log level.</param>
         /// <param name="initText">The initialize text.</param>
-        public TextFileLogProvider(string fileName, LoggingEventType logLevel, string initText)
+        public TextFileLogProvider(string fileName, LogLevel logLevel, string initText)
         {
             _fileName = fileName;
             _fileNameOther = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "Other.txt";
             _level = logLevel;
-        }
-
-        /// <inheritdoc />
-        public void Log(Func<LogEntry> entry)
-        {
-            Log(entry.Invoke());
-        }
-
-        /// <inheritdoc />
-        public void Log(LogEntry entry)
-        {
-            if (entry.Severity == LoggingEventType.Trace && _level <= LoggingEventType.Trace)
-                WriteMessage(entry.Severity, entry.Message, entry.Exception);
-            else if (entry.Severity == LoggingEventType.Debug && _level <= LoggingEventType.Debug)
-                WriteMessage(entry.Severity, entry.Message, entry.Exception);
-            else if (entry.Severity == LoggingEventType.Information && _level <= LoggingEventType.Information)
-                WriteMessage(entry.Severity, entry.Message, entry.Exception);
-            else if (entry.Severity == LoggingEventType.Warning && _level <= LoggingEventType.Warning)
-                WriteMessage(entry.Severity, entry.Message, entry.Exception);
-            else if (entry.Severity == LoggingEventType.Error && _level <= LoggingEventType.Error)
-                WriteMessage(entry.Severity, entry.Message, entry.Exception);
-            else
-                WriteMessage(entry.Severity, entry.Message, entry.Exception);
         }
 
         /// <summary>
@@ -117,7 +95,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         /// <param name="message">The message function.</param>
         /// <param name="exception">The exception.</param>
         private void WriteMessage(
-            LoggingEventType logLevel,
+            LogLevel logLevel,
             string message,
             Exception exception)
         {
@@ -159,7 +137,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         /// <param name="message">The message function.</param>
         /// <param name="exception">The exception.</param>
         private static void WriteMessageConsole(
-            LoggingEventType logLevel,
+            LogLevel logLevel,
             string message,
             Exception exception)
         {
@@ -190,6 +168,21 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             /// <inheritdoc />
             public void Dispose()
             { }
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            WriteMessage(logLevel, formatter.Invoke(state, exception), exception);
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return new NullDisposable();
         }
     }
 }

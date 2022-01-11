@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Logging.Decorator
 {

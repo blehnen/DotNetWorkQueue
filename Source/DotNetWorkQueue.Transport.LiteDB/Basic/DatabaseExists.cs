@@ -19,6 +19,7 @@
 using System.IO;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Basic
 {
@@ -56,7 +57,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             
             var exist = File.Exists(fileName.FileName);
             if(!exist)
-                _logger.LogDebug(() => $"database {fileName.FileName} was not found");
+                _logger.LogDebug( $"database {fileName.FileName} was not found");
             return exist;
         }
     }

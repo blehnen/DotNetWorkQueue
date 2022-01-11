@@ -33,20 +33,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="App.Metrics.Abstractions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\App.Metrics.Abstractions.4.2.0\lib\net461\App.Metrics.Abstractions.dll</HintPath>
+    <Reference Include="App.Metrics.Abstractions, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Abstractions.4.3.0\lib\net461\App.Metrics.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Concurrency, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\App.Metrics.Concurrency.4.2.0\lib\netstandard1.1\App.Metrics.Concurrency.dll</HintPath>
+    <Reference Include="App.Metrics.Concurrency, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Concurrency.4.3.0\lib\netstandard2.0\App.Metrics.Concurrency.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Core, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\App.Metrics.Core.4.2.0\lib\net461\App.Metrics.Core.dll</HintPath>
+    <Reference Include="App.Metrics.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Core.4.3.0\lib\net461\App.Metrics.Core.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Formatters.Ascii, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\App.Metrics.Formatters.Ascii.4.2.0\lib\net461\App.Metrics.Formatters.Ascii.dll</HintPath>
+    <Reference Include="App.Metrics.Formatters.Ascii, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Formatters.Ascii.4.3.0\lib\net461\App.Metrics.Formatters.Ascii.dll</HintPath>
     </Reference>
-    <Reference Include="App.Metrics.Reporting.Console, Version=4.2.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\App.Metrics.Reporting.Console.4.2.0\lib\netstandard2.0\App.Metrics.Reporting.Console.dll</HintPath>
+    <Reference Include="App.Metrics.Reporting.Console, Version=4.3.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\App.Metrics.Reporting.Console.4.3.0\lib\netstandard2.0\App.Metrics.Reporting.Console.dll</HintPath>
     </Reference>
     <Reference Include="DotNetWorkQueue">
       <HintPath>..\..\..\DotNetWorkQueue\bin\Debug\net472\DotNetWorkQueue.dll</HintPath>
@@ -57,8 +57,11 @@
     <Reference Include="JpLabs.DynamicCode">
       <HintPath>..\..\..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Bcl.AsyncInterfaces.5.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Win32.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
@@ -68,8 +71,8 @@
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Serilog.2.10.0\lib\net46\Serilog.dll</HintPath>
     </Reference>
-    <Reference Include="Serilog.Sinks.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Serilog.Sinks.Console.4.0.0\lib\net45\Serilog.Sinks.Console.dll</HintPath>
+    <Reference Include="Serilog.Sinks.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Serilog.Sinks.Console.4.0.1\lib\net45\Serilog.Sinks.Console.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -89,8 +92,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Core" />
-    <Reference Include="System.Diagnostics.DiagnosticSource, Version=5.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Diagnostics.DiagnosticSource.5.0.1\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Diagnostics.DiagnosticSource.6.0.0\lib\net461\System.Diagnostics.DiagnosticSource.dll</HintPath>
     </Reference>
     <Reference Include="System.Diagnostics.Tracing, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Diagnostics.Tracing.4.3.0\lib\net462\System.Diagnostics.Tracing.dll</HintPath>
@@ -165,8 +168,8 @@
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Runtime.CompilerServices.Unsafe.5.0.0\lib\net45\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Extensions, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Runtime.Extensions.4.3.1\lib\net462\System.Runtime.Extensions.dll</HintPath>
@@ -254,7 +257,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets'))" />
   </Target>
+  <Import Project="..\..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets" Condition="Exists('..\..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -19,6 +19,7 @@
 using System;
 using DotNetWorkQueue.Logging;
 using GuerrillaNtp;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Time
 {

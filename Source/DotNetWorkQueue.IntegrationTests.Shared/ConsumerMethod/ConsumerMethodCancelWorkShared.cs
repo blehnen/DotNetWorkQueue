@@ -2,6 +2,7 @@
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
+using Microsoft.Extensions.Logging;
 using Polly.Caching;
 using Xunit;
 

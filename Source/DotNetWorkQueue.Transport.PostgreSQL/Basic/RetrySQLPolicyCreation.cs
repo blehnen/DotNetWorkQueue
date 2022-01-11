@@ -27,6 +27,7 @@ using DotNetWorkQueue.Transport.PostgreSQL.Decorator;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Chaos;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 using OpenTelemetry.Trace;
 using Polly;
@@ -63,7 +64,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
                     (exception, timeSpan, retryCount, context) =>
                     {
-                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
+                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
                         if (Activity.Current != null)
                         {
                             var scope = tracer.StartActivity("RetrySqlPolicy");
@@ -86,7 +87,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
                     (exception, timeSpan, retryCount, context) =>
                     {
-                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times", exception);
+                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
                         if (Activity.Current != null)
                         {
                             var scope = tracer.StartActivity("RetrySqlPolicy");

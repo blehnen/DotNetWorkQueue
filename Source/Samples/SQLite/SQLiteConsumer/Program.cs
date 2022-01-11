@@ -30,7 +30,7 @@ namespace SQLiteConsumer
                 $"Data Source={fileLocation}{ConfigurationManager.AppSettings.ReadSetting("Database")};Version=3;";
             var queueConnection = new QueueConnection(queueName, connectionString);
             using (var createQueueContainer = new QueueCreationContainer<SqLiteMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumer", serviceRegister)
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
@@ -46,7 +46,7 @@ namespace SQLiteConsumer
             }
 
             using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumer", serviceRegister),
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteConsumer", serviceRegister),
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var queue = queueContainer.CreateConsumer(queueConnection))

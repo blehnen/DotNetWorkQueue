@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace SampleShared
 {

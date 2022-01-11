@@ -25,6 +25,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Time
 {

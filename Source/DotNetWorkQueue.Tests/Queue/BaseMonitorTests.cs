@@ -6,6 +6,7 @@ using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 

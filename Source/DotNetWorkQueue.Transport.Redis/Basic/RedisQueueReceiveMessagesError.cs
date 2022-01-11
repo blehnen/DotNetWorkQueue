@@ -24,6 +24,7 @@ using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -122,7 +123,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 new MoveRecordToErrorQueueCommand<string>(exception, context.MessageId.Id.Value.ToString(), context));
             //we are done doing any processing - remove the messageID to block other actions
             context.SetMessageAndHeaders(null, context.Headers);
-            _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue", exception);
+            _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue{System.Environment.NewLine}{exception}");
             return ReceiveMessagesErrorResult.Error;
         }
     }

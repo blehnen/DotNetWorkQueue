@@ -19,6 +19,7 @@
 using System;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -67,7 +68,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
             //we are done doing any processing - remove the messageID to block other actions
             context.SetMessageAndHeaders(null, context.Headers);
-            _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue {System.Environment.NewLine}{exception}", exception);
+            _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue {System.Environment.NewLine}{exception}");
             return ReceiveMessagesErrorResult.Error;
         }
         #endregion
