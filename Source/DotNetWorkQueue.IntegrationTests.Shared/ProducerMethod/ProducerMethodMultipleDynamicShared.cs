@@ -1,4 +1,6 @@
-﻿#if NETFULL
+﻿
+using Microsoft.Extensions.Logging;
+#if NETFULL
 using System;
 using System.Collections.Generic;
 using System.Linq;

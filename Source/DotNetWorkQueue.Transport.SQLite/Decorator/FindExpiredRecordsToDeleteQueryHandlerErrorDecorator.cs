@@ -24,6 +24,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
 {
@@ -49,7 +50,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             {
                 if (e.Message.IndexOf("abort due to ROLLBACK", StringComparison.InvariantCultureIgnoreCase) >= 0)
                 {
-                    _logger.LogWarning("The query has been aborted", e);
+                    _logger.LogWarning($"The query has been aborted{System.Environment.NewLine}{e}");
                     return Enumerable.Empty<long>();
                 }
                 else

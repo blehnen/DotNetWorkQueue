@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Threading;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Logging.Decorator
 {

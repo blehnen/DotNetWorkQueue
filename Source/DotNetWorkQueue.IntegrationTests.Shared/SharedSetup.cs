@@ -4,6 +4,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {

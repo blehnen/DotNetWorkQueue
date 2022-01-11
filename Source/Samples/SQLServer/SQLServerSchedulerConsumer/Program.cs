@@ -29,7 +29,7 @@ namespace SQLServerSchedulerConsumer
             var queueConnection = new QueueConnection(queueName, connectionString);
 
             using (var createQueueContainer = new QueueCreationContainer<SqlServerMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
                     "SQLServerSchedulerConsumer", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
@@ -48,7 +48,7 @@ namespace SQLServerSchedulerConsumer
             }
 
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
                     "SQLServerSchedulerConsumer", serviceRegister), 
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
@@ -64,7 +64,7 @@ namespace SQLServerSchedulerConsumer
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 
                     using (var queueContainer = new QueueContainer<SqlServerMessageQueueInit>(serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                             SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
                             "SQLServerSchedulerConsumer", serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {

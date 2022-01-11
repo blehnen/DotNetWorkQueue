@@ -6,6 +6,7 @@ using AutoFixture.AutoNSubstitute;
 using AutoFixture.Xunit2;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
 
@@ -20,7 +21,7 @@ namespace DotNetWorkQueue.Tests.Messages
         public void Create_MessageId_Equals()
         {
             var message = CreateMessage();
-            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), new NullLogger());
+            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
             Assert.Equal(test.MessageId, message.MessageId);
         }
 
@@ -28,7 +29,7 @@ namespace DotNetWorkQueue.Tests.Messages
         public void Create_Body_Equals()
         {
             var message = CreateMessage();
-            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), new NullLogger());
+            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
             Assert.Equal(test.Body, message.Body);
         }
 
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Tests.Messages
         public void Create_CorrelationId_Equals()
         {
             var message = CreateMessage();
-            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), new NullLogger());
+            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
             Assert.Equal(test.CorrelationId, message.CorrelationId);
         }
 
@@ -48,7 +49,7 @@ namespace DotNetWorkQueue.Tests.Messages
             var headers = new Dictionary<string, object> {{ value, new UriBuilder()}};
 
             message.Headers.Returns(new ReadOnlyDictionary<string, object>(headers));
-            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), new NullLogger());
+            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
             Assert.Equal(test.Headers, message.Headers);
         }
 
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue.Tests.Messages
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var message = CreateMessage();
-            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), new NullLogger());
+            var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
 
             var messageContextDataFactory = fixture.Create<IMessageContextDataFactory>();
 

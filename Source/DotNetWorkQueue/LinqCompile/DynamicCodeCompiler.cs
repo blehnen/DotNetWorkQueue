@@ -21,6 +21,7 @@ using System.Linq;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using JpLabs.DynamicCode;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.LinqCompile
 {

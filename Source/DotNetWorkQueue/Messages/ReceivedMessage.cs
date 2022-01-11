@@ -23,6 +23,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Messages
 {
@@ -108,7 +109,7 @@ namespace DotNetWorkQueue.Messages
                 }
                 catch (Exception e)
                 {
-                    _logger.LogWarning(() => $"Failed to load the previous error messages {System.Environment.NewLine}{e}");
+                    _logger.LogWarning($"Failed to load the previous error messages {System.Environment.NewLine}{e}");
                 }
                 return _previousErrors;
             }

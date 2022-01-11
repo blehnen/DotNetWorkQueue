@@ -6,6 +6,7 @@ using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Route
 {

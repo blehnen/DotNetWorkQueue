@@ -21,6 +21,7 @@ using System.Diagnostics;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Queue

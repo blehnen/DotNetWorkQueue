@@ -19,6 +19,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {

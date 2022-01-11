@@ -5,8 +5,7 @@ using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
-
-
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace DotNetWorkQueue.Tests.Messages
@@ -51,7 +50,7 @@ namespace DotNetWorkQueue.Tests.Messages
             Assert.Throws<ObjectDisposedException>(
                 delegate
                 {
-                    test.HandleExecution(new ReceivedMessage<MessageExpression>(message, new GetPreviousErrorsNoOp(), new NullLogger()), new WorkerNotificationNoOp());
+                    test.HandleExecution(new ReceivedMessage<MessageExpression>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null")), new WorkerNotificationNoOp());
                 });
         }
 
@@ -82,7 +81,7 @@ namespace DotNetWorkQueue.Tests.Messages
                     delegate
                     {
                         test.HandleExecution(
-                            new ReceivedMessage<MessageExpression>(message, new GetPreviousErrorsNoOp(), new NullLogger()), null);
+                            new ReceivedMessage<MessageExpression>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null")), null);
                     });
             }
         }

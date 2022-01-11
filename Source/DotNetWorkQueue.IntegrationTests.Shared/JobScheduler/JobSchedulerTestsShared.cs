@@ -8,6 +8,7 @@ using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 #endif
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 // ReSharper disable AccessToDisposedClosure

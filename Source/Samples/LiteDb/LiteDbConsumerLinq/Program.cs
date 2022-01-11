@@ -30,7 +30,7 @@ namespace LiteDbConsumerLinq
             var queueConnection = new QueueConnection(queueName, connectionString);
 
             using (var createQueueContainer = new QueueCreationContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbConsumerLinq",
                     serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
@@ -48,7 +48,7 @@ namespace LiteDbConsumerLinq
             }
 
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbConsumerLinq",
                     serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
@@ -63,7 +63,7 @@ namespace LiteDbConsumerLinq
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 
                     using (var queueContainer = new QueueContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                             SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
                             "LiteDbConsumerLinq", serviceRegister), options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {

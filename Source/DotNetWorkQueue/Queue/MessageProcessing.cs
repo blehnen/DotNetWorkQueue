@@ -21,6 +21,7 @@ using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -140,7 +141,7 @@ namespace DotNetWorkQueue.Queue
             catch (Exception ex) //not cool - one of the exception events threw an exception
             {
                 //there isn't a whole lot we can do here
-                _log.LogError("An error has occurred while trying to handle an exception", ex);
+                _log.LogError($"An error has occurred while trying to handle an exception{System.Environment.NewLine}{ex}");
             }
         }
         /// <summary>
@@ -170,7 +171,7 @@ namespace DotNetWorkQueue.Queue
                 catch (ReceiveMessageException e)
                 {
                     //an exception occurred trying to get the message from the transport
-                    _log.LogError("An error has occurred while receiving a message from the transport", e);
+                    _log.LogError($"An error has occurred while receiving a message from the transport{System.Environment.NewLine}{e}");
                     _seriousExceptionProcessBackOffHelper.Value.Wait();
                 }
                 catch

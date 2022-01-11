@@ -30,7 +30,7 @@ namespace LiteDbScheduler
 
             using (var jobQueueCreation =
                 new JobQueueCreationContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                    Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister),
+                    Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister),
                     options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
@@ -42,7 +42,7 @@ namespace LiteDbScheduler
                     createQueue.Options.EnableMessageExpiration = true;
                     createQueue.Options.EnableStatusTable = true;
                     var result = createQueue.CreateJobSchedulerQueue(serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister), queueConnection,
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister), queueConnection,
                         options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos), false);
                     log.Information(result.Status.ToString());
 
@@ -50,13 +50,13 @@ namespace LiteDbScheduler
             }
 
             using (var jobContainer = new JobSchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister)
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = jobContainer.CreateJobScheduler(serviceRegister =>
-                    Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister),
+                    Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister),
                     serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister)
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbScheduler", serviceRegister)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                 {

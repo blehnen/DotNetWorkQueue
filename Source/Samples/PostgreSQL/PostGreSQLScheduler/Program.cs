@@ -27,7 +27,7 @@ namespace PostGreSQLScheduler
             var queueConnection = new QueueConnection(queueName, connectionString);
             using (var jobQueueCreation =
                 new JobQueueCreationContainer<PostgreSqlMessageQueueInit>(serviceRegister =>
-                    Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister)
+                    Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
@@ -41,7 +41,7 @@ namespace PostGreSQLScheduler
                     createQueue.Options.EnableStatus = true;
                     createQueue.Options.EnableStatusTable = true;
                     var result = createQueue.CreateJobSchedulerQueue(serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister), queueConnection,
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister), queueConnection,
                         options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos), false);
                     log.Information(result.Status.ToString());
 
@@ -49,13 +49,13 @@ namespace PostGreSQLScheduler
             }
 
             using (var jobContainer = new JobSchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister)
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister)
                 , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = jobContainer.CreateJobScheduler(serviceRegister =>
-                    Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister),
+                    Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister),
                     serviceRegister =>
-                        Injectors.AddInjectors(new SerilogAdapter(log), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister)
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "PostgreSqlScheduler", serviceRegister)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)
                     , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                 {

@@ -26,6 +26,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic.Message;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {

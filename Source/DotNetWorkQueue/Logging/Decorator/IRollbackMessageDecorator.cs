@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Logging.Decorator
 {
@@ -49,7 +50,7 @@ namespace DotNetWorkQueue.Logging.Decorator
             }
             catch (Exception e)
             {
-                _log.LogError("An error has occurred while trying to rollback a message", e);
+                _log.LogError($"An error has occurred while trying to rollback a message{System.Environment.NewLine}{e}");
                 return false;
             }
         }

@@ -4,6 +4,7 @@ using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 
 

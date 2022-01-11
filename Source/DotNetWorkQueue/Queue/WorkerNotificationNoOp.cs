@@ -19,6 +19,7 @@
 
 using System.Diagnostics;
 using DotNetWorkQueue.Logging;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Queue

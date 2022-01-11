@@ -27,6 +27,7 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Message;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -110,7 +111,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             }
             catch (Exception e)
             {
-                _log.LogError("Failed to commit a transaction; this might be due to a DB timeout", e);
+                _log.LogError($"Failed to commit a transaction; this might be due to a DB timeout{System.Environment.NewLine}{e}");
 
                 //don't attempt to use the transaction again at this point.
                 connection.Transaction = null;

@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 {

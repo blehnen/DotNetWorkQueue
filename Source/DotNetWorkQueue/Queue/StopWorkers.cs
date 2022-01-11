@@ -22,6 +22,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -115,7 +116,7 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (Exception e)
                 {
-                    _log.LogError("An error has occurred while disposing of a worker", e);
+                    _log.LogError($"An error has occurred while disposing of a worker{System.Environment.NewLine}{e}");
                 }
             }
         }

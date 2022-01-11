@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer

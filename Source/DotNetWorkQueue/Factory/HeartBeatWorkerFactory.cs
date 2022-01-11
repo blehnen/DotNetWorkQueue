@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Factory
 {
