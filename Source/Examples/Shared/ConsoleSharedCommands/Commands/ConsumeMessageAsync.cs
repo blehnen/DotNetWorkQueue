@@ -156,14 +156,12 @@ namespace ConsoleSharedCommands.Commands
         }
 
         public ConsoleExecuteResult SetTaskSchedulerConfiguration(int maximumThreads,
-            int maxQueueSize = 0,
             TimeSpan? waitForThreadPoolToFinish = null
             )
         {
             CreateModuleIfNeeded(new QueueConnection(string.Empty, string.Empty));
 
             _taskScheduler.Configuration.MaximumThreads = maximumThreads;
-            _taskScheduler.Configuration.MaxQueueSize = maxQueueSize;
             if (waitForThreadPoolToFinish.HasValue)
             {
                 _taskScheduler.Configuration.WaitForThreadPoolToFinish = waitForThreadPoolToFinish.Value;

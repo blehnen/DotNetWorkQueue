@@ -30,16 +30,13 @@ namespace DotNetWorkQueue.TaskScheduling
         /// Initializes a new instance of the <see cref="WorkGroupWithItem"/> class.
         /// </summary>
         /// <param name="sourceGroup">The source group.</param>
-        /// <param name="threadGroup">The thread group.</param>
         /// <param name="metricCounter">A counter for tracking how many items are being processed</param>
-        public WorkGroupWithItem(IWorkGroup sourceGroup, BulkheadPolicy threadGroup, ICounter metricCounter)
+        public WorkGroupWithItem(IWorkGroup sourceGroup, ICounter metricCounter)
         {
             Guard.NotNull(() => sourceGroup, sourceGroup);
-            Guard.NotNull(() => threadGroup, threadGroup);
             Guard.NotNull(() => metricCounter, metricCounter);
 
             GroupInfo = sourceGroup;
-            Group = threadGroup;
             MaxWorkItems = GroupInfo.ConcurrencyLevel + GroupInfo.MaxQueueSize;
             MetricCounter = metricCounter;
         }
@@ -50,13 +47,6 @@ namespace DotNetWorkQueue.TaskScheduling
         /// The group information.
         /// </value>
         public IWorkGroup GroupInfo { get; }
-        /// <summary>
-        /// Gets or sets the group.
-        /// </summary>
-        /// <value>
-        /// The group.
-        /// </value>
-        public BulkheadPolicy Group { get;  }
         /// <summary>
         /// How many work items are being processed and are also in the queue
         /// </summary>

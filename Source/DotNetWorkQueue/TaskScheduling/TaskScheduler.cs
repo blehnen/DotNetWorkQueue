@@ -28,8 +28,6 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Bulkhead;
 
 namespace DotNetWorkQueue.TaskScheduling
 {
@@ -37,7 +35,6 @@ namespace DotNetWorkQueue.TaskScheduling
     public class SmartThreadPoolTaskScheduler : ATaskScheduler
     {
         private readonly ITaskSchedulerConfiguration _configuration;
-        private BulkheadPolicy _smartThreadPool;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<IWorkGroup, WorkGroupWithItem> _groups;
         private readonly ConcurrentDictionary<int, int> _clients;
@@ -89,25 +86,11 @@ namespace DotNetWorkQueue.TaskScheduling
             Guard.IsValid(() => Configuration.MaximumThreads, Configuration.MaximumThreads, i => i > 0,
               "The Configuration.MaximumThreads must be greater than 0");
 
-            if (_smartThreadPool != null)
-            {
-                throw new DotNetWorkQueueException("Start must only be called 1 time");    
-            }
-
-            _smartThreadPool = Policy.Bulkhead(_configuration.MaximumThreads,
-                _configuration.MaxQueueSize, OnBulkheadRejected);
-
             Configuration.SetReadOnly();
         }
 
-        private void OnBulkheadRejected(Context context)
-        {
-            if(_logger.IsEnabled(LogLevel.Trace))
-                _logger.Log(LogLevel.Trace, $"Rejected work item due to bulkhead {context.CorrelationId}");
-        }
-
         /// <inheritdoc />
-        public override bool Started => _smartThreadPool != null;
+        public override bool Started => _configuration.IsReadOnly;
 
         /// <inheritdoc />
         [SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification = "need to throw exception if scheduler is not running")]
@@ -118,17 +101,10 @@ namespace DotNetWorkQueue.TaskScheduling
                 if (IsDisposed)
                     return RoomForNewTaskResult.No;
 
-                if (_smartThreadPool == null)
-                    throw new DotNetWorkQueueException("Start must be called on the scheduler before adding tasks");
+                if (!Configuration.IsReadOnly)
+                    throw new DotNetWorkQueueException("The scheduler has not been started; Call Start first");
 
-                if (HaveRoomForTask)
-                {
-                    if (_smartThreadPool.BulkheadAvailableCount > 0)
-                        return RoomForNewTaskResult.RoomForTask;
-                    if (_smartThreadPool.QueueAvailableCount > 0)
-                        return RoomForNewTaskResult.RoomInQueue;
-                }
-                return RoomForNewTaskResult.No;
+                return HaveRoomForTask ? RoomForNewTaskResult.RoomForTask : RoomForNewTaskResult.No;
             }
         }
 
@@ -165,8 +141,14 @@ namespace DotNetWorkQueue.TaskScheduling
         protected virtual void IncrementGroup(IWorkGroup group)
         {
             var current = Interlocked.Increment(ref _groups[group].CurrentWorkItems);
-            if(_logger.IsEnabled(LogLevel.Trace))
+
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
                 _logger.Log(LogLevel.Trace, $"Task count for group {group.Name} is {current}");
+
+                var queue = Interlocked.Read(ref _currentTaskCount);
+                _logger.Log(LogLevel.Trace, $"Task count is {queue} with the max being {_configuration.MaximumThreads}");
+            }
         }
 
         /// <summary>
@@ -176,9 +158,8 @@ namespace DotNetWorkQueue.TaskScheduling
         {
             var current = Interlocked.Increment(ref _currentTaskCount);
 
-            //note - _smartThreadPool vars below can and will be slightly out of date
             if (_logger.IsEnabled(LogLevel.Trace))
-                _logger.Log(LogLevel.Trace, $"Task count (including queue) is {current} with {_smartThreadPool.BulkheadAvailableCount} free slots and {_smartThreadPool.QueueAvailableCount} free queue");
+                _logger.Log(LogLevel.Trace, $"Task count is {current} with the max being {_configuration.MaximumThreads}");
         }
 
         /// <summary>
@@ -188,9 +169,8 @@ namespace DotNetWorkQueue.TaskScheduling
         {
             var current = Interlocked.Decrement(ref _currentTaskCount);
 
-            //note - _smartThreadPool vars below can and will be slightly out of date
             if (_logger.IsEnabled(LogLevel.Trace))
-                _logger.Log(LogLevel.Trace, $"Task count (including queue) is {current} with {_smartThreadPool.BulkheadAvailableCount} free slots and {_smartThreadPool.QueueAvailableCount} free queue");
+                _logger.Log(LogLevel.Trace, $"Task count is {current} with the max being {_configuration.MaximumThreads}");
         }
 
         /// <summary>
@@ -201,7 +181,12 @@ namespace DotNetWorkQueue.TaskScheduling
         {
             var current = Interlocked.Decrement(ref _groups[group].CurrentWorkItems);
             if (_logger.IsEnabled(LogLevel.Trace))
+            {
                 _logger.Log(LogLevel.Trace, $"Task count for group {group.Name} is {current}");
+
+                var queue = Interlocked.Read(ref _currentTaskCount);
+                _logger.Log(LogLevel.Trace, $"Task count is {queue} with the max being {_configuration.MaximumThreads}");
+            }
         }
 
         /// <inheritdoc />
@@ -212,7 +197,7 @@ namespace DotNetWorkQueue.TaskScheduling
 
             if (HaveRoomForWorkGroupTask(group))
             {
-                return CurrentTaskCount > _groups[group].GroupInfo.ConcurrencyLevel ? RoomForNewTaskResult.RoomInQueue : RoomForNewTaskResult.RoomForTask;
+                return RoomForNewTaskResult.RoomForTask;
             }
             return RoomForNewTaskResult.No;
         }
@@ -259,7 +244,7 @@ namespace DotNetWorkQueue.TaskScheduling
                     _groups[state.Group].MetricCounter.Increment(1);
                     _taskCounter.Increment(1);
                     SetWaitHandle(state.Group);
-                    Task.Factory.StartNew(() => { _groups[state.Group].Group.Execute(() => TryExecuteTaskWrapped(task, state)); })
+                    Task.Factory.StartNew(() => TryExecuteTaskWrapped(task, state))
                         .ContinueWith(PostExecuteWorkItemCallback, state);
                 }
                 else
@@ -267,7 +252,7 @@ namespace DotNetWorkQueue.TaskScheduling
                     IncrementCounter();
                     _taskCounter.Increment(1);
                     SetWaitHandle(null);
-                    Task.Factory.StartNew(() => { _smartThreadPool.Execute(() => TryExecuteTask(task)); })
+                    Task.Factory.StartNew(() => TryExecuteTask(task))
                         .ContinueWith(PostExecuteWorkItemCallback, state);
                 }
             }
@@ -276,7 +261,7 @@ namespace DotNetWorkQueue.TaskScheduling
                 IncrementCounter();
                 _taskCounter.Increment(1);
                 SetWaitHandle(null);
-                Task.Factory.StartNew(() => { _smartThreadPool.Execute(() => TryExecuteTask(task)); }).ContinueWith(PostExecuteWorkItemCallback, null);
+                Task.Factory.StartNew(() => TryExecuteTask(task)).ContinueWith(PostExecuteWorkItemCallback, null);
             }
         }
 
@@ -312,7 +297,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <summary>
         /// Indicates the maximum concurrency level this <see cref="T:System.Threading.Tasks.TaskScheduler" /> is able to support.
         /// </summary>
-        public sealed override int MaximumConcurrencyLevel => _configuration.MaximumThreads + _configuration.MaxQueueSize;
+        public sealed override int MaximumConcurrencyLevel => _configuration.MaximumThreads;
 
         /// <summary>
         /// Adds a new work group.
@@ -338,13 +323,10 @@ namespace DotNetWorkQueue.TaskScheduling
         {
             ThrowIfDisposed();
 
-            if (_smartThreadPool == null)
-                throw new DotNetWorkQueueException("Start must be called on the scheduler before adding work groups");
-
             var group = new WorkGroup(name, concurrencyLevel, maxQueueSize);
             if (_groups.ContainsKey(group)) return _groups[group].GroupInfo;
 
-            var groupWithItem = new WorkGroupWithItem(group, Policy.Bulkhead(concurrencyLevel, maxQueueSize, OnBulkheadRejected), _metrics.Counter(
+            var groupWithItem = new WorkGroupWithItem(group, _metrics.Counter(
                 $"work group {name}", Units.Items));
             _groups.TryAdd(group, groupWithItem);
             return groupWithItem.GroupInfo;
@@ -444,11 +426,8 @@ namespace DotNetWorkQueue.TaskScheduling
 
             WaitForFreeThread.Cancel();
 
-            if (_smartThreadPool == null) return;
-            WaitForDelegate.Wait(() => _smartThreadPool.BulkheadAvailableCount != _configuration.MaximumThreads,
+            WaitForDelegate.Wait(() => CurrentTaskCount > 0,
                 _configuration.WaitForThreadPoolToFinish);
-            _smartThreadPool.Dispose();
-            _smartThreadPool = null;
         }
         /// <summary>
         /// Throws an exception if this instance has been disposed.

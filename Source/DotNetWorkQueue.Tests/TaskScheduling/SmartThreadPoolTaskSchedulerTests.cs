@@ -45,23 +45,9 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         }
 
         [Fact]
-        public void Calling_Start_Multiple_Times_Exception()
-        {
-            using (var test = Create())
-            {
-                test.Start();
-                Assert.Throws<DotNetWorkQueueException>(
-                    delegate
-                    {
-                        test.Start();
-                    });
-            }
-        }
-
-        [Fact]
         public void Calling_Start_With_Max_Zero_Exception()
         {
-            using (var test = Create(0, TimeSpan.MaxValue))
+            using (var test = Create(0, TimeSpan.MaxValue, false))
             {
                 Assert.Throws<ArgumentException>(
                     delegate
@@ -124,7 +110,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         [Fact]
         public void RoomForNew_True()
         {
-            using (var test = Create())
+            using (var test = Create(true))
             {
                test.Start();
                Assert.Equal(RoomForNewTaskResult.RoomForTask, test.RoomForNewTask);
@@ -233,19 +219,6 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         }
 
         [Theory, AutoData]
-        public void AddWorkGroup_NotStarted_Exception(string value)
-        {
-            using (var test = Create())
-            {
-                Assert.Throws<DotNetWorkQueueException>(
-                    delegate
-                    {
-                        test.AddWorkGroup(value, 1, 0);
-                    });
-            }
-        }
-
-        [Theory, AutoData]
         public void AddWorkGroup(string value)
         {
             using (var test = Create())
@@ -256,22 +229,23 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         }
 
 
-        private SmartThreadPoolTaskScheduler Create(int max, TimeSpan wait)
+        private SmartThreadPoolTaskScheduler Create(int max, TimeSpan wait, bool readonlyConfig)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var config = fixture.Create<ITaskSchedulerConfiguration>();
 
             config.MaximumThreads.Returns(max);
-            config.MaxQueueSize.Returns(0);
             config.WaitForThreadPoolToFinish.Returns(wait);
+            if(readonlyConfig)
+                config.IsReadOnly.Returns(true);
             fixture.Inject(config);
 
             return fixture.Create<SmartThreadPoolTaskScheduler>();
         }
 
-        private SmartThreadPoolTaskScheduler Create()
+        private SmartThreadPoolTaskScheduler Create(bool readonlyConfig = false)
         {
-            return Create(1, TimeSpan.FromSeconds(5));
+            return Create(1, TimeSpan.FromSeconds(5), readonlyConfig);
         }
     }
 }

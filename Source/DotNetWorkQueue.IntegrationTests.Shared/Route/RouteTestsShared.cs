@@ -43,7 +43,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 var taskScheduler = schedulerCreator.CreateTaskScheduler();
 
                 taskScheduler.Configuration.MaximumThreads = routes.Count * 2;
-                taskScheduler.Configuration.MaxQueueSize = routes.Count;
 
                 taskScheduler.Start();
                 var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);

@@ -24,7 +24,6 @@ namespace DotNetWorkQueue.Configuration
     public class HeartBeatThreadPoolConfiguration: IHeartBeatThreadPoolConfiguration
     {
         private int _threadsMax;
-        private int _queueMax;
         private TimeSpan _waitForThreadPoolToFinish;
 
         /// <inheritdoc />
@@ -35,17 +34,6 @@ namespace DotNetWorkQueue.Configuration
             {
                 FailIfReadOnly();
                 _threadsMax = value;
-            }
-        }
-
-        /// <inheritdoc />
-        public int QueueMax
-        {
-            get => _queueMax;
-            set
-            {
-                FailIfReadOnly();
-                _queueMax = value;
             }
         }
 

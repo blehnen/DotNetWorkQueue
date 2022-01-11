@@ -56,8 +56,7 @@ namespace SQLServerConsumerAsync
                 {
                     var factory = schedulerContainer.CreateTaskFactory(scheduler);
                     factory.Scheduler.Configuration.MaximumThreads = 8; //8 background threads
-                    factory.Scheduler.Configuration.MaxQueueSize = 1; //allow work to be de-queued but held in memory until a thread is free
-
+   
                     //note - the same factory can be passed to multiple queue instances - don't dispose the scheduler container until all queues have finished
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 

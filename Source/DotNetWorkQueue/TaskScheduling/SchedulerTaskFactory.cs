@@ -20,7 +20,6 @@ using System;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
-using Polly.Bulkhead;
 
 namespace DotNetWorkQueue.TaskScheduling
 {
@@ -29,20 +28,16 @@ namespace DotNetWorkQueue.TaskScheduling
     {
         private readonly Lazy<ATaskScheduler> _scheduler;
         private readonly Lazy<TaskFactory> _factory;
-        private readonly ILogger _log;
         private readonly object _tryStartNewLocker = new object();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchedulerTaskFactory" /> class.
         /// </summary>
         /// <param name="schedulerFactory">The scheduler factory.</param>
-        /// <param name="log">The log.</param>
-        public SchedulerTaskFactory(ITaskSchedulerFactory schedulerFactory,
-            ILogger log)
+        public SchedulerTaskFactory(ITaskSchedulerFactory schedulerFactory)
         {
             Guard.NotNull(() => schedulerFactory, schedulerFactory);
             _scheduler = new Lazy<ATaskScheduler>(schedulerFactory.Create);
-            _log = log;
             _factory = new Lazy<TaskFactory>(() =>
             {
                 lock (_tryStartNewLocker)
@@ -63,17 +58,8 @@ namespace DotNetWorkQueue.TaskScheduling
                 {
                     if (SchedulerHasRoom(state))
                     {
-                        try
-                        {
-                            task = _factory.Value.StartNew(action, state).ContinueWith(continueWith);
-                            return TryStartNewResult.Added;
-                        }
-                        catch (BulkheadRejectedException e)
-                        {
-                            _log.LogWarning($"Failed to enqueue task{System.Environment.NewLine}{e} due to maximum thread count being reached");
-                            task = null;
-                            return TryStartNewResult.Rejected;
-                        }
+                        task = _factory.Value.StartNew(action, state).ContinueWith(continueWith);
+                        return task != null ? TryStartNewResult.Added : TryStartNewResult.Rejected;
                     }
                 }
             }
@@ -91,7 +77,7 @@ namespace DotNetWorkQueue.TaskScheduling
         private bool SchedulerHasRoom(StateInformation state)
         {
             var result = state.Group == null ? Scheduler.RoomForNewTask : Scheduler.RoomForNewWorkGroupTask(state.Group);
-            return result == RoomForNewTaskResult.RoomForTask || result == RoomForNewTaskResult.RoomInQueue;
+            return result == RoomForNewTaskResult.RoomForTask;
         }
     }
 }

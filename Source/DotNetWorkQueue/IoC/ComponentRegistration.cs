@@ -279,7 +279,13 @@ namespace DotNetWorkQueue.IoC
             var realContainer = (SimpleInjector.Container)container.Container;
             realContainer.RegisterConditional(
                 typeof(ILogger),
-                c => typeof(Logger<>).MakeGenericType(c.Consumer.ImplementationType),
+                c =>
+                {
+                    if (c.Consumer != null) 
+                        return typeof(Logger<>).MakeGenericType(c.Consumer.ImplementationType);
+                    
+                    return typeof(Logger<>).MakeGenericType(typeof(ComponentRegistration));
+                },
                 Lifestyle.Singleton,
                 c => true);
             #endregion

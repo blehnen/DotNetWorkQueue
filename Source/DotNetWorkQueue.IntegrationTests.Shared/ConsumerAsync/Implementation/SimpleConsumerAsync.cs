@@ -127,7 +127,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
             var taskScheduler = schedulerCreator.CreateTaskScheduler();
 
             taskScheduler.Configuration.MaximumThreads = maxThreads;
-            taskScheduler.Configuration.MaxQueueSize = maxQueueSize;
 
             taskScheduler.Start();
             return schedulerCreator.CreateTaskFactory(taskScheduler);

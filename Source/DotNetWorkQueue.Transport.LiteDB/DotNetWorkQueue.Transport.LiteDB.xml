@@ -386,7 +386,7 @@
             </summary>
             <remarks>The database could be on the file system or in memory</remarks>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists.#ctor(DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString,DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Logging.ILogger)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists.#ctor(DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString,DotNetWorkQueue.IConnectionInformation,Microsoft.Extensions.Logging.ILogger)">
             <summary>Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists"/> class.</summary>
             <param name="getFileNameFromConnection">The get file name from connection.</param>
             <param name="connectionInformation">Connection info</param>
@@ -964,7 +964,7 @@
             The error message.
             </value>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.#ctor(DotNetWorkQueue.Configuration.QueueConsumerConfiguration,DotNetWorkQueue.IQueueCancelWork,DotNetWorkQueue.Transport.Shared.ITransportHandleMessage,DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage,DotNetWorkQueue.Logging.ILogger,DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages.#ctor(DotNetWorkQueue.Configuration.QueueConsumerConfiguration,DotNetWorkQueue.IQueueCancelWork,DotNetWorkQueue.Transport.Shared.ITransportHandleMessage,DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage,Microsoft.Extensions.Logging.ILogger,DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString,DotNetWorkQueue.Transport.LiteDb.Basic.DatabaseExists)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbQueueReceiveMessages" /> class.
             </summary>

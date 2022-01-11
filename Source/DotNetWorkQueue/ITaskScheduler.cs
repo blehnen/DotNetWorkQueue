@@ -88,10 +88,6 @@ namespace DotNetWorkQueue
         /// </summary>
         RoomForTask = 1,
         /// <summary>
-        /// Task queue is full, but the memory queue has room
-        /// </summary>
-        RoomInQueue = 2,
-        /// <summary>
         /// There is no room
         /// </summary>
         No = 3

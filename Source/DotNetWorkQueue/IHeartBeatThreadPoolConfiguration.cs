@@ -38,11 +38,6 @@ namespace DotNetWorkQueue
         int ThreadsMax { get; set; }
 
         /// <summary>
-        /// The maximum amount of items to hold in memory, after the threads are all in a work state. 
-        /// </summary>
-        int QueueMax { get; set; }
-
-        /// <summary>
         /// How long to wait for thread pool threads to exit when shutting down
         /// </summary>
         TimeSpan WaitForThreadPoolToFinish { get; set; }

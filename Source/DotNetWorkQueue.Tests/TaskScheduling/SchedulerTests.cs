@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
                 Assert.Throws<ObjectDisposedException>(
             delegate
             {
-                test.TaskFactory.Scheduler.Configuration.MaxQueueSize = 10;
+                test.TaskFactory.Scheduler.Configuration.MaximumThreads = 10;
             });
             }
         }

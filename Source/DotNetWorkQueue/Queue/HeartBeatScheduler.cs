@@ -114,7 +114,6 @@ namespace DotNetWorkQueue.Queue
 
                 _taskFactory = _consumerContainer.CreateTaskFactory(_consumerScheduler);
                 _taskFactory.Scheduler.Configuration.MaximumThreads = _configuration.ThreadsMax;
-                _taskFactory.Scheduler.Configuration.MaxQueueSize = _configuration.QueueMax;
                 _taskFactory.Scheduler.Configuration.WaitForThreadPoolToFinish =
                     _configuration.WaitForThreadPoolToFinish;
                 _taskFactory.Scheduler.Start();

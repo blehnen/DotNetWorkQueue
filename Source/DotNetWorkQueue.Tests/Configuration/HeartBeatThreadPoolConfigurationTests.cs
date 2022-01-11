@@ -19,12 +19,6 @@ namespace DotNetWorkQueue.Tests.Configuration
             Assert.True(configuration.IsReadOnly);
         }
         [Theory, AutoData]
-        public void SetAndGet_QueueMax(HeartBeatThreadPoolConfiguration configuration, int value)
-        {
-            configuration.QueueMax = value;
-            Assert.Equal(value, configuration.QueueMax);
-        }
-        [Theory, AutoData]
         public void SetAndGet_HeartBeatThreadsMax(HeartBeatThreadPoolConfiguration configuration, int value)
         {
             configuration.ThreadsMax = value;
@@ -49,7 +43,7 @@ namespace DotNetWorkQueue.Tests.Configuration
             Assert.Throws<InvalidOperationException>(
               delegate
               {
-                  configuration.QueueMax = value;
+                  configuration.ThreadsMax = value;
               });
         }
         [Theory, AutoData]

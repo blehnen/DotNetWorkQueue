@@ -34,28 +34,6 @@ namespace DotNetWorkQueue
         int MaximumThreads { get; set; }
 
         /// <summary>
-        /// The maximum amount of items to hold in memory, after the threads are all in a work state. 
-        /// </summary>
-        /// <remarks>
-        /// A large setting has drawbacks, depending on the transport being used.  
-        /// 
-        /// If the SQL server transport is being used, items will be de-queued
-        /// and will be stored in the in memory queue. You should be aware of the following:
-        /// 
-        /// 1) Items contained in the in memory queue will move to a worker thread when a free worker thread is present
-        /// 2) If the heartbeat is enabled, items in the memory queue will send heartbeats.
-        /// 3) A large queue may affect your load balancing. If another machine/process has free slots, but another queue is holding onto work
-        /// in the in memory queue, those items will not be available 
-        /// 
-        /// A work stealing queue that can communicate between machines/processes could handle #3. There is no built in implementation of this.
-        /// 
-        /// </remarks>
-        /// <value>
-        /// The maximum size of the queue.
-        /// </value>
-        int MaxQueueSize { get; set; }
-
-        /// <summary>
         /// How long to wait for thread pool threads to exit when shutting down
         /// </summary>
         TimeSpan WaitForThreadPoolToFinish { get; set; }
