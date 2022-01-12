@@ -83,17 +83,17 @@ namespace DotNetWorkQueue.IoC
 
                 if (!string.IsNullOrWhiteSpace(queueConnection.Queue) && !string.IsNullOrWhiteSpace(queueConnection.Connection))
                 {
-                    ComponentRegistration.RegisterDefaults(containerWrapper, type);
+                    ComponentRegistration.RegisterDefaults(containerWrapper, type, queueConnection);
                 }
                 else
                 {
                     if (queueType == QueueContexts.JobScheduler)
                     {
-                        ComponentRegistration.RegisterDefaultsForJobScheduler(containerWrapper);
+                        ComponentRegistration.RegisterDefaultsForJobScheduler(containerWrapper, queueConnection);
                     }
                     else
                     {
-                        ComponentRegistration.RegisterDefaultsForScheduler(containerWrapper);
+                        ComponentRegistration.RegisterDefaultsForScheduler(containerWrapper, queueConnection);
                     }
                 }
 
@@ -125,15 +125,6 @@ namespace DotNetWorkQueue.IoC
 
                 //suppress IoC warnings that we are explicitly handling
                 ComponentRegistration.SuppressWarningsIfNeeded(containerWrapper, type);
-
-                //set the log provider, if one was provided
-                //var logProvider = container.GetInstance<ILoggerProvider>();
-                //if (!(logProvider is NoSpecifiedLogProvider))
-                //{
-                //    LogProvider.SetCurrentLogProvider(logProvider);
-                //    var factory = container.GetInstance<ILogger>();
-                //    factory.Create();
-                //}
 
                 //verify the container configuration.
                 container.Verify(VerificationOption.VerifyAndDiagnose);

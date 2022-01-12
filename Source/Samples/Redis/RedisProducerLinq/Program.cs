@@ -20,7 +20,7 @@ namespace RedisProducerLinq
         {
             //we are using serilog for sample purposes
             var log = new LoggerConfiguration()
-                .WriteTo.Console()
+                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
                 .MinimumLevel.Debug()
                 .CreateLogger();
             Log.Logger = log;

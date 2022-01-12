@@ -57,11 +57,12 @@ namespace DotNetWorkQueue.IoC
         /// Registers the defaults implementations.
         /// </summary>
         /// <param name="container">The container.</param>
-        public static void RegisterDefaultsForScheduler(IContainer container)
+        /// <param name="connection">the queue connection information.</param>
+        public static void RegisterDefaultsForScheduler(IContainer container, QueueConnection connection)
         {
             Guard.NotNull(() => container, container);
 
-            RegisterSharedDefaults(container);
+            RegisterSharedDefaults(container, connection);
 
             container.Register<ITaskSchedulerConfiguration, TaskSchedulerConfiguration>(LifeStyles.Singleton);
             
@@ -81,10 +82,11 @@ namespace DotNetWorkQueue.IoC
         /// Registers the defaults implementations.
         /// </summary>
         /// <param name="container">The container.</param>
-        public static void RegisterDefaultsForJobScheduler(IContainer container)
+        /// <param name="connection">the queue connection information.</param>
+        public static void RegisterDefaultsForJobScheduler(IContainer container, QueueConnection connection)
         {
             Guard.NotNull(() => container, container);
-            RegisterSharedDefaults(container);
+            RegisterSharedDefaults(container, connection);
             container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
         }
 
@@ -93,13 +95,14 @@ namespace DotNetWorkQueue.IoC
         /// </summary>
         /// <param name="container">The container.</param>
         /// <param name="registrationType">Type of the registration.</param>
+        /// <param name="connection">the queue connection information.</param>
         public static void RegisterDefaults(IContainer container,
-            RegistrationTypes registrationType)
+            RegistrationTypes registrationType, QueueConnection connection)
         {
             Guard.NotNull(() => container, container);
 
             //default types that are always registered in the container for both send and receive
-            RegisterSharedDefaults(container);
+            RegisterSharedDefaults(container, connection);
 
             //object cache
             var memoryCache = new MemoryCache(new MemoryCacheOptions());
@@ -264,7 +267,7 @@ namespace DotNetWorkQueue.IoC
             }
         }
 
-        private static void RegisterSharedDefaults(IContainer container)
+        private static void RegisterSharedDefaults(IContainer container, QueueConnection connection)
         {
 #region Singletons
 
@@ -276,18 +279,11 @@ namespace DotNetWorkQueue.IoC
 
             #region Logging
             container.Register<ILoggerFactory>(() => NullLoggerFactory.Instance, LifeStyles.Singleton);
-            var realContainer = (SimpleInjector.Container)container.Container;
-            realContainer.RegisterConditional(
-                typeof(ILogger),
-                c =>
-                {
-                    if (c.Consumer != null) 
-                        return typeof(Logger<>).MakeGenericType(c.Consumer.ImplementationType);
-                    
-                    return typeof(Logger<>).MakeGenericType(typeof(ComponentRegistration));
-                },
-                Lifestyle.Singleton,
-                c => true);
+            container.Register<ILogger>(() =>
+            {
+                var factory = container.GetInstance<ILoggerFactory>();
+                return factory.CreateLogger(connection == null ? "null" : connection.Queue);
+            }, LifeStyles.Singleton);
             #endregion
 
             #region Open Tracing
