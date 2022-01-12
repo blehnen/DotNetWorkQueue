@@ -50,14 +50,14 @@ namespace SQLServerSchedulerConsumer
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
                 Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics,
                     SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption,
-                    "SQLServerSchedulerConsumer", serviceRegister), 
+                    "SQLServerSchedulerConsumer", serviceRegister),
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = schedulerContainer.CreateTaskScheduler())
                 {
                     var factory = schedulerContainer.CreateTaskFactory(scheduler);
                     factory.Scheduler.Configuration.MaximumThreads = 8; //8 background threads
- 
+
                     //note - the same factory can be passed to multiple queue instances - don't dispose the scheduler container until all queues have finished
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 

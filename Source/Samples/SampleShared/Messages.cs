@@ -14,7 +14,8 @@ namespace SampleShared
         {
             var message = new SimpleMessage
             {
-                Message = RandomString.Create(messagePayloadLength), ProcessingTime = processingTime
+                Message = RandomString.Create(messagePayloadLength),
+                ProcessingTime = processingTime
             };
             return message;
         }

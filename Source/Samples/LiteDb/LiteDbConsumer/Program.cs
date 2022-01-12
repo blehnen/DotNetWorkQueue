@@ -57,7 +57,7 @@ namespace LiteDbConsumer
                     queue.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(35); //records with no heartbeat after 35 seconds are considered dead
 
                     //an invalid data exception will be re-tried 3 times, with delays of 3, 6 and then finally 9 seconds
-                    queue.Configuration.TransportConfiguration.RetryDelayBehavior.Add(typeof(InvalidDataException), new List<TimeSpan> {TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(9)});
+                    queue.Configuration.TransportConfiguration.RetryDelayBehavior.Add(typeof(InvalidDataException), new List<TimeSpan> { TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(9) });
 
                     queue.Configuration.MessageExpiration.Enabled = true;
                     queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(20); //check for expired messages every 20 seconds
@@ -68,7 +68,7 @@ namespace LiteDbConsumer
             }
 
             //if jaeger is using udp, sometimes the messages get lost; there doesn't seem to be a flush() call ?
-            if(SharedConfiguration.EnableTrace)
+            if (SharedConfiguration.EnableTrace)
                 System.Threading.Thread.Sleep(2000);
         }
     }

@@ -6,7 +6,7 @@
   },
   "MetricsReportingInfluxDbOptions": {
     "InfluxDb": {
-      "BaseUri": "http://192.168.0.65:8086",
+      "BaseUri": "http://192.168.0.2:8086",
       "Database": "dotnetworkqueue-samples",
       "CreateDataBaseIfNotExists": true
     }

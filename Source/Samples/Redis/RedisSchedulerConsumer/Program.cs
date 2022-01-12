@@ -35,7 +35,7 @@ namespace RedisSchedulerConsumer
                 using (var scheduler = schedulerContainer.CreateTaskScheduler())
                 {
                     var factory = schedulerContainer.CreateTaskFactory(scheduler);
- 
+
                     //note - the same factory can be passed to multiple queue instances - don't dispose the scheduler container until all queues have finished
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 

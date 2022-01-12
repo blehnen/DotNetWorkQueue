@@ -33,7 +33,7 @@ namespace SQLiteSchedulerConsumer
                 $"Data Source={fileLocation}{ConfigurationManager.AppSettings.ReadSetting("Database")};Version=3;";
             var queueConnection = new QueueConnection(queueName, connectionString);
             using (var createQueueContainer = new QueueCreationContainer<SqLiteMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteSchedulerConsumer", serviceRegister), 
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteSchedulerConsumer", serviceRegister),
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =
@@ -49,19 +49,19 @@ namespace SQLiteSchedulerConsumer
             }
 
             using (var schedulerContainer = new SchedulerContainer(serviceRegister =>
-                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteSchedulerConsumer", serviceRegister), 
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteSchedulerConsumer", serviceRegister),
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var scheduler = schedulerContainer.CreateTaskScheduler())
                 {
                     var factory = schedulerContainer.CreateTaskFactory(scheduler);
                     factory.Scheduler.Configuration.MaximumThreads = 8; //8 background threads
- 
+
                     //note - the same factory can be passed to multiple queue instances - don't dispose the scheduler container until all queues have finished
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 
                     using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(serviceRegister =>
-                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteSchedulerConsumer", serviceRegister), 
+                        Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteSchedulerConsumer", serviceRegister),
                         options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
                     {
                         using (var queue = queueContainer.CreateConsumerMethodQueueScheduler(queueConnection, factory))

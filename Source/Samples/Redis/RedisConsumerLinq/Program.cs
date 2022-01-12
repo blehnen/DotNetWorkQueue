@@ -39,7 +39,7 @@ namespace RedisConsumerLinq
                 {
                     var factory = schedulerContainer.CreateTaskFactory(scheduler);
                     factory.Scheduler.Configuration.MaximumThreads = 8; //8 background threads
-  
+
                     //note - the same factory can be passed to multiple queue instances - don't dispose the scheduler container until all queues have finished
                     factory.Scheduler.Start(); //the scheduler must be started before passing it to a queue
 

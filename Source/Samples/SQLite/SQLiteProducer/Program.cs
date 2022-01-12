@@ -56,7 +56,7 @@ namespace SQLiteProducer
 
             //create the producer
             using (var queueContainer = new QueueContainer<SqLiteMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteProducer", serviceRegister), 
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "SQLiteProducer", serviceRegister),
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueConnection))
@@ -66,7 +66,7 @@ namespace SQLiteProducer
             }
 
             //if jaeger is using udp, sometimes the messages get lost; there doesn't seem to be a flush() call ?
-            if(SharedConfiguration.EnableTrace)
+            if (SharedConfiguration.EnableTrace)
                 System.Threading.Thread.Sleep(2000);
         }
 

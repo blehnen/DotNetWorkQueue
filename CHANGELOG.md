@@ -1,3 +1,6 @@
+###0.6.4 2022-01-12
+* ILogger will now be created using the queue name for the category
+
 ###0.6.3 2022-01-11
 * Remove Polly Bulkhead; Does not correctly work with our task limited scheduler
 * Remove 'MaxQueue' feature from async processing, as it depended on Polly Bulkheads

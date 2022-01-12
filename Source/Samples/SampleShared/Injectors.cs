@@ -2,7 +2,6 @@
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Configuration;
 using System.Threading.Tasks;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;

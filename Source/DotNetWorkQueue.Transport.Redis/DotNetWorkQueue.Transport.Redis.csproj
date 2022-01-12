@@ -4,9 +4,9 @@
     <TargetFrameworks>net6.0;net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
     <Description>Redis transport for https://github.com/blehnen/DotNetWorkQueue</Description>  
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.6.3</Version>
+    <Version>0.6.4</Version>
     <Authors>Brian Lehnen</Authors>
-    <Copyright>Copyright © Brian Lehnen 2015-2021</Copyright>
+    <Copyright>Copyright © Brian Lehnen 2015-2022</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
     <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>

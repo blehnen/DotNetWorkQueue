@@ -134,7 +134,7 @@ namespace LiteDbProducerConsumer
             scope?.Dispose();
 
             //if jaeger is using udp, sometimes the messages get lost; there doesn't seem to be a flush() call ?
-            if(SharedConfiguration.EnableTrace)
+            if (SharedConfiguration.EnableTrace)
                 System.Threading.Thread.Sleep(2000);
         }
 

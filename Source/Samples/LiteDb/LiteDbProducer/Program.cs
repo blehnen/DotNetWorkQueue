@@ -53,7 +53,7 @@ namespace LiteDbProducer
 
             //create the producer
             using (var queueContainer = new QueueContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbProducer", serviceRegister), 
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbProducer", serviceRegister),
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueConnection))
@@ -63,7 +63,7 @@ namespace LiteDbProducer
             }
 
             //if jaeger is using udp, sometimes the messages get lost; there doesn't seem to be a flush() call ?
-            if(SharedConfiguration.EnableTrace)
+            if (SharedConfiguration.EnableTrace)
                 System.Threading.Thread.Sleep(2000);
         }
 

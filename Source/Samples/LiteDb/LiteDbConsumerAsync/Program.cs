@@ -29,7 +29,7 @@ namespace LiteDbConsumerAsync
             var connectionString = $"Filename={fileLocation}{ConfigurationManager.AppSettings.ReadSetting("Database")};Connection=shared;";
             var queueConnection = new QueueConnection(queueName, connectionString);
             using (var createQueueContainer = new QueueCreationContainer<LiteDbMessageQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbConsumerAsync", serviceRegister), 
+                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "LiteDbConsumerAsync", serviceRegister),
                 options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var createQueue =

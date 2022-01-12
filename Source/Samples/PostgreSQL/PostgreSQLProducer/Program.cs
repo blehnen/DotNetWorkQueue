@@ -13,7 +13,7 @@ namespace PostgreSQLProducer
     class Program
     {
         static void Main(string[] args)
-        { 
+        {
             //we are using serilog for sample purposes.
             var log = new LoggerConfiguration()
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
