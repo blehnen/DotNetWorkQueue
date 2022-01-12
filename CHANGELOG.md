@@ -1,3 +1,7 @@
+###0.6.3 2022-01-11
+* Remove Polly Bulkhead; Does not correctly work with our task limited scheduler
+* Remove 'MaxQueue' feature from async processing, as it depended on Polly Bulkheads
+
 ###0.6.2 2021-12-19
 * Add dot net 6.0 as a target
 
