@@ -17,9 +17,11 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL
 {
@@ -134,6 +136,26 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
                 return options;
             }
             throw new DotNetWorkQueueException("Failed to obtain the options");
+        }
+    }
+
+    internal static class QueueQueueConsumerConfigurationExtensions
+    {
+        public static List<NpgsqlParameter> GetUserParameters(this QueueConsumerConfiguration configuration)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                return (List<NpgsqlParameter>)configuration.AdditionalSettings["userdequeueparams"];
+            }
+            return null;
+        }
+        public static string GetUserClause(this QueueConsumerConfiguration configuration)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeue"))
+            {
+                return (string)configuration.AdditionalSettings["userdequeue"];
+            }
+            return null;
         }
     }
 }

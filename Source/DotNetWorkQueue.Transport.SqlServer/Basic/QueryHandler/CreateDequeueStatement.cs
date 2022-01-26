@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Validation;
 
@@ -134,6 +133,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 sb.AppendLine(needWhere
                     ? "where ExpirationTime > getutcdate() "
                     : "AND ExpirationTime > getutcdate() ");
+            }
+
+            //if true, the query can be added to via user settings
+            if (_options.Value.AdditionalColumnsOnMetaData)
+            {
+                throw new NotImplementedException("Need to add user query");
             }
 
             //determine order by looking at the options

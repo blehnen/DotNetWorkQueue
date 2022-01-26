@@ -110,7 +110,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
         private Table CreateStatusTable()
         {
-            //--Meta Data Table --
+            //--Status Table --
             var status = new Table(GetOwner(), _tableNameHelper.StatusName);
             var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false, null);
             status.Columns.Add(mainPrimaryKey);
@@ -123,16 +123,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             status.Columns.Add(new Column("Status", ColumnTypes.Int, false, null));
             status.Columns.Add(new Column("CorrelationID", ColumnTypes.Uniqueidentifier, false, null));
 
-            //add extra user columns
-            foreach (var c in _options.Value.AdditionalColumns.Values)
+            if (!_options.Value.AdditionalColumnsOnMetaData)
             {
-                status.Columns.Add(c);
-            }
+                //add extra user columns
+                foreach (var c in _options.Value.AdditionalColumns.Values)
+                {
+                    status.Columns.Add(c);
+                }
 
-            //add extra user constrains
-            foreach (var c in _options.Value.AdditionalConstraints.Values)
-            {
-                status.Constraints.Add(c);
+                //add extra user constrains
+                foreach (var c in _options.Value.AdditionalConstraints.Values)
+                {
+                    status.Constraints.Add(c);
+                }
             }
 
             //set the table reference
@@ -189,6 +192,22 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             if (_options.Value.EnableRoute)
             {
                 meta.Columns.Add(new Column("Route", ColumnTypes.Varchar, 255, true, null));
+            }
+
+
+            if (_options.Value.AdditionalColumnsOnMetaData)
+            {
+                //add extra user columns
+                foreach (var c in _options.Value.AdditionalColumns.Values)
+                {
+                    meta.Columns.Add(c);
+                }
+
+                //add extra user constrains
+                foreach (var c in _options.Value.AdditionalConstraints.Values)
+                {
+                    meta.Constraints.Add(c);
+                }
             }
 
             var clusterIndex = new List<string>();

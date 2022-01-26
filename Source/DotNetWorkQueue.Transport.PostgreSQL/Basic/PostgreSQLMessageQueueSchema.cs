@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
         private Table CreateStatusTable()
         {
-            //--Meta Data Table --
+            //--Status Table --
             var status = new Table(_tableNameHelper.StatusName);
             var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false);
             status.Columns.Add(mainPrimaryKey);
@@ -120,15 +120,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             status.Columns.Add(new Column("CorrelationID", ColumnTypes.Uuid, false));
 
             //add extra user columns
-            foreach (var c in _options.Value.AdditionalColumns.Values)
+            if (!_options.Value.AdditionalColumnsOnMetaData)
             {
-                status.Columns.Add(c);
-            }
+                foreach (var c in _options.Value.AdditionalColumns.Values)
+                {
+                    status.Columns.Add(c);
+                }
 
-            //add extra user constrains
-            foreach (var c in _options.Value.AdditionalConstraints.Values)
-            {
-                status.Constraints.Add(c);
+                //add extra user constrains
+                foreach (var c in _options.Value.AdditionalConstraints.Values)
+                {
+                    status.Constraints.Add(c);
+                }
             }
 
             //set the table reference
@@ -185,6 +188,21 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             if (_options.Value.EnableMessageExpiration)
             {
                 meta.Columns.Add(new Column("ExpirationTime", ColumnTypes.Bigint, false));
+            }
+
+            //add extra user columns
+            if (_options.Value.AdditionalColumnsOnMetaData)
+            {
+                foreach (var c in _options.Value.AdditionalColumns.Values)
+                {
+                    meta.Columns.Add(c);
+                }
+
+                //add extra user constrains
+                foreach (var c in _options.Value.AdditionalConstraints.Values)
+                {
+                    meta.Constraints.Add(c);
+                }
             }
 
             var clusterIndex = new List<string>();

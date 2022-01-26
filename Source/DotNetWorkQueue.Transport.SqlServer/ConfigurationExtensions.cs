@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
@@ -167,6 +168,26 @@ namespace DotNetWorkQueue.Transport.SqlServer
         public static string GetSchema(this IReadOnlyDictionary<string, string> settings)
         {
             return settings.ContainsKey(SqlSchemaName) ? settings[SqlSchemaName] : "dbo";
+        }
+    }
+
+    internal static class QueueQueueConsumerConfigurationExtensions
+    {
+        public static List<SqlParameter> GetUserParameters(this QueueConsumerConfiguration configuration)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                return (List<SqlParameter>)configuration.AdditionalSettings["userdequeueparams"];
+            }
+            return null;
+        }
+        public static string GetUserClause(this QueueConsumerConfiguration configuration)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeue"))
+            {
+                return (string)configuration.AdditionalSettings["userdequeue"];
+            }
+            return null;
         }
     }
 }

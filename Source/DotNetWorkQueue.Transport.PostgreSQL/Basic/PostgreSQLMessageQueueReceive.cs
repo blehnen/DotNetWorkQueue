@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 var connection = GetConnectionAndSetOnContext(context);
                 try
                 {
-                    return _receiveMessages.GetMessage(context, connection, connection1 => _disposeConnection(connection), _configuration.Routes);
+                    return _receiveMessages.GetMessage(context, connection, connection1 => _disposeConnection(connection), _configuration.Routes, _configuration.GetUserParameters(), _configuration.GetUserClause());
                 }
                 finally
                 {

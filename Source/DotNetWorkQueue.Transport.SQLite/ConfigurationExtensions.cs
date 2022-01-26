@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
+using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -134,6 +136,26 @@ namespace DotNetWorkQueue.Transport.SQLite
                 return options;
             }
             throw new DotNetWorkQueueException("Failed to obtain the options");
+        }
+    }
+
+    internal static class QueueQueueConsumerConfigurationExtensions
+    {
+        public static List<SQLiteParameter> GetUserParameters(this QueueConsumerConfiguration configuration)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                return (List<SQLiteParameter>)configuration.AdditionalSettings["userdequeueparams"];
+            }
+            return null;
+        }
+        public static string GetUserClause(this QueueConsumerConfiguration configuration)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeue"))
+            {
+                return (string)configuration.AdditionalSettings["userdequeue"];
+            }
+            return null;
         }
     }
 }

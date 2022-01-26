@@ -101,6 +101,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 sb.Append(") ");
             }
 
+
+            //if true, the query can be added to via user settings
+            if (options.AdditionalColumnsOnMetaData)
+            {
+                throw new NotImplementedException("Need to add user query");
+            }
+
             //determine order by looking at the options
             var bNeedComma = false;
             sb.Append(" Order by  ");

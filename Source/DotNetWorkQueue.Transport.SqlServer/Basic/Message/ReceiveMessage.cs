@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             //ask for the next message
             var receivedTransportMessage =
                 _receiveMessage.Handle(new ReceiveMessageQuery<SqlConnection, SqlTransaction>(connectionHolder.Connection,
-                    connectionHolder.Transaction,  _configuration.Routes));
+                    connectionHolder.Transaction,  _configuration.Routes, _configuration.GetUserParameters(), _configuration.GetUserClause()));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)

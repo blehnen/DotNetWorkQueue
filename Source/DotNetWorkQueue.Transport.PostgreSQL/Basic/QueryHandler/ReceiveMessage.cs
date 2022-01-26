@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
@@ -111,6 +110,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                     }
                 }
                 sb.Append(") ");
+            }
+
+            //if true, the query can be added to via user settings
+            if (options.AdditionalColumnsOnMetaData)
+            {
+                throw new NotImplementedException("Need to add user query");
             }
 
             //determine order by looking at the options

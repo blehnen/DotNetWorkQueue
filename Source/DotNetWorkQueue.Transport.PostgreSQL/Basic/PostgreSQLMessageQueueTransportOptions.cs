@@ -37,6 +37,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private QueueTypes _queueType;
         private bool _enableMessageExpiration;
         private bool _enableRoute;
+        private bool _additionalColumnsOnMetaData;
 
         #region Constructor
         /// <summary>
@@ -53,6 +54,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             QueueType = QueueTypes.Normal;
             EnableStatusTable = false;
             EnableRoute = false;
+            AdditionalColumnsOnMetaData = false;
 
             AdditionalColumns = new ColumnList();
             AdditionalConstraints = new ConstraintList();
@@ -77,6 +79,20 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// The additional constraints.
         /// </value>
         public ConstraintList AdditionalConstraints { get; }
+
+        /// <summary>
+        /// If true, <see cref="AdditionalColumns"/> and <see cref="AdditionalConstraints"/> will be created on the metadata table
+        /// If false, they will be created on the status table
+        /// </summary>
+        public bool AdditionalColumnsOnMetaData
+        {
+            get => _additionalColumnsOnMetaData;
+            set
+            {
+                FailIfReadOnly();
+                _additionalColumnsOnMetaData = value;
+            }
+        }
 
         #endregion
 
