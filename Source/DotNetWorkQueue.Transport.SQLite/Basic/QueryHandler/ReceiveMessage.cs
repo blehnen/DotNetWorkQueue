@@ -18,8 +18,10 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Security.Cryptography;
 using System.Text;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
@@ -40,8 +42,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             string queueTableName,
             string statusTableName,
             SqLiteMessageQueueTransportOptions options,
-            List<string> routes )
+            QueueConsumerConfiguration configuration,
+            List<string> routes, out List<SQLiteParameter> userParams)
         {
+            userParams = null;
             var sb = new StringBuilder();
 
             var tempName = GenerateTempTableName();
@@ -103,9 +107,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 
 
             //if true, the query can be added to via user settings
-            if (options.AdditionalColumnsOnMetaData)
+            var userQuery = configuration.GetUserClause();
+            if (options.AdditionalColumnsOnMetaData && !string.IsNullOrEmpty(userQuery))
             {
-                throw new NotImplementedException("Need to add user query");
+                userParams = configuration.GetUserParameters(); //NOTE - could be null
+                sb.AppendLine(needWhere
+                    ? $"where {userQuery} "
+                    : $"AND {userQuery} ");
             }
 
             //determine order by looking at the options

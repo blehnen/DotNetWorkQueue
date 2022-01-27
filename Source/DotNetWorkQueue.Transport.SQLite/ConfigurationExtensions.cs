@@ -139,10 +139,14 @@ namespace DotNetWorkQueue.Transport.SQLite
         }
     }
 
-    internal static class QueueQueueConsumerConfigurationExtensions
+    public static class QueueQueueConsumerConfigurationExtensions
     {
         public static List<SQLiteParameter> GetUserParameters(this QueueConsumerConfiguration configuration)
         {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparamsfactory"))
+            {
+                return ((Func<List<SQLiteParameter>>)configuration.AdditionalSettings["userdequeueparamsfactory"]).Invoke();
+            }
             if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
             {
                 return (List<SQLiteParameter>)configuration.AdditionalSettings["userdequeueparams"];
@@ -151,11 +155,72 @@ namespace DotNetWorkQueue.Transport.SQLite
         }
         public static string GetUserClause(this QueueConsumerConfiguration configuration)
         {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeuefactory"))
+            {
+                return ((Func<string>)configuration.AdditionalSettings["userdequeuefactory"]).Invoke();
+            }
             if (configuration.AdditionalSettings.ContainsKey("userdequeue"))
             {
                 return (string)configuration.AdditionalSettings["userdequeue"];
             }
             return null;
+        }
+
+        public static void SetUserParametersAndClause(this QueueConsumerConfiguration configuration, Func<List<SQLiteParameter>> parameters, Func<string> whereClause)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparamsfactory"))
+            {
+                configuration.AdditionalSettings["userdequeueparamsfactory"] = parameters;
+            }
+            else
+            {
+                configuration.AdditionalSettings.Add("userdequeueparamsfactory", parameters);
+            }
+
+            if (configuration.AdditionalSettings.ContainsKey("userdequeuefactory"))
+            {
+                configuration.AdditionalSettings["userdequeuefactory"] = whereClause;
+            }
+            else
+            {
+                configuration.AdditionalSettings.Add("userdequeuefactory", whereClause);
+            }
+        }
+        public static void AddUserParameter(this QueueConsumerConfiguration configuration, SQLiteParameter parameter)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                ((List<SQLiteParameter>)configuration.AdditionalSettings["userdequeueparams"]).Add(parameter);
+            }
+            else
+            {
+                var data = new List<SQLiteParameter> { parameter };
+                configuration.AdditionalSettings.Add("userdequeueparams", data);
+            }
+        }
+
+        public static void SetUserParameters(this QueueConsumerConfiguration configuration, List<SQLiteParameter> parameters)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                configuration.AdditionalSettings["userdequeueparams"] = parameters;
+            }
+            else
+            {
+                configuration.AdditionalSettings.Add("userdequeueparams", parameters);
+            }
+        }
+
+        public static void SetUserWhereClause(this QueueConsumerConfiguration configuration, string whereClause)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                configuration.AdditionalSettings["userdequeue"] = whereClause;
+            }
+            else
+            {
+                configuration.AdditionalSettings.Add("userdequeue", whereClause);
+            }
         }
     }
 }

@@ -19,6 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SQLite;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -39,6 +41,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         private readonly BuildDequeueCommand _buildDequeueCommand;
         private readonly IDbFactory _dbFactory;
         private readonly DatabaseExists _databaseExists;
+        private readonly QueueConsumerConfiguration _configuration;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessageQueryHandler" /> class.
@@ -56,7 +59,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             BuildDequeueCommand buildDequeueCommand,
             MessageDeQueue messageDeQueue,
             IDbFactory dbFactory,
-            DatabaseExists databaseExists)
+            DatabaseExists databaseExists,
+            QueueConsumerConfiguration configuration)
         {
             Guard.NotNull(() => optionsFactory, optionsFactory);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
@@ -64,6 +68,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             Guard.NotNull(() => messageDeQueue, messageDeQueue);
             Guard.NotNull(() => databaseExists, databaseExists);
             Guard.NotNull(() => dbFactory, dbFactory);
+            Guard.NotNull(() => configuration, configuration);
 
             _options = new Lazy<SqLiteMessageQueueTransportOptions>(optionsFactory.Create);
             _tableNameHelper = tableNameHelper;
@@ -72,6 +77,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             _messageDeQueue = messageDeQueue;
             _dbFactory = dbFactory;
             _databaseExists = databaseExists;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -96,9 +102,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                         selectCommand.Transaction = transaction;
                         CommandString commandString =
                                   GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
-                                    _tableNameHelper.StatusName, query.Routes);
+                                    _tableNameHelper.StatusName, query.Routes, out var userParameters);
                         
-                        _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value, query.Routes);
+                        _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value, query.Routes, userParameters);
                         using (var reader = selectCommand.ExecuteReader())
                         {
                             return _messageDeQueue.HandleMessage(connection, transaction, reader, commandString);
@@ -116,9 +122,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <param name="statusTableName">Name of the status table.</param>
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, string statusTableName, List<string> routes )
+        private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, string statusTableName, List<string> routes, out List<SQLiteParameter> userParameters)
         {
-            return ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, statusTableName, _options.Value, routes);
+            return ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, statusTableName, _options.Value, _configuration,  routes, out userParameters);
         }
     }
 }

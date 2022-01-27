@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
@@ -35,9 +36,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// <param name="options">The options.</param>
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, ITableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, List<string> routes )
+        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, ITableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, QueueConsumerConfiguration configuration, List<string> routes, out List<Npgsql.NpgsqlParameter> userParams)
         {
-            if (routes == null || routes.Count == 0)
+            userParams = null;
+            var userQuery = configuration.GetUserClause();
+            if ((routes == null || routes.Count == 0) && string.IsNullOrEmpty(userQuery))
             {
                 if (commandCache.Contains(DequeueKey))
                 {
@@ -113,9 +116,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             }
 
             //if true, the query can be added to via user settings
-            if (options.AdditionalColumnsOnMetaData)
+            if (options.AdditionalColumnsOnMetaData && !string.IsNullOrEmpty(userQuery))
             {
-                throw new NotImplementedException("Need to add user query");
+                userParams = configuration.GetUserParameters(); //NOTE - could be null
+                sb.AppendLine(needWhere
+                    ? $"where {userQuery} "
+                    : $"AND {userQuery} ");
             }
 
             //determine order by looking at the options
@@ -162,7 +168,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             sb.AppendLine(" AND q.QueueID = qm.QueueID");
             sb.AppendLine("returning q.queueid, qm.body, qm.Headers, q.CorrelationID");
 
-            if (routes != null && routes.Count > 0)
+            if ((routes != null && routes.Count > 0) || !string.IsNullOrEmpty(userQuery))
             { //TODO - cache based on route
                 return sb.ToString();
             }

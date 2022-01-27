@@ -83,8 +83,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             builder.AppendLine("Insert into " + tableNameHelper.StatusName);
             builder.Append("(QueueID, Status, CorrelationID ");
 
-            //add configurable columns - user
-            AddUserColumns(builder, data);
+            if (!options.AdditionalColumnsOnMetaData)
+            {
+                //add configurable columns - user
+                AddUserColumns(builder, data);
+            }
+
 
             //close the column list
             builder.AppendLine(") ");
@@ -93,8 +97,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             builder.Append("VALUES (");
             builder.Append($"@QueueID, {Convert.ToInt32(QueueStatuses.Waiting)}, @CorrelationID");
 
-            //add configurable column value - user
-            AddUserColumnsValues(builder, data);
+            if (!options.AdditionalColumnsOnMetaData)
+            {
+                //add configurable column value - user
+                AddUserColumnsValues(builder, data);
+            }
+
 
             builder.Append(")"); //close the VALUES 
 
@@ -118,8 +126,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             param.Value = data.CorrelationId.Id.Value.ToString();
             command.Parameters.Add(param);
 
-            //add configurable column command params - user
-            AddUserColumnsParams(command, data);
+            if (!options.AdditionalColumnsOnMetaData)
+            {
+                //add configurable column command params - user
+                AddUserColumnsParams(command, data);
+            }
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
@@ -138,6 +149,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             //add configurable columns - queue
             options.AddBuiltInColumns(sbMeta);
 
+            if (options.AdditionalColumnsOnMetaData)
+            {
+                //add configurable columns - user
+                AddUserColumns(sbMeta, data);
+            }
+
             //close the column list
             sbMeta.AppendLine(") ");
 
@@ -147,6 +164,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
             //add the values for built in fields
             options.AddBuiltInColumnValues(sbMeta);
+
+            if (options.AdditionalColumnsOnMetaData)
+            {
+                //add configurable column value - user
+                AddUserColumnsValues(sbMeta, data);
+            }
 
             sbMeta.Append(")"); //close the VALUES 
 
@@ -166,6 +189,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             param.DbType = DbType.Int64;
             param.Value = currentDateTime.Ticks;
             command.Parameters.Add(param);
+
+            if (options.AdditionalColumnsOnMetaData)
+            {
+                //add configurable column command params - user
+                AddUserColumnsParams(command, data);
+            }
         }
         /// <summary>
         /// Adds the SQL command params for the user specific meta data

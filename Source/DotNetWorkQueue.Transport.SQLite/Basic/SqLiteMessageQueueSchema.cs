@@ -185,7 +185,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 meta.Columns.Add(new Column("Route", ColumnTypes.Text, 255, true, null));
             }
 
-            if (!_options.Value.AdditionalColumnsOnMetaData)
+            if (_options.Value.AdditionalColumnsOnMetaData)
             {
                 //add extra user columns
                 foreach (var c in _options.Value.AdditionalColumns.Values)

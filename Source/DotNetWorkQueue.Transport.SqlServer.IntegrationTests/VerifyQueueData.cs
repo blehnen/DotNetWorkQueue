@@ -53,6 +53,36 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             }
         }
 
+        public void Verify(long expectedMessageCount, int orderId)
+        {
+            VerifyCount(expectedMessageCount, null, orderId);
+
+            if (_options.EnablePriority)
+            {
+                VerifyPriority();
+            }
+
+            if (_options.EnableDelayedProcessing)
+            {
+                VerifyDelayedProcessing();
+            }
+
+            if (_options.EnableMessageExpiration)
+            {
+                VerifyMessageExpiration();
+            }
+
+            if (_options.EnableStatus)
+            {
+                VerifyStatus();
+            }
+
+            if (_options.EnableStatusTable)
+            {
+                VerifyStatusTable();
+            }
+        }
+
         public void Verify(long expectedMessageCount, string route)
         {
             VerifyCount(expectedMessageCount, route);
@@ -85,7 +115,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
 
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        private void VerifyCount(long messageCount, string route)
+        private void VerifyCount(long messageCount, string route, int orderID = 0)
         {
             using (var conn = new SqlConnection(_connection.ConnectionString))
             {
@@ -97,6 +127,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                     {
                         command.CommandText += " where route = @route";
                         command.Parameters.AddWithValue("@Route", route);
+                    }
+                    else if (orderID > 0)
+                    {
+                        command.CommandText += " where orderid = @orderid";
+                        command.Parameters.AddWithValue("@orderid", orderID);
                     }
                     using (var reader = command.ExecuteReader())
                     {

@@ -18,7 +18,10 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Net;
 using System.Text;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Validation;
 
@@ -29,20 +32,24 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
         private readonly ITableNameHelper _tableNameHelper;
         private readonly SqlServerCommandStringCache _commandCache;
+        private readonly QueueConsumerConfiguration _configuration;
 
         private const string DequeueKey = "dequeueCommand";
 
         public CreateDequeueStatement(ISqlServerMessageQueueTransportOptionsFactory optionsFactory,
             ITableNameHelper tableNameHelper,
-            SqlServerCommandStringCache commandCache)
+            SqlServerCommandStringCache commandCache,
+            QueueConsumerConfiguration configuration)
         {
             Guard.NotNull(() => optionsFactory, optionsFactory);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => configuration, configuration);
 
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(optionsFactory.Create);
             _tableNameHelper = tableNameHelper;
             _commandCache = commandCache;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -50,9 +57,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// </summary>
         /// <param name="routes">The routes.</param>
         /// <returns></returns>
-        public string GetDeQueueCommand(List<string> routes = null)
+        public string GetDeQueueCommand(out List<SqlParameter> userParams, List<string> routes = null)
         {
-            if (routes == null || routes.Count == 0)
+            userParams = null;
+            var userQuery = _configuration.GetUserClause();
+            if ((routes == null || routes.Count == 0) && string.IsNullOrEmpty(userQuery))
             {
                 if (_commandCache.Contains(DequeueKey))
                 {
@@ -136,9 +145,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             }
 
             //if true, the query can be added to via user settings
-            if (_options.Value.AdditionalColumnsOnMetaData)
+            if (_options.Value.AdditionalColumnsOnMetaData && !string.IsNullOrEmpty(userQuery))
             {
-                throw new NotImplementedException("Need to add user query");
+                userParams = _configuration.GetUserParameters(); //NOTE - could be null
+                sb.AppendLine(needWhere
+                    ? $"where {userQuery} "
+                    : $"AND {userQuery} ");
             }
 
             //determine order by looking at the options
@@ -219,7 +231,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 sb.AppendFormat("update {0} set status = {1} where {0}.QueueID = (select q.queueid from @Queue1 q)", _tableNameHelper.StatusName, Convert.ToInt16(QueueStatuses.Processing));
             }
 
-            if (routes != null && routes.Count > 0)
+            if ((routes != null && routes.Count > 0) || !string.IsNullOrEmpty(userQuery))
             { //TODO - cache based on route
                 return sb.ToString();
             }

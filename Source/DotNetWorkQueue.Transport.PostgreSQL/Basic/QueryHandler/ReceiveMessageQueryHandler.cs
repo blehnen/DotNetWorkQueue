@@ -18,9 +18,9 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
@@ -43,6 +43,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         private readonly ICompositeSerialization _serialization;
         private readonly IHeaders _headers;
         private readonly IGetTime _getTime;
+        private readonly QueueConsumerConfiguration _configuration;
 
 
         /// <summary>
@@ -63,7 +64,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             IMessageFactory messageFactory,
             IHeaders headers,
             ICompositeSerialization serialization,
-            IGetTimeFactory getTimeFactory)
+            IGetTimeFactory getTimeFactory,
+            QueueConsumerConfiguration configuration)
         {
             Guard.NotNull(() => optionsFactory, optionsFactory);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
@@ -73,6 +75,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             Guard.NotNull(() => serialization, serialization);
             Guard.NotNull(() => headers, headers);
             Guard.NotNull(() => getTimeFactory, getTimeFactory);
+            Guard.NotNull(() => configuration, configuration);
 
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(optionsFactory.Create);
             _tableNameHelper = tableNameHelper;
@@ -82,6 +85,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             _headers = headers;
             _serialization = serialization;
             _getTime = getTimeFactory.Create();
+            _configuration = configuration;
         }
 
         /// <inheritdoc />
@@ -92,10 +96,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 selectCommand.Transaction = query.Transaction;
                 selectCommand.CommandText =
                     ReceiveMessage.GetDeQueueCommand(_commandCache, _tableNameHelper, _options.Value,
-                        query.Routes);
+                        _configuration, query.Routes, out var userParameters);
 
                 selectCommand.Parameters.Add("@CurrentDate", NpgsqlDbType.Bigint);
                 selectCommand.Parameters["@CurrentDate"].Value = _getTime.GetCurrentUtcDate().Ticks;
+
+
+                if (_options.Value.AdditionalColumnsOnMetaData && userParameters != null && userParameters.Count > 0)
+                {
+                    foreach (var userParam in userParameters)
+                    {
+                        selectCommand.Parameters.Add(userParam.Clone()); //clone to avoid sharing
+                    }
+                }
 
                 if (_options.Value.EnableRoute && query.Routes != null && query.Routes.Count > 0)
                 {

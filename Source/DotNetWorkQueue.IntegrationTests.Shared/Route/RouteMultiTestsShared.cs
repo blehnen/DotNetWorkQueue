@@ -58,10 +58,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 var running = new List<List<string>> {routes1, routes2};
                 Parallel.ForEach(running, route =>
                 {
-                    var consumer = new ConsumerAsyncShared<TMessage> { Factory = taskFactory };
+                    foreach (var route2 in route)
+                    {
+                        var consumer = new ConsumerAsyncShared<TMessage> { Factory = taskFactory };
 
-                    consumer.RunConsumer<TTransportInit>(queueConnection, addInterceptors,
-                        logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, enableChaos, scope, route);
+                        consumer.RunConsumer<TTransportInit>(queueConnection, addInterceptors,
+                            logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime,
+                            heartBeatMonitorTime, updateTime, enableChaos, scope, route2);
+                    }
                 });
             }
         }
