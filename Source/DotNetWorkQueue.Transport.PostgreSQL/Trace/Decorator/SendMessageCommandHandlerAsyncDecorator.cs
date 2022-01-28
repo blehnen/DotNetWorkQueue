@@ -59,7 +59,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator
         {
             using (var scope = _tracer.StartActivity("SendMessage"))
             {
-                scope.Stop();
                 scope?.AddCommonTags(command.MessageData, _connectionInformation);
                 scope?.Add(command);
                 if(scope?.Context != null)

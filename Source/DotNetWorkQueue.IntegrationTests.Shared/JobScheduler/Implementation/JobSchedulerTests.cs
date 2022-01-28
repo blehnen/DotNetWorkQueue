@@ -16,38 +16,42 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation
             where TTransportCreate : class, IQueueCreation
         {
 
-            using (var queueCreator =
-                    new QueueCreationContainer<TTransportInit>())
+            using (var trace = SharedSetup.CreateTrace("jobscheduler"))
             {
-                var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
-                ICreationScope scope = oCreation.Scope;
-                using (var queueContainer = new QueueContainer<TTransportInit>(x => x.RegisterNonScopedSingleton(scope)))
+                using (var queueCreator =
+                       new QueueCreationContainer<TTransportInit>((x) => x.RegisterNonScopedSingleton(trace.Source)))
                 {
-                    try
+                    var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
+                    ICreationScope scope = oCreation.Scope;
+                    using (var queueContainer =
+                           new QueueContainer<TTransportInit>(x => x.RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace.Source)))
                     {
-                        var tests = new JobSchedulerTestsShared();
-                        if (!dynamic)
+                        try
                         {
-                            tests.RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(
-                                queueConnection, interceptors,
-                                verify, setErrorFlag,
-                                queueContainer.CreateTimeSync(queueConnection.Connection),
-                                oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
+                            var tests = new JobSchedulerTestsShared();
+                            if (!dynamic)
+                            {
+                                tests.RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(
+                                    queueConnection, interceptors,
+                                    verify, setErrorFlag,
+                                    queueContainer.CreateTimeSync(queueConnection.Connection),
+                                    oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
+                            }
+                            else
+                            {
+                                tests.RunEnqueueTestDynamic<TTransportInit, TJobQueueCreator>(
+                                    queueConnection, interceptors,
+                                    verify, setErrorFlag,
+                                    queueContainer.CreateTimeSync(queueConnection.Connection),
+                                    oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
+                            }
                         }
-                        else
+                        finally
                         {
-                            tests.RunEnqueueTestDynamic<TTransportInit, TJobQueueCreator>(
-                                queueConnection, interceptors,
-                                verify, setErrorFlag,
-                                queueContainer.CreateTimeSync(queueConnection.Connection),
-                                oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
+                            oCreation.RemoveQueue();
+                            oCreation.Dispose();
+                            scope?.Dispose();
                         }
-                    }
-                    finally
-                    {
-                        oCreation.RemoveQueue();
-                        oCreation.Dispose();
-                        scope?.Dispose();
                     }
                 }
             }

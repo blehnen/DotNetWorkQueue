@@ -12,27 +12,30 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation
             where TTransportCreate : class, IQueueCreation
         {
 
-            using (var queueCreator =
-                new QueueCreationContainer<TTransportInit>())
+            using (var trace = SharedSetup.CreateTrace("jobscheduler"))
             {
-                var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
-                var scope = oCreation.Scope;
-                using (var queueContainer =
-                    new QueueContainer<TTransportInit>(x => x.RegisterNonScopedSingleton(scope)))
+                using (var queueCreator =
+                       new QueueCreationContainer<TTransportInit>(x => x.RegisterNonScopedSingleton(trace.Source)))
                 {
-                    try
+                    var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
+                    var scope = oCreation.Scope;
+                    using (var queueContainer =
+                           new QueueContainer<TTransportInit>(x => x.RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace.Source)))
                     {
-                        var tests = new JobSchedulerTestsShared();
-                        tests.RunTestMultipleProducers<TTransportInit, TJobQueueCreator>(
-                            queueConnection, true, producerCount,
-                            queueContainer.CreateTimeSync(queueConnection.Connection),
-                            LoggerShared.Create(queueConnection.Queue, GetType().Name), scope);
-                    }
-                    finally
-                    {
-                        oCreation.RemoveQueue();
-                        oCreation.Dispose();
-                        scope?.Dispose();
+                        try
+                        {
+                            var tests = new JobSchedulerTestsShared();
+                            tests.RunTestMultipleProducers<TTransportInit, TJobQueueCreator>(
+                                queueConnection, true, producerCount,
+                                queueContainer.CreateTimeSync(queueConnection.Connection),
+                                LoggerShared.Create(queueConnection.Queue, GetType().Name), scope);
+                        }
+                        finally
+                        {
+                            oCreation.RemoveQueue();
+                            oCreation.Dispose();
+                            scope?.Dispose();
+                        }
                     }
                 }
             }
