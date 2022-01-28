@@ -46,12 +46,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
             UserWhereClause = userWhereClause;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveMessageQuery{TConnection, TTransaction}" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="ReceiveMessageQuery{TConnection, TTransaction}" /> class.</summary>
         /// <param name="connection">The connection.</param>
         /// <param name="transaction">The transaction.</param>
         /// <param name="routes">The routes.</param>
+        /// <param name="userParameterCollection">An optional collection of user params to pass to the query</param>
+        /// <param name="userWhereClause">An option user AND clause to pass to the query</param>
         public ReceiveMessageQuery(TConnection connection, TTransaction transaction, List<string> routes, IReadOnlyList<DbParameter> userParameterCollection, string userWhereClause)
         {
             Connection = connection;

@@ -147,6 +147,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             if (additionalColumn)
             {
                 oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Int, true, null));
+                oCreation.Options.AdditionalConstraints.Add(new Constraint("IX_OrderID", ConstraintType.Index, "OrderID"));
             }
         }
     }

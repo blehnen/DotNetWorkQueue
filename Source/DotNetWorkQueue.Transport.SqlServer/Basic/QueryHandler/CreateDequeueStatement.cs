@@ -52,11 +52,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             _configuration = configuration;
         }
 
-        /// <summary>
-        /// Gets the de queue command.
-        /// </summary>
+        /// <summary>Gets the de queue command.</summary>
+        /// <param name="userParams">The optional user de-queue params</param>
         /// <param name="routes">The routes.</param>
-        /// <returns></returns>
+        /// <returns>
+        ///   <br />
+        /// </returns>
         public string GetDeQueueCommand(out List<SqlParameter> userParams, List<string> routes = null)
         {
             userParams = null;

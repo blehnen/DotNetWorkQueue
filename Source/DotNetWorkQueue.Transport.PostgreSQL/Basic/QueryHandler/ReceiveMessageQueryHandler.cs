@@ -46,9 +46,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         private readonly QueueConsumerConfiguration _configuration;
 
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveMessageQueryHandler" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="ReceiveMessageQueryHandler" /> class.</summary>
         /// <param name="optionsFactory">The options factory.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="receivedMessageFactory">The received message factory.</param>
@@ -57,6 +55,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// <param name="headers">The headers.</param>
         /// <param name="serialization">The serialization.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
+        /// <param name="configuration">Queue Configuration</param>
         public ReceiveMessageQueryHandler(IPostgreSqlMessageQueueTransportOptionsFactory optionsFactory,
             ITableNameHelper tableNameHelper,
             IReceivedMessageFactory receivedMessageFactory,

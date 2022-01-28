@@ -29,15 +29,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 {
     internal static class ReceiveMessage
     {
-        /// <summary>
-        /// Gets the de queue command.
-        /// </summary>
+        /// <summary>Gets the de queue command.</summary>
         /// <param name="metaTableName">Name of the meta table.</param>
         /// <param name="queueTableName">Name of the queue table.</param>
         /// <param name="statusTableName">Name of the status table.</param>
         /// <param name="options">The options.</param>
+        /// <param name="configuration">Configuration module</param>
         /// <param name="routes">The routes.</param>
-        /// <returns></returns>
+        /// <param name="userParams">Optional user params for de-queue</param>
+        /// <returns>
+        ///   <br />
+        /// </returns>
         public static CommandString GetDeQueueCommand(string metaTableName, 
             string queueTableName,
             string statusTableName,

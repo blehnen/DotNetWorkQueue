@@ -28,14 +28,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
     {
         private const string DequeueKey = "dequeueCommand";
 
-        /// <summary>
-        /// Gets the de queue command.
-        /// </summary>
+        /// <summary>Gets the de queue command.</summary>
         /// <param name="commandCache">The command cache.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="options">The options.</param>
+        /// <param name="configuration">Queue Configuration</param>
         /// <param name="routes">The routes.</param>
-        /// <returns></returns>
+        /// <param name="userParams">An optional collection of user params to pass to the query</param>
+        /// <returns>
+        ///   <br />
+        /// </returns>
         public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, ITableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, QueueConsumerConfiguration configuration, List<string> routes, out List<Npgsql.NpgsqlParameter> userParams)
         {
             userParams = null;

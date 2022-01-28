@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                 data.SetPriority(5);
 
             data.AdditionalMetaData.Add(new AdditionalMetaData<int>("OrderID", columnValue));
-
+   
             return data;
         }
 
@@ -144,6 +144,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
             if (additionalColumn)
             {
                 oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Integer, true));
+                oCreation.Options.AdditionalConstraints.Add(new Constraint("IX_OrderID", ConstraintType.Index, "OrderID"));
             }
         }
     }
