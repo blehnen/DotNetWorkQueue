@@ -41,53 +41,56 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 metricName = queueConnection.Queue + "|-|" + route;
             }
 
-            using (var metrics = new Metrics.Metrics(metricName))
+            using (var trace = SharedSetup.CreateTrace("consumer"))
             {
-                var processedCount = new IncrementWrapper();
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(metricName))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
-                        metrics, false, enableChaos, scope)
-                )
-                {
-
-                    using (
-                        var queue =
-                        creator
-                            .CreateConsumerQueueScheduler(
-                                queueConnection, Factory))
+                    var processedCount = new IncrementWrapper();
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, route);
-
-                        if (!string.IsNullOrWhiteSpace(route))
-                            queue.Configuration.Routes.Add(route);
-
-                        setQueueOptions?.Invoke(queue.Configuration);
-
-                        var waitForFinish = new ManualResetEventSlim(false);
-                        waitForFinish.Reset();
-
-                        //start looking for work
-                        queue.Start<TMessage>((message, notifications) =>
-                        {
-                            MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
-                                waitForFinish);
-                        });
-
-                        waitForFinish.Wait(timeOut * 1000);
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                     }
 
-                    Assert.Null(processedCount.IdError);
-                    Assert.Equal(messageCount, processedCount.ProcessedCount);
-                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
-                        messageCount);
-                    LoggerShared.CheckForErrors(queueConnection.Queue);
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+
+                        using (
+                            var queue =
+                            creator
+                                .CreateConsumerQueueScheduler(
+                                    queueConnection, Factory))
+                        {
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, route);
+
+                            if (!string.IsNullOrWhiteSpace(route))
+                                queue.Configuration.Routes.Add(route);
+
+                            setQueueOptions?.Invoke(queue.Configuration);
+
+                            var waitForFinish = new ManualResetEventSlim(false);
+                            waitForFinish.Reset();
+
+                            //start looking for work
+                            queue.Start<TMessage>((message, notifications) =>
+                            {
+                                MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
+                                    waitForFinish);
+                            });
+
+                            waitForFinish.Wait(timeOut * 1000);
+                        }
+
+                        Assert.Null(processedCount.IdError);
+                        Assert.Equal(messageCount, processedCount.ProcessedCount);
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount);
+                        LoggerShared.CheckForErrors(queueConnection.Queue);
+                    }
                 }
             }
         }
