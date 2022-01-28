@@ -26,43 +26,51 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-rollback"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-                    using (
-                        var queue =
-                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, null);
-                        queue.Start();
-                        var counter = 0;
-                        while (counter < timeOut)
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                    }
+
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+                        using (
+                            var queue =
+                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace.Source)))
                         {
-                            if (MethodIncrementWrapper.Count(id) >= messageCount)
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, null);
+                            queue.Start();
+                            var counter = 0;
+                            while (counter < timeOut)
                             {
-                                break;
+                                if (MethodIncrementWrapper.Count(id) >= messageCount)
+                                {
+                                    break;
+                                }
+
+                                Thread.Sleep(1000);
+                                counter++;
                             }
-                            Thread.Sleep(1000);
-                            counter++;
+
+                            //wait for queues to commit records
+                            Thread.Sleep(3000);
                         }
 
-                        //wait for queues to commit records
-                        Thread.Sleep(3000);
+                        Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount);
+                        VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount, 1, 0);
+                        LoggerShared.CheckForErrors(queueConnection.Queue);
                     }
-                    Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
-                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
-                    VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 1, 0);
-                    LoggerShared.CheckForErrors(queueConnection.Queue);
                 }
             }
         }

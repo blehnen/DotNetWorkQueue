@@ -19,43 +19,50 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             where TTransportInit : ITransportInit, new()
         {
 
-            if (enableChaos)
-                timeOut *= 2;
-
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-expired"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                if (enableChaos)
+                    timeOut *= 2;
+
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-                    using (
-                        var queue =
-                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, null);
-                        queue.Configuration.MessageExpiration.Enabled = true;
-                        queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(8);
-                        queue.Start();
-                        for (var i = 0; i < timeOut; i++)
-                        {
-                            if (VerifyMetrics.GetExpiredMessageCount(metrics.GetCurrentMetrics()) == messageCount)
-                            {
-                                break;
-                            }
-                            Thread.Sleep(1000);
-                        }
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                     }
 
-                    Assert.Equal(0, MethodIncrementWrapper.Count(id));
-                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), 0);
-                    VerifyMetrics.VerifyExpiredMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
-                    LoggerShared.CheckForErrors(queueConnection.Queue);
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+                        using (
+                            var queue =
+                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace.Source)))
+                        {
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, null);
+                            queue.Configuration.MessageExpiration.Enabled = true;
+                            queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(8);
+                            queue.Start();
+                            for (var i = 0; i < timeOut; i++)
+                            {
+                                if (VerifyMetrics.GetExpiredMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                                {
+                                    break;
+                                }
+
+                                Thread.Sleep(1000);
+                            }
+                        }
+
+                        Assert.Equal(0, MethodIncrementWrapper.Count(id));
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), 0);
+                        VerifyMetrics.VerifyExpiredMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount);
+                        LoggerShared.CheckForErrors(queueConnection.Queue);
+                    }
                 }
             }
         }

@@ -20,50 +20,54 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-error"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                var processedCount = new IncrementWrapper();
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
-                        metrics, false, enableChaos, scope)
-                )
-                {
-
-                    bool rollBacks;
-                    using (
-                        var queue =
-                            creator.CreateConsumer(queueConnection))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        rollBacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
-
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, route);
-                        SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
-
-                        var waitForFinish = new ManualResetEventSlim(false);
-                        waitForFinish.Reset();
-
-                        //start looking for work
-                        queue.Start<TMessage>((message, notifications) =>
-                        {
-                            MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
-                                messageCount, message);
-                        });
-
-                        waitForFinish.Wait(timeOut * 1000);
-
-                        //wait 3 more seconds before starting to shutdown
-                        Thread.Sleep(3000);
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                     }
 
-                    if (rollBacks)
-                        VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 2, 2);
+                    var processedCount = new IncrementWrapper();
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+
+                        bool rollBacks;
+                        using (
+                            var queue =
+                            creator.CreateConsumer(queueConnection))
+                        {
+                            rollBacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
+
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, route);
+                            SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+
+                            var waitForFinish = new ManualResetEventSlim(false);
+                            waitForFinish.Reset();
+
+                            //start looking for work
+                            queue.Start<TMessage>((message, notifications) =>
+                            {
+                                MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
+                                    messageCount, message);
+                            });
+
+                            waitForFinish.Wait(timeOut * 1000);
+
+                            //wait 3 more seconds before starting to shutdown
+                            Thread.Sleep(3000);
+                        }
+
+                        if (rollBacks)
+                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                                messageCount, 2, 2);
+                    }
                 }
             }
         }
@@ -72,36 +76,39 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             bool addInterceptors, ILogger logProvider, bool actuallyPurge, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-error"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
-                        metrics, false, false, scope)
-                )
-                {
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
+                    {
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                    }
 
                     using (
-                        var queue =
-                            creator.CreateConsumer(queueConnection))
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, false, scope, trace.Source)
+                    )
                     {
-                        SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
-                        SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
-                        var waitForFinish = new ManualResetEventSlim(false);
-                        waitForFinish.Reset();
+                        using (
+                            var queue =
+                            creator.CreateConsumer(queueConnection))
+                        {
+                            SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
+                            SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
-                        //start looking for work
-                        queue.Start<TMessage>((message, notifications) =>
-                            throw new Exception("There should have been no data to process"));
+                            var waitForFinish = new ManualResetEventSlim(false);
+                            waitForFinish.Reset();
 
-                        //wait for 30 seconds
-                        waitForFinish.Wait(15000);
+                            //start looking for work
+                            queue.Start<TMessage>((message, notifications) =>
+                                throw new Exception("There should have been no data to process"));
+
+                            //wait for 30 seconds
+                            waitForFinish.Wait(15000);
+                        }
                     }
                 }
             }

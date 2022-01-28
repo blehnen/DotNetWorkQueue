@@ -24,63 +24,70 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-error"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                var processedCount = new IncrementWrapper();
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-
-                    using (var schedulerCreator =
-                        new SchedulerContainer(
-                            // ReSharper disable once AccessToDisposedClosure
-                            serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton), options => SharedSetup.SetOptions(options, enableChaos)))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        bool rollBacks;
-                        using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                    }
+
+                    var processedCount = new IncrementWrapper();
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+
+                        using (var schedulerCreator =
+                               new SchedulerContainer(
+                                   // ReSharper disable once AccessToDisposedClosure
+                                   serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton).RegisterNonScopedSingleton(trace.Source),
+                                   options => SharedSetup.SetOptions(options, enableChaos)))
                         {
-                            taskScheduler.Configuration.MaximumThreads = workerCount;
+                            bool rollBacks;
+                            using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                            {
+                                taskScheduler.Configuration.MaximumThreads = workerCount;
 
-                            taskScheduler.Start();
-                            var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
+                                taskScheduler.Start();
+                                var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
 
-                            using (
-                                var queue =
+                                using (
+                                    var queue =
                                     creator
                                         .CreateConsumerQueueScheduler(
                                             queueConnection, taskFactory))
-                            {
-                                rollBacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
-                                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime, updateTime, route);
-                                SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
-
-                                var waitForFinish = new ManualResetEventSlim(false);
-                                waitForFinish.Reset();
-
-                                //start looking for work
-                                queue.Start<TMessage>((message, notifications) =>
                                 {
-                                    MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
-                                        messageCount, message);
-                                });
+                                    rollBacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
+                                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount,
+                                        heartBeatTime,
+                                        heartBeatMonitorTime, updateTime, route);
+                                    SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
-                                waitForFinish.Wait(timeOut*1000);
+                                    var waitForFinish = new ManualResetEventSlim(false);
+                                    waitForFinish.Reset();
 
-                                //wait for last error to be saved if needed.
-                                Thread.Sleep(3000);
+                                    //start looking for work
+                                    queue.Start<TMessage>((message, notifications) =>
+                                    {
+                                        MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
+                                            messageCount, message);
+                                    });
+
+                                    waitForFinish.Wait(timeOut * 1000);
+
+                                    //wait for last error to be saved if needed.
+                                    Thread.Sleep(3000);
+                                }
                             }
-                        }
 
-                        if(rollBacks)
-                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 2, 2);
+                            if (rollBacks)
+                                VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                                    messageCount, 2, 2);
+                        }
                     }
                 }
             }
@@ -89,48 +96,54 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             bool addInterceptors, ILogger logProvider, bool actuallyPurge, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-error"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                var processedCount = new IncrementWrapper();
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false, scope)
-                    )
-                {
-
-                    using (var schedulerCreator =
-                        new SchedulerContainer(
-                            // ReSharper disable once AccessToDisposedClosure
-                            serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton), options => SharedSetup.SetOptions(options, false)))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
-                        {
-                            taskScheduler.Start();
-                            var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                    }
 
-                            using (
-                                var queue =
+                    var processedCount = new IncrementWrapper();
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, false, scope, trace.Source)
+                    )
+                    {
+
+                        using (var schedulerCreator =
+                               new SchedulerContainer(
+                                   // ReSharper disable once AccessToDisposedClosure
+                                   serviceRegister => serviceRegister.Register(() => metrics, LifeStyles.Singleton).RegisterNonScopedSingleton(trace.Source),
+                                   options => SharedSetup.SetOptions(options, false)))
+                        {
+                            using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                            {
+                                taskScheduler.Start();
+                                var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
+
+                                using (
+                                    var queue =
                                     creator
                                         .CreateConsumerQueueScheduler(
                                             queueConnection, taskFactory))
-                            {
-                              
-                                SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
-                                SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+                                {
 
-                                var waitForFinish = new ManualResetEventSlim(false);
-                                waitForFinish.Reset();
+                                    SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
+                                    SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
 
-                                //start looking for work
-                                queue.Start<TMessage>((message, notifications) => throw new Exception("There should have been no data to process"));
+                                    var waitForFinish = new ManualResetEventSlim(false);
+                                    waitForFinish.Reset();
 
-                                //wait for 30 seconds
-                                waitForFinish.Wait(15000);
+                                    //start looking for work
+                                    queue.Start<TMessage>((message, notifications) =>
+                                        throw new Exception("There should have been no data to process"));
+
+                                    //wait for 30 seconds
+                                    waitForFinish.Wait(15000);
+                                }
                             }
                         }
                     }

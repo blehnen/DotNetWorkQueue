@@ -64,15 +64,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                         log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
                         if (Activity.Current != null)
                         {
-                            var scope = tracer.StartActivity("RetryTransaction");
-                            try
+                            using (var scope = tracer.StartActivity("RetryTransaction"))
                             {
-                                scope?.SetTag("RetryTime", timeSpan.ToString());
-                                scope?.RecordException(exception);
-                            }
-                            finally
-                            {
-                                scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
+                                try
+                                {
+                                    scope?.SetTag("RetryTime", timeSpan.ToString());
+                                    scope?.RecordException(exception);
+                                }
+                                finally
+                                {
+                                    scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
+                                }
                             }
                         }
                     });

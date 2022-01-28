@@ -13,8 +13,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
     public class ConsumerCancelWork
     {
         [Theory]
-        [InlineData(7, 15, 90, 3, false),
-         InlineData(7, 15, 190, 3, false)]
+        [InlineData(7, 15, 90, 3, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

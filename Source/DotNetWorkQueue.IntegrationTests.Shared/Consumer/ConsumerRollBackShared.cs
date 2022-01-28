@@ -18,7 +18,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             int timeOut,
             int runTime,
             long messageCount,
-            TimeSpan heartBeatTime, 
+            TimeSpan heartBeatTime,
             TimeSpan heartBeatMonitorTime,
             string updateTime,
             string route, bool enableChaos, ICreationScope scope)
@@ -28,44 +28,51 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-rollback"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                var processedCount = new IncrementWrapper();
-                var haveIProcessedYouBefore = new ConcurrentDictionary<string, int>();
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-                    using (
-                        var queue =
-                            creator.CreateConsumer(queueConnection))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, route);
-                        var waitForFinish = new ManualResetEventSlim(false);
-                        waitForFinish.Reset();
-
-                        //start looking for work
-                        queue.Start<TMessage>((message, notifications) =>
-                        {
-                            MessageHandlingShared.HandleFakeMessagesRollback(message, runTime, processedCount,
-                                messageCount,
-                                waitForFinish, haveIProcessedYouBefore);
-                        });
-
-                        waitForFinish.Wait(timeOut*1000);
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                     }
-                    Assert.Equal(messageCount, processedCount.ProcessedCount);
-                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
-                    VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 1, 0);
-                    LoggerShared.CheckForErrors(queueConnection.Queue);
-                    haveIProcessedYouBefore.Clear();
+
+                    var processedCount = new IncrementWrapper();
+                    var haveIProcessedYouBefore = new ConcurrentDictionary<string, int>();
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+                        using (
+                            var queue =
+                            creator.CreateConsumer(queueConnection))
+                        {
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, route);
+                            var waitForFinish = new ManualResetEventSlim(false);
+                            waitForFinish.Reset();
+
+                            //start looking for work
+                            queue.Start<TMessage>((message, notifications) =>
+                            {
+                                MessageHandlingShared.HandleFakeMessagesRollback(message, runTime, processedCount,
+                                    messageCount,
+                                    waitForFinish, haveIProcessedYouBefore);
+                            });
+
+                            waitForFinish.Wait(timeOut * 1000);
+                        }
+
+                        Assert.Equal(messageCount, processedCount.ProcessedCount);
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount);
+                        VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount, 1, 0);
+                        LoggerShared.CheckForErrors(queueConnection.Queue);
+                        haveIProcessedYouBefore.Clear();
+                    }
                 }
             }
         }

@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
@@ -16,7 +20,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             return new QueueContainer<TTransportInit>(additionalRegs);
         }
 
-        public static QueueContainer<TTransportInit> CreateCreator<TTransportInit>(InterceptorAdding addInterceptors, IMetrics metrics, bool enableChaos)
+        public static QueueContainer<TTransportInit> CreateCreator<TTransportInit>(InterceptorAdding addInterceptors, IMetrics metrics, bool enableChaos, ActivitySource trace)
            where TTransportInit : ITransportInit, new()
         {
             switch (addInterceptors)
@@ -24,7 +28,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 case InterceptorAdding.ConfigurationOnly:
                     return new QueueContainer<TTransportInit>(serviceRegister => serviceRegister.Register(() => metrics,
                        LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                           Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                           Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
                 case InterceptorAdding.Yes:
                     return new QueueContainer<TTransportInit>(serviceRegister => serviceRegister.Register(() => metrics,
                         LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
@@ -32,10 +36,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                             typeof (GZipMessageInterceptor), //gzip compression
                             typeof (TripleDesMessageInterceptor) //encryption
                         }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                            Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                            Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
                 default:
                     return new QueueContainer<TTransportInit>(serviceRegister => serviceRegister.Register(() => metrics,
-                        LifeStyles.Singleton), options => SetOptions(options, enableChaos));
+                        LifeStyles.Singleton).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
             }
         }
 
@@ -46,7 +50,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
 
         public static QueueContainer<TTransportInit> CreateCreator<TTransportInit>(InterceptorAdding addInterceptors,
-            ILogger logProvider, IMetrics metrics, bool createBadSerialization, bool enableChaos, ICreationScope scope)
+            ILogger logProvider, IMetrics metrics, bool createBadSerialization, bool enableChaos, ICreationScope scope, ActivitySource trace)
             where TTransportInit : ITransportInit, new()
         {
             if (createBadSerialization)
@@ -58,6 +62,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
                                 .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton)
                                 .RegisterNonScopedSingleton(scope)
+                                .RegisterNonScopedSingleton(trace)
                                 .Register(() => metrics,
                                     LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(
                                     Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
@@ -68,6 +73,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
                                 .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton)
                                 .RegisterNonScopedSingleton(scope)
+                                .RegisterNonScopedSingleton(trace)
                                 .Register(() => metrics,
                                     LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
                                 {
@@ -82,6 +88,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)
                                 .Register<ISerializer, SerializerThatWillCrashOnDeSerialization>(LifeStyles.Singleton)
                                 .RegisterNonScopedSingleton(scope)
+                                .RegisterNonScopedSingleton(trace)
                                 .Register(() => metrics,
                                     LifeStyles.Singleton), options => SetOptions(options, enableChaos));
                 }
@@ -94,7 +101,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
                                 LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope), options => SetOptions(options, enableChaos));
+                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
                     case InterceptorAdding.Yes:
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
@@ -103,11 +110,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                                 typeof (GZipMessageInterceptor), //gzip compression
                                 typeof (TripleDesMessageInterceptor) //encryption
                             }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope), options => SetOptions(options, enableChaos));
+                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
                     default:
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
-                                LifeStyles.Singleton).RegisterNonScopedSingleton(scope), options => SetOptions(options, enableChaos));
+                                LifeStyles.Singleton).RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
                 }
             }
         }
@@ -143,6 +150,61 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             configuration.MessageError.MessageAge = actuallyPurge ? TimeSpan.FromSeconds(0) : TimeSpan.FromDays(1);
             configuration.MessageError.Enabled = true;
             configuration.MessageError.MonitorTime = TimeSpan.FromSeconds(5);
+        }
+
+        public static ActivitySourceWrapper CreateTrace(string name)
+        {
+            var traceName = TraceSettings.TraceName(name);
+            if (TraceSettings.Enabled)
+            {
+                var openTelemetry = Sdk.CreateTracerProviderBuilder()
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(traceName))
+                    .AddSource(traceName, traceName)
+                    .AddJaegerExporter(o =>
+                    {
+                        o.AgentHost = TraceSettings.Host;
+                        o.AgentPort = TraceSettings.Port;
+
+                        // Examples for the rest of the options, defaults unless otherwise specified
+                        // Omitting Process Tags example as Resource API is recommended for additional tags
+                        o.MaxPayloadSizeInBytes = 4096;
+
+                        // Using Batch Exporter (which is default)
+                        // The other option is ExportProcessorType.Simple
+                        o.ExportProcessorType = ExportProcessorType.Batch;
+                        o.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity>()
+                        {
+                            MaxQueueSize = 16384,
+                            ScheduledDelayMilliseconds = 5000,
+                            ExporterTimeoutMilliseconds = 30000,
+                            MaxExportBatchSize = 2048,
+                        };
+                    })
+                    .Build();
+            }
+            return new ActivitySourceWrapper(new ActivitySource(traceName));
+        }
+    }
+
+    public class ActivitySourceWrapper : IDisposable
+    {
+        public ActivitySourceWrapper(ActivitySource source)
+        {
+            Source = source;
+        }
+
+        public ActivitySource Source
+        {
+            get;
+        }
+
+        public void Dispose()
+        {
+            Source?.Dispose();
+
+            //if jaeger is using udp, sometimes the messages get lost; there doesn't seem to be a flush() call ?
+            if (TraceSettings.Enabled)
+                System.Threading.Thread.Sleep(2000);
         }
     }
 

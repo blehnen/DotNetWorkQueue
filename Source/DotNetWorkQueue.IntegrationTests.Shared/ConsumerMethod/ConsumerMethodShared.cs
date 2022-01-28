@@ -19,40 +19,46 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-poison"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-                    using (
-                        var queue =
-                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, null);
-                        queue.Start();
-                        var counter = 0;
-                        while (counter < timeOut)
-                        {
-                            if (MethodIncrementWrapper.Count(id) >= messageCount)
-                            {
-                                break;
-                            }
-                            Thread.Sleep(1000);
-                            counter++;
-                        }
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                     }
 
-                    Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
-                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
-                    LoggerShared.CheckForErrors(queueConnection.Queue);
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+                        using (
+                            var queue =
+                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace.Source)))
+                        {
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, null);
+                            queue.Start();
+                            var counter = 0;
+                            while (counter < timeOut)
+                            {
+                                if (MethodIncrementWrapper.Count(id) >= messageCount)
+                                {
+                                    break;
+                                }
+
+                                Thread.Sleep(1000);
+                                counter++;
+                            }
+                        }
+
+                        Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount);
+                        LoggerShared.CheckForErrors(queueConnection.Queue);
+                    }
                 }
             }
         }

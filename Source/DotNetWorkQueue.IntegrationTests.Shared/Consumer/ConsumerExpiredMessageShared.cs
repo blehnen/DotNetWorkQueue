@@ -22,49 +22,57 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-expired"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-                var processedCount = new IncrementWrapper();
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-                    using (
-                        var queue =
-                            creator.CreateConsumer(queueConnection))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, route);
-                        queue.Configuration.MessageExpiration.Enabled = true;
-                        queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(8);
-                        var waitForFinish = new ManualResetEventSlim(false);
-                        waitForFinish.Reset();
-                        //start looking for work
-                        queue.Start<TMessage>((message, notifications) =>
-                        {
-                            MessageHandlingShared.HandleFakeMessages<TMessage>(null, runTime, processedCount, messageCount,
-                                waitForFinish);
-                        });
-
-                        for (var i = 0; i < timeOut; i++)
-                        {
-                            if (VerifyMetrics.GetExpiredMessageCount(metrics.GetCurrentMetrics()) == messageCount)
-                            {
-                                break;
-                            }
-                            Thread.Sleep(1000);
-                        }
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                     }
 
-                    Assert.Equal(0, processedCount.ProcessedCount);
-                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), 0);
-                    VerifyMetrics.VerifyExpiredMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
-                    LoggerShared.CheckForErrors(queueConnection.Queue);
+                    var processedCount = new IncrementWrapper();
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+                        using (
+                            var queue =
+                            creator.CreateConsumer(queueConnection))
+                        {
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, route);
+                            queue.Configuration.MessageExpiration.Enabled = true;
+                            queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(8);
+                            var waitForFinish = new ManualResetEventSlim(false);
+                            waitForFinish.Reset();
+                            //start looking for work
+                            queue.Start<TMessage>((message, notifications) =>
+                            {
+                                MessageHandlingShared.HandleFakeMessages<TMessage>(null, runTime, processedCount,
+                                    messageCount,
+                                    waitForFinish);
+                            });
+
+                            for (var i = 0; i < timeOut; i++)
+                            {
+                                if (VerifyMetrics.GetExpiredMessageCount(metrics.GetCurrentMetrics()) == messageCount)
+                                {
+                                    break;
+                                }
+
+                                Thread.Sleep(1000);
+                            }
+                        }
+
+                        Assert.Equal(0, processedCount.ProcessedCount);
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), 0);
+                        VerifyMetrics.VerifyExpiredMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount);
+                        LoggerShared.CheckForErrors(queueConnection.Queue);
+                    }
                 }
             }
         }

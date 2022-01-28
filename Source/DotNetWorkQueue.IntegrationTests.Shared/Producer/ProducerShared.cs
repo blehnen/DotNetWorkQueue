@@ -38,28 +38,35 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
             where TTransportInit : ITransportInit, new()
             where TMessage : class
         {
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("producer"))
             {
-                var addInterceptorProducer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorProducer = InterceptorAdding.Yes;
-                }
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-                    //create the queue
-                    using (var queue =
-                        creator
-                            .CreateProducer
-                            <TMessage>(queueConnection))
+                    var addInterceptorProducer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        RunProducer(queue, queueConnection, messageCount, generateData, verify, sendViaBatch, scope);
+                        addInterceptorProducer = InterceptorAdding.Yes;
                     }
 
-                    if (validateMetricCounts)
-                        VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+                        //create the queue
+                        using (var queue =
+                               creator
+                                   .CreateProducer
+                                       <TMessage>(queueConnection))
+                        {
+                            RunProducer(queue, queueConnection, messageCount, generateData, verify, sendViaBatch,
+                                scope);
+                        }
+
+                        if (validateMetricCounts)
+                            VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                                messageCount);
+                    }
                 }
             }
         }

@@ -12,26 +12,30 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             bool addInterceptors, ILogger logProvider, bool actuallyPurge, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-error"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, false, scope)
-                )
-                {
-                    using (
-                        var queue =
-                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
-                        SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
-                        queue.Start();
-                        Thread.Sleep(15000);
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                    }
+
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, false, scope, trace.Source)
+                    )
+                    {
+                        using (
+                            var queue =
+                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace.Source)))
+                        {
+                            SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
+                            SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+                            queue.Start();
+                            Thread.Sleep(15000);
+                        }
                     }
                 }
             }
@@ -46,46 +50,52 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-error"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-                    bool rollbacks;
-                    using (
-                        var queue =
-                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, null);
-                        SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
-                        rollbacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
-                        queue.Start();
-
-                        var counter = 0;
-                        while (counter < timeOut)
-                        {
-                            if (MethodIncrementWrapper.Count(id) >= messageCount*3)
-                            {
-                                break;
-                            }
-                            Thread.Sleep(1000);
-                            counter++;
-                        }
-
-                        //wait 3 more seconds before starting to shutdown
-                        Thread.Sleep(3000);
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                     }
 
-                    if(rollbacks)
-                        VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 2, 2);
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+                        bool rollbacks;
+                        using (
+                            var queue =
+                            creator.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace.Source)))
+                        {
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, null);
+                            SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
+                            rollbacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
+                            queue.Start();
+
+                            var counter = 0;
+                            while (counter < timeOut)
+                            {
+                                if (MethodIncrementWrapper.Count(id) >= messageCount * 3)
+                                {
+                                    break;
+                                }
+
+                                Thread.Sleep(1000);
+                                counter++;
+                            }
+
+                            //wait 3 more seconds before starting to shutdown
+                            Thread.Sleep(3000);
+                        }
+
+                        if (rollbacks)
+                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                                messageCount, 2, 2);
+                    }
                 }
             }
         }

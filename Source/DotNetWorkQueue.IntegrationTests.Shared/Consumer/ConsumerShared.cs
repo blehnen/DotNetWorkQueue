@@ -14,48 +14,54 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, bool enableChaos, ICreationScope scope)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, bool enableChaos,
+            ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
 
-            if (enableChaos)
-                timeOut *= 2;
-
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
-                {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
+                if (enableChaos)
+                    timeOut *= 2;
 
-                var processedCount = new IncrementWrapper();
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    using (
-                        var queue =
-                            creator.CreateConsumer(queueConnection))
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, null);
-                        var waitForFinish = new ManualResetEventSlim(false);
-                        waitForFinish.Reset();
-                        //start looking for work
-                        queue.Start<TMessage>((message, notifications) =>
-                        {
-                            MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
-                                waitForFinish);
-                        });
-
-                        waitForFinish.Wait(timeOut*1000);
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
                     }
 
-                    Assert.Null(processedCount.IdError);
-                    Assert.Equal(messageCount, processedCount.ProcessedCount);
-                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
-                    LoggerShared.CheckForErrors(queueConnection.Queue);
+                    var processedCount = new IncrementWrapper();
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+                        using (
+                            var queue =
+                            creator.CreateConsumer(queueConnection))
+                        {
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, null);
+                            var waitForFinish = new ManualResetEventSlim(false);
+                            waitForFinish.Reset();
+                            //start looking for work
+                            queue.Start<TMessage>((message, notifications) =>
+                            {
+                                MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
+                                    waitForFinish);
+                            });
+
+                            waitForFinish.Wait(timeOut * 1000);
+                        }
+
+                        Assert.Null(processedCount.IdError);
+                        Assert.Equal(messageCount, processedCount.ProcessedCount);
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount);
+                        LoggerShared.CheckForErrors(queueConnection.Queue);
+                    }
                 }
             }
         }

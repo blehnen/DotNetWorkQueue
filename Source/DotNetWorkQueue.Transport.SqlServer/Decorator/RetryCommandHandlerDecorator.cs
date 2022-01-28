@@ -62,3 +62,4 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
         }
     }
 }
+""

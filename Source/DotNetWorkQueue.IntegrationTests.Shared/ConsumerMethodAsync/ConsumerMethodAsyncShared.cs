@@ -30,43 +30,49 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
+                    {
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                    }
 
                     using (
-                        var queue =
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+
+                        using (
+                            var queue =
                             creator
                                 .CreateConsumerMethodQueueScheduler(
                                     queueConnection, Factory))
-                    {
-                        SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, null);
-                        queue.Start();
-                        var counter = 0;
-                        while (counter < timeOut)
                         {
-                            if (MethodIncrementWrapper.Count(id) >= messageCount)
+                            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
+                                heartBeatMonitorTime, updateTime, null);
+                            queue.Start();
+                            var counter = 0;
+                            while (counter < timeOut)
                             {
-                                break;
-                            }
-                            Thread.Sleep(1000);
-                            counter++;
-                        }
-                    }
+                                if (MethodIncrementWrapper.Count(id) >= messageCount)
+                                {
+                                    break;
+                                }
 
-                    Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
-                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
-                    LoggerShared.CheckForErrors(queueConnection.Queue);
+                                Thread.Sleep(1000);
+                                counter++;
+                            }
+                        }
+
+                        Assert.Equal(messageCount, MethodIncrementWrapper.Count(id));
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            messageCount);
+                        LoggerShared.CheckForErrors(queueConnection.Queue);
+                    }
                 }
             }
         }

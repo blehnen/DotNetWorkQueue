@@ -32,56 +32,66 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             if (enableChaos)
                 timeOut *= 2;
 
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("consumer-rollback"))
             {
-                var addInterceptorConsumer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
-                }
-
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-
-                    using (var schedulerCreator = new SchedulerContainer())
+                    var addInterceptorConsumer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                        addInterceptorConsumer = InterceptorAdding.ConfigurationOnly;
+                    }
+
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+
+                        using (var schedulerCreator = new SchedulerContainer((x) => x.RegisterNonScopedSingleton(trace.Source)))
                         {
-                            taskScheduler.Configuration.MaximumThreads = workerCount;
+                            using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                            {
+                                taskScheduler.Configuration.MaximumThreads = workerCount;
 
-                            taskScheduler.Start();
-                            var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
+                                taskScheduler.Start();
+                                var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
 
-                            using (
-                                var queue =
+                                using (
+                                    var queue =
                                     creator
                                         .CreateConsumerQueueScheduler(
                                             queueConnection, taskFactory))
-                            {
-                                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                                    heartBeatMonitorTime, updateTime, route);
-
-                                var waitForFinish = new ManualResetEventSlim(false);
-                                waitForFinish.Reset();
-
-                                //start looking for work
-                                queue.Start<TMessage>((message, notifications) =>
                                 {
-                                    MessageHandlingShared.HandleFakeMessagesRollback(message, runTime, processedCount,
-                                        messageCount, waitForFinish, haveIProcessedYouBefore);
-                                });
+                                    SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount,
+                                        heartBeatTime,
+                                        heartBeatMonitorTime, updateTime, route);
 
-                                waitForFinish.Wait(timeOut*1000);
+                                    var waitForFinish = new ManualResetEventSlim(false);
+                                    waitForFinish.Reset();
+
+                                    //start looking for work
+                                    queue.Start<TMessage>((message, notifications) =>
+                                    {
+                                        MessageHandlingShared.HandleFakeMessagesRollback(message, runTime,
+                                            processedCount,
+                                            messageCount, waitForFinish, haveIProcessedYouBefore);
+                                    });
+
+                                    waitForFinish.Wait(timeOut * 1000);
+                                }
                             }
+
+                            Assert.Equal(messageCount, processedCount.ProcessedCount);
+                            VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                                messageCount);
+                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                                messageCount, 1, 0);
                         }
-                        Assert.Equal(messageCount, processedCount.ProcessedCount);
-                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
-                        VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount, 1, 0);
                     }
+
+                    haveIProcessedYouBefore.Clear();
                 }
-                haveIProcessedYouBefore.Clear();
             }
         }
     }

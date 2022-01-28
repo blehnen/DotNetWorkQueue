@@ -44,27 +44,35 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             int runTime, ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
-            using (var metrics = new Metrics.Metrics(queueConnection.Queue))
+            using (var trace = SharedSetup.CreateTrace("producer-dynamic"))
             {
-                var addInterceptorProducer = InterceptorAdding.No;
-                if (addInterceptors)
+                using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {
-                    addInterceptorProducer = InterceptorAdding.Yes;
-                }
-                using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider, metrics, false, enableChaos, scope)
-                    )
-                {
-                    //create the queue
-                    using (var queue =
-                        creator
-                            .CreateMethodProducer(queueConnection))
+                    var addInterceptorProducer = InterceptorAdding.No;
+                    if (addInterceptors)
                     {
-                        RunProducerDynamic(queue, queueConnection, messageCount, generateData, verify, sendViaBatch, id,
-                            generateTestMethod, runTime, scope);
+                        addInterceptorProducer = InterceptorAdding.Yes;
                     }
-                    if (validateMetricCounts)
-                        VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
+
+                    using (
+                        var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorProducer, logProvider,
+                            metrics, false, enableChaos, scope, trace.Source)
+                    )
+                    {
+                        //create the queue
+                        using (var queue =
+                               creator
+                                   .CreateMethodProducer(queueConnection))
+                        {
+                            RunProducerDynamic(queue, queueConnection, messageCount, generateData, verify, sendViaBatch,
+                                id,
+                                generateTestMethod, runTime, scope);
+                        }
+
+                        if (validateMetricCounts)
+                            VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                                messageCount);
+                    }
                 }
             }
         }
