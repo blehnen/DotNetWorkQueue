@@ -18,8 +18,10 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Security.Cryptography;
 using System.Text;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
@@ -27,21 +29,25 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 {
     internal static class ReceiveMessage
     {
-        /// <summary>
-        /// Gets the de queue command.
-        /// </summary>
+        /// <summary>Gets the de queue command.</summary>
         /// <param name="metaTableName">Name of the meta table.</param>
         /// <param name="queueTableName">Name of the queue table.</param>
         /// <param name="statusTableName">Name of the status table.</param>
         /// <param name="options">The options.</param>
+        /// <param name="configuration">Configuration module</param>
         /// <param name="routes">The routes.</param>
-        /// <returns></returns>
+        /// <param name="userParams">Optional user params for de-queue</param>
+        /// <returns>
+        ///   <br />
+        /// </returns>
         public static CommandString GetDeQueueCommand(string metaTableName, 
             string queueTableName,
             string statusTableName,
             SqLiteMessageQueueTransportOptions options,
-            List<string> routes )
+            QueueConsumerConfiguration configuration,
+            List<string> routes, out List<SQLiteParameter> userParams)
         {
+            userParams = null;
             var sb = new StringBuilder();
 
             var tempName = GenerateTempTableName();
@@ -99,6 +105,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 }
 
                 sb.Append(") ");
+            }
+
+
+            //if true, the query can be added to via user settings
+            var userQuery = configuration.GetUserClause();
+            if (options.AdditionalColumnsOnMetaData && !string.IsNullOrEmpty(userQuery))
+            {
+                userParams = configuration.GetUserParameters(); //NOTE - could be null
+                sb.AppendLine(needWhere
+                    ? $"where {userQuery} "
+                    : $"AND {userQuery} ");
             }
 
             //determine order by looking at the options

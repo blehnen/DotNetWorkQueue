@@ -40,6 +40,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private QueueTypes _queueType;
         private bool _enableMessageExpiration;
         private bool _enableRoute;
+        private bool _additionalColumnsOnMetaData;
 
         #region Constructor
         /// <summary>
@@ -56,6 +57,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             QueueType = QueueTypes.Normal;
             EnableStatusTable = false;
             EnableRoute = false;
+            AdditionalColumnsOnMetaData = false;
 
             AdditionalColumns = new ColumnList();
             AdditionalConstraints = new ConstraintList();
@@ -99,6 +101,21 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 _enablePriority = value;
             }
         }
+
+        /// <summary>
+        /// If true, <see cref="AdditionalColumns"/> and <see cref="AdditionalConstraints"/> will be created on the metadata table
+        /// If false, they will be created on the status table
+        /// </summary>
+        public bool AdditionalColumnsOnMetaData
+        {
+            get => _additionalColumnsOnMetaData;
+            set
+            {
+                FailIfReadOnly();
+                _additionalColumnsOnMetaData = value;
+            }
+        }
+
         /// <summary>
         /// If true, a transaction will be held until the message is finished processing.
         /// </summary>

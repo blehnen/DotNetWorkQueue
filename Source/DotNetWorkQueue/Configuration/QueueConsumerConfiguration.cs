@@ -58,6 +58,7 @@ namespace DotNetWorkQueue.Configuration
             MessageExpiration = messageExpirationConfiguration;
             MessageError = messageErrorConfiguration;
             Routes = new List<string>();
+            AdditionalSettings = new Dictionary<string, object>();
         }
         #endregion
 
@@ -89,7 +90,7 @@ namespace DotNetWorkQueue.Configuration
         /// <summary>
         /// Message error configuration
         /// </summary>
-        /// <remarks>Messages with an error status can be automaticly removed from the queue</remarks>
+        /// <remarks>Messages with an error status can be automatically removed from the queue</remarks>
         public IMessageErrorConfiguration MessageError { get; }
 
         /// <summary>
@@ -99,6 +100,11 @@ namespace DotNetWorkQueue.Configuration
         /// The routes.
         /// </value>
         public List<string> Routes { get; }
+
+        /// <summary>
+        /// Additional configuration settings for the consumer that are transport specific
+        /// </summary>
+        public Dictionary<string, object> AdditionalSettings { get; }
 
         /// <summary>
         /// Gets a value indicating whether this instance is read only.

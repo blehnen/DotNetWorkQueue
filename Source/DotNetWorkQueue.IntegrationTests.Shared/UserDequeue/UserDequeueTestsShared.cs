@@ -4,56 +4,56 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Microsoft.Extensions.Logging;
 
-namespace DotNetWorkQueue.IntegrationTests.Shared.Route
+namespace DotNetWorkQueue.IntegrationTests.Shared.UserDequeue
 {
-    public class RouteTestsShared
+    public class UserDeQueueTestsShared
     {
         public void RunTest<TTransportInit, TMessage>(QueueConnection queueConnection,
            bool addInterceptors,
            int messageCount,
            ILogger logProvider,
-           Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-           Action<QueueConnection, QueueProducerConfiguration, long, string, ICreationScope> verify,
+           Func<QueueProducerConfiguration, int, AdditionalMessageData> generateData,
+           Action<QueueConnection, QueueProducerConfiguration, long, int, ICreationScope> verify,
            bool sendViaBatch, 
-           List<string> routes,
+           List<int> userValues,
            int runTime, 
            int timeOut,
            int readerCount,
            TimeSpan heartBeatTime,
            TimeSpan heartBeatMonitorTime,
            ICreationScope scope,
-           string updateTime, bool enableChaos)
+           string updateTime, bool enableChaos,
+           Action<QueueConsumerConfiguration, int> setQueueOptions)
            where TTransportInit : ITransportInit, new()
            where TMessage : class
         {
-            //add data with routes - generate data per route passed in
-            Parallel.ForEach(routes, route =>
+            //add data with user column
+            Parallel.ForEach(userValues, userColumn =>
             {
                 RunTest<TTransportInit, TMessage>(queueConnection, addInterceptors,
-                    messageCount, logProvider, generateData, verify, sendViaBatch, route, scope, false);
+                    messageCount, logProvider, generateData, verify, sendViaBatch, userColumn, scope, false);
             });
 
-            //run a consumer for each route
+            //run a consumer for each data value
             using (var schedulerCreator = new SchedulerContainer())
             {
                 var taskScheduler = schedulerCreator.CreateTaskScheduler();
 
-                taskScheduler.Configuration.MaximumThreads = routes.Count * 2;
+                taskScheduler.Configuration.MaximumThreads = userValues.Count * 2;
 
                 taskScheduler.Start();
                 var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
 
-                //spin up and process each route
-                Parallel.ForEach(routes, route =>
+                //spin up and process each value
+                Parallel.ForEach(userValues, userColumn =>
                 {
                     var consumer = new ConsumerAsyncShared<TMessage> {Factory = taskFactory};
 
                     consumer.RunConsumer<TTransportInit>(queueConnection, addInterceptors,
-                        logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, enableChaos, scope, route);
+                        logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, enableChaos, scope, null, (g) => setQueueOptions(g, userColumn));
                 });
             }
         }
@@ -62,10 +62,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
             bool addInterceptors,
             long messageCount,
             ILogger logProvider,
-            Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            Action<QueueConnection, QueueProducerConfiguration, long, string, ICreationScope> verify,
+            Func<QueueProducerConfiguration, int, AdditionalMessageData> generateData,
+            Action<QueueConnection, QueueProducerConfiguration, long, int, ICreationScope> verify,
             bool sendViaBatch,
-            string route,
+            int userValue,
             ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
@@ -76,23 +76,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 addInterceptors,
                 messageCount,
                 logProvider,
-                g => GenerateDataWithRoute(generateData, g, route),
-                (a, b, c, d) => VerifyRoutes(verify, a, b, c, route, scope),
+                g => generateData(g, userValue),
+                (a, b, c, d) => verify(a, b, c, userValue, scope),
                 sendViaBatch,
                 false,
                 scope, enableChaos);
-        }
-
-        private AdditionalMessageData GenerateDataWithRoute(Func<QueueProducerConfiguration, AdditionalMessageData> generateData, QueueProducerConfiguration config, string route)
-        {
-            var data = generateData(config);
-            data.Route = route;
-            return data;
-        }
-
-        private void VerifyRoutes(Action<QueueConnection, QueueProducerConfiguration, long, string, ICreationScope> verify, QueueConnection arg1, QueueProducerConfiguration arg3, long arg4, string route, ICreationScope scope)
-        {
-            verify(arg1, arg3, arg4, route, scope);
         }
     }
 }

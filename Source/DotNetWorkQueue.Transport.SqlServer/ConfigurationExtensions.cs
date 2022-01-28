@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
@@ -167,6 +168,129 @@ namespace DotNetWorkQueue.Transport.SqlServer
         public static string GetSchema(this IReadOnlyDictionary<string, string> settings)
         {
             return settings.ContainsKey(SqlSchemaName) ? settings[SqlSchemaName] : "dbo";
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for getting / adding user params for de-queue
+    /// </summary>
+    public static class QueueQueueConsumerConfigurationExtensions
+    {
+        /// <summary>
+        /// Gets the user parameters for de-queue
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <returns></returns>
+        /// <remarks>The factory method will always be returned if set, even if the non-factory method is also set</remarks>
+        public static List<SqlParameter> GetUserParameters(this QueueConsumerConfiguration configuration)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparamsfactory"))
+            {
+                return ((Func<List<SqlParameter>>)configuration.AdditionalSettings["userdequeueparamsfactory"]).Invoke();
+            }
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                return (List<SqlParameter>)configuration.AdditionalSettings["userdequeueparams"];
+            }
+            return null;
+        }
+        /// <summary>
+        /// Gets the user where/and clause for de-queue
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <returns></returns>
+        /// <remarks>The factory method will always be returned if set, even if the non-factory method is also set</remarks>
+        public static string GetUserClause(this QueueConsumerConfiguration configuration)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeuefactory"))
+            {
+                return ((Func<string>)configuration.AdditionalSettings["userdequeuefactory"]).Invoke();
+            }
+            if (configuration.AdditionalSettings.ContainsKey("userdequeue"))
+            {
+                return (string)configuration.AdditionalSettings["userdequeue"];
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Sets the user parameters and clause via a factory method
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="whereClause">The where clause.</param>
+        /// <remarks>The delegate will fire every time the queue begins to look for an item to de-queue</remarks>
+        public static void SetUserParametersAndClause(this QueueConsumerConfiguration configuration, Func<List<SqlParameter>> parameters, Func<string> whereClause)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparamsfactory"))
+            {
+                configuration.AdditionalSettings["userdequeueparamsfactory"] = parameters;
+            }
+            else
+            {
+                configuration.AdditionalSettings.Add("userdequeueparamsfactory", parameters);
+            }
+
+            if (configuration.AdditionalSettings.ContainsKey("userdequeuefactory"))
+            {
+                configuration.AdditionalSettings["userdequeuefactory"] = whereClause;
+            }
+            else
+            {
+                configuration.AdditionalSettings.Add("userdequeuefactory", whereClause);
+            }
+        }
+
+        /// <summary>
+        /// Adds the user parameter. This same parameter will be used for every de-queue call
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <param name="parameter">The parameter.</param>
+        public static void AddUserParameter(this QueueConsumerConfiguration configuration, SqlParameter parameter)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                ((List<SqlParameter>)configuration.AdditionalSettings["userdequeueparams"]).Add(parameter);
+            }
+            else
+            {
+                var data = new List<SqlParameter> { parameter };
+                configuration.AdditionalSettings.Add("userdequeueparams", data);
+            }
+        }
+
+        /// <summary>
+        /// Sets the user parameters. The same collection will be used for every de-queue call.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <param name="parameters">The parameters.</param>
+        public static void SetUserParameters(this QueueConsumerConfiguration configuration, List<SqlParameter> parameters)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                configuration.AdditionalSettings["userdequeueparams"] = parameters;
+            }
+            else
+            {
+                configuration.AdditionalSettings.Add("userdequeueparams", parameters);
+            }
+        }
+
+        /// <summary>
+        /// Sets the user where clause for custom de-queue 'AND' operations.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <param name="whereClause">The where clause.</param>
+        public static void SetUserWhereClause(this QueueConsumerConfiguration configuration, string whereClause)
+        {
+            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            {
+                configuration.AdditionalSettings["userdequeue"] = whereClause;
+            }
+            else
+            {
+                configuration.AdditionalSettings.Add("userdequeue", whereClause);
+            }
         }
     }
 }

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Validation;
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification =
             "Query checked")]
         internal void BuildCommand(IDbCommand selectCommand, CommandString commandString,
-            SqLiteMessageQueueTransportOptions options, List<string> routes)
+            SqLiteMessageQueueTransportOptions options, List<string> routes, List<SQLiteParameter> userParameters)
         {
             selectCommand.CommandText = commandString.CommandText;
 
@@ -45,6 +46,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             paramDate.DbType = DbType.Int64;
             paramDate.Value = _getTime.GetCurrentUtcDate().Ticks;
             selectCommand.Parameters.Add(paramDate);
+
+            if (options.AdditionalColumnsOnMetaData && userParameters != null && userParameters.Count > 0)
+            {
+                foreach (var userParam in userParameters)
+                {
+                    selectCommand.Parameters.Add(userParam.Clone()); //clone to avoid sharing
+                }
+            }
 
             if (options.EnableRoute && routes != null && routes.Count > 0)
             {

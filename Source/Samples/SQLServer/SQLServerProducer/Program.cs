@@ -5,6 +5,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.SqlServer;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
+using DotNetWorkQueue.Transport.SqlServer.Schema;
 using SampleShared;
 using Serilog;
 
@@ -12,6 +13,8 @@ namespace SQLServerProducer
 {
     class Program
     {
+        private static bool _userData;
+
         static void Main(string[] args)
         {
             //we are using serilog for sample purposes
@@ -34,6 +37,11 @@ namespace SQLServerProducer
                 using (var createQueue =
                     createQueueContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection))
                 {
+                    var enabledUserColumns = ConfigurationManager.AppSettings.ReadSetting("UseUserDequeue");
+                    if (bool.Parse(enabledUserColumns))
+                    {
+                        _userData = true;
+                    }
                     //Create the queue if it doesn't exist
                     if (!createQueue.QueueExists)
                     {
@@ -43,10 +51,17 @@ namespace SQLServerProducer
                         createQueue.Options.EnableMessageExpiration = true;
                         createQueue.Options.EnableStatus = true;
                         createQueue.Options.EnableStatusTable = true;
+
+                        if (!string.IsNullOrEmpty(enabledUserColumns) && bool.Parse(enabledUserColumns))
+                        {
+                            createQueue.Options.AdditionalColumnsOnMetaData = true;
+                            createQueue.Options.AdditionalColumns.Add(new Column("DayOfWeek", ColumnTypes.Int, true, null));
+                        }
+
                         var result = createQueue.CreateQueue();
                         log.Information(result.Status.ToString());
                     }
-                    else log.Information("Queue already exists; not creating");
+                    else log.Warning("Queue already exists; not creating; note that any setting changes won't be applied");
                 }
             }
 
@@ -75,6 +90,10 @@ namespace SQLServerProducer
             var data = new AdditionalMessageData();
             data.SetExpiration(TimeSpan.FromSeconds(1));
             data.SetDelay(TimeSpan.FromSeconds(5));
+            if (_userData)
+            {
+                data.AdditionalMetaData.Add(new AdditionalMetaData<int>("DayOfWeek", Convert.ToInt32(DateTime.Today.DayOfWeek)));
+            }
             return data;
         }
 
@@ -86,6 +105,10 @@ namespace SQLServerProducer
         {
             var data = new AdditionalMessageData();
             data.SetExpiration(TimeSpan.FromDays(1));
+            if (_userData)
+            {
+                data.AdditionalMetaData.Add(new AdditionalMetaData<int>("DayOfWeek", Convert.ToInt32(DateTime.Today.DayOfWeek)));
+            }
             return data;
         }
 
@@ -94,6 +117,10 @@ namespace SQLServerProducer
             var data = new AdditionalMessageData();
             data.SetDelay(TimeSpan.FromSeconds(seconds));
             data.SetExpiration(TimeSpan.FromDays(1));
+            if (_userData)
+            {
+                data.AdditionalMetaData.Add(new AdditionalMetaData<int>("DayOfWeek", Convert.ToInt32(DateTime.Today.DayOfWeek)));
+            }
             return data;
         }
     }

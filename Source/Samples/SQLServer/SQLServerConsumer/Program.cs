@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Transport.SqlServer;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using SampleShared;
 using Serilog;
@@ -61,6 +64,15 @@ namespace SQLServerConsumer
 
                     queue.Configuration.MessageExpiration.Enabled = true;
                     queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(20); //check for expired messages every 20 seconds
+
+                    var enabledUserColumns = ConfigurationManager.AppSettings.ReadSetting("UseUserDequeue");
+                    if (!string.IsNullOrEmpty(enabledUserColumns) && bool.Parse(enabledUserColumns))
+                    {
+                        var dayofWeek = int.Parse(ConfigurationManager.AppSettings.ReadSetting("UserDayOfWeek"));
+                        log.Information( $"Only processing items created on {((DayOfWeek)dayofWeek).ToString()}");
+                        queue.Configuration.SetUserParametersAndClause(() => Parameters(dayofWeek), WhereClause);
+                    }
+
                     queue.Start<SimpleMessage>(MessageProcessing.HandleMessages);
                     Console.WriteLine("Processing messages - press any key to stop");
                     Console.ReadKey((true));
@@ -70,6 +82,22 @@ namespace SQLServerConsumer
             //if jaeger is using udp, sometimes the messages get lost; there doesn't seem to be a flush() call ?
             if (SharedConfiguration.EnableTrace)
                 System.Threading.Thread.Sleep(2000);
+        }
+
+        private static string WhereClause()
+        {
+            return "(DayOfWeek = @DayOfWeek)";
+        }
+
+        private static List<SqlParameter> Parameters(int dayOfWeek)
+        {
+            var list = new List<SqlParameter>();
+            var userParam = new SqlParameter("@DayOfWeek", SqlDbType.Int)
+            {
+                Value = dayOfWeek
+            };
+            list.Add(userParam);
+            return list;
         }
     }
 }
