@@ -19,7 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
@@ -28,17 +28,21 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
     {
         private const string DequeueKey = "dequeueCommand";
 
-        /// <summary>
-        /// Gets the de queue command.
-        /// </summary>
+        /// <summary>Gets the de queue command.</summary>
         /// <param name="commandCache">The command cache.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="options">The options.</param>
+        /// <param name="configuration">Queue Configuration</param>
         /// <param name="routes">The routes.</param>
-        /// <returns></returns>
-        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, ITableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, List<string> routes )
+        /// <param name="userParams">An optional collection of user params to pass to the query</param>
+        /// <returns>
+        ///   <br />
+        /// </returns>
+        public static string GetDeQueueCommand(PostgreSqlCommandStringCache commandCache, ITableNameHelper tableNameHelper, PostgreSqlMessageQueueTransportOptions options, QueueConsumerConfiguration configuration, List<string> routes, out List<Npgsql.NpgsqlParameter> userParams)
         {
-            if (routes == null || routes.Count == 0)
+            userParams = null;
+            var userQuery = configuration.GetUserClause();
+            if ((routes == null || routes.Count == 0) && string.IsNullOrEmpty(userQuery))
             {
                 if (commandCache.Contains(DequeueKey))
                 {
@@ -113,6 +117,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 sb.Append(") ");
             }
 
+            //if true, the query can be added to via user settings
+            if (options.AdditionalColumnsOnMetaData && !string.IsNullOrEmpty(userQuery))
+            {
+                userParams = configuration.GetUserParameters(); //NOTE - could be null
+                sb.AppendLine(needWhere
+                    ? $"where {userQuery} "
+                    : $"AND {userQuery} ");
+            }
+
             //determine order by looking at the options
             var bNeedComma = false;
             sb.Append(" Order by ");
@@ -157,7 +170,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             sb.AppendLine(" AND q.QueueID = qm.QueueID");
             sb.AppendLine("returning q.queueid, qm.body, qm.Headers, q.CorrelationID");
 
-            if (routes != null && routes.Count > 0)
+            if ((routes != null && routes.Count > 0) || !string.IsNullOrEmpty(userQuery))
             { //TODO - cache based on route
                 return sb.ToString();
             }

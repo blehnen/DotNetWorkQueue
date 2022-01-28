@@ -22,12 +22,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 int messageCount,
                 int timeOut,
                 int readerCount,
-                TimeSpan heartBeatTime, 
+                TimeSpan heartBeatTime,
                 TimeSpan heartBeatMonitorTime,
                 string updateTime,
                 bool enableChaos,
                 ICreationScope scope,
-                List<string> routes)
+                string route,
+                Action<QueueConsumerConfiguration> setQueueOptions = null)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -35,9 +36,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 timeOut *= 2;
 
             var metricName = queueConnection.Queue;
-            if (routes != null)
+            if (!string.IsNullOrEmpty(route))
             {
-                metricName = routes.Aggregate(metricName, (current, route) => current + route + "|-|");
+                metricName = queueConnection.Queue + "|-|" + route;
             }
 
             using (var metrics = new Metrics.Metrics(metricName))
@@ -50,21 +51,24 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                 }
 
                 using (
-                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider, metrics, false, enableChaos, scope)
-                    )
+                    var creator = SharedSetup.CreateCreator<TTransportInit>(addInterceptorConsumer, logProvider,
+                        metrics, false, enableChaos, scope)
+                )
                 {
 
                     using (
                         var queue =
-                            creator
-                                .CreateConsumerQueueScheduler(
-                                    queueConnection, Factory))
+                        creator
+                            .CreateConsumerQueueScheduler(
+                                queueConnection, Factory))
                     {
                         SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount, heartBeatTime,
-                            heartBeatMonitorTime, updateTime, null);
+                            heartBeatMonitorTime, updateTime, route);
 
-                        if(routes != null)
-                            queue.Configuration.Routes.AddRange(routes);
+                        if (!string.IsNullOrWhiteSpace(route))
+                            queue.Configuration.Routes.Add(route);
+
+                        setQueueOptions?.Invoke(queue.Configuration);
 
                         var waitForFinish = new ManualResetEventSlim(false);
                         waitForFinish.Reset();
@@ -72,32 +76,17 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                         //start looking for work
                         queue.Start<TMessage>((message, notifications) =>
                         {
-                            if (routes != null && routes.Count > 0)
-                            {
-                                MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount * routes.Count,
+                            MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
                                 waitForFinish);
-                            }
-                            else
-                            {
-                                MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
-                                waitForFinish);
-                            }
                         });
 
-                        waitForFinish.Wait(timeOut*1000);
+                        waitForFinish.Wait(timeOut * 1000);
                     }
 
                     Assert.Null(processedCount.IdError);
-                    if (routes != null && routes.Count > 0)
-                    {
-                        Assert.Equal(messageCount * routes.Count, processedCount.ProcessedCount);
-                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount * routes.Count);
-                    }
-                    else
-                    {
-                        Assert.Equal(messageCount, processedCount.ProcessedCount);
-                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), messageCount);
-                    }
+                    Assert.Equal(messageCount, processedCount.ProcessedCount);
+                    VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                        messageCount);
                     LoggerShared.CheckForErrors(queueConnection.Queue);
                 }
             }

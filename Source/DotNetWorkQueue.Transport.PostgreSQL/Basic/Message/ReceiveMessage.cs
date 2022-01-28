@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -63,18 +64,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             _cancelToken = cancelToken;
         }
 
-        /// <summary>
-        /// Returns the next message, if any.
-        /// </summary>
+        /// <summary>Returns the next message, if any.</summary>
         /// <param name="context">The context.</param>
         /// <param name="connectionHolder">The connection.</param>
         /// <param name="noMessageFoundActon">The no message found action.</param>
         /// <param name="routes">The routes.</param>
-        /// <returns>
-        /// A message if one is found; null otherwise
-        /// </returns>
+        /// <param name="userParameterCollection">Optional user params for de-queue</param>
+        /// <param name="userWhereClause">Optional user AND clause for de-queue</param>
+        /// <returns>A message if one is found; null otherwise</returns>
         public IReceivedMessageInternal GetMessage(IMessageContext context, IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> connectionHolder,
-            Action<IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>> noMessageFoundActon, List<string> routes )
+            Action<IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>> noMessageFoundActon, List<string> routes, IReadOnlyList<DbParameter> userParameterCollection, string userWhereClause)
         {
             //if stopping, exit now
             if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
@@ -86,7 +85,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             //ask for the next message
             var receivedTransportMessage =
                 _receiveMessage.Handle(new ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>(connectionHolder.Connection,
-                    connectionHolder.Transaction, routes));
+                    connectionHolder.Transaction, routes, userParameterCollection, userWhereClause));
 
             return ProcessMessage(receivedTransportMessage, connectionHolder, context, noMessageFoundActon);
         }

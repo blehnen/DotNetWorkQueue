@@ -24,9 +24,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             _connection = new SqliteConnectionInformation(queueConnection, new DbDataSource());
             _tableNameHelper = new TableNameHelper(_connection);
         }
-        public void Verify(long expectedMessageCount, string route)
+        public void Verify(long expectedMessageCount, string route, int orderId = 0)
         {
-            VerifyCount(expectedMessageCount, route);
+            VerifyCount(expectedMessageCount, route, orderId);
 
             if (_options.EnablePriority)
             {
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        private void VerifyCount(long messageCount, string route)
+        private void VerifyCount(long messageCount, string route, int orderId = 0)
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))
             {
@@ -68,6 +68,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
                     {
                         command.CommandText += " where route = @route";
                         command.Parameters.AddWithValue("@Route", route);
+                    }
+                    else if (orderId > 0)
+                    {
+                        command.CommandText += " where OrderID = @OrderID";
+                        command.Parameters.AddWithValue("@OrderID", orderId);
                     }
                     using (var reader = command.ExecuteReader())
                     {

@@ -16,6 +16,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             new VerifyQueueData(queueConnection, queueProducerConfiguration.Options()).Verify(messageCount);
         }
 
+        public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, int orderId, ICreationScope scope)
+        {
+            new VerifyQueueData(queueConnection, queueProducerConfiguration.Options()).Verify(messageCount, orderId);
+        }
+
         public static void Verify(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, string route, ICreationScope scope)
         {
             new VerifyQueueData(queueConnection, queueProducerConfiguration.Options()).Verify(messageCount, route);
@@ -90,6 +95,28 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             return null;
         }
 
+        public static AdditionalMessageData GenerateDataWithColumnValue(QueueProducerConfiguration configuration,
+            int columnValue)
+        {
+
+            var data = new AdditionalMessageData();
+
+            if (configuration.Options().EnableMessageExpiration)
+                data.SetExpiration(TimeSpan.FromSeconds(1));
+
+            if (configuration.Options().EnableDelayedProcessing)
+                data.SetDelay(TimeSpan.FromSeconds(5));
+
+            if (configuration.Options().EnablePriority)
+                data.SetPriority(5);
+
+
+            data.AdditionalMetaData.Add(new AdditionalMetaData<int>("OrderID", columnValue));
+            
+
+            return data;
+        }
+
         public static void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)
         {
             new VerifyQueueRecordCount(queueConnection, (SqlServerMessageQueueTransportOptions)arg3).Verify(arg5, arg6, arg7);
@@ -103,7 +130,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             bool enableStatus,
             bool enableStatusTable,
             bool additionalColumn,
-            bool enableRoute = false)
+            bool enableRoute = false,
+            bool additionalColumnsOnMetaData = false)
         {
             oCreation.Options.EnableDelayedProcessing = enableDelayedProcessing;
             oCreation.Options.EnableHeartBeat = enableHeartBeat;
@@ -114,10 +142,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
             oCreation.Options.EnableStatus = enableStatus;
             oCreation.Options.EnableStatusTable = enableStatusTable;
             oCreation.Options.EnableRoute = enableRoute;
+            oCreation.Options.AdditionalColumnsOnMetaData = additionalColumnsOnMetaData;
 
             if (additionalColumn)
             {
                 oCreation.Options.AdditionalColumns.Add(new Column("OrderID", ColumnTypes.Int, true, null));
+                oCreation.Options.AdditionalConstraints.Add(new Constraint("IX_OrderID", ConstraintType.Index, "OrderID"));
             }
         }
     }

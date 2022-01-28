@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 
             //ask for the next message
             var receivedTransportMessage =
-                _receiveMessage.Handle(new ReceiveMessageQuery<IDbConnection, IDbTransaction>(null, null, _configuration.Routes));
+                _receiveMessage.Handle(new ReceiveMessageQuery<IDbConnection, IDbTransaction>(null, null, _configuration.Routes, _configuration.GetUserParameters(), _configuration.GetUserClause()));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)

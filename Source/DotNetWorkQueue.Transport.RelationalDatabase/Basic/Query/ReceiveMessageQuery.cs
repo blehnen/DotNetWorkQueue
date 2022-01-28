@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
@@ -34,24 +35,30 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// Initializes a new instance of the <see cref="ReceiveMessageQuery{TConnection, TTransaction}" /> class.
         /// </summary>
         /// <param name="routes">The routes.</param>
-        public ReceiveMessageQuery(List<string> routes)
+        /// <param name="userParameterCollection">user params to use with <see cref="UserWhereClause"/></param>
+        /// <param name="userWhereClause">an optional where clause to apply to the de-queue</param>
+        public ReceiveMessageQuery(List<string> routes, IReadOnlyList<DbParameter> userParameterCollection, string userWhereClause)
         {
             Connection = default(TConnection);
             Transaction = default(TTransaction);
             Routes = routes;
+            UserParameterCollection = userParameterCollection;
+            UserWhereClause = userWhereClause;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiveMessageQuery{TConnection, TTransaction}" /> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="ReceiveMessageQuery{TConnection, TTransaction}" /> class.</summary>
         /// <param name="connection">The connection.</param>
         /// <param name="transaction">The transaction.</param>
         /// <param name="routes">The routes.</param>
-        public ReceiveMessageQuery(TConnection connection, TTransaction transaction, List<string> routes )
+        /// <param name="userParameterCollection">An optional collection of user params to pass to the query</param>
+        /// <param name="userWhereClause">An option user AND clause to pass to the query</param>
+        public ReceiveMessageQuery(TConnection connection, TTransaction transaction, List<string> routes, IReadOnlyList<DbParameter> userParameterCollection, string userWhereClause)
         {
             Connection = connection;
             Transaction = transaction;
             Routes = routes;
+            UserParameterCollection = userParameterCollection;
+            UserWhereClause = userWhereClause;
         }
 
         /// <summary>
@@ -75,5 +82,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// The route.
         /// </value>
         public List<string> Routes { get; }
+
+        /// <summary>
+        /// A collection of parameters for <see cref="UserWhereClause"/>
+        /// </summary>
+
+        public IReadOnlyList<DbParameter> UserParameterCollection { get; }
+
+        /// <summary>
+        /// An additional clause that will be applied to de-queue statements.  See <see cref="UserParameterCollection"/>
+        /// </summary>
+        public string UserWhereClause { get; }
     }
 }

@@ -41,7 +41,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             builder.Append("(QueueID, Status, CorrelationID ");
 
             //add configurable columns - user
-            AddUserColumns(builder, data);
+            if (!options.AdditionalColumnsOnMetaData)
+            {
+                AddUserColumns(builder, data);
+            }
 
             //close the column list
             builder.AppendLine(") ");
@@ -51,7 +54,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             builder.Append($"@QueueID, {Convert.ToInt32(QueueStatuses.Waiting)}, @CorrelationID");
 
             //add configurable column value - user
-            AddUserColumnsValues(builder, data);
+            if (!options.AdditionalColumnsOnMetaData)
+            {
+                AddUserColumnsValues(builder, data);
+            }
 
             builder.Append(")"); //close the VALUES 
 
@@ -63,7 +69,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             command.Parameters.Add("@CorrelationID", NpgsqlDbType.Uuid, 16).Value = data.CorrelationId.Id.Value;
 
             //add configurable column command params - user
-            AddUserColumnsParams(command, data);
+            if (!options.AdditionalColumnsOnMetaData)
+            {
+                AddUserColumnsParams(command, data);
+            }
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
@@ -85,6 +94,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             //add configurable columns - queue
             options.AddBuiltInColumns(sbMeta);
 
+            //add configurable columns - user
+            if (options.AdditionalColumnsOnMetaData)
+            {
+                AddUserColumns(sbMeta, data);
+            }
+
             //close the column list
             sbMeta.AppendLine(") ");
 
@@ -95,6 +110,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             //add the values for built in fields
             options.AddBuiltInColumnValues(delay, expiration, currentDateTime, sbMeta);
 
+            //add configurable column value - user
+            if (options.AdditionalColumnsOnMetaData)
+            {
+                AddUserColumnsValues(sbMeta, data);
+            }
+
             sbMeta.Append(")"); //close the VALUES 
 
             command.CommandText = sbMeta.ToString();
@@ -103,6 +124,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 
             command.Parameters.Add("@QueueID", NpgsqlDbType.Bigint, 8).Value = id;
             command.Parameters.Add("@CorrelationID", NpgsqlDbType.Uuid, 16).Value = data.CorrelationId.Id.Value;
+
+            //add configurable column command params - user
+            if (options.AdditionalColumnsOnMetaData)
+            {
+                AddUserColumnsParams(command, data);
+            }
 
         }
         /// <summary>

@@ -50,7 +50,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         {
             selectCommand.Transaction = transaction;
             selectCommand.CommandText =
-                _createDequeueStatement.GetDeQueueCommand(routes);
+                _createDequeueStatement.GetDeQueueCommand(out var userCommands, routes);
+
+            if (_options.Value.AdditionalColumnsOnMetaData && userCommands != null && userCommands.Count > 0)
+            {
+                foreach (var command in userCommands)
+                {
+                    selectCommand.Parameters.Add(((ICloneable)command).Clone()); //must clone, or we risk re-using the same object; SQL does not allow sharing sql parameter objects
+                }
+            }
 
             if (_options.Value.EnableRoute && routes != null && routes.Count > 0)
             {
