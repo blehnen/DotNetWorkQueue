@@ -6,7 +6,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.UserDequeue
 {
-    [Collection("ConsumerAsync")]
+    [Collection("ConsumerUserDequeue")]
     public class UserDequeue
     {
         [Theory]

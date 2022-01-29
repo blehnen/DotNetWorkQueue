@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.UserDequeue
 {
-    [Collection("ConsumerAsync")]
+    [Collection("ConsumerUserDequeue")]
     public class UserDequeue
     {
         [Theory]
