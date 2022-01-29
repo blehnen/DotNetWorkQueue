@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Runtime.Serialization;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Exceptions
 {
@@ -75,11 +76,8 @@ namespace DotNetWorkQueue.Exceptions
         /// </PermissionSet>
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            if (info == null)
-                throw new ArgumentNullException(nameof(info));
-
+            Guard.NotNull(() => info, info);
             info.AddValue("CompileCode", CompileCode);
-
             base.GetObjectData(info, context);
         }
 

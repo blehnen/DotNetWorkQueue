@@ -1,5 +1,11 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization.Formatters.Soap;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Transport.Memory.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic;
 using NSubstitute;
 using Xunit;
 

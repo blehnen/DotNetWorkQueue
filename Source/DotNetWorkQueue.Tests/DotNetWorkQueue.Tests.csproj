@@ -39,11 +39,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.Shared\DotNetWorkQueue.Transport.Shared.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
   </ItemGroup>
 </Project>
