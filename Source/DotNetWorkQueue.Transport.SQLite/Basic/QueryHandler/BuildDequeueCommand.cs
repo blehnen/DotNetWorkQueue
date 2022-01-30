@@ -47,14 +47,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             paramDate.Value = _getTime.GetCurrentUtcDate().Ticks;
             selectCommand.Parameters.Add(paramDate);
 
-            if (options.AdditionalColumnsOnMetaData && userParameters != null && userParameters.Count > 0)
-            {
-                foreach (var userParam in userParameters)
-                {
-                    selectCommand.Parameters.Add(userParam.Clone()); //clone to avoid sharing
-                }
-            }
-
             if (options.EnableRoute && routes != null && routes.Count > 0)
             {
                 var routeCounter = 1;
@@ -66,6 +58,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                     param.Value = route;
                     selectCommand.Parameters.Add(param);
                     routeCounter++;
+                }
+            }
+
+            if (options.AdditionalColumnsOnMetaData && userParameters != null && userParameters.Count > 0)
+            {
+                foreach (var userParam in userParameters)
+                {
+                    selectCommand.Parameters.Add(userParam.Clone()); //clone to avoid sharing
                 }
             }
         }
