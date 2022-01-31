@@ -23,7 +23,7 @@ namespace ShellControlV2
             {
                 for (var i = 0; i < _commandHistory.Count; i++)
                 {
-                    if(command == _commandHistory[i])
+                    if (command == _commandHistory[i])
                     {
                         _currentPosition = i + 1;
                         break;

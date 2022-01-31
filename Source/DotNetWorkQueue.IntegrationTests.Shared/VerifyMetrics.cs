@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                         data.Meters.Where(
                             counter => counter.Key.EndsWith(retryName, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    Assert.Equal(messageCount*failedCount, metric.Value.Value);
+                    Assert.Equal(messageCount * failedCount, metric.Value.Value);
                     found = true;
                     break;
                 }

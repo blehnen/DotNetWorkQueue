@@ -35,11 +35,11 @@ using DotNetWorkQueue.Transport.LiteDb.Basic;
 
 namespace LiteDbProducer.Commands
 {
-    public class QueueCreation: IConsoleCommand, IDisposable
+    public class QueueCreation : IConsoleCommand, IDisposable
     {
         private readonly Lazy<QueueCreationContainer<LiteDbMessageQueueInit>> _queueCreation;
         private readonly Dictionary<string, LiteDbMessageQueueCreation> _queueCreators;
-         
+
         public QueueCreation()
         {
             _queueCreation = new Lazy<QueueCreationContainer<LiteDbMessageQueueInit>>(() => new QueueCreationContainer<LiteDbMessageQueueInit>());

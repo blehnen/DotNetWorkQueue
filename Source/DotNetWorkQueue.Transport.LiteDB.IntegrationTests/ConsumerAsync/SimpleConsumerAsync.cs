@@ -8,8 +8,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
     public class SimpleConsumerAsync
     {
         [Theory]
-        [InlineData(50, 1, 400, 10, 5, 5, 1,  false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(10, 1, 400, 10, 5, 5, 1,true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+        [InlineData(50, 1, 400, 10, 5, 5, 1, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(10, 1, 400, 10, 5, 5, 1, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
            int messageType, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

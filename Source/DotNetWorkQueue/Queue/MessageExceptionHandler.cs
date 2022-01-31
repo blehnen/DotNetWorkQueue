@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <param name="transportErrorHandler">The transport error handler.</param>
         /// <param name="log">The log.</param>
-        public MessageExceptionHandler(IReceiveMessagesError transportErrorHandler, 
+        public MessageExceptionHandler(IReceiveMessagesError transportErrorHandler,
             ILogger log)
         {
             Guard.NotNull(() => transportErrorHandler, transportErrorHandler);

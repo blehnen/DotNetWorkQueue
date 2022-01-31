@@ -25,7 +25,7 @@ namespace ConsoleShared
                 }
                 if (requiredTypeCode == TypeCode.Object)
                 {
-                    if (type == typeof (TimeSpan))
+                    if (type == typeof(TimeSpan))
                     {
                         isTimeSpan = true;
                     }

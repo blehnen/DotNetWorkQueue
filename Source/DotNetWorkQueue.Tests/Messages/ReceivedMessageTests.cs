@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Tests.Messages
         {
             var message = CreateMessage();
 
-            var headers = new Dictionary<string, object> {{ value, new UriBuilder()}};
+            var headers = new Dictionary<string, object> { { value, new UriBuilder() } };
 
             message.Headers.Returns(new ReadOnlyDictionary<string, object>(headers));
             var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
@@ -81,9 +81,9 @@ namespace DotNetWorkQueue.Tests.Messages
 
         private class FakeMessage
         {
-            
+
         }
-        public class HeaderData 
+        public class HeaderData
         {
         }
     }

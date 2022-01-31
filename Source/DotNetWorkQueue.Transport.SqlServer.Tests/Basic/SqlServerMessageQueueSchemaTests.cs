@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         public void Create_Status()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqlServerMessageQueueTransportOptions {EnableStatusTable = true};
+            var options = new SqlServerMessageQueueTransportOptions { EnableStatusTable = true };
             var factory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         public void Create_Status_Extra_Columns()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqlServerMessageQueueTransportOptions {EnableStatusTable = true};
+            var options = new SqlServerMessageQueueTransportOptions { EnableStatusTable = true };
             options.AdditionalColumns.Add(new Column("testing", ColumnTypes.Bigint, true, null));
             var factory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         public void Create_Status_Extra_Constraint()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqlServerMessageQueueTransportOptions {EnableStatusTable = true};
+            var options = new SqlServerMessageQueueTransportOptions { EnableStatusTable = true };
             options.AdditionalColumns.Add(new Column("testing", ColumnTypes.Bigint, true, null));
             options.AdditionalConstraints.Add(new Constraint("ix_testing", ConstraintType.Index, "testing"));
             var factory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         public void Create_Meta_Priority()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqlServerMessageQueueTransportOptions {EnablePriority = true};
+            var options = new SqlServerMessageQueueTransportOptions { EnablePriority = true };
             var factory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         public void Create_Meta_Status()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqlServerMessageQueueTransportOptions {EnableStatus = true};
+            var options = new SqlServerMessageQueueTransportOptions { EnableStatus = true };
             var factory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         public void Create_Meta_DelayedProcessing()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqlServerMessageQueueTransportOptions {EnableDelayedProcessing = true};
+            var options = new SqlServerMessageQueueTransportOptions { EnableDelayedProcessing = true };
             var factory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         public void Create_Meta_HeartBeat()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqlServerMessageQueueTransportOptions {EnableHeartBeat = true};
+            var options = new SqlServerMessageQueueTransportOptions { EnableHeartBeat = true };
             var factory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         public void Create_Meta_MessageExpiration()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqlServerMessageQueueTransportOptions {EnableMessageExpiration = true};
+            var options = new SqlServerMessageQueueTransportOptions { EnableMessageExpiration = true };
             var factory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);

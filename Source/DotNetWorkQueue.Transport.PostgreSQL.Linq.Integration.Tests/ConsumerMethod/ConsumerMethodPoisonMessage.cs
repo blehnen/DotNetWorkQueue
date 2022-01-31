@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
 #else
         [InlineData(10, 60, 5, true, LinqMethodTypes.Compiled, false)]
 #endif
-        public void Run(int messageCount, int timeOut, int workerCount, 
+        public void Run(int messageCount, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                     true, !useTransactions, useTransactions, false,
                     false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
-        
+
         }
 
         private void ValidateErrorCounts(QueueConnection queueConnection, int arg3, ICreationScope arg4)

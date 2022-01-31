@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -29,10 +29,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <summary>
         /// Initializes a new instance of the <see cref="Column"/> class.
         /// </summary>
-		public Column() 
+		public Column()
         {
 
-		}
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
         /// </summary>
@@ -42,11 +42,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <param name="default">The default.</param>
         public Column(string name, ColumnTypes type, bool @null, Default @default)
         {
-			Name = name;
-			Type = type;
-			Default = @default;
+            Name = name;
+            Type = type;
+            Default = @default;
             Nullable = @null;
-		}
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
         /// </summary>
@@ -56,10 +56,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <param name="null">if set to <c>true</c> [null].</param>
         /// <param name="default">The default.</param>
         public Column(string name, ColumnTypes type, int length, bool @null, Default @default)
-			: this(name, type, @null, @default) 
+            : this(name, type, @null, @default)
         {
-			Length = length;
-		}
+            Length = length;
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
         /// </summary>
@@ -70,11 +70,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <param name="null">if set to <c>true</c> [null].</param>
         /// <param name="default">The default.</param>
         public Column(string name, ColumnTypes type, byte precision, int scale, bool @null, Default @default)
-			: this(name, type, @null, @default) 
+            : this(name, type, @null, @default)
         {
-			Precision = precision;
-			Scale = scale;
-		}
+            Precision = precision;
+            Scale = scale;
+        }
         #endregion
 
         #region Public Properties
@@ -177,19 +177,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// </summary>
         /// <returns></returns>
         /// <exception cref="System.NotSupportedException">SQL data type is not supported.</exception>
-        public string Script() 
+        public string Script()
         {
-			switch (Type) 
+            switch (Type)
             {
-				case ColumnTypes.Real:
-				case ColumnTypes.Text:
+                case ColumnTypes.Real:
+                case ColumnTypes.Text:
                 case ColumnTypes.Integer:
                 case ColumnTypes.Blob:
                     return $"[{Name}] [{Type}] {NullableText} {DefaultText} {IdentityText}";
-				default:
-					throw new NotSupportedException($"SQL data type {Type} is not supported.");
-			}
-		}
+                default:
+                    throw new NotSupportedException($"SQL data type {Type} is not supported.");
+            }
+        }
         #endregion
 
         #region Clone
@@ -199,7 +199,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <returns></returns>
         public Column Clone()
         {
-            var rc = new Column {Default = Default};
+            var rc = new Column { Default = Default };
 
             if (Identity != null)
             {

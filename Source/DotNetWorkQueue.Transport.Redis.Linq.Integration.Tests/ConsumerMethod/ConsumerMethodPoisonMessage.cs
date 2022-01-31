@@ -15,11 +15,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     {
         [Theory]
 #if NETFULL
-         [InlineData(1, 20, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+        [InlineData(1, 20, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
 #else
         [InlineData(1, 20, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
 #endif
-        public void Run(int messageCount, int timeOut, 
+        public void Run(int messageCount, int timeOut,
             int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
 
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, timeOut, workerCount, linqMethodTypes, false, x => { },
-                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts );
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts);
         }
 
         private void ValidateErrorCounts(QueueConnection queueConnection, int arg3, ICreationScope arg4)

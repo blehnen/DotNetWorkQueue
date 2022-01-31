@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
            Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
            Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
            bool sendViaBatch, Guid id,
-           Func<Guid, int, int, LinqExpressionToRun> generateTestMethod, 
+           Func<Guid, int, int, LinqExpressionToRun> generateTestMethod,
            int runTime, ICreationScope scope, bool enableChaos)
            where TTransportInit : ITransportInit, new()
         {
@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
             bool sendViaBatch, bool validateMetricCounts, Guid id,
-            Func<Guid, int, int, LinqExpressionToRun> generateTestMethod, 
+            Func<Guid, int, int, LinqExpressionToRun> generateTestMethod,
             int runTime, ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 queue, long messageCount,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             bool sendViaBatch, Guid id,
-            Func<Guid, int, int, LinqExpressionToRun> generateTestMethod, 
+            Func<Guid, int, int, LinqExpressionToRun> generateTestMethod,
             int runTime)
         {
             var numberOfJobs = Convert.ToInt32(messageCount);

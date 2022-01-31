@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     {
         [Theory]
 #if NETFULL
-         [InlineData(7, 60, 190, 3, LinqMethodTypes.Compiled, true),
+        [InlineData(7, 60, 190, 3, LinqMethodTypes.Compiled, true),
             InlineData(7, 60, 190, 3, LinqMethodTypes.Dynamic, true)]
 #else
         [InlineData(7, 15, 90, 3, LinqMethodTypes.Compiled, false)]

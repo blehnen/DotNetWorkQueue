@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
             }
             else
             {
-                
+
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);
-        } 
+        }
 
         /// <summary>
         /// Returns our schema as a list of tables.
@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             //--main data table--
             var main = new Table(_tableNameHelper.QueueName);
-            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false) {Identity = true};
+            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false) { Identity = true };
 
             main.Columns.Add(mainPrimaryKey);
             main.Columns.Add(new Column("Body", ColumnTypes.Bytea, -1, false));
@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private Table CreateConfigurationTable()
         {
             var table = new Table(_tableNameHelper.ConfigurationName);
-            var mainPrimaryKey = new Column("ID", ColumnTypes.Integer, false) {Identity = true};
+            var mainPrimaryKey = new Column("ID", ColumnTypes.Integer, false) { Identity = true };
             table.Columns.Add(mainPrimaryKey);
             table.Columns.Add(new Column("Configuration", ColumnTypes.Bytea, -1, false));
 
@@ -295,7 +295,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private Table CreateErrorTable(Table meta)
         {
             var metaErrors = new Table(_tableNameHelper.MetaDataErrorsName);
-            var primaryKey = new Column("ID", ColumnTypes.Bigint, false) {Identity = true};
+            var primaryKey = new Column("ID", ColumnTypes.Bigint, false) { Identity = true };
             metaErrors.Columns.Add(primaryKey);
             foreach (var c in meta.Columns.Items)
             {

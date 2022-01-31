@@ -33,11 +33,11 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
 namespace RedisProducer.Commands
 {
-    public class QueueCreation: IConsoleCommand, IDisposable
+    public class QueueCreation : IConsoleCommand, IDisposable
     {
         private readonly Lazy<QueueCreationContainer<RedisQueueInit>> _queueCreation;
         private readonly Dictionary<string, RedisQueueCreation> _queueCreators;
-         
+
         public QueueCreation()
         {
             _queueCreation = new Lazy<QueueCreationContainer<RedisQueueInit>>(() => new QueueCreationContainer<RedisQueueInit>());
@@ -67,11 +67,11 @@ namespace RedisProducer.Commands
         {
             CreateModuleIfNeeded(queueName);
 
-                if (!_queueCreators[queueName].QueueExists) return new ConsoleExecuteResult("Queue does not exist");
-                var result = _queueCreators[queueName].RemoveQueue();
-                return !result.Success
-                    ? new ConsoleExecuteResult($"Failed to remove queue. Result is {result.Status}")
-                    : new ConsoleExecuteResult($"Removed queue; result is {result.Status}");
+            if (!_queueCreators[queueName].QueueExists) return new ConsoleExecuteResult("Queue does not exist");
+            var result = _queueCreators[queueName].RemoveQueue();
+            return !result.Success
+                ? new ConsoleExecuteResult($"Failed to remove queue. Result is {result.Status}")
+                : new ConsoleExecuteResult($"Removed queue; result is {result.Status}");
         }
 
         /// <summary>

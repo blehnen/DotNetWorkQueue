@@ -24,9 +24,9 @@ namespace DotNetWorkQueue.Tests.Messages
             {
             }
 
-            test.Register((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
+            test.Register((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
 
-            messageHandlerRegistration.Received(1).Set((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
+            messageHandlerRegistration.Received(1).Set((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
         }
     }
 }

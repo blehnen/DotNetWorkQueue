@@ -17,7 +17,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             int readerCount,
             int queueSize,
             long messageCount,
-            TimeSpan heartBeatTime, 
+            TimeSpan heartBeatTime,
             TimeSpan heartBeatMonitorTime,
             string updateTime,
             string route,
@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             using (var trace = SharedSetup.CreateTrace("consumer-poison"))
             {
                 if (enableChaos)
-                timeOut *= 2;
+                    timeOut *= 2;
 
                 using (var metrics = new Metrics.Metrics(queueConnection.Queue))
                 {

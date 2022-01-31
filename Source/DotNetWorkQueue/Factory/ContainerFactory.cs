@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Factory
     /// </summary>
     /// <remarks><seealso cref="IContainer"/> cannot be injected into most IoC containers, as that's a circular reference. However, root factories
     /// sometimes need access to the container. This allows access to the container without <seealso cref="IContainer"/> being injected</remarks>
-    internal class ContainerFactory: IContainerFactory, IDisposable
+    internal class ContainerFactory : IContainerFactory, IDisposable
     {
         private ContainerWrapper _containerWrapper;
         /// <summary>

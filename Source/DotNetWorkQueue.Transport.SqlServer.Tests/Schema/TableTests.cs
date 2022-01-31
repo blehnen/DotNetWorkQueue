@@ -41,13 +41,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
         [Fact]
         public void GetSet_Name()
         {
-            var test = new Table("dbo", "test") {Name = "test1"};
+            var test = new Table("dbo", "test") { Name = "test1" };
             Assert.Equal("test1", test.Name);
         }
         [Fact]
         public void GetSet_Owner()
         {
-            var test = new Table("dbo", "test") {Owner = "test1"};
+            var test = new Table("dbo", "test") { Owner = "test1" };
             Assert.Equal("test1", test.Owner);
         }
         [Fact]

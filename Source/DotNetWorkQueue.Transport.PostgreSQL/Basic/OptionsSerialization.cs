@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             _serializer = serializer;
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);
         }
-        public byte[] ConvertToBytes() 
+        public byte[] ConvertToBytes()
         {
             return _serializer.ConvertToBytes(_options.Value);
         }

@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         public void Create_Status()
         {
             var tableName = GetTableNameHelper();
-            var options = new PostgreSqlMessageQueueTransportOptions {EnableStatusTable = true};
+            var options = new PostgreSqlMessageQueueTransportOptions { EnableStatusTable = true };
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         public void Create_Status_Extra_Columns()
         {
             var tableName = GetTableNameHelper();
-            var options = new PostgreSqlMessageQueueTransportOptions {EnableStatusTable = true};
+            var options = new PostgreSqlMessageQueueTransportOptions { EnableStatusTable = true };
             options.AdditionalColumns.Add(new Column("testing", ColumnTypes.Bigint, true));
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         public void Create_Status_Extra_Constraint()
         {
             var tableName = GetTableNameHelper();
-            var options = new PostgreSqlMessageQueueTransportOptions {EnableStatusTable = true};
+            var options = new PostgreSqlMessageQueueTransportOptions { EnableStatusTable = true };
             options.AdditionalColumns.Add(new Column("testing", ColumnTypes.Bigint, true));
             options.AdditionalConstraints.Add(new Constraint("ix_testing", ConstraintType.Index, "testing"));
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         public void Create_Meta_Priority()
         {
             var tableName = GetTableNameHelper();
-            var options = new PostgreSqlMessageQueueTransportOptions {EnablePriority = true};
+            var options = new PostgreSqlMessageQueueTransportOptions { EnablePriority = true };
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         public void Create_Meta_Status()
         {
             var tableName = GetTableNameHelper();
-            var options = new PostgreSqlMessageQueueTransportOptions {EnableStatus = true};
+            var options = new PostgreSqlMessageQueueTransportOptions { EnableStatus = true };
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         public void Create_Meta_DelayedProcessing()
         {
             var tableName = GetTableNameHelper();
-            var options = new PostgreSqlMessageQueueTransportOptions {EnableDelayedProcessing = true};
+            var options = new PostgreSqlMessageQueueTransportOptions { EnableDelayedProcessing = true };
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         public void Create_Meta_HeartBeat()
         {
             var tableName = GetTableNameHelper();
-            var options = new PostgreSqlMessageQueueTransportOptions {EnableHeartBeat = true};
+            var options = new PostgreSqlMessageQueueTransportOptions { EnableHeartBeat = true };
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -114,7 +114,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         public void Create_Meta_MessageExpiration()
         {
             var tableName = GetTableNameHelper();
-            var options = new PostgreSqlMessageQueueTransportOptions {EnableMessageExpiration = true};
+            var options = new PostgreSqlMessageQueueTransportOptions { EnableMessageExpiration = true };
             var factory = Substitute.For<IPostgreSqlMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);

@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation
         private List<string> GenerateRoutes(int routeCount)
         {
             var data = new List<string>();
-            for(var i = 1; i <= routeCount; i++)
+            for (var i = 1; i <= routeCount; i++)
             {
                 data.Add("Route" + i);
             }

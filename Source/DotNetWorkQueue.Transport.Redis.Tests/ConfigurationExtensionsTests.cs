@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
     {
         [Fact]
         public void AdditionalMessageData()
-        {      
+        {
             IAdditionalMessageData test = new AdditionalMessageData();
             test.SetDelay(TimeSpan.FromSeconds(1));
             Assert.Equal(TimeSpan.FromSeconds(1), test.GetDelay());

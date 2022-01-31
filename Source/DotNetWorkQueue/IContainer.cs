@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue
     /// An interface for the IoC container
     /// </summary>
     /// <remarks>The default container is SimpleInjector - this interface is a subset of the simple injector features</remarks>
-    public interface IContainer: IDisposable, IIsDisposed
+    public interface IContainer : IDisposable, IIsDisposed
     {
         /// <summary>
         /// Gets a value indicating whether this instance is verifying.
@@ -169,7 +169,7 @@ namespace DotNetWorkQueue
         /// <typeparam name="TService">The type of the service.</typeparam>
         /// <param name="serviceTypes">The service types.</param>
         /// <returns></returns>
-        IContainer RegisterCollection<TService>(IEnumerable<Type> serviceTypes) 
+        IContainer RegisterCollection<TService>(IEnumerable<Type> serviceTypes)
             where TService : class;
 
         /// <summary>

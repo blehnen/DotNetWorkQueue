@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var wait = new WaitSometime();
             WaitOnAsyncTask.Wait(() => wait.Wait(7000),
-                () => { Console.WriteLine(string.Empty);});
+                () => { Console.WriteLine(string.Empty); });
         }
 
         private class WaitSometime

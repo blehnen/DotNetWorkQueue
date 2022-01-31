@@ -29,7 +29,7 @@ using DotNetWorkQueue;
 using DotNetWorkQueue.Messages;
 namespace ConsoleSharedCommands.Commands
 {
-    public abstract class SharedSendCommands: SharedCommands
+    public abstract class SharedSendCommands : SharedCommands
     {
         protected abstract Dictionary<string, IProducerBaseQueue> Queues { get; }
         public ConsoleExecuteResult SendMethod(string queueName,

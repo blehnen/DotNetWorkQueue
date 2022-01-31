@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -34,14 +34,6 @@ namespace DotNetWorkQueue
         /// <param name="data">The data to serialize</param>
         /// <returns></returns>
         byte[] ConvertToBytes<T>(T data) where T : class;
-
-        /// <summary>
-        /// Converts an input class to a string
-        /// </summary>
-        /// <typeparam name="T">Input type</typeparam>
-        /// <param name="data">The data to serialize</param>
-        /// <returns></returns>
-        string ConvertToString<T>(T data) where T : class;
 
         /// <summary>
         /// Converts the bytes back to the input class

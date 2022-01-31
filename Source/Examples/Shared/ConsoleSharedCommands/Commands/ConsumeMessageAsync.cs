@@ -39,10 +39,10 @@ using Microsoft.Extensions.Logging;
 namespace ConsoleSharedCommands.Commands
 {
     public abstract class ConsumeMessageAsync<TTransportInit> : SharedCommands
-        where TTransportInit: class, ITransportInit, new()
+        where TTransportInit : class, ITransportInit, new()
     {
         private readonly Lazy<QueueContainer<TTransportInit>> _queueContainer;
-        private readonly Lazy<SchedulerContainer> _schedulerContainer; 
+        private readonly Lazy<SchedulerContainer> _schedulerContainer;
         protected readonly Dictionary<string, IConsumerBaseQueue> Queues;
         private ATaskScheduler _taskScheduler;
         private ITaskFactory _taskFactory;
@@ -169,7 +169,7 @@ namespace ConsoleSharedCommands.Commands
 
             return new ConsoleExecuteResult("task scheduler configuration set");
         }
-        public ConsoleExecuteResult SetWorkerConfiguration(string queueName, 
+        public ConsoleExecuteResult SetWorkerConfiguration(string queueName,
             int workerCount = 1,
             bool singleWorkerWhenNoWorkFound = true,
             bool abortWorkerThreadsWhenStopping = false,
@@ -197,7 +197,7 @@ namespace ConsoleSharedCommands.Commands
             return new ConsoleExecuteResult($"worker configuration set for {queueName}");
         }
 
-        public ConsoleExecuteResult SetHeartBeatConfiguration(string queueName, 
+        public ConsoleExecuteResult SetHeartBeatConfiguration(string queueName,
             string updateTime = "min(*%1)",
             TimeSpan? monitorTime = null,
             TimeSpan? deadTime = null,
@@ -244,7 +244,7 @@ namespace ConsoleSharedCommands.Commands
 
         public ConsoleExecuteResult StopQueue(string queueName)
         {
-            if(Queues.ContainsKey(queueName))
+            if (Queues.ContainsKey(queueName))
             {
                 Queues[queueName].Dispose();
                 Queues.Remove(queueName);

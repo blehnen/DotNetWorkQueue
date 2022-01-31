@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
             bool enablePriority,
             bool enableStatus,
             bool enableStatusTable,
-            bool additionalColumn, 
+            bool additionalColumn,
             bool inMemoryDb,
             LinqMethodTypes linqMethodTypes,
             bool enableChaos)

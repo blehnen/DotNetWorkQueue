@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
             bool enablePriority,
             bool enableStatus,
             bool enableStatusTable,
-            bool additionalColumn, 
+            bool additionalColumn,
             bool enableChaos)
         {
 

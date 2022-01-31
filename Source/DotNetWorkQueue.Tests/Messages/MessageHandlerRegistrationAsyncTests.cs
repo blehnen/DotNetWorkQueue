@@ -29,8 +29,8 @@ namespace DotNetWorkQueue.Tests.Messages
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageHandlerRegistrationAsync>();
             Task Action(IReceivedMessage<FakeMessage> message, IWorkerNotification worker) => null;
-            test.Set((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Action);
-            Assert.Equal((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Action, test.GetHandler());
+            test.Set((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>)Action);
+            Assert.Equal((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>)Action, test.GetHandler());
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Tests.Messages
             fixture.Inject(inputMessage);
             var test = fixture.Create<MessageHandlerRegistrationAsync>();
             Task Func(IReceivedMessage<FakeMessage> recMessage, IWorkerNotification worker) => null;
-            test.Set((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
+            test.Set((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>)Func);
 
             IReceivedMessageInternal rec = fixture.Create<ReceivedMessageInternal>();
 

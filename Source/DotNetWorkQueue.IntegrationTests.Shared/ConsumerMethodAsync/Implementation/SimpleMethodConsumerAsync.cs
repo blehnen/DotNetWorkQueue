@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             generateData,
                             verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
 
-                        var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
+                        var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                         consumer.RunConsumer<TTransportInit>(queueConnection,
                             false, logProvider,
                             runtime, messageCount,
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             generateData,
                             verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
 
-                        var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
+                        var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                         consumer.RunConsumer<TTransportInit>(queueConnection,
                             false, logProvider,
                             runtime, messageCount,
@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             generateData,
                             verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
 
-                        var consumer = new ConsumerMethodAsyncShared {Factory = Factory};
+                        var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                         consumer.RunConsumer<TTransportInit>(queueConnection,
                             false, logProvider,
                             runtime, messageCount,

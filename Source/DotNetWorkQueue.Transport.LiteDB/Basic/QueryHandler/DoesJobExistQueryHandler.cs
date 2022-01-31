@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="tableExists">The table exists.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         public DoesJobExistQueryHandler(
-            IQueryHandler<GetTableExistsQuery, bool> tableExists, 
+            IQueryHandler<GetTableExistsQuery, bool> tableExists,
             TableNameHelper tableNameHelper)
         {
             Guard.NotNull(() => tableExists, tableExists);
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                 .ToList();
 
             if (results.Count == 1)
-            { 
+            {
                 returnStatus = results[0].Status;
             }
 

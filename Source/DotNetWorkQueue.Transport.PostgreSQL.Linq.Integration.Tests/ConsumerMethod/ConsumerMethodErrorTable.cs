@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
          InlineData(1, 60, 5, true, LinqMethodTypes.Dynamic, true),
 #endif
          InlineData(10, 60, 5, true, LinqMethodTypes.Compiled, false)]
-        public void Run(int messageCount, int timeOut, int workerCount, 
+        public void Run(int messageCount, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
@@ -28,9 +28,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.ConsumerMethodErrorTable();
             consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
                     ConnectionInfo.ConnectionString),
-                messageCount,  timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
-                    true, !useTransactions, useTransactions, false,
-                    false, !useTransactions, true, false),
+                messageCount, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                   true, !useTransactions, useTransactions, false,
+                   false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
         }
 

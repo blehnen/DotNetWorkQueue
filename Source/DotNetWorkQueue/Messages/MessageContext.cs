@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -74,9 +74,9 @@ namespace DotNetWorkQueue.Messages
             where T : class
         {
             //code may obtain user items if we are in the middle of disposing, but have not cleared the items yet
-            if(IsDisposed && _items.Count == 0)
+            if (IsDisposed && _items.Count == 0)
                 ThrowIfDisposed();
-        
+
             if (!_items.ContainsKey(itemData.Name))
             {
                 _items[itemData.Name] = itemData.Default;
@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.Messages
             where T : class
         {
             ThrowIfDisposed();
-             _items[property.Name] = value;
+            _items[property.Name] = value;
         }
 
         /// <summary>

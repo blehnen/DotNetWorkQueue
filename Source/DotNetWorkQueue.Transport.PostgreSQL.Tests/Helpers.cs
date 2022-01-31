@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
 
         public void SetSetting(string name, object value)
         {
-            
+
         }
 
         public bool TryGetSetting(string name, out object value)

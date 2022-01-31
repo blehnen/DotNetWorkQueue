@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Tests.Serialization
 
             public static int GetValue()
             {
-               return _value;
+                return _value;
             }
 
             public static int ReturnValue(int value)

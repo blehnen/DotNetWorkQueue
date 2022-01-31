@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -65,9 +65,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             ICompositeSerialization serializer,
             ISqlServerMessageQueueTransportOptionsFactory optionsFactory,
             IHeaders headers,
-            SqlServerCommandStringCache commandCache, 
-            TransportConfigurationSend configurationSend, 
-            ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>> sendJobStatus, IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> jobExistsHandler, 
+            SqlServerCommandStringCache commandCache,
+            TransportConfigurationSend configurationSend,
+            ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>> sendJobStatus, IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> jobExistsHandler,
             IJobSchedulerMetaData jobSchedulerMetaData)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                                 var expiration = TimeSpan.Zero;
                                 if (_messageExpirationEnabled.Value)
                                 {
-                                    expiration = MessageExpiration.GetExpiration(commandSend,data => data.GetExpiration());
+                                    expiration = MessageExpiration.GetExpiration(commandSend, data => data.GetExpiration());
                                 }
 
                                 await

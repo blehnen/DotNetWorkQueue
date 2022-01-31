@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ namespace DotNetWorkQueue
     /// </summary>
     /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
     [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly")]
-    public class QueueContainer<TTransportInit>: BaseContainer, IQueueContainer where TTransportInit : ITransportInit, new()
+    public class QueueContainer<TTransportInit> : BaseContainer, IQueueContainer where TTransportInit : ITransportInit, new()
     {
         // ReSharper disable once StaticMemberInGenericType
         private static Func<ICreateContainer<TTransportInit>> _createContainerInternal = () => new CreateContainer<TTransportInit>();
@@ -139,7 +139,7 @@ namespace DotNetWorkQueue
         public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection)
         {
             Guard.NotNull(() => queueConnection, queueConnection);
-   
+
             var schedulerCreator = new SchedulerContainer(_registerService);
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
@@ -156,7 +156,7 @@ namespace DotNetWorkQueue
         public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
         {
             Guard.NotNull(() => queueConnection, queueConnection);
- 
+
             return CreateConsumerQueueSchedulerInternal(queueConnection, factory, null, false);
         }
         /// <summary>
@@ -181,7 +181,7 @@ namespace DotNetWorkQueue
         public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup)
         {
             Guard.NotNull(() => queueConnection, queueConnection);
-    
+
             return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, workGroup, false);
         }
         /// <summary>
@@ -194,7 +194,7 @@ namespace DotNetWorkQueue
         public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup)
         {
             Guard.NotNull(() => queueConnection, queueConnection);
-     
+
             return CreateConsumerQueueSchedulerInternal(queueConnection, factory, workGroup, false);
         }
 
@@ -206,7 +206,7 @@ namespace DotNetWorkQueue
         /// <param name="workGroup">The work group.</param>
         /// <param name="internalFactory">if set to <c>true</c> [internal factory].</param>
         /// <returns></returns>
-        private IConsumerQueueScheduler CreateConsumerQueueSchedulerInternal(QueueConnection queueConnection, 
+        private IConsumerQueueScheduler CreateConsumerQueueSchedulerInternal(QueueConnection queueConnection,
             ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
         {
             Guard.NotNull(() => queueConnection, queueConnection);
@@ -256,7 +256,7 @@ namespace DotNetWorkQueue
         private IConsumerMethodQueueScheduler CreateConsumerMethodQueueSchedulerInternal(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
         {
             Guard.NotNull(() => queueConnection, queueConnection);
- 
+
             IContainer container;
             if (internalFactory) //we own factory
             {
@@ -322,7 +322,7 @@ namespace DotNetWorkQueue
             where TMessage : class
         {
             Guard.NotNull(() => queueConnection, queueConnection);
-   
+
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IProducerQueue<TMessage>>();
@@ -337,7 +337,7 @@ namespace DotNetWorkQueue
             QueueConnection queueConnection)
         {
             Guard.NotNull(() => queueConnection, queueConnection);
-  
+
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IProducerMethodQueue>();
@@ -352,7 +352,7 @@ namespace DotNetWorkQueue
             QueueConnection queueConnection)
         {
             Guard.NotNull(() => queueConnection, queueConnection);
- 
+
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IProducerMethodJobQueue>();

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.IoC
             RegisterSharedDefaults(container, connection);
 
             container.Register<ITaskSchedulerConfiguration, TaskSchedulerConfiguration>(LifeStyles.Singleton);
-            
+
             container.Register<ATaskScheduler, SmartThreadPoolTaskScheduler>(LifeStyles.Singleton);
             container.AddTypeThatNeedsWarningSuppression(typeof(ATaskScheduler));
 
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<ISchedulerMessageHandler, SchedulerMessageHandler>(LifeStyles.Singleton);
             container.Register<ITaskSchedulerFactory, TaskSchedulerFactory>(LifeStyles.Singleton);
             container.Register<ITaskFactoryFactory, TaskFactoryFactory>(LifeStyles.Singleton);
-            container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);         
+            container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrorsNoOp>(LifeStyles.Singleton);
 
             container.Register<IMessageFactory, MessageFactory>(LifeStyles.Singleton);
-         
+
 
             container.Register<IJobSchedulerMetaData, JobSchedulerMetaData>(LifeStyles.Singleton);
 
@@ -195,7 +195,7 @@ namespace DotNetWorkQueue.IoC
                 container.Register<IMessageContextFactory, MessageContextFactory>(LifeStyles.Singleton);
 
                 container.Register<IWorkerCollection, WorkerCollection>(LifeStyles.Singleton);
-               
+
                 container.Register<IWorker, Worker>(LifeStyles.Transient);
                 container.AddTypeThatNeedsWarningSuppression(typeof(IWorker));
 
@@ -269,7 +269,7 @@ namespace DotNetWorkQueue.IoC
 
         private static void RegisterSharedDefaults(IContainer container, QueueConnection connection)
         {
-#region Singletons
+            #region Singletons
 
             container.Register<IContainerFactory, ContainerFactory>(LifeStyles.Singleton);
 
@@ -385,7 +385,7 @@ namespace DotNetWorkQueue.IoC
             container.RegisterConditional(typeof(ICachePolicy<>), typeof(CachePolicy<>), LifeStyles.Singleton);
             if ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
             {
-                container.RegisterConditional(typeof (IProducerQueue<>), typeof (ProducerQueue<>),
+                container.RegisterConditional(typeof(IProducerQueue<>), typeof(ProducerQueue<>),
                     LifeStyles.Singleton);
             }
         }
@@ -450,7 +450,7 @@ namespace DotNetWorkQueue.IoC
             container.RegisterDecorator<ISerializer, Metrics.Decorator.SerializerDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IQueueCreation, Metrics.Decorator.QueueCreationDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IMessageHandler, Metrics.Decorator.MessageHandlerDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IMessageHandlerAsync,Metrics.Decorator.MessageHandlerAsyncDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageHandlerAsync, Metrics.Decorator.MessageHandlerAsyncDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IResetHeartBeat, Metrics.Decorator.ResetHeartBeatDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IInternalSerializer, Metrics.Decorator.InternalSerializerDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<ISendHeartBeat, Metrics.Decorator.SendHeartBeatDecorator>(LifeStyles.Singleton);
@@ -459,7 +459,7 @@ namespace DotNetWorkQueue.IoC
             container.RegisterDecorator<IReceiveMessagesError, Metrics.Decorator.ReceiveMessagesErrorDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IReceivePoisonMessage, Metrics.Decorator.ReceivePoisonMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<ICommitMessage, Metrics.Decorator.CommitMessageDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<IRollbackMessage,Metrics.Decorator.RollbackMessageDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IRollbackMessage, Metrics.Decorator.RollbackMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IClearExpiredMessages, Metrics.Decorator.ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IClearErrorMessages, Metrics.Decorator.ClearErrorMessagesDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IExpressionSerializer, Metrics.Decorator.ExpressionSerializerDecorator>(LifeStyles.Singleton);

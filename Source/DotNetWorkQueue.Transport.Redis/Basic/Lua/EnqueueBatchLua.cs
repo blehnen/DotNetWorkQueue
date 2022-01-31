@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
     /// <summary>
     /// Enqueues multiple records at once
     /// </summary>
-    public class EnqueueBatchLua: BaseLua
+    public class EnqueueBatchLua : BaseLua
     {
         /// <inheritdoc />
         /// <summary>
@@ -136,7 +136,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 var result = TryExecute(GetParameters(group.ToList(), group.Key));
                 if (!result.IsNull)
                 {
-                    var data = (byte[]) result;
+                    var data = (byte[])result;
                     if (data == null || data.Length <= 0) continue;
                     var serializer = SerializationContext.Default.GetSerializer<List<string>>();
                     var tempData = serializer.UnpackSingleObject(data);
@@ -190,13 +190,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 serializer.Pack(output, messages, PackerCompatibilityOptions.Classic);
                 object rc = new
                 {
-                    messages = (RedisValue) output.ToArray(),
-                    key = (RedisKey) RedisNames.Values,
+                    messages = (RedisValue)output.ToArray(),
+                    key = (RedisKey)RedisNames.Values,
                     pendingkey = (RedisKey)pendingKey,
                     headerskey = (RedisKey)RedisNames.Headers,
                     channel = RedisNames.Notification,
-                    metakey = (RedisKey) RedisNames.MetaData,
-                    IDKey = (RedisKey) RedisNames.Id,
+                    metakey = (RedisKey)RedisNames.MetaData,
+                    IDKey = (RedisKey)RedisNames.Id,
                     delaykey = (RedisKey)RedisNames.Delayed,
                     expirekey = (RedisKey)RedisNames.Expiration,
                     StatusKey = (RedisKey)RedisNames.Status,

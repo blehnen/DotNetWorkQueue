@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void Create_Status()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqLiteMessageQueueTransportOptions { EnableStatusTable = true};
+            var options = new SqLiteMessageQueueTransportOptions { EnableStatusTable = true };
             var factory = Substitute.For<ISqLiteMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void Create_Status_Extra_Columns()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqLiteMessageQueueTransportOptions { EnableStatusTable = true};
+            var options = new SqLiteMessageQueueTransportOptions { EnableStatusTable = true };
             options.AdditionalColumns.Add(new Column("testing", ColumnTypes.Integer, true, null));
             var factory = Substitute.For<ISqLiteMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void Create_Status_Extra_Constraint()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqLiteMessageQueueTransportOptions { EnableStatusTable = true};
+            var options = new SqLiteMessageQueueTransportOptions { EnableStatusTable = true };
             options.AdditionalColumns.Add(new Column("testing", ColumnTypes.Integer, true, null));
             options.AdditionalConstraints.Add(new Constraint("ix_testing", ConstraintType.Index, "testing"));
             var factory = Substitute.For<ISqLiteMessageQueueTransportOptionsFactory>();
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void Create_Meta_Priority()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqLiteMessageQueueTransportOptions { EnablePriority = true};
+            var options = new SqLiteMessageQueueTransportOptions { EnablePriority = true };
             var factory = Substitute.For<ISqLiteMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void Create_Meta_Status()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqLiteMessageQueueTransportOptions { EnableStatus = true};
+            var options = new SqLiteMessageQueueTransportOptions { EnableStatus = true };
             var factory = Substitute.For<ISqLiteMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void Create_Meta_DelayedProcessing()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqLiteMessageQueueTransportOptions { EnableDelayedProcessing = true};
+            var options = new SqLiteMessageQueueTransportOptions { EnableDelayedProcessing = true };
             var factory = Substitute.For<ISqLiteMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void Create_Meta_HeartBeat()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqLiteMessageQueueTransportOptions { EnableHeartBeat = true};
+            var options = new SqLiteMessageQueueTransportOptions { EnableHeartBeat = true };
             var factory = Substitute.For<ISqLiteMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
@@ -113,7 +113,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         public void Create_Meta_MessageExpiration()
         {
             var tableName = GetTableNameHelper();
-            var options = new SqLiteMessageQueueTransportOptions { EnableMessageExpiration = true};
+            var options = new SqLiteMessageQueueTransportOptions { EnableMessageExpiration = true };
             var factory = Substitute.For<ISqLiteMessageQueueTransportOptionsFactory>();
             factory.Create().Returns(options);
             var test = Create(factory, tableName);

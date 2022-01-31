@@ -12,7 +12,7 @@ namespace DotNetWorkQueue.AppMetrics.Tests
         public void Update(string name, long value, long value2)
         {
             var metrics = Creator.Create();
-            var metric = metrics.Provider.Histogram.Instance(new HistogramOptions() {Name = name});
+            var metric = metrics.Provider.Histogram.Instance(new HistogramOptions() { Name = name });
             var test = Create(metric);
             dynamic dyn = metric;
             test.Update(value);

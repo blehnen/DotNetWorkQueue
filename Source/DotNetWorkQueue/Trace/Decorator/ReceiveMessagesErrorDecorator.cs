@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// Tracer for receiving a message
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IReceiveMessagesError" />
-    public class ReceiveMessagesErrorDecorator: IReceiveMessagesError
+    public class ReceiveMessagesErrorDecorator : IReceiveMessagesError
     {
         private readonly ActivitySource _tracer;
         private readonly IReceiveMessagesError _handler;
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public ReceiveMessagesErrorDecorator(IReceiveMessagesError handler,  ActivitySource tracer, IStandardHeaders headers)
+        public ReceiveMessagesErrorDecorator(IReceiveMessagesError handler, ActivitySource tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;
@@ -48,11 +48,11 @@ namespace DotNetWorkQueue.Trace.Decorator
         public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
             var activityContext = message.Extract(_tracer, _headers);
-            using (var scope = _tracer.StartActivity("Error", ActivityKind.Internal,  parentContext: activityContext))
+            using (var scope = _tracer.StartActivity("Error", ActivityKind.Internal, parentContext: activityContext))
             {
                 scope?.AddMessageIdTag(message);
                 scope?.RecordException(exception);
-                scope?.SetStatus(Status.Error);;
+                scope?.SetStatus(Status.Error); ;
                 var result = _handler.MessageFailedProcessing(message, context, exception);
                 scope?.SetTag("WillRetry", result == ReceiveMessagesErrorResult.Retry);
                 return result;

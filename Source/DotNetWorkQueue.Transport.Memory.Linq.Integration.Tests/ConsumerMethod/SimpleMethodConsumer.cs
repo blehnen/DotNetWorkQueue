@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
 #else
         [InlineData(10, 15, 60, 7, LinqMethodTypes.Compiled)]
 #endif
-        public void Run(int messageCount, int runtime, 
+        public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {
 

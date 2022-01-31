@@ -41,7 +41,7 @@ using ExampleMessage;
 
 namespace SqlServerProducer.Commands
 {
-    public class SendMessage: SharedSendCommands
+    public class SendMessage : SharedSendCommands
     {
         private readonly Lazy<QueueContainer<SqlServerMessageQueueInit>> _queueContainer;
         private readonly Dictionary<string, IProducerBaseQueue> _queues;

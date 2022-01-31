@@ -41,7 +41,7 @@ using ExampleMessage;
 
 namespace PostGresSQLProducer.Commands
 {
-    public class SendMessage: SharedSendCommands
+    public class SendMessage : SharedSendCommands
     {
         private readonly Lazy<QueueContainer<PostgreSqlMessageQueueInit>> _queueContainer;
         private readonly Dictionary<string, IProducerBaseQueue> _queues;

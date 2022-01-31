@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.LinqCompile
     /// <seealso cref="DotNetWorkQueue.IPooledObject" />
     /// <seealso cref="System.IDisposable" />
     /// <remarks>This class is not thread safe - the caller must ensure that only one thread acts on an single instance.</remarks>
-    internal class DynamicCodeCompiler: IPooledObject, IDisposable
+    internal class DynamicCodeCompiler : IPooledObject, IDisposable
     {
         private static readonly string[] DefaultReferences = { "System.dll", "System.Core.dll", "DotNetWorkQueue.dll" };
         private static readonly string[] DefaultUsing = { "System", "System.Collections.Generic", "System.Linq", "System.Linq.Expressions", "DotNetWorkQueue", "DotNetWorkQueue.Messages" };

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// For redis, this class just indicates what is supported; Redis does not use a schema, so any option can be used at any time, even after queue creation.
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IBaseTransportOptions" />
-    public class RedisBaseTransportOptions: IBaseTransportOptions
+    public class RedisBaseTransportOptions : IBaseTransportOptions
     {
         /// <inheritdoc/>
         public bool EnablePriority => true;

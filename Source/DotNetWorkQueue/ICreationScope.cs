@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue
     /// </summary>
     /// <remarks>Generally speaking, this only affects non persistent queues that live only in memory.</remarks>
     /// <seealso cref="System.IDisposable" />
-    public interface ICreationScope: IDisposable
+    public interface ICreationScope : IDisposable
     {
         /// <summary>
         /// Adds the scoped disposable object to the scope.

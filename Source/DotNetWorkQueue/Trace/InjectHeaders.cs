@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Trace
         public static void Inject(this IMessage message, ActivitySource tracer, ActivityContext context,
             IStandardHeaders headers)
         {
-            var mapping = Propagators.DefaultTextMapPropagator;;
+            var mapping = Propagators.DefaultTextMapPropagator; ;
             mapping.Inject(new PropagationContext(context, Baggage.Current), message.Headers, InjectTraceContextIntoBasicProperties);
 
             //tracer.Inject(context, BuiltinFormats.TextMap, mapping);
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Trace
             if (props.TryGetValue(key, out var value))
             {
                 var bytes = value as string;
-                return new[] {bytes};
+                return new[] { bytes };
             }
             return Enumerable.Empty<string>();
         }
@@ -152,10 +152,10 @@ namespace DotNetWorkQueue.Trace
             span.SetTag("Server", connectionInformation.Server);
             span.SetTag("Queue", connectionInformation.QueueName);
             span.SetTag("CorrelationId", data.CorrelationId.ToString());
-            if(!string.IsNullOrEmpty(data.Route))
+            if (!string.IsNullOrEmpty(data.Route))
                 span.SetTag("Route", data.Route);
 
-            foreach(var userTag in data.TraceTags)
+            foreach (var userTag in data.TraceTags)
             {
                 span.SetTag(userTag.Key, userTag.Value);
             }
@@ -167,7 +167,7 @@ namespace DotNetWorkQueue.Trace
         /// <param name="message">The message.</param>
         public static void AddMessageIdTag(this Activity span, IQueueOutputMessage message)
         {
-            if(message.SentMessage.MessageId.HasValue)
+            if (message.SentMessage.MessageId.HasValue)
                 span.SetTag("MessageId", message.SentMessage.MessageId.Id.Value.ToString());
         }
         /// <summary>

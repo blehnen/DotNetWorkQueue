@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     /// Sends a job to storage
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.ASendJobToQueue" />
-    public class SendToJobQueue: ASendJobToQueue
+    public class SendToJobQueue : ASendJobToQueue
     {
         private readonly IDataStorage _dataStorage;
         private readonly CreateJobMetaData _createJobMetaData;
@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         protected override void SetMetaDataForJob(string jobName, DateTimeOffset scheduledTime, DateTimeOffset eventTime, string route,
             IAdditionalMessageData messageData)
         {
-            _createJobMetaData.Create(jobName, scheduledTime, eventTime,  messageData, route);
+            _createJobMetaData.Create(jobName, scheduledTime, eventTime, messageData, route);
         }
     }
 }

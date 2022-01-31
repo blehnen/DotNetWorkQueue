@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
 
         public static void NoVerification(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
-            
+
         }
 
         public static AdditionalMessageData GenerateDataWithColumnValue(QueueProducerConfiguration configuration,
@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                 data.SetPriority(5);
 
             data.AdditionalMetaData.Add(new AdditionalMetaData<int>("OrderID", columnValue));
-   
+
             return data;
         }
 

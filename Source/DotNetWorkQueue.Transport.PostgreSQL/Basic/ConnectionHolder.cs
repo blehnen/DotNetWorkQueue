@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -70,8 +70,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             get
             {
-                ThrowIfDisposed(); 
-                return _npgsqlConnection; 
+                ThrowIfDisposed();
+                return _npgsqlConnection;
             }
             set
             {
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         public NpgsqlCommand CreateCommand()
         {
-            if(_npgsqlConnection == null)
+            if (_npgsqlConnection == null)
             {
                 throw new DotNetWorkQueueException("An attempt was made to create a SQL command object, but the SQL connection is null");
             }

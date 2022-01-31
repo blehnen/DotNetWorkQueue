@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Tests.Queue
             });
         }
         // ReSharper disable once ClassNeverInstantiated.Local
-        private class ReceiveMessagesErrorWillCrash: IReceiveMessagesError 
+        private class ReceiveMessagesErrorWillCrash : IReceiveMessagesError
         {
             public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)
             {

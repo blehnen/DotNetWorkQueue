@@ -16,11 +16,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
         [Collection("Consumer")]
         public class SimpleMethodConsumer
         {
-           [Theory]
-           [InlineData(20, 0, 240, 5, false, true),
-           InlineData(2000, 0, 240, 25, false, false),
-           InlineData(2000, 0, 240, 25, true, false),
-           InlineData(20, 0, 240, 5, true, true)]
+            [Theory]
+            [InlineData(20, 0, 240, 5, false, true),
+            InlineData(2000, 0, 240, 25, false, false),
+            InlineData(2000, 0, 240, 25, true, false),
+            InlineData(20, 0, 240, 5, true, true)]
             public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
             {
                 var queueName = GenerateQueueName.Create();

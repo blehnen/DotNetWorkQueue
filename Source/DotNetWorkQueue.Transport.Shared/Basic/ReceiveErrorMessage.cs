@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
                 var retries =
                     _queryErrorRetryCount.Handle(
                         new GetErrorRetryCountQuery<T>(exceptionType,
-                            (T) context.MessageId.Id.Value));
+                            (T)context.MessageId.Id.Value));
                 if (retries >= info.MaxRetries)
                 {
                     bSendErrorQueue = true;
@@ -108,7 +108,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
                     //note zero based index - use the current count not count +1
                     _commandSetErrorCount.Handle(
                         new SetErrorCountCommand<T>(
-                            exceptionType, (T) context.MessageId.Id.Value));
+                            exceptionType, (T)context.MessageId.Id.Value));
                 }
             }
 

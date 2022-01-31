@@ -23,13 +23,13 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         /// <inheritdoc />
         public void ShutdownContext(string contextName)
         {
-           
+
         }
 
         /// <inheritdoc />
         public void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
-           
+
         }
 
         /// <inheritdoc />

@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
             bool enablePriority,
             bool enableStatus,
             bool enableStatusTable,
-            bool additionalColumn, 
+            bool additionalColumn,
             bool enableChaos)
         {
 

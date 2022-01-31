@@ -34,7 +34,7 @@ using App.Metrics;
 
 namespace ConsoleSharedCommands.Commands
 {
-    public abstract class SharedCommands: IConsoleCommand, IDisposable
+    public abstract class SharedCommands : IConsoleCommand, IDisposable
     {
         protected DotNetWorkQueue.AppMetrics.Metrics Metrics;
         private App.Metrics.IMetricsRoot _metricsRoot;
@@ -67,7 +67,7 @@ namespace ConsoleSharedCommands.Commands
             help.AppendLine(ConsoleFormatting.FixedLength("EnableStatus uri", "Enables the status HTTP server"));
             help.AppendLine(ConsoleFormatting.FixedLength("EnableMetrics",
                 "Enables queue metrics"));
-            help.AppendLine(ConsoleFormatting.FixedLength("ViewMetrics","Displays any captured metrics"));
+            help.AppendLine(ConsoleFormatting.FixedLength("ViewMetrics", "Displays any captured metrics"));
             help.AppendLine(ConsoleFormatting.FixedLength("EnableGzip", "Enables the Gzip message interceptor"));
             help.AppendLine(ConsoleFormatting.FixedLength("EnableDes [key] [iv]",
                 "Enables Triple DES message interceptor; key/iv must be base64 strings"));
@@ -94,7 +94,7 @@ namespace ConsoleSharedCommands.Commands
         {
             if (Metrics != null)
             {
-                var tasks =_metricsRoot.ReportRunner.RunAllAsync();
+                var tasks = _metricsRoot.ReportRunner.RunAllAsync();
                 System.Threading.Tasks.Task.WaitAll(tasks.ToArray());
             }
             return new ConsoleExecuteResult("Metric reports have been run");
@@ -113,7 +113,8 @@ namespace ConsoleSharedCommands.Commands
                         options.ReportingEnabled = true;
                     })
                 .Report.ToConsole(
-                    options => {
+                    options =>
+                    {
                         options.FlushInterval = TimeSpan.FromSeconds(5);
                     })
                 .Build();

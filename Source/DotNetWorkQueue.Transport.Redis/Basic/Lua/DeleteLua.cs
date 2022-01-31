@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
     /// <summary>
     /// Deletes a message from the queue
     /// </summary>
-    internal class DeleteLua: BaseLua
+    internal class DeleteLua : BaseLua
     {
         /// <inheritdoc />
         /// <summary>
@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public DeleteLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
-            Script= @"redis.call('zrem', @workingkey, @uuid) 
+            Script = @"redis.call('zrem', @workingkey, @uuid) 
                      redis.call('hdel', @valueskey, @uuid) 
                      redis.call('hdel', @headerskey, @uuid) 
                      redis.call('hdel', @metakey, @uuid) 
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         {
             var result = TryExecute(GetParameters(messageId));
             if (!result.IsNull)
-                return (int) result;
+                return (int)result;
             return null;
         }
         /// <summary>

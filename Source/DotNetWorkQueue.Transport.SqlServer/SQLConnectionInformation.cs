@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
     /// <summary>
     /// Contains connection information for a SQL server queue
     /// </summary>
-    public class SqlConnectionInformation: BaseConnectionInformation
+    public class SqlConnectionInformation : BaseConnectionInformation
     {
         private string _server;
         private string _catalog;
@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// Initializes a new instance of the <see cref="SqlConnectionInformation"/> class.
         /// </summary>
         /// <param name="queueConnection">Queue and connection information.</param>
-        public SqlConnectionInformation(QueueConnection queueConnection): base(queueConnection)
+        public SqlConnectionInformation(QueueConnection queueConnection) : base(queueConnection)
         {
             ValidateConnection(queueConnection.Connection);
         }

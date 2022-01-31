@@ -18,7 +18,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         [Fact]
         public void DefaultCreation_IsEmpty()
         {
-            var test  = GetConfiguration();
+            var test = GetConfiguration();
             Assert.Empty(test.RetryTypes);
         }
 
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Tests.Configuration
             Assert.Throws<InvalidOperationException>(
               delegate
               {
-                configuration.Add(typeof(Exception), new List<TimeSpan>());
+                  configuration.Add(typeof(Exception), new List<TimeSpan>());
               });
         }
 
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void Add_OneException_OneTime(TimeSpan value)
         {
             var test = GetConfiguration();
-            
+
             test.Add(typeof(NullReferenceException), new List<TimeSpan> { value });
             Assert.Equal(value, test.GetRetryAmount(new NullReferenceException()).Times[0]);
         }
@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void Add_DuplicateType_Fails()
         {
             var configuration = GetConfiguration();
-            
+
             configuration.Add(typeof(Exception), new List<TimeSpan>());
 
             Assert.Throws<ArgumentException>(

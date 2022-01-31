@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             Assert.Equal(@"c:\test\temp.db3", test.FileName);
             Assert.True(test.IsValid);
         }
-        [Fact]  
+        [Fact]
         public void Create_InMemoryIsValid()
         {
             var test = new ConnectionStringInfo(true, string.Empty);

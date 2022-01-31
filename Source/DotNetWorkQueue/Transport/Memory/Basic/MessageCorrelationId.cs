@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     /// The correlation ID for the queue
     /// <remarks>A GUID is used, since this needs to be different across queues</remarks>
     /// </summary>
-    public class MessageCorrelationId: ICorrelationId
+    public class MessageCorrelationId : ICorrelationId
     {
         private readonly Guid _id;
         /// <summary>

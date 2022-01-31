@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// Tracer for message execution
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IMessageHandler" />
-    public class MessageHandlerDecorator: IMessageHandler
+    public class MessageHandlerDecorator : IMessageHandler
     {
         private readonly IMessageHandler _handler;
         private readonly ActivitySource _tracer;
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public MessageHandlerDecorator(IMessageHandler handler,  ActivitySource tracer, IStandardHeaders headers)
+        public MessageHandlerDecorator(IMessageHandler handler, ActivitySource tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;

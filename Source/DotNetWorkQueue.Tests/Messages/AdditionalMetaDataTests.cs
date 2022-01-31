@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
         private class Data
         {
-            
+
         }
     }
 }

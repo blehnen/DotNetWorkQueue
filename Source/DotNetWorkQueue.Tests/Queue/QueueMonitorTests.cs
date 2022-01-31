@@ -50,12 +50,12 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             using (var test = Create())
             {
-               test.Start();
-                   Assert.Throws<DotNetWorkQueueException>(
-               delegate
-               {
-                   test.Start();
-               });
+                test.Start();
+                Assert.Throws<DotNetWorkQueueException>(
+            delegate
+            {
+                test.Start();
+            });
             }
         }
 

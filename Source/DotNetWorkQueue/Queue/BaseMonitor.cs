@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Queue
     /// <summary>
     /// A base monitor class for running actions on a queue
     /// </summary>
-    public abstract class BaseMonitor: IMonitor
+    public abstract class BaseMonitor : IMonitor
     {
         private readonly Func<CancellationToken, long> _monitorAction;
         private readonly Func<CancellationToken, List<ResetHeartBeatOutput>> _monitorActionIds;
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="monitorAction">The monitor action.</param>
         /// <param name="monitorTimeSpan">The monitor time span.</param>
         /// <param name="log">The log.</param>
-        protected BaseMonitor(Func<CancellationToken, long> monitorAction, 
+        protected BaseMonitor(Func<CancellationToken, long> monitorAction,
             IMonitorTimespan monitorTimeSpan,
             ILogger log)
         {
@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="monitorAction">The monitor action.</param>
         /// <param name="monitorTimeSpan">The monitor time span.</param>
         /// <param name="log">The log.</param>
-        protected BaseMonitor(IMonitorTimespan monitorTimeSpan, 
+        protected BaseMonitor(IMonitorTimespan monitorTimeSpan,
             Func<CancellationToken, List<ResetHeartBeatOutput>> monitorAction,
             ILogger log)
         {

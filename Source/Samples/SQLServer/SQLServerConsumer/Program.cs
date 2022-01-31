@@ -69,7 +69,7 @@ namespace SQLServerConsumer
                     if (!string.IsNullOrEmpty(enabledUserColumns) && bool.Parse(enabledUserColumns))
                     {
                         var dayofWeek = int.Parse(ConfigurationManager.AppSettings.ReadSetting("UserDayOfWeek"));
-                        log.Information( $"Only processing items created on {((DayOfWeek)dayofWeek).ToString()}");
+                        log.Information($"Only processing items created on {((DayOfWeek)dayofWeek).ToString()}");
                         queue.Configuration.SetUserParametersAndClause(() => Parameters(dayofWeek), WhereClause);
                     }
 

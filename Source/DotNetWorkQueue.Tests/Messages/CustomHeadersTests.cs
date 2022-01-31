@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
         public class TestData
         {
-            
+
         }
     }
 }

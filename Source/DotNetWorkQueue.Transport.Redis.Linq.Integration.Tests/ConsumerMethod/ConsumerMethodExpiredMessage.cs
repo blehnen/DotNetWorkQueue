@@ -16,11 +16,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     {
         [Theory]
 #if NETFULL
-         [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+        [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
 #else
         [InlineData(100, 0, 20, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
 #endif
-        public void Run(int messageCount, int runtime, 
+        public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();

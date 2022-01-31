@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (id == null || !id.HasValue)
                 return RemoveMessageStatus.NotFound;
 
-            var result =_deleteMessage.Handle(new DeleteMessageCommand<string>(id.Id.Value.ToString()));
+            var result = _deleteMessage.Handle(new DeleteMessageCommand<string>(id.Id.Value.ToString()));
             return result ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
         }
 

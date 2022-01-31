@@ -116,9 +116,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
             var queue =
                 _badQueueContainer.CreateMethodConsumer(_queueConnection, x => x.RegisterNonScopedSingleton(scope));
- 
-                SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime, _heartBeatMonitorTime, _updatetime, null);
-                return queue;        
+
+            SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, _workerCount, _heartBeatTime, _heartBeatMonitorTime, _updatetime, null);
+            return queue;
         }
 
         private void RunBadQueue()

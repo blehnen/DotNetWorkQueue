@@ -7,7 +7,7 @@ using System.Threading;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 {
     [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
-    public class IntegrationConnectionInfo: IDisposable
+    public class IntegrationConnectionInfo : IDisposable
     {
         private readonly string _fileName;
 

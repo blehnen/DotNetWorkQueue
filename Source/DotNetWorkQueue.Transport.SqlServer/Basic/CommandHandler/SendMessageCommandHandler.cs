@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -61,13 +61,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="sendJobStatus">The send job status.</param>
         /// <param name="jobExistsHandler">The job exists handler.</param>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
-        public SendMessageCommandHandler(ITableNameHelper tableNameHelper, 
+        public SendMessageCommandHandler(ITableNameHelper tableNameHelper,
             ICompositeSerialization serializer,
-            ISqlServerMessageQueueTransportOptionsFactory optionsFactory, 
+            ISqlServerMessageQueueTransportOptionsFactory optionsFactory,
             IHeaders headers,
-            SqlServerCommandStringCache commandCache, 
-            TransportConfigurationSend configurationSend, 
-            ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>> sendJobStatus, IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> jobExistsHandler, 
+            SqlServerCommandStringCache commandCache,
+            TransportConfigurationSend configurationSend,
+            ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>> sendJobStatus, IQueryHandler<DoesJobExistQuery<SqlConnection, SqlTransaction>, QueueStatuses> jobExistsHandler,
             IJobSchedulerMetaData jobSchedulerMetaData)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);

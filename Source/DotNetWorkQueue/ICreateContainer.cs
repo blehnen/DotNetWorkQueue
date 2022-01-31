@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue
     /// Creates new instance of <see cref="IContainer"/>
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ICreateContainer<in T> 
+    public interface ICreateContainer<in T>
         where T : ITransportInit, new()
     {
         /// <summary>

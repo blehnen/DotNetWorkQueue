@@ -69,8 +69,8 @@ namespace ConsoleView
 
                 var list =
                     (from command in _commandLibraries
-                        from child in command.Value
-                        select command.Key.Namespace + "." + child.Key.Trim()).ToList();
+                     from child in command.Value
+                     select command.Key.Namespace + "." + child.Key.Trim()).ToList();
                 shellControl1.SetCommands(list);
                 shellControl1.CommandEntered += ShellControl1OnCommandEntered;
             }
@@ -89,7 +89,7 @@ namespace ConsoleView
                     logControl1.Display(s);
                 }
 
-                BeginInvoke((MethodInvoker) Del);
+                BeginInvoke((MethodInvoker)Del);
                 return;
             }
 
@@ -164,7 +164,7 @@ namespace ConsoleView
                 else if (result.Action != null && result.Action.Action == ConsoleExecuteActions.RunMacro)
                 {
                     shellControl1.PrintLine();
-                    foreach(ConsoleExecuteResult command in ConsoleExecute.RunMacro(Path.Combine(Path.GetDirectoryName(_commandAssembly.Location) + @"\Macro\", result.Action.Target)))
+                    foreach (ConsoleExecuteResult command in ConsoleExecute.RunMacro(Path.Combine(Path.GetDirectoryName(_commandAssembly.Location) + @"\Macro\", result.Action.Target)))
                     {
                         if (command.Action.Action == ConsoleExecuteActions.RunCommand)
                         {
@@ -195,7 +195,7 @@ namespace ConsoleView
                     WriteToConsole(message);
                 }
 
-                BeginInvoke((MethodInvoker) Del);
+                BeginInvoke((MethodInvoker)Del);
                 return;
             }
 

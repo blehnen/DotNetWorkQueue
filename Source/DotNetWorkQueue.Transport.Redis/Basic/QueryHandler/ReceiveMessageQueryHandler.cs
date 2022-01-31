@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -49,12 +49,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="messageFactory">The message factory.</param>
         public ReceiveMessageQueryHandler(
-            ICompositeSerialization serializer, 
+            ICompositeSerialization serializer,
             IReceivedMessageFactory receivedMessageFactory,
             IRemoveMessage removeMessage,
             RedisHeaders redisHeaders,
             DequeueLua dequeueLua,
-            IUnixTimeFactory unixTimeFactory, 
+            IUnixTimeFactory unixTimeFactory,
             IMessageFactory messageFactory)
         {
             Guard.NotNull(() => serializer, serializer);
@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             {
                 var unixTimestamp = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
                 RedisValue[] result = _dequeueLua.Execute(unixTimestamp);
-                
+
                 if (result == null || result.Length == 1 && !result[0].HasValue || !result[0].HasValue)
                 {
                     return null;
@@ -136,7 +136,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 
             try
             {
-                var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string,object>> (headers);
+                var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
                 correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorrelationId.Name];
                 var messageGraph = (MessageInterceptorsGraph)allHeaders[_redisHeaders.Headers.StandardHeaders.MessageInterceptorGraph.Name];
                 var messageData = _serializer.Serializer.BytesToMessage<MessageBody>(message, messageGraph, allHeaders);

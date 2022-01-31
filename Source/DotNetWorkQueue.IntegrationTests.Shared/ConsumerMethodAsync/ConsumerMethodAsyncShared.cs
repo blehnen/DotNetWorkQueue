@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                 int messageCount,
                 int timeOut,
                 int readerCount,
-                TimeSpan heartBeatTime, 
+                TimeSpan heartBeatTime,
                 TimeSpan heartBeatMonitorTime,
                 Guid id,
                 string updateTime,

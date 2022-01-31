@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Messages
             var getHandlerGenericMethod = GetType().GetMethod("GetMessage", new[] { message.GetType() });
             if (getHandlerGenericMethod == null) throw new NullReferenceException("getHandlerGenericMethod is null");
             var generic = getHandlerGenericMethod.MakeGenericMethod(messageType);
-            return generic.Invoke(this, new object[] {message});
+            return generic.Invoke(this, new object[] { message });
         }
         /// <summary>
         /// Generates a <see cref="IReceivedMessage{T}" /> from a <see cref="IReceivedMessageInternal" />
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Messages
         public IReceivedMessage<T> GetMessage<T>(IReceivedMessageInternal internalMessage) where T : class
         {
             var d1 = Type.GetType("DotNetWorkQueue.Messages.ReceivedMessage`1");
-            Type[] typeArgs = {typeof(T) };
+            Type[] typeArgs = { typeof(T) };
 
             //if d1 is null, just let it throw an exception; this would indicate that something strange has happened
             // ReSharper disable once PossibleNullReferenceException

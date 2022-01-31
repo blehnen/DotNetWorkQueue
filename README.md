@@ -176,13 +176,13 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/Source/Samples/SQLite/SQL
 Building the source
 ---------------------
 
-You'll need VS2019 (any version) and you'll also need to install the dot net core 2.0 SDK
+You'll need VS2022 (any version) and you'll also need to install the dot net core 2.0/6.0 SDKs
 
 All references are either in NuGet or the \lib folder - building from Visual studio should restore any needed files.
 
 License
 --------
-Copyright � 2015-2021 Brian Lehnen
+Copyright � 2015-2022 Brian Lehnen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by

@@ -141,7 +141,7 @@ namespace DotNetWorkQueue.Tests.Messages
             [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
             public void Dispose()
             {
-                
+
             }
         }
     }

@@ -18,7 +18,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         public static ILogger Create(string queueName, LogLevel logLevel, string initText)
         {
-            if(!Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\"))
+            if (!Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\"))
                 Directory.CreateDirectory(AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\");
 
             return

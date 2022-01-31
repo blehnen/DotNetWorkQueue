@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -29,10 +29,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <summary>
         /// Initializes a new instance of the <see cref="Column"/> class.
         /// </summary>
-		public Column() 
+		public Column()
         {
 
-		}
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
         /// </summary>
@@ -42,11 +42,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <param name="default">The default.</param>
         public Column(string name, ColumnTypes type, bool @null, Default @default)
         {
-			Name = name;
-			Type = type;
-			Default = @default;
+            Name = name;
+            Type = type;
+            Default = @default;
             Nullable = @null;
-		}
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
         /// </summary>
@@ -56,10 +56,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <param name="null">if set to <c>true</c> [null].</param>
         /// <param name="default">The default.</param>
         public Column(string name, ColumnTypes type, int length, bool @null, Default @default)
-			: this(name, type, @null, @default) 
+            : this(name, type, @null, @default)
         {
-			Length = length;
-		}
+            Length = length;
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
         /// </summary>
@@ -70,11 +70,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <param name="null">if set to <c>true</c> [null].</param>
         /// <param name="default">The default.</param>
         public Column(string name, ColumnTypes type, byte precision, int scale, bool @null, Default @default)
-			: this(name, type, @null, @default) 
+            : this(name, type, @null, @default)
         {
-			Precision = precision;
-			Scale = scale;
-		}
+            Precision = precision;
+            Scale = scale;
+        }
         #endregion
 
         #region Public Properties
@@ -177,52 +177,52 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// </summary>
         /// <returns></returns>
         /// <exception cref="System.NotSupportedException">SQL data type is not supported.</exception>
-        public string Script() 
+        public string Script()
         {
-			switch (Type) 
+            switch (Type)
             {
-				case ColumnTypes.Bigint:
-				case ColumnTypes.Bit:
-				case ColumnTypes.Date:
-				case ColumnTypes.Datetime:
-				case ColumnTypes.Datetime2:
-				case ColumnTypes.Datetimeoffset:
-				case ColumnTypes.Float:
-				case ColumnTypes.Image:
-				case ColumnTypes.Int:
-				case ColumnTypes.Money:
-				case ColumnTypes.Ntext:
-				case ColumnTypes.Real:
-				case ColumnTypes.Smalldatetime:
-				case ColumnTypes.Smallint:
-				case ColumnTypes.Smallmoney:
-				case ColumnTypes.Sql_variant:
-				case ColumnTypes.Text:
-				case ColumnTypes.Time:
-				case ColumnTypes.Timestamp:
-				case ColumnTypes.Tinyint:
-				case ColumnTypes.Uniqueidentifier:
-				case ColumnTypes.Xml:
+                case ColumnTypes.Bigint:
+                case ColumnTypes.Bit:
+                case ColumnTypes.Date:
+                case ColumnTypes.Datetime:
+                case ColumnTypes.Datetime2:
+                case ColumnTypes.Datetimeoffset:
+                case ColumnTypes.Float:
+                case ColumnTypes.Image:
+                case ColumnTypes.Int:
+                case ColumnTypes.Money:
+                case ColumnTypes.Ntext:
+                case ColumnTypes.Real:
+                case ColumnTypes.Smalldatetime:
+                case ColumnTypes.Smallint:
+                case ColumnTypes.Smallmoney:
+                case ColumnTypes.Sql_variant:
+                case ColumnTypes.Text:
+                case ColumnTypes.Time:
+                case ColumnTypes.Timestamp:
+                case ColumnTypes.Tinyint:
+                case ColumnTypes.Uniqueidentifier:
+                case ColumnTypes.Xml:
 
-					return $"[{Name}] [{Type}] {NullableText} {DefaultText} {IdentityText}";
+                    return $"[{Name}] [{Type}] {NullableText} {DefaultText} {IdentityText}";
                 case ColumnTypes.Decimal:
                 case ColumnTypes.Numeric:
 
                     return $"[{Name}] [{Type}]({Precision},{Scale}) {NullableText} {DefaultText}";
-				case ColumnTypes.Binary:
-				case ColumnTypes.Char:
-				case ColumnTypes.Nchar:
-				case ColumnTypes.Nvarchar:
-				case ColumnTypes.Varbinary:
-				case ColumnTypes.Varchar:
-					var lengthString = Length.ToString();
-					if (lengthString == "-1") lengthString = "max";
+                case ColumnTypes.Binary:
+                case ColumnTypes.Char:
+                case ColumnTypes.Nchar:
+                case ColumnTypes.Nvarchar:
+                case ColumnTypes.Varbinary:
+                case ColumnTypes.Varchar:
+                    var lengthString = Length.ToString();
+                    if (lengthString == "-1") lengthString = "max";
 
-					return $"[{Name}] [{Type}]({lengthString}) {NullableText} {DefaultText}";
-				default:
-					throw new NotSupportedException($"SQL data type {Type} is not supported.");
-			}
-		}
+                    return $"[{Name}] [{Type}]({lengthString}) {NullableText} {DefaultText}";
+                default:
+                    throw new NotSupportedException($"SQL data type {Type} is not supported.");
+            }
+        }
         #endregion
 
         #region Clone
@@ -232,7 +232,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <returns></returns>
         public Column Clone()
         {
-            var rc = new Column {Default = Default};
+            var rc = new Column { Default = Default };
 
             if (Identity != null)
             {
@@ -319,7 +319,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// The sql_variant
         /// </summary>
         // ReSharper disable once InconsistentNaming //this name is the name used directly in the SQL script - don't change it
-	    Sql_variant,
+        Sql_variant,
         /// <summary>
         /// The text
         /// </summary>

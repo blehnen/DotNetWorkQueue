@@ -14,8 +14,8 @@ namespace DotNetWorkQueue.Tests.Factory
         [Fact]
         public void Create_Default()
         {
-            var t = typeof (NullReferenceException);
-            var times = new List<TimeSpan> {TimeSpan.MinValue, TimeSpan.MaxValue};
+            var t = typeof(NullReferenceException);
+            var times = new List<TimeSpan> { TimeSpan.MinValue, TimeSpan.MaxValue };
 
             var factory = Create();
             var info = factory.Create(t, times);

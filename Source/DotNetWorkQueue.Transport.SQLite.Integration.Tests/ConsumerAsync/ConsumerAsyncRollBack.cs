@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
         [InlineData(100, 1, 400, 5, 5, 5, true, false),
          InlineData(10, 45, 260, 5, 1, 2, false, false),
          InlineData(10, 0, 400, 5, 5, 5, true, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, 
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

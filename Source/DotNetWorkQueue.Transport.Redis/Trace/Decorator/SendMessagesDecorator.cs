@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
     /// 
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.ISendMessages" />
-    public class SendMessagesDecorator: ISendMessages
+    public class SendMessagesDecorator : ISendMessages
     {
         private readonly ISendMessages _handler;
         private readonly ActivitySource _tracer;
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                 scope?.AddCommonTags(data, _connectionInformation);
                 scope?.Add(data);
                 scope?.SetTag("IsBatch", false);
-                if(scope != null)
+                if (scope != null)
                     messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                     scope?.AddCommonTags(message.MessageData, _connectionInformation);
                     scope?.Add(message.MessageData);
                     scope?.SetTag("IsBatch", true);
-                    if(scope != null)
+                    if (scope != null)
                         message.Message.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 }
             }
@@ -125,7 +125,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                 scope?.AddCommonTags(data, _connectionInformation);
                 scope?.Add(data);
                 scope?.SetTag("IsBatch", false);
-                if(scope?.Context != null)
+                if (scope?.Context != null)
                     messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
@@ -162,7 +162,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                     scope?.AddCommonTags(message.MessageData, _connectionInformation);
                     scope?.Add(message.MessageData);
                     scope?.SetTag("IsBatch", true);
-                    if(scope?.Context != null)
+                    if (scope?.Context != null)
                         message.Message.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 }
             }

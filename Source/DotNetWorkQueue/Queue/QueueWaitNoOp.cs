@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -23,21 +23,21 @@ namespace DotNetWorkQueue.Queue
     /// <summary>
     /// A "no wait" strategy for queue waits
     /// </summary>
-    internal class QueueWaitNoOp: IQueueWait, INoOperation
+    internal class QueueWaitNoOp : IQueueWait, INoOperation
     {
         /// <summary>
         /// Resets the wait time back to the start.
         /// </summary>
         public void Reset()
         {
-            
+
         }
         /// <summary>
         /// Waits until the next wait time has expired
         /// </summary>
         public void Wait()
         {
-            
+
         }
         /// <summary>
         /// Waits until the specified time span has been reached.
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="waitTime">The how long the wait will last.</param>
         public void Wait(Action<TimeSpan> waitTime)
         {
-            
+
         }
     }
 }

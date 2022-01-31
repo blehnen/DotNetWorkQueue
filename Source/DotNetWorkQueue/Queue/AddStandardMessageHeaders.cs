@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="data">The data.</param>
-        public void AddHeaders (IMessage message, IAdditionalMessageData data)
+        public void AddHeaders(IMessage message, IAdditionalMessageData data)
         {
             message.SetHeader(_headers.StandardHeaders.FirstPossibleDeliveryDate, new ValueTypeWrapper<DateTime>(_getFirstMessageDeliveryTime.GetTime(message, data)));
         }

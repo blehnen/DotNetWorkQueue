@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
 #else
         [InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
 #endif
-        public void Run(int messageCount, int timeOut, int workerCount, 
+        public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

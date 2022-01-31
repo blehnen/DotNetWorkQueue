@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     /// <typeparam name="T">The type of the message</typeparam>
     public class ProducerQueue<T> : IProducerQueue<T>
-        where T: class
+        where T : class
     {
         private readonly QueueProducerConfiguration _configuration;
         private readonly ISendMessages _sendMessages;
@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Queue
             QueueProducerConfiguration configuration,
             ISendMessages sendMessages,
             IMessageFactory messageFactory,
-            ILogger log, 
+            ILogger log,
             GenerateMessageHeaders generateMessageHeaders,
             AddStandardMessageHeaders addStandardMessageHeaders)
         {
@@ -272,7 +272,7 @@ The queue uses dynamic instances to run the user delegate and the queue cannot c
             Guard.NotNull(() => message, message);
             Guard.NotNull(() => data, data);
 
-            if(!Configuration.IsReadOnly)
+            if (!Configuration.IsReadOnly)
                 Configuration.SetReadOnly();
 
             var additionalHeaders = _generateMessageHeaders.HeaderSetup(data);
@@ -330,7 +330,7 @@ The queue uses dynamic instances to run the user delegate and the queue cannot c
             Guard.NotNull(() => messages, messages);
 
             var newMessages = InternalSendPrepare(messages);
-          
+
             //send the message to the transport
             return await _sendMessages.SendAsync(newMessages.ToList()).ConfigureAwait(false);
         }

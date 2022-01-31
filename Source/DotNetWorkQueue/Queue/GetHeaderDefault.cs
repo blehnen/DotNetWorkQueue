@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Queue
     /// Gets the default header
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IGetHeader" />
-    public class GetHeaderDefault: IGetHeader
+    public class GetHeaderDefault : IGetHeader
     {
         /// <summary>
         /// Gets the headers for the specified message if possible

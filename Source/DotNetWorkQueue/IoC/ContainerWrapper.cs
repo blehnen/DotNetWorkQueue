@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -281,7 +281,7 @@ namespace DotNetWorkQueue.IoC
         /// <typeparam name="TService">The type of the service.</typeparam>
         /// <param name="serviceTypes">The service types.</param>
         /// <returns></returns>
-        public IContainer RegisterCollection<TService>(IEnumerable<Type> serviceTypes) 
+        public IContainer RegisterCollection<TService>(IEnumerable<Type> serviceTypes)
             where TService : class
         {
             _container.Collection.Register<TService>(serviceTypes);
@@ -335,7 +335,7 @@ namespace DotNetWorkQueue.IoC
                 var target = _container.GetRegistration(type, false);
                 if (target == null) return this;
                 var registration = target.Registration;
-                registration?.SuppressDiagnosticWarning((DiagnosticType) warningType, reason);
+                registration?.SuppressDiagnosticWarning((DiagnosticType)warningType, reason);
             }
 
             return this;

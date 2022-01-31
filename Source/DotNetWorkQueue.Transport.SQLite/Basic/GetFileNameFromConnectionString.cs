@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// <summary>
     /// Determines the full path and file name of a Sqlite DB, based on the connection string.
     /// </summary>
-    public class GetFileNameFromConnectionString: IGetFileNameFromConnectionString
+    public class GetFileNameFromConnectionString : IGetFileNameFromConnectionString
     {
         /// <summary>
         /// Gets the full path and file name of a DB. In memory databases will instead set the <seealso cref="ConnectionStringInfo.IsInMemory"/> flag to true.
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             SQLiteConnectionStringBuilder builder;
             try
             {
-                 builder = new SQLiteConnectionStringBuilder(connectionString);
+                builder = new SQLiteConnectionStringBuilder(connectionString);
             }
             // ReSharper disable once UncatchableException
             catch (ArgumentException) //bad format - return a connection string info that isn't valid

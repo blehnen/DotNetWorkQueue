@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
         private void VerifyQueueCount(QueueConnection arg1, IBaseTransportOptions arg2, ICreationScope arg3, int arg4,
             string arg5)
         {
-            new VerifyQueueData(arg1, (LiteDbMessageQueueTransportOptions) arg2, arg3).Verify(arg4, arg5);
+            new VerifyQueueData(arg1, (LiteDbMessageQueueTransportOptions)arg2, arg3).Verify(arg4, arg5);
         }
     }
 }

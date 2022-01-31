@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     /// Removes a message from storage
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IRemoveMessage" />
-    public class RemoveMessage: IRemoveMessage
+    public class RemoveMessage : IRemoveMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
         private readonly ICommandHandler<DeleteStatusTableStatusCommand<long>> _deleteStatusCommandHandler;
@@ -69,12 +69,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         public RemoveMessageStatus Remove(IMessageId id, RemoveMessageReason reason)
         {
-            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted && reason == RemoveMessageReason.Complete )
+            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted && reason == RemoveMessageReason.Complete)
                 throw new DotNetWorkQueueException("Cannot use a transaction without the message context");
 
             if (id == null || !id.HasValue) return RemoveMessageStatus.NotFound;
 
-            var count = _deleteMessageCommand.Handle(new DeleteMessageCommand<long>((long) id.Id.Value));
+            var count = _deleteMessageCommand.Handle(new DeleteMessageCommand<long>((long)id.Id.Value));
             return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
         }
 

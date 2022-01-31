@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue
         /// If this value is false, canceling an in progress operation may result in data loss. 
         /// If using a transport not configured for rollback, re-queuing or saving state is up to user code.
         /// </remarks>
-        bool TransportSupportsRollback { get;  }
+        bool TransportSupportsRollback { get; }
         /// <summary>
         /// An instance of the logging class
         /// </summary>

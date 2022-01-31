@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@ using StackExchange.Redis;
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
     /// <inheritdoc />
-    public class DoesJobExistLua: BaseLua
+    public class DoesJobExistLua : BaseLua
     {
         /// <inheritdoc />
         /// <summary>
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             var result = TryExecute(GetParameters(jobName, scheduledTime));
             if (result.IsNull)
                 return QueueStatuses.NotQueued;
-            return (QueueStatuses) (int) result;
+            return (QueueStatuses)(int)result;
         }
 
         /// <summary>
@@ -77,10 +77,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         {
             return new
             {
-                JobJey = (RedisKey) RedisNames.JobNames,
+                JobJey = (RedisKey)RedisNames.JobNames,
                 JobName = jobName,
-                StatusKey = (RedisKey) RedisNames.Status,
-                JobEventKey = (RedisKey) RedisNames.JobEvent,
+                StatusKey = (RedisKey)RedisNames.Status,
+                JobEventKey = (RedisKey)RedisNames.JobEvent,
                 JobNameScheduled = string.Concat(jobName, "|scheduled"),
                 ScheduledTime = scheduledTime.ToString(CultureInfo.InvariantCulture)
             };

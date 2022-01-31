@@ -11,23 +11,23 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerAsyncBatch
     {
         [Theory]
-        [InlineData(1000, true, true, true, false,  LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(100, false, true, true, false,  LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(100, false, false, false, false,  LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        [InlineData(1000, true, true, true, false, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(100, false, true, true, false, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(100, false, false, false, false, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
          InlineData(100, true, false, false, false, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
          InlineData(100, true, true, true, false, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(100, false, true, true, false,  LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(100, false, false, false, false,  LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(1000, true, false, false, false,  LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(100, false, true, true, false, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(100, false, false, false, false, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(1000, true, false, false, false, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
 
-         InlineData(100, true, true, true, false,  LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, false, true, true, false,  LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, false, false, false, false,  LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, true, false, false, false,  LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, true, true, true, false,  LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(100, true, true, true, false, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(10, false, true, true, false, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(10, false, false, false, false, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(10, true, false, false, false, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         InlineData(10, true, true, true, false, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
          InlineData(10, false, true, true, false, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
          InlineData(10, false, false, false, false, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(100, true, false, false, false,  LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+         InlineData(100, true, false, false, false, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public async Task Run(
             int messageCount,
             bool interceptors,

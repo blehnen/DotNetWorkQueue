@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
         public void GetSet_Precision()
         {
             var b = new byte();
-            var test = new Column {Precision = b};
+            var test = new Column { Precision = b };
             Assert.Equal(b, test.Precision);
         }
         [Fact]
@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
         [Fact]
         public void GetSet_Name()
         {
-            var test = new Column {Name = "test"};
+            var test = new Column { Name = "test" };
             Assert.Equal("test", test.Name);
         }
         [Fact]

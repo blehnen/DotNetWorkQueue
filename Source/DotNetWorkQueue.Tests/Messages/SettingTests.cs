@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
         private class FakeSetting
         {
-            
+
         }
     }
 }

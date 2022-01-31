@@ -7,7 +7,7 @@ using Xunit;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
     [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
-    public class VerifyQueueData: IDisposable
+    public class VerifyQueueData : IDisposable
     {
         private readonly QueueProducerConfiguration _configuration;
         private readonly RedisNames _redisNames;
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             VerifyStatus(expectedMessageCount, expectedStatus, route);
 
             // ReSharper disable once PossibleInvalidOperationException
-            if(_configuration.GetMessageDelay().HasValue && _configuration.GetMessageDelay().Value)
+            if (_configuration.GetMessageDelay().HasValue && _configuration.GetMessageDelay().Value)
             {
                 VerifyDelayedProcessing(expectedMessageCount);
             }
@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         {
             long records;
             var db = _connection.Connection.GetDatabase();
- 
+
             if (!ignoreErrorTracking)
             {
                 records = db.ListLength(_redisNames.Error);

@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.Tests.Messages
             fixture.Inject(inputMessage);
             IReceivedMessageInternal rec = fixture.Create<ReceivedMessageInternal>();
 
-            var message = gen.GenerateMessage(typeof (FakeMessage), rec);
+            var message = gen.GenerateMessage(typeof(FakeMessage), rec);
 
             IReceivedMessage<FakeMessage> translatedMessage = message;
 
@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
         private class FakeMessage
         {
-            
+
         }
     }
 }

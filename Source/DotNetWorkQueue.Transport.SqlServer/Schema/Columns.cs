@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -44,19 +44,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// Adds a new column
         /// </summary>
         /// <param name="column">The column.</param>
-		public void Add(Column column) 
+		public void Add(Column column)
         {
             _columns.Add(column);
-		}
+        }
 
         /// <summary>
         /// Removes the specified column.
         /// </summary>
         /// <param name="column">The column.</param>
-        public void Remove(Column column) 
+        public void Remove(Column column)
         {
             _columns.Remove(column);
-		}
+        }
         #endregion
 
         #region Scripting
@@ -64,22 +64,22 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// Translates this list of columns into SQL script.
         /// </summary>
         /// <returns></returns>
-		public string Script() 
+		public string Script()
         {
             var text = new StringBuilder();
-			foreach (var c in _columns) 
+            foreach (var c in _columns)
             {
-				text.Append("   " + c.Script());
-                if (_columns.IndexOf(c) < _columns.Count - 1) 
+                text.Append("   " + c.Script());
+                if (_columns.IndexOf(c) < _columns.Count - 1)
                 {
-					text.AppendLine(",");
-				}
-				else 
+                    text.AppendLine(",");
+                }
+                else
                 {
-					text.AppendLine();
-				}
-			}
-			return text.ToString();
+                    text.AppendLine();
+                }
+            }
+            return text.ToString();
         }
         #endregion
     }

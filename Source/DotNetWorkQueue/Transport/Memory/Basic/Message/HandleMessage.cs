@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         /// </summary>
         /// <param name="commitMessage">The commit message.</param>
         /// <param name="rollbackMessage">The rollback message.</param>
-        public HandleMessage(CommitMessage commitMessage, 
+        public HandleMessage(CommitMessage commitMessage,
             RollbackMessage rollbackMessage)
         {
             Guard.NotNull(() => commitMessage, commitMessage);
@@ -45,13 +45,13 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         /// <value>
         /// The commit message module.
         /// </value>
-        public CommitMessage CommitMessage { get;  }
+        public CommitMessage CommitMessage { get; }
         /// <summary>
         /// Gets the rollback message module.
         /// </summary>
         /// <value>
         /// The rollback message module.
         /// </value>
-        public RollbackMessage RollbackMessage { get;  }
+        public RollbackMessage RollbackMessage { get; }
     }
 }

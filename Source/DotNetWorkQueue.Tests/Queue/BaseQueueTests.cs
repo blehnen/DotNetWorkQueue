@@ -102,9 +102,9 @@ namespace DotNetWorkQueue.Tests.Queue
 
     public class BaseQueueTest : BaseQueue
     {
-        public BaseQueueTest(ILogger log): base(log)
+        public BaseQueueTest(ILogger log) : base(log)
         {
-            
+
         }
 
         public bool ShouldWorkPublic

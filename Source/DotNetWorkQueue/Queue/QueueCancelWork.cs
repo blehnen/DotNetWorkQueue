@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Queue
         /// </value>
         public CancellationToken StopWorkToken
         {
-            get {ThrowIfDisposed(); return _stopToken.Token; }
+            get { ThrowIfDisposed(); return _stopToken.Token; }
         }
         /// <summary>
         /// The system wants to stop. Cancel any work in progress.

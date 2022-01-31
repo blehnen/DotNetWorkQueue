@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Tests.IoC
         public void CreateContainer_NoWarnings_NoOpReceiveTransport()
         {
             var creator = new CreateContainer<NoOpReceiveTransport>();
-            var c = creator.Create(QueueContexts.NotSet, x => { },new QueueConnection(string.Empty,  string.Empty), new NoOpReceiveTransport(), ConnectionTypes.Receive, y => { });
+            var c = creator.Create(QueueContexts.NotSet, x => { }, new QueueConnection(string.Empty, string.Empty), new NoOpReceiveTransport(), ConnectionTypes.Receive, y => { });
 
             // Assert
             Container container = c.Container;
@@ -130,17 +130,17 @@ namespace DotNetWorkQueue.Tests.IoC
         {
             public void RegisterImplementations(IContainer container, RegistrationTypes registrationType, QueueConnection queueConnection)
             {
-          
+
             }
 
             public void SuppressWarningsIfNeeded(IContainer container, RegistrationTypes registrationType)
             {
-            
+
             }
 
             public void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
             {
-                
+
             }
         }
 
@@ -173,7 +173,7 @@ namespace DotNetWorkQueue.Tests.IoC
         {
             protected override void QueueTask(Task task)
             {
-                
+
             }
 
             protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
@@ -188,7 +188,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
             public override void Start()
             {
-                
+
             }
 
             // ReSharper disable once UnassignedGetOnlyAutoProperty
@@ -210,7 +210,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
             public override void AddTask(Task task)
             {
-               
+
             }
 
             // ReSharper disable once UnassignedGetOnlyAutoProperty
@@ -225,7 +225,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
             public override void UnSubscribe(int id)
             {
-                
+
             }
 
             // ReSharper disable once UnassignedGetOnlyAutoProperty
@@ -233,7 +233,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
             protected override void Dispose(bool disposing)
             {
-               
+
             }
 
             // ReSharper disable once UnassignedGetOnlyAutoProperty
@@ -243,7 +243,7 @@ namespace DotNetWorkQueue.Tests.IoC
         {
             public void Handle(IMessageContext context, PoisonMessageException exception)
             {
-                
+
             }
         }
         internal class ReceiveMessagesErrorNoOp : IReceiveMessagesError

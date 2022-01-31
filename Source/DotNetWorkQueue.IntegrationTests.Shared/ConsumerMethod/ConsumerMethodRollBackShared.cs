@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             int timeOut,
             int runTime,
             long messageCount,
-            TimeSpan heartBeatTime, 
+            TimeSpan heartBeatTime,
             TimeSpan heartBeatMonitorTime,
             string updateTime,
             Guid id, bool enableChaos, ICreationScope scope)

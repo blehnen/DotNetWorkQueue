@@ -18,7 +18,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
          InlineData(1, 60, 5, false, LinqMethodTypes.Dynamic, true),
             InlineData(1, 60, 1, true, LinqMethodTypes.Compiled, true),
          InlineData(10, 60, 5, true, LinqMethodTypes.Compiled, false)]
-        public void Run(int messageCount, int timeOut, 
+        public void Run(int messageCount, int timeOut,
             int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

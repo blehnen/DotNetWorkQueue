@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.ConsumerAsyncErrorTable();
                 consumer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, timeOut, workerCount,  readerCount, queueSize, false, x => { },
+                    messageCount, timeOut, workerCount, readerCount, queueSize, false, x => { },
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
             }
         }

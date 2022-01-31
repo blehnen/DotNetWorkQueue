@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
 #else
         [InlineData(1, 20, 1, 1, 0, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
 #endif
-        public void Run(int messageCount, int timeOut, int workerCount, 
+        public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
 
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, false, x => { },
-                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts );
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts);
         }
 
         private void ValidateErrorCounts(QueueConnection queueConnection, int arg3, ICreationScope arg4)

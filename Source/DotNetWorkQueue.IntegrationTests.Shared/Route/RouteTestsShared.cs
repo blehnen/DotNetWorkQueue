@@ -18,9 +18,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
            ILogger logProvider,
            Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
            Action<QueueConnection, QueueProducerConfiguration, long, string, ICreationScope> verify,
-           bool sendViaBatch, 
+           bool sendViaBatch,
            List<string> routes,
-           int runTime, 
+           int runTime,
            int timeOut,
            int readerCount,
            TimeSpan heartBeatTime,
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 //spin up and process each route
                 Parallel.ForEach(routes, route =>
                 {
-                    var consumer = new ConsumerAsyncShared<TMessage> {Factory = taskFactory};
+                    var consumer = new ConsumerAsyncShared<TMessage> { Factory = taskFactory };
 
                     consumer.RunConsumer<TTransportInit>(queueConnection, addInterceptors,
                         logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, enableChaos, scope, route);

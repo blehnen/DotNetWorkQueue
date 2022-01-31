@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
 #else
         [InlineData(7, 5, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
 #endif
-        public void Run(int messageCount, int runtime, 
+        public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();

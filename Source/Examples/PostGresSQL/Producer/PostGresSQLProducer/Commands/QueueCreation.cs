@@ -37,11 +37,11 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 
 namespace PostGresSQLProducer.Commands
 {
-    public class QueueCreation: IConsoleCommand, IDisposable
+    public class QueueCreation : IConsoleCommand, IDisposable
     {
         private readonly Lazy<QueueCreationContainer<PostgreSqlMessageQueueInit>> _queueCreation;
         private readonly Dictionary<string, PostgreSqlMessageQueueCreation> _queueCreators;
-         
+
         public QueueCreation()
         {
             _queueCreation = new Lazy<QueueCreationContainer<PostgreSqlMessageQueueInit>>(() => new QueueCreationContainer<PostgreSqlMessageQueueInit>());
@@ -120,9 +120,9 @@ namespace PostGresSQLProducer.Commands
 
         public ConsoleExecuteResult SetQueueType(string queueName, int queueType)
         {
-            if (Enum.IsDefined(typeof (QueueTypes), queueType))
+            if (Enum.IsDefined(typeof(QueueTypes), queueType))
             {
-                var type = (QueueTypes) queueType;
+                var type = (QueueTypes)queueType;
                 CreateModuleIfNeeded(queueName);
                 _queueCreators[queueName].Options.QueueType = type;
                 return new ConsoleExecuteResult($"QueueType set to {type}");

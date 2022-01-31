@@ -42,7 +42,7 @@ using ExampleMessage;
 
 namespace LiteDbProducer.Commands
 {
-    public class SendMessage: SharedSendCommands
+    public class SendMessage : SharedSendCommands
     {
         private readonly Lazy<QueueContainer<LiteDbMessageQueueInit>> _queueContainer;
         private readonly Dictionary<string, IProducerBaseQueue> _queues;

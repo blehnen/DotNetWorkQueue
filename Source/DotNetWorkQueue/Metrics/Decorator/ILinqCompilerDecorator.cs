@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
     /// Metrics for linq compiles
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.ILinqCompiler" />
-    internal class LinqCompilerDecorator: ILinqCompiler
+    internal class LinqCompilerDecorator : ILinqCompiler
     {
         private readonly ILinqCompiler _handler;
         private readonly ITimer _compileActionTimer;

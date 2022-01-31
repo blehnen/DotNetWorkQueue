@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// Sends trace information for rollbacks
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IRollbackMessage" />
-    public class RollbackMessageDecorator: IRollbackMessage
+    public class RollbackMessageDecorator : IRollbackMessage
     {
         private readonly ActivitySource _tracer;
         private readonly IRollbackMessage _handler;
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="handler">The handler.</param>
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
-        public RollbackMessageDecorator(IRollbackMessage handler,  ActivitySource tracer, IStandardHeaders headers)
+        public RollbackMessageDecorator(IRollbackMessage handler, ActivitySource tracer, IStandardHeaders headers)
         {
             _handler = handler;
             _tracer = tracer;

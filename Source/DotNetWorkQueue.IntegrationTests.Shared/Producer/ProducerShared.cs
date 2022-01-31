@@ -73,15 +73,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
 
         private void RunProducer<TMessage>(
           IProducerQueue
-              <TMessage> queue, 
+              <TMessage> queue,
                 QueueConnection queueConnection,
                 long messageCount,
                 Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
                 Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
                 bool sendViaBatch,
                 ICreationScope scope)
-            where TMessage: class
-        {   
+            where TMessage : class
+        {
             RunProducerInternal(queue, messageCount, generateData, sendViaBatch);
             LoggerShared.CheckForErrors(queueConnection.Queue);
             verify(queueConnection, queue.Configuration, messageCount, scope);
@@ -103,7 +103,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                 var result = queue.Send(messages);
                 var errorList = result.Where(p => result.Any(l => p.SendingException != null))
                            .ToList();
-                if(result.HasErrors)
+                if (result.HasErrors)
                 {
                     Assert.False(result.HasErrors, errorList[0].SendingException.ToString());
                 }

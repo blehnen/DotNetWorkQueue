@@ -222,7 +222,7 @@ namespace ConsoleShared
                 }
 
                 errorMessage = message.ToString();
-                return false; 
+                return false;
             }
 
             // Make sure all arguments are coerced to the proper type, and that there is a 
@@ -251,7 +251,7 @@ namespace ConsoleShared
                         methodParameterValueList.RemoveAt(i);
                         methodParameterValueList.Insert(i, value);
                     }
-                        // ReSharper disable once UncatchableException
+                    // ReSharper disable once UncatchableException
                     catch (ArgumentException ex)
                     {
                         var argumentName = methodParam.Name;
@@ -276,8 +276,8 @@ namespace ConsoleShared
             typeInfo = commandLibraryClass;
             return true;
         }
-        private static bool ValidateCommand(ConsoleCommand command, 
-            CommandList commands, 
+        private static bool ValidateCommand(ConsoleCommand command,
+            CommandList commands,
             out ConsoleExecutingAssembly instance,
             out Dictionary<string, ConsoleExecutingMethod> methodDictionary)
         {
@@ -306,7 +306,7 @@ namespace ConsoleShared
                 }
                 command.Name = char.ToUpperInvariant(command.Name[0]) + command.Name.Substring(1);
             }
-            return true; 
+            return true;
         }
     }
 }

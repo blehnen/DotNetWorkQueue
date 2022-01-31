@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Tests.Serialization
         {
             var test = Create();
 
-            var testData = new TestData {Data = new byte[1000000]};
+            var testData = new TestData { Data = new byte[1000000] };
             var r = new Random();
             r.NextBytes(testData.Data);
 

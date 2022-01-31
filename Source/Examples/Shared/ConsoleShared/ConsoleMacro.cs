@@ -50,7 +50,7 @@ namespace ConsoleShared
             if (Running) return -1;
             var id = Interlocked.Increment(ref _id);
             _commands.Add(id,
-                value[value.Length - 1] == (char) 13 ? value.Substring(0, value.Length - 2) : value);
+                value[value.Length - 1] == (char)13 ? value.Substring(0, value.Length - 2) : value);
             _lastId = id;
             return id;
         }
@@ -67,7 +67,7 @@ namespace ConsoleShared
                 values.AddRange(list.Select(key => _commands[key]));
                 return values;
             }
-        } 
+        }
 
         public int Count => _commands.Count;
 
@@ -81,7 +81,7 @@ namespace ConsoleShared
             if (_lastId > -1)
             {
                 Remove(_lastId);
-            }   
+            }
         }
 
         public bool Running { get; set; }

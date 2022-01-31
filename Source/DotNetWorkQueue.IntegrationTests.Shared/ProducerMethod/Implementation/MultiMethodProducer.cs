@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
             }
         }
 
-        private void RunTest<TTransportInit>(QueueConnection queueConnection, 
+        private void RunTest<TTransportInit>(QueueConnection queueConnection,
             int messageCount, int queueCount, ILogger logProvider, LinqMethodTypes linqMethodTypes, ICreationScope scope, bool enableChaos,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData)
             where TTransportInit : ITransportInit, new()
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
                 if (linqMethodTypes == LinqMethodTypes.Compiled)
                 {
                     tasks.Add(new Task(() => producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
-                        logProvider, generateData, Verify,  true, false, id, GenerateMethod.CreateCompiled, 0, scope, enableChaos)));
+                        logProvider, generateData, Verify, true, false, id, GenerateMethod.CreateCompiled, 0, scope, enableChaos)));
                 }
                 else
                 {

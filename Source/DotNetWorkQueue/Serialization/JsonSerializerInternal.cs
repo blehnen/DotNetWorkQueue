@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -63,22 +63,6 @@ namespace DotNetWorkQueue.Serialization
                 ContractResolver = new PrivateSetterContractResolver()
             };
             return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes), serializerSettings);
-        }
-
-        /// <summary>
-        /// Converts an input class to a string
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="data">The data to serialize</param>
-        /// <returns></returns>
-        public string ConvertToString<T>(T data) where T : class
-        {
-            Guard.NotNull(() => data, data);
-            var serializerSettings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.None
-            };
-            return JsonConvert.SerializeObject(data, serializerSettings);
         }
     }
 }

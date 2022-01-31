@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// The message.
         /// </value>
         /// <remarks>This is the dequeued message</remarks>
-        public IReceivedMessageInternal Message { get;}
+        public IReceivedMessageInternal Message { get; }
         /// <summary>
         /// Gets a value indicating whether this <see cref="RedisMessage"/> is expired.
         /// </summary>
@@ -59,6 +59,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// The message identifier.
         /// </value>
         /// <remarks>Can be used to obtain the messageId of expired messages</remarks>
-        public string MessageId { get;}
+        public string MessageId { get; }
     }
 }

@@ -6,7 +6,7 @@ using DotNetWorkQueue.Metrics.NoOp;
 namespace DotNetWorkQueue.IntegrationTests.Metrics
 {
     /// <inheritdoc cref="IMetrics" />
-    public class Metrics: IMetrics, IDisposable
+    public class Metrics : IMetrics, IDisposable
     {
         private readonly ConcurrentDictionary<string, Counter> _counters;
         private readonly ConcurrentDictionary<string, Meter> _meters;
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         /// <inheritdoc />
         public void ShutdownContext(string contextName)
         {
-            
+
         }
 
         /// <inheritdoc />
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         {
             if (disposing)
             {
-               _counters.Clear();
+                _counters.Clear();
             }
         }
     }

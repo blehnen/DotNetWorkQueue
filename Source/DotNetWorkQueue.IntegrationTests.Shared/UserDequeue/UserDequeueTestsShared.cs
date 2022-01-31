@@ -17,9 +17,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.UserDequeue
            ILogger logProvider,
            Func<QueueProducerConfiguration, int, AdditionalMessageData> generateData,
            Action<QueueConnection, QueueProducerConfiguration, long, int, ICreationScope> verify,
-           bool sendViaBatch, 
+           bool sendViaBatch,
            List<int> userValues,
-           int runTime, 
+           int runTime,
            int timeOut,
            int readerCount,
            TimeSpan heartBeatTime,
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.UserDequeue
                 //spin up and process each value
                 Parallel.ForEach(userValues, userColumn =>
                 {
-                    var consumer = new ConsumerAsyncShared<TMessage> {Factory = taskFactory};
+                    var consumer = new ConsumerAsyncShared<TMessage> { Factory = taskFactory };
 
                     consumer.RunConsumer<TTransportInit>(queueConnection, addInterceptors,
                         logProvider, runTime, messageCount, timeOut, readerCount, heartBeatTime, heartBeatMonitorTime, updateTime, enableChaos, scope, null, (g) => setQueueOptions(g, userColumn));

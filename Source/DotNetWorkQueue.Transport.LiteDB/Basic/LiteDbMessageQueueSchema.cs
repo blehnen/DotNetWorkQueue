@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             Guard.NotNull(() => options, options);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(options.Create);
-        } 
+        }
 
         /// <summary>
         /// Returns our schema as a list of the collections that use in LiteDb

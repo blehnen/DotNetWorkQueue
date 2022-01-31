@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
                 producer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, interceptors, enableChaos, false,x => x.Options.EnableStatusTable = enableStatusTable,
+                    messageCount, interceptors, enableChaos, false, x => x.Options.EnableStatusTable = enableStatusTable,
                     Helpers.GenerateData, Helpers.Verify);
             }
         }

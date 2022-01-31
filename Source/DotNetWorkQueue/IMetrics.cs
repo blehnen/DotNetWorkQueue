@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -316,7 +316,7 @@ namespace DotNetWorkQueue
     /// <summary>
     /// A Histogram measures the distribution of values in a stream of data: e.g., the number of results returned by a search.
     /// </summary>
-    public interface IHistogram 
+    public interface IHistogram
     {
         /// <summary>
         /// Records a value.
@@ -433,11 +433,11 @@ namespace DotNetWorkQueue
     /// Type of the sampling to use
     /// </summary>
     public enum SamplingTypes
-    {   
+    {
         /// <summary>
         /// Sampling will be done with a Exponentially Decaying Reservoir
         /// </summary>
-        FavorRecent = 0,      
+        FavorRecent = 0,
         /// <summary>
         /// Sampling will done with a Uniform Reservoir.
         /// </summary>

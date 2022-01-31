@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// 
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IProducerMethodJobQueue" />
-    public class ProducerMethodJobQueueDecorator: IProducerMethodJobQueue
+    public class ProducerMethodJobQueueDecorator : IProducerMethodJobQueue
     {
         private readonly ActivitySource _tracer;
         private readonly IProducerMethodJobQueue _handler;

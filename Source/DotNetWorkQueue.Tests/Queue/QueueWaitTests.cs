@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Tests.Queue
         [Fact]
         public void Create_Default()
         {
-            var times = new List<TimeSpan> {TimeSpan.FromMilliseconds(100)};
+            var times = new List<TimeSpan> { TimeSpan.FromMilliseconds(100) };
             var test = new QueueWait(times, GetCancel());
             test.Wait();
         }

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     }
 
     /// <inheritdoc />
-    public class RedisQueueCorrelationId: ICorrelationId
+    public class RedisQueueCorrelationId : ICorrelationId
     {
         private Guid _id;
         /// <summary>
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="input">The serialized input.</param>
         public RedisQueueCorrelationId(RedisQueueCorrelationIdSerialized input)
         {
-            if(input != null)
+            if (input != null)
             {
                 _id = input.Id;
                 Id = new Setting<Guid>(input.Id);

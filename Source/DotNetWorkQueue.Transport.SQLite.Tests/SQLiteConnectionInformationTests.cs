@@ -14,13 +14,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         [Fact]
         public void GetSet_Connection()
         {
-            var test = new SqliteConnectionInformation(new QueueConnection( string.Empty, GoodConnection), null);
+            var test = new SqliteConnectionInformation(new QueueConnection(string.Empty, GoodConnection), null);
             Assert.NotNull(test);
         }
         [Fact]
         public void Test_Clone()
         {
-            var test = new SqliteConnectionInformation(new QueueConnection( "blah", GoodConnection), null);
+            var test = new SqliteConnectionInformation(new QueueConnection("blah", GoodConnection), null);
             var clone = test.Clone();
 
             Assert.Equal(test.ConnectionString, clone.ConnectionString);

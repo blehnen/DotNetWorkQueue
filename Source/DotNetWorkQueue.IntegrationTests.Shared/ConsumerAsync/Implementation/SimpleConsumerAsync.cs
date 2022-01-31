@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                             messageCount, logProvider, generateData,
                             verify, false, scope, false).ConfigureAwait(false);
                         Thread.Sleep(time);
-                        var consumer = new ConsumerAsyncShared<FakeMessage> {Factory = Factory};
+                        var consumer = new ConsumerAsyncShared<FakeMessage> { Factory = Factory };
                         consumer.RunConsumer<TTransportInit>(queueConnection,
                             false, logProvider,
                             runtime, messageCount,
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                             messageCount, logProvider, generateData,
                             verify, false, scope, false).ConfigureAwait(false);
                         Thread.Sleep(time);
-                        var consumer = new ConsumerAsyncShared<FakeMessageA> {Factory = Factory};
+                        var consumer = new ConsumerAsyncShared<FakeMessageA> { Factory = Factory };
                         consumer.RunConsumer<TTransportInit>(queueConnection,
                             false, logProvider,
                             runtime, messageCount,
@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                             messageCount, logProvider, generateData,
                             verify, false, oCreation.Scope, false).ConfigureAwait(false);
                         Thread.Sleep(time);
-                        var consumer = new ConsumerAsyncShared<FakeMessageB> {Factory = Factory};
+                        var consumer = new ConsumerAsyncShared<FakeMessageB> { Factory = Factory };
                         consumer.RunConsumer<TTransportInit>(queueConnection,
                             false, logProvider,
                             runtime, messageCount,

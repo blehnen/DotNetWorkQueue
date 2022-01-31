@@ -21,10 +21,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
             var queueName = GenerateQueueName.Create();
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerErrorTable();
             consumer.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
-                messageCount,  timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
-                    true, !useTransactions, useTransactions,
-                    false,
-                    false, !useTransactions, true, false),
+                messageCount, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
+                   true, !useTransactions, useTransactions,
+                   false,
+                   false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
         }
 

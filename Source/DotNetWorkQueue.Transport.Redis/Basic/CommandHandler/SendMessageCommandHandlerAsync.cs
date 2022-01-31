@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             EnqueueExpirationLua enqueueExpirationLua,
             EnqueueDelayedAndExpirationLua enqueueDelayedAndExpirationLua,
             IUnixTimeFactory unixTimeFactory,
-            IGetMessageIdFactory messageIdFactory, 
+            IGetMessageIdFactory messageIdFactory,
             IJobSchedulerMetaData jobSchedulerMetaData)
         {
             Guard.NotNull(() => serializer, serializer);
@@ -238,7 +238,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph, serialized.Graph);
 
             var result = await _enqueueExpirationLua.ExecuteAsync(messageId,
-                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), expireTime,  commandSend.MessageData.Route).ConfigureAwait(false);
+                serialized.Output, _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers), _serializer.InternalSerializer.ConvertToBytes(meta), expireTime, commandSend.MessageData.Route).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(result))
             {

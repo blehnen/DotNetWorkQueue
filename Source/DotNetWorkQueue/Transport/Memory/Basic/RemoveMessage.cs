@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     /// Removes a message from the data storage
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IRemoveMessage" />
-    public class RemoveMessage: IRemoveMessage
+    public class RemoveMessage : IRemoveMessage
     {
         private readonly IDataStorage _dataStorage;
         /// <summary>Initializes a new instance of the <see cref="RemoveMessage"/> class.</summary>

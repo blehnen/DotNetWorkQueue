@@ -22,9 +22,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerPoisonMessage();
             consumer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
                     ConnectionInfo.ConnectionString),
-                messageCount,  timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
-                    true, !useTransactions, useTransactions, false,
-                    false, !useTransactions, true, false),
+                messageCount, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
+                   true, !useTransactions, useTransactions, false,
+                   false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
         }
 

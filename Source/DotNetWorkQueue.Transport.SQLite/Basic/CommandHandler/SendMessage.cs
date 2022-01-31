@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
     internal static class SendMessage
     {
         internal static IDbCommand CreateMetaDataRecord(TimeSpan? delay, TimeSpan expiration, IDbConnection connection,
-            IMessage message, IAdditionalMessageData data, ITableNameHelper tableNameHelper, 
+            IMessage message, IAdditionalMessageData data, ITableNameHelper tableNameHelper,
             IHeaders headers, SqLiteMessageQueueTransportOptions options, IGetTime getTime)
         {
             var command = connection.CreateCommand();
@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        internal static IDbCommand GetMainCommand(SendMessageCommand commandSend, 
+        internal static IDbCommand GetMainCommand(SendMessageCommand commandSend,
             IDbConnection connection,
             IDbCommandStringCache commandCache,
             IHeaders headers,
@@ -134,11 +134,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        private static void BuildMetaCommand(IDbCommand command, 
+        private static void BuildMetaCommand(IDbCommand command,
             ITableNameHelper tableNameHelper,
             IAdditionalMessageData data,
             SqLiteMessageQueueTransportOptions options,
-            TimeSpan? delay, 
+            TimeSpan? delay,
             TimeSpan expiration,
             DateTime currentDateTime)
         {

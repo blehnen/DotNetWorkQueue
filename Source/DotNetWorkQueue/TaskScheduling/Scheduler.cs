@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="schedulerMessageHandler">The message handler.</param>
         /// <param name="factory">The factory.</param>
         /// <param name="workGroup">The work group.</param>
-        public Scheduler(IConsumerQueueAsync queue, 
+        public Scheduler(IConsumerQueueAsync queue,
             ISchedulerMessageHandler schedulerMessageHandler,
             ITaskFactoryFactory factory,
             IWorkGroup workGroup)
@@ -84,12 +84,12 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <typeparam name="T"></typeparam>
         /// <param name="functionToRun">The function to run to handle messages.</param>
         public void Start<T>(Action<IReceivedMessage<T>, IWorkerNotification> functionToRun)
-            where T: class
+            where T : class
         {
             ThrowIfDisposed();
             Guard.NotNull(() => functionToRun, functionToRun);
 
-            if(_taskFactory.Value.Scheduler == null)
+            if (_taskFactory.Value.Scheduler == null)
             {
                 throw new DotNetWorkQueueException("A scheduler must be created before starting the queue");
             }
@@ -119,8 +119,8 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <exception cref="DotNetWorkQueueException">The TaskFactory has already been set once; it cannot be set again</exception>
         public ITaskFactory TaskFactory
         {
-            get 
-            { 
+            get
+            {
                 ThrowIfDisposed();
                 return _taskFactory.Value;
             }

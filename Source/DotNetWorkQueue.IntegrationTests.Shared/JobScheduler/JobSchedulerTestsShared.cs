@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                 (x, name, time) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueConnection,
                     "min(*)",
-                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null,  config => { }, true, time), timeFactory, scope, logProvider
+                    (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null, config => { }, true, time), timeFactory, scope, logProvider
 
                 );
         }
@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     //always run a consumer to clear out jobs
                     using (var queueContainer = new QueueContainer<TTransportInit>((x) => QueueContainer(x, scope)))
                     {
-                        using (var queue = queueContainer.CreateMethodConsumer(queueConnection,  x=> x.RegisterNonScopedSingleton(scope)))
+                        using (var queue = queueContainer.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
                         {
                             queue.Configuration.Worker.WorkerCount = 4;
                             WaitForRollover(timeFactory);
@@ -281,10 +281,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         }
         private void ValidateEnqueue(QueueConnection queueConnection, Action<QueueConnection, long, ICreationScope> verify,
             // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-            long enqueued, 
+            long enqueued,
             Exception error,
             // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-            long nonFatal, 
+            long nonFatal,
             long expectedEnqueue, ICreationScope scope)
         {
             if (error != null)
@@ -337,7 +337,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         {
             if (!addInterceptors)
             {
-                return container.CreateJobScheduler( y => y.RegisterNonScopedSingleton(scope),  y => y.RegisterNonScopedSingleton(scope),
+                return container.CreateJobScheduler(y => y.RegisterNonScopedSingleton(scope), y => y.RegisterNonScopedSingleton(scope),
                     z => { });
             }
             return container.CreateJobScheduler(((x) => QueueContainer(x, scope)), y => y.RegisterNonScopedSingleton(scope),

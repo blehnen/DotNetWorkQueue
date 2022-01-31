@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
            Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
            Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
            bool sendViaBatch, Guid id,
-           Func<Guid, int,LinqExpressionToRun>
+           Func<Guid, int, LinqExpressionToRun>
                generateTestMethod, int runTime, ICreationScope scope, bool enableChaos)
            where TTransportInit : ITransportInit, new()
         {
@@ -187,15 +187,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                                 <Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
                                     IAdditionalMessageData>>(numberOfJobs);
                 messages.AddRange(from job in jobs
-                    let data = generateData(queue.Configuration)
-                    select
-                        data != null
-                            ? new QueueMessage
-                                <Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
-                                    IAdditionalMessageData>(job, data)
-                            : new QueueMessage
-                                <Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
-                                    IAdditionalMessageData>(job, null));
+                                  let data = generateData(queue.Configuration)
+                                  select
+                                      data != null
+                                          ? new QueueMessage
+                                              <Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
+                                                  IAdditionalMessageData>(job, data)
+                                          : new QueueMessage
+                                              <Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
+                                                  IAdditionalMessageData>(job, null));
                 var result = queue.Send(messages);
                 var errorList = result.Where(p => result.Any(l => p.SendingException != null))
                     .ToList();
@@ -253,11 +253,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             {
                 var messages = new List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>>(numberOfJobs);
                 messages.AddRange(from job in jobs
-                    let data = generateData(queue.Configuration)
-                    select
-                        data != null
-                            ? new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, data)
-                            : new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, null));
+                                  let data = generateData(queue.Configuration)
+                                  select
+                                      data != null
+                                          ? new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, data)
+                                          : new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, null));
                 var result = queue.Send(messages);
                 var errorList = result.Where(p => result.Any(l => p.SendingException != null))
                     .ToList();

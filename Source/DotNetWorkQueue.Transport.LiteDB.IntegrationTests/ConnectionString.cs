@@ -7,7 +7,7 @@ using System.Threading;
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
 {
     [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
-    public class IntegrationConnectionInfo: IDisposable
+    public class IntegrationConnectionInfo : IDisposable
     {
         private string _fileName;
 
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
         public enum ConnectionTypes
         {
             Shared = 0,
-            Direct = 1, 
+            Direct = 1,
             Memory = 2
         }
     }

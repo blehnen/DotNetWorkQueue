@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Tests
 
         public void SetHeader<THeader>(IMessageContextData<THeader> property, THeader value) where THeader : class
         {
-            if(!_headers.ContainsKey(property.Name))
+            if (!_headers.ContainsKey(property.Name))
                 _headers.Add(property.Name, value);
         }
 

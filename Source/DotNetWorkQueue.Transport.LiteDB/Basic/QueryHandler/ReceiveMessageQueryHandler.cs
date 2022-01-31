@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="databaseExists">The database exists.</param>
         /// <param name="messageDeQueue">The message de queue.</param>
-        public ReceiveMessageQueryHandler(ILiteDbMessageQueueTransportOptionsFactory optionsFactory, 
+        public ReceiveMessageQueryHandler(ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
             TableNameHelper tableNameHelper,
             LiteDbConnectionManager connectionInformation,
             DatabaseExists databaseExists,
@@ -112,7 +112,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
 
             List<Schema.MetaDataTable> results;
             if (_options.Value.EnableRoute && query.Routes != null && query.Routes.Count > 0)
-            { 
+            {
                 results = col.Query()
                     .Where(x => x.Status == QueueStatuses.Waiting)
                     .Where(x => x.HeartBeat == null)

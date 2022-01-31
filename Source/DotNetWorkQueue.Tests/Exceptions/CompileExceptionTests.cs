@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Tests.Exceptions
         [Fact()]
         public void GetObjectData_Test()
         {
-            var e = new CompileException( "error", "code");
+            var e = new CompileException("error", "code");
             var info = new SerializationInfo(typeof(CompileException), new FormatterConverter());
             e.GetObjectData(info, new StreamingContext());
             Assert.Equal("code", info.GetString("CompileCode"));

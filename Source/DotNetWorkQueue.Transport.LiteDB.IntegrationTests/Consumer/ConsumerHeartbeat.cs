@@ -12,9 +12,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
     public class ConsumerHeartbeat
     {
         [Theory]
-        [InlineData(7, 45, 180, 3,  false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-        InlineData(7, 45, 280, 3,  true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount,  bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
+        [InlineData(7, 45, 180, 3, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        InlineData(7, 45, 280, 3, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {

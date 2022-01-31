@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Queue
     /// <summary>
     /// Wraps multiple queue monitor processes into a single container
     /// </summary>
-    public class QueueMonitor: IQueueMonitor
+    public class QueueMonitor : IQueueMonitor
     {
         private readonly List<IMonitor> _monitors;
         private readonly IClearExpiredMessagesMonitor _clearMessagesFactory;
@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Queue
 
             if (_monitors.Count > 0)
             {
-                throw new DotNetWorkQueueException("Start must only be called 1 time");    
+                throw new DotNetWorkQueueException("Start must only be called 1 time");
             }
 
             if (_heartBeatConfiguration.Enabled)

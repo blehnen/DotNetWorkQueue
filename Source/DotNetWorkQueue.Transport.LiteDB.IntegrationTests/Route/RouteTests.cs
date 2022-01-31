@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
         [Theory]
         [InlineData(10, 0, 60, 1, 1, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
          InlineData(20, 0, 180, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, 0, 60, 1,  1, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+         InlineData(10, 0, 60, 1, 1, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
            int routeCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

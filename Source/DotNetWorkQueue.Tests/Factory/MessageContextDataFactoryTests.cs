@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Tests.Factory
         }
         public class Data
         {
-            
+
         }
     }
 }

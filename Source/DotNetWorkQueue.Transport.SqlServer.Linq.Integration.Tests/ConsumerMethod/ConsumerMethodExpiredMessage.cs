@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
         InlineData(100, 0, 60, 5, false, LinqMethodTypes.Dynamic, false),
 #endif
         InlineData(100, 5, 120, 5, true, LinqMethodTypes.Compiled, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, 
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

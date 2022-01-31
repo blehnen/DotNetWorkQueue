@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.AppMetrics.Tests
         public void Record(string name, long value)
         {
             var metrics = Creator.Create();
-            var metric = metrics.Provider.Timer.Instance(new TimerOptions() {Name = name});
+            var metric = metrics.Provider.Timer.Instance(new TimerOptions() { Name = name });
             var test = Create(metric);
             dynamic dyn = metric;
             test.Record(value, TimeUnits.Seconds);

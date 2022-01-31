@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
         public class HeaderData
         {
-            
+
         }
     }
 }

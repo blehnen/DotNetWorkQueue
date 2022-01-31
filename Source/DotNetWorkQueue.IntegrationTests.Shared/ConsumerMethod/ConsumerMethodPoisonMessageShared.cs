@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogger logProvider,
             int timeOut,
             long messageCount,
-            TimeSpan heartBeatTime, 
+            TimeSpan heartBeatTime,
             TimeSpan heartBeatMonitorTime,
             string updateTime,
             bool enableChaos, ICreationScope scope)

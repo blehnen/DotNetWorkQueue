@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Tests.Queue
             Assert.Throws<ObjectDisposedException>(
             delegate
             {
-                test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
+                test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>)Func);
             });
         }
 
@@ -64,11 +64,11 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var test = CreateQueue(1))
             {
                 Task Func(IReceivedMessage<FakeMessage> message, IWorkerNotification worker) => null;
-                test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
+                test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>)Func);
                 Assert.Throws<DotNetWorkQueueException>(
                     delegate
                     {
-                        test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
+                        test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>)Func);
                     });
             }
         }
@@ -79,11 +79,11 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var test = CreateQueue(2))
             {
                 Task Func(IReceivedMessage<FakeMessage> message, IWorkerNotification worker) => null;
-                test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
+                test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>)Func);
                 Assert.Throws<DotNetWorkQueueException>(
                     delegate
                     {
-                        test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>) Func);
+                        test.Start((Func<IReceivedMessage<FakeMessage>, IWorkerNotification, Task>)Func);
                     });
             }
         }

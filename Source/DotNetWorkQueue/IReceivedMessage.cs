@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue
     /// The message that is returned to a consuming queue.
     /// </summary>
     /// <typeparam name="T">the message body type.</typeparam>
-    public interface IReceivedMessage<out T> 
+    public interface IReceivedMessage<out T>
         where T : class
     {
         /// <summary>

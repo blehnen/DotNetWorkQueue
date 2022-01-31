@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     {
         [Theory]
 #if NETFULL
-         [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+        [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
 #endif
         [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)

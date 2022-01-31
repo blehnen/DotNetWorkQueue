@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue
     /// Waits for notification to stop waiting or for a cancel event
     /// <remarks>Used to pause processing until an event occurs</remarks>
     /// </summary>
-    public interface IWaitForEventOrCancel: IDisposable, IIsDisposed
+    public interface IWaitForEventOrCancel : IDisposable, IIsDisposed
     {
         /// <summary>
         /// Waits to be notified to stop waiting.

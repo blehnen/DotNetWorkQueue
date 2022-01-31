@@ -12,7 +12,7 @@ namespace DotNetWorkQueue.AppMetrics.Tests
         public void Mark(string name)
         {
             var metrics = Creator.Create();
-            var metric = metrics.Provider.Meter.Instance(new MeterOptions() {Name = name});
+            var metric = metrics.Provider.Meter.Instance(new MeterOptions() { Name = name });
             var test = Create(metric);
             dynamic dyn = metric;
             test.Mark();

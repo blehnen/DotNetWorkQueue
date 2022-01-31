@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -29,11 +29,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
-		public Default(string name, string value) 
+		public Default(string name, string value)
         {
-			Name = name;
-			Value = value;
-		}
+            Name = name;
+            Value = value;
+        }
         #endregion
 
         #region Public properties
@@ -59,9 +59,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// Translates this default into a SQL script
         /// </summary>
         /// <returns></returns>
-		public string Script() 
+		public string Script()
         {
-			return $"CONSTRAINT [{Name}] DEFAULT {Value}";
+            return $"CONSTRAINT [{Name}] DEFAULT {Value}";
         }
         #endregion
     }

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// </summary>
         public Constraint()
         {
-        } 
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Constraint" /> class.
@@ -41,11 +41,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// <param name="name">The name.</param>
         /// <param name="type">The type.</param>
         /// <param name="column">The column.</param>
-        public Constraint(string name, ConstraintType type, string column) 
+        public Constraint(string name, ConstraintType type, string column)
         {
-			Name = name;
-			Type = type;
-            Columns = new List<string> {column};
+            Name = name;
+            Type = type;
+            Columns = new List<string> { column };
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="Constraint"/> class.
@@ -117,10 +117,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// <returns></returns>
         public string Script()
         {
-            return Type != ConstraintType.Index 
-                ? 
-                $"CONSTRAINT {Name} {ConvertToString(Type)} ({string.Join(", ", Columns.ToArray())})" 
-                : 
+            return Type != ConstraintType.Index
+                ?
+                $"CONSTRAINT {Name} {ConvertToString(Type)} ({string.Join(", ", Columns.ToArray())})"
+                :
                 $"CREATE {UniqueText} INDEX {Name} ON {Table.Name} ({string.Join(", ", Columns.ToArray())})";
         }
 
@@ -150,7 +150,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// <returns></returns>
         private string ConvertToString(ConstraintType type)
         {
-            switch(type)
+            switch (type)
             {
                 case ConstraintType.PrimaryKey:
                     return "PRIMARY KEY";

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue
     /// <typeparam name="TType">The type of the class that implements caching.</typeparam>
     /// <remarks>Only implemented for very specific interfaces. An example would be <see cref="ILinqCompiler"/></remarks>
     // ReSharper disable once UnusedTypeParameter
-    public interface ICachePolicy<TType> 
+    public interface ICachePolicy<TType>
     {
         /// <summary>
         /// Gets the sliding expiration.

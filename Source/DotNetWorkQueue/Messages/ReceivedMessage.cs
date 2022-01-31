@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Messages
             _getErrors = getErrors;
             _logger = logger;
 
-            Body = (T) message.Body;
+            Body = (T)message.Body;
             Headers = new ReadOnlyDictionary<string, object>(message.Headers.ToDictionary(entry => entry.Key,
                 entry => entry.Value));
             MessageId = message.MessageId;
@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Messages
         public bool PreviousErrorsLoaded { get; private set; }
 
         /// <inheritdoc/>
-        public IReadOnlyDictionary<string, int> PreviousErrors 
+        public IReadOnlyDictionary<string, int> PreviousErrors
         {
             get
             {
@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Messages
             }
         }
 
-    /// <summary>
+        /// <summary>
         /// Returns typed data from the headers collection
         /// </summary>
         /// <typeparam name="THeader">data type</typeparam>
@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Messages
         {
             if (Headers.ContainsKey(property.Name))
             {
-                return (THeader) Headers[property.Name];
+                return (THeader)Headers[property.Name];
             }
             return property.Default;
         }

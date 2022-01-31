@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.IoC
     /// Creates the IoC container
     /// </summary>
     /// <typeparam name="T">The transport registration module</typeparam>
-    internal class CreateContainer<T>: ICreateContainer<T> 
+    internal class CreateContainer<T> : ICreateContainer<T>
         where T : ITransportInit, new()
     {
         /// <summary>
@@ -54,11 +54,11 @@ namespace DotNetWorkQueue.IoC
         /// <returns>
         /// a new container
         /// </returns>
-        public IContainer Create(QueueContexts queueType, 
+        public IContainer Create(QueueContexts queueType,
             Action<IContainer> registerService,
             QueueConnection queueConnection,
-            T register, 
-            ConnectionTypes connectionType, 
+            T register,
+            ConnectionTypes connectionType,
             Action<IContainer> registerServiceInternal,
             Action<IContainer> setOptions = null,
             JobQueueContainerRegistrations registrations = null)

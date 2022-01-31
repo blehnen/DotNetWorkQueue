@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -56,19 +56,19 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
             using (var scope = _tracer.StartActivity("SendMessage"))
             {
                 scope?.AddCommonTags(data, _connectionInformation);
-                if(scope?.Context != null)
+                if (scope?.Context != null)
                     messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
                     var id = _handler.SendMessage(messageToSend, data);
-                    if(id == Guid.Empty)
-                        scope?.SetStatus(Status.Error);;
+                    if (id == Guid.Empty)
+                        scope?.SetStatus(Status.Error); ;
                     scope?.AddMessageIdTag(id.ToString());
                     return id;
                 }
                 catch (Exception e)
                 {
-                    scope?.SetStatus(Status.Error);;
+                    scope?.SetStatus(Status.Error); ;
                     scope?.RecordException(e);
                     throw;
                 }
@@ -81,19 +81,19 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
             using (var scope = _tracer.StartActivity("SendMessage"))
             {
                 scope?.AddCommonTags(data, _connectionInformation);
-                if(scope?.Context != null)
+                if (scope?.Context != null)
                     messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
                     var id = await _handler.SendMessageAsync(messageToSend, data).ConfigureAwait(false);
                     if (id == Guid.Empty)
-                        scope?.SetStatus(Status.Error);;
+                        scope?.SetStatus(Status.Error); ;
                     scope?.AddMessageIdTag(id.ToString());
                     return id;
                 }
                 catch (Exception e)
                 {
-                    scope?.SetStatus(Status.Error);;
+                    scope?.SetStatus(Status.Error); ;
                     scope?.RecordException(e);
                     throw;
                 }

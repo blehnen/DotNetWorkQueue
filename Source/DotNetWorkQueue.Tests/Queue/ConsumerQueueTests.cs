@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Tests.Queue
             Assert.Throws<ObjectDisposedException>(
                 delegate
                 {
-                    test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
+                    test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
                 });
         }
 
@@ -82,11 +82,11 @@ namespace DotNetWorkQueue.Tests.Queue
                 {
                 }
 
-                test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
+                test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
                 Assert.Throws<DotNetWorkQueueException>(
                     delegate
                     {
-                        test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
+                        test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
                     });
             }
         }

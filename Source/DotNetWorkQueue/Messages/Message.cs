@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Messages
         /// Initializes a new instance of the <see cref="Message"/> class.
         /// </summary>
         /// <param name="body">The body.</param>
-        public Message(dynamic body): this()
+        public Message(dynamic body) : this()
         {
             if (body == null)
             {
@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Messages
         /// </value>
         public IDictionary<string, object> Headers
         {
-            get; set; 
+            get; set;
         }
         /// <summary>
         /// Returns data set by <see cref="SetHeader{THeader}"/> 

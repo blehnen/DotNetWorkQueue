@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     /// <summary>
     /// The primary ID for a message in the transport
     /// </summary>
-    public class MessageQueueId: IMessageId
+    public class MessageQueueId : IMessageId
     {
         private readonly Guid _id;
         /// <summary>

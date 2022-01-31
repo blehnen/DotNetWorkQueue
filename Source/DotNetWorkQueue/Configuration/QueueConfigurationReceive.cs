@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="headerNames">The header names.</param>
         /// <param name="additionalConfiguration">The additional configuration.</param>
         /// <param name="timeConfiguration">The time configuration.</param>
-        public QueueConfigurationReceive(TransportConfigurationReceive transportConfiguration, 
+        public QueueConfigurationReceive(TransportConfigurationReceive transportConfiguration,
             IHeaders headerNames,
             IConfiguration additionalConfiguration,
             BaseTimeConfiguration timeConfiguration)
@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Configuration
         /// <value>
         /// The time configuration.
         /// </value>
-        public BaseTimeConfiguration TimeConfiguration { get;}
+        public BaseTimeConfiguration TimeConfiguration { get; }
         #endregion
     }
 }

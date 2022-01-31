@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
             bool enablePriority,
             bool enableStatus,
             bool enableStatusTable,
-            bool additionalColumn, 
+            bool additionalColumn,
             bool inMemoryDb,
             bool enableChaos)
         {

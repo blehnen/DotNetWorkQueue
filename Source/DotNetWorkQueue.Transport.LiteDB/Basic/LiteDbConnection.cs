@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     /// Wraps a LiteDatabase. If direct/memory will leave the instance alone on dispose. If shared, database will be disposed.
     /// </summary>
     /// <seealso cref="System.IDisposable" />
-    public class LiteDbConnection: IDisposable
+    public class LiteDbConnection : IDisposable
     {
         private readonly bool _shared;
 
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// </summary>
         public void Dispose()
         {
-            if(_shared) //only dispose shared connections; manager handles direct
+            if (_shared) //only dispose shared connections; manager handles direct
                 Database?.Dispose();
         }
     }

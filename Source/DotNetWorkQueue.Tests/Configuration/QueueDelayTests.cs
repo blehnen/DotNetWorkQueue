@@ -99,7 +99,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void Set_AndReadList(TimeSpan value1, TimeSpan value2, TimeSpan value3)
         {
             var configuration = GetConfiguration();
-            var list = new List<TimeSpan>(3) {value1, value2, value3};
+            var list = new List<TimeSpan>(3) { value1, value2, value3 };
             configuration.Add(list);
             var i = 0;
             foreach (var t in configuration)

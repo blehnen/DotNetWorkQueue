@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.TaskScheduling
     /// <summary>
     /// Handles message processing for the task scheduler queue
     /// </summary>
-    public class SchedulerMessageHandler: ISchedulerMessageHandler
+    public class SchedulerMessageHandler : ISchedulerMessageHandler
     {
         private readonly ILogger _log;
         private readonly ICounter _waitingOnFreeThreadCounter;
@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="functionToRun">The function to run.</param>
         /// <param name="taskFactory">The task factory.</param>
         /// <returns></returns>
-        public Task HandleAsync<T>(IWorkGroup workGroup, IReceivedMessage<T> message, IWorkerNotification notifications, Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ITaskFactory taskFactory) 
+        public Task HandleAsync<T>(IWorkGroup workGroup, IReceivedMessage<T> message, IWorkerNotification notifications, Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ITaskFactory taskFactory)
             where T : class
         {
             Guard.NotNull(() => message, message);

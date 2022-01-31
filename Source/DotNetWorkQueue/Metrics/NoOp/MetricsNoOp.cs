@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,22 +25,22 @@ namespace DotNetWorkQueue.Metrics.NoOp
     {
         public void Mark()
         {
-           
+
         }
 
         public void Mark(string item)
         {
-           
+
         }
 
         public void Mark(long count)
         {
-            
+
         }
 
         public void Mark(string item, long count)
         {
-            
+
         }
     }
     internal class MetricsContextNoOp : IMetricsContext
@@ -57,12 +57,12 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         public void ShutdownContext(string contextName)
         {
-            
+
         }
 
         public void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
-            
+
         }
 
         public ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         public void Dispose()
         {
-           
+
         }
     }
     internal class TimerContextNoOp : ITimerContext
@@ -106,7 +106,7 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         public void Dispose()
         {
-           
+
         }
     }
     internal class TimerNoOp : ITimer, IDisposable
@@ -115,12 +115,12 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         public void Record(long time, TimeUnits unit, string userValue = null)
         {
-           
+
         }
 
         public void Time(Action action, string userValue = null)
         {
-           
+
         }
 
         public T Time<T>(Func<T> action, string userValue = null)
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.Metrics.NoOp
     {
         public void Update(long value, string userValue = null)
         {
-            
+
         }
     }
     internal class CounterNoOp : ICounter
@@ -155,45 +155,45 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         public void Increment()
         {
-            
+
         }
 
         public void Increment(string item)
         {
-            
+
         }
 
         public void Increment(long amount)
         {
-            
+
         }
 
         public void Increment(string item, long amount)
         {
-           
+
         }
 
         public void Decrement()
         {
-            
+
         }
 
         public void Decrement(string item)
         {
-           
+
         }
 
         public void Decrement(long amount)
         {
-            
+
         }
 
         public void Decrement(string item, long amount)
         {
-            
+
         }
     }
-    internal class MetricsNoOp: IMetrics, IDisposable
+    internal class MetricsNoOp : IMetrics, IDisposable
     {
         private readonly ITimer _timer = new TimerNoOp();
         private readonly ICounter _counter = new CounterNoOp();
@@ -208,12 +208,12 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         public void ShutdownContext(string contextName)
         {
-            
+
         }
 
         public void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
-           
+
         }
 
         public IMeter Meter(string name, Units unit, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)

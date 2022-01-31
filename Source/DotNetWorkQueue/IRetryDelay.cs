@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue
     /// <summary>
     /// Holds information about what exceptions should result in a message retry, how many times to retry and how to long to pause between retries.
     /// </summary>
-    public interface IRetryDelay: IReadonly, ISetReadonly
+    public interface IRetryDelay : IReadonly, ISetReadonly
     {
         /// <summary>
         /// Adds the specified exception type.
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue
         /// <typeparam name="T">The type of the exception</typeparam>
         /// <param name="exception">The exception.</param>
         /// <returns></returns>
-        IRetryInformation GetRetryAmount<T>(T exception) 
+        IRetryInformation GetRetryAmount<T>(T exception)
             where T : Exception;
     }
 }

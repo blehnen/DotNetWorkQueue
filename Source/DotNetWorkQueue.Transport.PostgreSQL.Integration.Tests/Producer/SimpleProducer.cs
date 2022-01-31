@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
             producer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
                     ConnectionInfo.ConnectionString),
                 messageCount, interceptors, enableChaos, false, x => Helpers.SetOptions(x,
-                    enableDelayedProcessing, enableHeartBeat, enableHoldTransactionUntilMessageCommitted, enableMessageExpiration, 
+                    enableDelayedProcessing, enableHeartBeat, enableHoldTransactionUntilMessageCommitted, enableMessageExpiration,
                     enablePriority, enableStatus, enableStatusTable, additionalColumn),
                 Helpers.GenerateData, Helpers.Verify);
         }

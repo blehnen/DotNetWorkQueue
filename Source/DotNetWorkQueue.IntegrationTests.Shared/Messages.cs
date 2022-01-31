@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     public static class GenerateMessage
     {
         public static TMessage Create<TMessage>()
-            where TMessage: class
+            where TMessage : class
         {
             var pFiller = new Filler<TMessage>();
             return pFiller.Create();
@@ -205,7 +205,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
             else
             {
-                var counter = runTime/2;
+                var counter = runTime / 2;
                 for (var i = 0; i < counter; i++)
                 {
                     Thread.Sleep(1000);
@@ -222,7 +222,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             MethodIncrementWrapper.Clear(queueId);
         }
         public static void Run<TMessage>(IReceivedMessage<TMessage> message, Guid queueId, int runTime)
-            where TMessage: class
+            where TMessage : class
         {
             if (MethodIncrementWrapper.HasRollBack(queueId, (Guid)message.CorrelationId.Id.Value))
             {

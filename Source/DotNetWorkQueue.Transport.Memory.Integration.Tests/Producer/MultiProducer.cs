@@ -17,7 +17,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.MultiProducer();
                 producer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    100, false,10, x => { }, Helpers.GenerateData, Verify, VerifyQueueData);
+                    100, false, 10, x => { }, Helpers.GenerateData, Verify, VerifyQueueData);
             }
         }
 

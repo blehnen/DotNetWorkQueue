@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -38,10 +38,10 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="additionalConfiguration">The additional configuration.</param>
         /// <param name="messageErrorConfiguration">Configuration for if/when to delete messages in an error status</param>
         /// <param name="timeConfiguration">The time configuration.</param>
-        public QueueConsumerConfiguration(TransportConfigurationReceive transportConfiguration, 
-            IWorkerConfiguration workerConfiguration, 
-            IHeartBeatConfiguration heartBeatConfiguration, 
-            IMessageExpirationConfiguration messageExpirationConfiguration, 
+        public QueueConsumerConfiguration(TransportConfigurationReceive transportConfiguration,
+            IWorkerConfiguration workerConfiguration,
+            IHeartBeatConfiguration heartBeatConfiguration,
+            IMessageExpirationConfiguration messageExpirationConfiguration,
             IHeaders headers,
             IConfiguration additionalConfiguration,
             IMessageErrorConfiguration messageErrorConfiguration,
@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.Configuration
                 Worker.SetReadOnly();
                 TransportConfiguration.SetReadOnly();
             }
-            
+
         }
 
         /// <summary>

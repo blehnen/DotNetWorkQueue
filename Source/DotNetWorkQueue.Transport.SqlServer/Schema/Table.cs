@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
     /// <summary>
     /// Represents a table in SQL server
     /// </summary>
-	public class Table: ITable
+	public class Table : ITable
     {
         #region Constructor
         /// <summary>
@@ -34,13 +34,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// </summary>
         /// <param name="owner">The owner.</param>
         /// <param name="name">The name.</param>
-		public Table(string owner, string name) 
+		public Table(string owner, string name)
         {
-			Owner = owner;
-			Name = name;
+            Owner = owner;
+            Name = name;
             Columns = new Columns();
             Constraints = new List<Constraint>();
-		}
+        }
         #endregion
 
         #region Public Properties
@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <value>
         /// The primary key.
         /// </value>
-        public Constraint PrimaryKey 
+        public Constraint PrimaryKey
         {
             get
             {
@@ -102,28 +102,28 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// Translates this table into a SQL script
         /// </summary>
         /// <returns></returns>
-		public string Script() 
+		public string Script()
         {
-			var text = new StringBuilder();
-			text.AppendFormat("CREATE TABLE [{0}].[{1}](\r\n", Owner, Name);
-			text.Append(Columns.Script());
+            var text = new StringBuilder();
+            text.AppendFormat("CREATE TABLE [{0}].[{1}](\r\n", Owner, Name);
+            text.Append(Columns.Script());
             if (Constraints.Count > 0)
             {
                 text.AppendLine();
             }
             //add anything that is not an index
-			foreach (var c in Constraints.Where(c => c.Type != ConstraintType.Index))
-			{
-			    text.AppendLine("   ," + c.Script());
-			}
-			text.AppendLine(")");
-			text.AppendLine();
+            foreach (var c in Constraints.Where(c => c.Type != ConstraintType.Index))
+            {
+                text.AppendLine("   ," + c.Script());
+            }
+            text.AppendLine(")");
+            text.AppendLine();
             //add indexes
-			foreach (var c in Constraints.Where(c => c.Type == ConstraintType.Index))
-			{
-			    text.AppendLine(c.Script());
-			}
-			return text.ToString();
+            foreach (var c in Constraints.Where(c => c.Type == ConstraintType.Index))
+            {
+                text.AppendLine(c.Script());
+            }
+            return text.ToString();
         }
         #endregion
 

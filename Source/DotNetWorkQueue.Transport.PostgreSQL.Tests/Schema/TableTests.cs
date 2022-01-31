@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Schema
         [Fact]
         public void GetSet_Name()
         {
-            var test = new Table("test") {Name = "test1"};
+            var test = new Table("test") { Name = "test1" };
             Assert.Equal("test1", test.Name);
         }
         [Fact]

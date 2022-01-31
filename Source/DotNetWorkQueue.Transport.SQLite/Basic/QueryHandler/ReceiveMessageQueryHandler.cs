@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -52,8 +52,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <param name="dbFactory">The transaction factory.</param>
         /// <param name="databaseExists">The database exists.</param>
         /// <param name="configuration">Queue configuration</param>
-        public ReceiveMessageQueryHandler(ISqLiteMessageQueueTransportOptionsFactory optionsFactory, 
-            ITableNameHelper tableNameHelper, 
+        public ReceiveMessageQueryHandler(ISqLiteMessageQueueTransportOptionsFactory optionsFactory,
+            ITableNameHelper tableNameHelper,
             IConnectionInformation connectionInformation,
             BuildDequeueCommand buildDequeueCommand,
             MessageDeQueue messageDeQueue,
@@ -86,8 +86,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <returns></returns>
         public IReceivedMessageInternal Handle(ReceiveMessageQuery<IDbConnection, IDbTransaction> query)
         {
-            if(!_databaseExists.Exists(_connectionInformation.ConnectionString))
-            {           
+            if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
+            {
                 return null;
             }
 
@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                         CommandString commandString =
                                   GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
                                     _tableNameHelper.StatusName, query.Routes, out var userParameters);
-                        
+
                         _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value, query.Routes, userParameters);
                         using (var reader = selectCommand.ExecuteReader())
                         {
@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// </returns>
         private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, string statusTableName, List<string> routes, out List<SQLiteParameter> userParameters)
         {
-            return ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, statusTableName, _options.Value, _configuration,  routes, out userParameters);
+            return ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, statusTableName, _options.Value, _configuration, routes, out userParameters);
         }
     }
 }

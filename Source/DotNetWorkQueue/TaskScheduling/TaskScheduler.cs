@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="waitForFreeThread">The wait for free thread.</param>
         /// <param name="metrics">the metrics factory</param>
         /// <param name="log">the logger</param>
-        public SmartThreadPoolTaskScheduler(ITaskSchedulerConfiguration configuration, 
+        public SmartThreadPoolTaskScheduler(ITaskSchedulerConfiguration configuration,
             IWaitForEventOrCancelThreadPool waitForFreeThread,
             IMetrics metrics,
             ILogger log)
@@ -131,7 +131,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <returns></returns>
         protected virtual bool HaveRoomForWorkGroupTask(IWorkGroup group)
         {
-           return Interlocked.CompareExchange(ref _groups[group].CurrentWorkItems, 0, 0) < _groups[group].MaxWorkItems;
+            return Interlocked.CompareExchange(ref _groups[group].CurrentWorkItems, 0, 0) < _groups[group].MaxWorkItems;
         }
 
         /// <summary>
@@ -366,14 +366,14 @@ namespace DotNetWorkQueue.TaskScheduling
                 DecrementGroup(state.Group);
                 _groups[state.Group].MetricCounter.Decrement(1);
                 _taskCounter.Decrement(_groups[state.Group].GroupInfo.Name, 1);
-                SetWaitHandle(state.Group);   
+                SetWaitHandle(state.Group);
             }
             else //is null, so this is not a work group item
             {
                 DecrementCounter();
                 _taskCounter.Decrement(1);
-                SetWaitHandle(null);   
-            }     
+                SetWaitHandle(null);
+            }
         }
 
         /// <summary>

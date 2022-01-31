@@ -33,8 +33,8 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         [Fact]
         public void Create_Zero_Queue_Ok()
         {
-           var test = new WorkGroup(Name, 1, 0);
-           Assert.Equal(0, test.MaxQueueSize);
+            var test = new WorkGroup(Name, 1, 0);
+            Assert.Equal(0, test.MaxQueueSize);
         }
 
         [Fact]
@@ -126,7 +126,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             var tests = new Dictionary<WorkGroup, WorkGroup>();
             var test = new WorkGroup(Name, 1, 10);
             var test2 = new WorkGroup("Another name", 50, 50);
-   
+
             tests.Add(test, test);
             tests.Add(test2, test2);
 
@@ -142,7 +142,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             var tests = new Dictionary<WorkGroup, WorkGroup>(100000);
             for (var i = 0; i < 100000; i++)
             {
-                var test = new WorkGroup(string.Concat(Name, i.ToString()), i+1, i);
+                var test = new WorkGroup(string.Concat(Name, i.ToString()), i + 1, i);
                 tests.Add(test, test);
             }
             Assert.Equal(100000, tests.Count);

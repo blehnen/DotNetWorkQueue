@@ -12,10 +12,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncRollBack
     {
         [Theory]
-        [InlineData(50, 1, 400, 5, 1, 5,  false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        [InlineData(50, 1, 400, 5, 1, 5, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
          InlineData(5, 45, 260, 5, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, 0, 400, 5, 1, 5,  true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, 
+         InlineData(10, 0, 400, 5, 1, 5, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             int readerCount, int queueSize, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))

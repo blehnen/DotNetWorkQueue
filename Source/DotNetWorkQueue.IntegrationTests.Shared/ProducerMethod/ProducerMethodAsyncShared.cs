@@ -83,22 +83,22 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             switch (methodType)
             {
                 case LinqMethodTypes.Compiled:
-                {
-                    var jobs = Enumerable.Range(0, numberOfJobs)
-                        .Select(i => GenerateMethod.CreateCompiled(id, runTime));
-                    await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
-                        .ConfigureAwait(false);
-                }
+                    {
+                        var jobs = Enumerable.Range(0, numberOfJobs)
+                            .Select(i => GenerateMethod.CreateCompiled(id, runTime));
+                        await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
+                            .ConfigureAwait(false);
+                    }
                     break;
 
 #if NETFULL
                 case LinqMethodTypes.Dynamic:
-                {
-                    var jobs = Enumerable.Range(0, numberOfJobs)
-                        .Select(i => GenerateMethod.CreateDynamic(id, runTime));
-                    await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
-                        .ConfigureAwait(false);
-                }
+                    {
+                        var jobs = Enumerable.Range(0, numberOfJobs)
+                            .Select(i => GenerateMethod.CreateDynamic(id, runTime));
+                        await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
+                            .ConfigureAwait(false);
+                    }
                     break;
 #endif
             }
@@ -117,12 +117,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     new List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
                         IAdditionalMessageData>>(numberOfJobs);
                 messages.AddRange(from job in jobs
-                    let data = generateData(queue.Configuration)
-                    select data != null
-                        ? new QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
-                            IAdditionalMessageData>(job, data)
-                        : new QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
-                            IAdditionalMessageData>(job, null));
+                                  let data = generateData(queue.Configuration)
+                                  select data != null
+                                      ? new QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
+                                          IAdditionalMessageData>(job, data)
+                                      : new QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
+                                          IAdditionalMessageData>(job, null));
                 var results = await queue.SendAsync(messages).ConfigureAwait(false);
                 Assert.False(results.HasErrors);
             }
@@ -154,8 +154,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             if (sendViaBatch)
             {
                 var messages = new List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>>(numberOfJobs);
-                messages.AddRange(from job in jobs let data =
-generateData(queue.Configuration) select data != null ? new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, data) : new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, null));
+                messages.AddRange(from job in jobs
+                                  let data =
+generateData(queue.Configuration)
+                                  select data != null ? new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, data) : new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, null));
                 var results = await queue.SendAsync(messages).ConfigureAwait(false);
                 Assert.False(results.HasErrors);
             }

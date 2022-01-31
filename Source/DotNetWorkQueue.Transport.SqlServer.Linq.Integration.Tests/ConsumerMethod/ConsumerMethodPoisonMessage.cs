@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
          InlineData(10, 60, 5, true, LinqMethodTypes.Dynamic, false),
 #endif
          InlineData(3, 60, 5, false, LinqMethodTypes.Compiled, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, 
+        public void Run(int messageCount, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
@@ -28,10 +28,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                     ConsumerMethodPoisonMessage();
             consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
-                messageCount,  timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
-                    true, !useTransactions, useTransactions,
-                    false,
-                    false, !useTransactions, true, false),
+                messageCount, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                   true, !useTransactions, useTransactions,
+                   false,
+                   false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
         }
 

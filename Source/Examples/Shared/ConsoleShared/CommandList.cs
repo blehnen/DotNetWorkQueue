@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Linq;
 namespace ConsoleShared
 {
-    public class CommandList: Dictionary<ConsoleExecutingAssembly, Dictionary<string,
+    public class CommandList : Dictionary<ConsoleExecutingAssembly, Dictionary<string,
                     ConsoleExecutingMethod>>, IDisposable
     {
         /// <summary>
@@ -46,7 +46,7 @@ namespace ConsoleShared
             if (!disposing) return;
             foreach (var instance in Keys.Where(instance => instance.Instance is IDisposable))
             {
-                ((IDisposable) instance.Instance).Dispose();
+                ((IDisposable)instance.Instance).Dispose();
             }
         }
     }

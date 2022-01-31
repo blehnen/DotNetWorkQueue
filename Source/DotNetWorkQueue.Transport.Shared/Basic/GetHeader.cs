@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// <inheritdoc />
         public IDictionary<string, object> GetHeaders(IMessageId id)
         {
-            if(id != null && id.HasValue)
+            if (id != null && id.HasValue)
                 return _commandHandler.Handle(new GetHeaderQuery<T>((T)id.Id.Value));
             return null;
         }

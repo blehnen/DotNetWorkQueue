@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
                 var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
 
                 //spin up and process each route
-                var running = new List<List<string>> {routes1, routes2};
+                var running = new List<List<string>> { routes1, routes2 };
                 Parallel.ForEach(running, route =>
                 {
                     foreach (var route2 in route)

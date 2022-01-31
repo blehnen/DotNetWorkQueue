@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue
     /// A basic pooling strategy for objects, based on the MSDN example: https://msdn.microsoft.com/en-us/library/ff458671(v=vs.110).aspx
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IObjectPool<T>: IDisposable where T : IPooledObject
+    public interface IObjectPool<T> : IDisposable where T : IPooledObject
     {
         /// <summary>
         /// A factory for creating new objects for the pool.

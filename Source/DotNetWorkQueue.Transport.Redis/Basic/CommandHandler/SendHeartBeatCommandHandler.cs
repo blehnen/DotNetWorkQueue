@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ using StackExchange.Redis;
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class SendHeartBeatCommandHandler: ICommandHandlerWithOutput<SendHeartBeatCommand<string>, long>
+    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<string>, long>
     {
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly IRedisConnection _connection;
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="connection">Redis connection</param>
         /// <param name="redisNames">Redis key names</param>
         public SendHeartBeatCommandHandler(IUnixTimeFactory unixTimeFactory,
-            IRedisConnection connection, 
+            IRedisConnection connection,
             RedisNames redisNames)
         {
             Guard.NotNull(() => unixTimeFactory, unixTimeFactory);

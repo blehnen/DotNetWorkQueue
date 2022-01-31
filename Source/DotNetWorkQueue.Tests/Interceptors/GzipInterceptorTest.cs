@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
 
         private void TestGzipNoCompression(string body, int length)
         {
-            var configuration = new GZipMessageInterceptorConfiguration {MinimumSize = length};
+            var configuration = new GZipMessageInterceptorConfiguration { MinimumSize = length };
             var gzip = new GZipMessageInterceptor(configuration);
 
             var serialization = gzip.MessageToBytes(Encoding.UTF8.GetBytes(body), null);

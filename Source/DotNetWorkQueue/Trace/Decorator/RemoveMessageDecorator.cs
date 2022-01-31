@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// Tracer for removing a message
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IRemoveMessage" />
-    public class RemoveMessageDecorator: IRemoveMessage
+    public class RemoveMessageDecorator : IRemoveMessage
     {
         private readonly ActivitySource _tracer;
         private readonly IRemoveMessage _handler;
@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <param name="tracer">The tracer.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="getHeader">The get header.</param>
-        public RemoveMessageDecorator(IRemoveMessage handler,  ActivitySource tracer, IStandardHeaders headers, IGetHeader getHeader)
+        public RemoveMessageDecorator(IRemoveMessage handler, ActivitySource tracer, IStandardHeaders headers, IGetHeader getHeader)
         {
             _handler = handler;
             _tracer = tracer;

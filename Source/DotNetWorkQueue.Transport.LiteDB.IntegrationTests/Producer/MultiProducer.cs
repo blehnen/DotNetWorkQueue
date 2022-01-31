@@ -9,7 +9,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
     public class MultiProducer
     {
         [Theory]
-        [InlineData(100,  false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+        [InlineData(100, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
         InlineData(10, true, IntegrationConnectionInfo.ConnectionTypes.Direct)]
         public void Run(int messageCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.MultiProducer();
                 producer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, enableChaos, 10,x => { }, Helpers.GenerateData, Helpers.Verify, VerifyQueueData);
+                    messageCount, enableChaos, 10, x => { }, Helpers.GenerateData, Helpers.Verify, VerifyQueueData);
             }
         }
 

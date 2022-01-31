@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
         InlineData(25, 120, 60, 1, 5, true, false),
         InlineData(5, 120, 60, 1, 5, false, true),
         InlineData(5, 120, 60, 1, 5, true, true)]
-        public void Run(int messageCount, int timeOut, int workerCount, 
+        public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

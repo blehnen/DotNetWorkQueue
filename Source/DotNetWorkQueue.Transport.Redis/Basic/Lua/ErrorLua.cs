@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
     /// <summary>
     /// Moves a message from the working queue to the error queue
     /// </summary>
-    internal class ErrorLua: BaseLua
+    internal class ErrorLua : BaseLua
     {
         /// <inheritdoc />
         /// <summary>
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             var result = TryExecute(GetParameters(messageId, unixTime));
             if (result.IsNull)
                 return null;
-            return (int) result;
+            return (int)result;
         }
         /// <summary>Gets the parameters.</summary>
         /// <param name="messageId">The message identifier.</param>

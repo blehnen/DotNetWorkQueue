@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 
         public static void NoVerification(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
-            
+
         }
 
         public static AdditionalMessageData GenerateDataWithColumnValue(QueueProducerConfiguration configuration,

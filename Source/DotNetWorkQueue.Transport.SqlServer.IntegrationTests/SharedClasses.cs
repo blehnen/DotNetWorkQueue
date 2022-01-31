@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
 
         public static void NoVerification(QueueConnection queueConnection, QueueProducerConfiguration queueProducerConfiguration, long messageCount, ICreationScope scope)
         {
-            
+
         }
 
         public static AdditionalMessageData GenerateData(QueueProducerConfiguration configuration)
@@ -112,7 +112,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
 
 
             data.AdditionalMetaData.Add(new AdditionalMetaData<int>("OrderID", columnValue));
-            
+
 
             return data;
         }

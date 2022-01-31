@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,8 @@ namespace DotNetWorkQueue
     /// </summary>
     /// <remarks>Used to store additional message data via headers or to store additional data on message context</remarks>
     /// <typeparam name="T">the type of the context data</typeparam>
-    public interface IMessageContextData<out T> 
-        where T: class
+    public interface IMessageContextData<out T>
+        where T : class
     {
         /// <summary>
         /// The name of the data. 

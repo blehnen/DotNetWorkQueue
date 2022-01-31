@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
                         Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                         Convert.FromBase64String("aaaaaaaaaaa=")))
             };
-            
+
             IMessageInterceptorRegistrar register = new MessageInterceptors(list, new InterceptorFactory(Substitute.For<IContainerFactory>()));
 
             var r = new Random();
@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
         [Fact]
         public void Interceptor_Single_Interceptors()
         {
-            var list = new List<IMessageInterceptor> {new GZipMessageInterceptor(new GZipMessageInterceptorConfiguration())};
+            var list = new List<IMessageInterceptor> { new GZipMessageInterceptor(new GZipMessageInterceptorConfiguration()) };
             IMessageInterceptorRegistrar register = new MessageInterceptors(list, new InterceptorFactory(Substitute.For<IContainerFactory>()));
             var r = new Random();
             foreach (var body in Helpers.RandomStrings(100000, 1000000, 10, r))

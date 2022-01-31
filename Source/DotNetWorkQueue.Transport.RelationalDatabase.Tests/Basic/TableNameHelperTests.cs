@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var connectionInformation = Substitute.For<IConnectionInformation>();
             if (validConnection)
                 connectionInformation.QueueName.Returns("testQueue");
-           return new TableNameHelper(connectionInformation);
+            return new TableNameHelper(connectionInformation);
         }
     }
 }

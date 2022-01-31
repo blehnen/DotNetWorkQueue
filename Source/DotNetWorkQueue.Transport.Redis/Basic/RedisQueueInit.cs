@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <summary>
     /// Adds redis implementations to the Ioc Container
     /// </summary>
-    public class RedisQueueInit: TransportMessageQueueSharedInit
+    public class RedisQueueInit : TransportMessageQueueSharedInit
     {
         /// <summary>
         /// Allows a transport to register its dependencies in the IoC container.
@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<LuaScripts>(LifeStyles.Singleton);
 
             container.Register<IUnixTimeFactory, UnixTimeFactory>(LifeStyles.Singleton);
-            
+
             container.Register<LocalMachineUnixTime>(LifeStyles.Singleton);
             container.Register<RedisServerUnixTime>(LifeStyles.Singleton);
             container.Register<SntpUnixTime>(LifeStyles.Singleton);

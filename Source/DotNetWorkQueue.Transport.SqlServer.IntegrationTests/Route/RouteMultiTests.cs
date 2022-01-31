@@ -21,10 +21,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteMultiTests();
             consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
-                messageCount, runtime, timeOut,  readerCount, routeCount, enableChaos, x => Helpers.SetOptions(x,
-                    true, !useTransactions, useTransactions,
-                    false,
-                    false, !useTransactions, true, false, true),
+                messageCount, runtime, timeOut, readerCount, routeCount, enableChaos, x => Helpers.SetOptions(x,
+                   true, !useTransactions, useTransactions,
+                   false,
+                   false, !useTransactions, true, false, true),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
 
         }

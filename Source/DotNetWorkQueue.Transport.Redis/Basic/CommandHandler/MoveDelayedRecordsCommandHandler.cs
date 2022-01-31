@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -37,9 +37,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="moveDelayedToPendingLua">The move delayed to pending lua.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="options">The options.</param>
-        public MoveDelayedRecordsCommandHandler( 
-            MoveDelayedToPendingLua moveDelayedToPendingLua, 
-            IUnixTimeFactory unixTimeFactory, 
+        public MoveDelayedRecordsCommandHandler(
+            MoveDelayedToPendingLua moveDelayedToPendingLua,
+            IUnixTimeFactory unixTimeFactory,
             RedisQueueTransportOptions options)
         {
             Guard.NotNull(() => moveDelayedToPendingLua, moveDelayedToPendingLua);

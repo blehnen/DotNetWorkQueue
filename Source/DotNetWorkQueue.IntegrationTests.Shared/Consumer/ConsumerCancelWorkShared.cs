@@ -129,7 +129,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             }
             catch
             {
-               //bad queue failing is weird, but doesn't really need to be handled right here
+                //bad queue failing is weird, but doesn't really need to be handled right here
             }
         }
     }

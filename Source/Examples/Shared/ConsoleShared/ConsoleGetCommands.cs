@@ -29,7 +29,7 @@ namespace ConsoleShared
             {
                 commands.Add(command.Key, command.Value);
             }
-           
+
             var user = from t in assembly.GetTypes()
                        where t.IsClass
                        && typeof(IConsoleCommand).IsAssignableFrom(t)

@@ -41,7 +41,7 @@ using ExampleMessage;
 
 namespace SQLiteProducer.Commands
 {
-    public class SendMessage: SharedSendCommands
+    public class SendMessage : SharedSendCommands
     {
         private readonly Lazy<QueueContainer<SqLiteMessageQueueInit>> _queueContainer;
         private readonly Dictionary<string, IProducerBaseQueue> _queues;

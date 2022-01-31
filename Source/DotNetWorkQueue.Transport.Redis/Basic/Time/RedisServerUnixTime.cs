@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         /// <param name="configuration">The configuration.</param>
         public RedisServerUnixTime(TimeLua timeLua,
             ILogger log,
-            BaseTimeConfiguration configuration): base(log, configuration)
+            BaseTimeConfiguration configuration) : base(log, configuration)
         {
             Guard.NotNull(() => timeLua, timeLua);
             _timeLua = timeLua;
@@ -64,17 +64,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         /// <returns></returns>
         protected override long GetUnixTime()
         {
-            if (!TimeExpired()) return (long) (DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
+            if (!TimeExpired()) return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
             lock (_getTime)
             {
                 if (!TimeExpired())
-                    return (long) (DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
+                    return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
 
                 var sw = new Stopwatch();
                 sw.Start();
                 var unixTime = _timeLua.Execute();
                 sw.Stop();
-                        
+
                 unixTime = unixTime + sw.ElapsedMilliseconds;
 
                 var localTime = (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds;

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    _prepareQuery.Handle(query, command, CommandStringTypes.GetColumnNamesFromTable); 
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetColumnNamesFromTable);
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())

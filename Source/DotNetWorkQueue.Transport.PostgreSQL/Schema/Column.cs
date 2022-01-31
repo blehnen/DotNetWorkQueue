@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -29,10 +29,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// <summary>
         /// Initializes a new instance of the <see cref="Column"/> class.
         /// </summary>
-		public Column() 
+		public Column()
         {
 
-		}
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
         /// </summary>
@@ -41,10 +41,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// <param name="null">if set to <c>true</c> [null].</param>
         public Column(string name, ColumnTypes type, bool @null)
         {
-			Name = name;
-			Type = type;
+            Name = name;
+            Type = type;
             Nullable = @null;
-		}
+        }
         /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
@@ -54,10 +54,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// <param name="length">The length.</param>
         /// <param name="null">if set to <c>true</c> [null].</param>
         public Column(string name, ColumnTypes type, int length, bool @null)
-			: this(name, type, @null) 
+            : this(name, type, @null)
         {
-			Length = length;
-		}
+            Length = length;
+        }
         /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="Column" /> class.
@@ -68,11 +68,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// <param name="scale">The scale.</param>
         /// <param name="null">if set to <c>true</c> [null].</param>
         public Column(string name, ColumnTypes type, byte precision, int scale, bool @null)
-			: this(name, type, @null) 
+            : this(name, type, @null)
         {
-			Precision = precision;
-			Scale = scale;
-		}
+            Precision = precision;
+            Scale = scale;
+        }
         #endregion
 
         #region Public Properties
@@ -151,9 +151,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
         /// </summary>
         /// <returns></returns>
         /// <exception cref="System.NotSupportedException">SQL data type is not supported.</exception>
-        public string Script() 
+        public string Script()
         {
-			switch (Type) 
+            switch (Type)
             {
                 case ColumnTypes.Bigint:
                     if (Identity)
@@ -199,8 +199,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
                 case ColumnTypes.MacAddr:
                     return $"{Name} {Type} {NullableText}";
                 default:
-					throw new NotSupportedException($"SQL data type {Type} is not supported.");
-			}
+                    throw new NotSupportedException($"SQL data type {Type} is not supported.");
+            }
         }
         #endregion
 

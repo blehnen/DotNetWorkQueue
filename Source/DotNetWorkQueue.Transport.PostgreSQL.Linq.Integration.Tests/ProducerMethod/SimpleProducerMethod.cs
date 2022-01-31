@@ -15,30 +15,30 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
         [Theory]
         [InlineData(100, true, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
-        InlineData(100, true, true, false, false, false,  false, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, true, false, false, false,  false, false, LinqMethodTypes.Dynamic, false),
+        InlineData(100, true, true, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, true, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
          InlineData(100, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, true, false, false, false, false,  false, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, false, false, false, false,  true, false, LinqMethodTypes.Dynamic, false),
-        InlineData(100, false, true, true, true, true, false,  false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, true,  false, true, true, true, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, true, true,  false, false, false, true, true, LinqMethodTypes.Dynamic, false),
+         InlineData(100, true, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, false, false, false, false, true, false, LinqMethodTypes.Dynamic, false),
+        InlineData(100, false, true, true, true, true, false, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, false, true, false, true, true, true, false, LinqMethodTypes.Dynamic, false),
+         InlineData(100, true, true, false, false, false, true, true, LinqMethodTypes.Dynamic, false),
 #endif
-         InlineData(100, false, true,  false, false, false, true,  false, LinqMethodTypes.Compiled, false),
-         InlineData(100, false, false,  false, false, false, false,  false, LinqMethodTypes.Compiled, false),
-         InlineData(100, true, false,  false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, true, false, false, false, true, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
         InlineData(100, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, false),
-         InlineData(100, false, true,  true, true, true, false, false, LinqMethodTypes.Compiled, false),
-         InlineData(100, false, true,  false, true, true, true,  false, LinqMethodTypes.Compiled, false),
-         InlineData(100, true, true,  false, false, false, true,  true, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, true, true, true, true, false, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, false),
+         InlineData(100, true, true, false, false, false, true, true, LinqMethodTypes.Compiled, false),
 
-         InlineData(10, false, true, false, false, false, true,  false, LinqMethodTypes.Compiled, true),
-         InlineData(10, false, false,  false, false, false, false, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, true, false,  false, false, false, false, false, LinqMethodTypes.Compiled, true),
-        InlineData(10, false, false,  false, false, false, true,  false, LinqMethodTypes.Compiled, true),
-         InlineData(10, false, true,  true, true, true, false, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, false, true,  false, true, true, true, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, true, true,  false, false, false, true, true, LinqMethodTypes.Compiled, true)]
+         InlineData(10, false, true, false, false, false, true, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+        InlineData(10, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, true, true, true, true, false, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, true),
+         InlineData(10, true, true, false, false, false, true, true, LinqMethodTypes.Compiled, true)]
         public void Run(
             int messageCount,
             bool interceptors,
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
             bool enablePriority,
             bool enableStatusTable,
             bool additionalColumn,
-            LinqMethodTypes linqMethodTypes, 
+            LinqMethodTypes linqMethodTypes,
             bool enableChaos)
         {
 

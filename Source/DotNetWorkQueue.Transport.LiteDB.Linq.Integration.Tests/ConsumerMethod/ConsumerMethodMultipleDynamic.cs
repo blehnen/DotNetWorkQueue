@@ -13,8 +13,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodMultipleDynamic
     {
         [Theory]
-        [InlineData(100, 0, 240, 5,  true, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(1000, 0, 240, 10,  false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        [InlineData(100, 0, 240, 5, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(1000, 0, 240, 10, false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

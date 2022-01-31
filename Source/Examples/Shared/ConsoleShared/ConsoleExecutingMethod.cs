@@ -42,6 +42,6 @@ namespace ConsoleShared
         public Assembly TargetAssembly { get; }
         public IEnumerable<ParameterInfo> Parameters { get; }
         public string Namespace { get; }
-        public bool Async { get;  }
+        public bool Async { get; }
     }
 }

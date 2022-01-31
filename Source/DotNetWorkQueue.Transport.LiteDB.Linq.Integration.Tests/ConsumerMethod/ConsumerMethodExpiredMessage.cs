@@ -13,9 +13,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodExpiredMessage
     {
         [Theory]
-        [InlineData(100, 0, 60, 5,  LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(10, 0, 60, 5,  LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-        public void Run(int messageCount, int runtime, 
+        [InlineData(100, 0, 60, 5, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         InlineData(10, 0, 60, 5, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+        public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))

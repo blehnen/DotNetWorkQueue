@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Basic
 {
-    internal class LiteDbGetPreviousMessageErrors: IGetPreviousMessageErrors
+    internal class LiteDbGetPreviousMessageErrors : IGetPreviousMessageErrors
     {
         #region Member Level Variables
         private readonly IQueryHandler<GetMessageErrorsQuery<int>, Dictionary<string, int>> _getErrorMessageQueryHandler;

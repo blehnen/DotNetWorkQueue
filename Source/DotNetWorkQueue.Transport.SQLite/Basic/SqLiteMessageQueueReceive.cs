@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -147,14 +147,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         {
             get
             {
-                lock(LoggedMissingDbLock)
+                lock (LoggedMissingDbLock)
                 {
                     return _loggedMissingDb;
                 }
             }
             set
             {
-                lock(LoggedMissingDbLock)
+                lock (LoggedMissingDbLock)
                 {
                     _loggedMissingDb = value;
                 }
@@ -183,7 +183,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void Context_Cleanup(object sender, EventArgs e)
         {
-            var context = (IMessageContext) sender;
+            var context = (IMessageContext)sender;
             ContextCleanup(context);
         }
 

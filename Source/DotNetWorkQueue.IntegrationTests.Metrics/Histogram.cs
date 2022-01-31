@@ -6,7 +6,7 @@
         /// <inheritdoc />
         public void Update(long value, string userValue = null)
         {
-           //noop
+            //noop
         }
     }
 }

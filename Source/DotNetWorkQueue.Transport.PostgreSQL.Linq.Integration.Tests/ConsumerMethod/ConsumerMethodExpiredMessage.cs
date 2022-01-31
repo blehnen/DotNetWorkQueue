@@ -14,12 +14,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     {
         [Theory]
 #if NETFULL
-          [InlineData(10, 0, 60, 5, false, LinqMethodTypes.Compiled, true),
+        [InlineData(10, 0, 60, 5, false, LinqMethodTypes.Compiled, true),
         InlineData(100, 5, 60, 5, true, LinqMethodTypes.Dynamic, false)]
 #else
         [InlineData(100, 0, 60, 5, false, LinqMethodTypes.Compiled, false)]
 #endif
-        public void Run(int messageCount, int runtime, int timeOut, 
+        public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

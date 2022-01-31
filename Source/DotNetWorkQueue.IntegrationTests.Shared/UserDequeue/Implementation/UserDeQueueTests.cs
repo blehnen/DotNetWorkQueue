@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.UserDequeue.Implementation
         private List<int> GenerateUserData(int count)
         {
             var data = new List<int>();
-            for(var i = 1; i <= count; i++)
+            for (var i = 1; i <= count; i++)
             {
                 data.Add(i);
             }

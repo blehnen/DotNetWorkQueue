@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <param name="producerConfiguration">The producer configuration.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException">Failed to create the queue. The error message is {createResult.ErrorMessage}</exception>
-        public IProducerMethodJobQueue Get<TTransportInit, TQueue>(QueueConnection queueConnection, Action<QueueProducerConfiguration> producerConfiguration = null) 
+        public IProducerMethodJobQueue Get<TTransportInit, TQueue>(QueueConnection queueConnection, Action<QueueProducerConfiguration> producerConfiguration = null)
             where TTransportInit : ITransportInit, new()
             where TQueue : class, IJobQueueCreation
         {

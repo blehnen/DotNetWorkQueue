@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="deleteCommand">The delete command.</param>
         /// <param name="creationScope">The creation scope.</param>
         public PostgreSqlMessageQueueCreation(IConnectionInformation connectionInfo, IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
-            IPostgreSqlMessageQueueTransportOptionsFactory options, 
+            IPostgreSqlMessageQueueTransportOptionsFactory options,
             PostgreSqlMessageQueueSchema createSchema,
             ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> createCommand,
             ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> deleteCommand,

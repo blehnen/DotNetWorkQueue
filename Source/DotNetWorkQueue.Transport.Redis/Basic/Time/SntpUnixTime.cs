@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -57,12 +57,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         /// <returns></returns>
         protected override long GetUnixTime()
         {
-            if (!TimeExpired()) return (long) (DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
+            if (!TimeExpired()) return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
 
             lock (_getTime)
             {
                 if (!TimeExpired())
-                    return (long) (DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
+                    return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
 
                 using (var ntp = new NtpClient(_configuration.Server, _configuration.Port))
                 {

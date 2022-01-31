@@ -17,11 +17,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
             int producerCount)
         {
             var queueName = GenerateQueueName.Create();
-                var consumer =
-                    new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();
+            var consumer =
+                new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();
 
-                consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
-                    ConnectionInfo.ConnectionString), producerCount);
+            consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
+                ConnectionInfo.ConnectionString), producerCount);
         }
     }
 }

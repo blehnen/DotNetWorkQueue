@@ -9,7 +9,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     {
         public static void HandleFakeMessageNoOp()
         {
-            
+
         }
 
         public static void HandleFakeMessagesThreadAbort(int waitTime)
@@ -18,7 +18,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             throw new OperationCanceledException();
         }
 
-        public static void HandleFakeMessages<TMessage>(IReceivedMessage<TMessage> message, 
+        public static void HandleFakeMessages<TMessage>(IReceivedMessage<TMessage> message,
             int runTime, IncrementWrapper processedCount, int messageCount, ManualResetEventSlim waitForFinish)
             where TMessage : class
         {
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
         public static void HandleFakeMessagesError<TMessage>(IncrementWrapper processedCount, ManualResetEventSlim waitForFinish, int messageCount, IReceivedMessage<TMessage> message)
-         where TMessage: class
+         where TMessage : class
         {
             var currentCount = processedCount.GetErrorCount(message.MessageId.Id.Value.ToString());
             if (currentCount == 0)
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
 
             Interlocked.Increment(ref processedCount.ProcessedCount);
-            processedCount.AddUpdateErrorCount(message.MessageId.Id.Value.ToString(), currentCount+1);
+            processedCount.AddUpdateErrorCount(message.MessageId.Id.Value.ToString(), currentCount + 1);
             if (Interlocked.Read(ref processedCount.ProcessedCount) == messageCount * 3)
             {
                 waitForFinish.Set();

@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
         [InlineData(10, 0, 60, 2, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
         InlineData(2, 45, 120, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
         InlineData(20, 0, 90, 2, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount,  bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {

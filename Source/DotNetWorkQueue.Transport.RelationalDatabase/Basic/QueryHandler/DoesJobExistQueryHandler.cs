@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,8 +25,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
     /// <inheritdoc />
     public class DoesJobExistQueryHandler<TConnection, TTransaction> : IQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses>
-        where TConnection: class, IDbConnection
-        where TTransaction: class, IDbTransaction
+        where TConnection : class, IDbConnection
+        where TTransaction : class, IDbTransaction
     {
         private readonly CommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// <param name="readColumn">The read column.</param>
         public DoesJobExistQueryHandler(CommandStringCache commandCache,
             IConnectionInformation connectionInformation,
-            IQueryHandler<GetTableExistsQuery, bool> tableExists, 
+            IQueryHandler<GetTableExistsQuery, bool> tableExists,
             ITableNameHelper tableNameHelper,
             IDbConnectionFactory dbConnectionFactory,
             ITransactionFactory transactionFactory,
@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     if (reader.Read())
                     {
                         returnStatus =
-                            (QueueStatuses) _readColumn.ReadAsInt32(CommandStringTypes.DoesJobExist, 0, reader);
+                            (QueueStatuses)_readColumn.ReadAsInt32(CommandStringTypes.DoesJobExist, 0, reader);
                     }
                 }
 

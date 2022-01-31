@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
     {
         public void Run<TTransportInit, TMessage, TTransportCreate>(
             QueueConnection queueConnection,
-            int messageCount, 
+            int messageCount,
             bool enableChaos,
             int queueCount,
             Action<TTransportCreate> setOptions,
@@ -54,8 +54,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
             }
         }
 
-        private void RunTest<TTransportInit, TMessage>(QueueConnection queueConnection, int messageCount, 
-            int queueCount, ILogger logProvider, ICreationScope scope, 
+        private void RunTest<TTransportInit, TMessage>(QueueConnection queueConnection, int messageCount,
+            int queueCount, ILogger logProvider, ICreationScope scope,
             bool enableChaos,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify)
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
                 var producer = new ProducerShared();
                 var task = new Task(() => producer.RunTest<TTransportInit, TMessage>(queueConnection, false, messageCount,
                     logProvider, generateData, Verify, true, false, scope, enableChaos));
-                tasks.Add(task); 
+                tasks.Add(task);
             }
             tasks.AsParallel().ForAll(x => x.Start());
             Task.WaitAll(tasks.ToArray());

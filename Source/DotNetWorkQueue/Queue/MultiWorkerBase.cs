@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Queue
     /// <summary>
     /// Represents a worker
     /// </summary>
-    internal abstract class MultiWorkerBase: WorkerBase
+    internal abstract class MultiWorkerBase : WorkerBase
     {
         protected readonly StopThread StopThread;
         protected IMessageProcessing MessageProcessing;
@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         ///   <c>true</c> if running; otherwise, <c>false</c>.
         /// </value>
-        public override bool Running => WorkerThread != null && WorkerThread.IsAlive || MessageProcessing !=null && MessageProcessing.AsyncTaskCount > 0;
+        public override bool Running => WorkerThread != null && WorkerThread.IsAlive || MessageProcessing != null && MessageProcessing.AsyncTaskCount > 0;
 
         /// <summary>
         /// Tries to force terminate the thread if needed

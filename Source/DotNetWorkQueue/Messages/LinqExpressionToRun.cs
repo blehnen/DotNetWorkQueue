@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -56,9 +56,9 @@ namespace DotNetWorkQueue.Messages
         {
             Linq = linq;
             Unique = unique;
-            if(references != null)
+            if (references != null)
                 References = references;
-            if(usingStatements != null)
+            if (usingStatements != null)
                 Usings = usingStatements;
 
             _hashCode = CalculateHashCode();
@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Messages
         /// The linq statement.
         /// </value>
         /// <example>"(message, workerNotification) => new TestClass().RunMe((IWorkerNotification)workerNotification, \"more input\", 2, new SomeInput(DateTime.UtcNow.ToString()))"</example>
-        public string Linq { get;  }
+        public string Linq { get; }
 
         /// <summary>
         /// Add references needed by <seealso cref="Linq"/>
@@ -79,14 +79,14 @@ namespace DotNetWorkQueue.Messages
         /// <value>
         /// The references.
         /// </value>
-        public IReadOnlyList<string> References { get;  }
+        public IReadOnlyList<string> References { get; }
         /// <summary>
         /// Add using statements needed by <seealso cref="Linq"/>
         /// </summary>
         /// <value>
         /// The using statements
         /// </value>
-        public IReadOnlyList<string> Usings { get;  }
+        public IReadOnlyList<string> Usings { get; }
 
         /// <summary>
         /// If true, this expression contains data that makes it likely to unique. The compiler may choose to not cache the output if this flag is true.
@@ -137,9 +137,9 @@ namespace DotNetWorkQueue.Messages
             {
                 var hash = (int)2166136261;
                 hash = (hash * 16777619) ^ Linq.GetHashCode();
-                hash = (hash*16777619) ^ Unique.GetHashCode();
-                hash = References.Aggregate(hash, (current, field) => (current*16777619) ^ field.GetHashCode());
-                return Usings.Aggregate(hash, (current, field) => (current*16777619) ^ field.GetHashCode());
+                hash = (hash * 16777619) ^ Unique.GetHashCode();
+                hash = References.Aggregate(hash, (current, field) => (current * 16777619) ^ field.GetHashCode());
+                return Usings.Aggregate(hash, (current, field) => (current * 16777619) ^ field.GetHashCode());
             }
         }
     }

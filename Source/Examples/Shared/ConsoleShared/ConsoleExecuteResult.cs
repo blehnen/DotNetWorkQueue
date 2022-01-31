@@ -63,6 +63,6 @@ namespace ConsoleShared
             Target = target;
         }
         public ConsoleExecuteActions Action { get; }
-        public dynamic Target { get;  }
+        public dynamic Target { get; }
     }
 }

@@ -31,14 +31,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
         [Fact]
         public void GetSet_Columns()
         {
-            var columns = new List<string> {"test"};
+            var columns = new List<string> { "test" };
             var test = new Constraint("test", ConstraintType.Constraint, columns);
             Assert.Equal(columns, test.Columns);
         }
         [Fact]
         public void GetSet_Name()
         {
-            var test = new Constraint("test", ConstraintType.Constraint, new List<string>()) {Name = "test1"};
+            var test = new Constraint("test", ConstraintType.Constraint, new List<string>()) { Name = "test1" };
             Assert.Equal("test1", test.Name);
         }
         [Fact]

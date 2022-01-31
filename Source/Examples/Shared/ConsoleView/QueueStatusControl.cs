@@ -57,7 +57,7 @@ namespace ConsoleView
                     richTextBoxJson.Text = o.ToString();
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 richTextBoxJson.Text = error.ToString();
             }

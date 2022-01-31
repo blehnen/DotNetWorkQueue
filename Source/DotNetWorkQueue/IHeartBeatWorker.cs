@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue
     /// 1. Being processed
     /// 2. Has been read from the queue, but is now in the in memory queue and waiting to start processing (async consumer only)
     /// </summary>
-    public interface IHeartBeatWorker: IDisposable, IIsDisposed
+    public interface IHeartBeatWorker : IDisposable, IIsDisposed
     {
         /// <summary>
         /// Starts this instance.

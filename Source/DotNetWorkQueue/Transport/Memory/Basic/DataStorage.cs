@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -34,11 +34,11 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.Transport.Memory.IDataStorage" />
     /// <seealso cref="DotNetWorkQueue.Transport.Memory.IDataStorageSendMessage" />
-    public class DataStorage: IDataStorage, IDataStorageSendMessage
+    public class DataStorage : IDataStorage, IDataStorageSendMessage
     {
         //next item to de-queue
         private static readonly ConcurrentDictionary<IConnectionInformation, BlockingCollection<Guid>> Queues;
-       
+
         //actual data
         private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueData;
 
@@ -155,7 +155,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 var newItem = new QueueItem
                 {
                     Body = message.Body,
-                    CorrelationId = (Guid) inputData.CorrelationId.Id.Value,
+                    CorrelationId = (Guid)inputData.CorrelationId.Id.Value,
                     Headers = message.Headers,
                     Id = Guid.NewGuid(),
                     JobEventTime = eventTime,
@@ -198,7 +198,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (_complete)
                 return null;
 
-            if(routes != null && routes.Count > 0)
+            if (routes != null && routes.Count > 0)
                 throw new NotSupportedException("The in-memory transport does not support routes");
 
             using (CancellationTokenSource linkedCts =
@@ -274,7 +274,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         {
             //remove data - if id is still in queue, it will fall out eventually
             var removed = QueueData[_connectionInformation].TryRemove(id, out var item);
-            if(item == null)
+            if (item == null)
                 removed = QueueWorking[_connectionInformation].TryRemove(id, out item);
 
             if (item != null)

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@ using System;
 namespace DotNetWorkQueue.Configuration
 {
     /// <inheritdoc />
-    public class HeartBeatThreadPoolConfiguration: IHeartBeatThreadPoolConfiguration
+    public class HeartBeatThreadPoolConfiguration : IHeartBeatThreadPoolConfiguration
     {
         private int _threadsMax;
         private TimeSpan _waitForThreadPoolToFinish;

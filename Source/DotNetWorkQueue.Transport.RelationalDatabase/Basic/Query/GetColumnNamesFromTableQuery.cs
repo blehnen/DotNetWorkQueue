@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
     /// <summary>
     /// Returns all of the column names from a table
     /// </summary>
-    public class GetColumnNamesFromTableQuery: IQuery<List<string>>
+    public class GetColumnNamesFromTableQuery : IQuery<List<string>>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GetColumnNamesFromTableQuery"/> class.
@@ -46,13 +46,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <value>
         /// The connection string.
         /// </value>
-        public string ConnectionString { get;}
+        public string ConnectionString { get; }
         /// <summary>
         /// Gets the name of the table.
         /// </summary>
         /// <value>
         /// The name of the table.
         /// </value>
-        public string TableName { get;}
+        public string TableName { get; }
     }
 }

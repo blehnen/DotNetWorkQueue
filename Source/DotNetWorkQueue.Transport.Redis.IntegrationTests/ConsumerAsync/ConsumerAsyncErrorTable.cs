@@ -22,8 +22,8 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.ConsumerAsyncErrorTable();
 
             consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
-                messageCount,  timeOut, workerCount, readerCount, queueSize, false, x => { },
-                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts );
+                messageCount, timeOut, workerCount, readerCount, queueSize, false, x => { },
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts);
         }
 
         private void ValidateErrorCounts(QueueConnection queueConnection, int arg3, ICreationScope arg4)

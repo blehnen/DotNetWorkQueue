@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.Tests.Messages
             {
             }
 
-            test.Set((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
-            Assert.Equal((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action, test.GetHandler());
+            test.Set((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
+            Assert.Equal((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action, test.GetHandler());
         }
 
         [Fact]
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Tests.Messages
             {
             }
 
-            test.Set((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>) Action);
+            test.Set((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
 
             IReceivedMessageInternal rec = fixture.Create<ReceivedMessageInternal>();
 
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
         public class FakeMessage
         {
-            
+
         }
     }
 }

@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
             return new AdditionalMessageData();
         }
 
-        public static void SetOptions(LiteDbMessageQueueCreation oCreation, 
+        public static void SetOptions(LiteDbMessageQueueCreation oCreation,
             bool enableDelayedProcessing,
             bool enableMessageExpiration,
             bool enableStatusTable,

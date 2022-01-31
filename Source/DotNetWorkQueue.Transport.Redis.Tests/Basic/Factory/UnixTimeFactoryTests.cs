@@ -19,10 +19,10 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Factory
             fixture.Inject(options);
             var test = fixture.Create<UnixTimeFactory>();
             test.Create();
-         
+
             options.TimeServer = TimeLocations.LocalMachine;
             test.Create();
-           
+
             options.TimeServer = TimeLocations.SntpServer;
             test.Create();
 

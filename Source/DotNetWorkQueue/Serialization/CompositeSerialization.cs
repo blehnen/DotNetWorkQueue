@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Serialization
         /// <value>
         /// The internal serializer.
         /// </value>
-        public IInternalSerializer InternalSerializer { get;  }
+        public IInternalSerializer InternalSerializer { get; }
 
         /// <summary>
         /// Gets the message serializer.
@@ -49,6 +49,6 @@ namespace DotNetWorkQueue.Serialization
         /// <value>
         /// The message serializer.
         /// </value>
-        public ASerializer Serializer { get;  }
+        public ASerializer Serializer { get; }
     }
 }

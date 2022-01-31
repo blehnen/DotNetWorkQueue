@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@ using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.Metrics.Decorator
 {
-    internal class SendMessagesDecorator: ISendMessages
+    internal class SendMessagesDecorator : ISendMessages
     {
         private readonly ITimer _sendTimer;
         private readonly ITimer _sendBatchTimer;
@@ -88,8 +88,8 @@ namespace DotNetWorkQueue.Metrics.Decorator
             using (_sendBatchTimer.NewContext())
             {
                 var result = _handler.Send(messages);
-                 _sendMeter.Mark("SendMessageBatch", result.Count(x => !x.HasError));
-                 _sendErrorMeter.Mark("SendMessageBatch", result.Count(x => x.HasError));
+                _sendMeter.Mark("SendMessageBatch", result.Count(x => !x.HasError));
+                _sendErrorMeter.Mark("SendMessageBatch", result.Count(x => x.HasError));
                 return result;
             }
         }

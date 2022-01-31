@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     /// Determines what the file name is from the connection string
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.Transport.LiteDb.IGetFileNameFromConnectionString" />
-    internal class LiteDbGetFileNameFromConnectionString: IGetFileNameFromConnectionString
+    internal class LiteDbGetFileNameFromConnectionString : IGetFileNameFromConnectionString
     {
         public ConnectionStringInfo GetFileName(string connectionString)
         {

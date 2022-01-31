@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,19 +26,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
     /// <summary>
     /// Represents a table in SQLite
     /// </summary>
-	public class Table: ITable
+	public class Table : ITable
     {
         #region Constructor
         /// <summary>
         /// Initializes a new instance of the <see cref="Table" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
-		public Table(string name) 
+		public Table(string name)
         {
-			Name = name;
+            Name = name;
             Columns = new Columns();
             Constraints = new List<Constraint>();
-		}
+        }
         #endregion
 
         #region Public Properties
@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// <value>
         /// The primary key.
         /// </value>
-        public Constraint PrimaryKey 
+        public Constraint PrimaryKey
         {
             get
             {
@@ -93,22 +93,22 @@ namespace DotNetWorkQueue.Transport.SQLite.Schema
         /// Translates this table into a SQL script
         /// </summary>
         /// <returns></returns>
-		public string Script() 
+		public string Script()
         {
-			var text = new StringBuilder();
-			text.AppendFormat("CREATE TABLE [{0}](\r\n", Name);
-			text.Append(Columns.Script());
+            var text = new StringBuilder();
+            text.AppendFormat("CREATE TABLE [{0}](\r\n", Name);
+            text.Append(Columns.Script());
             if (Constraints.Count > 0)
             {
                 text.AppendLine();
             }
             //add primary keys
-			foreach (var c in Constraints.Where(c => c.Type == ConstraintType.PrimaryKey))
-			{
-			    text.AppendLine("   ," + c.Script());
-			}
-			text.AppendLine(");");
-			text.AppendLine();
+            foreach (var c in Constraints.Where(c => c.Type == ConstraintType.PrimaryKey))
+            {
+                text.AppendLine("   ," + c.Script());
+            }
+            text.AppendLine(");");
+            text.AppendLine();
 
             //add indexes and constraints
             foreach (var c in Constraints.Where(c => c.Type != ConstraintType.PrimaryKey))

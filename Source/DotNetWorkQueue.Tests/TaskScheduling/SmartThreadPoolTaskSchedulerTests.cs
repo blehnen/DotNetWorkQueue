@@ -112,8 +112,8 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         {
             using (var test = Create(true))
             {
-               test.Start();
-               Assert.Equal(RoomForNewTaskResult.RoomForTask, test.RoomForNewTask);
+                test.Start();
+                Assert.Equal(RoomForNewTaskResult.RoomForTask, test.RoomForNewTask);
             }
         }
 
@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         {
             using (var test = Create())
             {
-                test.Start(); 
+                test.Start();
                 test.Dispose();
                 Assert.Equal(RoomForNewTaskResult.No, test.RoomForNewWorkGroupTask(Substitute.For<IWorkGroup>()));
             }
@@ -161,7 +161,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             using (var test = Create())
             {
                 test.Start();
-                test.AddTask(new Task(() => { Thread.Sleep(100);}));
+                test.AddTask(new Task(() => { Thread.Sleep(100); }));
             }
         }
 
@@ -236,7 +236,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
 
             config.MaximumThreads.Returns(max);
             config.WaitForThreadPoolToFinish.Returns(wait);
-            if(readonlyConfig)
+            if (readonlyConfig)
                 config.IsReadOnly.Returns(true);
             fixture.Inject(config);
 

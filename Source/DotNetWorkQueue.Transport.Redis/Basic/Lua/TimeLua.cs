@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
     /// <summary>
     /// Gets the current time from a redis server
     /// </summary>
-    internal class TimeLua: BaseLua
+    internal class TimeLua : BaseLua
     {
         /// <inheritdoc />
         /// <summary>
@@ -52,9 +52,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 throw new DotNetWorkQueueException("Failed to obtain time from redis server");
             }
 
-            var redisResult = (RedisValue[]) result;
+            var redisResult = (RedisValue[])result;
             var seconds = (long)redisResult[0];
-            var milliseconds = (long)redisResult[1]/1000; //convert microseconds to milliseconds
+            var milliseconds = (long)redisResult[1] / 1000; //convert microseconds to milliseconds
             return (long)TimeSpan.FromSeconds(seconds).Add(TimeSpan.FromMilliseconds(milliseconds)).TotalMilliseconds;
         }
     }

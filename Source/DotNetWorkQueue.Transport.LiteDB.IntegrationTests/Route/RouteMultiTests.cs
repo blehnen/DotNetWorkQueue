@@ -12,9 +12,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
     public class RouteMultiTests
     {
         [Theory]
-        [InlineData(100, 0, 400, 1,  2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+        [InlineData(100, 0, 400, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
         InlineData(100, 0, 180, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-        InlineData(10, 0, 400, 1,  2, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        InlineData(10, 0, 400, 1, 2, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
          int routeCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
                 var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteMultiTests();
                 consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                     connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, readerCount, routeCount, enableChaos, x => { Helpers.SetOptions(x, false, false, true, true);},
+                    messageCount, runtime, timeOut, readerCount, routeCount, enableChaos, x => { Helpers.SetOptions(x, false, false, true, true); },
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
 

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             Connection = connection;
             RedisNames = redisNames;
         }
-        
+
         /// <summary>
         /// Gets or sets the script.
         /// </summary>
@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         /// <param name="parameters">The parameters. Pass null if there are none.</param>
         /// <returns></returns>
-        public async  Task<RedisResult> TryExecuteAsync(object parameters)
+        public async Task<RedisResult> TryExecuteAsync(object parameters)
         {
             if (Connection.IsDisposed)
                 return RedisResult.Create(RedisValue.Null);
@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             var db = Connection.Connection.GetDatabase();
             try
             {
-                if(parameters != null)
+                if (parameters != null)
                     return await db.ScriptEvaluateAsync(LoadedLuaScript, parameters).ConfigureAwait(false);
                 return await db.ScriptEvaluateAsync(LoadedLuaScript).ConfigureAwait(false);
             }
@@ -130,7 +130,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                     StringComparison.InvariantCultureIgnoreCase))
                 {
                     LoadScript();
-                    if(parameters != null)
+                    if (parameters != null)
                         return await db.ScriptEvaluateAsync(LoadedLuaScript, parameters).ConfigureAwait(false);
                     return await db.ScriptEvaluateAsync(LoadedLuaScript).ConfigureAwait(false);
                 }

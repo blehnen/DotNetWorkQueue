@@ -103,7 +103,7 @@ namespace RedisConsumerAsync.Commands
             if (valid != null) return valid;
             if (Enum.IsDefined(typeof(TimeLocations), value))
             {
-                var type = (TimeLocations) value;
+                var type = (TimeLocations)value;
                 Queues[queueName].Configuration.Options().TimeServer = type;
                 return new ConsoleExecuteResult($"Set time client to {type}");
             }
@@ -114,9 +114,9 @@ namespace RedisConsumerAsync.Commands
         {
             var valid = ValidateQueue(queueName);
             if (valid != null) return valid;
-            if (Enum.IsDefined(typeof (MessageIdLocations), value))
+            if (Enum.IsDefined(typeof(MessageIdLocations), value))
             {
-                var type = (MessageIdLocations) value;
+                var type = (MessageIdLocations)value;
                 Queues[queueName].Configuration.Options().MessageIdLocation = type;
                 return new ConsoleExecuteResult($"Set time client to {type}");
             }

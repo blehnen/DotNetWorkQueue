@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public virtual DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default(DateTimeOffset))
         {
             ValidColumn(column, command);
-            if(!reader.IsDBNull(column))
+            if (!reader.IsDBNull(column))
                 return (DateTimeOffset)reader[column];
             return noValue;
         }

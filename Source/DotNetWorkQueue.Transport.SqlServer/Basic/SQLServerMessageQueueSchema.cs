@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(options.Create);
             _schema = schema;
-        } 
+        }
 
         /// <summary>
         /// Returns our schema as a list of tables.
@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             //--main data table--
             var main = new Table(GetOwner(), _tableNameHelper.QueueName);
-            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false, null) {Identity = new Identity(1, 1)};
+            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false, null) { Identity = new Identity(1, 1) };
 
             main.Columns.Add(mainPrimaryKey);
             main.Columns.Add(new Column("Body", ColumnTypes.Varbinary, -1, false, null));
@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private Table CreateConfigurationTable()
         {
             var table = new Table(GetOwner(), _tableNameHelper.ConfigurationName);
-            var mainPrimaryKey = new Column("ID", ColumnTypes.Int, false, null) {Identity = new Identity(1, 1)};
+            var mainPrimaryKey = new Column("ID", ColumnTypes.Int, false, null) { Identity = new Identity(1, 1) };
             table.Columns.Add(mainPrimaryKey);
             table.Columns.Add(new Column("Configuration", ColumnTypes.Varbinary, -1, false, null));
 
@@ -302,7 +302,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private Table CreateErrorTable(Table meta)
         {
             var metaErrors = new Table(GetOwner(), _tableNameHelper.MetaDataErrorsName);
-            var primaryKey = new Column("ID", ColumnTypes.Bigint, false, null) {Identity = new Identity(1, 1)};
+            var primaryKey = new Column("ID", ColumnTypes.Bigint, false, null) { Identity = new Identity(1, 1) };
             metaErrors.Columns.Add(primaryKey);
             foreach (var c in meta.Columns.Items)
             {

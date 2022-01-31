@@ -40,7 +40,7 @@ using Serilog;
 namespace ConsoleSharedCommands.Commands
 {
     public abstract class SharedConsumeMessage<TTransportInit> : SharedCommands
-        where TTransportInit: class, ITransportInit, new()
+        where TTransportInit : class, ITransportInit, new()
     {
         private readonly Lazy<QueueContainer<TTransportInit>> _queueContainer;
         protected readonly Dictionary<string, IConsumerBaseQueue> Queues;
@@ -122,7 +122,7 @@ namespace ConsoleSharedCommands.Commands
         {
             if (Enum.IsDefined(typeof(ConsumerQueueTypes), type))
             {
-                CreateModuleIfNeeded(queueName, (ConsumerQueueTypes) type);
+                CreateModuleIfNeeded(queueName, (ConsumerQueueTypes)type);
                 return new ConsoleExecuteResult($"{queueName} has been created");
             }
             return new ConsoleExecuteResult($"Invalid queue type {type}. Valid values are 0=POCO,1=Linq Expression");
@@ -131,7 +131,7 @@ namespace ConsoleSharedCommands.Commands
         public ConsoleExecuteResult SetFatalExceptionDelayBehavior(string queueName, params TimeSpan[] timespan)
         {
             var valid = ValidateQueue(queueName);
-            if(valid != null) return valid;
+            if (valid != null) return valid;
 
             Queues[queueName].Configuration.TransportConfiguration.FatalExceptionDelayBehavior.Clear();
             Queues[queueName].Configuration.TransportConfiguration.FatalExceptionDelayBehavior.Add(timespan.ToList());
@@ -155,7 +155,7 @@ namespace ConsoleSharedCommands.Commands
             return new ConsoleExecuteResult("queue delays have been set");
         }
 
-        public ConsoleExecuteResult SetWorkerConfiguration(string queueName, 
+        public ConsoleExecuteResult SetWorkerConfiguration(string queueName,
             int workerCount = 1,
             bool singleWorkerWhenNoWorkFound = true,
             bool abortWorkerThreadsWhenStopping = false,

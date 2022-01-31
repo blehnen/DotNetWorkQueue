@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
                 var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
                 producer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, interceptors, false, false,x => { },
+                    messageCount, interceptors, false, false, x => { },
                     Helpers.GenerateData, Helpers.Verify);
             }
         }

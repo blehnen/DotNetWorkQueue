@@ -12,9 +12,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncPoisonMessage
     {
         [Theory]
-        [InlineData(1, 60, 1, 1, 0,  false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        [InlineData(1, 60, 1, 1, 0, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
          InlineData(50, 60, 10, 2, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(5, 60, 10, 2, 2,  true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+         InlineData(5, 60, 10, 2, 2, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))

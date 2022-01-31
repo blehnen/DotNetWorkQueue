@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -76,14 +76,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        internal static void BuildMetaCommand(SqlCommand command, 
+        internal static void BuildMetaCommand(SqlCommand command,
             ITableNameHelper tableNameHelper,
             IHeaders headers,
             IAdditionalMessageData data,
             IMessage message,
             long id,
             SqlServerMessageQueueTransportOptions options,
-            TimeSpan? delay, 
+            TimeSpan? delay,
             TimeSpan expiration)
         {
             var sbMeta = new StringBuilder();
@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             command.CommandText = sbMeta.ToString();
 
             options.AddBuiltInColumnsParams(command, data);
- 
+
             command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
             command.Parameters.Add("@CorrelationID", SqlDbType.UniqueIdentifier, 16).Value = data.CorrelationId.Id.Value;
 

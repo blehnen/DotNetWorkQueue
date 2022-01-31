@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Tests.Factory
             var toProcess = numThreads;
             for (var i = 0; i < numThreads; i++)
             {
-                new Thread(delegate()
+                new Thread(delegate ()
                 {
                     var name = factory.Create();
                     names.TryAdd(name, name);

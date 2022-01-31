@@ -121,51 +121,51 @@ namespace ShellControlV2
                 e.Handled = true;
             }
             else switch (e.KeyCode)
-            {
-                case Keys.Down:
-                    if (_commandHistory.DoesNextCommandExist())
-                    {
-                        ReplaceTextAtPrompt(_commandHistory.GetNextCommand());
-                    }
-                    e.Handled = true;
-                    break;
-                case Keys.Up:
-                    if (_commandHistory.DoesPreviousCommandExist())
-                    {
-                        var text = _commandHistory.GetPreviousCommand();
-                        if (!string.IsNullOrWhiteSpace(text))
+                {
+                    case Keys.Down:
+                        if (_commandHistory.DoesNextCommandExist())
                         {
-                            ReplaceTextAtPrompt(text);
+                            ReplaceTextAtPrompt(_commandHistory.GetNextCommand());
                         }
-                    }
-                    e.Handled = true;
-                    break;
-                case Keys.Right:
-                    // Performs command completion
-                    string currentTextAtPrompt = GetTextAtPrompt();
-                    string lastCommand = _commandHistory.LastCommand;
+                        e.Handled = true;
+                        break;
+                    case Keys.Up:
+                        if (_commandHistory.DoesPreviousCommandExist())
+                        {
+                            var text = _commandHistory.GetPreviousCommand();
+                            if (!string.IsNullOrWhiteSpace(text))
+                            {
+                                ReplaceTextAtPrompt(text);
+                            }
+                        }
+                        e.Handled = true;
+                        break;
+                    case Keys.Right:
+                        // Performs command completion
+                        string currentTextAtPrompt = GetTextAtPrompt();
+                        string lastCommand = _commandHistory.LastCommand;
 
-                    if (lastCommand != null &&
-                        (currentTextAtPrompt.Length == 0 || lastCommand.StartsWith(currentTextAtPrompt)))
-                    {
-                        if (lastCommand.Length > currentTextAtPrompt.Length)
+                        if (lastCommand != null &&
+                            (currentTextAtPrompt.Length == 0 || lastCommand.StartsWith(currentTextAtPrompt)))
                         {
-                            AddText(lastCommand[currentTextAtPrompt.Length].ToString());
+                            if (lastCommand.Length > currentTextAtPrompt.Length)
+                            {
+                                AddText(lastCommand[currentTextAtPrompt.Length].ToString());
+                            }
                         }
-                    }
-                    break;
-                default:
-                    if (e.Shift && e.KeyCode == Keys.Delete)
-                    {
-                        e.Handled = true;
-                    }
-                    else if (e.KeyCode == Keys.Tab)
-                    {
-                        e.Handled = true;
-                        ReplaceTextAtPrompt(CommandCompletion.Complete(GetTextAtPrompt()));
-                    }
-                    break;
-            }
+                        break;
+                    default:
+                        if (e.Shift && e.KeyCode == Keys.Delete)
+                        {
+                            e.Handled = true;
+                        }
+                        else if (e.KeyCode == Keys.Tab)
+                        {
+                            e.Handled = true;
+                            ReplaceTextAtPrompt(CommandCompletion.Complete(GetTextAtPrompt()));
+                        }
+                        break;
+                }
         }
 
         private void PreviewKeyDown_event(object sender, PreviewKeyDownEventArgs e)
@@ -201,7 +201,7 @@ namespace ShellControlV2
         {
             if (Lines.Length > 0)
             {
-                return (string) Lines.GetValue(Lines.GetLength(0) - 1);
+                return (string)Lines.GetValue(Lines.GetLength(0) - 1);
             }
             return "";
         }

@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
-//Copyright © 2015-2021 Brian Lehnen
+//Copyright © 2015-2022 Brian Lehnen
 //
 //This library is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Messages
         /// <remarks>
         /// This is generally used as the storage key - make sure it's unique inside of the context instance.
         /// </remarks>
-        public string Name{ get; set; }
+        public string Name { get; set; }
         /// <summary>
         /// The default value to use if the data has not yet been set when requesting it.
         /// </summary>

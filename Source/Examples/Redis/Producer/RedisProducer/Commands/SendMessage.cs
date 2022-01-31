@@ -41,7 +41,7 @@ using ExampleMessage;
 
 namespace RedisProducer.Commands
 {
-    public class SendMessage: SharedSendCommands
+    public class SendMessage : SharedSendCommands
     {
         private readonly Lazy<QueueContainer<RedisQueueInit>> _queueContainer;
         private readonly Dictionary<string, IProducerBaseQueue> _queues;
