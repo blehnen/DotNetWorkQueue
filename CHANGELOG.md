@@ -1,3 +1,6 @@
+###0.6.5 2022-02-06
+* relational database tranports now allow additional columns to be used as part of the de-queue
+
 ###0.6.4 2022-01-12
 * ILogger will now be created using the queue name for the category
 
