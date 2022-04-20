@@ -1,15 +1,26 @@
-﻿using System.Net.NetworkInformation;
+﻿using System.IO;
+using System.Net.NetworkInformation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
 {
     public static class ConnectionInfo
     {
+        private static string _connectionString;
         /// <summary>
         /// The connection string to the SQL DB for the integration tests. All tests in this project will use this connection string
         /// </summary>
-        public static string ConnectionString =
-            "Server=V-SQL;Application Name=IntegrationTesting;Database=IntegrationTests;Trusted_Connection=True;max pool size=500";
+        public static string ConnectionString
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_connectionString))
+                    return _connectionString;
 
+                var connectionString = File.ReadAllText("connectionstring.txt");
+                _connectionString = connectionString;
+                return connectionString;
+            }
+        }
         /// <summary>
         /// The schema default
         /// </summary>
