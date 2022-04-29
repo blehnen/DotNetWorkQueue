@@ -89,7 +89,44 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
         {
             var pFiller = new Filler<Column>();
             var test = pFiller.Create();
-            var clone = test.Clone();
+            var clone = test.Clone(false);
+            var compareLogic = new CompareLogic();
+            var result = compareLogic.Compare(test, clone);
+            Assert.True(result.AreEqual, result.DifferencesString);
+        }
+
+        [Fact]
+        public void CloneNewName()
+        {
+            var pFiller = new Filler<Column>();
+            var test = pFiller.Create();
+            var clone = test.Clone(true);
+            var compareLogic = new CompareLogic();
+            compareLogic.Config.MembersToIgnore.Add("Name");
+            var result = compareLogic.Compare(test, clone);
+            Assert.True(result.AreEqual, result.DifferencesString);
+            Assert.NotEqual(test.Default.Name, clone.Default.Name);
+        }
+
+        [Fact]
+        public void CloneWithNullDefault1()
+        {
+            var pFiller = new Filler<Column>();
+            var test = pFiller.Create();
+            test.Default = null;
+            var clone = test.Clone(false);
+            var compareLogic = new CompareLogic();
+            var result = compareLogic.Compare(test, clone);
+            Assert.True(result.AreEqual, result.DifferencesString);
+        }
+
+        [Fact]
+        public void CloneWithNullDefault2()
+        {
+            var pFiller = new Filler<Column>();
+            var test = pFiller.Create();
+            test.Default = null;
+            var clone = test.Clone(true);
             var compareLogic = new CompareLogic();
             var result = compareLogic.Compare(test, clone);
             Assert.True(result.AreEqual, result.DifferencesString);

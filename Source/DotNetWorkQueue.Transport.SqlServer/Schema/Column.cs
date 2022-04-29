@@ -229,11 +229,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         /// <summary>
         /// Clones this instance.
         /// </summary>
+        /// <param name="newDefaultName">If true, if a default constraint is set it will be given a new, random name for the cloned instance.</param>
         /// <returns></returns>
-        public Column Clone()
+        public Column Clone(bool newDefaultName)
         {
-            var rc = new Column { Default = Default };
-
+            var newName = Guid.NewGuid().ToString("n");
+            Column rc = this.Default != null ? new Column {Default = Default.Clone(newDefaultName ? $"default_{newName}" : null)} : new Column();
             if (Identity != null)
             {
                 rc.Identity = Identity.Clone();

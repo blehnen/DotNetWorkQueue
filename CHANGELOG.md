@@ -1,3 +1,6 @@
+###0.6.6 2022-04-29
+* Fix issue with custom default constraints in the SQL server transport
+
 ###0.6.5 2022-02-06
 * relational database tranports now allow additional columns to be used as part of the de-queue
 

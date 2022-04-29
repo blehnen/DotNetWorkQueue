@@ -306,7 +306,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             metaErrors.Columns.Add(primaryKey);
             foreach (var c in meta.Columns.Items)
             {
-                metaErrors.Columns.Add(c.Clone());
+                metaErrors.Columns.Add(c.Clone(true));
             }
             metaErrors.Columns.Add(new Column("LastException", ColumnTypes.Varchar, -1, true, null));
             metaErrors.Columns.Add(new Column("LastExceptionDate", ColumnTypes.Datetime, true, null));

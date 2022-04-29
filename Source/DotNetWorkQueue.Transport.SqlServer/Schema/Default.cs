@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System.Text;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Schema
 {
     /// <summary>
@@ -62,6 +65,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
 		public string Script()
         {
             return $"CONSTRAINT [{Name}] DEFAULT {Value}";
+        }
+        #endregion
+
+        #region Clone
+
+        /// <summary>
+        /// Returns a copy of this instance
+        /// </summary>
+        /// <param name="newName">The name to use for the cloned copy, instead of the current name</param>
+        /// <returns>A copy of this instance, as a new instance</returns>
+        public Default Clone(string newName = null)
+        {
+            return !string.IsNullOrEmpty(newName) ? new Default(newName, Value) : new Default(Name, Value);
         }
         #endregion
     }
