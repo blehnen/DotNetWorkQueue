@@ -1,3 +1,6 @@
+###0.6.7 2022-06-30
+* Update various packages to latest versions
+
 ###0.6.6 2022-04-29
 * Fix issue with custom default constraints in the SQL server transport
 
