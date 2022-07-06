@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -60,7 +62,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler
 
             var command = (NpgsqlCommand)dbCommand;
             command.Parameters.Add("@CurrentDate", NpgsqlDbType.Timestamp);
-            command.Parameters["@CurrentDate"].Value = _getTime.GetCurrentUtcDate().Subtract(_configuration.MessageAge);
+            //note - NPGSQL 6.X+ no longer fixes input; the datetime must not include the timestamp if the DB / query does not
+            command.Parameters["@CurrentDate"].Value = new DateTime(_getTime.GetCurrentUtcDate().Subtract(_configuration.MessageAge).Ticks, DateTimeKind.Unspecified);
         }
     }
 }
