@@ -84,8 +84,12 @@ namespace DotNetWorkQueue
         /// </summary>
         JobScheduler = 17,
         /// <summary>
-        /// Returns time from
+        /// Returns time from transport or local clock
         /// </summary>
-        Time = 18
+        Time = 18,
+        /// <summary>
+        /// Admin functions, such as listing items already in the queue
+        /// </summary>
+        Admin = 19
     }
 }

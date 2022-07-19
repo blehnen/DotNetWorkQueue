@@ -143,6 +143,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         public void LoadScript()
         {
+            if (Connection.Connection == null) return;
+
             Guard.NotNullOrEmpty(() => Script, Script);
 
             var luaScript = LuaScript.Prepare(Script);

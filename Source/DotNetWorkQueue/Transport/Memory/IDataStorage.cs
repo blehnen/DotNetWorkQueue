@@ -18,9 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace DotNetWorkQueue.Transport.Memory
 {
     /// <summary>
@@ -85,6 +82,11 @@ namespace DotNetWorkQueue.Transport.Memory
         /// The record count.
         /// </value>
         long RecordCount { get; }
+
+        /// <summary>
+        /// The number of records currently being processed
+        /// </summary>
+        long WorkingRecordCount { get; }
 
         /// <summary>
         /// Gets the error count.

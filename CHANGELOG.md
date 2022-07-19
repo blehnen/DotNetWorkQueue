@@ -1,3 +1,7 @@
+###0.6.8 2022-07-19
+* Update npgsql
+* Add inital admin interface
+
 ###0.6.7 2022-06-30
 * Update various packages to latest versions
 

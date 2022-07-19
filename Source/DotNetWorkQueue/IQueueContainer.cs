@@ -129,5 +129,18 @@ namespace DotNetWorkQueue
         /// <param name="queueConnection">Queue and connection information.</param>
         /// <returns></returns>
         IJobSchedulerLastKnownEvent CreateJobSchedulerLastKnownEvent(QueueConnection queueConnection);
+
+        /// <summary>
+        /// A container for accessing data for multiple queues.
+        /// </summary>
+        /// <returns></returns>
+        IAdminApi CreateAdminApi();
+
+        /// <summary>
+        /// Creates the admin functions, for modifying and listing data in the queue.
+        /// </summary>
+        /// <param name="queueConnection"></param>
+        /// <returns></returns>
+        IAdminFunctions CreateAdminFunctions(QueueConnection queueConnection);
     }
 }

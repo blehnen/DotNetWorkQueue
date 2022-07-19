@@ -205,7 +205,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 CancellationTokenSource.CreateLinkedTokenSource(_cancelToken.CancelWorkToken,
                     _cancelToken.StopWorkToken))
             {
-                Guid id = Guid.Empty;
+                Guid id;
                 try
                 {
                     if (!Queues[_connectionInformation].TryTake(out id, Convert.ToInt32(timeout.TotalMilliseconds), linkedCts.Token))
@@ -318,6 +318,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
         /// <inheritdoc />
         public long RecordCount => QueueData[_connectionInformation].Count;
+
+        /// <inheritdoc />
+        public long WorkingRecordCount => QueueWorking[_connectionInformation].Count;
 
         /// <inheritdoc />
         public long GetErrorCount()

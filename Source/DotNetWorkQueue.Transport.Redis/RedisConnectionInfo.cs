@@ -34,7 +34,10 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <param name="queueConnection">Queue and connection information.</param>
         public RedisConnectionInfo(QueueConnection queueConnection) : base(queueConnection)
         {
-            ValidateConnection(queueConnection.Connection);
+            if (!string.IsNullOrEmpty(queueConnection.Connection))
+            {
+                ValidateConnection(queueConnection.Connection);
+            }
         }
         #endregion
 

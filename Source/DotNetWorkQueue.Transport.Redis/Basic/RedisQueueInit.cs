@@ -23,6 +23,7 @@ using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.Redis.Basic.Admin;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Factory;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
@@ -58,6 +59,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<IJobSchedulerLastKnownEvent, RedisJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, RedisSendJobToQueue>(LifeStyles.Singleton);
             container.Register<RedisBaseTransportOptions>(LifeStyles.Singleton);
+
+            container.Register<IAdminFunctions, AdminFunctions>(LifeStyles.Singleton);
 
             container.Register<IJobTableCreation, RedisJobTableCreationNoOp>(LifeStyles.Singleton);
 

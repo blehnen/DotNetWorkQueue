@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Transport.Memory.Basic.Admin;
 using DotNetWorkQueue.Transport.Memory.Basic.Factory;
 using DotNetWorkQueue.Transport.Memory.Trace.Decorator;
 using DotNetWorkQueue.Validation;
@@ -55,6 +56,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
             container.Register<IGetHeader, GetHeader>(LifeStyles.Singleton);
             container.Register<IGetPreviousMessageErrors, GetPreviousMessageErrorsNoOp>(LifeStyles.Singleton);
+            container.Register<IAdminFunctions, AdminFunctions>(LifeStyles.Singleton);
             //**all
 
             //**send

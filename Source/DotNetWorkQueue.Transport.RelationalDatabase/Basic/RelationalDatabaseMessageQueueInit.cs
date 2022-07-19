@@ -21,8 +21,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Admin;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared;
@@ -67,6 +69,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             container.Register<IClearErrorMessages, ClearErrorMessages<TQueueId>>(LifeStyles.Singleton);
             container.Register<IRemoveMessage, RemoveMessage<TQueueId>>(LifeStyles.Singleton);
             container.Register<IGetHeader, GetHeader<TQueueId>>(LifeStyles.Singleton);
+
+            container.Register<IAdminFunctions, AdminFunctions>(LifeStyles.Singleton);
             //**all
 
             //**send
@@ -156,6 +160,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
         private void RegisterCommandsExplicit(IContainer container)
         {
+            container
+                .Register<IQueryHandler<GetQueueCountQuery, long>,
+                    GetQueueCountQueryHandler<long>>(LifeStyles.Singleton);
+
+            container
+                .Register<IPrepareQueryHandler<GetQueueCountQuery, long>,
+                    GetQueueCountQueryPrepareHandler>(LifeStyles.Singleton);
+
             container
                 .Register<IQueryHandler<GetMessageErrorsQuery<TQueueId>, Dictionary<string, int>>,
                     GetMessageErrorsQueryHandler<TQueueId>>(LifeStyles.Singleton);

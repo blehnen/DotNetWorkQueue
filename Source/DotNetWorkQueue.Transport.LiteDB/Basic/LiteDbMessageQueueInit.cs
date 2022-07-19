@@ -22,6 +22,7 @@ using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.LiteDb.Basic.Admin;
 using DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Factory;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Message;
@@ -82,6 +83,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             container.Register<IIncreaseQueueDelay, IncreaseQueueDelay>(LifeStyles.Singleton);
             container.Register<IJobSchema, LiteDbJobSchema>(LifeStyles.Singleton);
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
+            container.Register<IAdminFunctions, AdminFunctions>(LifeStyles.Singleton);
             //**all
 
             //**send

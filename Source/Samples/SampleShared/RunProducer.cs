@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Messages;
@@ -135,11 +136,12 @@ namespace SampleShared
             return data;
         }
 
-        public static void RunLoop(IProducerMethodQueue queue, Func<IAdditionalMessageData> expiredDataInstant, Func<IAdditionalMessageData> expiredDataFuture)
+        public static void RunLoop(IProducerMethodQueue queue, Func<IAdditionalMessageData> expiredDataInstant, Func<IAdditionalMessageData> expiredDataFuture, IAdminApi admin)
         {
             var keepRunning = true;
             while (keepRunning)
             {
+                Console.WriteLine($"{admin.Count(admin.Connections.Keys.FirstOrDefault(), null)} items in queue");
                 Console.WriteLine(@"To test heartbeat recovery, force kill your consumer after starting to process record(s)
 To test rollbacks, cancel the consumer by pressing any button. Easier to test with longer running jobs.
 
@@ -180,11 +182,12 @@ q) Quit");
         }
 
         public static void RunLoop(IProducerQueue<SimpleMessage> queue, Func<IAdditionalMessageData> expiredDataInstant, Func<IAdditionalMessageData> expiredDataFuture,
-            Func<int, IAdditionalMessageData> delayProcessing)
+            Func<int, IAdditionalMessageData> delayProcessing, IAdminApi admin)
         {
             var keepRunning = true;
             while (keepRunning)
             {
+                Console.WriteLine($"{admin.Count(admin.Connections.Keys.FirstOrDefault(), null)} items in queue");
                 Console.WriteLine(@"To test heartbeat recovery, force kill your consumer after starting to process record(s)
 To test rollbacks, cancel the consumer by pressing any button. Easier to test with longer running jobs.
 

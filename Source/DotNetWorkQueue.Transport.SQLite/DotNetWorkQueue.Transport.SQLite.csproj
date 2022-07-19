@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net6.0;net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
-    <Version>0.6.7</Version>
+    <Version>0.6.8</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2022</Copyright>
     <Description>SQLite transport for https://github.com/blehnen/DotNetWorkQueue</Description>

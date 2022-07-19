@@ -63,7 +63,11 @@ namespace SQLServerProducerLinq
             {
                 using (var queue = queueContainer.CreateMethodProducer(queueConnection))
                 {
-                    RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture);
+                    using (var admin = queueContainer.CreateAdminApi())
+                    {
+                        admin.AddQueueConnection(queueContainer, queueConnection);
+                        RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture, admin);
+                    }
                 }
             }
 

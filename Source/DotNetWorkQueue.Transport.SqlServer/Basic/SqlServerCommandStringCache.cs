@@ -137,6 +137,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             CommandCache.Add(CommandStringTypes.FindErrorRecordsToDelete,
                 $"select queueid from {TableNameHelper.MetaDataErrorsName} with (updlock, readpast, rowlock) where @CurrentDate > lastexceptiondate");
 
+            CommandCache.Add(CommandStringTypes.GetQueueCountStatus,
+                $"select count_big(queueid) from {TableNameHelper.MetaDataName} where status = @status");
+
+            CommandCache.Add(CommandStringTypes.GetQueueCountAll,
+                $"select count_big(queueid) from {TableNameHelper.MetaDataName}");
+
             CommandCache.Add(CommandStringTypes.FindExpiredRecordsToDelete,
                 $"select queueid from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) where GETUTCDate() > ExpirationTime");
 

@@ -64,8 +64,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                         }
 
                         if (validateMetricCounts)
+                        {
                             VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
                                 messageCount);
+
+                            var admin = creator.CreateAdminFunctions(queueConnection);
+                            Assert.Equal(messageCount, admin.Count(null));
+                        }
                     }
                 }
             }

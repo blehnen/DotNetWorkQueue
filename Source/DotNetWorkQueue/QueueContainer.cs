@@ -386,6 +386,34 @@ namespace DotNetWorkQueue
             return factory;
         }
         #endregion
+
+        #region Admin
+
+        /// <summary>
+        /// Creates the admin API wrapper; this can contain multiple queues.
+        /// </summary>
+        /// <returns></returns>
+        public IAdminApi CreateAdminApi()
+        {
+            var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, _transportInit, x => { }, _setOptions);
+            Containers.Add(container);
+            return container.GetInstance<IAdminApi>();
+        }
+
+        /// <summary>
+        /// Creates an admin function module for querying or modifying data in a queue.
+        /// </summary>
+        /// <param name="queueConnection"></param>
+        /// <returns></returns>
+        public IAdminFunctions CreateAdminFunctions(QueueConnection queueConnection)
+        {
+            Guard.NotNull(() => queueConnection, queueConnection);
+
+            var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, queueConnection, _transportInit, ConnectionTypes.Status, x => { }, _setOptions);
+            Containers.Add(container);
+            return container.GetInstance<IAdminFunctions>();
+        }
+        #endregion
     }
     #endregion 
 }

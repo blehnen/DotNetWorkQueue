@@ -33,7 +33,11 @@ namespace RedisProducer
             {
                 using (var queue = queueContainer.CreateProducer<SimpleMessage>(queueConnection))
                 {
-                    RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture, DelayedProcessing);
+                    using (var admin = queueContainer.CreateAdminApi())
+                    {
+                        admin.AddQueueConnection(queueContainer, queueConnection);
+                        RunProducer.RunLoop(queue, ExpiredData, ExpiredDataFuture, DelayedProcessing, admin);
+                    }
                 }
             }
 

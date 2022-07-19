@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <remarks>The connection will only be opened once</remarks>
         private void EnsureCreated()
         {
-            if (_connection != null) return;
+            if (_connection != null || string.IsNullOrEmpty(_connectionInformation.ConnectionString)) return;
             lock (_connectionLock)
             {
                 if (_connection != null) return;

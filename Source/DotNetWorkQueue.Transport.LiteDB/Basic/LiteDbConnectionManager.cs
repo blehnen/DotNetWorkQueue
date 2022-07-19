@@ -47,6 +47,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             Guard.NotNull(() => scope, scope);
             _connectionInformation = connectionInformation;
 
+            if (string.IsNullOrEmpty(_connectionInformation.ConnectionString) ||
+                string.IsNullOrEmpty(_connectionInformation.QueueName))
+            {
+                return;
+            }
+
             var builder = new LiteDB.ConnectionString(_connectionInformation.ConnectionString);
             _shared = builder.Connection == ConnectionType.Shared;
 

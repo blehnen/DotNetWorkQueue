@@ -19,6 +19,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using DotNetWorkQueue.Admin;
 using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
@@ -295,6 +296,9 @@ namespace DotNetWorkQueue.IoC
             container.Register<BaseTimeConfiguration>(LifeStyles.Singleton);
             container.Register<IGetTimeFactory, GetTimeFactory>(LifeStyles.Singleton);
             container.Register<IGetTime, LocalMachineTime>(LifeStyles.Singleton);
+
+            container.Register<AdminApiConfiguration>(LifeStyles.Singleton);
+            container.Register<IAdminApi, AdminApi>(LifeStyles.Singleton);
 
             container.Register<IInterceptorFactory, InterceptorFactory>(LifeStyles.Singleton);
             container.RegisterCollection<IMessageInterceptor>(Enumerable.Empty<Type>());

@@ -293,7 +293,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Returns records that are in an error status
         /// </summary>
-        FindErrorRecordsToDelete
+        FindErrorRecordsToDelete,
+        /// <summary>
+        /// Returns the current queue quote
+        /// </summary>
+        GetQueueCountAll,
+        /// <summary>
+        /// Returns the current queue quote
+        /// </summary>
+        GetQueueCountStatus
     }
 
     /// <summary>

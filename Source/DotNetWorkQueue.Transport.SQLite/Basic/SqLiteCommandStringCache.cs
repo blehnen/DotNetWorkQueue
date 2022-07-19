@@ -132,6 +132,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             CommandCache.Add(CommandStringTypes.FindErrorRecordsToDelete,
                 $"select queueid from {TableNameHelper.MetaDataErrorsName} where @CurrentDateTime > LastExceptionDate");
 
+            CommandCache.Add(CommandStringTypes.GetQueueCountStatus,
+                $"select count(queueid) from {TableNameHelper.MetaDataName} where status = @status");
+
+            CommandCache.Add(CommandStringTypes.GetQueueCountAll,
+                $"select count(queueid) from {TableNameHelper.MetaDataName}");
+
             CommandCache.Add(CommandStringTypes.GetColumnNamesFromTable,
                 "PRAGMA table_info('{0}')");
 

@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.IoC
 
                 var type = GetRegistrationType(register);
 
-                if (!string.IsNullOrWhiteSpace(queueConnection.Queue) && !string.IsNullOrWhiteSpace(queueConnection.Connection))
+                if ((!string.IsNullOrWhiteSpace(queueConnection.Queue) && !string.IsNullOrWhiteSpace(queueConnection.Connection)) || queueType == QueueContexts.Admin)
                 {
                     ComponentRegistration.RegisterDefaults(containerWrapper, type, queueConnection);
                 }

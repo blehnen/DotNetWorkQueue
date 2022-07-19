@@ -275,7 +275,6 @@ This library uses multiple 3rd party libaries, listed below.
 
 ##### Developed with:
 
-[![Resharper](http://neventstore.org/images/logo_resharper_small.gif)](http://www.jetbrains.com/resharper/)
-[![dotCover](http://neventstore.org/images/logo_dotcover_small.gif)](http://www.jetbrains.com/dotcover/)
-[![dotTrace](http://neventstore.org/images/logo_dottrace_small.gif)](http://www.jetbrains.com/dottrace/)
-
+<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/ReSharper_icon.png" width="48">
+<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotCover_icon.png" width="48">
+<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotTrace_icon.png" width="48">
