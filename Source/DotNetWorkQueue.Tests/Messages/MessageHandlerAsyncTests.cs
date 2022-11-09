@@ -15,11 +15,7 @@ namespace DotNetWorkQueue.Tests.Messages
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageHandlerAsync>();
-            Assert.Throws<ArgumentNullException>(
-            delegate
-            {
-                test.HandleAsync(null, null);
-            });
+            Assert.ThrowsAsync<ArgumentNullException>(() => test.HandleAsync(null, null));
         }
     }
 }

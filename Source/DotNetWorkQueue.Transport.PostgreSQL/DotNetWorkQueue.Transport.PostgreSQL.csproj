@@ -102,7 +102,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql" Version="6.0.5" />
+    <PackageReference Include="Npgsql" Version="6.0.7" />
     <PackageReference Include="Polly" Version="7.2.3" />
     <PackageReference Include="Polly.Contrib.Simmy" Version="0.3.0" />
   </ItemGroup>

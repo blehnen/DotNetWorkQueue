@@ -13,12 +13,8 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         public void Handle_Null_Params_Fails()
         {
             var test = Create();
-            Assert.Throws<ArgumentNullException>(
-            delegate
-            {
-                test.HandleAsync<FakeMessage>(Substitute.For<IWorkGroup>(),
-                    null, null, null, null);
-            });
+            Assert.ThrowsAsync<ArgumentNullException>(() => test.HandleAsync<FakeMessage>(Substitute.For<IWorkGroup>(),
+                null, null, null, null));
         }
 
         [Fact]
