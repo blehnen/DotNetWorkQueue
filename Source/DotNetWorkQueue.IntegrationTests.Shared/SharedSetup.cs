@@ -162,7 +162,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     .AddSource(traceName, traceName)
                     .AddOtlpExporter(o =>
                     {
-                        o.Endpoint = new Uri($"{TraceSettings.Host}:{TraceSettings.Port}");
+                        o.Endpoint = new Uri($"http://{TraceSettings.Host}:{TraceSettings.Port}");
                        
                         // Using Batch Exporter (which is default)
                         // The other option is ExportProcessorType.Simple
