@@ -150,14 +150,11 @@ namespace SampleShared
             var openTelemetry = Sdk.CreateTracerProviderBuilder()
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(configuration["JAEGER_SERVICE_NAME"]))
                 .AddSource(configuration["JAEGER_SERVICE_NAME"], configuration["JAEGER_SERVICE_NAME"])
-                .AddJaegerExporter(o =>
+                .AddOtlpExporter(o =>
                 {
-                    o.AgentHost = configuration["JAEGER_AGENT_HOST"];
-                    o.AgentPort = int.Parse(configuration["JAEGER_AGENT_PORT"]);
-
-                    // Examples for the rest of the options, defaults unless otherwise specified
-                    // Omitting Process Tags example as Resource API is recommended for additional tags
-                    o.MaxPayloadSizeInBytes = 4096;
+                    var host = configuration["JAEGER_AGENT_HOST"];
+                    var port = int.Parse(configuration["JAEGER_AGENT_PORT"]);
+                    o.Endpoint = new Uri($"{host}:{port}");
 
                     // Using Batch Exporter (which is default)
                     // The other option is ExportProcessorType.Simple
