@@ -154,7 +154,7 @@ namespace SampleShared
                 {
                     var host = configuration["JAEGER_AGENT_HOST"];
                     var port = int.Parse(configuration["JAEGER_AGENT_PORT"]);
-                    o.Endpoint = new Uri($"{host}:{port}");
+                    o.Endpoint = new Uri($"http://{host}:{port}");
 
                     // Using Batch Exporter (which is default)
                     // The other option is ExportProcessorType.Simple
