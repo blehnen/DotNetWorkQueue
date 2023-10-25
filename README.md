@@ -6,7 +6,7 @@ DotNetWorkQueue
 [![Coverity status](https://scan.coverity.com/projects/10126/badge.svg)](https://scan.coverity.com/projects/blehnen-dotnetworkqueue)
 [![codecov](https://codecov.io/gh/blehnen/DotNetWorkQueue/branch/master/graph/badge.svg?token=E23UZ6U9CU)](https://codecov.io/gh/blehnen/DotNetWorkQueue)
 
-A producer / distributed consumer library for dot net applications. Dot net 4.6.1, 4.7.2, 4.8, 5.0, 6.0 and Dot net standard 2.0 are supported
+A producer / distributed consumer library for dot net applications. Dot net 4.6.1, 4.7.2, 4.8, 6.0 and Dot net standard 2.0 are supported
 
 High level features
 
@@ -37,7 +37,7 @@ Metrics
 Differences between versions
 ------------
 
-Dot net standard 2.0 / 5.0 / 6.0 are missing the following features from the full framework versions
+Dot net standard 2.0 / 6.0 are missing the following features from the full framework versions
 
 - No support for aborting threads when stopping the consumer queues
 - No support for dynamic linq statements
@@ -276,5 +276,7 @@ This library uses multiple 3rd party libaries, listed below.
 ##### Developed with:
 
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/ReSharper_icon.png" width="48">
+
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotCover_icon.png" width="48">
+
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotTrace_icon.png" width="48">
