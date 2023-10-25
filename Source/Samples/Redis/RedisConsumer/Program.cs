@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using DotNetWorkQueue;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
+using DotNetWorkQueue.Transport.Redis.Basic.Time;
+using Microsoft.Extensions.Logging;
 using SampleShared;
 using Serilog;
 
@@ -29,9 +31,16 @@ namespace RedisConsumer
             var queueName = ConfigurationManager.AppSettings.ReadSetting("QueueName");
             var connectionString = ConfigurationManager.AppSettings.ReadSetting("Database");
             var queueConnection = new QueueConnection(queueName, connectionString);
+
+            var queueOptions = new RedisQueueTransportOptions(new SntpTimeConfiguration(),
+                new DelayedProcessingConfiguration())
+            {
+                MoveDelayedMessagesBatchLimit = 10
+            };
+
             using (var queueContainer = new QueueContainer<RedisQueueInit>(serviceRegister =>
-                Injectors.AddInjectors(Helpers.CreateForSerilog(), SharedConfiguration.EnableTrace, SharedConfiguration.EnableMetrics, SharedConfiguration.EnableCompression, SharedConfiguration.EnableEncryption, "RedisConsumer", serviceRegister)
-                , options => Injectors.SetOptions(options, SharedConfiguration.EnableChaos)))
+                           AddInjectors(serviceRegister, queueOptions)
+                       , options => SetOptions(options, SharedConfiguration.EnableChaos)))
             {
                 using (var queue = queueContainer.CreateConsumer(queueConnection))
                 {
@@ -43,7 +52,7 @@ namespace RedisConsumer
 
                     //an invalid data exception will be re-tried 3 times, with delays of 3, 6 and then finally 9 seconds
                     queue.Configuration.TransportConfiguration.RetryDelayBehavior.Add(typeof(InvalidDataException), new List<TimeSpan> { TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(9) });
-
+       
                     queue.Configuration.MessageExpiration.Enabled = true;
                     queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(20); //check for expired messages every 20 seconds
                     queue.Start<SimpleMessage>(MessageProcessing.HandleMessages);
@@ -56,5 +65,17 @@ namespace RedisConsumer
             if (SharedConfiguration.EnableTrace)
                 System.Threading.Thread.Sleep(2000);
         }
+
+        public static void AddInjectors(IContainer container, RedisQueueTransportOptions options)
+        {
+            container.RegisterNonScopedSingleton(options);
+        }
+
+        public static void SetOptions(IContainer container, bool enableChaos)
+        {
+            var pol = container.GetInstance<IPolicies>();
+            pol.EnableChaos = enableChaos;
+        }
     }
+
 }
