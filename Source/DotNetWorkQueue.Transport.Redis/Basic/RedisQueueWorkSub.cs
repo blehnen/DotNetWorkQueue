@@ -137,7 +137,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
             //Un-subscribe from the channel
             var sub = _connection.Connection.GetSubscriber();
-            sub.UnsubscribeAsync(_redisNames.Notification, Handler);
+            sub.UnsubscribeAsync(RedisChannel.Literal(_redisNames.Notification), Handler);
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private void SubscribeForNotification()
         {
             var sub = _connection.Connection.GetSubscriber();
-            sub.SubscribeAsync(_redisNames.Notification, Handler);
+            sub.SubscribeAsync(RedisChannel.Literal(_redisNames.Notification), Handler);
         }
 
         /// <summary>

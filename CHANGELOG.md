@@ -1,3 +1,8 @@
+###0.6.9 2023-10-25
+* Update various packages to latest versions
+* Remove OpenTelemetry.Exporter.Jaeger and replace with OpenTelemetry.Exporter.OpenTelemetryProtocol
+* Remove dot net 5.0 as a supported version
+
 ###0.6.8 2022-07-19
 * Update npgsql
 * Add inital admin interface
