@@ -33,5 +33,31 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
         public static string BeginTransaction => "SqliteBeginTransaction";
+
+        /// <summary>
+        /// A policy for retrying a failed command
+        /// </summary>
+        /// <value>
+        /// A policy for retrying a failed command
+        /// </value>
+        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        public static string RetryCommandHandler => "SqliteRetryCommandHandler";
+
+        /// <summary>
+        /// A policy for retrying a failed command
+        /// </summary>
+        /// <value>
+        /// A policy for retrying a failed command
+        /// </value>
+        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        public static string RetryCommandHandlerAsync => "SqliteRetryCommandHandlerAsync";
+
+        /// <summary>
+        /// A policy for retrying a failed query
+        /// </summary>
+        /// <value>
+        /// The retry query handler.
+        /// </value>
+        public static string RetryQueryHandler => "SqliteRetryQueryHandler";
     }
 }

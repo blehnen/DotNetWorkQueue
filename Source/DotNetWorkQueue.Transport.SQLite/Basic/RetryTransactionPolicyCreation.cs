@@ -32,6 +32,7 @@ using Polly;
 using Polly.Contrib.Simmy;
 using Polly.Contrib.Simmy.Behavior;
 using Polly.Contrib.Simmy.Outcomes;
+using Polly.Contrib.WaitAndRetry;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -53,18 +54,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             var log = container.GetInstance<ILogger>();
 
             var chaosPolicy = CreateRetryChaos(policies);
+            var chaosPolicyAsync = CreateRetryChaosAsync(policies);
+
+            var delay = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
+            var delayAsync = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
 
             var retrySql = Policy
-                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)Convert.ToInt32(ex.ResultCode)))
-                .WaitAndRetry(
-                    RetryConstants.RetryCount,
-                    retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
+                //.Handle<SQLiteException>()
+                .WaitAndRetry(delay,
                     (exception, timeSpan, retryCount, context) =>
                     {
-                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
+                        log.LogWarning($"An error has occurred; we will try to re-run the statement in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
                         if (Activity.Current != null)
                         {
-                            using (var scope = tracer.StartActivity("RetryTransaction"))
+                            using (var scope = tracer.StartActivity("RetrySqlPolicy"))
                             {
                                 try
                                 {
@@ -79,6 +83,66 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                         }
                     });
 
+            var retrySqlAsync = Policy
+                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
+                //.Handle<SQLiteException>()
+                .WaitAndRetryAsync(delayAsync,
+                    (exception, timeSpan, retryCount, context) =>
+                    {
+                        log.LogWarning($"An error has occurred; we will try to re-run the statement in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
+                        if (Activity.Current != null)
+                        {
+                            using (var scope = tracer.StartActivity("RetrySqlPolicy"))
+                            {
+                                try
+                                {
+                                    scope?.SetTag("RetryTime", timeSpan.ToString());
+                                    scope?.RecordException(exception);
+                                }
+                                finally
+                                {
+                                    scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
+                                }
+                            }
+                        }
+                    });
+
+
+            //RetryCommandHandler
+            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandler,
+                new TransportPolicyDefinition(
+                    TransportPolicyDefinitions.RetryCommandHandler,
+                    "A policy for retrying a failed command. This checks specific" +
+                    "Sqlite errors, such as deadlocks, and retries the command" +
+                    "after a short pause"));
+            if (chaosPolicy != null)
+                policies.Registry[TransportPolicyDefinitions.RetryCommandHandler] = retrySql.Wrap(chaosPolicy);
+            else
+                policies.Registry[TransportPolicyDefinitions.RetryCommandHandler] = retrySql;
+
+            //RetryCommandHandlerAsync
+            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandlerAsync,
+                new TransportPolicyDefinition(
+                    TransportPolicyDefinitions.RetryCommandHandlerAsync,
+                    "A policy for retrying a failed command. This checks specific" +
+                    "Sqlite errors, such as deadlocks, and retries the command" +
+                    "after a short pause"));
+            if (chaosPolicyAsync != null)
+                policies.Registry[TransportPolicyDefinitions.RetryCommandHandlerAsync] = retrySqlAsync.WrapAsync(chaosPolicyAsync);
+            else
+                policies.Registry[TransportPolicyDefinitions.RetryCommandHandlerAsync] = retrySqlAsync;
+
+            //RetryQueryHandler
+            policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryQueryHandler,
+                new TransportPolicyDefinition(
+                    TransportPolicyDefinitions.RetryQueryHandler,
+                    "A policy for retrying a failed query. This checks specific" +
+                    "Sqlite errors, such as deadlocks, and retries the query" +
+                    "after a short pause"));
+            if (chaosPolicy != null)
+                policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql.Wrap(chaosPolicy);
+            else
+                policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql;
 
             //BeginTransaction
             policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.BeginTransaction,
@@ -103,6 +167,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     .InjectionRate((context, token) => ChaosPolicyShared.InjectionRate(context, RetryConstants.RetryCount, RetryAttempts))
                     .Enabled(policies.EnableChaos)
             );
+        }
+        private static AsyncInjectOutcomePolicy CreateRetryChaosAsync(IPolicies policies)
+        {
+            var fault = new SQLiteException(
+                (SQLiteErrorCode)ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>(),
+                "Policy chaos testing");
+
+            return MonkeyPolicy.InjectExceptionAsync(with =>
+                with.Fault(fault)
+                    .InjectionRate((context, token) => ChaosPolicyShared.InjectionRateAsync(context, RetryConstants.RetryCount, RetryAttempts))
+                    .Enabled(policies.EnableChaos)
+            );
+
         }
     }
 }

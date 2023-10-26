@@ -36,6 +36,7 @@ using Polly;
 using Polly.Contrib.Simmy;
 using Polly.Contrib.Simmy.Behavior;
 using Polly.Contrib.Simmy.Outcomes;
+using Polly.Contrib.WaitAndRetry;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -59,11 +60,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             var chaosPolicy = CreateRetryChaos(policies);
             var chaosPolicyAsync = CreateRetryChaosAsync(policies);
 
+            var delay = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
+            var delayAsync = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
+
             var retrySql = Policy
                  .Handle<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
-                 .WaitAndRetry(
-                     RetryConstants.RetryCount,
-                     retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                 .WaitAndRetry(delay,
                      (exception, timeSpan, retryCount, context) =>
                      {
                          log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
@@ -86,9 +88,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             var retrySqlAsync = Policy
                 .Handle<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
-                .WaitAndRetryAsync(
-                    RetryConstants.RetryCount,
-                    retryAttempt => TimeSpan.FromMilliseconds(ThreadSafeRandom.Next(RetryConstants.MinWait, RetryConstants.MaxWait)),
+                .WaitAndRetryAsync(delayAsync,
                     (exception, timeSpan, retryCount, context) =>
                     {
                         log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");

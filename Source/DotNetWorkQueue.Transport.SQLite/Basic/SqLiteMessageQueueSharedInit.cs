@@ -255,11 +255,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType,
             ConnectionTypes connectionType)
         {
+            SetupPolicy(container);
+
             var init = new RelationalDatabaseMessageQueueInit<long, Guid>();
             init.SetDefaultsIfNeeded(container, "SQLiteMessageQueueTransportOptions",
                 "SQLiteMessageQueueTransportOptions");
-
-            SetupPolicy(container);
 
             //create in memory hold
             var getFileName = container.GetInstance<IGetFileNameFromConnectionString>();

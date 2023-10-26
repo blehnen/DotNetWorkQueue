@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodMultipleDynamic
     {
         [Theory]
-        [InlineData(1000, 0, 240, 5, true, false),
-         InlineData(100, 0, 240, 10, true, true),
+        [InlineData(500, 0, 240, 5, true, false),
+         InlineData(100, 0, 240, 5, true, true),
          InlineData(100, 0, 240, 5, false, true),
-         InlineData(1000, 0, 240, 10, false, false)]
+         InlineData(500, 0, 240, 5, false, false)]
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {

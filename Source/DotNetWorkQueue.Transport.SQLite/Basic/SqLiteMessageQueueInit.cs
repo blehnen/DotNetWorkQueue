@@ -46,6 +46,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<IReaderAsync, ReaderAsync>(LifeStyles.Singleton);
             container.Register<DatabaseExists>(LifeStyles.Singleton);
 
+            //command and query retry on transient errors
+            container.RegisterDecorator(typeof(ICommandHandlerWithOutput<,>),
+                typeof(RetryCommandHandlerOutputDecorator<,>), LifeStyles.Singleton);
+
+            container.RegisterDecorator(typeof(ICommandHandler<>),
+                typeof(RetryCommandHandlerDecorator<>), LifeStyles.Singleton);
+
+            container.RegisterDecorator(typeof(ICommandHandlerWithOutputAsync<,>),
+                typeof(RetryCommandHandlerOutputDecoratorAsync<,>), LifeStyles.Singleton);
+
+            container.RegisterDecorator(typeof(IQueryHandler<,>),
+                typeof(RetryQueryHandlerDecorator<,>), LifeStyles.Singleton);
+
             //register our decorator that handles table creation errors
             container.RegisterDecorator(
                 typeof(ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult>),

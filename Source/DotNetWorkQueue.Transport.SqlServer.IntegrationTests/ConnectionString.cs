@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net.NetworkInformation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
@@ -18,6 +19,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
 
                 var connectionString = File.ReadAllText("connectionstring.txt");
                 _connectionString = connectionString;
+
+                if (string.IsNullOrEmpty(_connectionString))
+                {
+                    throw new NullReferenceException("connectionstring.txt is missing or contains no data");
+                }
+
                 return connectionString;
             }
         }

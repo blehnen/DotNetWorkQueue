@@ -195,10 +195,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="connectionType">Type of the connection.</param>
         public override void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType)
         {
+            SetupPolicy(container);
+
             var init = new RelationalDatabaseMessageQueueInit<long, Guid>();
             init.SetDefaultsIfNeeded(container, "SqlServerMessageQueueTransportOptions", "SqlServerMessageQueueTransportOptions");
-
-            SetupPolicy(container);
         }
 
         private void SetupPolicy(IContainer container)

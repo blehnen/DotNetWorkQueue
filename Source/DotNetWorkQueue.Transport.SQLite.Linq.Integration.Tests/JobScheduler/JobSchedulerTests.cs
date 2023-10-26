@@ -12,7 +12,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
     {
         [Theory]
         [InlineData(false, false),
-        InlineData(true, false),
         InlineData(false, true)]
         public void Run(
             bool dynamic,

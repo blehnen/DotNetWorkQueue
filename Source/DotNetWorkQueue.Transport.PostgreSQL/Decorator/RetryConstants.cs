@@ -26,14 +26,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         /// <summary>
         /// The retry count
         /// </summary>
-        public const int RetryCount = 3;
+        public const int RetryCount = 8;
+
         /// <summary>
-        /// The minimum wait in Milliseconds
+        /// How long to wait for the 1st retry in milliseconds
         /// </summary>
-        public const int MinWait = 100;
-        /// <summary>
-        /// The maximum wait in Milliseconds
-        /// </summary>
-        public const int MaxWait = 1000;
+        public const int FirstWaitInMs = 500;
     }
 }
