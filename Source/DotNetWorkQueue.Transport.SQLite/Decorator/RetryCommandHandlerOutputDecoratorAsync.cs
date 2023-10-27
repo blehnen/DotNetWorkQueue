@@ -32,10 +32,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         private readonly IPolicies _policies;
         private IAsyncPolicy _policy;
 
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="decorated" /> class.
+        /// Constructor
         /// </summary>
-        /// <param name="policies">The decorated.</param>
+        /// <param name="decorated">The command to wrap.</param>
         /// <param name="policies">The policies.</param>
         public RetryCommandHandlerOutputDecoratorAsync(ICommandHandlerWithOutputAsync<TCommand, TOutput> decorated,
             IPolicies policies)
