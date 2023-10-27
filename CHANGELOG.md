@@ -1,3 +1,7 @@
+###0.7.0 2023-10-26
+* Fix retry logic for SQLite commands; Changes in System.Data.Sqlite required changes in transport
+* Switch to DecorrelatedJitterBackoffV2 for SQLServer, PSQL and Sqlite retries
+
 ###0.6.9 2023-10-25
 * Update various packages to latest versions
 * Remove OpenTelemetry.Exporter.Jaeger and replace with OpenTelemetry.Exporter.OpenTelemetryProtocol
