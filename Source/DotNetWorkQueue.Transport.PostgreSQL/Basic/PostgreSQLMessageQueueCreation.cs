@@ -17,8 +17,10 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -117,6 +119,23 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         public bool QueueExists => _queryTableExists.Handle(new GetTableExistsQuery(ConnectionInfo.ConnectionString,
             ConnectionInfo.QueueName));
+
+        /// <inheritdoc />
+        public QueueScript CreationScript
+        {
+            get
+            {
+                var valid = Options.ValidConfiguration();
+                if (valid.Valid)
+                {
+                    var tables = _createSchema.GetSchema();
+                    var script = tables.Aggregate(string.Empty,
+                        (current, table) => current + table.Script() + Environment.NewLine);
+                    return new QueueScript(script, true);
+                }
+                return new QueueScript(null, valid.ErrorMessage, true);
+            }
+        }
 
         #region IDisposable, IsDisposed
 

@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using DotNetWorkQueue.Queue;
+
 namespace DotNetWorkQueue.Metrics.Decorator
 {
     internal class QueueCreationDecorator : IQueueCreation
@@ -40,12 +43,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             _handler = handler;
         }
 
-        /// <summary>
-        /// Gets or sets the connection information.
-        /// </summary>
-        /// <value>
-        /// The connection information.
-        /// </value>
+        /// <inheritdoc />
         public IConnectionInformation ConnectionInfo => _handler.ConnectionInfo;
 
         /// <summary>
@@ -53,28 +51,16 @@ namespace DotNetWorkQueue.Metrics.Decorator
         /// </summary>
         public IBaseTransportOptions BaseTransportOptions => _handler.BaseTransportOptions;
 
-        /// <summary>
-        /// Gets or sets a value indicating whether [queue exists].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [queue exists]; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
+        public QueueScript CreationScript => _handler.CreationScript;
+
+        /// <inheritdoc />
         public bool QueueExists => _handler.QueueExists;
 
-        /// <summary>
-        /// Gets a disposable creation scope
-        /// </summary>
-        /// <value>
-        /// The scope.
-        /// </value>
-        /// <remarks>This is used to prevent queues from going out of scope before you have finished working with them. Generally
-        /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.</remarks>
+        /// <inheritdoc />
         public ICreationScope Scope => _handler.Scope;
 
-        /// <summary>
-        /// Tries to create the queue.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public QueueCreationResult CreateQueue()
         {
             using (_createQueueTimer.NewContext())
@@ -83,10 +69,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             }
         }
 
-        /// <summary>
-        /// Tries to the remove queue.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public QueueRemoveResult RemoveQueue()
         {
             using (_removeQueueTimer.NewContext())
@@ -95,17 +78,10 @@ namespace DotNetWorkQueue.Metrics.Decorator
             }
         }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc />
         public bool IsDisposed => _handler.IsDisposed;
 
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             _handler.Dispose();

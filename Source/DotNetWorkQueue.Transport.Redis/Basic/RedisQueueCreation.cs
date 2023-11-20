@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Threading;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
@@ -101,6 +102,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             return QueueExists ? RemoveQueueInternal() : new QueueRemoveResult(QueueRemoveStatus.DoesNotExist);
         }
+
+        /// <inheritdoc />
+        public QueueScript CreationScript => new QueueScript(null, false); //noop - we do not have a script for redis
 
         #region IDisposable, IsDisposed
         /// <inheritdoc />

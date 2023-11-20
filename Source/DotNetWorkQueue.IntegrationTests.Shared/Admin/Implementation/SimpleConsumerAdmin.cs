@@ -36,6 +36,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin.Implementation
                 try
                 {
                     setOptions(oCreation);
+                    var script = oCreation.CreationScript;
+                    Assert.NotNull(script);
+                    if (script.Supported)
+                    {
+                        Assert.True(script.HasScript);
+                        Assert.Null(script.Errors);
+                    }
+                    else
+                    {
+                        Assert.Null(script.Script);
+                        Assert.False(script.HasScript);
+                    }
                     var result = oCreation.CreateQueue();
                     Assert.True(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;

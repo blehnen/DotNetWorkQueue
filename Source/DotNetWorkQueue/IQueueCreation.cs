@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Queue;
 
 namespace DotNetWorkQueue
 {
@@ -68,6 +69,12 @@ namespace DotNetWorkQueue
         /// Gets the base transport options.
         /// </summary>
         IBaseTransportOptions BaseTransportOptions { get; }
+
+        /// <summary>
+        /// Gets a script that defines how the queue will be created
+        /// </summary>
+        /// <remarks>This may not apply to all transports; In those cases, the script will be null</remarks>
+        QueueScript CreationScript { get;  }
     }
 
     /// <summary>

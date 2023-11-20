@@ -19,6 +19,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Command;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
@@ -157,6 +158,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 }
             }
         }
+
+        /// <inheritdoc />
+        public QueueScript CreationScript => new QueueScript(null, false); //noop - we do not have a script for liteDB
 
         #region IDisposable, IsDisposed
 

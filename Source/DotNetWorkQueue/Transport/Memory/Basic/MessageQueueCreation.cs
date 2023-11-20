@@ -19,6 +19,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
@@ -110,6 +111,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         {
             return new QueueRemoveResult(QueueRemoveStatus.Success);
         }
+
+        /// <inheritdoc />
+        public QueueScript CreationScript => new QueueScript(null, false); //noop
 
         #region IDisposable, IsDisposed
 
