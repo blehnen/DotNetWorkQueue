@@ -4,7 +4,7 @@
     <TargetFrameworks>net6.0;net48;netstandard2.0;net472;net461</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.7.0</Version>
+    <Version>0.7.1</Version>
     <Description>Work queue for dot net 4.6.1, 4.7.2, 4.8, dot net standard 2.0, and dot net 6
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
@@ -80,10 +80,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTelemetry" Version="1.6.0" />
-    <PackageReference Include="Polly" Version="8.0.0" />
+    <PackageReference Include="Polly" Version="8.2.0" />
     <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
-    <PackageReference Include="SimpleInjector" Version="5.4.1" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
+    <PackageReference Include="SimpleInjector" Version="5.4.2" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
   </ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">

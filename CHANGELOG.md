@@ -1,3 +1,6 @@
+###0.7.1 2023-11-21
+* Add property to obtain creation script from IQueueCreation. This is supported by SQL Server, SQLite and PSQL.
+
 ###0.7.0 2023-10-26
 * Fix retry logic for SQLite commands; Changes in System.Data.Sqlite required changes in transport
 * Switch to DecorrelatedJitterBackoffV2 for SQLServer, PSQL and Sqlite retries

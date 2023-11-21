@@ -10,10 +10,10 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
     public class MessageHandlerTests
     {
         [Fact]
-        public void Handle_Null_Params_Fails()
+        public async void Handle_Null_Params_Fails()
         {
             var test = Create();
-            Assert.ThrowsAsync<ArgumentNullException>(() => test.HandleAsync<FakeMessage>(Substitute.For<IWorkGroup>(),
+            await Assert.ThrowsAsync<ArgumentNullException>(() => test.HandleAsync<FakeMessage>(Substitute.For<IWorkGroup>(),
                 null, null, null, null));
         }
 
