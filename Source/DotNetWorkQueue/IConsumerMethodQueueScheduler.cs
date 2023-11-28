@@ -16,6 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+
+using DotNetWorkQueue.Queue;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -27,7 +30,8 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Starts the queue.
         /// </summary>
+        /// <param name="notifications">User notifications for the consumer queue processing.</param>
         /// <remarks>Call dispose to stop the queue once started</remarks>
-        void Start();
+        void Start(ConsumerQueueNotifications notifications);
     }
 }

@@ -16,13 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -48,14 +47,18 @@ namespace DotNetWorkQueue.Queue
         /// <param name="registerMessages">The register messages.</param>
         /// <param name="primaryWorkerFactory">The primary worker factory.</param>
         /// <param name="stopWorker">The stop worker.</param>
+        /// <param name="consumerQueueErrorNotification">notifications for consumer queue errors</param>
+        /// <param name="consumerQueueNotification">notifications for consumer queue messages</param>
         public ConsumerQueue(
             QueueConsumerConfiguration configuration,
             IQueueMonitor queueMonitor,
             ILogger log,
             IRegisterMessages registerMessages,
             IPrimaryWorkerFactory primaryWorkerFactory,
-            StopWorker stopWorker)
-            : base(log)
+            StopWorker stopWorker,
+            IConsumerQueueNotification consumerQueueNotification,
+            IConsumerQueueErrorNotification consumerQueueErrorNotification)
+            : base(log, consumerQueueNotification, consumerQueueErrorNotification)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => queueMonitor, queueMonitor);
@@ -71,8 +74,6 @@ namespace DotNetWorkQueue.Queue
             _primaryWorker = new Lazy<IPrimaryWorker>(() =>
             {
                 var worker = primaryWorkerFactory.Create();
-                worker.UserException += LogUserException;
-                worker.SystemException += LogSystemException;
                 return worker;
             });
         }
@@ -97,8 +98,9 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <typeparam name="T">The type of the message</typeparam>
         /// <param name="workerAction">The action the worker should call when a message is received.</param>
+        /// <param name="notifications">User notifications for the consumer queue processing.</param>
         /// <exception cref="DotNetWorkQueueException">Start must only be called 1 time</exception>
-        public void Start<T>(Action<IReceivedMessage<T>, IWorkerNotification> workerAction)
+        public void Start<T>(Action<IReceivedMessage<T>, IWorkerNotification> workerAction, ConsumerQueueNotifications notifications = null)
             where T : class
         {
             ThrowIfDisposed();
@@ -116,6 +118,7 @@ namespace DotNetWorkQueue.Queue
             ShouldWork = true;
             _primaryWorker.Value.Start();
             _configuration.SetReadOnly();
+            base.SetupNotifications(notifications);
             Log.LogInformation("Queue started");
 
         }
@@ -139,9 +142,6 @@ namespace DotNetWorkQueue.Queue
                 _stopWorker.SetCancelTokenForStopping();
 
                 _stopWorker.StopPrimary(_primaryWorker.Value);
-
-                _primaryWorker.Value.UserException -= LogUserException;
-                _primaryWorker.Value.SystemException -= LogSystemException;
                 _primaryWorker.Value.Dispose();
             }
             base.Dispose(true);

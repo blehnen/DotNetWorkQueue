@@ -17,8 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Runtime.Serialization;
-using DotNetWorkQueue.Validation;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Exceptions
 {
@@ -36,16 +35,18 @@ namespace DotNetWorkQueue.Exceptions
         /// Initializes a new instance of the <see cref="MessageException"/> class.
         /// </summary>
         public PoisonMessageException() { }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageException" /> class.
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="messageId">The message identifier.</param>
         /// <param name="correlationId">The correlation identifier.</param>
+        /// <param name="headers">The message headers</param>
         /// <param name="messagePayload">The raw message payload.</param>
         /// <param name="headerPayload">The raw header payload.</param>
-        public PoisonMessageException(string message, IMessageId messageId, ICorrelationId correlationId, byte[] messagePayload, byte[] headerPayload)
-            : base(message, messageId, correlationId)
+        public PoisonMessageException(string message, IMessageId messageId, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers, byte[] messagePayload, byte[] headerPayload)
+            : base(message, messageId, correlationId, headers)
         {
             MessagePayload = messagePayload;
             HeaderPayload = headerPayload;
@@ -53,14 +54,15 @@ namespace DotNetWorkQueue.Exceptions
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageException"/> class.
         /// </summary>
-        /// <param name="messageId">The message identifier.</param>
-        /// <param name="correlationId">The correlation identifier.</param>
+        /// <param name="messageId">The message id</param>
+        /// <param name="correlationId">the correlation id</param>
+        /// <param name="headers">the message headers</param>
         /// <param name="messagePayload">The raw message payload.</param>
         /// <param name="headerPayload">The raw header payload.</param>
         /// <param name="format">The format.</param>
         /// <param name="args">The arguments.</param>
-        public PoisonMessageException(IMessageId messageId, ICorrelationId correlationId, byte[] messagePayload, byte[] headerPayload, string format, params object[] args)
-            : base(string.Format(format, args), messageId, correlationId)
+        public PoisonMessageException(IMessageId messageId, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers, byte[] messagePayload, byte[] headerPayload, string format, params object[] args)
+            : base(string.Format(format, args), messageId, correlationId, headers)
         {
             MessagePayload = messagePayload;
             HeaderPayload = headerPayload;
@@ -69,13 +71,14 @@ namespace DotNetWorkQueue.Exceptions
         /// Initializes a new instance of the <see cref="MessageException"/> class.
         /// </summary>
         /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
-        /// <param name="messageId">The message identifier.</param>
-        /// <param name="correlationId">The correlation identifier.</param>
+        /// <param name="inner">The inner exception.</param>
+        /// <param name="messageId">The message id</param>
+        /// <param name="correlationId">the correlation id</param>
+        /// <param name="headers">the message headers</param>
         /// <param name="messagePayload">The raw message payload.</param>
         /// <param name="headerPayload">The raw header payload.</param>
-        public PoisonMessageException(string message, Exception inner, IMessageId messageId, ICorrelationId correlationId, byte[] messagePayload, byte[] headerPayload)
-            : base(message, inner, messageId, correlationId)
+        public PoisonMessageException(string message, Exception inner, IMessageId messageId, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers, byte[] messagePayload, byte[] headerPayload)
+            : base(message, inner, messageId, correlationId, headers)
         {
             MessagePayload = messagePayload;
             HeaderPayload = headerPayload;

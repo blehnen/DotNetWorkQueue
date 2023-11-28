@@ -16,19 +16,17 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
 {
@@ -103,7 +101,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.CorrelationId, receivedTransportMessage.Headers);
 
             //we need to update the status table here, as we don't do it as part of the de-queue
             if (_configuration.Options().EnableStatusTable)

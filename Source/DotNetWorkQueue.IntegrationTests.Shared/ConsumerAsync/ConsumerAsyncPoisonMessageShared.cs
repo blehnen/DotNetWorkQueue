@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
 {
@@ -66,7 +65,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                     queue.Start<TMessage>((message, notifications) =>
                                     {
                                         MessageHandlingShared.HandleFakeMessageNoOp();
-                                    });
+                                    }, CreateNotifications.Create(logProvider));
 
                                     for (var i = 0; i < timeOut; i++)
                                     {

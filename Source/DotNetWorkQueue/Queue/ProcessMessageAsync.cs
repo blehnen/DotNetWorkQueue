@@ -16,10 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Notifications;
+using DotNetWorkQueue.Validation;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -32,6 +33,7 @@ namespace DotNetWorkQueue.Queue
         private readonly MessageExceptionHandler _messageExceptionHandler;
         private readonly IHeartBeatWorkerFactory _heartBeatWorkerFactory;
         private readonly ICommitMessage _commitMessage;
+        private readonly IConsumerQueueNotification _consumerQueueNotification;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessMessageAsync"/> class.
@@ -40,20 +42,24 @@ namespace DotNetWorkQueue.Queue
         /// <param name="heartBeatWorkerFactory">The heart beat worker factory.</param>
         /// <param name="messageExceptionHandler">The message exception handler.</param>
         /// <param name="commitMessage">The commit message.</param>
+        /// <param name="consumerQueueNotification">notifications for consumer queue messages</param>
         public ProcessMessageAsync(IHandleMessage handler,
             IHeartBeatWorkerFactory heartBeatWorkerFactory,
             MessageExceptionHandler messageExceptionHandler,
-            ICommitMessage commitMessage)
+            ICommitMessage commitMessage,
+            IConsumerQueueNotification consumerQueueNotification)
         {
             Guard.NotNull(() => handler, handler);
             Guard.NotNull(() => heartBeatWorkerFactory, heartBeatWorkerFactory);
             Guard.NotNull(() => messageExceptionHandler, messageExceptionHandler);
             Guard.NotNull(() => commitMessage, commitMessage);
+            Guard.NotNull(() => consumerQueueNotification, consumerQueueNotification);
 
             _messageExceptionHandler = messageExceptionHandler;
             _methodToRun = handler;
             _heartBeatWorkerFactory = heartBeatWorkerFactory;
             _commitMessage = commitMessage;
+            _consumerQueueNotification = consumerQueueNotification;
         }
 
         /// <summary>
@@ -70,6 +76,7 @@ namespace DotNetWorkQueue.Queue
                 {
                     await _methodToRun.HandleAsync(transportMessage, context.WorkerNotification).ConfigureAwait(false);
                     _commitMessage.Commit(context);
+                    _consumerQueueNotification.InvokeMessageComplete(new MessageCompleteNotification(transportMessage.MessageId, transportMessage.CorrelationId, transportMessage.Headers, transportMessage.Body));
                 }
                 // ReSharper disable once UncatchableException
                 catch (ThreadAbortException)

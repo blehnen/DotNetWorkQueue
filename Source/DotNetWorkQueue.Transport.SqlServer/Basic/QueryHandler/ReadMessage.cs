@@ -16,14 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Serialization;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Validation;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.Shared.Basic;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 {
@@ -64,6 +63,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             //load up the message from the DB
             long id = 0;
             var correlationId = Guid.Empty;
+            IDictionary<string, object> headers = null;
             byte[] headerPayload = null;
             byte[] messagePayload = null;
             try
@@ -73,7 +73,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 headerPayload = (byte[])reader["Headers"];
                 messagePayload = (byte[])reader["body"];
 
-                var headers = _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerPayload);
+                headers = _serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerPayload);
                 var messageGraph = (MessageInterceptorsGraph)headers[_headers.StandardHeaders.MessageInterceptorGraph.Name];
                 var message = _serialization.Serializer.BytesToMessage<MessageBody>(messagePayload, messageGraph, headers).Body;
                 var newMessage = _messageFactory.Create(message, headers);
@@ -84,9 +84,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             }
             catch (Exception error)
             {
+                var headersLocal = headers != null ? new Dictionary<string, object>(headers) : new Dictionary<string, object>();
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
-                    "An error has occurred trying to re-assemble a message de-queued from the SQL server", error, new MessageQueueId<long>(id), new MessageCorrelationId<Guid>(correlationId), messagePayload, headerPayload);
+                    "An error has occurred trying to re-assemble a message de-queued from the SQL server", error, new MessageQueueId<long>(id), new MessageCorrelationId<Guid>(correlationId), headersLocal, messagePayload, headerPayload);
 
             }
         }

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Queue;
 using System;
 
 namespace DotNetWorkQueue
@@ -31,8 +32,9 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <typeparam name="T">The type of the received message</typeparam>
         /// <param name="workerAction">The action the worker should call when a message is received.</param>
+        /// <param name="notifications">Allows subscribing to notification of message queue events, such as completed or error</param>
         /// <remarks>Call dispose to stop the queue once started</remarks>
-        void Start<T>(Action<IReceivedMessage<T>, IWorkerNotification> workerAction)
+        void Start<T>(Action<IReceivedMessage<T>, IWorkerNotification> workerAction, ConsumerQueueNotifications notifications)
             where T : class;
     }
 }

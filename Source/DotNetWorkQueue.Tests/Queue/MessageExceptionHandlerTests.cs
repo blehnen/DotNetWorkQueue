@@ -1,13 +1,10 @@
-﻿using System;
-using AutoFixture;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-
-
+using System;
 using Xunit;
 
 namespace DotNetWorkQueue.Tests.Queue
@@ -39,8 +36,9 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             IReceiveMessagesError error = fixture.Create<ReceiveMessagesErrorWillCrash>();
+            IConsumerQueueErrorNotification notify = fixture.Create<IConsumerQueueErrorNotification>();
             fixture.Inject(error);
-            var test = new MessageExceptionHandler(error, Substitute.For<ILogger>());
+            var test = new MessageExceptionHandler(error, Substitute.For<ILogger>(), notify);
 
             var message = fixture.Create<IReceivedMessageInternal>();
             var context = fixture.Create<IMessageContext>();

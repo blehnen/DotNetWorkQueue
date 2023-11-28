@@ -16,17 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
+using System;
+using System.Data.SqlClient;
+using System.Linq;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
 {
@@ -94,7 +92,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.CorrelationId, receivedTransportMessage.Headers);
 
             //if we are holding open transactions, we need to update the status table in a separate call
             //When not using held transactions, this is part of the de-queue statement and so not needed here

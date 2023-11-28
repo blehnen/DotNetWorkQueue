@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Queue;
 
 namespace DotNetWorkQueue
 {
@@ -26,16 +25,6 @@ namespace DotNetWorkQueue
     /// </summary>
     public interface IWorkerBase : IDisposable, IIsDisposed
     {
-        /// <summary>
-        /// Event that will be raised each time message delivery fails.
-        /// </summary>
-        event EventHandler<WorkerErrorEventArgs> UserException;
-
-        /// <summary>
-        /// Event that will be raised if an exception occurs outside of user code.
-        /// </summary>
-        event EventHandler<WorkerErrorEventArgs> SystemException;
-
         /// <summary>
         /// Gets a value indicating whether this <see cref="IWorkerBase"/> is running.
         /// </summary>

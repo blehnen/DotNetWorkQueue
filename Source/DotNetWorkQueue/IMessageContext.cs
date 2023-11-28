@@ -28,8 +28,9 @@ namespace DotNetWorkQueue
     {
         /// <summary>Sets the message and headers.</summary>
         /// <param name="id">The identifier. Can be null.</param>
+        /// <param name="correlationId">The correlation id. Can be null.</param>
         /// <param name="headers">The headers. Can be null.</param>
-        void SetMessageAndHeaders(IMessageId id, IReadOnlyDictionary<string, object> headers);
+        void SetMessageAndHeaders(IMessageId id, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers);
 
         /// <summary>
         /// Returns data set by <see cref="Set{T}"/> 
@@ -72,6 +73,14 @@ namespace DotNetWorkQueue
         /// The message identifier.
         /// </value>
         IMessageId MessageId { get; }
+
+        /// <summary>
+        /// Gets or sets the correlation identifier.
+        /// </summary>
+        /// <value>
+        /// The correlation identifier.
+        /// </value>
+        ICorrelationId CorrelationId { get; }
 
         /// <summary>
         /// Gets the headers.

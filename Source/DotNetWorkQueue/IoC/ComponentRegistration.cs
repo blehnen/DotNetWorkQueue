@@ -16,9 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Diagnostics;
-using System.Linq;
 using DotNetWorkQueue.Admin;
 using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
@@ -27,7 +24,6 @@ using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.JobScheduler;
 using DotNetWorkQueue.LinqCompile;
 using DotNetWorkQueue.LinqCompile.Decorator;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Metrics.NoOp;
 using DotNetWorkQueue.Policies;
@@ -41,11 +37,12 @@ using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using OpenTelemetry.Trace;
 using Polly;
 using Polly.Caching.Memory;
 using Polly.Registry;
-using SimpleInjector;
+using System;
+using System.Diagnostics;
+using System.Linq;
 
 namespace DotNetWorkQueue.IoC
 {
@@ -210,6 +207,10 @@ namespace DotNetWorkQueue.IoC
                     .Register
                     <IWorkerHeartBeatNotificationFactory, WorkerHeartBeatNotificationFactory>(LifeStyles.Singleton);
 
+                container.Register<IConsumerQueueErrorNotification, ConsumerQueueErrorNotification>(
+                    LifeStyles.Singleton);
+                container.Register<IConsumerQueueNotification, ConsumerQueueNotification>(
+                    LifeStyles.Singleton);
                 container.Register<IWorkerHeartBeatNotification, WorkerHeartBeatNotification>(LifeStyles.Transient);
                 container.Register<ProcessMessage, ProcessMessage>(LifeStyles.Transient);
                 container.Register<IMessageProcessingFactory, MessageProcessingFactory>(LifeStyles.Singleton);

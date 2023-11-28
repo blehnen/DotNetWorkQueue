@@ -16,14 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
+using System.Data;
+using System.Linq;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 {
@@ -81,7 +79,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
             }
 
             //set the message ID on the context for later usage
-            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.Headers);
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.CorrelationId, receivedTransportMessage.Headers);
 
             return receivedTransportMessage;
         }

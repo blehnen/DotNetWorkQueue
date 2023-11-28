@@ -16,12 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Memory.Basic.Message;
 using DotNetWorkQueue.Validation;
+using System;
+using System.Linq;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -80,7 +79,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             {
                 if (exception.MessageId != null && exception.MessageId.HasValue)
                 {
-                    context.SetMessageAndHeaders(exception.MessageId, null);
+                    context.SetMessageAndHeaders(exception.MessageId, exception.CorrelationId, exception.Headers);
                 }
                 throw;
             }

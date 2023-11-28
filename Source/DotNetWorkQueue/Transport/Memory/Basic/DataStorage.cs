@@ -16,16 +16,17 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using Microsoft.Extensions.Caching.Memory;
 using Polly;
 using Polly.Caching;
 using Polly.Caching.Memory;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -247,8 +248,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     hasError = true;
                     //at this point, the record has been de-queued, but it can't be processed.
                     throw new PoisonMessageException(
-                        "An error has occurred trying to re-assemble a message", error,
-                        new MessageQueueId(id), null, null, null);
+                        "An error has occurred trying to re-assemble a message", error, new MessageQueueId(id),
+                        new MessageCorrelationId(item.CorrelationId), new ReadOnlyDictionary<string, object>(item.Headers), null, null);
 
                 }
                 finally

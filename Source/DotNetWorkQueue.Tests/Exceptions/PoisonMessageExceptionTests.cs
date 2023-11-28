@@ -1,8 +1,7 @@
-﻿using System;
-using AutoFixture.Xunit2;
+﻿using AutoFixture.Xunit2;
 using DotNetWorkQueue.Exceptions;
 using NSubstitute;
-
+using System;
 using Xunit;
 
 namespace DotNetWorkQueue.Tests.Exceptions
@@ -20,19 +19,19 @@ namespace DotNetWorkQueue.Tests.Exceptions
         [Fact]
         public void Create()
         {
-            var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null);
+            var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, null);
             Assert.Equal("error", e.Message);
         }
         [Fact]
         public void Create_Format()
         {
-            var e = new PoisonMessageException(Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, "error {0}", 1);
+            var e = new PoisonMessageException(Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, null, "error {0}", 1);
             Assert.Equal("error 1", e.Message);
         }
         [Fact]
         public void Create_Inner()
         {
-            var e = new PoisonMessageException("error", new Exception(), Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null);
+            var e = new PoisonMessageException("error", new Exception(), Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, null);
             Assert.Equal("error", e.Message);
             Assert.NotNull(e.InnerException);
         }
@@ -40,14 +39,14 @@ namespace DotNetWorkQueue.Tests.Exceptions
         [Theory, AutoData]
         public void Create_MessagePayload(byte[] message)
         {
-            var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), message, null);
+            var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, message, null);
             Assert.Equal(message, e.MessagePayload);
         }
 
         [Theory, AutoData]
         public void Create_HeaderPayload(byte[] header)
         {
-            var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, header);
+            var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, header);
             Assert.Equal(header, e.HeaderPayload);
         }
     }

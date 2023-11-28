@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Threading;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Notifications;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -38,6 +38,8 @@ namespace DotNetWorkQueue.Queue
         private readonly Lazy<IQueueWait> _seriousExceptionProcessBackOffHelper;
         private readonly Lazy<IQueueWait> _noMessageToProcessBackOffHelper;
         private readonly IRollbackMessage _rollbackMessage;
+        private readonly IConsumerQueueErrorNotification _consumerQueueErrorNotification;
+        private readonly IConsumerQueueNotification _consumerQueueNotification;
 
         /// <summary>
         /// Occurs when message processor is idle
@@ -47,17 +49,6 @@ namespace DotNetWorkQueue.Queue
         /// Occurs when message processor is not idle
         /// </summary>
         public event EventHandler NotIdle = delegate { };
-
-        /// <summary>
-        /// Fires when an exception occurs inside of user code
-        /// </summary>
-        public event EventHandler<MessageErrorEventArgs> UserException;
-
-        /// <summary>
-        /// Fires when an exception occurs outside of user code
-        /// </summary>
-        public event EventHandler<MessageErrorEventArgs> SystemException;
-
         private bool _idle;
 
         /// <summary>
@@ -70,6 +61,8 @@ namespace DotNetWorkQueue.Queue
         /// <param name="processMessage">The process message.</param>
         /// <param name="receivePoisonMessage">The receive poison message.</param>
         /// <param name="rollbackMessage">rolls back a message when an exception occurs</param>
+        /// <param name="consumerQueueErrorNotification">notifications for consumer queue errors</param>
+        /// <param name="consumerQueueNotification">notifications for consumer queue messages</param>
         public MessageProcessing(
             IReceiveMessagesFactory receiveMessages,
             IMessageContextFactory messageContextFactory,
@@ -77,7 +70,9 @@ namespace DotNetWorkQueue.Queue
             ILogger log,
             ProcessMessage processMessage,
             IReceivePoisonMessage receivePoisonMessage,
-            IRollbackMessage rollbackMessage)
+            IRollbackMessage rollbackMessage,
+            IConsumerQueueErrorNotification consumerQueueErrorNotification,
+            IConsumerQueueNotification consumerQueueNotification)
         {
 
             Guard.NotNull(() => receiveMessages, receiveMessages);
@@ -87,6 +82,8 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(() => processMessage, processMessage);
             Guard.NotNull(() => receivePoisonMessage, receivePoisonMessage);
             Guard.NotNull(() => rollbackMessage, rollbackMessage);
+            Guard.NotNull(() => consumerQueueErrorNotification, consumerQueueErrorNotification);
+            Guard.NotNull(() => consumerQueueNotification, consumerQueueNotification);
 
             _receiveMessages = receiveMessages.Create();
             _messageContextFactory = messageContextFactory;
@@ -97,7 +94,8 @@ namespace DotNetWorkQueue.Queue
 
             _noMessageToProcessBackOffHelper = new Lazy<IQueueWait>(queueWaitFactory.CreateQueueDelay);
             _seriousExceptionProcessBackOffHelper = new Lazy<IQueueWait>(queueWaitFactory.CreateFatalErrorDelay);
-
+            _consumerQueueErrorNotification = consumerQueueErrorNotification;
+            _consumerQueueNotification = consumerQueueNotification;
         }
         /// <summary>
         /// Returns how many asynchronous tasks are still running.
@@ -121,18 +119,16 @@ namespace DotNetWorkQueue.Queue
                 {
                     TryProcessIncomingMessage();
                 }
-                catch (MessageException exception)
-                {
-                    UserException?.Invoke(this, new MessageErrorEventArgs(exception));
-                }
                 catch (CommitException exception)
                 {
-                    UserException?.Invoke(this, new MessageErrorEventArgs(exception));
+                    _consumerQueueErrorNotification.InvokeError(new ErrorNotification(exception.MessageId, exception.CorrelationId, exception.Headers, exception));
                 }
-                catch (Exception e)
+                catch (MessageException exception)
                 {
-                    SystemException?.Invoke(this, new MessageErrorEventArgs(e));
-
+                    _consumerQueueErrorNotification.InvokeError(new ErrorNotification(exception.MessageId, exception.CorrelationId, exception.Headers, exception));
+                }
+                catch (Exception)
+                {
                     //generic exceptions tend to indicate a serious problem - lets start delaying processing
                     //this counter will reset once a message has been processed by this thread
                     _seriousExceptionProcessBackOffHelper.Value.Wait();
@@ -142,6 +138,7 @@ namespace DotNetWorkQueue.Queue
             {
                 //there isn't a whole lot we can do here
                 _log.LogError($"An error has occurred while trying to handle an exception{System.Environment.NewLine}{ex}");
+                _consumerQueueErrorNotification.InvokeError(new ErrorReceiveNotification(ex));
             }
         }
         /// <summary>
@@ -155,28 +152,34 @@ namespace DotNetWorkQueue.Queue
                 {
                     DoTry(context);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException ex)
                 {
                     _rollbackMessage.Rollback(context);
+                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
                 }
                 // ReSharper disable once UncatchableException
-                catch (ThreadAbortException)
+                catch (ThreadAbortException ex)
                 {
                     _rollbackMessage.Rollback(context);
+                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
                 }
                 catch (PoisonMessageException exception)
                 {
                     _receivePoisonMessage.Handle(context, exception);
+                    _consumerQueueErrorNotification.InvokePoisonMessageError(
+                        new PoisonMessageNotification(exception));
                 }
                 catch (ReceiveMessageException e)
                 {
                     //an exception occurred trying to get the message from the transport
                     _log.LogError($"An error has occurred while receiving a message from the transport{System.Environment.NewLine}{e}");
+                    _consumerQueueErrorNotification.InvokeError(new ErrorReceiveNotification(e));
                     _seriousExceptionProcessBackOffHelper.Value.Wait();
                 }
-                catch
+                catch (Exception ex)
                 {
                     _rollbackMessage.Rollback(context);
+                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
                     throw;
                 }
             }

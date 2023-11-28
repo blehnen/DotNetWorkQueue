@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
@@ -51,7 +50,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             {
                                 MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
                                     waitForFinish);
-                            });
+                            }, CreateNotifications.Create(logProvider));
 
                             waitForFinish.Wait(timeOut * 1000);
                         }

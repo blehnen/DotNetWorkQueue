@@ -16,11 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Threading;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -77,10 +76,6 @@ namespace DotNetWorkQueue.Queue
 
             MessageProcessing = _messageProcessingFactory.Create();
 
-            _workerCollection.SystemException += RaiseSystemException;
-            _workerCollection.UserException += RaiseUserException;
-            MessageProcessing.SystemException += RaiseSystemMessageException;
-            MessageProcessing.UserException += RaiseUserMessageException;
             MessageProcessing.Idle += (sender, e) => IdleStatus = WorkerIdleStatus.Idle;
             MessageProcessing.NotIdle += (sender, e) => IdleStatus = WorkerIdleStatus.NotIdle;
             MessageProcessing.NotIdle += MessageProcessingOnNotIdle;
@@ -106,9 +101,6 @@ namespace DotNetWorkQueue.Queue
             }
 
             _workerCollection.Stop();
-            _workerCollection.SystemException -= RaiseSystemException;
-            _workerCollection.UserException -= RaiseUserException;
-
             ShouldExit = true;
         }
 

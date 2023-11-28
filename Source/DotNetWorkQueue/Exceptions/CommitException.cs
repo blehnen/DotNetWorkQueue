@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Exceptions
 {
@@ -28,28 +29,52 @@ namespace DotNetWorkQueue.Exceptions
     /// The same exact message may be sent through for processing again at some point, depending on queue settings.
     /// </remarks>
     [Serializable]
-    public class CommitException : DotNetWorkQueueException
+    public class CommitException : MessageException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitException"/> class.
         /// </summary>
         public CommitException() { }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitException" /> class.
         /// </summary>
-        /// <param name="message">The message.</param>
-        public CommitException(string message) : base(message) { }
+        /// <param name="message">The error message.</param>
+        /// <param name="messageId">The message id</param>
+        /// <param name="correlationId">the correlation id</param>
+        /// <param name="headers">the message headers</param>
+        public CommitException(string message, IMessageId messageId, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers) :
+            base(message, messageId, correlationId, headers)
+        {
+
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitException"/> class.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <param name="args">The arguments.</param>
-        public CommitException(string format, params object[] args) : base(string.Format(format, args)) { }
+        /// <param name="messageId">The message id</param>
+        /// <param name="correlationId">the correlation id</param>
+        /// <param name="headers">the message headers</param>
+        public CommitException(string format, IMessageId messageId, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers,
+            params object[] args) : base(string.Format(format, args), messageId, correlationId, headers)
+        {
+
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CommitException"/> class.
         /// </summary>
         /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
-        public CommitException(string message, Exception inner) : base(message, inner) { }
+        /// <param name="inner">The inner exception.</param>
+        /// <param name="messageId">The message id</param>
+        /// <param name="correlationId">the correlation id</param>
+        /// <param name="headers">the message headers</param>
+        public CommitException(string message, Exception inner, IMessageId messageId, ICorrelationId correlationId,
+            IReadOnlyDictionary<string, object> headers) : base(message, inner, messageId, correlationId, headers)
+        {
+
+        }
     }
 }

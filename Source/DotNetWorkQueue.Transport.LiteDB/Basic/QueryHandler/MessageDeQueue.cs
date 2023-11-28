@@ -16,13 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Validation;
+using System;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
 {
@@ -68,6 +67,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
 
             //load up the message from the DB
             int id = queueId;
+            IDictionary<string, object> headers = null;
             byte[] headerPayload = null;
             byte[] messagePayload = null;
             try
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                 headerPayload = queueRecord.Headers;
                 messagePayload = queueRecord.Body;
 
-                var headers =
+                headers =
                     _serialization.InternalSerializer
                         .ConvertBytesTo<IDictionary<string, object>>(
                             headerPayload);
@@ -96,11 +96,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             }
             catch (Exception err)
             {
+                var headersLocal = headers != null ? new Dictionary<string, object>(headers) : new Dictionary<string, object>();
+
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
                     "An error has occurred trying to re-assemble a de-queued message",
                     err, new MessageQueueId<int>(id),
                     new MessageCorrelationId<Guid>(correlationId),
+                    headersLocal,
                     messagePayload,
                     headerPayload);
             }

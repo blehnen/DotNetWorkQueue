@@ -16,11 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Notifications;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -31,18 +31,25 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly ILogger _log;
         private readonly IReceiveMessagesError _transportErrorHandler;
+        private readonly IConsumerQueueErrorNotification _consumerQueueErrorNotification;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageExceptionHandler"/> class.
         /// </summary>
         /// <param name="transportErrorHandler">The transport error handler.</param>
         /// <param name="log">The log.</param>
+        /// <param name="consumerQueueErrorNotification">notifications for consumer queue errors</param>
         public MessageExceptionHandler(IReceiveMessagesError transportErrorHandler,
-            ILogger log)
+            ILogger log,
+            IConsumerQueueErrorNotification consumerQueueErrorNotification)
         {
             Guard.NotNull(() => transportErrorHandler, transportErrorHandler);
             Guard.NotNull(() => log, log);
+            Guard.NotNull(() => consumerQueueErrorNotification, consumerQueueErrorNotification);
+
             _transportErrorHandler = transportErrorHandler;
             _log = log;
+            _consumerQueueErrorNotification = consumerQueueErrorNotification;
         }
 
         /// <summary>
@@ -75,8 +82,9 @@ namespace DotNetWorkQueue.Queue
                 case ReceiveMessagesErrorResult.NotSpecified:
                 case ReceiveMessagesErrorResult.NoActionPossible:
                     throw new MessageException("An unhanded exception has occurred while processing a message",
-                        exception, message.MessageId, message.CorrelationId);
+                        exception, message.MessageId, message.CorrelationId, message.Headers);
                 case ReceiveMessagesErrorResult.Error: //don't throw exception, as the message has been moved
+                    _consumerQueueErrorNotification.InvokeMovedToErrorQueue(new ErrorNotification(context.MessageId, context.CorrelationId, context.Headers, exception));
                     break;
             }
         }

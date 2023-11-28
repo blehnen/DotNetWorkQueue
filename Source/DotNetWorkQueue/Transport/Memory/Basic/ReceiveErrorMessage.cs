@@ -16,10 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -67,7 +66,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             _dataDataStorage.MoveToErrorQueue(exception, (Guid)context.MessageId.Id.Value, context);
 
             //we are done doing any processing - remove the messageID to block other actions
-            context.SetMessageAndHeaders(null, context.Headers);
+            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
             _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue {System.Environment.NewLine}{exception}");
             return ReceiveMessagesErrorResult.Error;
         }

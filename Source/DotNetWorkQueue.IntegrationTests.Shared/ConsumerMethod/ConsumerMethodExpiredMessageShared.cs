@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
@@ -45,7 +44,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                                 heartBeatMonitorTime, updateTime, null);
                             queue.Configuration.MessageExpiration.Enabled = true;
                             queue.Configuration.MessageExpiration.MonitorTime = TimeSpan.FromSeconds(8);
-                            queue.Start();
+                            queue.Start(CreateNotifications.Create(logProvider));
                             for (var i = 0; i < timeOut; i++)
                             {
                                 if (VerifyMetrics.GetExpiredMessageCount(metrics.GetCurrentMetrics()) == messageCount)

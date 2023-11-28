@@ -1,9 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
-using Polly.Caching;
+using System;
+using System.Threading;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
@@ -19,6 +17,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
         private IConsumerMethodQueue _queue;
         private QueueContainer<TTransportInit> _badQueueContainer;
         private Action<IContainer> _badQueueAdditions;
+        private ILogger _logger;
 
         public void RunConsumer(QueueConnection queueConnection, bool addInterceptors,
             ILogger logProvider,
@@ -30,6 +29,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             _workerCount = workerCount;
             _badQueueAdditions = badQueueAdditions;
             _updatetime = updateTime;
+            _logger = logProvider;
 
             _heartBeatTime = heartBeatTime;
             _heartBeatMonitorTime = heartBeatMonitorTime;
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                         {
                             SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                                 heartBeatMonitorTime, updateTime, null);
-                            queue.Start();
+                            queue.Start(CreateNotifications.Create(logProvider));
 
                             var time = runTime * 1000 / 2;
                             Thread.Sleep(time);
@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
         private void RunBadQueue()
         {
             //start looking for work
-            _queue.Start();
+            _queue.Start(CreateNotifications.Create(_logger));
         }
     }
 }

@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
@@ -40,11 +39,15 @@ namespace DotNetWorkQueue.Queue
         /// <param name="queue">The queue.</param>
         /// <param name="log">The log.</param>
         /// <param name="messageMethodHandling">The message method handling.</param>
+        /// <param name="consumerQueueErrorNotification">notifications for consumer queue errors</param>
+        /// <param name="consumerQueueNotification">notifications for consumer queue messages</param>
         public ConsumerMethodQueue(
            IConsumerQueue queue,
            ILogger log,
-           IMessageMethodHandling messageMethodHandling)
-           : base(log)
+           IMessageMethodHandling messageMethodHandling,
+           IConsumerQueueNotification consumerQueueNotification,
+           IConsumerQueueErrorNotification consumerQueueErrorNotification)
+           : base(log, consumerQueueNotification, consumerQueueErrorNotification)
         {
             Guard.NotNull(() => queue, queue);
             Guard.NotNull(() => messageMethodHandling, messageMethodHandling);
@@ -64,12 +67,13 @@ namespace DotNetWorkQueue.Queue
         /// <summary>
         /// Starts the queue.
         /// </summary>
+        /// <param name="notifications">Allows subscribing to notification of message queue events, such as completed or error</param>
         /// <remarks>
         /// Call dispose to stop the queue once started
         /// </remarks>
-        public void Start()
+        public void Start(ConsumerQueueNotifications notifications = null)
         {
-            _queue.Start<MessageExpression>(_messageMethodHandling.HandleExecution);
+            _queue.Start<MessageExpression>(_messageMethodHandling.HandleExecution, notifications);
         }
 
         /// <summary>

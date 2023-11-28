@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
                             {
                                 MessageHandlingShared.HandleFakeMessages(message, runTime, processedCount, messageCount,
                                     waitForFinish);
-                            });
+                            }, CreateNotifications.Create(logProvider));
 
                             if (messageCount <= workerCount && runTime > 10)
                             {
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
                                 Assert.Equal(0, waiting);
                                 Assert.Equal(messageCount, working);
                             }
-                            else if(runTime > 10)
+                            else if (runTime > 10)
                             {
                                 Thread.Sleep(runTime / 2);
                                 var working = admin.Count(QueueStatusAdmin.Processing);

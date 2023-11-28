@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Queue;
 using System;
 
 namespace DotNetWorkQueue
@@ -30,7 +31,8 @@ namespace DotNetWorkQueue
         /// Starts the queue
         /// </summary>
         /// <param name="functionToRun">The function to run to handle messages.</param>
-        void Start<T>(Action<IReceivedMessage<T>, IWorkerNotification> functionToRun)
+        /// <param name="notifications">Allows subscribing to notification of message queue events, such as completed or error</param>
+        void Start<T>(Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ConsumerQueueNotifications notifications)
             where T : class;
     }
 }

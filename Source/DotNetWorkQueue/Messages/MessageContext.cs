@@ -16,11 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Validation;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Messages
 {
@@ -53,23 +53,15 @@ namespace DotNetWorkQueue.Messages
             WorkerNotification = workerNotificationFactory.Create();
         }
 
-        /// <summary>Sets the message and headers.</summary>
-        /// <param name="id">The identifier. Can be null.</param>
-        /// <param name="headers">The headers. Can be null.</param>
-        public void SetMessageAndHeaders(IMessageId id, IReadOnlyDictionary<string, object> headers)
+        /// <inheritdoc/>
+        public void SetMessageAndHeaders(IMessageId id, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers)
         {
             MessageId = id;
+            CorrelationId = correlationId;
             Headers = headers;
         }
-        /// <summary>
-        /// Returns data set by <see cref="Set{T}" />
-        /// </summary>
-        /// <typeparam name="T">data type</typeparam>
-        /// <param name="itemData">The item data.</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// If the data does not exist, it will be added with the default value and returned
-        /// </remarks>
+
+        /// <inheritdoc/>
         public T Get<T>(IMessageContextData<T> itemData)
             where T : class
         {
@@ -84,13 +76,7 @@ namespace DotNetWorkQueue.Messages
             return (T)_items[itemData.Name];
         }
 
-        /// <summary>
-        /// Allows the transport to attach data to the context.
-        /// <remarks>For instance, data can be attached during de-queue, and then re-accessed during commit</remarks>
-        /// </summary>
-        /// <typeparam name="T">data type</typeparam>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
+        /// <inheritdoc/>
         public void Set<T>(IMessageContextData<T> property, T value)
             where T : class
         {
@@ -98,21 +84,10 @@ namespace DotNetWorkQueue.Messages
             _items[property.Name] = value;
         }
 
-        /// <summary>
-        /// Gets the headers.
-        /// </summary>
-        /// <value>
-        /// The headers.
-        /// </value>
-        /// <remarks>If possible use <seealso cref="GetHeader{THeader}"/> to get data in a type safe manner</remarks>
+        /// <inheritdoc/>
         public IReadOnlyDictionary<string, object> Headers { get; private set; }
 
-        /// <summary>
-        /// Returns data from a header property
-        /// </summary>
-        /// <typeparam name="THeader">data type</typeparam>
-        /// <param name="property">The property.</param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public THeader GetHeader<THeader>(IMessageContextData<THeader> property)
             where THeader : class
         {
@@ -123,27 +98,21 @@ namespace DotNetWorkQueue.Messages
             return (THeader)Headers[property.Name];
         }
 
-        /// <summary>
-        /// Explicitly fires the commit event.
-        /// </summary>
+        /// <inheritdoc/>
         public void RaiseCommit()
         {
             ThrowIfDisposed();
             Commit(this, EventArgs.Empty);
         }
 
-        /// <summary>
-        /// Explicitly fires the rollback event.
-        /// </summary>
+        /// <inheritdoc/>
         public void RaiseRollback()
         {
             ThrowIfDisposed();
             Rollback(this, EventArgs.Empty);
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
@@ -158,28 +127,16 @@ namespace DotNetWorkQueue.Messages
             _items.Clear();
         }
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-        /// </value>
+        /// <inheritdoc/>
         public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
 
-        /// <summary>
-        /// Gets or sets the message identifier.
-        /// </summary>
-        /// <value>
-        /// The message identifier.
-        /// </value>
+        /// <inheritdoc/>
         public IMessageId MessageId { get; private set; }
 
-        /// <summary>
-        /// Worker notification data, such as stop, cancel or heartbeat failures
-        /// </summary>
-        /// <value>
-        /// The worker notification.
-        /// </value>
+        /// <inheritdoc/>
+        public ICorrelationId CorrelationId { get; private set; }
+
+        /// <inheritdoc/>
         public IWorkerNotification WorkerNotification { get; }
 
         /// <summary>

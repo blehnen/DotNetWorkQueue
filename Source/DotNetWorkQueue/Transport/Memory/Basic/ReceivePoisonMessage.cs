@@ -16,9 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
+using System;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (context.MessageId == null || !context.MessageId.HasValue) return;
 
             _dataStorage.MoveToErrorQueue(exception, (Guid)context.MessageId.Id.Value, context);
-            context.SetMessageAndHeaders(null, context.Headers);
+            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
         }
     }
 }

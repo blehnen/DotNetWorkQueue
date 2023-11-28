@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Exceptions
 {
@@ -31,44 +32,51 @@ namespace DotNetWorkQueue.Exceptions
         /// Initializes a new instance of the <see cref="MessageException"/> class.
         /// </summary>
         public MessageException() { }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageException"/> class.
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="messageId">The message identifier.</param>
         /// <param name="correlationId">The correlation identifier.</param>
-        public MessageException(string message, IMessageId messageId, ICorrelationId correlationId)
+        /// <param name="headers">The message headers.</param>
+        public MessageException(string message, IMessageId messageId, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers)
             : base(message)
         {
             MessageId = messageId;
             CorrelationId = correlationId;
+            Headers = headers;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageException"/> class.
         /// </summary>
-        /// <param name="messageId">The message identifier.</param>
-        /// <param name="correlationId">The correlation identifier.</param>
+        /// <param name="messageId">The message id</param>
+        /// <param name="correlationId">the correlation id</param>
+        /// <param name="headers">the message headers</param>
         /// <param name="format">The format.</param>
         /// <param name="args">The arguments.</param>
-        public MessageException(IMessageId messageId, ICorrelationId correlationId, string format, params object[] args)
+        public MessageException(IMessageId messageId, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers, string format, params object[] args)
             : base(string.Format(format, args))
         {
             MessageId = messageId;
             CorrelationId = correlationId;
+            Headers = headers;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageException"/> class.
         /// </summary>
         /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
-        /// <param name="messageId">The message identifier.</param>
-        /// <param name="correlationId">The correlation identifier.</param>
-        public MessageException(string message, Exception inner, IMessageId messageId, ICorrelationId correlationId)
+        /// <param name="inner">The inner exception.</param>
+        /// <param name="messageId">The message id</param>
+        /// <param name="correlationId">the correlation id</param>
+        /// <param name="headers">the message headers</param>
+        public MessageException(string message, Exception inner, IMessageId messageId, ICorrelationId correlationId, IReadOnlyDictionary<string, object> headers)
             : base(message, inner)
         {
             MessageId = messageId;
             CorrelationId = correlationId;
+            Headers = headers;
         }
 
         /// <summary>
@@ -85,5 +93,10 @@ namespace DotNetWorkQueue.Exceptions
         /// The correlation identifier.
         /// </value>
         public ICorrelationId CorrelationId { get; }
+
+        /// <summary>
+        /// The message headers
+        /// </summary>
+        public IReadOnlyDictionary<string, object> Headers { get; }
     }
 }

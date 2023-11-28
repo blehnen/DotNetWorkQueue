@@ -16,9 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
+using System;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Queue
             {
                 throw new CommitException(
                     "An error has occurred committing a processed message",
-                    commitException);
+                    commitException, context.MessageId, context.CorrelationId, context.Headers);
             }
         }
     }

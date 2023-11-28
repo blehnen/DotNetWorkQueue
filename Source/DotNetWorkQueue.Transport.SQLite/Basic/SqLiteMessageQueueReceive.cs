@@ -16,17 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic.Message;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -106,7 +103,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 if (exception.MessageId != null && exception.MessageId.HasValue)
                 {
-                    context.SetMessageAndHeaders(exception.MessageId, context.Headers);
+                    context.SetMessageAndHeaders(exception.MessageId, context.CorrelationId, context.Headers);
                 }
                 throw;
             }

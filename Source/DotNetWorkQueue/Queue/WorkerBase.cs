@@ -16,10 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Validation;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -37,16 +37,6 @@ namespace DotNetWorkQueue.Queue
         private int _disposeCount;
 
         /// <summary>
-        /// Event that will be raised each time message delivery fails.
-        /// </summary>
-        public event EventHandler<WorkerErrorEventArgs> UserException;
-
-        /// <summary>
-        /// Event that will be raised if an exception occurs outside of user code.
-        /// </summary>
-        public event EventHandler<WorkerErrorEventArgs> SystemException;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="WorkerBase"/> class.
         /// </summary>
         /// <param name="workerTerminate">The worker terminate.</param>
@@ -54,62 +44,6 @@ namespace DotNetWorkQueue.Queue
         {
             Guard.NotNull(() => workerTerminate, workerTerminate);
             _workerTerminate = workerTerminate;
-        }
-        /// <summary>
-        /// Raises the system exception.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
-        protected void RaiseSystemException(object sender, WorkerErrorEventArgs e)
-        {
-            SystemException?.Invoke(sender, e);
-        }
-
-        /// <summary>
-        /// Raises the user exception.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
-        protected void RaiseUserException(object sender, WorkerErrorEventArgs e)
-        {
-            UserException?.Invoke(sender, e);
-        }
-
-        /// <summary>
-        /// Raises the system exception.
-        /// </summary>
-        /// <param name="error">The error.</param>
-        protected void RaiseSystemException(Exception error)
-        {
-            RaiseSystemException(this, new WorkerErrorEventArgs(this, error));
-        }
-        /// <summary>
-        /// Raises the user exception.
-        /// </summary>
-        /// <param name="error">The error.</param>
-        protected void RaiseUserException(Exception error)
-        {
-            RaiseUserException(this, new WorkerErrorEventArgs(this, error));
-        }
-
-        /// <summary>
-        /// Raises the system message exception.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="MessageErrorEventArgs"/> instance containing the event data.</param>
-        protected void RaiseSystemMessageException(object sender, MessageErrorEventArgs e)
-        {
-            RaiseSystemException(this, new WorkerErrorEventArgs(this, e.Error));
-        }
-
-        /// <summary>
-        /// Raises the user message exception.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="MessageErrorEventArgs"/> instance containing the event data.</param>
-        protected void RaiseUserMessageException(object sender, MessageErrorEventArgs e)
-        {
-            RaiseUserException(this, new WorkerErrorEventArgs(this, e.Error));
         }
 
         /// <summary>

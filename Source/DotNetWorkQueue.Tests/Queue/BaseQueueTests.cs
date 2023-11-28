@@ -1,10 +1,9 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using AutoFixture;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace DotNetWorkQueue.Tests.Queue
@@ -96,13 +95,13 @@ namespace DotNetWorkQueue.Tests.Queue
         private BaseQueueTest CreateQueue()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return new BaseQueueTest(fixture.Create<ILogger>());
+            return new BaseQueueTest(fixture.Create<ILogger>(), fixture.Create<IConsumerQueueErrorNotification>(), fixture.Create<IConsumerQueueNotification>());
         }
     }
 
     public class BaseQueueTest : BaseQueue
     {
-        public BaseQueueTest(ILogger log) : base(log)
+        public BaseQueueTest(ILogger log, IConsumerQueueErrorNotification errors, IConsumerQueueNotification notify) : base(log, notify, errors)
         {
 
         }

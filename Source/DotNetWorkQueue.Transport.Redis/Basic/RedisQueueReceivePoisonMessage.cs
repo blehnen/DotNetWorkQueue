@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 
@@ -49,7 +48,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 _commandMoveRecord.Handle(new MoveRecordToErrorQueueCommand<string>(exception, context.MessageId.Id.Value.ToString(), context));
             }
-            context.SetMessageAndHeaders(null, context.Headers);
+            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
         }
     }
 }

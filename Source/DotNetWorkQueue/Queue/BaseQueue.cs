@@ -16,12 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Validation;
-using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -35,6 +34,9 @@ namespace DotNetWorkQueue.Queue
 
         private readonly object _shouldWorkLocker = new object();
         private readonly object _startedLocker = new object();
+        private ConsumerQueueNotifications _consumerQueueNotifications;
+        private readonly IConsumerQueueNotification _consumerQueueNotification;
+        private readonly IConsumerQueueErrorNotification _consumerQueueErrorNotification;
 
         private int _disposeCount;
 
@@ -42,11 +44,17 @@ namespace DotNetWorkQueue.Queue
         /// Initializes a new instance of the <see cref="BaseQueue" /> class.
         /// </summary>
         /// <param name="log">The log.</param>
-        protected BaseQueue(ILogger log)
+        /// <param name="consumerQueueErrorNotification">notifications for consumer queue errors</param>
+        /// <param name="consumerQueueNotification">notifications for consumer queue messages</param>
+        protected BaseQueue(ILogger log, IConsumerQueueNotification consumerQueueNotification, IConsumerQueueErrorNotification consumerQueueErrorNotification)
         {
             Guard.NotNull(() => log, log);
+            Guard.NotNull(() => consumerQueueNotification, consumerQueueNotification);
+            Guard.NotNull(() => consumerQueueErrorNotification, consumerQueueErrorNotification);
 
             Log = log;
+            _consumerQueueNotification = consumerQueueNotification;
+            _consumerQueueErrorNotification = consumerQueueErrorNotification;
         }
         /// <summary>
         /// Gets or sets the log.
@@ -55,24 +63,6 @@ namespace DotNetWorkQueue.Queue
         /// The log.
         /// </value>
         protected ILogger Log { get; }
-        /// <summary>
-        /// Logs the system exception.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
-        protected void LogSystemException(object sender, WorkerErrorEventArgs e)
-        {
-            Log.LogError($"Unhanded system exception{System.Environment.NewLine}{e.Error}");
-        }
-        /// <summary>
-        /// Logs the user exception.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="WorkerErrorEventArgs"/> instance containing the event data.</param>
-        protected void LogUserException(object sender, WorkerErrorEventArgs e)
-        {
-            Log.LogError($"User exception{System.Environment.NewLine}{e.Error}");
-        }
         /// <summary>
         /// Gets or sets a value indicating whether work can proceed.
         /// </summary>
@@ -150,6 +140,17 @@ namespace DotNetWorkQueue.Queue
                     Monitor.Exit(_startedLocker);
                 }
             }
+        }
+
+        /// <summary>
+        /// Subscribes to user notifications for consumer queue message actions
+        /// </summary>
+        /// <param name="notifications"></param>
+        protected void SetupNotifications(ConsumerQueueNotifications notifications)
+        {
+            _consumerQueueNotifications = notifications;
+            _consumerQueueErrorNotification.Sub(_consumerQueueNotifications);
+            _consumerQueueNotification.Sub(_consumerQueueNotifications);
         }
 
         #region IDispose, IIsDisposed

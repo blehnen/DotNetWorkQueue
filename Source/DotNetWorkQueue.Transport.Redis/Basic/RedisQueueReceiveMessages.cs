@@ -16,11 +16,11 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Linq;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
+using System;
+using System.Linq;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (message == null) return null;
             if (!message.Expired)
             {
-                context.SetMessageAndHeaders(message.Message.MessageId, message.Message.Headers);
+                context.SetMessageAndHeaders(message.Message.MessageId, message.Message.CorrelationId, message.Message.Headers);
             }
             return message;
         }

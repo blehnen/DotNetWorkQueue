@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
@@ -40,7 +39,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                         {
                             SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, workerCount, heartBeatTime,
                                 heartBeatMonitorTime, updateTime, null);
-                            queue.Start();
+                            queue.Start(CreateNotifications.Create(logProvider));
                             var counter = 0;
                             while (counter < timeOut)
                             {

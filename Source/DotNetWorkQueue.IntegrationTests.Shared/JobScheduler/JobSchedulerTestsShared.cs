@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
-using DotNetWorkQueue.Logging;
 #if NETFULL
 using DotNetWorkQueue.Messages;
 #endif
@@ -170,7 +169,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             {
                 if (!_queueStarted)
                 {
-                    queue.Start();
+                    queue.Start(CreateNotifications.Create(_logProvider));
                     _queueStarted = true;
                 }
             }
@@ -326,7 +325,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                     using (var queue = queueContainer.CreateMethodConsumer(queueConnection, x => x.RegisterNonScopedSingleton(scope)))
                     {
                         queue.Configuration.Worker.WorkerCount = 1;
-                        queue.Start();
+                        queue.Start(CreateNotifications.Create(_logProvider));
                         Thread.Sleep(9500);
                     }
                 }

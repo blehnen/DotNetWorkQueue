@@ -17,15 +17,13 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Message;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Basic
 {
@@ -102,7 +100,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             {
                 if (exception.MessageId != null && exception.MessageId.HasValue)
                 {
-                    context.SetMessageAndHeaders(exception.MessageId, context.Headers);
+                    context.SetMessageAndHeaders(exception.MessageId, exception.CorrelationId, exception.Headers);
                 }
                 throw;
             }

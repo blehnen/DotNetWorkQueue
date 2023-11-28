@@ -1,12 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization.Formatters.Soap;
-using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Transport.Memory.Basic;
-using DotNetWorkQueue.Transport.Shared.Basic;
+﻿using DotNetWorkQueue.Exceptions;
 using NSubstitute;
+using System;
 using Xunit;
 
 namespace DotNetWorkQueue.Tests.Exceptions
@@ -22,7 +16,7 @@ namespace DotNetWorkQueue.Tests.Exceptions
         [Fact]
         public void Create()
         {
-            var e = new MessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>());
+            var e = new MessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null);
             Assert.Equal("error", e.Message);
             Assert.NotNull(e.MessageId);
             Assert.NotNull(e.CorrelationId);
@@ -30,7 +24,7 @@ namespace DotNetWorkQueue.Tests.Exceptions
         [Fact]
         public void Create_Format()
         {
-            var e = new MessageException(Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), "error {0}", 1);
+            var e = new MessageException(Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, "error {0}", 1);
             Assert.Equal("error 1", e.Message);
             Assert.NotNull(e.MessageId);
             Assert.NotNull(e.CorrelationId);
@@ -38,7 +32,7 @@ namespace DotNetWorkQueue.Tests.Exceptions
         [Fact]
         public void Create_Inner()
         {
-            var e = new MessageException("error", new Exception(), Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>());
+            var e = new MessageException("error", new Exception(), Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null);
             Assert.Equal("error", e.Message);
             Assert.NotNull(e.InnerException);
             Assert.NotNull(e.MessageId);

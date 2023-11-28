@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.TaskScheduling
@@ -60,9 +61,9 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <remarks>
         /// Call dispose to stop the queue once started
         /// </remarks>
-        public void Start()
+        public void Start(ConsumerQueueNotifications notifications = null)
         {
-            _queue.Start<MessageExpression>(_messageMethodHandling.HandleExecution);
+            _queue.Start<MessageExpression>(_messageMethodHandling.HandleExecution, notifications);
         }
 
         /// <summary>

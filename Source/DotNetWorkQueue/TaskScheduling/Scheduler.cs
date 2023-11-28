@@ -16,12 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Validation;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.TaskScheduling
 {
@@ -83,7 +84,8 @@ namespace DotNetWorkQueue.TaskScheduling
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="functionToRun">The function to run to handle messages.</param>
-        public void Start<T>(Action<IReceivedMessage<T>, IWorkerNotification> functionToRun)
+        /// <param name="notifications">User notifications for the consumer queue processing.</param>
+        public void Start<T>(Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ConsumerQueueNotifications notifications = null)
             where T : class
         {
             ThrowIfDisposed();
@@ -106,8 +108,8 @@ namespace DotNetWorkQueue.TaskScheduling
             }
 
             _queue.Start<T>(
-                (message, notifications) =>
-                    _schedulerMessageHandler.HandleAsync(WorkGroup, message, notifications, functionToRun, _taskFactory.Value));
+                (message, notify) =>
+                    _schedulerMessageHandler.HandleAsync(WorkGroup, message, notify, functionToRun, _taskFactory.Value), notifications);
         }
 
         /// <summary>

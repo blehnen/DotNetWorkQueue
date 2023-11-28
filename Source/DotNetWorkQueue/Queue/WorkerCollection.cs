@@ -16,14 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Validation;
-using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -204,8 +203,6 @@ namespace DotNetWorkQueue.Queue
         {
             var worker = _workerFactory.Create();
             _workers.Add(worker);
-            worker.SystemException += RaiseSystemException;
-            worker.UserException += RaiseUserException;
         }
 
         /// <summary>

@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Queue;
 
 namespace DotNetWorkQueue
 {
@@ -35,16 +34,6 @@ namespace DotNetWorkQueue
         /// Occurs when message processor is not idle
         /// </summary>
         event EventHandler NotIdle;
-
-        /// <summary>
-        /// Fires when an exception occurs inside of user code
-        /// </summary>
-        event EventHandler<MessageErrorEventArgs> UserException;
-
-        /// <summary>
-        /// Fires when an exception occurs outside of user code
-        /// </summary>
-        event EventHandler<MessageErrorEventArgs> SystemException;
 
         /// <summary>
         /// How many async tasks are currently running

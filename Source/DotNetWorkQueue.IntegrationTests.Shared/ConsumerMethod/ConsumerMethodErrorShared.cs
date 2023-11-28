@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
@@ -33,7 +32,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                         {
                             SharedSetup.SetupDefaultConsumerQueueErrorPurge(queue.Configuration, actuallyPurge);
                             SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
-                            queue.Start();
+                            queue.Start(CreateNotifications.Create(logProvider));
                             Thread.Sleep(15000);
                         }
                     }
@@ -74,7 +73,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                                 heartBeatMonitorTime, updateTime, null);
                             SharedSetup.SetupDefaultErrorRetry(queue.Configuration);
                             rollbacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
-                            queue.Start();
+                            queue.Start(CreateNotifications.Create(logProvider));
 
                             var counter = 0;
                             while (counter < timeOut)

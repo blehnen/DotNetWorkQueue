@@ -16,13 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
+using System;
 using QueueDelay = DotNetWorkQueue.Queue.QueueDelay;
 
 namespace DotNetWorkQueue.Transport.Shared.Basic
@@ -117,7 +116,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
             _commandMoveRecord.Handle(
                 new MoveRecordToErrorQueueCommand<T>(exception, (T)context.MessageId.Id.Value, context));
             //we are done doing any processing - remove the messageID to block other actions
-            context.SetMessageAndHeaders(null, context.Headers);
+            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
             _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue{System.Environment.NewLine}{exception}");
             return ReceiveMessagesErrorResult.Error;
         }

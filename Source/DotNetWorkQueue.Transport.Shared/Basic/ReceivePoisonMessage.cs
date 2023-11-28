@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
             var messageId = (T)context.MessageId.Id.Value;
             _commandMoveRecord.Handle(
                 new MoveRecordToErrorQueueCommand<T>(exception, messageId, context));
-            context.SetMessageAndHeaders(null, context.Headers);
+            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
         }
     }
 }

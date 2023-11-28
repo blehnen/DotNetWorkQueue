@@ -16,14 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Linq.Expressions;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Notifications;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Linq.Expressions;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -120,8 +120,40 @@ namespace DotNetWorkQueue.Queue
                 _queueContainer = new QueueContainer<MemoryMessageQueueInit>(container => container.Register(() => _log, LifeStyles.Singleton));
                 _consumer = _queueContainer.CreateConsumerMethodQueueScheduler(new QueueConnection(QueueName, Connection),
                     _taskFactory);
-                _consumer.Start();
+                var notifications = new ConsumerQueueNotifications(OnError, OnReceiveMessageError,
+                    OnMessageMovedToErrorQueue, OnPoisonMessage, OnMessageRollBack, OnMessageCompleted);
+                _consumer.Start(notifications);
             }
+        }
+
+        private void OnMessageCompleted(MessageCompleteNotification obj)
+        {
+            _log.LogDebug($"HeartBeat processing completed {obj.MessageId}");
+        }
+
+        private void OnMessageRollBack(RollBackNotification obj)
+        {
+            _log.LogWarning($"Heart beat processing has triggered a rollback; rollbacks are not supported for heartbeats {System.Environment.NewLine}{obj.MessageId}{System.Environment.NewLine}{obj.Error}");
+        }
+
+        private void OnPoisonMessage(PoisonMessageNotification obj)
+        {
+            _log.LogWarning($"Heart beat processing has triggered a poison message {System.Environment.NewLine}{obj.MessageId}{System.Environment.NewLine}{obj.Error}");
+        }
+
+        private void OnMessageMovedToErrorQueue(ErrorNotification obj)
+        {
+            _log.LogError($"Heart beat processing has failed {System.Environment.NewLine}{obj.MessageId}{System.Environment.NewLine}{obj.Error}");
+        }
+
+        private void OnReceiveMessageError(ErrorReceiveNotification obj)
+        {
+            _log.LogWarning($"Heart beat processing has failed to dequeue a message {System.Environment.NewLine}{obj.Error}");
+        }
+
+        private void OnError(ErrorNotification obj)
+        {
+            _log.LogError($"Heart beat processing has failed {System.Environment.NewLine}{obj.Error}");
         }
     }
 }

@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
@@ -19,6 +18,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         private IConsumerQueue _queue;
         private QueueContainer<TTransportInit> _badQueueContainer;
         private Action<IContainer> _badQueueAdditions;
+        private ILogger _logger;
 
         public void RunConsumer(QueueConnection queueConnection, bool addInterceptors,
             ILogger logProvider,
@@ -30,6 +30,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             _workerCount = workerCount;
             _runTime = runTime;
             _badQueueAdditions = badQueueAdditions;
+            _logger = logProvider;
 
             _heartBeatTime = heartBeatTime;
             _heartBeatMonitorTime = heartBeatMonitorTime;
@@ -85,7 +86,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                                 MessageHandlingShared.HandleFakeMessages<TMessage>(null, runTime, processedCount,
                                     messageCount,
                                     waitForFinish);
-                            });
+                            }, CreateNotifications.Create(logProvider));
 
                             var time = runTime * 1000 / 2;
                             waitForFinish.Wait(time);
@@ -125,7 +126,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                 _queue.Start<TMessage>((message, notifications) =>
                 {
                     MessageHandlingShared.HandleFakeMessagesThreadAbort(_runTime * 1000 / 2);
-                });
+                }, CreateNotifications.Create(_logger));
             }
             catch
             {

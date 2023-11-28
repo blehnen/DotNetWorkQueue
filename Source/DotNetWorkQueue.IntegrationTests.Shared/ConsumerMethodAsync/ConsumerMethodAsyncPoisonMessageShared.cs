@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
 {
@@ -59,7 +58,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                     SharedSetup.SetupDefaultConsumerQueue(queue.Configuration, readerCount,
                                         heartBeatTime,
                                         heartBeatMonitorTime, updatetime, null);
-                                    queue.Start();
+                                    queue.Start(CreateNotifications.Create(logProvider));
                                     for (var i = 0; i < timeOut; i++)
                                     {
                                         if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) ==

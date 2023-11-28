@@ -16,15 +16,15 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Validation;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 {
@@ -62,6 +62,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             //load up the message from the DB
             long id = 0;
             var correlationId = Guid.Empty;
+            IDictionary<string, object> headers = null;
             byte[] headerPayload = null;
             byte[] messagePayload = null;
             try
@@ -85,7 +86,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 transaction.Commit();
 
                 correlationId = new Guid(cId);
-                var headers =
+                headers =
                     _serialization.InternalSerializer
                         .ConvertBytesTo<IDictionary<string, object>>(
                             headerPayload);
@@ -106,11 +107,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             }
             catch (Exception err)
             {
+                var headersLocal = headers != null ? new Dictionary<string, object>(headers) : new Dictionary<string, object>();
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
                     "An error has occurred trying to re-assemble a message de-queued from SQLite",
                     err, new MessageQueueId<long>(id),
                     new MessageCorrelationId<Guid>(correlationId),
+                    headersLocal,
                     messagePayload,
                     headerPayload);
             }

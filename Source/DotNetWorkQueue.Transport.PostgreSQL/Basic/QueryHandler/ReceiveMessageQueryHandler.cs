@@ -16,8 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
@@ -28,6 +26,8 @@ using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using NpgsqlTypes;
+using System;
+using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
 {
@@ -127,6 +127,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                     //load up the message from the DB
                     long id = 0;
                     var correlationId = Guid.Empty;
+                    IDictionary<string, object> headers = null;
                     byte[] headerPayload = null;
                     byte[] messagePayload = null;
                     try
@@ -136,7 +137,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                         headerPayload = (byte[])reader["Headers"];
                         messagePayload = (byte[])reader["body"];
 
-                        var headers =
+                        headers =
                             _serialization.InternalSerializer
                                 .ConvertBytesTo<IDictionary<string, object>>(headerPayload);
                         var messageGraph =
@@ -151,10 +152,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                     }
                     catch (Exception error)
                     {
+                        var headersLocal = headers != null ? new Dictionary<string, object>(headers) : new Dictionary<string, object>();
+
                         //at this point, the record has been de-queued, but it can't be processed.
                         throw new PoisonMessageException(
                             "An error has occurred trying to re-assemble a message de-queued from the server ", error,
-                            new MessageQueueId<long>(id), new MessageCorrelationId<Guid>(correlationId), messagePayload,
+                            new MessageQueueId<long>(id), new MessageCorrelationId<Guid>(correlationId), headersLocal, messagePayload,
                             headerPayload);
 
                     }

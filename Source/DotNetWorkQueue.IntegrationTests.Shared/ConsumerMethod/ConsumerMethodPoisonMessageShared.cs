@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
@@ -47,7 +46,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
                             var waitForFinish = new ManualResetEventSlim(false);
                             waitForFinish.Reset();
-                            queue.Start();
+                            queue.Start(CreateNotifications.Create(logProvider));
                             for (var i = 0; i < timeOut; i++)
                             {
                                 if (VerifyMetrics.GetPoisonMessageCount(metrics.GetCurrentMetrics()) == messageCount)

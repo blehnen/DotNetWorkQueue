@@ -16,9 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
@@ -26,6 +23,9 @@ using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using StackExchange.Redis;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
@@ -99,7 +99,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 
                 messageId = result[0];
                 var id = new RedisQueueId(messageId);
-                query.MessageContext.SetMessageAndHeaders(id, null);
+                query.MessageContext.SetMessageAndHeaders(id, null, null);
                 if (!poisonMessage)
                 {
                     message = result[1];
@@ -112,7 +112,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                             {
                                 //message has expired
                                 var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
-                                query.MessageContext.SetMessageAndHeaders(id, new ReadOnlyDictionary<string, object>(allHeaders));
+                                correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorrelationId.Name];
+                                query.MessageContext.SetMessageAndHeaders(id, new RedisQueueCorrelationId(correlationId.Id), new ReadOnlyDictionary<string, object>(allHeaders));
                                 _removeMessage.Remove(query.MessageContext, RemoveMessageReason.Expired);
                                 return new RedisMessage(messageId, null, true);
                             }
@@ -130,7 +131,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
                     "An error has occurred trying to re-assemble a message de-queued from Redis; a messageId was returned, but the LUA script returned a null message. The message payload has most likely been lost.", null,
-                    new RedisQueueId(messageId), new RedisQueueCorrelationId(Guid.Empty),
+                    new RedisQueueId(messageId), new RedisQueueCorrelationId(Guid.Empty), null,
                     null, null);
             }
 
@@ -142,7 +143,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                 var messageData = _serializer.Serializer.BytesToMessage<MessageBody>(message, messageGraph, allHeaders);
 
                 var newMessage = _messageFactory.Create(messageData.Body, allHeaders);
-                query.MessageContext.SetMessageAndHeaders(query.MessageContext.MessageId, new ReadOnlyDictionary<string, object>(allHeaders));
+                query.MessageContext.SetMessageAndHeaders(query.MessageContext.MessageId, new RedisQueueCorrelationId(correlationId.Id), new ReadOnlyDictionary<string, object>(allHeaders));
 
                 return new RedisMessage(
                         messageId,
@@ -153,10 +154,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             }
             catch (Exception error)
             {
+                var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
+
                 //at this point, the record has been de-queued, but it can't be processed.
                 throw new PoisonMessageException(
                     "An error has occurred trying to re-assemble a message de-queued from redis", error,
-                    new RedisQueueId(messageId), new RedisQueueCorrelationId(correlationId),
+                    new RedisQueueId(messageId), new RedisQueueCorrelationId(correlationId), new ReadOnlyDictionary<string, object>(allHeaders),
                     message, headers);
 
             }

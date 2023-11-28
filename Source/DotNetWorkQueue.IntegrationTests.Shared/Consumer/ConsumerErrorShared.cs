@@ -1,9 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Logging;
+﻿using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 {
@@ -56,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             {
                                 MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
                                     messageCount, message);
-                            });
+                            }, CreateNotifications.Create(logProvider));
 
                             waitForFinish.Wait(timeOut * 1000);
 
@@ -104,7 +102,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 
                             //start looking for work
                             queue.Start<TMessage>((message, notifications) =>
-                                throw new Exception("There should have been no data to process"));
+                                throw new Exception("There should have been no data to process"), CreateNotifications.Create(logProvider));
 
                             //wait for 30 seconds
                             waitForFinish.Wait(15000);

@@ -16,11 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
+using System;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Message
 {
@@ -56,7 +55,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
 
             var increaseDelay = context.Get(_headers.IncreaseQueueDelay).IncreaseDelay;
             _command.Handle(new RollbackMessageCommand<string>(DateTime.MinValue, context.MessageId.Id.Value.ToString(), increaseDelay));
-            context.SetMessageAndHeaders(null, context.Headers);  //this message should not have any more actions performed on it
+            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);  //this message should not have any more actions performed on it
         }
     }
 }
