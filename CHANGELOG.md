@@ -1,3 +1,6 @@
+###0.7.2 2023-11-28
+* Add notification of queue events to ConsumerQueues
+
 ###0.7.1 2023-11-21
 * Add property to obtain creation script from IQueueCreation. This is supported by SQL Server, SQLite and PSQL.
 
