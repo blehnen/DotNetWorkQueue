@@ -123,9 +123,9 @@ namespace DotNetWorkQueue.Queue
                 {
                     _consumerQueueErrorNotification.InvokeError(new ErrorNotification(exception.MessageId, exception.CorrelationId, exception.Headers, exception));
                 }
-                catch (MessageException exception)
-                {
-                    _consumerQueueErrorNotification.InvokeError(new ErrorNotification(exception.MessageId, exception.CorrelationId, exception.Headers, exception));
+                catch (MessageException)
+                { //nothing else to do, but we want to avoid the general catch below
+
                 }
                 catch (Exception)
                 {
@@ -155,13 +155,15 @@ namespace DotNetWorkQueue.Queue
                 catch (OperationCanceledException ex)
                 {
                     _rollbackMessage.Rollback(context);
-                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
+                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId,
+                        context.CorrelationId, context.Headers, ex));
                 }
                 // ReSharper disable once UncatchableException
                 catch (ThreadAbortException ex)
                 {
                     _rollbackMessage.Rollback(context);
-                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
+                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId,
+                        context.CorrelationId, context.Headers, ex));
                 }
                 catch (PoisonMessageException exception)
                 {
@@ -172,9 +174,16 @@ namespace DotNetWorkQueue.Queue
                 catch (ReceiveMessageException e)
                 {
                     //an exception occurred trying to get the message from the transport
-                    _log.LogError($"An error has occurred while receiving a message from the transport{System.Environment.NewLine}{e}");
+                    _log.LogError(
+                        $"An error has occurred while receiving a message from the transport{System.Environment.NewLine}{e}");
                     _consumerQueueErrorNotification.InvokeError(new ErrorReceiveNotification(e));
                     _seriousExceptionProcessBackOffHelper.Value.Wait();
+                }
+                catch (MessageException ex)
+                {
+                    _rollbackMessage.Rollback(context);
+                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
+                    throw;
                 }
                 catch (Exception ex)
                 {

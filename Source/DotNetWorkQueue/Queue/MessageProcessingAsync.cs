@@ -127,9 +127,9 @@ namespace DotNetWorkQueue.Queue
                 {
                     _consumerQueueErrorNotification.InvokeError(new ErrorNotification(exception.MessageId, exception.CorrelationId, exception.Headers, exception));
                 }
-                catch (MessageException exception)
-                {
-                    _consumerQueueErrorNotification.InvokeError(new ErrorNotification(exception.MessageId, exception.CorrelationId, exception.Headers, exception));
+                catch (MessageException)
+                { //nothing else to do, but we want to avoid the general catch below
+
                 }
                 catch
                 {
@@ -183,6 +183,12 @@ namespace DotNetWorkQueue.Queue
                     _log.LogError($"An error has occurred while receiving a message from the transport{System.Environment.NewLine}{e}");
                     _consumerQueueErrorNotification.InvokeError(new ErrorReceiveNotification(e));
                     _seriousExceptionProcessBackOffHelper.Value.Wait();
+                }
+                catch (MessageException ex)
+                {
+                    _rollbackMessage.Rollback(context);
+                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
+                    throw;
                 }
                 catch (Exception ex)
                 {

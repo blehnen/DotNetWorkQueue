@@ -1,3 +1,6 @@
+###0.7.3 2023-11-28
+* Error notification will not happen if a rollback notification is being performed
+
 ###0.7.2 2023-11-28
 * Add notification of queue events to ConsumerQueues
 
