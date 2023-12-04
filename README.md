@@ -169,7 +169,7 @@ To consume / process scheduled jobs, a [Linq Consumer ](https://github.com/blehn
 https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLite/SQLiteSchedulerConsumer/Program.cs
 
 ---------------------
-[**Samples**](https://github.com/blehnen.Samples/DotNetWorkQueue/tree/master/Source/Samples)
+[**Samples**](https://github.com/blehnen/DotNetWorkQueue.Samples)
 
 [**More examples**](https://github.com/blehnen/DotNetWorkQueue.Examples/tree/master/Source/Examples)
 ------
