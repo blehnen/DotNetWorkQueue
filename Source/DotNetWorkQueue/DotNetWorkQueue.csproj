@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net48;netstandard2.0;net472;net461</TargetFrameworks>
+    <TargetFrameworks>net8.0;net6.0;net48;netstandard2.0;net472;net461</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.7.3</Version>
-    <Description>Work queue for dot net 4.6.1, 4.7.2, 4.8, dot net standard 2.0, and dot net 6
+    <Version>0.7.4</Version>
+    <Description>Work queue for dot net 4.6.1, 4.7.2, 4.8, dot net standard 2.0, 6.0 and 8.0
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
     <Copyright>Copyright © Brian Lehnen 2015-2023</Copyright>
@@ -25,6 +25,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
 	</PropertyGroup>
 
@@ -54,6 +58,13 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 		<WarningsAsErrors />
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+		<DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+		<DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+	</PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
     <DefineConstants>LIBLOG_PUBLIC;NETFULL</DefineConstants>
     <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
@@ -77,16 +88,25 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="OpenTelemetry" Version="1.6.0" />
-    <PackageReference Include="Polly" Version="8.2.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.7.0" />
+    <PackageReference Include="Polly" Version="8.2.1" />
     <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
-    <PackageReference Include="SimpleInjector" Version="5.4.2" />
+    <PackageReference Include="SimpleInjector" Version="5.4.4" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
   </ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+		<Reference Include="Schyntax">
+			<HintPath>..\..\Lib\Schyntax\net6.0\Schyntax.dll</HintPath>
+		</Reference>
+		<Reference Include="Aq.ExpressionJsonSerializer">
+			<HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net6.0\Aq.ExpressionJsonSerializer.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
 		<Reference Include="Schyntax">
 			<HintPath>..\..\Lib\Schyntax\net6.0\Schyntax.dll</HintPath>
 		</Reference>

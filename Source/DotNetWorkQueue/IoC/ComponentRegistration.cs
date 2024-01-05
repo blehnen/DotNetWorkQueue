@@ -74,6 +74,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<ITaskSchedulerFactory, TaskSchedulerFactory>(LifeStyles.Singleton);
             container.Register<ITaskFactoryFactory, TaskFactoryFactory>(LifeStyles.Singleton);
             container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
+            container.Register<IJobSchedulerMetaData, JobSchedulerMetaData>(LifeStyles.Singleton);
         }
 
         /// <summary>
@@ -174,7 +175,6 @@ namespace DotNetWorkQueue.IoC
                 container.Register<QueueConsumerConfiguration>(LifeStyles.Singleton);
 
                 container.Register<IHandleMessage, HandleMessage>(LifeStyles.Singleton);
-                container.Register<IReceivedMessageFactory, ReceivedMessageFactory>(LifeStyles.Singleton);
 
                 container.Register<IRetryDelayFactory, RetryDelayFactory>(LifeStyles.Singleton);
                 container.Register<IRetryDelay, RetryDelay>(LifeStyles.Transient);
@@ -311,6 +311,7 @@ namespace DotNetWorkQueue.IoC
             //because of it's usage in 'standard' modules, this must always be added.
             //otherwise, the IoC container can't create the producer queue.
             container.Register<IMessageContextDataFactory, MessageContextDataFactory>(LifeStyles.Singleton);
+            container.Register<IReceivedMessageFactory, ReceivedMessageFactory>(LifeStyles.Singleton);
 
             container.Register<IHeaders, Headers>(LifeStyles.Singleton);
             container.Register<IStandardHeaders, StandardHeaders>(LifeStyles.Singleton);

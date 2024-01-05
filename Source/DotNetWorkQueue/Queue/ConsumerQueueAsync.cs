@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.Queue
             _primaryWorker.Value.Start();
             _configuration.SetReadOnly();
             base.SetupNotifications(notifications);
-            Log.LogInformation("Queue started");
+            Log.LogDebug("Queue started");
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

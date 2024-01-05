@@ -16,9 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Validation;
 using System;
 using System.Runtime.Serialization;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Exceptions
 {
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Exceptions
         {
             CompileCode = compileCode;
         }
-
+#if NETFULL
         /// <summary>
         /// When overridden in a derived class, sets the <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with information about the exception.
         /// </summary>
@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Exceptions
             info.AddValue("CompileCode", CompileCode);
             base.GetObjectData(info, context);
         }
-
+#endif
         /// <summary>
         /// Gets the code that was being compiled.
         /// </summary>

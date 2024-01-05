@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Queue
             _primaryWorker.Value.Start();
             _configuration.SetReadOnly();
             base.SetupNotifications(notifications);
-            Log.LogInformation("Queue started");
+            Log.LogDebug("Queue started");
 
         }
 

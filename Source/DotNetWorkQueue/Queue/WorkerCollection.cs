@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Queue
                 }
             }
 
-            _log.LogInformation($"Initializing with {_workerConfiguration.WorkerCount} workers");
+            _log.LogDebug($"Initializing with {_workerConfiguration.WorkerCount} workers");
             CreateWorkers();
 
             lock (_workerLock)
