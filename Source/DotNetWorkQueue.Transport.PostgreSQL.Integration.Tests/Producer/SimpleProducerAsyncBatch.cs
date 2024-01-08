@@ -1,9 +1,7 @@
-﻿using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using DotNetWorkQueue.Transport.PostgreSQL.Schema;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
@@ -52,7 +50,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                 messageCount, interceptors, enableChaos, true, x => Helpers.SetOptions(x,
                     enableDelayedProcessing, enableHeartBeat, enableHoldTransactionUntilMessageCommitted, enableMessageExpiration,
                     enablePriority, enableStatus, enableStatusTable, additionalColumn),
-                Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
+                Helpers.GenerateData, Helpers.Verify);
         }
     }
 }

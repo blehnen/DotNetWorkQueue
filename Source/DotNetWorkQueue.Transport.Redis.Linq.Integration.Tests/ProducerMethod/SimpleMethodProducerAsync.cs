@@ -1,11 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
-using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
@@ -37,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
 
             await consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, linqMethodTypes, interceptors, false, batchSending, x => { },
-                Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
+                Helpers.GenerateData, Helpers.Verify);
         }
     }
 }

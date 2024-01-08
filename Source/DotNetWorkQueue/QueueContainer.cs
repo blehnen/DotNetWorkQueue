@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Validation;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DotNetWorkQueue
 {
@@ -79,6 +79,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IConsumerQueue CreateConsumer(QueueConnection queueConnection)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
@@ -92,6 +94,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IConsumerMethodQueue CreateMethodConsumer(QueueConnection queueConnection, Action<IContainer> registerServiceInternal)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, registerServiceInternal, _setOptions);
@@ -106,6 +110,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IConsumerQueueAsync CreateConsumerAsync(QueueConnection queueConnection)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueueAsync, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
@@ -122,6 +128,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             var schedulerCreator = new SchedulerContainer(_registerService);
@@ -138,6 +146,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             var schedulerCreator = new SchedulerContainer(_registerService);
@@ -155,6 +165,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             return CreateConsumerQueueSchedulerInternal(queueConnection, factory, null, false);
@@ -167,6 +179,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, null, false);
@@ -180,6 +194,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, workGroup, false);
@@ -193,6 +209,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             return CreateConsumerQueueSchedulerInternal(queueConnection, factory, workGroup, false);
@@ -321,6 +339,8 @@ namespace DotNetWorkQueue
             QueueConnection queueConnection)
             where TMessage : class
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
@@ -336,6 +356,8 @@ namespace DotNetWorkQueue
         public IProducerMethodQueue CreateMethodProducer(
             QueueConnection queueConnection)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
@@ -351,6 +373,8 @@ namespace DotNetWorkQueue
         public IProducerMethodJobQueue CreateMethodJobProducer(
             QueueConnection queueConnection)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
@@ -368,6 +392,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IJobSchedulerLastKnownEvent CreateJobSchedulerLastKnownEvent(QueueConnection queueConnection)
         {
+            ThrowIfDisposed();
+
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IJobSchedulerLastKnownEvent>();
@@ -381,6 +407,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IGetTimeFactory CreateTimeSync(string connection)
         {
+            ThrowIfDisposed();
+
             var container = _createContainerInternal().Create(QueueContexts.Time, _registerService, new QueueConnection("TIME", connection), _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             var factory = container.GetInstance<IGetTimeFactory>();
             return factory;
@@ -395,6 +423,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IAdminApi CreateAdminApi()
         {
+            ThrowIfDisposed();
+
             var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, _transportInit, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IAdminApi>();
@@ -407,6 +437,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public IAdminFunctions CreateAdminFunctions(QueueConnection queueConnection)
         {
+            ThrowIfDisposed();
+
             Guard.NotNull(() => queueConnection, queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, queueConnection, _transportInit, ConnectionTypes.Status, x => { }, _setOptions);

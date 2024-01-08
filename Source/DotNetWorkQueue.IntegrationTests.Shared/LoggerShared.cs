@@ -1,10 +1,8 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
-using DotNetWorkQueue.Logging;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using Xunit;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
@@ -45,7 +43,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
             else
             {
-                Assert.False(true, $"No error file was found; errors should have occurred for queue {queueName}");
+                Assert.Fail($"No error file was found; errors should have occurred for queue {queueName}");
             }
         }
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]

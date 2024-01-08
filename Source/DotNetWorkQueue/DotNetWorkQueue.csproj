@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;net48;netstandard2.0;net472;net461</TargetFrameworks>
+    <TargetFrameworks>net8.0;net6.0;net48;netstandard2.0;net472;net462</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
     <Version>0.7.4</Version>
-    <Description>Work queue for dot net 4.6.1, 4.7.2, 4.8, dot net standard 2.0, 6.0 and 8.0
+    <Description>Work queue for dot net 4.6.2, 4.7.2, 4.8, dot net standard 2.0, 6.0 and 8.0
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
     <Copyright>Copyright © Brian Lehnen 2015-2023</Copyright>
@@ -32,7 +32,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
 	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net461|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net462|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;NETFULL</DefineConstants>
   </PropertyGroup>
 
@@ -79,7 +79,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <WarningsAsErrors />
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net461|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net462|AnyCPU'">
     <DefineConstants>LIBLOG_PUBLIC;NETFULL</DefineConstants>
     <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -135,7 +135,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     </Reference>
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Schyntax">
       <HintPath>..\..\Lib\Schyntax\net461\Schyntax.dll</HintPath>

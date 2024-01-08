@@ -16,10 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Validation;
+using System;
 
 namespace DotNetWorkQueue
 {
@@ -76,6 +76,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public ATaskScheduler CreateTaskScheduler()
         {
+            ThrowIfDisposed();
+
             var container = _createContainerInternal().Create(QueueContexts.TaskScheduler, _registerService, _transportInit, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<ATaskScheduler>();
@@ -87,6 +89,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public ITaskFactory CreateTaskFactory()
         {
+            ThrowIfDisposed();
+
             var container = _createContainerInternal().Create(QueueContexts.TaskFactory, _registerService, _transportInit, x => { }, _setOptions);
             Containers.Add(container);
             return CreateTaskFactoryInternal(container.GetInstance<ATaskScheduler>(), true);
@@ -99,6 +103,8 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public ITaskFactory CreateTaskFactory(ATaskScheduler scheduler)
         {
+            ThrowIfDisposed();
+
             return CreateTaskFactoryInternal(scheduler, false);
         }
 

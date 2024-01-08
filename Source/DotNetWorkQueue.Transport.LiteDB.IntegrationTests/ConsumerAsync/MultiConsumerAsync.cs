@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.IntegrationTests.Shared;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
@@ -23,7 +22,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.MultiConsumerAsync();
                 await consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(GetConnections(connectionInfo.ConnectionString),
                 messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x, false, false, true),
-                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount).ConfigureAwait(false);
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
         }
         private List<QueueConnection> GetConnections(string connectionString)

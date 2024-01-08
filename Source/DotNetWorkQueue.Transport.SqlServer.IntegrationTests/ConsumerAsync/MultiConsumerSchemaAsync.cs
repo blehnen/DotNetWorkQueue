@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.Transport.SqlServer.Basic;
-using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
-using DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync;
+﻿using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
@@ -16,7 +8,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
     {
         [Theory]
         [InlineData(2000, 0, 400, 10, 5, 5, false, false)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
+        public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
@@ -40,7 +32,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                             useTransactions,
                             enableChaos, ConnectionInfo.SchemaDefault, 3));
 
-            Task.WaitAll(task1.Result, task2.Result, task3.Result);
+            await Task.WhenAll(task1, task2, task3);
         }
 
         private async Task RunConsumer(string queueName, int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,

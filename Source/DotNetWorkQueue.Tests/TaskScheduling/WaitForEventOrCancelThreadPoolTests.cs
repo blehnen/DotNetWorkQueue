@@ -1,11 +1,11 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
-using AutoFixture;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.TaskScheduling;
 using NSubstitute;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Xunit;
 
 // ReSharper disable AccessToDisposedClosure
@@ -165,7 +165,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         }
 
         [Fact]
-        public void Default_WorkGroup_Threads()
+        public async Task Default_WorkGroup_Threads()
         {
             using (var test = Create())
             {
@@ -184,8 +184,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
                 task4.Start();
                 task5.Start();
 
-
-                Task.WaitAll(task1, task2, task3, task4, task5);
+                await Task.WhenAll(task1, task2, task3, task4, task5);
 
                 test.Cancel();
             }

@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
                 await producer.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
                     messageCount, interceptors, enableChaos, false, x => x.Options.EnableStatusTable = enableStatusTable,
-                    Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

@@ -1,6 +1,6 @@
-﻿using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 
             await consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, false, x => { },
-                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount).ConfigureAwait(false);
+                Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
         }
 
         private void VerifyQueueCount(QueueConnection queueConnection, IBaseTransportOptions arg3, ICreationScope arg4, int arg5, bool arg6, bool arg7)

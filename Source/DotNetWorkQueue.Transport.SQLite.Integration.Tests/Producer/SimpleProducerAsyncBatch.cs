@@ -1,9 +1,7 @@
-﻿using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using DotNetWorkQueue.Transport.SQLite.Schema;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
@@ -72,7 +70,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                     messageCount, interceptors, enableChaos, true, x => Helpers.SetOptions(x,
                         enableDelayedProcessing, enableHeartBeat, enableMessageExpiration,
                         enablePriority, enableStatus, enableStatusTable, additionalColumn),
-                    Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

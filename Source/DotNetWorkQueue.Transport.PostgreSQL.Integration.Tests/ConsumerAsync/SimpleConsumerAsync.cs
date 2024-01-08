@@ -1,10 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
@@ -30,7 +26,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                 messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions, false,
                     false, !useTransactions, true, false),
-                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount).ConfigureAwait(false);
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
         }
     }
 }

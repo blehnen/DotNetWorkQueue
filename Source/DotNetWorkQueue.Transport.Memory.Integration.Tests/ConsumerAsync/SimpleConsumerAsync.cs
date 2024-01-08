@@ -1,11 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
-using DotNetWorkQueue.Queue;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Memory.Basic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
@@ -27,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                 await consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, false, x => { },
-                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount).ConfigureAwait(false);
+                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
             }
         }
 

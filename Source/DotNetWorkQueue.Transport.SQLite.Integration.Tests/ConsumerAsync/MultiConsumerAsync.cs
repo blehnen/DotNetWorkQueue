@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SQLite.Basic;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
                         Helpers.SetOptions(x,
                             false, true, false,
                             false, true, true, false),
-                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount).ConfigureAwait(false);
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
         }
 

@@ -1,11 +1,9 @@
-﻿using System.Threading.Tasks;
-using AutoFixture;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using NSubstitute;
-
-
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
@@ -29,7 +27,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         }
 
         [Fact]
-        public void Threaded_Query()
+        public async Task Threaded_Query()
         {
             var test = Create();
 
@@ -45,7 +43,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             task4.Start();
             task5.Start();
 
-            Task.WaitAll(task1, task2, task3, task4, task5);
+            await Task.WhenAll(task1, task2, task3, task4, task5);
         }
 
         private PostgreSqlCommandStringCache Create()

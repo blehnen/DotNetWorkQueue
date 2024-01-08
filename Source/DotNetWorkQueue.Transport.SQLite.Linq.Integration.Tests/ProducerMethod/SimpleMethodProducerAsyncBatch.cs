@@ -1,10 +1,7 @@
-﻿using System;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
-using DotNetWorkQueue.Transport.SQLite.Schema;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
@@ -55,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                         Helpers.SetOptions(x,
                             enableDelayedProcessing, enableHeartBeat, enableMessageExpiration, enablePriority, enableStatus,
                             enableStatusTable, additionalColumn, false),
-                    Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

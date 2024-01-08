@@ -1,10 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.IntegrationTests;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
@@ -51,7 +49,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
                         connectionInfo.ConnectionString),
                     messageCount, linqMethodTypes, interceptors, enableChaos, false,
                     x => Helpers.SetOptions(x, enableDelayedProcessing, enableMessageExpiration, enableStatusTable),
-                    Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

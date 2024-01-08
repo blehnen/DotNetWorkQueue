@@ -1,11 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
-using DotNetWorkQueue.Transport.SqlServer.Schema;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMethod
@@ -61,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
                     enableDelayedProcessing, !enableHoldTransactionUntilMessageCommitted, enableHoldTransactionUntilMessageCommitted,
                     enableMessageExpiration,
                     enablePriority, !enableHoldTransactionUntilMessageCommitted, enableStatusTable, additionalColumn),
-                Helpers.GenerateData, Helpers.Verify).ConfigureAwait(false);
+                Helpers.GenerateData, Helpers.Verify);
         }
     }
 }

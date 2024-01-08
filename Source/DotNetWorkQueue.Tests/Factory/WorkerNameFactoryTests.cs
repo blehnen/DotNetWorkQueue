@@ -1,10 +1,8 @@
-﻿using System.Collections.Concurrent;
-using System.Threading;
-using AutoFixture;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
-
-
+using System.Collections.Concurrent;
+using System.Threading;
 using Xunit;
 
 namespace DotNetWorkQueue.Tests.Factory
@@ -38,7 +36,7 @@ namespace DotNetWorkQueue.Tests.Factory
                 }).Start();
             }
             resetEvent.WaitOne();
-            Assert.Equal(names.Count, numThreads);
+            Assert.Equal(numThreads, names.Count);
         }
         private IWorkerNameFactory Create()
         {

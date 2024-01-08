@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Memory.Basic;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
@@ -22,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.MultiConsumerAsync();
                 await consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(GetConnections(connectionInfo.ConnectionString),
                     messageCount, runtime, timeOut, workerCount, readerCount, queueSize, false, x => { },
-                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount).ConfigureAwait(false);
+                    Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
             }
         }
 

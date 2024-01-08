@@ -53,7 +53,7 @@ namespace DotNetWorkQueue
         /// <exception cref="System.ObjectDisposedException"></exception>
         protected void ThrowIfDisposed([CallerMemberName] string name = "")
         {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
+            if (IsDisposed)
             {
                 throw new ObjectDisposedException(name);
             }

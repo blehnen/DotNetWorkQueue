@@ -1,11 +1,7 @@
-﻿using System;
+﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Transport.SqlServer.Basic;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.IntegrationTests.Shared;
-using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
-using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
@@ -34,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
                     false, !useTransactions, useTransactions,
                     false,
                     false, !useTransactions, true, false),
-                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount).ConfigureAwait(false);
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
         }
     }
 }
