@@ -51,14 +51,6 @@ namespace DotNetWorkQueue
         /// <param name="concurrencyLevel">The concurrency level.</param>
         /// <returns></returns>
         public abstract IWorkGroup AddWorkGroup(string name, int concurrencyLevel);
-        /// <summary>
-        /// Adds a new work group.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="concurrencyLevel">The concurrency level.</param>
-        /// <param name="maxQueueSize">Maximum size of the queue.</param>
-        /// <returns></returns>
-        public abstract IWorkGroup AddWorkGroup(string name, int concurrencyLevel, int maxQueueSize);
 
         /// <summary>
         /// Adds a new task to the scheduler.

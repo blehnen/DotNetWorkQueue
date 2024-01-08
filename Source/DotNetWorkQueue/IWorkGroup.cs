@@ -37,13 +37,6 @@ namespace DotNetWorkQueue
         /// The concurrency level.
         /// </value>
         int ConcurrencyLevel { get; }
-        /// <summary>
-        /// Gets the maximum size of the in memory queue for this work item
-        /// </summary>
-        /// <value>
-        /// The maximum size of the queue.
-        /// </value>
-        int MaxQueueSize { get; }
 
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.

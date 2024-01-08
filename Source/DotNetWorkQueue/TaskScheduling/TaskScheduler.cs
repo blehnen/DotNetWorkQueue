@@ -16,6 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -24,10 +28,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.Queue;
-using DotNetWorkQueue.Validation;
-using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.TaskScheduling
 {
@@ -305,25 +305,12 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="name">The name.</param>
         /// <param name="concurrencyLevel">The concurrency level.</param>
         /// <returns></returns>
+        /// <exception cref="DotNetWorkQueueException">Start must be called on the scheduler before adding work groups</exception>
         public override IWorkGroup AddWorkGroup(string name, int concurrencyLevel)
         {
             ThrowIfDisposed();
-            return AddWorkGroup(name, concurrencyLevel, 0);
-        }
 
-        /// <summary>
-        /// Adds a new work group.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="concurrencyLevel">The concurrency level.</param>
-        /// <param name="maxQueueSize">Maximum size of the queue. Work groups have a queue that is separate per queue, and is not shared with non work group items</param>
-        /// <returns></returns>
-        /// <exception cref="DotNetWorkQueueException">Start must be called on the scheduler before adding work groups</exception>
-        public override IWorkGroup AddWorkGroup(string name, int concurrencyLevel, int maxQueueSize)
-        {
-            ThrowIfDisposed();
-
-            var group = new WorkGroup(name, concurrencyLevel, maxQueueSize);
+            var group = new WorkGroup(name, concurrencyLevel);
             if (_groups.ContainsKey(group)) return _groups[group].GroupInfo;
 
             var groupWithItem = new WorkGroupWithItem(group, _metrics.Counter(

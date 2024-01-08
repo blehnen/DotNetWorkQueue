@@ -1,13 +1,13 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoFixture;
+﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using AutoFixture.Xunit2;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.TaskScheduling;
 using NSubstitute;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 // ReSharper disable AccessToDisposedClosure
@@ -213,7 +213,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
                 Assert.Throws<ObjectDisposedException>(
                     delegate
                     {
-                        test.AddWorkGroup(value, 1, 0);
+                        test.AddWorkGroup(value, 1);
                     });
             }
         }
@@ -224,7 +224,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             using (var test = Create())
             {
                 test.Start();
-                test.AddWorkGroup(value, 1, 0);
+                test.AddWorkGroup(value, 1);
             }
         }
 

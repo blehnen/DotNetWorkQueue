@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Validation;
-using Polly.Bulkhead;
 
 namespace DotNetWorkQueue.TaskScheduling
 {
@@ -37,7 +36,7 @@ namespace DotNetWorkQueue.TaskScheduling
             Guard.NotNull(() => metricCounter, metricCounter);
 
             GroupInfo = sourceGroup;
-            MaxWorkItems = GroupInfo.ConcurrencyLevel + GroupInfo.MaxQueueSize;
+            MaxWorkItems = GroupInfo.ConcurrencyLevel;
             MetricCounter = metricCounter;
         }
         /// <summary>

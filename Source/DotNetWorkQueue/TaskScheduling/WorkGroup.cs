@@ -31,18 +31,14 @@ namespace DotNetWorkQueue.TaskScheduling
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="concurrencyLevel">The concurrency level.</param>
-        /// <param name="maxQueueSize">Maximum size of the queue.</param>
-        public WorkGroup(string name, int concurrencyLevel, int maxQueueSize)
+        public WorkGroup(string name, int concurrencyLevel)
         {
             Guard.NotNullOrEmpty(() => name, name);
             Guard.IsValid(() => concurrencyLevel, concurrencyLevel, i => i > 0,
                "concurrencyLevel must be greater than 0");
-            Guard.IsValid(() => maxQueueSize, maxQueueSize, i => i >= 0,
-               "maxQueueSize must be greater than or equal to 0");
 
             Name = name;
             ConcurrencyLevel = concurrencyLevel;
-            MaxQueueSize = maxQueueSize;
         }
 
         /// <summary>
@@ -59,13 +55,6 @@ namespace DotNetWorkQueue.TaskScheduling
         /// The concurrency level.
         /// </value>
         public int ConcurrencyLevel { get; }
-        /// <summary>
-        /// Gets the maximum size of the in memory queue for this work item
-        /// </summary>
-        /// <value>
-        /// The maximum size of the queue.
-        /// </value>
-        public int MaxQueueSize { get; }
 
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.

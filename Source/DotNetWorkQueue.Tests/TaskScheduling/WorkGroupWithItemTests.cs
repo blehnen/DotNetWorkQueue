@@ -14,7 +14,6 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             var group = fixture.Create<IWorkGroup>();
             var counter = fixture.Create<ICounter>();
             group.ConcurrencyLevel.Returns(5);
-            group.MaxQueueSize.Returns(1);
             fixture.Inject(group);
             fixture.Inject(counter);
         }

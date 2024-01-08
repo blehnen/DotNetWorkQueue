@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
@@ -12,6 +7,11 @@ using DotNetWorkQueue.Tests.Queue;
 using NSubstitute;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetWorkQueue.Tests.IoC
@@ -199,11 +199,6 @@ namespace DotNetWorkQueue.Tests.IoC
             }
 
             public override IWorkGroup AddWorkGroup(string name, int concurrencyLevel)
-            {
-                return null;
-            }
-
-            public override IWorkGroup AddWorkGroup(string name, int concurrencyLevel, int maxQueueSize)
             {
                 return null;
             }
