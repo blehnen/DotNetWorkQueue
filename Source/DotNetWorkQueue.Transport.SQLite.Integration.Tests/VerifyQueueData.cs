@@ -1,11 +1,11 @@
 ﻿#region Using
 
-using System;
-using System.Data.SQLite;
-using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
+using System;
+using System.Data.SQLite;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 #endregion
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
                     if (!string.IsNullOrEmpty(route))
                     {
                         command.CommandText += " where route = @route";
-                        command.Parameters.AddWithValue("@Route", route);
+                        command.Parameters.AddWithValue("@route", route);
                     }
                     else if (orderId > 0)
                     {
