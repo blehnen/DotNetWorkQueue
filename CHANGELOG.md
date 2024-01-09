@@ -1,7 +1,8 @@
-###0.7.4 Future
+###0.7.4 2024-01-08
 * Add test for scheduler creation with memory queue
 * Move two logging messages from info -> debug
 * Add net8.0 as target
+* Remove queue param for workgroups, as it was no longer being used
 
 ###0.7.3 2023-11-28
 * Error notification will not happen if a rollback notification is being performed
