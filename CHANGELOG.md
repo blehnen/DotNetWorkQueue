@@ -1,4 +1,4 @@
-###0.7.5 future
+###0.7.5 2024-01-09
 * Only Verify internal container setup in debug mode, as pins the memory it uses.
 
 ###0.7.4 2024-01-08
