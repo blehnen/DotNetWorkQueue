@@ -1,3 +1,6 @@
+###0.7.5 future
+* Only Verify internal container setup in debug mode, as pins the memory it uses.
+
 ###0.7.4 2024-01-08
 * Add test for scheduler creation with memory queue
 * Move two logging messages from info -> debug

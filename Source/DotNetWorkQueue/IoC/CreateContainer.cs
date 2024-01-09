@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.JobScheduler;
 using DotNetWorkQueue.Queue;
 using SimpleInjector;
+using System;
 
 namespace DotNetWorkQueue.IoC
 {
@@ -127,7 +127,11 @@ namespace DotNetWorkQueue.IoC
                 ComponentRegistration.SuppressWarningsIfNeeded(containerWrapper, type);
 
                 //verify the container configuration.
+                //only do this in debug mode due to the large amount of memory this consumes
+                //this memory is not released unless the container is disposed
+#if DEBUG
                 container.Verify(VerificationOption.VerifyAndDiagnose);
+#endif
 
                 //default polices
                 ComponentRegistration.SetupDefaultPolicies(containerWrapper, type);
