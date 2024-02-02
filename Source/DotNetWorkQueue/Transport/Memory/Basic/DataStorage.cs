@@ -63,8 +63,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         private readonly IMessageFactory _messageFactory;
         private readonly IQueueCancelWork _cancelToken;
 
-        private volatile bool _complete;
-        private volatile bool _cleared;
+        private int _completeBackValue = 0;
+        private int _clearedBackValue = 0;
         private readonly ReaderWriterLockSlim _lock;
 
         /// <summary>Initializes a new instance of the <see cref="DataStorage" /> class.</summary>
@@ -116,8 +116,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             {
                 QueueWorking.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
             }
-
-            _complete = false;
         }
 
         /// <summary>
@@ -139,17 +137,42 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 cacheKeyStrategy: new CacheKeyStrategy(), onCacheError: (context, s, arg3) => { });
         }
 
+        private bool Complete
+        {
+            get => (Interlocked.CompareExchange(ref _completeBackValue, 1, 1) == 1);
+            set
+            {
+                if (value) Interlocked.CompareExchange(ref _completeBackValue, 1, 0);
+                else Interlocked.CompareExchange(ref _completeBackValue, 0, 1);
+            }
+        }
+
+        private bool Cleared
+        {
+            get => (Interlocked.CompareExchange(ref _clearedBackValue, 1, 1) == 1);
+            set
+            {
+                if (value) Interlocked.CompareExchange(ref _clearedBackValue, 1, 0);
+                else Interlocked.CompareExchange(ref _clearedBackValue, 0, 1);
+            }
+        }
+
         /// <inheritdoc />
         public Guid SendMessage(IMessage message, IAdditionalMessageData inputData)
         {
-            if (_complete)
+            if (Complete)
                 return Guid.Empty;
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return Guid.Empty;
 
                 var jobName = _jobSchedulerMetaData.GetJobName(inputData);
@@ -187,7 +210,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
 
@@ -196,17 +220,23 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         {
             return Task.FromResult(SendMessage(messageToSend, data));
         }
+
         /// <inheritdoc />
         public void MoveToErrorQueue(Exception exception, Guid id, IMessageContext context)
         {
-            if (_complete)
+            if (Complete)
                 return;
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return;
 
                 //we don't want to store all this in memory, so just keep track of the number
@@ -220,23 +250,29 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
         /// <inheritdoc />
         public IReceivedMessageInternal GetNextMessage(List<string> routes, TimeSpan timeout)
         {
-            if (_complete)
+            if (Complete)
                 return null;
 
             if (routes != null && routes.Count > 0)
                 throw new NotSupportedException("The in-memory transport does not support routes");
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return null;
 
                 using (CancellationTokenSource linkedCts =
@@ -303,7 +339,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
         /// <summary>
@@ -315,34 +352,45 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// </returns>
         public IDictionary<string, object> GetHeaders(Guid id)
         {
-            if (_complete)
+            if (Complete)
                 return null;
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return null;
 
                 return !QueueData[_connectionInformation].TryGetValue(id, out var item) ? null : item.Headers;
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
         /// <inheritdoc />
         public bool DeleteMessage(Guid id)
         {
-            if (_complete)
+            if (Complete)
                 return false;
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return false;
 
                 //remove data - if id is still in queue, it will fall out eventually
@@ -357,42 +405,54 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
 
         /// <inheritdoc />
         public DateTimeOffset GetJobLastKnownEvent(string jobName)
         {
-            if (_complete)
+            if (Complete)
                 return DateTimeOffset.MinValue;
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return DateTimeOffset.MinValue;
 
                 return JobLastEventCache.Execute(context => default, new Context(GenerateKey(jobName)));
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
 
         /// <inheritdoc />
         public void DeleteJob(string jobName)
         {
-            if (_complete)
+            if (Complete)
                 return;
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return;
 
                 if (Jobs[_connectionInformation].TryRemove(jobName, out var id))
@@ -402,21 +462,27 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
 
         /// <inheritdoc />
         public QueueStatuses DoesJobExist(string jobName, DateTimeOffset scheduledTime)
         {
-            if (_complete)
+            if (Complete)
                 return QueueStatuses.NotQueued;
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return QueueStatuses.NotQueued;
 
                 if (Jobs[_connectionInformation].TryGetValue(jobName, out var id))
@@ -425,17 +491,20 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     {
                         return QueueStatuses.Waiting;
                     }
+
                     if (QueueWorking[_connectionInformation].TryGetValue(id, out _))
                     {
                         return QueueStatuses.Processing;
                     }
                 }
+
                 var time = GetJobLastKnownEvent(jobName);
                 return time == scheduledTime ? QueueStatuses.Processed : QueueStatuses.NotQueued;
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
 
@@ -444,21 +513,27 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         {
             get
             {
-                if (_complete)
+                if (Complete)
                     return 0;
 
+                var tookLock = false;
                 try
                 {
-                    _lock.EnterReadLock();
+                    if (!_lock.IsReadLockHeld)
+                    {
+                        _lock.EnterReadLock();
+                        tookLock = true;
+                    }
 
-                    if (_complete)
+                    if (Complete)
                         return 0;
 
                     return QueueData[_connectionInformation].Count;
                 }
                 finally
                 {
-                    _lock.ExitReadLock();
+                    if (tookLock)
+                        _lock.ExitReadLock();
                 }
             }
         }
@@ -468,21 +543,27 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         {
             get
             {
-                if (_complete)
+                if (Complete)
                     return 0;
 
+                var tookLock = false;
                 try
                 {
-                    _lock.EnterReadLock();
+                    if (!_lock.IsReadLockHeld)
+                    {
+                        _lock.EnterReadLock();
+                        tookLock = true;
+                    }
 
-                    if (_complete)
+                    if (Complete)
                         return 0;
 
                     return QueueWorking[_connectionInformation].Count;
                 }
                 finally
                 {
-                    _lock.ExitReadLock();
+                    if (tookLock)
+                        _lock.ExitReadLock();
                 }
             }
         }
@@ -490,49 +571,61 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public long GetErrorCount()
         {
-            if (_complete)
+            if (Complete)
                 return 0;
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return 0;
 
                 return Interlocked.CompareExchange(ref ErrorCounts[_connectionInformation].ProcessedCount, 0, 0);
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
 
         /// <inheritdoc />
         public long GetDequeueCount()
         {
-            if (_complete)
+            if (Complete)
                 return 0;
 
+            var tookLock = false;
             try
             {
-                _lock.EnterReadLock();
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
 
-                if (_complete)
+                if (Complete)
                     return 0;
 
                 return Interlocked.CompareExchange(ref DequeueCounts[_connectionInformation].ProcessedCount, 0, 0);
             }
             finally
             {
-                _lock.ExitReadLock();
+                if (tookLock)
+                    _lock.ExitReadLock();
             }
         }
 
         /// <inheritdoc />
         public void Clear()
         {
-            _complete = true;
+            Complete = true;
 
             if (Queues.ContainsKey(_connectionInformation))
             {
@@ -564,7 +657,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             finally
             {
                 _lock.ExitWriteLock();
-                _cleared = true;
+                Cleared = true;
             }
         }
 
@@ -607,7 +700,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
         public void Dispose()
         {
-            if (_cleared)
+            if (Cleared)
                 _lock?.Dispose();
         }
     }
