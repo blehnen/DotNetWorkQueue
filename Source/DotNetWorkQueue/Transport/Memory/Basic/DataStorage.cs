@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.Transport.Memory.IDataStorage" />
     /// <seealso cref="DotNetWorkQueue.Transport.Memory.IDataStorageSendMessage" />
-    public class DataStorage : IDataStorage, IDataStorageSendMessage
+    public class DataStorage : IDataStorage, IDataStorageSendMessage, IDisposable
     {
         //next item to de-queue
         private static readonly ConcurrentDictionary<IConnectionInformation, BlockingCollection<Guid>> Queues;
@@ -64,6 +64,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         private readonly IQueueCancelWork _cancelToken;
 
         private volatile bool _complete;
+        private volatile bool _cleared;
+        private readonly ReaderWriterLockSlim _lock;
 
         /// <summary>Initializes a new instance of the <see cref="DataStorage" /> class.</summary>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
@@ -83,6 +85,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             _receivedMessageFactory = receivedMessageFactory;
             _messageFactory = messageFactory;
             _cancelToken = cancelToken;
+            _lock = new ReaderWriterLockSlim();
 
             if (!Queues.ContainsKey(_connectionInformation))
             {
@@ -142,56 +145,83 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (_complete)
                 return Guid.Empty;
 
-            var jobName = _jobSchedulerMetaData.GetJobName(inputData);
-            var scheduledTime = DateTimeOffset.MinValue;
-            var eventTime = DateTimeOffset.MinValue;
-            if (!string.IsNullOrWhiteSpace(jobName))
+            try
             {
-                scheduledTime = _jobSchedulerMetaData.GetScheduledTime(inputData);
-                eventTime = _jobSchedulerMetaData.GetEventTime(inputData);
-            }
+                _lock.EnterReadLock();
 
-            if (string.IsNullOrWhiteSpace(jobName) || DoesJobExist(jobName, scheduledTime) == QueueStatuses.NotQueued)
-            {
-                var newItem = new QueueItem
-                {
-                    Body = message.Body,
-                    CorrelationId = (Guid)inputData.CorrelationId.Id.Value,
-                    Headers = message.Headers,
-                    Id = Guid.NewGuid(),
-                    JobEventTime = eventTime,
-                    JobName = jobName,
-                    JobScheduledTime = scheduledTime
-                };
-                QueueData[_connectionInformation].TryAdd(newItem.Id, newItem);
-                Queues[_connectionInformation].Add(newItem.Id);
+                if (_complete)
+                    return Guid.Empty;
 
+                var jobName = _jobSchedulerMetaData.GetJobName(inputData);
+                var scheduledTime = DateTimeOffset.MinValue;
+                var eventTime = DateTimeOffset.MinValue;
                 if (!string.IsNullOrWhiteSpace(jobName))
                 {
-                    Jobs[_connectionInformation].TryAdd(jobName, newItem.Id);
+                    scheduledTime = _jobSchedulerMetaData.GetScheduledTime(inputData);
+                    eventTime = _jobSchedulerMetaData.GetEventTime(inputData);
                 }
-                return newItem.Id;
+
+                if (string.IsNullOrWhiteSpace(jobName) || DoesJobExist(jobName, scheduledTime) == QueueStatuses.NotQueued)
+                {
+                    var newItem = new QueueItem
+                    {
+                        Body = message.Body,
+                        CorrelationId = (Guid)inputData.CorrelationId.Id.Value,
+                        Headers = message.Headers,
+                        Id = Guid.NewGuid(),
+                        JobEventTime = eventTime,
+                        JobName = jobName,
+                        JobScheduledTime = scheduledTime
+                    };
+                    QueueData[_connectionInformation].TryAdd(newItem.Id, newItem);
+                    Queues[_connectionInformation].Add(newItem.Id);
+
+                    if (!string.IsNullOrWhiteSpace(jobName))
+                    {
+                        Jobs[_connectionInformation].TryAdd(jobName, newItem.Id);
+                    }
+                    return newItem.Id;
+                }
+                throw new DotNetWorkQueueException(
+                    "Failed to insert record - the job has already been queued or processed");
             }
-            throw new DotNetWorkQueueException(
-                "Failed to insert record - the job has already been queued or processed");
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
         /// <inheritdoc />
-        public async Task<Guid> SendMessageAsync(IMessage messageToSend, IAdditionalMessageData data)
+        public Task<Guid> SendMessageAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
-            return await Task.Run(() => SendMessage(messageToSend, data)).ConfigureAwait(false);
+            return Task.FromResult(SendMessage(messageToSend, data));
         }
         /// <inheritdoc />
         public void MoveToErrorQueue(Exception exception, Guid id, IMessageContext context)
         {
-            //we don't want to store all this in memory, so just keep track of the number
-            Interlocked.Increment(ref ErrorCounts[_connectionInformation].ProcessedCount);
+            if (_complete)
+                return;
 
-            //if we did want to store this, we would need to:
+            try
+            {
+                _lock.EnterReadLock();
 
-            //1) Save the work item when de-queueing it
-            //2) Move the work item into an error queue on error
-            //3) Delete the work item when a delete message call is received
+                if (_complete)
+                    return;
+
+                //we don't want to store all this in memory, so just keep track of the number
+                Interlocked.Increment(ref ErrorCounts[_connectionInformation].ProcessedCount);
+
+                //if we did want to store this, we would need to:
+
+                //1) Save the work item when de-queueing it
+                //2) Move the work item into an error queue on error
+                //3) Delete the work item when a delete message call is received
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
         /// <inheritdoc />
         public IReceivedMessageInternal GetNextMessage(List<string> routes, TimeSpan timeout)
@@ -202,61 +232,78 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (routes != null && routes.Count > 0)
                 throw new NotSupportedException("The in-memory transport does not support routes");
 
-            using (CancellationTokenSource linkedCts =
-                CancellationTokenSource.CreateLinkedTokenSource(_cancelToken.CancelWorkToken,
-                    _cancelToken.StopWorkToken))
+            try
             {
-                Guid id;
-                try
+                _lock.EnterReadLock();
+
+                if (_complete)
+                    return null;
+
+                using (CancellationTokenSource linkedCts =
+                       CancellationTokenSource.CreateLinkedTokenSource(_cancelToken.CancelWorkToken,
+                           _cancelToken.StopWorkToken))
                 {
-                    if (!Queues[_connectionInformation].TryTake(out id, Convert.ToInt32(timeout.TotalMilliseconds), linkedCts.Token))
+                    Guid id;
+                    try
+                    {
+                        if (!Queues[_connectionInformation].TryTake(out id, Convert.ToInt32(timeout.TotalMilliseconds),
+                                linkedCts.Token))
+                        {
+                            return null;
+                        }
+                    }
+                    catch (KeyNotFoundException)
                     {
                         return null;
                     }
-                }
-                catch (OperationCanceledException)
-                {
-                    return null;
-                }
-
-                if (!QueueData[_connectionInformation].TryRemove(id, out var item))
-                {
-                    return null;
-                }
-
-                var hasError = false;
-                try
-                {
-                    var newMessage = _messageFactory.Create(item.Body, item.Headers);
-
-                    if (!string.IsNullOrEmpty(item.JobName))
+                    catch (OperationCanceledException)
                     {
-                        var key = GenerateKey(item.JobName);
-
-                        //add it to the cache
-                        JobLastEventCache.Execute(context => item.JobEventTime, new Context(key));
+                        return null;
                     }
 
-                    Interlocked.Increment(ref DequeueCounts[_connectionInformation].ProcessedCount);
+                    if (!QueueData[_connectionInformation].TryRemove(id, out var item))
+                    {
+                        return null;
+                    }
 
-                    return _receivedMessageFactory.Create(newMessage,
-                        new MessageQueueId(id),
-                        new MessageCorrelationId(item.CorrelationId));
-                }
-                catch (Exception error)
-                {
-                    hasError = true;
-                    //at this point, the record has been de-queued, but it can't be processed.
-                    throw new PoisonMessageException(
-                        "An error has occurred trying to re-assemble a message", error, new MessageQueueId(id),
-                        new MessageCorrelationId(item.CorrelationId), new ReadOnlyDictionary<string, object>(item.Headers), null, null);
+                    var hasError = false;
+                    try
+                    {
+                        var newMessage = _messageFactory.Create(item.Body, item.Headers);
 
+                        if (!string.IsNullOrEmpty(item.JobName))
+                        {
+                            var key = GenerateKey(item.JobName);
+
+                            //add it to the cache
+                            JobLastEventCache.Execute(context => item.JobEventTime, new Context(key));
+                        }
+
+                        Interlocked.Increment(ref DequeueCounts[_connectionInformation].ProcessedCount);
+
+                        return _receivedMessageFactory.Create(newMessage,
+                            new MessageQueueId(id),
+                            new MessageCorrelationId(item.CorrelationId));
+                    }
+                    catch (Exception error)
+                    {
+                        hasError = true;
+                        //at this point, the record has been de-queued, but it can't be processed.
+                        throw new PoisonMessageException(
+                            "An error has occurred trying to re-assemble a message", error, new MessageQueueId(id),
+                            new MessageCorrelationId(item.CorrelationId), new ReadOnlyDictionary<string, object>(item.Headers), null, null);
+
+                    }
+                    finally
+                    {
+                        if (!hasError)
+                            QueueWorking[_connectionInformation].TryAdd(item.Id, item);
+                    }
                 }
-                finally
-                {
-                    if (!hasError)
-                        QueueWorking[_connectionInformation].TryAdd(item.Id, item);
-                }
+            }
+            finally
+            {
+                _lock.ExitReadLock();
             }
         }
         /// <summary>
@@ -268,79 +315,228 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// </returns>
         public IDictionary<string, object> GetHeaders(Guid id)
         {
-            return !QueueData[_connectionInformation].TryGetValue(id, out var item) ? null : item.Headers;
+            if (_complete)
+                return null;
+
+            try
+            {
+                _lock.EnterReadLock();
+
+                if (_complete)
+                    return null;
+
+                return !QueueData[_connectionInformation].TryGetValue(id, out var item) ? null : item.Headers;
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
         /// <inheritdoc />
         public bool DeleteMessage(Guid id)
         {
-            //remove data - if id is still in queue, it will fall out eventually
-            var removed = QueueData[_connectionInformation].TryRemove(id, out var item);
-            if (item == null)
-                removed = QueueWorking[_connectionInformation].TryRemove(id, out item);
+            if (_complete)
+                return false;
 
-            if (item != null)
-                Jobs[_connectionInformation].TryRemove(item.JobName, out _);
+            try
+            {
+                _lock.EnterReadLock();
 
-            return removed;
+                if (_complete)
+                    return false;
+
+                //remove data - if id is still in queue, it will fall out eventually
+                var removed = QueueData[_connectionInformation].TryRemove(id, out var item);
+                if (item == null)
+                    removed = QueueWorking[_connectionInformation].TryRemove(id, out item);
+
+                if (item != null)
+                    Jobs[_connectionInformation].TryRemove(item.JobName, out _);
+
+                return removed;
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
         /// <inheritdoc />
         public DateTimeOffset GetJobLastKnownEvent(string jobName)
         {
-            return JobLastEventCache.Execute(context => default, new Context(GenerateKey(jobName)));
+            if (_complete)
+                return DateTimeOffset.MinValue;
+
+            try
+            {
+                _lock.EnterReadLock();
+
+                if (_complete)
+                    return DateTimeOffset.MinValue;
+
+                return JobLastEventCache.Execute(context => default, new Context(GenerateKey(jobName)));
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
         /// <inheritdoc />
         public void DeleteJob(string jobName)
         {
-            if (Jobs[_connectionInformation].TryRemove(jobName, out var id))
+            if (_complete)
+                return;
+
+            try
             {
-                QueueData[_connectionInformation].TryRemove(id, out _);
+                _lock.EnterReadLock();
+
+                if (_complete)
+                    return;
+
+                if (Jobs[_connectionInformation].TryRemove(jobName, out var id))
+                {
+                    QueueData[_connectionInformation].TryRemove(id, out _);
+                }
+            }
+            finally
+            {
+                _lock.ExitReadLock();
             }
         }
 
         /// <inheritdoc />
         public QueueStatuses DoesJobExist(string jobName, DateTimeOffset scheduledTime)
         {
-            if (Jobs[_connectionInformation].TryGetValue(jobName, out var id))
+            if (_complete)
+                return QueueStatuses.NotQueued;
+
+            try
             {
-                if (QueueData[_connectionInformation].TryGetValue(id, out _))
+                _lock.EnterReadLock();
+
+                if (_complete)
+                    return QueueStatuses.NotQueued;
+
+                if (Jobs[_connectionInformation].TryGetValue(jobName, out var id))
                 {
-                    return QueueStatuses.Waiting;
+                    if (QueueData[_connectionInformation].TryGetValue(id, out _))
+                    {
+                        return QueueStatuses.Waiting;
+                    }
+                    if (QueueWorking[_connectionInformation].TryGetValue(id, out _))
+                    {
+                        return QueueStatuses.Processing;
+                    }
                 }
-                if (QueueWorking[_connectionInformation].TryGetValue(id, out _))
-                {
-                    return QueueStatuses.Processing;
-                }
+                var time = GetJobLastKnownEvent(jobName);
+                return time == scheduledTime ? QueueStatuses.Processed : QueueStatuses.NotQueued;
             }
-            var time = GetJobLastKnownEvent(jobName);
-            return time == scheduledTime ? QueueStatuses.Processed : QueueStatuses.NotQueued;
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
         /// <inheritdoc />
-        public long RecordCount => QueueData[_connectionInformation].Count;
+        public long RecordCount
+        {
+            get
+            {
+                if (_complete)
+                    return 0;
+
+                try
+                {
+                    _lock.EnterReadLock();
+
+                    if (_complete)
+                        return 0;
+
+                    return QueueData[_connectionInformation].Count;
+                }
+                finally
+                {
+                    _lock.ExitReadLock();
+                }
+            }
+        }
 
         /// <inheritdoc />
-        public long WorkingRecordCount => QueueWorking[_connectionInformation].Count;
+        public long WorkingRecordCount
+        {
+            get
+            {
+                if (_complete)
+                    return 0;
+
+                try
+                {
+                    _lock.EnterReadLock();
+
+                    if (_complete)
+                        return 0;
+
+                    return QueueWorking[_connectionInformation].Count;
+                }
+                finally
+                {
+                    _lock.ExitReadLock();
+                }
+            }
+        }
 
         /// <inheritdoc />
         public long GetErrorCount()
         {
-            return Interlocked.CompareExchange(ref ErrorCounts[_connectionInformation].ProcessedCount, 0, 0);
+            if (_complete)
+                return 0;
+
+            try
+            {
+                _lock.EnterReadLock();
+
+                if (_complete)
+                    return 0;
+
+                return Interlocked.CompareExchange(ref ErrorCounts[_connectionInformation].ProcessedCount, 0, 0);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
         /// <inheritdoc />
         public long GetDequeueCount()
         {
-            return Interlocked.CompareExchange(ref DequeueCounts[_connectionInformation].ProcessedCount, 0, 0);
+            if (_complete)
+                return 0;
+
+            try
+            {
+                _lock.EnterReadLock();
+
+                if (_complete)
+                    return 0;
+
+                return Interlocked.CompareExchange(ref DequeueCounts[_connectionInformation].ProcessedCount, 0, 0);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
         /// <inheritdoc />
         public void Clear()
         {
             _complete = true;
+
             if (Queues.ContainsKey(_connectionInformation))
             {
+                //explicitly remove items so that metrics are still calculated
                 if (!Queues[_connectionInformation].IsAddingCompleted)
                 {
                     while (Queues[_connectionInformation].TryTake(out var id))
@@ -351,6 +547,24 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     Jobs[_connectionInformation].Clear();
                     QueueWorking[_connectionInformation].Clear();
                 }
+            }
+
+            try
+            {
+                _lock.EnterWriteLock();
+
+                //remove connection from collections
+                Queues.TryRemove(_connectionInformation, out _);
+                QueueData.TryRemove(_connectionInformation, out _);
+                Jobs.TryRemove(_connectionInformation, out _);
+                QueueWorking.TryRemove(_connectionInformation, out _);
+                ErrorCounts.TryRemove(_connectionInformation, out _);
+                DequeueCounts.TryRemove(_connectionInformation, out _);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+                _cleared = true;
             }
         }
 
@@ -389,6 +603,12 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             {
                 return context.OperationKey;
             }
+        }
+
+        public void Dispose()
+        {
+            if (_cleared)
+                _lock?.Dispose();
         }
     }
 }

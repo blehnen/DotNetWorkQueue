@@ -4,7 +4,7 @@
     <TargetFrameworks>net8.0;net6.0;net48;netstandard2.0;net472;net462</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.7.5</Version>
+    <Version>0.7.6</Version>
     <Description>Work queue for dot net 4.6.2, 4.7.2, 4.8, dot net standard 2.0, 6.0 and 8.0
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>

@@ -95,15 +95,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
             if (disposing)
             {
-                if (_disposables != null)
-                {
-                    foreach (var obj in _disposables)
-                    {
-                        obj.Dispose();
-                    }
-                    _disposables = null;
-                }
-
                 if (_clears != null)
                 {
                     foreach (var obj in _clears)
@@ -111,6 +102,15 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                         obj.Clear();
                     }
                     _clears = null;
+                }
+
+                if (_disposables != null)
+                {
+                    foreach (var obj in _disposables)
+                    {
+                        obj.Dispose();
+                    }
+                    _disposables = null;
                 }
             }
             _disposedValue = true;

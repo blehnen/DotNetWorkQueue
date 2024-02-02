@@ -1,3 +1,6 @@
+###0.7.6 2024-02-02
+* Remove connection objects from DataStore when queue is complete
+
 ###0.7.5 2024-01-09
 * Only Verify internal container setup in debug mode, as pins the memory it uses.
 
