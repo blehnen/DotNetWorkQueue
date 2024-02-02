@@ -698,6 +698,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
         }
 
+        /// <inheritdoc />
+
         public void Dispose()
         {
             if (Cleared)
