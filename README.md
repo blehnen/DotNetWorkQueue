@@ -37,7 +37,7 @@ Metrics
 Differences between versions
 ------------
 
-Dot net standard 2.0 / 6.0 / 8.0 are missing the following features from the full framework versions
+Dot net standard 2.0 / 8.0 / 10.0 are missing the following features from the full framework version
 
 - No support for aborting threads when stopping the consumer queues
 - No support for dynamic linq statements
@@ -276,9 +276,5 @@ This library uses multiple 3rd party libaries, listed below.
 
 ##### Developed with:
 
-<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/ReSharper_icon.png" width="48">
-
-<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotCover_icon.png" width="48">
-
-<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotTrace_icon.png" width="48">
+<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/ReSharper_icon.png" width="48"> <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotCover_icon.png" width="48"> <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotTrace_icon.png" width="48">
 
