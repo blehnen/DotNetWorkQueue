@@ -1,8 +1,8 @@
-version: 0.7.5.{build}
+version: 0.7.8.{build}
 branches:
   only:
   - master
-image: Visual Studio 2022
+image: Visual Studio 2026
 before_build:
 - appveyor-retry dotnet restore "Source\DotNetWorkQueue.sln"
 build_script:
