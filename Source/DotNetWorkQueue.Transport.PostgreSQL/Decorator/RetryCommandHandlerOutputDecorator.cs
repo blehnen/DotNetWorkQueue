@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Polly;
@@ -29,7 +28,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
     {
         private readonly ICommandHandlerWithOutput<TCommand, TOutput> _decorated;
         private readonly IPolicies _policies;
-        private ISyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RetryCommandHandlerOutputDecorator{TCommand,TOutput}" /> class.
@@ -51,15 +49,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         {
             Guard.NotNull(() => command, command);
 
-            if (_policy == null)
+            if (_policies.Registry.TryGet<ISyncPolicy>(TransportPolicyDefinitions.RetryCommandHandler, out var policy))
             {
-                _policies.Registry.TryGet(TransportPolicyDefinitions.RetryCommandHandler, out _policy);
+                var result = policy.ExecuteAndCapture(() => _decorated.Handle(command));
+                if (result.FinalException != null)
+                    throw result.FinalException;
+                return result.Result;
             }
-            if (_policy == null) return _decorated.Handle(command);
-            var result = _policy.ExecuteAndCapture(() => _decorated.Handle(command));
-            if (result.FinalException != null)
-                throw result.FinalException;
-            return result.Result;
+            return _decorated.Handle(command);
         }
     }
 }

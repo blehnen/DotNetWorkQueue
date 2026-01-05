@@ -16,18 +16,16 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Messages;
 using Polly;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Policies.Decorator
 {
     internal class SendMessagesPolicyDecorator : ISendMessages
     {
         private readonly IPolicies _policies;
-        private ISyncPolicy _policy;
-        private IAsyncPolicy _policyAsync;
         private readonly ISendMessages _handler;
 
         /// <summary>
@@ -51,12 +49,9 @@ namespace DotNetWorkQueue.Policies.Decorator
         public IQueueOutputMessage Send(IMessage messageToSend, IAdditionalMessageData data)
         {
             IQueueOutputMessage result = null;
-            if (_policy == null)
-                _policies.Registry.TryGet(_policies.Definition.SendMessage, out _policy);
-
-            if (_policy != null)
+            if (_policies.Registry.TryGet<ISyncPolicy>(_policies.Definition.SendMessage, out var policy))
             {
-                _policy.Execute(() => result = _handler.Send(messageToSend, data));
+                policy.Execute(() => result = _handler.Send(messageToSend, data));
             }
             else //no policy found
                 result = _handler.Send(messageToSend, data);
@@ -71,12 +66,9 @@ namespace DotNetWorkQueue.Policies.Decorator
         public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
             IQueueOutputMessages result = null;
-            if (_policy == null)
-                _policies.Registry.TryGet(_policies.Definition.SendMessage, out _policy);
-
-            if (_policy != null)
+            if (_policies.Registry.TryGet<ISyncPolicy>(_policies.Definition.SendMessage, out var policy))
             {
-                _policy.Execute(() => result = _handler.Send(messages));
+                policy.Execute(() => result = _handler.Send(messages));
             }
             else //no policy found
                 result = _handler.Send(messages);
@@ -92,12 +84,9 @@ namespace DotNetWorkQueue.Policies.Decorator
         public async Task<IQueueOutputMessage> SendAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
             IQueueOutputMessage result = null;
-            if (_policyAsync == null)
-                _policies.Registry.TryGet(_policies.Definition.SendMessageAsync, out _policyAsync);
-
-            if (_policyAsync != null)
+            if (_policies.Registry.TryGet<IAsyncPolicy>(_policies.Definition.SendMessageAsync, out var policy))
             {
-                await _policyAsync.ExecuteAsync(async () => result = await _handler.SendAsync(messageToSend, data).ConfigureAwait(false)).ConfigureAwait(false);
+                await policy.ExecuteAsync(async () => result = await _handler.SendAsync(messageToSend, data).ConfigureAwait(false)).ConfigureAwait(false);
             }
             else //no policy found
                 result = await _handler.SendAsync(messageToSend, data).ConfigureAwait(false);
@@ -113,12 +102,9 @@ namespace DotNetWorkQueue.Policies.Decorator
         public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
             IQueueOutputMessages result = null;
-            if (_policyAsync == null)
-                _policies.Registry.TryGet(_policies.Definition.SendMessageAsync, out _policyAsync);
-
-            if (_policyAsync != null)
+            if (_policies.Registry.TryGet<IAsyncPolicy>(_policies.Definition.SendMessageAsync, out var policy))
             {
-                await _policyAsync.ExecuteAsync(async () => result = await _handler.SendAsync(messages).ConfigureAwait(false)).ConfigureAwait(false);
+                await policy.ExecuteAsync(async () => result = await _handler.SendAsync(messages).ConfigureAwait(false)).ConfigureAwait(false);
             }
             else //no policy found
                 result = await _handler.SendAsync(messages).ConfigureAwait(false);

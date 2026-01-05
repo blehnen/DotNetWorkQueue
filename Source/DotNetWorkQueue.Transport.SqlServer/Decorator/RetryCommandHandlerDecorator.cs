@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Validation;
@@ -29,7 +28,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
     {
         private readonly ICommandHandler<TCommand> _decorated;
         private readonly IPolicies _policies;
-        private ISyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RetryCommandHandlerDecorator{TCommand}" /> class.
@@ -49,13 +47,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
         /// <inheritdoc />
         public void Handle(TCommand command)
         {
-            if (_policy == null)
+            if (_policies.Registry.TryGet<ISyncPolicy>(TransportPolicyDefinitions.RetryCommandHandler, out var policy))
             {
-                _policies.Registry.TryGet(TransportPolicyDefinitions.RetryCommandHandler, out _policy);
-            }
-            if (_policy != null)
-            {
-                _policy.Execute(() => _decorated.Handle(command));
+                policy.Execute(() => _decorated.Handle(command));
             }
             else //no policy found
                 _decorated.Handle(command);

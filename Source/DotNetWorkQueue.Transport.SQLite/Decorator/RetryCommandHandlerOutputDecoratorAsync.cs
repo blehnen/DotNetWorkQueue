@@ -17,11 +17,11 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
-using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
 using Polly;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
 {
@@ -30,8 +30,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     {
         private readonly ICommandHandlerWithOutputAsync<TCommand, TOutput> _decorated;
         private readonly IPolicies _policies;
-        private IAsyncPolicy _policy;
-
 
         /// <summary>
         /// Constructor
@@ -52,13 +50,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         public async Task<TOutput> HandleAsync(TCommand command)
         {
             Guard.NotNull(() => command, command);
-            if (_policy == null)
+            if (_policies.Registry.TryGet<IAsyncPolicy>(TransportPolicyDefinitions.RetryCommandHandlerAsync,
+                    out var policy))
             {
-                _policies.Registry.TryGet(TransportPolicyDefinitions.RetryCommandHandlerAsync, out _policy);
-            }
-            if (_policy != null)
-            {
-                var result = await _policy.ExecuteAndCaptureAsync(() => _decorated.HandleAsync(command)).ConfigureAwait(false);
+                var result = await policy.ExecuteAndCaptureAsync(() => _decorated.HandleAsync(command)).ConfigureAwait(false);
                 if (result.FinalException != null)
                     throw result.FinalException;
                 return result.Result;

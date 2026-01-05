@@ -1,6 +1,7 @@
-###0.7.8 
+###0.8.0 
 * Add dot net 10 as target
 * Remove frameworks that are out of support
+* **Breaking Change** Sql client has been changed from System.Data.SqlClient to Microsoft.Data.Sqlclient; This may affect your SQL server connection strings if your using the SQL Server transport
 
 ###0.7.6 2024-02-02
 * Remove connection objects from DataStore when queue is complete

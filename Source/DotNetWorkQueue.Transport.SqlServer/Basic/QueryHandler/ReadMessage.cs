@@ -22,7 +22,7 @@ using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Validation;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 {

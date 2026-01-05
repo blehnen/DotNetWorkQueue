@@ -16,27 +16,17 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Diagnostics;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Policies;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Chaos;
 using DotNetWorkQueue.Transport.SqlServer.Decorator;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Trace;
 using Polly;
 using Polly.Contrib.Simmy;
-using Polly.Contrib.Simmy.Behavior;
 using Polly.Contrib.Simmy.Outcomes;
 using Polly.Contrib.WaitAndRetry;
+using System;
+using System.Diagnostics;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -57,8 +47,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             var tracer = container.GetInstance<ActivitySource>();
             var log = container.GetInstance<ILogger>();
 
-            var chaosPolicy = CreateRetryChaos(policies);
-            var chaosPolicyAsync = CreateRetryChaosAsync(policies);
+            InjectOutcomePolicy chaosPolicy = null;
+            AsyncInjectOutcomePolicy chaosPolicyAsync = null;
+
+            //do not create unless enabled due to the overhead
+            if (policies.EnableChaos)
+            {
+                chaosPolicy = CreateRetryChaos(policies);
+                chaosPolicyAsync = CreateRetryChaosAsync(policies);
+            }
 
             var delay = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
             var delayAsync = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
@@ -167,48 +164,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
         private static SqlException Behaviour()
         {
-            SqlError sqlError = null;
-#if NETFULL
-            sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null);
-#else
-            sqlError = CreateInstance<SqlError>(Convert.ToInt32(ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>()), null, null, null, null, null, null, null);
-#endif
-            var collection = CreateInstance<SqlErrorCollection>();
-#if NETFULL
-             var errors = collection.GetPrivateFieldValue<ArrayList>("errors");
-             errors.Add(sqlError);
-#else
-            var errors = collection.GetPrivateFieldValue<List<object>>("_errors");
-            errors.Add(sqlError);
-#endif
-            var e = CreateInstance<SqlException>(string.Empty, collection, null, Guid.NewGuid());
-            return e;
-        }
-
-        private static T CreateInstance<T>(params object[] args)
-        {
-            var type = typeof(T);
-            var assembly = type.Assembly;
-            var instance = assembly.CreateInstance(
-                type.FullName, true,
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null, args, null, null);
-            return (T)instance;
-        }
-        /// <summary>
-        /// Returns a _private_ Property Value from a given Object. Uses Reflection.
-        /// Throws a ArgumentOutOfRangeException if the Property is not found.
-        /// </summary>
-        /// <typeparam name="T">Type of the Property</typeparam>
-        /// <param name="obj">Object from where the Property Value is returned</param>
-        /// <param name="propName">Propertyname as string.</param>
-        /// <returns>PropertyValue</returns>
-        private static T GetPrivateFieldValue<T>(this object obj, string propName)
-        {
-            if (obj == null) throw new ArgumentNullException("obj");
-            var pi = obj.GetType().GetField(propName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            if (pi == null) throw new ArgumentOutOfRangeException("propName", string.Format("Property {0} was not found in Type {1}", propName, obj.GetType().FullName));
-            return (T)pi.GetValue(obj);
+            return MockSqlException.Create();
         }
     }
 }

@@ -29,7 +29,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     {
         private readonly ICommandHandlerWithOutput<TCommand, TOutput> _decorated;
         private readonly IPolicies _policies;
-        private ISyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RetryCommandHandlerOutputDecorator{TCommand,TOutput}" /> class.
@@ -51,15 +50,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         {
             Guard.NotNull(() => command, command);
 
-            if (_policy == null)
+            if (_policies.Registry.TryGet<ISyncPolicy>(TransportPolicyDefinitions.RetryCommandHandler, out var policy))
             {
-                _policies.Registry.TryGet(TransportPolicyDefinitions.RetryCommandHandler, out _policy);
+                var result = policy.ExecuteAndCapture(() => _decorated.Handle(command));
+                if (result.FinalException != null)
+                    throw result.FinalException;
+                return result.Result;
             }
-            if (_policy == null) return _decorated.Handle(command);
-            var result = _policy.ExecuteAndCapture(() => _decorated.Handle(command));
-            if (result.FinalException != null)
-                throw result.FinalException;
-            return result.Result;
+            return _decorated.Handle(command);
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using DotNetWorkQueue.Configuration;
+﻿using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
+using Microsoft.Data.SqlClient;
+using System.Data;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Integration.Tests.UserDequeue

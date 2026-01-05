@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 using Polly;
 
@@ -26,7 +25,6 @@ namespace DotNetWorkQueue.Policies.Decorator
     {
         private readonly IReceiveMessages _handler;
         private readonly IPolicies _policies;
-        private ISyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessagesPolicyDecorator" /> class.
@@ -45,12 +43,9 @@ namespace DotNetWorkQueue.Policies.Decorator
         {
             IReceivedMessageInternal result = null;
 
-            if (_policy == null)
-                _policies.Registry.TryGet(_policies.Definition.ReceiveMessageFromTransport, out _policy);
-
-            if (_policy != null)
+            if (_policies.Registry.TryGet<ISyncPolicy>(_policies.Definition.ReceiveMessageFromTransport, out var policy))
             {
-                _policy.Execute(() => result = _handler.ReceiveMessage(context));
+                policy.Execute(() => result = _handler.ReceiveMessage(context));
             }
             else //no policy found
                 result = _handler.ReceiveMessage(context);

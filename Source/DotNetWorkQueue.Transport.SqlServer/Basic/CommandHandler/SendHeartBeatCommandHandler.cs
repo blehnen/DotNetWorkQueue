@@ -16,15 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Data;
-using System.Data.SqlClient;
-using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
+using Microsoft.Data.SqlClient;
+using System;
+using System.Data;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 {
@@ -61,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 conn.Open();
                 using (var commandSql = conn.CreateCommand())
                 {
-                    commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SendHeartBeat);
+                    commandSql.CommandText = _commandCache.GetCommand(DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandStringTypes.SendHeartBeat);
                     commandSql.Parameters.Add("@QueueID", SqlDbType.BigInt);
                     commandSql.Parameters["@QueueID"].Value = command.QueueId;
                     commandSql.Parameters.Add("@status", SqlDbType.Int);

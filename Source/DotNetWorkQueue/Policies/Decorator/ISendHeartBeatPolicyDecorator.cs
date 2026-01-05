@@ -24,7 +24,6 @@ namespace DotNetWorkQueue.Policies.Decorator
     {
         private readonly ISendHeartBeat _handler;
         private readonly IPolicies _policies;
-        private ISyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendHeartBeatPolicyDecorator" /> class.
@@ -43,12 +42,9 @@ namespace DotNetWorkQueue.Policies.Decorator
         public IHeartBeatStatus Send(IMessageContext context)
         {
             IHeartBeatStatus result = null;
-            if (_policy == null)
-                _policies.Registry.TryGet(_policies.Definition.SendHeartBeat, out _policy);
-
-            if (_policy != null)
+            if (_policies.Registry.TryGet<ISyncPolicy>(_policies.Definition.SendHeartBeat, out var policy))
             {
-                _policy.Execute(() => result = _handler.Send(context));
+                policy.Execute(() => result = _handler.Send(context));
             }
             else //no policy found
                 result = _handler.Send(context);

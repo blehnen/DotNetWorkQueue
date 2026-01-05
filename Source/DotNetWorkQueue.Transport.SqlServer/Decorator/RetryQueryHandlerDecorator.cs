@@ -16,7 +16,6 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Validation;
@@ -29,7 +28,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
     {
         private readonly IQueryHandler<TQuery, TResult> _decorated;
         private readonly IPolicies _policies;
-        private ISyncPolicy _policy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RetryQueryHandlerDecorator{TQuery,TResult}" /> class.
@@ -50,13 +48,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
         public TResult Handle(TQuery query)
         {
             Guard.NotNull(() => query, query);
-            if (_policy == null)
+            if (_policies.Registry.TryGet<ISyncPolicy>(TransportPolicyDefinitions.RetryQueryHandler, out var policy))
             {
-                _policies.Registry.TryGet(TransportPolicyDefinitions.RetryQueryHandler, out _policy);
-            }
-            if (_policy != null)
-            {
-                var result = _policy.ExecuteAndCapture(() => _decorated.Handle(query));
+                var result = policy.ExecuteAndCapture(() => _decorated.Handle(query));
                 if (result.FinalException != null)
                     throw result.FinalException;
                 return result.Result;

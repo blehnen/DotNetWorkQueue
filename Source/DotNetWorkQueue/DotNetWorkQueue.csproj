@@ -4,7 +4,7 @@
     <TargetFrameworks>net10.0;net8.0;net48;netstandard2.0;</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.7.8</Version>
+    <Version>0.8.0</Version>
 	  <Description>
 		  Work queue for dot net 4.8, dot net standard 2.0, 8.0 and 10.0. Supports scheduling, delayed processing, prioritized queues, message expiration, retries with configurable back-off and more.
 		  SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
