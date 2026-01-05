@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.Configuration;
+﻿using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
@@ -27,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
          InlineData(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
          InlineData(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true),
          InlineData(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
-        public async void Run(
+        public async Task Run(
             int messageCount,
             bool interceptors,
             bool enableDelayedProcessing,

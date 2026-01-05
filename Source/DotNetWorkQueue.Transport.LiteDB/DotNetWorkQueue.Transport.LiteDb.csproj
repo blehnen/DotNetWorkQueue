@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;net48;netstandard2.0;net472;net462</TargetFrameworks>
+	  <TargetFrameworks>net10.0;net8.0;net48;netstandard2.0;</TargetFrameworks>
     <Description>LiteDB transport for https://github.com/blehnen/DotNetWorkQueue</Description>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.7.7</Version>
+    <Version>0.7.8</Version>
     <Authors>Brian Lehnen</Authors>
-    <Copyright>Copyright © Brian Lehnen 2015-2025</Copyright>
+    <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
     <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
@@ -23,26 +23,17 @@
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
-		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
-	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
 	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net462|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
-  </PropertyGroup>
-
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
     <DefineConstants>NETSTANDARD2_0;</DefineConstants>
@@ -51,7 +42,7 @@
     <WarningsAsErrors />
   </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
 		<DocumentationFile>DotNetWorkQueue.Transport.LiteDB.xml</DocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -66,21 +57,8 @@
 	</PropertyGroup>
 
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
-    <DefineConstants>NETFULL</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.Transport.LiteDB.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
-    <DefineConstants>NETFULL</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.Transport.LiteDB.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net462|AnyCPU'">
     <DefineConstants>NETFULL</DefineConstants>
     <DocumentationFile>DotNetWorkQueue.Transport.LiteDB.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

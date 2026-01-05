@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;net48;netstandard2.0;net472;net462</TargetFrameworks>
+	  <TargetFrameworks>net10.0;net8.0;net48;netstandard2.0;</TargetFrameworks>
     <Description>PostgreSQL transport for https://github.com/blehnen/DotNetWorkQueue</Description>
-    <Version>0.7.7</Version>
+    <Version>0.7.8</Version>
     <Authors>Brian Lehnen</Authors>
-    <Copyright>Copyright © Brian Lehnen 2015-2025</Copyright>
+    <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
@@ -23,7 +23,7 @@
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0|AnyCPU'">
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
 	</PropertyGroup>
 
@@ -31,15 +31,7 @@
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
 	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net462|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
   </PropertyGroup>
 
@@ -50,7 +42,7 @@
     <WarningsAsErrors />
   </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
 		<DocumentationFile>DotNetWorkQueue.Transport.PostgreSQL.xml</DocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -64,13 +56,6 @@
 		<WarningsAsErrors />
 	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
-    <DefineConstants>NETFULL</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.Transport.PostgreSQL.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
     <DefineConstants>NETFULL</DefineConstants>
     <DocumentationFile>DotNetWorkQueue.Transport.PostgreSQL.xml</DocumentationFile>
@@ -78,22 +63,7 @@
     <WarningsAsErrors />
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net462|AnyCPU'">
-    <DefineConstants>NETFULL</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.Transport.PostgreSQL.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-
   <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
@@ -103,7 +73,7 @@
 
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="8.0.8" />
-    <PackageReference Include="Polly" Version="8.6.4" />
+    <PackageReference Include="Polly" Version="8.6.5" />
     <PackageReference Include="Polly.Contrib.Simmy" Version="0.3.0" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
   </ItemGroup>

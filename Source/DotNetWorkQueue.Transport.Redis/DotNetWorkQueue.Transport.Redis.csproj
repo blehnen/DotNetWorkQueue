@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;net48;netstandard2.0;net472;net462</TargetFrameworks>
+	  <TargetFrameworks>net10.0;net8.0;net48;netstandard2.0;</TargetFrameworks>
     <Description>Redis transport for https://github.com/blehnen/DotNetWorkQueue</Description>  
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.7.7</Version>
+    <Version>0.7.8</Version>
     <Authors>Brian Lehnen</Authors>
-    <Copyright>Copyright © Brian Lehnen 2015-2025</Copyright>
+    <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
     <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
@@ -21,23 +21,15 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
   </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
-		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
-	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
 	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net462|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
   </PropertyGroup>
 
@@ -48,13 +40,6 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <WarningsAsErrors />
   </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
-		<DefineConstants></DefineConstants>
-		<DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<WarningsAsErrors />
-	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
 		<DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
@@ -62,12 +47,12 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
 		<WarningsAsErrors />
 	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
-    <DefineConstants>NETFULL</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
+		<DefineConstants></DefineConstants>
+		<DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
     <DefineConstants>NETFULL</DefineConstants>
@@ -76,31 +61,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <WarningsAsErrors />
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net462|AnyCPU'">
-    <DefineConstants>NETFULL</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.Transport.Redis.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="GuerrillaNtp">
-      <HintPath>..\..\Lib\GuerrillaNtp\net472\GuerrillaNtp.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
   <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="GuerrillaNtp">
       <HintPath>..\..\Lib\GuerrillaNtp\net48\GuerrillaNtp.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="GuerrillaNtp">
-      <HintPath>..\..\Lib\GuerrillaNtp\net461\GuerrillaNtp.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -110,15 +74,15 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     </Reference>
   </ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
 		<Reference Include="GuerrillaNtp">
-			<HintPath>..\..\Lib\GuerrillaNtp\net6.0\GuerrillaNtp.dll</HintPath>
+			<HintPath>..\..\Lib\GuerrillaNtp\net10.0\GuerrillaNtp.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
 		<Reference Include="GuerrillaNtp">
-			<HintPath>..\..\Lib\GuerrillaNtp\net6.0\GuerrillaNtp.dll</HintPath>
+			<HintPath>..\..\Lib\GuerrillaNtp\net8.0\GuerrillaNtp.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 
@@ -130,7 +94,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
     <PackageReference Include="MsgPack.Cli" Version="1.0.1" />
     <PackageReference Include="Polly.Contrib.Simmy" Version="0.3.0" />
-    <PackageReference Include="StackExchange.Redis" Version="2.9.32" />
+    <PackageReference Include="StackExchange.Redis" Version="2.10.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.Configuration;
+﻿using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
          InlineData(10, false, true, true, true, true, false, false, LinqMethodTypes.Compiled, true),
          InlineData(10, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, true),
          InlineData(10, true, true, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
-        public async void Run(
+        public async Task Run(
             int messageCount,
             bool interceptors,
             bool enableDelayedProcessing,
