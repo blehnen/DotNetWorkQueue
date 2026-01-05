@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                 {
                     scope?.AddMessageIdTag(context);
                     scope?.AddException(exception);
-                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                    scope?.SetStatus(ActivityStatusCode.Error);
                     _handler.Handle(context, exception);
                 }
             }

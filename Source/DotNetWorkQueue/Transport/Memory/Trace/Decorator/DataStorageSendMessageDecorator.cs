@@ -63,14 +63,14 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
                 {
                     var id = _handler.SendMessage(messageToSend, data);
                     if (id == Guid.Empty)
-                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                        scope?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddMessageIdTag(id.ToString());
                     return id;
                 }
                 catch (Exception e)
                 {
                     scope?.AddException(e);
-                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                    scope?.SetStatus(ActivityStatusCode.Error);
                     throw;
                 }
             }
@@ -88,14 +88,14 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
                 {
                     var id = await _handler.SendMessageAsync(messageToSend, data).ConfigureAwait(false);
                     if (id == Guid.Empty)
-                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                        scope?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddMessageIdTag(id.ToString());
                     return id;
                 }
                 catch (Exception e)
                 {
                     scope?.AddException(e);
-                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                    scope?.SetStatus(ActivityStatusCode.Error);
                     throw;
                 }
             }

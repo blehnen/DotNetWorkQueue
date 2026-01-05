@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                     var outputMessage = _handler.Send(messageToSend, data);
                     if (outputMessage.HasError)
                     {
-                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                        scope?.SetStatus(ActivityStatusCode.Error);
                         if (outputMessage.SendingException != null)
                             scope?.AddException(outputMessage.SendingException);
                     }
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                 catch (Exception e)
                 {
                     scope?.AddException(e);
-                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                    scope?.SetStatus(ActivityStatusCode.Error);
                     throw;
                 }
             }
@@ -132,7 +132,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                     var outputMessage = await _handler.SendAsync(messageToSend, data);
                     if (outputMessage.HasError)
                     {
-                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                        scope?.SetStatus(ActivityStatusCode.Error);
                         if (outputMessage.SendingException != null)
                             scope?.AddException(outputMessage.SendingException);
                     }
@@ -141,7 +141,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                 }
                 catch (Exception e)
                 {
-                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                    scope?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddException(e);
                     throw;
                 }

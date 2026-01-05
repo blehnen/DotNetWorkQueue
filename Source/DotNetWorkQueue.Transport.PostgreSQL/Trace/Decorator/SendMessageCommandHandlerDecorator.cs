@@ -67,13 +67,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator
                 {
                     var id = _handler.Handle(command);
                     if (id == 0)
-                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                        scope?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddMessageIdTag(id);
                     return id;
                 }
                 catch (Exception e)
                 {
-                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                    scope?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddException(e);
                     throw;
                 }

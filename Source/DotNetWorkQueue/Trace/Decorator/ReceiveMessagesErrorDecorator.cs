@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 scope?.AddMessageIdTag(message);
                 scope?.AddException(exception);
-                Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                scope?.SetStatus(ActivityStatusCode.Error);
                 var result = _handler.MessageFailedProcessing(message, context, exception);
                 scope?.SetTag("WillRetry", result == ReceiveMessagesErrorResult.Retry);
                 return result;

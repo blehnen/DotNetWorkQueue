@@ -68,13 +68,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Trace.Decorator
                 {
                     var id = await _handler.HandleAsync(command);
                     if (id == 0)
-                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                        scope?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddMessageIdTag<long>(id);
                     return id;
                 }
                 catch (Exception e)
                 {
-                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                    scope?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddException(e);
                     throw;
                 }
