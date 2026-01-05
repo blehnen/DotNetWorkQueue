@@ -74,17 +74,17 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                     var outputMessage = _handler.Send(messageToSend, data);
                     if (outputMessage.HasError)
                     {
-                        scope?.SetStatus(Status.Error);
+                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
                         if (outputMessage.SendingException != null)
-                            scope?.RecordException(outputMessage.SendingException);
+                            scope?.AddException(outputMessage.SendingException);
                     }
                     scope?.AddMessageIdTag(outputMessage.SentMessage.MessageId);
                     return outputMessage;
                 }
                 catch (Exception e)
                 {
-                    scope?.SetStatus(Status.Error);
-                    scope?.RecordException(e);
+                    scope?.AddException(e);
+                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
                     throw;
                 }
             }
@@ -132,17 +132,17 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                     var outputMessage = await _handler.SendAsync(messageToSend, data);
                     if (outputMessage.HasError)
                     {
-                        scope?.SetStatus(Status.Error);
+                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
                         if (outputMessage.SendingException != null)
-                            scope?.RecordException(outputMessage.SendingException);
+                            scope?.AddException(outputMessage.SendingException);
                     }
                     scope?.AddMessageIdTag(outputMessage.SentMessage.MessageId);
                     return outputMessage;
                 }
                 catch (Exception e)
                 {
-                    scope?.SetStatus(Status.Error);
-                    scope?.RecordException(e);
+                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                    scope?.AddException(e);
                     throw;
                 }
             }

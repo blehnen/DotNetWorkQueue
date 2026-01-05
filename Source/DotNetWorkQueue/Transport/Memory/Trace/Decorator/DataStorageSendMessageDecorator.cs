@@ -17,12 +17,13 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Trace;
+using OpenTelemetry.Trace;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Logging;
-using DotNetWorkQueue.Trace;
-using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
 {
@@ -62,14 +63,14 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
                 {
                     var id = _handler.SendMessage(messageToSend, data);
                     if (id == Guid.Empty)
-                        scope?.SetStatus(Status.Error); ;
+                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddMessageIdTag(id.ToString());
                     return id;
                 }
                 catch (Exception e)
                 {
-                    scope?.SetStatus(Status.Error); ;
-                    scope?.RecordException(e);
+                    scope?.AddException(e);
+                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
                     throw;
                 }
             }
@@ -87,14 +88,14 @@ namespace DotNetWorkQueue.Transport.Memory.Trace.Decorator
                 {
                     var id = await _handler.SendMessageAsync(messageToSend, data).ConfigureAwait(false);
                     if (id == Guid.Empty)
-                        scope?.SetStatus(Status.Error); ;
+                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddMessageIdTag(id.ToString());
                     return id;
                 }
                 catch (Exception e)
                 {
-                    scope?.SetStatus(Status.Error); ;
-                    scope?.RecordException(e);
+                    scope?.AddException(e);
+                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
                     throw;
                 }
             }

@@ -69,14 +69,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Trace.Decorator
                 {
                     var id = await _handler.HandleAsync(command);
                     if (id == 0)
-                        scope?.SetStatus(Status.Error);
+                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddMessageIdTag(id);
                     return id;
                 }
                 catch (Exception e)
                 {
-                    scope?.SetStatus(Status.Error);
-                    scope?.RecordException(e);
+                    scope?.AddException(e);
+                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
                     throw;
                 }
             }

@@ -17,9 +17,10 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
-using System.Diagnostics;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Messages;
 using OpenTelemetry.Trace;
+using System.Diagnostics;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -59,8 +60,8 @@ namespace DotNetWorkQueue.Trace.Decorator
                 using (var scope = _tracer.StartActivity("PoisonMessage", ActivityKind.Internal, activityContext))
                 {
                     scope?.AddMessageIdTag(context);
-                    scope?.RecordException(exception);
-                    scope?.SetStatus(Status.Error);
+                    scope?.AddException(exception);
+                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
                     _handler.Handle(context, exception);
                 }
             }
@@ -69,7 +70,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                 using (var scope = _tracer.StartActivity("PoisonMessage"))
                 {
                     scope?.AddMessageIdTag(context);
-                    scope?.RecordException(exception);
+                    scope?.AddException(exception);
                     _handler.Handle(context, exception);
                 }
             }

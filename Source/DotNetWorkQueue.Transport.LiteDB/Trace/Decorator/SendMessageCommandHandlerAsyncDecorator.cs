@@ -16,15 +16,16 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Trace;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Trace;
 using OpenTelemetry.Trace;
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Trace.Decorator
 {
@@ -66,14 +67,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Trace.Decorator
                 {
                     var id = await _handler.HandleAsync(command);
                     if (id == 0)
-                        scope?.SetStatus(Status.Error);
+                        Activity.Current?.SetStatus(ActivityStatusCode.Error);
+                 
                     scope?.AddMessageIdTag(id);
                     return id;
                 }
                 catch (Exception e)
                 {
-                    scope?.SetStatus(Status.Error);
-                    scope?.RecordException(e);
+                    scope?.AddException(e);
+                    Activity.Current?.SetStatus(ActivityStatusCode.Error);
                     throw;
                 }
             }

@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                                 try
                                 {
                                     scope?.SetTag("RetryTime", timeSpan.ToString());
-                                    scope?.RecordException(exception);
+                                    scope?.AddException(exception);
                                 }
                                 finally
                                 {
@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                                 try
                                 {
                                     scope?.SetTag("RetryTime", timeSpan.ToString());
-                                    scope?.RecordException(exception);
+                                    scope?.AddException(exception);
                                 }
                                 finally
                                 {

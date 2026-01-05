@@ -51,8 +51,8 @@ namespace DotNetWorkQueue.Trace.Decorator
             using (var scope = _tracer.StartActivity("Error", ActivityKind.Internal, parentContext: activityContext))
             {
                 scope?.AddMessageIdTag(message);
-                scope?.RecordException(exception);
-                scope?.SetStatus(Status.Error); ;
+                scope?.AddException(exception);
+                Activity.Current?.SetStatus(ActivityStatusCode.Error);
                 var result = _handler.MessageFailedProcessing(message, context, exception);
                 scope?.SetTag("WillRetry", result == ReceiveMessagesErrorResult.Retry);
                 return result;
