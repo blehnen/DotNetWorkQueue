@@ -6,7 +6,7 @@ DotNetWorkQueue
 [![Coverity status](https://scan.coverity.com/projects/10126/badge.svg)](https://scan.coverity.com/projects/blehnen-dotnetworkqueue)
 [![codecov](https://codecov.io/gh/blehnen/DotNetWorkQueue/branch/master/graph/badge.svg?token=E23UZ6U9CU)](https://codecov.io/gh/blehnen/DotNetWorkQueue)
 
-A producer / distributed consumer library for dot net applications. Dot net 4.6.2, 4.7.2, 4.8, 6.0, 8.0 and Dot net standard 2.0 are supported
+A producer / distributed consumer library for dot net applications. Dot net 4.8, 8.0, 10.0 and Dot net standard 2.0 are supported
 
 High level features
 
@@ -183,7 +183,7 @@ All references are either in NuGet or the \lib folder - building from Visual stu
 
 License
 --------
-Copyright � 2015-2024 Brian Lehnen
+Copyright � 2015-2026 Brian Lehnen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -277,5 +277,8 @@ This library uses multiple 3rd party libaries, listed below.
 ##### Developed with:
 
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/ReSharper_icon.png" width="48">
+
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotCover_icon.png" width="48">
+
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/dotTrace_icon.png" width="48">
+

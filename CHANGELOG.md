@@ -1,3 +1,7 @@
+###0.7.8 
+* Add dot net 10 as target
+* Remove frameworks that are out of support
+
 ###0.7.6 2024-02-02
 * Remove connection objects from DataStore when queue is complete
 
