@@ -1,4 +1,4 @@
-###0.8.0 
+###0.8.0  2026-01-05
 * Add dot net 10 as target
 * Remove frameworks that are out of support
 * **Breaking Change** Sql client has been changed from System.Data.SqlClient to Microsoft.Data.Sqlclient; This may affect your SQL server connection strings if your using the SQL Server transport
