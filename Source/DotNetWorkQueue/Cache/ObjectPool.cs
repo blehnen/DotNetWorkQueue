@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Cache
@@ -86,26 +87,20 @@ namespace DotNetWorkQueue.Cache
         }
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            while (_objects.TryTake(out var value))
             {
-                if (disposing)
-                {
-                    _objects.TryTake(out var value);
-                    while (value != null)
-                    {
-                        var disposable = value as IDisposable;
-                        disposable?.Dispose();
-                        _objects.TryTake(out value);
-                    }
-                }
-                _disposedValue = true;
+                var disposable = value as IDisposable;
+                disposable?.Dispose();
             }
         }
 
@@ -114,8 +109,8 @@ namespace DotNetWorkQueue.Cache
         /// </summary>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

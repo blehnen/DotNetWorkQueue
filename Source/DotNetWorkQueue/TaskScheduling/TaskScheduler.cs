@@ -311,11 +311,8 @@ namespace DotNetWorkQueue.TaskScheduling
             ThrowIfDisposed();
 
             var group = new WorkGroup(name, concurrencyLevel);
-            if (_groups.ContainsKey(group)) return _groups[group].GroupInfo;
-
-            var groupWithItem = new WorkGroupWithItem(group, _metrics.Counter(
-                $"work group {name}", Units.Items));
-            _groups.TryAdd(group, groupWithItem);
+            var groupWithItem = _groups.GetOrAdd(group, _ => new WorkGroupWithItem(group, _metrics.Counter(
+                $"work group {name}", Units.Items)));
             return groupWithItem.GroupInfo;
         }
 

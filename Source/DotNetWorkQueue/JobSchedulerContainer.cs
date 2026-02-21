@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.JobScheduler;
 using DotNetWorkQueue.Validation;
@@ -83,9 +84,12 @@ namespace DotNetWorkQueue
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        private int _disposeCount;
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
             while (!_containers.IsEmpty)
             {

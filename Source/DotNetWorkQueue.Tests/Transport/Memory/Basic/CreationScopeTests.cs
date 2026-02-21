@@ -50,8 +50,8 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             scope.AddScopedObject(dispose3);
             scope.Dispose();
 
-            Assert.Null(scope.ContainedClears);
-            Assert.Null(scope.ContainedDisposables);
+            Assert.Empty(scope.ContainedClears);
+            Assert.Empty(scope.ContainedDisposables);
 
             clear.Received().Clear();
             clear2.Received().Clear();

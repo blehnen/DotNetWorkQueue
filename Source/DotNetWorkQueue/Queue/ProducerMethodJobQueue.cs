@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
@@ -33,7 +34,7 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly ISendJobToQueue _sendJobToQueue;
         private readonly IJobTableCreation _createJobQueue;
-        private bool _started;
+        private int _started;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProducerMethodJobQueue" /> class.
@@ -65,7 +66,7 @@ namespace DotNetWorkQueue.Queue
             {
                 _createJobQueue.CreateJobTable();
             }
-            _started = true;
+            Interlocked.Exchange(ref _started, 1);
         }
         /// <inheritdoc />
         public IJobSchedulerLastKnownEvent LastKnownEvent { get; }
@@ -77,7 +78,7 @@ namespace DotNetWorkQueue.Queue
         /// <inheritdoc />
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression)
         {
-            if(!_started) throw new DotNetWorkQueueException("Start must be called before sending jobs");
+            if(Interlocked.CompareExchange(ref _started, 0, 0) == 0) throw new DotNetWorkQueueException("Start must be called before sending jobs");
             return await _sendJobToQueue.SendAsync(job, scheduledTime, linqExpression).ConfigureAwait(false);
         }
 #endif
@@ -86,7 +87,7 @@ namespace DotNetWorkQueue.Queue
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method,
             bool rawExpression = false)
         {
-            if (!_started) throw new DotNetWorkQueueException("Start must be called before sending jobs");
+            if (Interlocked.CompareExchange(ref _started, 0, 0) == 0) throw new DotNetWorkQueueException("Start must be called before sending jobs");
             return await _sendJobToQueue.SendAsync(job, scheduledTime, method, rawExpression).ConfigureAwait(false);
         }
 
@@ -94,7 +95,7 @@ namespace DotNetWorkQueue.Queue
         public QueueProducerConfiguration Configuration => _sendJobToQueue.Configuration;
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
 
         /// <summary>
         /// Gets a value indicating whether this instance is disposed.
@@ -110,14 +111,10 @@ namespace DotNetWorkQueue.Queue
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    _sendJobToQueue.Dispose();
-                }
-                _disposedValue = true;
-            }
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            _sendJobToQueue.Dispose();
         }
 
         /// <summary>
@@ -125,8 +122,8 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
 

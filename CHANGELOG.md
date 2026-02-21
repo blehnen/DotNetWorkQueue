@@ -1,3 +1,6 @@
+###0.8.1  ???-??-??
+* Use Claude code to find and fix various long-standing race conditions
+
 ###0.8.0  2026-01-05
 * Add dot net 10 as target
 * Remove frameworks that are out of support

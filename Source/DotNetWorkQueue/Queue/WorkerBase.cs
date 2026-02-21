@@ -105,7 +105,10 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         public virtual void Dispose()
         {
-            Interlocked.Increment(ref _disposeCount);
+            if (Interlocked.Increment(ref _disposeCount) == 1)
+            {
+                GC.SuppressFinalize(this);
+            }
         }
 
         /// <summary>

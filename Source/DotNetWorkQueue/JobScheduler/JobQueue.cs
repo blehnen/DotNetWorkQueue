@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
@@ -54,7 +55,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <value>
         /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
         /// </value>
-        public bool IsDisposed => _disposedValue;
+        public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
 
         /// <summary>
         /// Gets the specified queue.
@@ -70,22 +71,15 @@ namespace DotNetWorkQueue.JobScheduler
             where TQueue : class, IJobQueueCreation
         {
             var connectionInfo = new BaseConnectionInformation(queueConnection);
-            if (_queues.ContainsKey(connectionInfo))
+            if (_queues.TryGetValue(connectionInfo, out var existing))
             {
-                return _queues[connectionInfo];
+                return existing;
             }
 
             var transportName = typeof(TTransportInit).ToString();
-            if (!_containers.ContainsKey(transportName))
-            {
-                var container = new QueueContainer<TTransportInit>(_registrations.QueueRegistrations, _registrations.QueueOptions);
-                if (!_containers.TryAdd(transportName, container))
-                {
-                    container.Dispose();
-                }
-            }
+            _containers.GetOrAdd(transportName, _ => new QueueContainer<TTransportInit>(_registrations.QueueRegistrations, _registrations.QueueOptions));
 
-            if (!_queues.ContainsKey(connectionInfo))
+            if (!_queues.TryGetValue(connectionInfo, out _))
             {
                 using (var jobQueueCreation =
                     new JobQueueCreationContainer<TTransportInit>(_registrations.QueueCreationRegistrations, _registrations.QueueCreationOptions))
@@ -133,22 +127,15 @@ namespace DotNetWorkQueue.JobScheduler
            where TTransportInit : ITransportInit, new()
         {
             var connectionInfo = new BaseConnectionInformation(queueConnection);
-            if (_queues.ContainsKey(connectionInfo))
+            if (_queues.TryGetValue(connectionInfo, out var existing))
             {
-                return _queues[connectionInfo];
+                return existing;
             }
 
             var transportName = typeof(TTransportInit).ToString();
-            if (!_containers.ContainsKey(transportName))
-            {
-                var container = new QueueContainer<TTransportInit>(_registrations.QueueRegistrations, _registrations.QueueOptions);
-                if (!_containers.TryAdd(transportName, container))
-                {
-                    container.Dispose();
-                }
-            }
+            _containers.GetOrAdd(transportName, _ => new QueueContainer<TTransportInit>(_registrations.QueueRegistrations, _registrations.QueueOptions));
 
-            if (!_queues.ContainsKey(connectionInfo))
+            if (!_queues.TryGetValue(connectionInfo, out _))
             {
                 var createResult = jobQueueCreation.CreateJobSchedulerQueue(_registrations.QueueCreationRegistrations,
                     queueConnection, _registrations.QueueCreationOptions);
@@ -178,35 +165,31 @@ namespace DotNetWorkQueue.JobScheduler
         }
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            foreach (var queue in _queues.Values)
             {
-                if (disposing)
-                {
-                    foreach (var queue in _queues.Values)
-                    {
-                        queue.Dispose();
-                    }
-                    foreach (var scope in _creationScopes.Values)
-                    {
-                        scope.Dispose();
-                    }
-                    foreach (var container in _containers.Values)
-                    {
-                        container.Dispose();
-                    }
-                    _queues.Clear();
-                    _creationScopes.Clear();
-                    _containers.Clear();
-                }
-                _disposedValue = true;
+                queue.Dispose();
             }
+            foreach (var scope in _creationScopes.Values)
+            {
+                scope.Dispose();
+            }
+            foreach (var container in _containers.Values)
+            {
+                container.Dispose();
+            }
+            _queues.Clear();
+            _creationScopes.Clear();
+            _containers.Clear();
         }
 
         /// <summary>
@@ -214,8 +197,8 @@ namespace DotNetWorkQueue.JobScheduler
         /// </summary>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

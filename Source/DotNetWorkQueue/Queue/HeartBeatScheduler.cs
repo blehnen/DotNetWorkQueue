@@ -24,6 +24,7 @@ using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq.Expressions;
+using System.Threading;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -39,9 +40,10 @@ namespace DotNetWorkQueue.Queue
         private ATaskScheduler _consumerScheduler;
         private ITaskFactory _taskFactory;
         private QueueContainer<MemoryMessageQueueInit> _queueContainer;
-        private IConsumerMethodQueueScheduler _consumer;
+        private volatile IConsumerMethodQueueScheduler _consumer;
+        private int _disposeCount;
 
-        private const string QueueName = "HeartBeatWorkers";
+        private readonly string _queueName = $"HeartBeatWorkers-{Guid.NewGuid()}";
         private const string Connection = "Memory";
 
         private readonly object _startup = new object();
@@ -76,7 +78,7 @@ namespace DotNetWorkQueue.Queue
             if (_consumer == null)
                 CreateScheduler();
 
-            return _scheduler.AddUpdateJob<MemoryMessageQueueInit, JobQueueCreation>(jobName, new QueueConnection(QueueName, Connection), schedule, job, null, null, true, default, true);
+            return _scheduler.AddUpdateJob<MemoryMessageQueueInit, JobQueueCreation>(jobName, new QueueConnection(_queueName, Connection), schedule, job, null, null, true, default, true);
         }
 
         /// <inheritdoc />
@@ -88,8 +90,12 @@ namespace DotNetWorkQueue.Queue
         /// <inheritdoc />
         public void Dispose()
         {
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            GC.SuppressFinalize(this);
             _consumer?.Dispose();
             _queueContainer?.Dispose();
+            _taskFactory?.Scheduler?.Dispose();
             _consumerScheduler?.Dispose();
             _consumerContainer?.Dispose();
 
@@ -111,14 +117,12 @@ namespace DotNetWorkQueue.Queue
                 _consumerContainer = new SchedulerContainer(container => container.Register(() => _log, LifeStyles.Singleton));
                 _consumerScheduler = _consumerContainer.CreateTaskScheduler();
                 _taskFactory = _consumerContainer.CreateTaskFactory(_consumerScheduler);
-
-                _taskFactory = _consumerContainer.CreateTaskFactory(_consumerScheduler);
                 _taskFactory.Scheduler.Configuration.MaximumThreads = _configuration.ThreadsMax;
                 _taskFactory.Scheduler.Configuration.WaitForThreadPoolToFinish =
                     _configuration.WaitForThreadPoolToFinish;
                 _taskFactory.Scheduler.Start();
                 _queueContainer = new QueueContainer<MemoryMessageQueueInit>(container => container.Register(() => _log, LifeStyles.Singleton));
-                _consumer = _queueContainer.CreateConsumerMethodQueueScheduler(new QueueConnection(QueueName, Connection),
+                _consumer = _queueContainer.CreateConsumerMethodQueueScheduler(new QueueConnection(_queueName, Connection),
                     _taskFactory);
                 var notifications = new ConsumerQueueNotifications(OnError, OnReceiveMessageError,
                     OnMessageMovedToErrorQueue, OnPoisonMessage, OnMessageRollBack, OnMessageCompleted);

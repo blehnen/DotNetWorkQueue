@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading;
 using DotNetWorkQueue.IoC;
 using SimpleInjector;
 
@@ -30,6 +31,7 @@ namespace DotNetWorkQueue.Factory
     internal class ContainerFactory : IContainerFactory, IDisposable
     {
         private ContainerWrapper _containerWrapper;
+        private int _disposeCount;
         /// <summary>
         /// Initializes a new instance of the <see cref="ContainerFactory"/> class.
         /// </summary>
@@ -52,8 +54,10 @@ namespace DotNetWorkQueue.Factory
         /// </summary>
         public void Dispose()
         {
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            GC.SuppressFinalize(this);
             _containerWrapper.Dispose();
-            _containerWrapper = null;
         }
     }
 }

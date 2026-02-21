@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -25,6 +26,7 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     public class HeartBeatWorkerNoOp : IHeartBeatWorker, INoOperation
     {
+        private int _disposeCount;
         /// <summary>
         /// Initializes a new instance of the <see cref="HeartBeatWorkerNoOp"/> class.
         /// </summary>
@@ -67,10 +69,8 @@ namespace DotNetWorkQueue.Queue
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                IsDisposed = true;
-            }
+            if (!disposing) return;
+            Interlocked.Increment(ref _disposeCount);
         }
 
         /// <summary>
@@ -79,6 +79,6 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
         /// </value>
-        public bool IsDisposed { get; private set; }
+        public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
     }
 }

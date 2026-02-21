@@ -86,18 +86,12 @@ namespace DotNetWorkQueue.Queue
                 {
                     throw new DotNetWorkQueueException("Start must only be called once");
                 }
-            }
 
-            _log.LogDebug($"Initializing with {_workerConfiguration.WorkerCount} workers");
-            CreateWorkers();
+                _log.LogDebug($"Initializing with {_workerConfiguration.WorkerCount} workers");
+                CreateWorkers();
 
-            lock (_workerLock)
-            {
                 if (_workers == null || _workers.Count <= 0) return;
-            }
 
-            lock (_workerLock)
-            {
                 _workers.AsParallel().ForAll(w => w.Start());
             }
         }
@@ -179,20 +173,17 @@ namespace DotNetWorkQueue.Queue
 
             //this collection contains all workers except the primary worker
             var workerCount = _workerConfiguration.WorkerCount - 1;
-            lock (_workerLock)
+            if (workerCount > 0)
             {
-                if (workerCount > 0)
+                _workers = new List<IWorker>(workerCount);
+                while (_workers.Count < workerCount)
                 {
-                    _workers = new List<IWorker>(workerCount);
-                    while (_workers.Count < workerCount)
-                    {
-                        AddWorker();
-                    }
+                    AddWorker();
                 }
-                else
-                {
-                    _workers = new List<IWorker>(0);
-                }
+            }
+            else
+            {
+                _workers = new List<IWorker>(0);
             }
         }
 

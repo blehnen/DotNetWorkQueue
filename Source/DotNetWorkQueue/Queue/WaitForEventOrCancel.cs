@@ -103,6 +103,7 @@ namespace DotNetWorkQueue.Queue
         {
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
+            GC.SuppressFinalize(this);
             _resetEvent.Dispose();
             _cancellationTokenSource.Dispose();
         }
