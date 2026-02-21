@@ -61,12 +61,7 @@ namespace DotNetWorkQueue.TaskScheduling
                 return _waitForEvent.Value.Wait();
             }
 
-            if (!_waitForEventForGroups.ContainsKey(group))
-            {
-                //kind of weird to get to this spot, but lets add a group anyway
-                TryAdd(group);
-            }
-            return _waitForEventForGroups[group].Wait();
+            return GetOrAddGroup(group).Wait();
         }
 
         /// <summary>
@@ -83,11 +78,7 @@ namespace DotNetWorkQueue.TaskScheduling
             }
             else
             {
-                if (!_waitForEventForGroups.ContainsKey(group))
-                {
-                    TryAdd(group);
-                }
-                _waitForEventForGroups[group].Reset();
+                GetOrAddGroup(group).Reset();
             }
         }
 
@@ -106,11 +97,7 @@ namespace DotNetWorkQueue.TaskScheduling
             else
             {
                 Guard.NotNull(() => group, group);
-                if (!_waitForEventForGroups.ContainsKey(group))
-                {
-                    TryAdd(group);
-                }
-                _waitForEventForGroups[group].Set();
+                GetOrAddGroup(group).Set();
             }
         }
 
@@ -145,6 +132,7 @@ namespace DotNetWorkQueue.TaskScheduling
         {
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
+            GC.SuppressFinalize(this);
             if (_waitForEvent.IsValueCreated)
             {
                 _waitForEvent.Value.Dispose();
@@ -164,18 +152,26 @@ namespace DotNetWorkQueue.TaskScheduling
         #endregion
 
         /// <summary>
-        /// Tries to add a new work group to the collection
+        /// Gets an existing wait event for a group, or creates and adds one atomically.
         /// </summary>
-        /// <remarks>Will gracefully handle another thread adding the group</remarks>
         /// <param name="group">The group.</param>
-        private void TryAdd(IWorkGroup group)
+        /// <returns>The wait event for this group.</returns>
+        private IWaitForEventOrCancel GetOrAddGroup(IWorkGroup group)
         {
-            var newWaitEvent = _waitForEventOrCancelFactory.Create();
-            if (!_waitForEventForGroups.TryAdd(group, newWaitEvent))
+            if (_waitForEventForGroups.TryGetValue(group, out var existing))
             {
-                //already added by another thread, nuke the one we just created
-                newWaitEvent.Dispose();
+                return existing;
             }
+
+            var newWaitEvent = _waitForEventOrCancelFactory.Create();
+            if (_waitForEventForGroups.TryAdd(group, newWaitEvent))
+            {
+                return newWaitEvent;
+            }
+
+            //already added by another thread, nuke the one we just created
+            newWaitEvent.Dispose();
+            return _waitForEventForGroups[group];
         }
     }
 }

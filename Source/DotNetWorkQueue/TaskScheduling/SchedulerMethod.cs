@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
+using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
@@ -75,22 +77,18 @@ namespace DotNetWorkQueue.TaskScheduling
         public bool IsDisposed => _queue.IsDisposed;
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    _queue.Dispose();
-                    _messageMethodHandling.Dispose();
-                }
-                _disposedValue = true;
-            }
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            _queue.Dispose();
+            _messageMethodHandling.Dispose();
         }
 
         /// <summary>
@@ -98,8 +96,8 @@ namespace DotNetWorkQueue.TaskScheduling
         /// </summary>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

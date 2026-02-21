@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -28,8 +29,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     /// <seealso cref="DotNetWorkQueue.ICreationScope" />
     public class CreationScope : ICreationScope
     {
-        private ConcurrentBag<IDisposable> _disposables;
-        private ConcurrentBag<IClear> _clears;
+        private readonly ConcurrentBag<IDisposable> _disposables = new ConcurrentBag<IDisposable>();
+        private readonly ConcurrentBag<IClear> _clears = new ConcurrentBag<IClear>();
 
         /// <summary>
         /// Adds the scoped Disposable object to the scope.
@@ -38,9 +39,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="disposable">The disposable.</param>
         public void AddScopedObject(IDisposable disposable)
         {
-            if (_disposables == null)
-                _disposables = new ConcurrentBag<IDisposable>();
-
             _disposables.Add(disposable);
         }
 
@@ -50,9 +48,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="input">The input.</param>
         public void AddScopedObject(IClear input)
         {
-            if (_clears == null)
-                _clears = new ConcurrentBag<IClear>();
-
             _clears.Add(input);
         }
 
@@ -60,9 +55,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public T GetDisposable<T>()
             where T : class, IDisposable
         {
-            if (_disposables == null)
-                return null;
-
             return _disposables.Where(item => item.GetType() == typeof(T)).Cast<T>().FirstOrDefault();
         }
 
@@ -83,7 +75,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public ConcurrentBag<IClear> ContainedClears => _clears;
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
 
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
@@ -91,29 +83,18 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposedValue) return;
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            if (disposing)
+            while (_clears.TryTake(out var clear))
             {
-                if (_clears != null)
-                {
-                    foreach (var obj in _clears)
-                    {
-                        obj.Clear();
-                    }
-                    _clears = null;
-                }
-
-                if (_disposables != null)
-                {
-                    foreach (var obj in _disposables)
-                    {
-                        obj.Dispose();
-                    }
-                    _disposables = null;
-                }
+                clear.Clear();
             }
-            _disposedValue = true;
+
+            while (_disposables.TryTake(out var disposable))
+            {
+                disposable.Dispose();
+            }
         }
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
@@ -121,6 +102,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

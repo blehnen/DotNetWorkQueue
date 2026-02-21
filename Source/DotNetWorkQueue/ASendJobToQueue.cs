@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
@@ -183,21 +184,17 @@ namespace DotNetWorkQueue
         }
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    Queue.Dispose();
-                }
-                _disposedValue = true;
-            }
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            Queue.Dispose();
         }
 
         /// <summary>
@@ -205,8 +202,8 @@ namespace DotNetWorkQueue
         /// </summary>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

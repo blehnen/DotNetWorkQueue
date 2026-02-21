@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.JobScheduler
         public string Name { get; }
         public IJobSchedule Schedule { get; private set; }
         public bool IsScheduleRunning { get; internal set; }
-        public bool IsCallbackExecuting => _execLocked == 1;
+        public bool IsCallbackExecuting => Interlocked.CompareExchange(ref _execLocked, 0, 0) == 1;
         public bool IsAttached { get; set; }
         public TimeSpan Window { get; set; }
         public DateTimeOffset NextEvent { get; private set; }
@@ -243,7 +243,7 @@ namespace DotNetWorkQueue.JobScheduler
             finally
             {
                 if (execLockTaken)
-                    _execLocked = 0; // release exec lock
+                    Interlocked.Exchange(ref _execLocked, 0); // release exec lock
             }
 
             // figure out the next time to run the schedule

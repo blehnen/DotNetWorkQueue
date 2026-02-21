@@ -106,7 +106,10 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         public void Dispose()
         {
-            Interlocked.Increment(ref _disposeCount);
+            if (Interlocked.Increment(ref _disposeCount) == 1)
+            {
+                GC.SuppressFinalize(this);
+            }
         }
         /// <summary>
         /// Gets a value indicating whether this instance is disposed.

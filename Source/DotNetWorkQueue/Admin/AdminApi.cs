@@ -75,9 +75,9 @@ namespace DotNetWorkQueue.Admin
         #region Create function per connection/queue
         private IAdminFunctions ObtainFunctions(Guid id)
         {
-            if (_queueFunctions.ContainsKey(id))
+            if (_queueFunctions.TryGetValue(id, out var existingFunctions))
             {
-                return _queueFunctions[id];
+                return existingFunctions;
             }
 
             if (_queueConnections.TryGetValue(id, out var data))

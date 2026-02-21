@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Queue
         private bool _running;
         private int _disposeCount;
         private bool _stopped;
-        private volatile bool _started;
+        private int _started;
         private readonly object _runningLocker = new object();
 
         private readonly IHeartBeatScheduler _scheduler;
@@ -96,11 +96,10 @@ namespace DotNetWorkQueue.Queue
         {
             ThrowIfDisposed();
 
-            if (_started)
+            if (Interlocked.CompareExchange(ref _started, 1, 0) != 0)
             {
                 throw new DotNetWorkQueueException("Start must only be called 1 time");
             }
-            _started = true;
 
             lock (_runningLocker)
             {

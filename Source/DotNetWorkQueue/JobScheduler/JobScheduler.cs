@@ -39,8 +39,10 @@ namespace DotNetWorkQueue.JobScheduler
         private readonly object _lockHeap = new object();
         private readonly PendingEventHeap _eventHeap = new PendingEventHeap();
 
+        private int _shuttingDown;
+
         /// <inheritdoc />
-        public bool IsShuttingDown { get; private set; }
+        public bool IsShuttingDown => Interlocked.CompareExchange(ref _shuttingDown, 0, 0) != 0;
 
         /// <summary>
         /// Occurs when a job has thrown an exception when being added to the execution queue.
@@ -470,52 +472,48 @@ namespace DotNetWorkQueue.JobScheduler
         /// <value>
         /// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
         /// </value>
-        public bool IsDisposed => _disposedValue;
+        public bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            IScheduledJob[] tasks;
+            lock (_lockTasks)
             {
-                if (disposing)
+                Interlocked.Exchange(ref _shuttingDown, 1);
+                tasks = GetAllJobs().ToArray();
+            }
+
+            foreach (var t in tasks)
+            {
+                t.IsAttached = false; // prevent anyone from calling start on the task again
+                t.StopSchedule();
+            }
+
+            while (true)
+            {
+                var allStopped = true;
+                foreach (var t in tasks)
                 {
-                    IScheduledJob[] tasks;
-                    lock (_lockTasks)
+                    if (t.IsCallbackExecuting)
                     {
-                        IsShuttingDown = true;
-                        tasks = GetAllJobs().ToArray();
-                    }
-
-                    foreach (var t in tasks)
-                    {
-                        t.IsAttached = false; // prevent anyone from calling start on the task again
-                        t.StopSchedule();
-                    }
-
-                    while (true)
-                    {
-                        var allStopped = true;
-                        foreach (var t in tasks)
-                        {
-                            if (t.IsCallbackExecuting)
-                            {
-                                allStopped = false;
-                                break;
-                            }
-                        }
-
-                        if (allStopped)
-                            return;
-
-                        Thread.Sleep(10); // wait 10 milliseconds, then check again
+                        allStopped = false;
+                        break;
                     }
                 }
-                _disposedValue = true;
+
+                if (allStopped)
+                    return;
+
+                Thread.Sleep(10); // wait 10 milliseconds, then check again
             }
         }
 
@@ -524,8 +522,8 @@ namespace DotNetWorkQueue.JobScheduler
         /// </summary>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

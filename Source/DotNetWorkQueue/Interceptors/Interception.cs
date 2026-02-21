@@ -91,10 +91,7 @@ namespace DotNetWorkQueue.Interceptors
             {
                 return interceptor;
             }
-            if (_createdInterceptors.ContainsKey(type)) return _createdInterceptors[type];
-            var newInterceptor = _interceptorFactory.Create(type);
-            _createdInterceptors.TryAdd(type, newInterceptor);
-            return _createdInterceptors[type];
+            return _createdInterceptors.GetOrAdd(type, t => _interceptorFactory.Create(t));
         }
     }
 }

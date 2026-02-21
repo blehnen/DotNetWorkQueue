@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -55,21 +56,15 @@ namespace DotNetWorkQueue.Queue
         }
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-
-                }
-                _disposedValue = true;
-            }
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
         }
 
         /// <summary>
@@ -78,6 +73,7 @@ namespace DotNetWorkQueue.Queue
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

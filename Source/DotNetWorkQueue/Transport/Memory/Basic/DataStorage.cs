@@ -88,35 +88,12 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             _cancelToken = cancelToken;
             _lock = new ReaderWriterLockSlim();
 
-            if (!Queues.ContainsKey(_connectionInformation))
-            {
-                Queues.TryAdd(_connectionInformation, new BlockingCollection<Guid>());
-            }
-
-            if (!QueueData.ContainsKey(_connectionInformation))
-            {
-                QueueData.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
-            }
-
-            if (!ErrorCounts.ContainsKey(_connectionInformation))
-            {
-                ErrorCounts.TryAdd(_connectionInformation, new IncrementWrapper());
-            }
-
-            if (!DequeueCounts.ContainsKey(_connectionInformation))
-            {
-                DequeueCounts.TryAdd(_connectionInformation, new IncrementWrapper());
-            }
-
-            if (!Jobs.ContainsKey(_connectionInformation))
-            {
-                Jobs.TryAdd(_connectionInformation, new ConcurrentDictionary<string, Guid>());
-            }
-
-            if (!QueueWorking.ContainsKey(_connectionInformation))
-            {
-                QueueWorking.TryAdd(_connectionInformation, new ConcurrentDictionary<Guid, QueueItem>());
-            }
+            Queues.GetOrAdd(_connectionInformation, _ => new BlockingCollection<Guid>());
+            QueueData.GetOrAdd(_connectionInformation, _ => new ConcurrentDictionary<Guid, QueueItem>());
+            ErrorCounts.GetOrAdd(_connectionInformation, _ => new IncrementWrapper());
+            DequeueCounts.GetOrAdd(_connectionInformation, _ => new IncrementWrapper());
+            Jobs.GetOrAdd(_connectionInformation, _ => new ConcurrentDictionary<string, Guid>());
+            QueueWorking.GetOrAdd(_connectionInformation, _ => new ConcurrentDictionary<Guid, QueueItem>());
         }
 
         /// <summary>
@@ -721,6 +698,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public void Clear()
         {
+            if (Cleared) return;
+
             Complete = true;
 
             if (Queues.TryGetValue(_connectionInformation, out var value))
@@ -804,12 +783,18 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
         }
 
-        /// <inheritdoc />
+        private int _disposeCount;
 
+        /// <inheritdoc />
         public void Dispose()
         {
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            GC.SuppressFinalize(this);
             if (Cleared)
+            {
                 _lock?.Dispose();
+            }
         }
     }
 }

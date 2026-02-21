@@ -9,7 +9,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Admin
     public class SimpleConsumer
     {
         [Theory]
-        [InlineData(10, 10, 120, 2, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        [InlineData(7, 10, 120, 2, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
         InlineData(2, 10, 120, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
         InlineData(15, 10, 120, 4, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)

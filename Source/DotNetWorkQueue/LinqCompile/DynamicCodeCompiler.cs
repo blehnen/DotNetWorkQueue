@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Linq;
+using System.Threading;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using JpLabs.DynamicCode;
@@ -65,27 +66,25 @@ namespace DotNetWorkQueue.LinqCompile
         }
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected void Dispose(bool disposing)
         {
-            if (_disposedValue) return;
-            if (disposing)
-            {
-                _compiler.Dispose();
-            }
-            _disposedValue = true;
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            _compiler.Dispose();
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

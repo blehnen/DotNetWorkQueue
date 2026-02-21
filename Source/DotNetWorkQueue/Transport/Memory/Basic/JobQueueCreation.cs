@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
 using System;
+using System.Threading;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -64,7 +65,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         }
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
 
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
@@ -72,14 +73,10 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    _queueCreation.Dispose();
-                }
-                _disposedValue = true;
-            }
+            if (!disposing) return;
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            _queueCreation.Dispose();
         }
 
         /// <summary>
@@ -87,8 +84,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// </summary>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
 
