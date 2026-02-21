@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
@@ -23,6 +24,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
                 var localPath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
                 _fileName = localPath + "\\" + GenerateQueueName.CreateFileName();
                 ConnectionString = $"Data Source={_fileName};Version=3;";
+
+                using (var connection = new SQLiteConnection(ConnectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "PRAGMA journal_mode=WAL;";
+                        command.ExecuteNonQuery();
+                    }
+                }
             }
         }
         public string ConnectionString
