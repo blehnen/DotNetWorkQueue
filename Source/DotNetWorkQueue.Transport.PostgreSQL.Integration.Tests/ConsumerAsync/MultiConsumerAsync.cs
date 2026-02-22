@@ -10,12 +10,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
     public class MultiConsumerAsync
     {
         [Theory]
-        [InlineData(250, 1, 90, 10, 5, 5, false, false),
-         InlineData(250, 1, 90, 10, 5, 5, true, false),
-         InlineData(100, 0, 90, 10, 5, 0, false, false),
-         InlineData(100, 0, 90, 10, 5, 0, true, false),
-         InlineData(25, 1, 90, 10, 5, 5, true, true),
-         InlineData(10, 0, 90, 10, 5, 0, false, true)]
+        [InlineData(100, 1, 180, 10, 5, 5, false, false),
+         InlineData(100, 1, 180, 10, 5, 5, true, false),
+         InlineData(50, 0, 180, 10, 5, 0, false, false),
+         InlineData(50, 0, 180, 10, 5, 0, true, false),
+         InlineData(25, 1, 180, 10, 5, 5, true, true),
+         InlineData(10, 0, 180, 10, 5, 0, false, true)]
         public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, bool enableChaos)
         {

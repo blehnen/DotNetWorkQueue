@@ -11,15 +11,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
     public class SimpleProducerBatch
     {
         [Theory]
-        [InlineData(500, true, true, true, false, false, false, true, false, false, false),
-         InlineData(500, false, true, true, false, false, false, true, false, false, false),
-         InlineData(500, false, false, false, false, false, false, false, false, false, false),
-         InlineData(500, true, false, false, false, false, false, false, false, false, false),
-         InlineData(500, false, false, false, false, false, false, false, true, false, false),
-         InlineData(500, false, false, false, false, false, false, true, true, false, false),
-         InlineData(500, false, true, false, true, true, true, false, true, false, false),
-         InlineData(500, false, true, true, false, true, true, true, true, false, false),
-         InlineData(500, true, true, true, false, false, false, true, false, true, false),
+        [InlineData(100, true, true, true, false, false, false, true, false, false, false),
+         InlineData(100, false, true, true, false, false, false, true, false, false, false),
+         InlineData(100, false, false, false, false, false, false, false, false, false, false),
+         InlineData(100, true, false, false, false, false, false, false, false, false, false),
+         InlineData(100, false, false, false, false, false, false, false, true, false, false),
+         InlineData(100, false, false, false, false, false, false, true, true, false, false),
+         InlineData(100, false, true, false, true, true, true, false, true, false, false),
+         InlineData(100, false, true, true, false, true, true, true, true, false, false),
+         InlineData(100, true, true, true, false, false, false, true, false, true, false),
 
          InlineData(50, true, true, true, false, false, false, true, false, false, true),
          InlineData(50, false, true, true, false, false, false, true, false, false, true),

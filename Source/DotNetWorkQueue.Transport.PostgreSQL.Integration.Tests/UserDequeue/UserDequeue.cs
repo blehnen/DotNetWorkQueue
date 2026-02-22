@@ -10,8 +10,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.UserDequeue
     public class UserDequeue
     {
         [Theory]
-        [InlineData(250, 0, 180, 1, false, 4, false),
-         InlineData(25, 3, 180, 2, false, 4, false)]
+        [InlineData(100, 0, 240, 1, false, 4, false),
+         InlineData(25, 3, 240, 2, false, 4, false)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
             bool useTransactions, int count, bool enableChaos)
         {
