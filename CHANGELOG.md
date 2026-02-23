@@ -1,5 +1,6 @@
-###0.8.1  ???-??-??
+###0.8.1  2026-02-22
 * Use Claude code to find and fix various long-standing race conditions
+* Use Claude code to fix issue with multiple heartbeat schedulers that where inside the same process
 
 ###0.8.0  2026-01-05
 * Add dot net 10 as target

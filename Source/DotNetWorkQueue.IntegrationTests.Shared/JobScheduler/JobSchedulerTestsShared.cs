@@ -273,7 +273,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
         private void WaitForRollover(IGetTimeFactory timeFactory)
         {
             var getTime = timeFactory.Create();
-            while (getTime.GetCurrentUtcDate().Second != 55)
+            while (getTime.GetCurrentUtcDate().Second != 35)
             {
                 Thread.Sleep(100);
             }

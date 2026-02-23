@@ -71,6 +71,8 @@ namespace DotNetWorkQueue
         #endregion
 
         #region Dispose
+        private int _disposeCount;
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
@@ -79,13 +81,10 @@ namespace DotNetWorkQueue
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        private int _disposeCount;
-
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
