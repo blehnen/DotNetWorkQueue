@@ -268,12 +268,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
         private void WaitForEnQueue()
         {
-            Thread.Sleep(40000);
+            Thread.Sleep(25000);
         }
         private void WaitForRollover(IGetTimeFactory timeFactory)
         {
             var getTime = timeFactory.Create();
-            while (getTime.GetCurrentUtcDate().Second != 35)
+            while (getTime.GetCurrentUtcDate().Second != 40)
             {
                 Thread.Sleep(100);
             }

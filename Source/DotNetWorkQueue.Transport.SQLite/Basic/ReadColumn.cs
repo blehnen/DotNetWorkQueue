@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 case CommandStringTypes.GetJobLastKnownEvent:
                 case CommandStringTypes.GetJobLastScheduleTime:
                     return DateTimeOffset.Parse(reader.GetString(column),
-                        CultureInfo.InvariantCulture);
+                        CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
                 default:
                     return base.ReadAsDateTimeOffset(command, column, reader, noValue);
             }

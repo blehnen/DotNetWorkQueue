@@ -62,13 +62,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 param = commandSql.CreateParameter();
                 param.ParameterName = "@JobEventTime";
                 param.DbType = DbType.AnsiString;
-                param.Value = command.JobEventTime.ToString(CultureInfo.InvariantCulture);
+                param.Value = command.JobEventTime.ToString("o", CultureInfo.InvariantCulture);
                 commandSql.Parameters.Add(param);
 
                 param = commandSql.CreateParameter();
                 param.ParameterName = "@JobScheduledTime";
                 param.DbType = DbType.AnsiString;
-                param.Value = command.JobScheduledTime.ToString(CultureInfo.InvariantCulture);
+                param.Value = command.JobScheduledTime.ToString("o", CultureInfo.InvariantCulture);
                 commandSql.Parameters.Add(param);
 
                 commandSql.ExecuteNonQuery();
