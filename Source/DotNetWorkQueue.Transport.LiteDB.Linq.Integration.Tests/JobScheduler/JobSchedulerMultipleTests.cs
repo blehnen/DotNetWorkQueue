@@ -10,11 +10,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.JobScheduler
     [Collection("Consumer")]
     public class JobSchedulerMultipleTests
     {
-        [Theory(Skip = "Cannot get the timing right on the CI server, its too slow. These work locally, remove the skip and run locally to test")]
+        [SkippableTheory]
         [InlineData(2)]
         public void Run(
             int producerCount)
         {
+            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
             using (var connectionInfo = new IntegrationConnectionInfo(IntegrationConnectionInfo.ConnectionTypes.Direct))
             {
                 var queueName = GenerateQueueName.Create();

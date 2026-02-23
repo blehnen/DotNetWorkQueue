@@ -11,11 +11,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
     [CollectionDefinition("JobScheduler", DisableParallelization = true)]
     public class JobSchedulerMultipleTests
     {
-        [Theory(Skip = "Cannot get the timing right on the CI server, its too slow. These work locally, remove the skip and run locally to test")]
+        [SkippableTheory]
         [InlineData(2)]
         public void Run(
             int producerCount)
         {
+            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();

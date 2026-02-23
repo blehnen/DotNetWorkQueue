@@ -1,4 +1,5 @@
 ﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.IntegrationTests;
 using Xunit;
@@ -8,12 +9,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.JobScheduler
     [Collection("Consumer")]
     public class JobSchedulerTests
     {
-        [Theory]
+        [SkippableTheory]
         [InlineData(false),
         InlineData(true)]
         public void Run(
             bool dynamic)
         {
+            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
             using (var connectionInfo = new IntegrationConnectionInfo(IntegrationConnectionInfo.ConnectionTypes.Direct))
             {
                 var queueName = GenerateQueueName.Create();

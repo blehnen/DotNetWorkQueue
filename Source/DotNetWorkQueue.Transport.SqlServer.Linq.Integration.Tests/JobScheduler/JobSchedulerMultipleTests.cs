@@ -4,6 +4,7 @@ using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
+using System;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobScheduler
@@ -11,12 +12,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
     [CollectionDefinition("JobScheduler", DisableParallelization = true)]
     public class JobSchedulerMultipleTests
     {
-        [Theory(Skip = "Cannot get the timing right on the CI server, its too slow. These work locally, remove the skip and run locally to test")]
+        [SkippableTheory]
         [InlineData(2)]
         public void Run(
             int producerCount)
         {
-            var queueName = GenerateQueueName.Create();
+            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
+           var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerMultipleTests();
             consumer.Run<SqlServerMessageQueueInit, SqlServerJobQueueCreation, SqlServerMessageQueueCreation>(

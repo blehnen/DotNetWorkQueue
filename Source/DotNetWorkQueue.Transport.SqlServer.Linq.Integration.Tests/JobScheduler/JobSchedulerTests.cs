@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
     [CollectionDefinition("JobScheduler", DisableParallelization = true)]
     public class JobSchedulerTests
     {
-        [Theory]
+        [SkippableTheory]
 #if NETFULL
         [InlineData(true, false),
          InlineData(true, true)]
@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
             bool interceptors,
             bool dynamic)
         {
-
+            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();

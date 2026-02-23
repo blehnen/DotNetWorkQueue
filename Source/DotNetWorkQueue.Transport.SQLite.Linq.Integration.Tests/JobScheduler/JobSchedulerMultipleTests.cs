@@ -11,13 +11,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
     [CollectionDefinition("JobScheduler", DisableParallelization = true)]
     public class JobSchedulerMultipleTests
     {
-        [Theory(Skip = "Cannot get the timing right on the CI server, its too slow. These work locally, remove the skip and run locally to test")]
+        [SkippableTheory]
         [InlineData(2, false),
          InlineData(2, true)]
         public void Run(
             int producerCount,
             bool inMemoryDb)
         {
+            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();

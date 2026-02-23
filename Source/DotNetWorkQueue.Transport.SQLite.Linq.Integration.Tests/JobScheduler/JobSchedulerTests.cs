@@ -10,13 +10,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
     [CollectionDefinition("JobScheduler", DisableParallelization = true)]
     public class JobSchedulerTests
     {
-        [Theory]
+        [SkippableTheory]
         [InlineData(false, false),
         InlineData(false, true)]
         public void Run(
             bool dynamic,
             bool inMemoryDb)
         {
+            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();
