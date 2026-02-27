@@ -78,5 +78,14 @@ namespace DotNetWorkQueue.Tests
                 test.CreateConsumerAsync(new QueueConnection(queue, connection));
             }
         }
+
+        [Theory, AutoData]
+        public void Create_CreateAdminContainerAsync(string queue, string connection)
+        {
+            using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
+            {
+                test.CreateAdminContainer(new QueueConnection(queue, connection));
+            }
+        }
     }
 }

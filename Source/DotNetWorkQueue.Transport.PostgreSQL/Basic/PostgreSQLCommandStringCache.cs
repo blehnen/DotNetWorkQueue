@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
@@ -146,6 +147,39 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             CommandCache.Add(CommandStringTypes.GetHeader,
                 $"select headers from {TableNameHelper.QueueName} where queueID = @queueID");
+
+            // Dashboard queries
+            CommandCache.Add(CommandStringTypes.GetDashboardStatusCounts,
+                $"SELECT SUM(CASE WHEN status = {Convert.ToInt32(QueueStatuses.Waiting)} THEN 1 ELSE 0 END) AS Waiting, SUM(CASE WHEN status = {Convert.ToInt32(QueueStatuses.Processing)} THEN 1 ELSE 0 END) AS Processing, SUM(CASE WHEN status = {Convert.ToInt32(QueueStatuses.Error)} THEN 1 ELSE 0 END) AS Error, count(*) AS Total FROM {TableNameHelper.StatusName}");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardErrorMessageCount,
+                $"SELECT count(*) FROM {TableNameHelper.MetaDataErrorsName}");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardErrorRetries,
+                $"SELECT ErrorTrackingID, QueueID, ExceptionType, RetryCount FROM {TableNameHelper.ErrorTrackingName} WHERE QueueID = @QueueId ORDER BY ErrorTrackingID");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardConfiguration,
+                $"SELECT Configuration FROM {TableNameHelper.ConfigurationName}");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardJobs,
+                $"SELECT JobName, JobEventTime, JobScheduledTime FROM {TableNameHelper.JobTableName}");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardErrorMessages,
+                $"SELECT ID, QueueID, LastException, LastExceptionDate FROM {TableNameHelper.MetaDataErrorsName} ORDER BY LastExceptionDate DESC LIMIT @PageSize OFFSET @Offset");
+
+
+
+            CommandCache.Add(CommandStringTypes.GetDashboardMessages,
+                $"SELECT QueueID, QueuedDateTime, CorrelationID{{0}} FROM {TableNameHelper.MetaDataName} ORDER BY QueueID DESC LIMIT @PageSize OFFSET @Offset");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardMessageCount,
+                $"SELECT count(*) FROM {TableNameHelper.MetaDataName}");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardMessageDetail,
+                $"SELECT QueueID, QueuedDateTime, CorrelationID{{0}} FROM {TableNameHelper.MetaDataName} WHERE QueueID = @QueueId");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardStaleMessages,
+                $"SELECT QueueID, QueuedDateTime, CorrelationID{{0}} FROM {TableNameHelper.MetaDataName} WHERE Status = {Convert.ToInt32(QueueStatuses.Processing)} AND HeartBeat IS NOT NULL AND HeartBeat < @ThresholdTicks ORDER BY HeartBeat ASC LIMIT @PageSize OFFSET @Offset");
         }
     }
 }

@@ -39,15 +39,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <inheritdoc />
         public override DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default)
         {
-            switch (command)
-            {
-                case CommandStringTypes.DoesJobExist:
-                case CommandStringTypes.GetJobLastKnownEvent:
-                case CommandStringTypes.GetJobLastScheduleTime:
-                    return new DateTimeOffset(new DateTime(reader.GetInt64(column), DateTimeKind.Utc));
-                default:
-                    return base.ReadAsDateTimeOffset(command, column, reader, noValue);
-            }
+            if (reader.IsDBNull(column))
+                return noValue;
+
+            var value = reader[column];
+            if (value is long ticks)
+                return new DateTimeOffset(new DateTime(ticks, DateTimeKind.Utc));
+
+            return base.ReadAsDateTimeOffset(command, column, reader, noValue);
         }
     }
 }

@@ -78,14 +78,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <returns></returns>
         public override DateTimeOffset ReadAsDateTimeOffset(CommandStringTypes command, int column, IDataReader reader, DateTimeOffset noValue = default(DateTimeOffset))
         {
+            if (reader.IsDBNull(column))
+                return noValue;
+
             switch (command)
             {
                 case CommandStringTypes.DoesJobExist:
                 case CommandStringTypes.GetJobLastKnownEvent:
                 case CommandStringTypes.GetJobLastScheduleTime:
+                case CommandStringTypes.GetDashboardJobs:
                     return DateTimeOffset.Parse(reader.GetString(column),
                         CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
                 default:
+                    var value = reader[column];
+                    if (value is long ticks)
+                        return new DateTimeOffset(new DateTime(ticks, DateTimeKind.Utc));
                     return base.ReadAsDateTimeOffset(command, column, reader, noValue);
             }
         }
