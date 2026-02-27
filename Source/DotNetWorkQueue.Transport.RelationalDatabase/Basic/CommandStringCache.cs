@@ -77,14 +77,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <returns></returns>
         public string GetCommand(CommandStringTypes type, params object[] input)
         {
-            if (_commandsBuilt && CommandCache.Count != 0) return string.Format(CommandCache[type], input);
-            lock (_commandBuilder)
-            {
-                if (CommandCache.Count != 0) return string.Format(CommandCache[type], input);
-                BuildCommands();
-                _commandsBuilt = true;
-            }
-            return CommandCache[type];
+            return string.Format(GetCommand(type), input);
         }
 
         /// <summary>
@@ -301,7 +294,47 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Returns the current queue quote
         /// </summary>
-        GetQueueCountStatus
+        GetQueueCountStatus,
+        /// <summary>
+        /// Dashboard: gets status counts (waiting, processing, error, total)
+        /// </summary>
+        GetDashboardStatusCounts,
+        /// <summary>
+        /// Dashboard: gets paged message list from metadata
+        /// </summary>
+        GetDashboardMessages,
+        /// <summary>
+        /// Dashboard: gets total message count with optional status filter
+        /// </summary>
+        GetDashboardMessageCount,
+        /// <summary>
+        /// Dashboard: gets a single message detail by queue ID
+        /// </summary>
+        GetDashboardMessageDetail,
+        /// <summary>
+        /// Dashboard: gets messages with stale heartbeats
+        /// </summary>
+        GetDashboardStaleMessages,
+        /// <summary>
+        /// Dashboard: gets paged error messages
+        /// </summary>
+        GetDashboardErrorMessages,
+        /// <summary>
+        /// Dashboard: gets total error message count
+        /// </summary>
+        GetDashboardErrorMessageCount,
+        /// <summary>
+        /// Dashboard: gets error retry records for a specific message
+        /// </summary>
+        GetDashboardErrorRetries,
+        /// <summary>
+        /// Dashboard: gets raw configuration bytes
+        /// </summary>
+        GetDashboardConfiguration,
+        /// <summary>
+        /// Dashboard: gets all job records
+        /// </summary>
+        GetDashboardJobs
     }
 
     /// <summary>

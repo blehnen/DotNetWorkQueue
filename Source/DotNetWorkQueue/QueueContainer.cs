@@ -445,6 +445,23 @@ namespace DotNetWorkQueue
             Containers.Add(container);
             return container.GetInstance<IAdminFunctions>();
         }
+
+        /// <summary>
+        /// Creates an internal container scoped to a queue connection for admin/dashboard use.
+        /// The container has all transport-registered services available.
+        /// </summary>
+        /// <param name="queueConnection">Queue and connection information.</param>
+        /// <returns>The internal container. Caller is responsible for disposal.</returns>
+        public IContainer CreateAdminContainer(QueueConnection queueConnection)
+        {
+            ThrowIfDisposed();
+
+            Guard.NotNull(() => queueConnection, queueConnection);
+
+            var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, queueConnection, _transportInit, ConnectionTypes.Status, x => { }, _setOptions);
+            Containers.Add(container);
+            return container;
+        }
         #endregion
     }
     #endregion 

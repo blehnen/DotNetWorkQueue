@@ -142,5 +142,13 @@ namespace DotNetWorkQueue
         /// <param name="queueConnection"></param>
         /// <returns></returns>
         IAdminFunctions CreateAdminFunctions(QueueConnection queueConnection);
+
+        /// <summary>
+        /// Creates an internal container scoped to a queue connection for admin/dashboard use.
+        /// The container has all transport-registered services available.
+        /// </summary>
+        /// <param name="queueConnection">Queue and connection information.</param>
+        /// <returns>The internal container. Caller is responsible for disposal.</returns>
+        IContainer CreateAdminContainer(QueueConnection queueConnection);
     }
 }

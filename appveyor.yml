@@ -1,8 +1,12 @@
-version: 0.8.0.{build}
+version: 0.9.0.{build}
 branches:
   only:
   - master
-image: Visual Studio 2026
+image: Visual Studio 2022
+install:
+- ps: |
+    Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -UseBasicParsing -OutFile "$env:temp\dotnet-install.ps1"
+    & "$env:temp\dotnet-install.ps1" -Architecture x64 -Version '10.0.100' -InstallDir "$env:ProgramFiles\dotnet"
 before_build:
 - appveyor-retry dotnet restore "Source\DotNetWorkQueue.sln"
 build_script:
@@ -16,5 +20,6 @@ test_script:
 - dotnet test "Source\DotNetWorkQueue.Transport.SQLite.Tests\DotNetWorkQueue.Transport.SQLite.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.LiteDb.Tests\DotNetWorkQueue.Transport.LiteDb.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.SqlServer.Tests\DotNetWorkQueue.Transport.SqlServer.Tests.csproj"
+- dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Tests\DotNetWorkQueue.Dashboard.Api.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.Memory.Integration.Tests\DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj"
 - dotnet test "Source\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj"

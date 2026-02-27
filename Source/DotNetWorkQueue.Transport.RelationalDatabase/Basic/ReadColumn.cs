@@ -28,7 +28,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public virtual string ReadAsString(CommandStringTypes command, int column, IDataReader reader, string noValue = null)
         {
             ValidColumn(column, command);
-            return !reader.IsDBNull(column) ? reader.GetString(column) : noValue;
+            if (reader.IsDBNull(column))
+                return noValue;
+            var value = reader[column];
+            if (value is string s)
+                return s;
+            return value.ToString();
         }
 
         /// <inheritdoc />
@@ -57,7 +62,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         {
             ValidColumn(column, command);
             if (!reader.IsDBNull(column))
-                return (DateTimeOffset)reader[column];
+            {
+                var value = reader[column];
+                if (value is DateTimeOffset dto)
+                    return dto;
+                if (value is DateTime dt)
+                    return new DateTimeOffset(dt, TimeSpan.Zero);
+                return (DateTimeOffset)value;
+            }
             return noValue;
         }
 
