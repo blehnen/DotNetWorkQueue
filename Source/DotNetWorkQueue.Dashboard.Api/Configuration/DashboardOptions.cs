@@ -27,11 +27,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
     public class DashboardOptions
     {
         /// <summary>
-        /// Gets or sets the route prefix for dashboard API endpoints.
-        /// </summary>
-        public string RoutePrefix { get; set; } = "api/v1/queues";
-
-        /// <summary>
         /// Gets or sets whether Swagger/OpenAPI documentation is enabled.
         /// </summary>
         public bool EnableSwagger { get; set; } = true;

@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
     /// API controller for per-queue dashboard operations.
     /// </summary>
     [ApiController]
-    [Route("api/v1/queues/queues")]
+    [Route("api/v1/dashboard/queues")]
     [Produces("application/json")]
     public class QueuesController : ControllerBase
     {

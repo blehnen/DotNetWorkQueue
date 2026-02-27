@@ -138,44 +138,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         }
 
         [Fact]
-        public async Task GetJobs_Returns_Mapped_Jobs()
-        {
-            var api = CreateApi(out _, out var queueId);
-            var container = Substitute.For<IContainer>();
-            api.GetQueueContainer(queueId).Returns(container);
-
-            SetupJobTableExists(container, true);
-
-            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>();
-            handler.HandleAsync(Arg.Any<GetDashboardJobsQuery>()).Returns(Task.FromResult<IReadOnlyList<DashboardJob>>(new List<DashboardJob>
-            {
-                new DashboardJob { JobName = "TestJob", JobEventTime = DateTimeOffset.UtcNow }
-            }));
-            container.GetInstance<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>().Returns(handler);
-
-            var service = new DashboardService(api);
-            var result = await service.GetJobsAsync(queueId);
-
-            result.Should().HaveCount(1);
-            result[0].JobName.Should().Be("TestJob");
-        }
-
-        [Fact]
-        public async Task GetJobs_Returns_Empty_When_Table_Does_Not_Exist()
-        {
-            var api = CreateApi(out _, out var queueId);
-            var container = Substitute.For<IContainer>();
-            api.GetQueueContainer(queueId).Returns(container);
-
-            SetupJobTableExists(container, false);
-
-            var service = new DashboardService(api);
-            var result = await service.GetJobsAsync(queueId);
-
-            result.Should().BeEmpty();
-        }
-
-        [Fact]
         public async Task GetConfiguration_Returns_Utf8_Json()
         {
             var api = CreateApi(out _, out var queueId);

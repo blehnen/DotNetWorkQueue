@@ -10,16 +10,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         public void Defaults_Are_Correct()
         {
             var opts = new DashboardOptions();
-            opts.RoutePrefix.Should().Be("api/v1/queues");
             opts.EnableSwagger.Should().BeTrue();
             opts.AuthorizationPolicy.Should().BeNull();
-        }
-
-        [Fact]
-        public void RoutePrefix_Can_Be_Set()
-        {
-            var opts = new DashboardOptions { RoutePrefix = "custom/prefix" };
-            opts.RoutePrefix.Should().Be("custom/prefix");
         }
 
         [Fact]

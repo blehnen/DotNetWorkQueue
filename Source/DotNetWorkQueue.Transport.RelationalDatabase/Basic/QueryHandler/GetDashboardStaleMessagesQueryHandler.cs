@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
@@ -62,38 +61,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     {
                         while (reader.Read())
                         {
-                            results.Add(ReadMessage(reader));
+                            results.Add(DashboardMessageReader.ReadMessage(reader, _readColumn,
+                                CommandStringTypes.GetDashboardStaleMessages, _options.Value));
                         }
                     }
                 }
             }
             return results;
-        }
-
-        private DashboardMessage ReadMessage(IDataReader reader)
-        {
-            var message = new DashboardMessage();
-            var columnIndex = 0;
-
-            message.QueueId = _readColumn.ReadAsInt64(CommandStringTypes.GetDashboardStaleMessages, columnIndex++, reader);
-            message.QueuedDateTime = _readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetDashboardStaleMessages, columnIndex++, reader);
-            message.CorrelationId = _readColumn.ReadAsString(CommandStringTypes.GetDashboardStaleMessages, columnIndex++, reader);
-
-            var opts = _options.Value;
-            if (opts.EnableStatus)
-                message.Status = _readColumn.ReadAsInt32(CommandStringTypes.GetDashboardStaleMessages, columnIndex++, reader);
-            if (opts.EnablePriority)
-                message.Priority = _readColumn.ReadAsInt32(CommandStringTypes.GetDashboardStaleMessages, columnIndex++, reader);
-            if (opts.EnableDelayedProcessing)
-                message.QueueProcessTime = _readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetDashboardStaleMessages, columnIndex++, reader);
-            if (opts.EnableHeartBeat)
-                message.HeartBeat = _readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetDashboardStaleMessages, columnIndex++, reader);
-            if (opts.EnableMessageExpiration)
-                message.ExpirationTime = _readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetDashboardStaleMessages, columnIndex++, reader);
-            if (opts.EnableRoute)
-                message.Route = _readColumn.ReadAsString(CommandStringTypes.GetDashboardStaleMessages, columnIndex++, reader);
-
-            return message;
         }
     }
 }

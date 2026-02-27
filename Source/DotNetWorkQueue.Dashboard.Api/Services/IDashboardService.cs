@@ -61,9 +61,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// <summary>Gets queue configuration as JSON.</summary>
         Task<ConfigurationResponse> GetConfigurationAsync(Guid queueId);
 
-        /// <summary>Gets all scheduled jobs for a queue.</summary>
-        Task<IReadOnlyList<JobResponse>> GetJobsAsync(Guid queueId);
-
         /// <summary>Gets all scheduled jobs for a connection.</summary>
         Task<IReadOnlyList<JobResponse>> GetJobsByConnectionAsync(Guid connectionId);
     }

@@ -198,8 +198,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             };
         }
 
-        /// <inheritdoc />
-        public async Task<IReadOnlyList<JobResponse>> GetJobsAsync(Guid queueId)
+        private async Task<IReadOnlyList<JobResponse>> GetJobsAsync(Guid queueId)
         {
             var container = GetContainer(queueId);
 

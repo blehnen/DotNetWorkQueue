@@ -171,7 +171,8 @@ namespace DotNetWorkQueue.Dashboard.Api
                 }
                 catch (ObjectDisposedException)
                 {
-                    // already disposed
+                    // The host application may have already disposed this container
+                    // before the dashboard shuts down; safe to ignore during teardown.
                 }
             }
 
