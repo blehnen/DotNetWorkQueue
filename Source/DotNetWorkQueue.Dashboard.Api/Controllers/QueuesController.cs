@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -48,9 +49,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [HttpGet("{queueId:guid}/status")]
         [ProducesResponseType(typeof(QueueStatusResponse), 200)]
         [ProducesResponseType(404)]
-        public IActionResult GetStatus(Guid queueId)
+        public async Task<IActionResult> GetStatus(Guid queueId)
         {
-            return Ok(_service.GetStatus(queueId));
+            return Ok(await _service.GetStatusAsync(queueId));
         }
 
         /// <summary>
@@ -71,7 +72,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(typeof(PagedResponse<MessageResponse>), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult GetMessages(Guid queueId,
+        public async Task<IActionResult> GetMessages(Guid queueId,
             [FromQuery] int pageIndex = 0,
             [FromQuery] int pageSize = 25,
             [FromQuery] int? status = null)
@@ -79,7 +80,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             if (status.HasValue && !IsValidStatus(status.Value))
                 return BadRequest($"Invalid status value '{status.Value}'. Valid values are: 0 (Waiting), 1 (Processing), 2 (Error), 3 (Processed).");
 
-            return Ok(_service.GetMessages(queueId, pageIndex, pageSize, status));
+            return Ok(await _service.GetMessagesAsync(queueId, pageIndex, pageSize, status));
         }
 
         /// <summary>
@@ -89,12 +90,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(typeof(long), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult GetMessageCount(Guid queueId, [FromQuery] int? status = null)
+        public async Task<IActionResult> GetMessageCount(Guid queueId, [FromQuery] int? status = null)
         {
             if (status.HasValue && !IsValidStatus(status.Value))
                 return BadRequest($"Invalid status value '{status.Value}'. Valid values are: 0 (Waiting), 1 (Processing), 2 (Error), 3 (Processed).");
 
-            return Ok(_service.GetMessageCount(queueId, status));
+            return Ok(await _service.GetMessageCountAsync(queueId, status));
         }
 
         /// <summary>
@@ -103,9 +104,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [HttpGet("{queueId:guid}/messages/{messageId:long}")]
         [ProducesResponseType(typeof(MessageResponse), 200)]
         [ProducesResponseType(404)]
-        public IActionResult GetMessageDetail(Guid queueId, long messageId)
+        public async Task<IActionResult> GetMessageDetail(Guid queueId, long messageId)
         {
-            var result = _service.GetMessageDetail(queueId, messageId);
+            var result = await _service.GetMessageDetailAsync(queueId, messageId);
             if (result == null)
                 return NotFound();
             return Ok(result);
@@ -117,12 +118,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [HttpGet("{queueId:guid}/messages/stale")]
         [ProducesResponseType(typeof(PagedResponse<MessageResponse>), 200)]
         [ProducesResponseType(404)]
-        public IActionResult GetStaleMessages(Guid queueId,
+        public async Task<IActionResult> GetStaleMessages(Guid queueId,
             [FromQuery] int thresholdSeconds = 60,
             [FromQuery] int pageIndex = 0,
             [FromQuery] int pageSize = 25)
         {
-            return Ok(_service.GetStaleMessages(queueId, thresholdSeconds, pageIndex, pageSize));
+            return Ok(await _service.GetStaleMessagesAsync(queueId, thresholdSeconds, pageIndex, pageSize));
         }
 
         /// <summary>
@@ -131,11 +132,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [HttpGet("{queueId:guid}/errors")]
         [ProducesResponseType(typeof(PagedResponse<ErrorMessageResponse>), 200)]
         [ProducesResponseType(404)]
-        public IActionResult GetErrors(Guid queueId,
+        public async Task<IActionResult> GetErrors(Guid queueId,
             [FromQuery] int pageIndex = 0,
             [FromQuery] int pageSize = 25)
         {
-            return Ok(_service.GetErrors(queueId, pageIndex, pageSize));
+            return Ok(await _service.GetErrorsAsync(queueId, pageIndex, pageSize));
         }
 
         /// <summary>
@@ -144,9 +145,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [HttpGet("{queueId:guid}/messages/{messageId:long}/retries")]
         [ProducesResponseType(typeof(IReadOnlyList<ErrorRetryResponse>), 200)]
         [ProducesResponseType(404)]
-        public IActionResult GetErrorRetries(Guid queueId, long messageId)
+        public async Task<IActionResult> GetErrorRetries(Guid queueId, long messageId)
         {
-            return Ok(_service.GetErrorRetries(queueId, messageId));
+            return Ok(await _service.GetErrorRetriesAsync(queueId, messageId));
         }
 
         /// <summary>
@@ -155,9 +156,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [HttpGet("{queueId:guid}/configuration")]
         [ProducesResponseType(typeof(ConfigurationResponse), 200)]
         [ProducesResponseType(404)]
-        public IActionResult GetConfiguration(Guid queueId)
+        public async Task<IActionResult> GetConfiguration(Guid queueId)
         {
-            return Ok(_service.GetConfiguration(queueId));
+            return Ok(await _service.GetConfigurationAsync(queueId));
         }
 
         private static bool IsValidStatus(int status)

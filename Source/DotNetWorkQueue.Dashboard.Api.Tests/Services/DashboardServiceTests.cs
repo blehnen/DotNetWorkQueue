@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -52,21 +53,21 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         }
 
         [Fact]
-        public void GetStatus_Returns_StatusCounts()
+        public async Task GetStatus_Returns_StatusCounts()
         {
             var api = CreateApi(out _, out var queueId);
             var container = Substitute.For<IContainer>();
             api.GetQueueContainer(queueId).Returns(container);
 
-            var handler = Substitute.For<IQueryHandler<GetDashboardStatusCountsQuery, DashboardStatusCounts>>();
-            handler.Handle(Arg.Any<GetDashboardStatusCountsQuery>()).Returns(new DashboardStatusCounts
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>>();
+            handler.HandleAsync(Arg.Any<GetDashboardStatusCountsQuery>()).Returns(Task.FromResult(new DashboardStatusCounts
             {
                 Waiting = 10, Processing = 5, Error = 2, Total = 17
-            });
-            container.GetInstance<IQueryHandler<GetDashboardStatusCountsQuery, DashboardStatusCounts>>().Returns(handler);
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>>().Returns(handler);
 
             var service = new DashboardService(api);
-            var result = service.GetStatus(queueId);
+            var result = await service.GetStatusAsync(queueId);
 
             result.Waiting.Should().Be(10);
             result.Processing.Should().Be(5);
@@ -103,41 +104,41 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         }
 
         [Fact]
-        public void GetMessageCount_Calls_Handler()
+        public async Task GetMessageCount_Calls_Handler()
         {
             var api = CreateApi(out _, out var queueId);
             var container = Substitute.For<IContainer>();
             api.GetQueueContainer(queueId).Returns(container);
 
-            var handler = Substitute.For<IQueryHandler<GetDashboardMessageCountQuery, long>>();
-            handler.Handle(Arg.Any<GetDashboardMessageCountQuery>()).Returns(42L);
-            container.GetInstance<IQueryHandler<GetDashboardMessageCountQuery, long>>().Returns(handler);
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageCountQuery, long>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageCountQuery>()).Returns(Task.FromResult(42L));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageCountQuery, long>>().Returns(handler);
 
             var service = new DashboardService(api);
-            var result = service.GetMessageCount(queueId, null);
+            var result = await service.GetMessageCountAsync(queueId, null);
 
             result.Should().Be(42L);
         }
 
         [Fact]
-        public void GetMessageDetail_Returns_Null_When_Not_Found()
+        public async Task GetMessageDetail_Returns_Null_When_Not_Found()
         {
             var api = CreateApi(out _, out var queueId);
             var container = Substitute.For<IContainer>();
             api.GetQueueContainer(queueId).Returns(container);
 
-            var handler = Substitute.For<IQueryHandler<GetDashboardMessageDetailQuery, DashboardMessage>>();
-            handler.Handle(Arg.Any<GetDashboardMessageDetailQuery>()).Returns((DashboardMessage)null);
-            container.GetInstance<IQueryHandler<GetDashboardMessageDetailQuery, DashboardMessage>>().Returns(handler);
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageDetailQuery>()).Returns(Task.FromResult((DashboardMessage)null));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>>().Returns(handler);
 
             var service = new DashboardService(api);
-            var result = service.GetMessageDetail(queueId, 999);
+            var result = await service.GetMessageDetailAsync(queueId, 999);
 
             result.Should().BeNull();
         }
 
         [Fact]
-        public void GetJobs_Returns_Mapped_Jobs()
+        public async Task GetJobs_Returns_Mapped_Jobs()
         {
             var api = CreateApi(out _, out var queueId);
             var container = Substitute.For<IContainer>();
@@ -145,22 +146,22 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             SetupJobTableExists(container, true);
 
-            var handler = Substitute.For<IQueryHandler<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>();
-            handler.Handle(Arg.Any<GetDashboardJobsQuery>()).Returns(new List<DashboardJob>
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>();
+            handler.HandleAsync(Arg.Any<GetDashboardJobsQuery>()).Returns(Task.FromResult<IReadOnlyList<DashboardJob>>(new List<DashboardJob>
             {
                 new DashboardJob { JobName = "TestJob", JobEventTime = DateTimeOffset.UtcNow }
-            });
-            container.GetInstance<IQueryHandler<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>().Returns(handler);
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>().Returns(handler);
 
             var service = new DashboardService(api);
-            var result = service.GetJobs(queueId);
+            var result = await service.GetJobsAsync(queueId);
 
             result.Should().HaveCount(1);
             result[0].JobName.Should().Be("TestJob");
         }
 
         [Fact]
-        public void GetJobs_Returns_Empty_When_Table_Does_Not_Exist()
+        public async Task GetJobs_Returns_Empty_When_Table_Does_Not_Exist()
         {
             var api = CreateApi(out _, out var queueId);
             var container = Substitute.For<IContainer>();
@@ -169,31 +170,31 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             SetupJobTableExists(container, false);
 
             var service = new DashboardService(api);
-            var result = service.GetJobs(queueId);
+            var result = await service.GetJobsAsync(queueId);
 
             result.Should().BeEmpty();
         }
 
         [Fact]
-        public void GetConfiguration_Returns_Utf8_Json()
+        public async Task GetConfiguration_Returns_Utf8_Json()
         {
             var api = CreateApi(out _, out var queueId);
             var container = Substitute.For<IContainer>();
             api.GetQueueContainer(queueId).Returns(container);
 
-            var handler = Substitute.For<IQueryHandler<GetDashboardConfigurationQuery, byte[]>>();
-            handler.Handle(Arg.Any<GetDashboardConfigurationQuery>()).Returns(
-                System.Text.Encoding.UTF8.GetBytes("{\"test\":true}"));
-            container.GetInstance<IQueryHandler<GetDashboardConfigurationQuery, byte[]>>().Returns(handler);
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardConfigurationQuery, byte[]>>();
+            handler.HandleAsync(Arg.Any<GetDashboardConfigurationQuery>()).Returns(
+                Task.FromResult(System.Text.Encoding.UTF8.GetBytes("{\"test\":true}")));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardConfigurationQuery, byte[]>>().Returns(handler);
 
             var service = new DashboardService(api);
-            var result = service.GetConfiguration(queueId);
+            var result = await service.GetConfigurationAsync(queueId);
 
             result.ConfigurationJson.Should().Be("{\"test\":true}");
         }
 
         [Fact]
-        public void GetJobsByConnection_Returns_Jobs_From_First_Queue()
+        public async Task GetJobsByConnection_Returns_Jobs_From_First_Queue()
         {
             var api = CreateApi(out var connectionId, out var queueId);
             var container = Substitute.For<IContainer>();
@@ -201,22 +202,22 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             SetupJobTableExists(container, true);
 
-            var handler = Substitute.For<IQueryHandler<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>();
-            handler.Handle(Arg.Any<GetDashboardJobsQuery>()).Returns(new List<DashboardJob>
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>();
+            handler.HandleAsync(Arg.Any<GetDashboardJobsQuery>()).Returns(Task.FromResult<IReadOnlyList<DashboardJob>>(new List<DashboardJob>
             {
                 new DashboardJob { JobName = "ConnectionJob" }
-            });
-            container.GetInstance<IQueryHandler<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>().Returns(handler);
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>().Returns(handler);
 
             var service = new DashboardService(api);
-            var result = service.GetJobsByConnection(connectionId);
+            var result = await service.GetJobsByConnectionAsync(connectionId);
 
             result.Should().HaveCount(1);
             result[0].JobName.Should().Be("ConnectionJob");
         }
 
         [Fact]
-        public void GetJobsByConnection_Returns_Empty_When_No_Queues()
+        public async Task GetJobsByConnection_Returns_Empty_When_No_Queues()
         {
             var connectionId = Guid.NewGuid();
             var connectionInfo = new DashboardConnectionInfo
@@ -234,20 +235,20 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             });
 
             var service = new DashboardService(api);
-            var result = service.GetJobsByConnection(connectionId);
+            var result = await service.GetJobsByConnectionAsync(connectionId);
 
             result.Should().BeEmpty();
         }
 
         [Fact]
-        public void GetJobsByConnection_Throws_For_Unknown_ConnectionId()
+        public async Task GetJobsByConnection_Throws_For_Unknown_ConnectionId()
         {
             var api = CreateApi(out _, out _);
             var service = new DashboardService(api);
 
-            var act = () => service.GetJobsByConnection(Guid.NewGuid());
+            var act = async () => await service.GetJobsByConnectionAsync(Guid.NewGuid());
 
-            act.Should().Throw<InvalidOperationException>();
+            await act.Should().ThrowAsync<InvalidOperationException>();
         }
 
         private static IDashboardApi CreateApi(out Guid connectionId, out Guid queueId)

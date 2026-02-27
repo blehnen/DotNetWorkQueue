@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Models;
 
 namespace DotNetWorkQueue.Dashboard.Api.Services
@@ -33,37 +34,37 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// <summary>Gets all queues for a connection.</summary>
         IReadOnlyList<QueueInfoResponse> GetQueues(Guid connectionId);
 
-        /// <summary>Gets queue status counts.</summary>
-        QueueStatusResponse GetStatus(Guid queueId);
-
         /// <summary>Gets enabled transport features for a queue.</summary>
         QueueFeaturesResponse GetFeatures(Guid queueId);
 
+        /// <summary>Gets queue status counts.</summary>
+        Task<QueueStatusResponse> GetStatusAsync(Guid queueId);
+
         /// <summary>Gets a paged list of messages.</summary>
-        PagedResponse<MessageResponse> GetMessages(Guid queueId, int pageIndex, int pageSize, int? statusFilter);
+        Task<PagedResponse<MessageResponse>> GetMessagesAsync(Guid queueId, int pageIndex, int pageSize, int? statusFilter);
 
         /// <summary>Gets the message count, optionally filtered by status.</summary>
-        long GetMessageCount(Guid queueId, int? statusFilter);
+        Task<long> GetMessageCountAsync(Guid queueId, int? statusFilter);
 
         /// <summary>Gets a single message detail.</summary>
-        MessageResponse GetMessageDetail(Guid queueId, long messageId);
+        Task<MessageResponse> GetMessageDetailAsync(Guid queueId, long messageId);
 
         /// <summary>Gets messages with stale heartbeats.</summary>
-        PagedResponse<MessageResponse> GetStaleMessages(Guid queueId, int thresholdSeconds, int pageIndex, int pageSize);
+        Task<PagedResponse<MessageResponse>> GetStaleMessagesAsync(Guid queueId, int thresholdSeconds, int pageIndex, int pageSize);
 
         /// <summary>Gets a paged list of error messages.</summary>
-        PagedResponse<ErrorMessageResponse> GetErrors(Guid queueId, int pageIndex, int pageSize);
+        Task<PagedResponse<ErrorMessageResponse>> GetErrorsAsync(Guid queueId, int pageIndex, int pageSize);
 
         /// <summary>Gets error retry tracking records for a message.</summary>
-        IReadOnlyList<ErrorRetryResponse> GetErrorRetries(Guid queueId, long messageId);
+        Task<IReadOnlyList<ErrorRetryResponse>> GetErrorRetriesAsync(Guid queueId, long messageId);
 
         /// <summary>Gets queue configuration as JSON.</summary>
-        ConfigurationResponse GetConfiguration(Guid queueId);
+        Task<ConfigurationResponse> GetConfigurationAsync(Guid queueId);
 
         /// <summary>Gets all scheduled jobs for a queue.</summary>
-        IReadOnlyList<JobResponse> GetJobs(Guid queueId);
+        Task<IReadOnlyList<JobResponse>> GetJobsAsync(Guid queueId);
 
         /// <summary>Gets all scheduled jobs for a connection.</summary>
-        IReadOnlyList<JobResponse> GetJobsByConnection(Guid connectionId);
+        Task<IReadOnlyList<JobResponse>> GetJobsByConnectionAsync(Guid connectionId);
     }
 }

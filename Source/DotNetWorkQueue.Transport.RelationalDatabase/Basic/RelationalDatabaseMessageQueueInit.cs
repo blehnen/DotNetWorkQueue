@@ -310,6 +310,38 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             container
                 .Register<IPrepareQueryHandler<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>,
                     GetDashboardJobsPrepareHandler>(LifeStyles.Singleton);
+
+            // Dashboard async query handlers
+            container
+                .Register<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>,
+                    GetDashboardStatusCountsQueryHandlerAsync>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardMessagesQuery, IReadOnlyList<DashboardMessage>>,
+                    GetDashboardMessagesQueryHandlerAsync>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardMessageCountQuery, long>,
+                    GetDashboardMessageCountQueryHandlerAsync>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>,
+                    GetDashboardMessageDetailQueryHandlerAsync>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardStaleMessagesQuery, IReadOnlyList<DashboardMessage>>,
+                    GetDashboardStaleMessagesQueryHandlerAsync>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardErrorMessagesQuery, IReadOnlyList<DashboardErrorMessage>>,
+                    GetDashboardErrorMessagesQueryHandlerAsync>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardErrorMessageCountQuery, long>,
+                    GetDashboardErrorMessageCountQueryHandlerAsync>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardErrorRetriesQuery, IReadOnlyList<DashboardErrorRetry>>,
+                    GetDashboardErrorRetriesQueryHandlerAsync>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardConfigurationQuery, byte[]>,
+                    GetDashboardConfigurationQueryHandlerAsync>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>,
+                    GetDashboardJobsQueryHandlerAsync>(LifeStyles.Singleton);
         }
 
         private void RegisterCommands(IContainer container, params Assembly[] target)
@@ -334,6 +366,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             // Go look in all assemblies and register all implementations
             // of IQueryHandler<T> by their closed interface:
             container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,
+                target);
+
+            // Go look in all assemblies and register all implementations
+            // of IQueryHandlerAsync<T> by their closed interface:
+            container.Register(typeof(IQueryHandlerAsync<,>), LifeStyles.Singleton,
                 target);
 
             // Go look in all assemblies and register all implementations

@@ -30,7 +30,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             handler.Handle(new GetDashboardMessageDetailQuery(42), command, CommandStringTypes.GetDashboardMessageDetail);
 
             var parameters = (DataParameterCollection)command.Parameters;
-            Assert.Empty(parameters);
             var param = parameters.First();
             Assert.Equal("@QueueId", param.ParameterName);
             Assert.Equal(42L, param.Value);

@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -65,21 +66,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public QueueStatusResponse GetStatus(Guid queueId)
-        {
-            var container = GetContainer(queueId);
-            var handler = container.GetInstance<IQueryHandler<GetDashboardStatusCountsQuery, DashboardStatusCounts>>();
-            var result = handler.Handle(new GetDashboardStatusCountsQuery());
-            return new QueueStatusResponse
-            {
-                Waiting = result.Waiting,
-                Processing = result.Processing,
-                Error = result.Error,
-                Total = result.Total
-            };
-        }
-
-        /// <inheritdoc />
         public QueueFeaturesResponse GetFeatures(Guid queueId)
         {
             var container = GetContainer(queueId);
@@ -98,12 +84,27 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public PagedResponse<MessageResponse> GetMessages(Guid queueId, int pageIndex, int pageSize, int? statusFilter)
+        public async Task<QueueStatusResponse> GetStatusAsync(Guid queueId)
         {
             var container = GetContainer(queueId);
-            var handler = container.GetInstance<IQueryHandler<GetDashboardMessagesQuery, IReadOnlyList<DashboardMessage>>>();
-            var result = handler.Handle(new GetDashboardMessagesQuery(pageIndex, pageSize, statusFilter));
-            var totalCount = GetMessageCount(queueId, statusFilter);
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>>();
+            var result = await handler.HandleAsync(new GetDashboardStatusCountsQuery()).ConfigureAwait(false);
+            return new QueueStatusResponse
+            {
+                Waiting = result.Waiting,
+                Processing = result.Processing,
+                Error = result.Error,
+                Total = result.Total
+            };
+        }
+
+        /// <inheritdoc />
+        public async Task<PagedResponse<MessageResponse>> GetMessagesAsync(Guid queueId, int pageIndex, int pageSize, int? statusFilter)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessagesQuery, IReadOnlyList<DashboardMessage>>>();
+            var result = await handler.HandleAsync(new GetDashboardMessagesQuery(pageIndex, pageSize, statusFilter)).ConfigureAwait(false);
+            var totalCount = await GetMessageCountAsync(queueId, statusFilter).ConfigureAwait(false);
             return new PagedResponse<MessageResponse>
             {
                 Items = result.Select(MapMessage).ToList(),
@@ -114,28 +115,28 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public long GetMessageCount(Guid queueId, int? statusFilter)
+        public async Task<long> GetMessageCountAsync(Guid queueId, int? statusFilter)
         {
             var container = GetContainer(queueId);
-            var handler = container.GetInstance<IQueryHandler<GetDashboardMessageCountQuery, long>>();
-            return handler.Handle(new GetDashboardMessageCountQuery(statusFilter));
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessageCountQuery, long>>();
+            return await handler.HandleAsync(new GetDashboardMessageCountQuery(statusFilter)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public MessageResponse GetMessageDetail(Guid queueId, long messageId)
+        public async Task<MessageResponse> GetMessageDetailAsync(Guid queueId, long messageId)
         {
             var container = GetContainer(queueId);
-            var handler = container.GetInstance<IQueryHandler<GetDashboardMessageDetailQuery, DashboardMessage>>();
-            var result = handler.Handle(new GetDashboardMessageDetailQuery(messageId));
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>>();
+            var result = await handler.HandleAsync(new GetDashboardMessageDetailQuery(messageId)).ConfigureAwait(false);
             return result != null ? MapMessage(result) : null;
         }
 
         /// <inheritdoc />
-        public PagedResponse<MessageResponse> GetStaleMessages(Guid queueId, int thresholdSeconds, int pageIndex, int pageSize)
+        public async Task<PagedResponse<MessageResponse>> GetStaleMessagesAsync(Guid queueId, int thresholdSeconds, int pageIndex, int pageSize)
         {
             var container = GetContainer(queueId);
-            var handler = container.GetInstance<IQueryHandler<GetDashboardStaleMessagesQuery, IReadOnlyList<DashboardMessage>>>();
-            var result = handler.Handle(new GetDashboardStaleMessagesQuery(thresholdSeconds, pageIndex, pageSize));
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardStaleMessagesQuery, IReadOnlyList<DashboardMessage>>>();
+            var result = await handler.HandleAsync(new GetDashboardStaleMessagesQuery(thresholdSeconds, pageIndex, pageSize)).ConfigureAwait(false);
             return new PagedResponse<MessageResponse>
             {
                 Items = result.Select(MapMessage).ToList(),
@@ -146,14 +147,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public PagedResponse<ErrorMessageResponse> GetErrors(Guid queueId, int pageIndex, int pageSize)
+        public async Task<PagedResponse<ErrorMessageResponse>> GetErrorsAsync(Guid queueId, int pageIndex, int pageSize)
         {
             var container = GetContainer(queueId);
-            var handler = container.GetInstance<IQueryHandler<GetDashboardErrorMessagesQuery, IReadOnlyList<DashboardErrorMessage>>>();
-            var result = handler.Handle(new GetDashboardErrorMessagesQuery(pageIndex, pageSize));
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardErrorMessagesQuery, IReadOnlyList<DashboardErrorMessage>>>();
+            var result = await handler.HandleAsync(new GetDashboardErrorMessagesQuery(pageIndex, pageSize)).ConfigureAwait(false);
 
-            var countHandler = container.GetInstance<IQueryHandler<GetDashboardErrorMessageCountQuery, long>>();
-            var totalCount = countHandler.Handle(new GetDashboardErrorMessageCountQuery());
+            var countHandler = container.GetInstance<IQueryHandlerAsync<GetDashboardErrorMessageCountQuery, long>>();
+            var totalCount = await countHandler.HandleAsync(new GetDashboardErrorMessageCountQuery()).ConfigureAwait(false);
 
             return new PagedResponse<ErrorMessageResponse>
             {
@@ -171,11 +172,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public IReadOnlyList<ErrorRetryResponse> GetErrorRetries(Guid queueId, long messageId)
+        public async Task<IReadOnlyList<ErrorRetryResponse>> GetErrorRetriesAsync(Guid queueId, long messageId)
         {
             var container = GetContainer(queueId);
-            var handler = container.GetInstance<IQueryHandler<GetDashboardErrorRetriesQuery, IReadOnlyList<DashboardErrorRetry>>>();
-            var result = handler.Handle(new GetDashboardErrorRetriesQuery(messageId));
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardErrorRetriesQuery, IReadOnlyList<DashboardErrorRetry>>>();
+            var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery(messageId)).ConfigureAwait(false);
             return result.Select(r => new ErrorRetryResponse
             {
                 ErrorTrackingId = r.ErrorTrackingId,
@@ -186,11 +187,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public ConfigurationResponse GetConfiguration(Guid queueId)
+        public async Task<ConfigurationResponse> GetConfigurationAsync(Guid queueId)
         {
             var container = GetContainer(queueId);
-            var handler = container.GetInstance<IQueryHandler<GetDashboardConfigurationQuery, byte[]>>();
-            var result = handler.Handle(new GetDashboardConfigurationQuery());
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardConfigurationQuery, byte[]>>();
+            var result = await handler.HandleAsync(new GetDashboardConfigurationQuery()).ConfigureAwait(false);
             return new ConfigurationResponse
             {
                 ConfigurationJson = result != null ? Encoding.UTF8.GetString(result) : null
@@ -198,7 +199,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public IReadOnlyList<JobResponse> GetJobs(Guid queueId)
+        public async Task<IReadOnlyList<JobResponse>> GetJobsAsync(Guid queueId)
         {
             var container = GetContainer(queueId);
 
@@ -208,8 +209,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             if (!tableExistsHandler.Handle(new GetTableExistsQuery(connectionInfo.ConnectionString, tableNameHelper.JobTableName)))
                 return new List<JobResponse>();
 
-            var handler = container.GetInstance<IQueryHandler<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>();
-            var result = handler.Handle(new GetDashboardJobsQuery());
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>();
+            var result = await handler.HandleAsync(new GetDashboardJobsQuery()).ConfigureAwait(false);
             return result.Select(j => new JobResponse
             {
                 JobName = j.JobName,
@@ -219,7 +220,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public IReadOnlyList<JobResponse> GetJobsByConnection(Guid connectionId)
+        public async Task<IReadOnlyList<JobResponse>> GetJobsByConnectionAsync(Guid connectionId)
         {
             if (!_dashboardApi.Connections.TryGetValue(connectionId, out var connection))
                 throw new InvalidOperationException($"Connection id {connectionId} was not found");
@@ -227,7 +228,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             if (connection.Queues.Count == 0)
                 return new List<JobResponse>();
 
-            return GetJobs(connection.Queues[0].Id);
+            return await GetJobsAsync(connection.Queues[0].Id).ConfigureAwait(false);
         }
 
         private IContainer GetContainer(Guid queueId)

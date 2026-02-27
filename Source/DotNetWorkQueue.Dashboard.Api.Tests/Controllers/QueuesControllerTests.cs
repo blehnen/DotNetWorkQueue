@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Controllers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
@@ -13,17 +14,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
     public class QueuesControllerTests
     {
         [Fact]
-        public void GetStatus_Returns_Ok()
+        public async Task GetStatus_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetStatus(queueId).Returns(new QueueStatusResponse
+            service.GetStatusAsync(queueId).Returns(Task.FromResult(new QueueStatusResponse
             {
                 Waiting = 10, Processing = 5, Error = 2, Total = 17
-            });
+            }));
             var controller = new QueuesController(service);
 
-            var result = controller.GetStatus(queueId);
+            var result = await controller.GetStatus(queueId);
 
             result.Should().BeOfType<OkObjectResult>();
             var okResult = (OkObjectResult)result;
@@ -44,169 +45,169 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         }
 
         [Fact]
-        public void GetMessages_Passes_Parameters()
+        public async Task GetMessages_Passes_Parameters()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessages(queueId, 2, 50, 0).Returns(new PagedResponse<MessageResponse>
+            service.GetMessagesAsync(queueId, 2, 50, 0).Returns(Task.FromResult(new PagedResponse<MessageResponse>
             {
                 Items = new List<MessageResponse>(), TotalCount = 100, PageIndex = 2, PageSize = 50
-            });
+            }));
             var controller = new QueuesController(service);
 
-            controller.GetMessages(queueId, pageIndex: 2, pageSize: 50, status: 0);
+            await controller.GetMessages(queueId, pageIndex: 2, pageSize: 50, status: 0);
 
-            service.Received(1).GetMessages(queueId, 2, 50, 0);
+            await service.Received(1).GetMessagesAsync(queueId, 2, 50, 0);
         }
 
         [Fact]
-        public void GetMessageCount_Returns_Ok()
+        public async Task GetMessageCount_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessageCount(queueId, null).Returns(42L);
+            service.GetMessageCountAsync(queueId, null).Returns(Task.FromResult(42L));
             var controller = new QueuesController(service);
 
-            var result = controller.GetMessageCount(queueId);
+            var result = await controller.GetMessageCount(queueId);
 
             result.Should().BeOfType<OkObjectResult>();
             ((OkObjectResult)result).Value.Should().Be(42L);
         }
 
         [Fact]
-        public void GetMessageDetail_Returns_Ok_When_Found()
+        public async Task GetMessageDetail_Returns_Ok_When_Found()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessageDetail(queueId, 1).Returns(new MessageResponse { QueueId = 1 });
+            service.GetMessageDetailAsync(queueId, 1).Returns(Task.FromResult(new MessageResponse { QueueId = 1 }));
             var controller = new QueuesController(service);
 
-            var result = controller.GetMessageDetail(queueId, 1);
+            var result = await controller.GetMessageDetail(queueId, 1);
 
             result.Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
-        public void GetMessageDetail_Returns_NotFound_When_Null()
+        public async Task GetMessageDetail_Returns_NotFound_When_Null()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessageDetail(queueId, 999).Returns((MessageResponse)null);
+            service.GetMessageDetailAsync(queueId, 999).Returns(Task.FromResult((MessageResponse)null));
             var controller = new QueuesController(service);
 
-            var result = controller.GetMessageDetail(queueId, 999);
+            var result = await controller.GetMessageDetail(queueId, 999);
 
             result.Should().BeOfType<NotFoundResult>();
         }
 
         [Fact]
-        public void GetStaleMessages_Uses_Default_Threshold()
+        public async Task GetStaleMessages_Uses_Default_Threshold()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetStaleMessages(queueId, 60, 0, 25).Returns(new PagedResponse<MessageResponse>
+            service.GetStaleMessagesAsync(queueId, 60, 0, 25).Returns(Task.FromResult(new PagedResponse<MessageResponse>
             {
                 Items = new List<MessageResponse>(), TotalCount = 0, PageIndex = 0, PageSize = 25
-            });
+            }));
             var controller = new QueuesController(service);
 
-            controller.GetStaleMessages(queueId);
+            await controller.GetStaleMessages(queueId);
 
-            service.Received(1).GetStaleMessages(queueId, 60, 0, 25);
+            await service.Received(1).GetStaleMessagesAsync(queueId, 60, 0, 25);
         }
 
         [Fact]
-        public void GetErrors_Returns_Ok()
+        public async Task GetErrors_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetErrors(queueId, 0, 25).Returns(new PagedResponse<ErrorMessageResponse>
+            service.GetErrorsAsync(queueId, 0, 25).Returns(Task.FromResult(new PagedResponse<ErrorMessageResponse>
             {
                 Items = new List<ErrorMessageResponse>(), TotalCount = 0, PageIndex = 0, PageSize = 25
-            });
+            }));
             var controller = new QueuesController(service);
 
-            var result = controller.GetErrors(queueId);
+            var result = await controller.GetErrors(queueId);
 
             result.Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
-        public void GetErrorRetries_Returns_Ok()
+        public async Task GetErrorRetries_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetErrorRetries(queueId, 1).Returns(new List<ErrorRetryResponse>());
+            service.GetErrorRetriesAsync(queueId, 1).Returns(Task.FromResult<IReadOnlyList<ErrorRetryResponse>>(new List<ErrorRetryResponse>()));
             var controller = new QueuesController(service);
 
-            var result = controller.GetErrorRetries(queueId, 1);
+            var result = await controller.GetErrorRetries(queueId, 1);
 
             result.Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
-        public void GetConfiguration_Returns_Ok()
+        public async Task GetConfiguration_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetConfiguration(queueId).Returns(new ConfigurationResponse { ConfigurationJson = "{}" });
+            service.GetConfigurationAsync(queueId).Returns(Task.FromResult(new ConfigurationResponse { ConfigurationJson = "{}" }));
             var controller = new QueuesController(service);
 
-            var result = controller.GetConfiguration(queueId);
+            var result = await controller.GetConfiguration(queueId);
 
             result.Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
-        public void GetMessages_Returns_BadRequest_For_Invalid_Status()
+        public async Task GetMessages_Returns_BadRequest_For_Invalid_Status()
         {
             var service = Substitute.For<IDashboardService>();
             var controller = new QueuesController(service);
 
-            var result = controller.GetMessages(Guid.NewGuid(), status: 99);
+            var result = await controller.GetMessages(Guid.NewGuid(), status: 99);
 
             result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]
-        public void GetMessages_Accepts_Valid_Status()
+        public async Task GetMessages_Accepts_Valid_Status()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessages(queueId, 0, 25, 0).Returns(new PagedResponse<MessageResponse>
+            service.GetMessagesAsync(queueId, 0, 25, 0).Returns(Task.FromResult(new PagedResponse<MessageResponse>
             {
                 Items = new List<MessageResponse>(), TotalCount = 0, PageIndex = 0, PageSize = 25
-            });
+            }));
             var controller = new QueuesController(service);
 
-            var result = controller.GetMessages(queueId, status: 0);
+            var result = await controller.GetMessages(queueId, status: 0);
 
             result.Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
-        public void GetMessageCount_Returns_BadRequest_For_Invalid_Status()
+        public async Task GetMessageCount_Returns_BadRequest_For_Invalid_Status()
         {
             var service = Substitute.For<IDashboardService>();
             var controller = new QueuesController(service);
 
-            var result = controller.GetMessageCount(Guid.NewGuid(), status: 99);
+            var result = await controller.GetMessageCount(Guid.NewGuid(), status: 99);
 
             result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]
-        public void GetMessages_Accepts_Null_Status()
+        public async Task GetMessages_Accepts_Null_Status()
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessages(queueId, 0, 25, null).Returns(new PagedResponse<MessageResponse>
+            service.GetMessagesAsync(queueId, 0, 25, null).Returns(Task.FromResult(new PagedResponse<MessageResponse>
             {
                 Items = new List<MessageResponse>(), TotalCount = 0, PageIndex = 0, PageSize = 25
-            });
+            }));
             var controller = new QueuesController(service);
 
-            var result = controller.GetMessages(queueId);
+            var result = await controller.GetMessages(queueId);
 
             result.Should().BeOfType<OkObjectResult>();
         }

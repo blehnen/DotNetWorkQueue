@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Controllers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
@@ -69,29 +70,29 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         }
 
         [Fact]
-        public void GetJobs_Returns_Ok()
+        public async Task GetJobs_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
             var connectionId = Guid.NewGuid();
-            service.GetJobsByConnection(connectionId).Returns(new List<JobResponse>());
+            service.GetJobsByConnectionAsync(connectionId).Returns(Task.FromResult<IReadOnlyList<JobResponse>>(new List<JobResponse>()));
             var controller = new ConnectionsController(service);
 
-            var result = controller.GetJobs(connectionId);
+            var result = await controller.GetJobs(connectionId);
 
             result.Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
-        public void GetJobs_Calls_Service_With_ConnectionId()
+        public async Task GetJobs_Calls_Service_With_ConnectionId()
         {
             var service = Substitute.For<IDashboardService>();
             var connectionId = Guid.NewGuid();
-            service.GetJobsByConnection(connectionId).Returns(new List<JobResponse>());
+            service.GetJobsByConnectionAsync(connectionId).Returns(Task.FromResult<IReadOnlyList<JobResponse>>(new List<JobResponse>()));
             var controller = new ConnectionsController(service);
 
-            controller.GetJobs(connectionId);
+            await controller.GetJobs(connectionId);
 
-            service.Received(1).GetJobsByConnection(connectionId);
+            await service.Received(1).GetJobsByConnectionAsync(connectionId);
         }
     }
 }

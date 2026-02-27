@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -69,9 +70,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [HttpGet("{connectionId:guid}/jobs")]
         [ProducesResponseType(typeof(IReadOnlyList<JobResponse>), 200)]
         [ProducesResponseType(404)]
-        public IActionResult GetJobs(Guid connectionId)
+        public async Task<IActionResult> GetJobs(Guid connectionId)
         {
-            return Ok(_service.GetJobsByConnection(connectionId));
+            return Ok(await _service.GetJobsByConnectionAsync(connectionId));
         }
     }
 }

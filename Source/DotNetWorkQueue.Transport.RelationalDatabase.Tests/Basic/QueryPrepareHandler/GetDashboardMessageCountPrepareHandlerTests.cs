@@ -44,7 +44,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             handler.Handle(new GetDashboardMessageCountQuery(1), command, CommandStringTypes.GetDashboardMessageCount);
 
             var parameters = (DataParameterCollection)command.Parameters;
-            Assert.Empty(parameters);
             Assert.True(parameters.Any(p => p.ParameterName == "@Status"));
             Assert.Contains("WHERE Status = @Status", command.CommandText);
         }
