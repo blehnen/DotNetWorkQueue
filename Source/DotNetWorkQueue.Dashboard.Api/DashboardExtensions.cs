@@ -17,10 +17,14 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Linq;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
+using DotNetWorkQueue.Dashboard.Api.Controllers;
 using DotNetWorkQueue.Dashboard.Api.Middleware;
 using DotNetWorkQueue.Dashboard.Api.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotNetWorkQueue.Dashboard.Api
@@ -54,6 +58,12 @@ namespace DotNetWorkQueue.Dashboard.Api
             services.AddControllers(mvcOptions =>
                 {
                     mvcOptions.Filters.Add<DashboardExceptionFilter>();
+
+                    if (!string.IsNullOrEmpty(options.AuthorizationPolicy))
+                    {
+                        mvcOptions.Conventions.Add(
+                            new DashboardAuthorizationConvention(options.AuthorizationPolicy));
+                    }
                 })
                 .AddApplicationPart(typeof(DashboardExtensions).Assembly);
 
@@ -93,6 +103,28 @@ namespace DotNetWorkQueue.Dashboard.Api
             }
 
             return app;
+        }
+    }
+
+    /// <summary>
+    /// MVC convention that applies an authorization policy to dashboard controllers.
+    /// </summary>
+    internal class DashboardAuthorizationConvention : IControllerModelConvention
+    {
+        private readonly string _policy;
+
+        public DashboardAuthorizationConvention(string policy)
+        {
+            _policy = policy;
+        }
+
+        public void Apply(ControllerModel controller)
+        {
+            var dashboardAssembly = typeof(ConnectionsController).Assembly;
+            if (controller.ControllerType.Assembly == dashboardAssembly)
+            {
+                controller.Filters.Add(new AuthorizeFilter(_policy));
+            }
         }
     }
 }
