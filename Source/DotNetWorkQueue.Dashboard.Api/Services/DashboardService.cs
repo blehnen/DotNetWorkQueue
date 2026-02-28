@@ -262,9 +262,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                 var messageFactory = container.GetInstance<IMessageFactory>();
                 var newMessage = messageFactory.Create(decodedBody, headers);
 
-                var bodyJson = JsonConvert.SerializeObject(newMessage.Body, Formatting.Indented,
-                    new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.None });
                 var typeName = ((object)newMessage.Body)?.GetType().FullName;
+                string bodyJson = null;
 
                 // Attempt typed re-deserialization when the producer stamped a body type header.
                 // Stage 1: type already loaded in AppDomain (embedded dashboard).
@@ -276,7 +275,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                     {
                         try
                         {
-                            var typedBody = JsonConvert.DeserializeObject(bodyJson, resolvedType);
+                            // Compact intermediate serialization — no indentation needed for the round-trip step.
+                            var typedBody = JsonConvert.DeserializeObject(
+                                JsonConvert.SerializeObject(newMessage.Body), resolvedType);
                             bodyJson = JsonConvert.SerializeObject(typedBody, Formatting.Indented,
                                 new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.None });
                             typeName = resolvedType.FullName;
@@ -286,10 +287,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                             _logger.LogWarning(ex,
                                 "Type header present for {TypeName} but re-deserialization failed for message {MessageId}",
                                 portableName, messageId);
-                            // fall through — bodyJson and typeName retain their JObject values
                         }
                     }
                 }
+
+                // Fall back to generic JObject serialization if type header absent, unresolvable, or re-deserialization failed.
+                bodyJson ??= JsonConvert.SerializeObject(newMessage.Body, Formatting.Indented,
+                    new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.None });
 
                 return new MessageBodyResponse
                 {
