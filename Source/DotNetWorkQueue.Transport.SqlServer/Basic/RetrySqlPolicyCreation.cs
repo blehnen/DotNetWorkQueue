@@ -61,8 +61,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             var delayAsync = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
 
             var retrySql = Policy
-                 .Handle<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
-                 .OrInner<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
+                 .Handle<Exception>(ex => HasRetryableSqlException(ex))
                  .WaitAndRetry(delay,
                      (exception, timeSpan, retryCount, context) =>
                      {
@@ -85,8 +84,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                      });
 
             var retrySqlAsync = Policy
-                .Handle<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
-                .OrInner<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
+                .Handle<Exception>(ex => HasRetryableSqlException(ex))
                 .WaitAndRetryAsync(delayAsync,
                     (exception, timeSpan, retryCount, context) =>
                     {
@@ -143,6 +141,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql.Wrap(chaosPolicy);
             else
                 policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql;
+        }
+
+        private static bool HasRetryableSqlException(Exception ex)
+        {
+            while (ex != null)
+            {
+                if (ex is SqlException sqlEx && Enum.IsDefined(typeof(RetryableSqlErrors), sqlEx.Number))
+                    return true;
+                ex = ex.InnerException;
+            }
+            return false;
         }
 
         private static InjectOutcomePolicy CreateRetryChaos(IPolicies policies)

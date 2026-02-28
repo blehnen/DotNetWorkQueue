@@ -60,9 +60,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             var delayAsync = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
 
             var retrySql = Policy
-                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
-                .OrInner<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
-                //.Handle<SQLiteException>()
+                .Handle<Exception>(ex => HasRetryableSQLiteException(ex))
                 .WaitAndRetry(delay,
                     (exception, timeSpan, retryCount, context) =>
                     {
@@ -85,9 +83,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     });
 
             var retrySqlAsync = Policy
-                .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
-                .OrInner<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
-                //.Handle<SQLiteException>()
+                .Handle<Exception>(ex => HasRetryableSQLiteException(ex))
                 .WaitAndRetryAsync(delayAsync,
                     (exception, timeSpan, retryCount, context) =>
                     {
@@ -156,6 +152,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             if (chaosPolicy != null)
                 policies.Registry[TransportPolicyDefinitions.BeginTransaction] = retrySql.Wrap(chaosPolicy);
             else policies.Registry[TransportPolicyDefinitions.BeginTransaction] = retrySql;
+        }
+
+        private static bool HasRetryableSQLiteException(Exception ex)
+        {
+            while (ex != null)
+            {
+                if (ex is SQLiteException sqliteEx && Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)sqliteEx.ErrorCode))
+                    return true;
+                ex = ex.InnerException;
+            }
+            return false;
         }
 
         private static InjectOutcomePolicy CreateRetryChaos(IPolicies policies)

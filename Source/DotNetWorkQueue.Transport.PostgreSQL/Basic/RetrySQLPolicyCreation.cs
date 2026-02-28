@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             var delayAsync = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
 
             var retrySql = Policy
-                .Handle<PostgresException>(ex => ex.IsTransient).OrInner<PostgresException>(ex => ex.IsTransient)
+                .Handle<Exception>(ex => HasRetryablePostgresException(ex))
                 .WaitAndRetry(delay,
                     (exception, timeSpan, retryCount, context) =>
                     {
@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     });
 
             var retrySqlAsync = Policy
-                .Handle<PostgresException>(ex => ex.IsTransient).OrInner<PostgresException>(ex => ex.IsTransient)
+                .Handle<Exception>(ex => HasRetryablePostgresException(ex))
                 .WaitAndRetryAsync(delayAsync,
                     (exception, timeSpan, retryCount, context) =>
                     {
@@ -143,6 +143,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql.Wrap(chaosPolicy);
             else
                 policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql;
+        }
+
+        private static bool HasRetryablePostgresException(Exception ex)
+        {
+            while (ex != null)
+            {
+                if (ex is PostgresException pgEx && pgEx.IsTransient)
+                    return true;
+                ex = ex.InnerException;
+            }
+            return false;
         }
 
         private static InjectOutcomePolicy CreateRetryChaos(IPolicies policies)
