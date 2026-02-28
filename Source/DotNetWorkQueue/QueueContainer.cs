@@ -454,11 +454,16 @@ namespace DotNetWorkQueue
         /// <returns>The internal container. Caller is responsible for disposal.</returns>
         public IContainer CreateAdminContainer(QueueConnection queueConnection)
         {
+            return CreateAdminContainer(queueConnection, null);
+        }
+
+        public IContainer CreateAdminContainer(QueueConnection queueConnection, Action<IContainer> registerServiceInternal)
+        {
             ThrowIfDisposed();
 
             Guard.NotNull(() => queueConnection, queueConnection);
 
-            var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, queueConnection, _transportInit, ConnectionTypes.Status, x => { }, _setOptions);
+            var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, queueConnection, _transportInit, ConnectionTypes.Status, registerServiceInternal ?? (x => { }), _setOptions);
             Containers.Add(container);
             return container;
         }

@@ -19,6 +19,7 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Dashboard.Api.Middleware
 {
@@ -27,12 +28,21 @@ namespace DotNetWorkQueue.Dashboard.Api.Middleware
     /// </summary>
     internal class DashboardExceptionFilter : IExceptionFilter
     {
+        private readonly ILogger<DashboardExceptionFilter> _logger;
+
+        public DashboardExceptionFilter(ILogger<DashboardExceptionFilter> logger)
+        {
+            _logger = logger;
+        }
+
         /// <inheritdoc />
         public void OnException(ExceptionContext context)
         {
             switch (context.Exception)
             {
                 case ObjectDisposedException:
+                    _logger.LogWarning(context.Exception, "Dashboard service was disposed while handling {Method} {Path}",
+                        context.HttpContext.Request.Method, context.HttpContext.Request.Path);
                     context.Result = new ObjectResult(new { error = "Service unavailable" })
                     {
                         StatusCode = 503
@@ -41,6 +51,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Middleware
                     break;
 
                 case InvalidOperationException:
+                    _logger.LogInformation(context.Exception, "Resource not found: {Message}", context.Exception.Message);
                     context.Result = new ObjectResult(new { error = context.Exception.Message })
                     {
                         StatusCode = 404
@@ -49,6 +60,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Middleware
                     break;
 
                 case NotSupportedException:
+                    _logger.LogWarning(context.Exception, "Unsupported operation: {Message}", context.Exception.Message);
                     context.Result = new ObjectResult(new { error = context.Exception.Message })
                     {
                         StatusCode = 501

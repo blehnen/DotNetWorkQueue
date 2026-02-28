@@ -4,12 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
+using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.Shared;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
@@ -20,7 +24,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         public void GetConnections_Returns_All_Registered_Connections()
         {
             var api = CreateApi(out _, out _);
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
 
             var result = service.GetConnections();
 
@@ -33,7 +37,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         public void GetQueues_Returns_Queues_For_Connection()
         {
             var api = CreateApi(out var connectionId, out _);
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
 
             var result = service.GetQueues(connectionId);
 
@@ -45,7 +49,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         public void GetQueues_Throws_For_Unknown_ConnectionId()
         {
             var api = CreateApi(out _, out _);
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
 
             var act = () => service.GetQueues(Guid.NewGuid());
 
@@ -66,7 +70,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             }));
             container.GetInstance<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>>().Returns(handler);
 
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
             var result = await service.GetStatusAsync(queueId);
 
             result.Waiting.Should().Be(10);
@@ -94,7 +98,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             factory.Create().Returns(options);
             container.GetInstance<ITransportOptionsFactory>().Returns(factory);
 
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
             var result = service.GetFeatures(queueId);
 
             result.EnableStatus.Should().BeTrue();
@@ -114,7 +118,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.HandleAsync(Arg.Any<GetDashboardMessageCountQuery>()).Returns(Task.FromResult(42L));
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageCountQuery, long>>().Returns(handler);
 
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
             var result = await service.GetMessageCountAsync(queueId, null);
 
             result.Should().Be(42L);
@@ -131,7 +135,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.HandleAsync(Arg.Any<GetDashboardMessageDetailQuery>()).Returns(Task.FromResult((DashboardMessage)null));
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>>().Returns(handler);
 
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
             var result = await service.GetMessageDetailAsync(queueId, 999);
 
             result.Should().BeNull();
@@ -149,7 +153,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 Task.FromResult(System.Text.Encoding.UTF8.GetBytes("{\"test\":true}")));
             container.GetInstance<IQueryHandlerAsync<GetDashboardConfigurationQuery, byte[]>>().Returns(handler);
 
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
             var result = await service.GetConfigurationAsync(queueId);
 
             result.ConfigurationJson.Should().Be("{\"test\":true}");
@@ -171,7 +175,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             }));
             container.GetInstance<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>().Returns(handler);
 
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
             var result = await service.GetJobsByConnectionAsync(connectionId);
 
             result.Should().HaveCount(1);
@@ -196,7 +200,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 { connectionId, connectionInfo }
             });
 
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
             var result = await service.GetJobsByConnectionAsync(connectionId);
 
             result.Should().BeEmpty();
@@ -206,7 +210,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         public async Task GetJobsByConnection_Throws_For_Unknown_ConnectionId()
         {
             var api = CreateApi(out _, out _);
-            var service = new DashboardService(api);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
 
             var act = async () => await service.GetJobsByConnectionAsync(Guid.NewGuid());
 
@@ -242,6 +246,184 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             api.FindQueue(queueId).Returns(queueInfo);
 
             return api;
+        }
+
+        [Fact]
+        public async Task GetMessageBody_Returns_Decoded_Body()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var bodyBytes = new byte[] { 1, 2, 3 };
+            var headerBytes = new byte[] { 4, 5, 6 };
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult(new DashboardMessageBody
+            {
+                Body = bodyBytes,
+                Headers = headerBytes
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
+
+            var graph = new MessageInterceptorsGraph();
+            var headers = new Dictionary<string, object> { { "Queue-MessageInterceptorGraph", graph } };
+
+            var internalSerializer = Substitute.For<IInternalSerializer>();
+            internalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerBytes).Returns(headers);
+
+            var serializer = Substitute.For<ASerializer>(Substitute.For<IMessageInterceptorRegistrar>());
+            serializer.BytesToMessage<MessageBody>(bodyBytes, graph, Arg.Any<IDictionary<string, object>>())
+                .Returns(new MessageBody { Body = "hello" });
+
+            var compositeSerialization = Substitute.For<ICompositeSerialization>();
+            compositeSerialization.InternalSerializer.Returns(internalSerializer);
+            compositeSerialization.Serializer.Returns(serializer);
+            container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
+
+            var standardHeaders = Substitute.For<IHeaders>();
+            var messageInterceptorGraphData = Substitute.For<IMessageContextData<MessageInterceptorsGraph>>();
+            messageInterceptorGraphData.Name.Returns("Queue-MessageInterceptorGraph");
+            standardHeaders.StandardHeaders.MessageInterceptorGraph.Returns(messageInterceptorGraphData);
+            container.GetInstance<IHeaders>().Returns(standardHeaders);
+
+            container.GetInstance<IMessageFactory>().Returns(new MessageFactory());
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, 42);
+
+            result.Should().NotBeNull();
+            result.Body.Should().NotBeNullOrEmpty();
+            result.TypeName.Should().Be("System.String");
+            result.WasIntercepted.Should().BeFalse();
+            result.InterceptorChain.Should().BeEmpty();
+            result.DecodingError.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetMessageBody_Returns_Null_When_Not_Found()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult((DashboardMessageBody)null));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, 999);
+
+            result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetMessageBody_Returns_Error_When_Decoding_Fails()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult(new DashboardMessageBody
+            {
+                Body = new byte[] { 1 },
+                Headers = new byte[] { 2 }
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
+
+            var internalSerializer = Substitute.For<IInternalSerializer>();
+            internalSerializer.ConvertBytesTo<IDictionary<string, object>>(Arg.Any<byte[]>())
+                .Throws(new Exception("Bad headers"));
+
+            var compositeSerialization = Substitute.For<ICompositeSerialization>();
+            compositeSerialization.InternalSerializer.Returns(internalSerializer);
+            container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, 42);
+
+            result.Should().NotBeNull();
+            result.Body.Should().BeNull();
+            result.DecodingError.Should().Be("Bad headers");
+        }
+
+        [Fact]
+        public async Task GetMessageHeaders_Returns_Decoded_Headers()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var headerBytes = new byte[] { 4, 5, 6 };
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageHeadersQuery>()).Returns(Task.FromResult(new DashboardMessageHeaders
+            {
+                Headers = headerBytes
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>().Returns(handler);
+
+            var headers = new Dictionary<string, object> { { "key", "value" } };
+            var internalSerializer = Substitute.For<IInternalSerializer>();
+            internalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerBytes).Returns(headers);
+
+            var compositeSerialization = Substitute.For<ICompositeSerialization>();
+            compositeSerialization.InternalSerializer.Returns(internalSerializer);
+            container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageHeadersAsync(queueId, 42);
+
+            result.Should().NotBeNull();
+            result.Headers.Should().ContainKey("key");
+            result.DecodingError.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetMessageHeaders_Returns_Null_When_Not_Found()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageHeadersQuery>()).Returns(Task.FromResult((DashboardMessageHeaders)null));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>().Returns(handler);
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageHeadersAsync(queueId, 999);
+
+            result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetMessageHeaders_Returns_Error_When_Decoding_Fails()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageHeadersQuery>()).Returns(Task.FromResult(new DashboardMessageHeaders
+            {
+                Headers = new byte[] { 1 }
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>().Returns(handler);
+
+            var internalSerializer = Substitute.For<IInternalSerializer>();
+            internalSerializer.ConvertBytesTo<IDictionary<string, object>>(Arg.Any<byte[]>())
+                .Throws(new Exception("Corrupt data"));
+
+            var compositeSerialization = Substitute.For<ICompositeSerialization>();
+            compositeSerialization.InternalSerializer.Returns(internalSerializer);
+            container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageHeadersAsync(queueId, 42);
+
+            result.Should().NotBeNull();
+            result.Headers.Should().BeNull();
+            result.DecodingError.Should().Be("Corrupt data");
         }
 
         private static void SetupJobTableExists(IContainer container, bool exists)

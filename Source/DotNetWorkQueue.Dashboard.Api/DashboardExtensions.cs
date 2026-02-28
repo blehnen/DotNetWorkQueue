@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Serialization;
 
 namespace DotNetWorkQueue.Dashboard.Api
 {
@@ -54,7 +55,6 @@ namespace DotNetWorkQueue.Dashboard.Api
                 return new DashboardApi(opts);
             });
             services.AddSingleton<IDashboardService, DashboardService>();
-
             services.AddControllers(mvcOptions =>
                 {
                     mvcOptions.Filters.Add<DashboardExceptionFilter>();

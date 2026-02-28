@@ -62,7 +62,7 @@ The main library containing all abstractions, interfaces, and default implementa
 - `Trace` - OpenTelemetry distributed tracing integration
 
 ### Transport Abstraction (layered)
-1. **`Transport.Shared`** - Base interfaces and Command/Query pattern (`ICommandHandler<T>`, `IQueryHandler<T,TR>`) for transport-independent data access
+1. **`Transport.Shared`** - Base interfaces and Command/Query pattern (`ICommandHandler<T>`, `IQueryHandler<T,TR>`, `IQueryHandlerAsync<T,TR>`) for transport-independent data access
 2. **`Transport.RelationalDatabase`** - SQL-specific abstractions built on Transport.Shared
 3. **Transport implementations** - Each transport (SqlServer, PostgreSQL, SQLite, Redis, LiteDb) implements `ITransportInit` (with `Send`/`Receive`/`Duplex` variants) and registers its DI bindings via `RegisterImplementations()`
 
@@ -94,4 +94,4 @@ Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (thre
 - Interface prefix: `I` (e.g., `IQueue`); Factory suffix: `Factory`; Config suffix: `Configuration`
 - Abstract base classes use prefix `A` or suffix `Base`
 - Thread-safe disposal via `Interlocked` operations throughout
-- CI runs on AppVeyor (master branch only)
+- CI runs on TeamCity (master branch only)

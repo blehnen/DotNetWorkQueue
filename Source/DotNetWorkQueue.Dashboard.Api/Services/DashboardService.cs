@@ -16,16 +16,21 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Dashboard.Api.Models;
+using DotNetWorkQueue.Factory;
+using DotNetWorkQueue.Serialization;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Dashboard.Api.Models;
-using DotNetWorkQueue.Transport.RelationalDatabase;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
-using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Dashboard.Api.Services
 {
@@ -35,10 +40,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
     internal class DashboardService : IDashboardService
     {
         private readonly IDashboardApi _dashboardApi;
+        private readonly ILogger<DashboardService> _logger;
 
-        public DashboardService(IDashboardApi dashboardApi)
+        public DashboardService(IDashboardApi dashboardApi, ILogger<DashboardService> logger)
         {
             _dashboardApi = dashboardApi;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -228,6 +235,103 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                 return new List<JobResponse>();
 
             return await GetJobsAsync(connection.Queues[0].Id).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<MessageBodyResponse> GetMessageBodyAsync(Guid queueId, long messageId)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            var result = await handler.HandleAsync(new GetDashboardMessageBodyQuery(messageId)).ConfigureAwait(false);
+            if (result == null)
+                return null;
+
+            try
+            {
+                var serialization = container.GetInstance<ICompositeSerialization>();
+                var headers = serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(result.Headers);
+
+                var standardHeaders = container.GetInstance<IHeaders>();
+                var graph = (MessageInterceptorsGraph)headers[standardHeaders.StandardHeaders.MessageInterceptorGraph.Name];
+                var interceptorTypes = graph.Types.Select(t => t.Name).ToList();
+                var wasIntercepted = interceptorTypes.Count > 0;
+
+                var decodedBody = serialization.Serializer.BytesToMessage<MessageBody>(result.Body, graph, headers).Body;
+                var messageFactory = container.GetInstance<IMessageFactory>();
+                var newMessage = messageFactory.Create(decodedBody, headers);
+
+                var bodyJson = JsonConvert.SerializeObject(newMessage.Body, Formatting.Indented,
+                    new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.None });
+                var typeName = ((object)newMessage.Body)?.GetType().FullName;
+
+                return new MessageBodyResponse
+                {
+                    Body = bodyJson,
+                    TypeName = typeName,
+                    WasIntercepted = wasIntercepted,
+                    InterceptorChain = interceptorTypes
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to decode body for message {MessageId} in queue {QueueId}", messageId, queueId);
+                return new MessageBodyResponse
+                {
+                    DecodingError = ex.Message,
+                    WasIntercepted = false,
+                    InterceptorChain = new List<string>()
+                };
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<MessageHeadersResponse> GetMessageHeadersAsync(Guid queueId, long messageId)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>();
+            var result = await handler.HandleAsync(new GetDashboardMessageHeadersQuery(messageId)).ConfigureAwait(false);
+            if (result == null)
+                return null;
+
+            try
+            {
+                var serialization = container.GetInstance<ICompositeSerialization>();
+                var headers = serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(result.Headers);
+                return new MessageHeadersResponse
+                {
+                    Headers = SanitizeHeaders(headers)
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to decode headers for message {MessageId} in queue {QueueId}", messageId, queueId);
+                return new MessageHeadersResponse
+                {
+                    DecodingError = ex.Message
+                };
+            }
+        }
+
+        private static IDictionary<string, object> SanitizeHeaders(IDictionary<string, object> headers)
+        {
+            var result = new Dictionary<string, object>(headers.Count);
+            foreach (var kvp in headers)
+                result[kvp.Key] = SanitizeHeaderValue(kvp.Value);
+            return result;
+        }
+
+        private static object SanitizeHeaderValue(object value)
+        {
+            if (value == null) return null;
+            if (value is string || value is bool || value is int || value is long ||
+                value is double || value is float || value is decimal || value is Guid)
+                return value;
+            if (value is MessageInterceptorsGraph graph)
+                return graph.Types.Select(t => t.FullName ?? t.Name).ToList();
+            var type = value.GetType();
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTypeWrapper<>))
+                return type.GetProperty("Value")?.GetValue(value);
+            return value.ToString();
         }
 
         private IContainer GetContainer(Guid queueId)

@@ -180,6 +180,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             CommandCache.Add(CommandStringTypes.GetDashboardStaleMessages,
                 $"SELECT QueueID, QueuedDateTime, CorrelationID{{0}} FROM {TableNameHelper.MetaDataName} WHERE Status = {Convert.ToInt32(QueueStatuses.Processing)} AND HeartBeat IS NOT NULL AND HeartBeat < @ThresholdTicks ORDER BY HeartBeat ASC LIMIT @PageSize OFFSET @Offset");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardMessageBody,
+                $"SELECT Body, Headers FROM {TableNameHelper.QueueName} WHERE QueueID = @QueueId");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardMessageHeaders,
+                $"SELECT Headers FROM {TableNameHelper.QueueName} WHERE QueueID = @QueueId");
         }
     }
 }

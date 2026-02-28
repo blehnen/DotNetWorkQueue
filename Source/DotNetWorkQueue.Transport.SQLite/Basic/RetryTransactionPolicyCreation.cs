@@ -61,6 +61,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             var retrySql = Policy
                 .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
+                .OrInner<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
                 //.Handle<SQLiteException>()
                 .WaitAndRetry(delay,
                     (exception, timeSpan, retryCount, context) =>
@@ -85,6 +86,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             var retrySqlAsync = Policy
                 .Handle<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
+                .OrInner<SQLiteException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)ex.ErrorCode))
                 //.Handle<SQLiteException>()
                 .WaitAndRetryAsync(delayAsync,
                     (exception, timeSpan, retryCount, context) =>

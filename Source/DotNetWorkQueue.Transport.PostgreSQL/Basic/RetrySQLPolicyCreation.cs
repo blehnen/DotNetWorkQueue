@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             var delayAsync = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
 
             var retrySql = Policy
-                .Handle<PostgresException>(ex => ex.IsTransient)
+                .Handle<PostgresException>(ex => ex.IsTransient).OrInner<PostgresException>(ex => ex.IsTransient)
                 .WaitAndRetry(delay,
                     (exception, timeSpan, retryCount, context) =>
                     {
@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                     });
 
             var retrySqlAsync = Policy
-                .Handle<PostgresException>(ex => ex.IsTransient)
+                .Handle<PostgresException>(ex => ex.IsTransient).OrInner<PostgresException>(ex => ex.IsTransient)
                 .WaitAndRetryAsync(delayAsync,
                     (exception, timeSpan, retryCount, context) =>
                     {

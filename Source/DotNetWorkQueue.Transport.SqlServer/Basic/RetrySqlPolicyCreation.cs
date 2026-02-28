@@ -62,6 +62,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             var retrySql = Policy
                  .Handle<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
+                 .OrInner<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
                  .WaitAndRetry(delay,
                      (exception, timeSpan, retryCount, context) =>
                      {
@@ -85,6 +86,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             var retrySqlAsync = Policy
                 .Handle<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
+                .OrInner<SqlException>(ex => Enum.IsDefined(typeof(RetryableSqlErrors), ex.Number))
                 .WaitAndRetryAsync(delayAsync,
                     (exception, timeSpan, retryCount, context) =>
                     {

@@ -342,6 +342,27 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             container
                 .Register<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>,
                     GetDashboardJobsQueryHandlerAsync>(LifeStyles.Singleton);
+
+            // Dashboard message body/headers handlers
+            container
+                .Register<IQueryHandler<GetDashboardMessageBodyQuery, DashboardMessageBody>,
+                    GetDashboardMessageBodyQueryHandler>(LifeStyles.Singleton);
+            container
+                .Register<IPrepareQueryHandler<GetDashboardMessageBodyQuery, DashboardMessageBody>,
+                    GetDashboardMessageBodyPrepareHandler>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>,
+                    GetDashboardMessageBodyQueryHandlerAsync>(LifeStyles.Singleton);
+
+            container
+                .Register<IQueryHandler<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>,
+                    GetDashboardMessageHeadersQueryHandler>(LifeStyles.Singleton);
+            container
+                .Register<IPrepareQueryHandler<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>,
+                    GetDashboardMessageHeadersPrepareHandler>(LifeStyles.Singleton);
+            container
+                .Register<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>,
+                    GetDashboardMessageHeadersQueryHandlerAsync>(LifeStyles.Singleton);
         }
 
         private void RegisterCommands(IContainer container, params Assembly[] target)

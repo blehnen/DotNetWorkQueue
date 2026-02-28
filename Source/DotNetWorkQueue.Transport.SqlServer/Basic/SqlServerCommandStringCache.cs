@@ -185,6 +185,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             CommandCache.Add(CommandStringTypes.GetDashboardStaleMessages,
                 $"SELECT QueueID, QueuedDateTime, CorrelationID{{0}} FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Processing)} AND HeartBeat IS NOT NULL AND DATEDIFF(SECOND, HeartBeat, GETUTCDATE()) > @Threshold ORDER BY HeartBeat ASC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardMessageBody,
+                $"SELECT Body, Headers FROM {TableNameHelper.QueueName} WITH (NOLOCK) WHERE QueueID = @QueueId");
+
+            CommandCache.Add(CommandStringTypes.GetDashboardMessageHeaders,
+                $"SELECT Headers FROM {TableNameHelper.QueueName} WITH (NOLOCK) WHERE QueueID = @QueueId");
         }
     }
 }

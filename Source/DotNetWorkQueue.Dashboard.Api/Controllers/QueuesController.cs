@@ -161,6 +161,34 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             return Ok(await _service.GetConfigurationAsync(queueId));
         }
 
+        /// <summary>
+        /// Gets the decoded message body for a specific message.
+        /// </summary>
+        [HttpGet("{queueId:guid}/messages/{messageId:long}/body")]
+        [ProducesResponseType(typeof(MessageBodyResponse), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetMessageBody(Guid queueId, long messageId)
+        {
+            var result = await _service.GetMessageBodyAsync(queueId, messageId);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Gets the message headers for a specific message.
+        /// </summary>
+        [HttpGet("{queueId:guid}/messages/{messageId:long}/headers")]
+        [ProducesResponseType(typeof(MessageHeadersResponse), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetMessageHeaders(Guid queueId, long messageId)
+        {
+            var result = await _service.GetMessageHeadersAsync(queueId, messageId);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
         private static bool IsValidStatus(int status)
         {
             return Enum.IsDefined(typeof(QueueStatuses), (short)status);

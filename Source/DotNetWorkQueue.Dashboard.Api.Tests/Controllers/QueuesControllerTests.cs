@@ -211,5 +211,63 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             result.Should().BeOfType<OkObjectResult>();
         }
+
+        [Fact]
+        public async Task GetMessageBody_Returns_Ok()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.GetMessageBodyAsync(queueId, 1).Returns(Task.FromResult(new MessageBodyResponse
+            {
+                Body = "{}", InterceptorChain = new List<string>()
+            }));
+            var controller = new QueuesController(service);
+
+            var result = await controller.GetMessageBody(queueId, 1);
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetMessageBody_Returns_NotFound()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.GetMessageBodyAsync(queueId, 999).Returns(Task.FromResult((MessageBodyResponse)null));
+            var controller = new QueuesController(service);
+
+            var result = await controller.GetMessageBody(queueId, 999);
+
+            result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task GetMessageHeaders_Returns_Ok()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.GetMessageHeadersAsync(queueId, 1).Returns(Task.FromResult(new MessageHeadersResponse
+            {
+                Headers = new Dictionary<string, object> { { "key", "value" } }
+            }));
+            var controller = new QueuesController(service);
+
+            var result = await controller.GetMessageHeaders(queueId, 1);
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetMessageHeaders_Returns_NotFound()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.GetMessageHeadersAsync(queueId, 999).Returns(Task.FromResult((MessageHeadersResponse)null));
+            var controller = new QueuesController(service);
+
+            var result = await controller.GetMessageHeaders(queueId, 999);
+
+            result.Should().BeOfType<NotFoundResult>();
+        }
     }
 }
