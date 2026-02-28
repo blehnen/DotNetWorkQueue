@@ -63,5 +63,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
 
         /// <summary>Gets all scheduled jobs for a connection.</summary>
         Task<IReadOnlyList<JobResponse>> GetJobsByConnectionAsync(Guid connectionId);
+
+        /// <summary>Gets the decoded message body for a specific message.</summary>
+        Task<MessageBodyResponse> GetMessageBodyAsync(Guid queueId, long messageId);
+
+        /// <summary>Gets the deserialized message headers for a specific message.</summary>
+        Task<MessageHeadersResponse> GetMessageHeadersAsync(Guid queueId, long messageId);
     }
 }

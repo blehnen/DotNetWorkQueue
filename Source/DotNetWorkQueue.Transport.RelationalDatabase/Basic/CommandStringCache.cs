@@ -334,7 +334,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Dashboard: gets all job records
         /// </summary>
-        GetDashboardJobs
+        GetDashboardJobs,
+        /// <summary>
+        /// Dashboard: gets raw message body and headers by QueueID
+        /// </summary>
+        GetDashboardMessageBody,
+        /// <summary>
+        /// Dashboard: gets raw message headers by QueueID
+        /// </summary>
+        GetDashboardMessageHeaders
     }
 
     /// <summary>

@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Dashboard.Api
         private readonly Dictionary<Guid, DashboardQueueInfo> _queues;
         private readonly List<IQueueContainer> _queueContainers;
         private readonly ConcurrentDictionary<Guid, IContainer> _adminContainers;
-        private readonly ConcurrentDictionary<Guid, Tuple<IQueueContainer, QueueConnection>> _queueContainerMap;
+        private readonly ConcurrentDictionary<Guid, Tuple<IQueueContainer, QueueConnection, Action<IContainer>>> _queueContainerMap;
         private int _disposeCount;
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Dashboard.Api
             _queues = new Dictionary<Guid, DashboardQueueInfo>();
             _queueContainers = new List<IQueueContainer>();
             _adminContainers = new ConcurrentDictionary<Guid, IContainer>();
-            _queueContainerMap = new ConcurrentDictionary<Guid, Tuple<IQueueContainer, QueueConnection>>();
+            _queueContainerMap = new ConcurrentDictionary<Guid, Tuple<IQueueContainer, QueueConnection, Action<IContainer>>>();
 
             InitializeFromOptions(options);
         }
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Dashboard.Api
             if (!_queueContainerMap.TryGetValue(queueId, out var data))
                 throw new InvalidOperationException($"Queue id {queueId} was not found");
 
-            var container = data.Item1.CreateAdminContainer(data.Item2);
+            var container = data.Item1.CreateAdminContainer(data.Item2, data.Item3);
             _adminContainers.TryAdd(queueId, container);
             return container;
         }
@@ -108,7 +108,7 @@ namespace DotNetWorkQueue.Dashboard.Api
                     };
 
                     _queues[queueId] = queueInfo;
-                    _queueContainerMap[queueId] = new Tuple<IQueueContainer, QueueConnection>(queueContainer, queueConnection);
+                    _queueContainerMap[queueId] = new Tuple<IQueueContainer, QueueConnection, Action<IContainer>>(queueContainer, queueConnection, queueOption.InterceptorConfiguration);
                     queueInfos.Add(queueInfo);
                 }
 

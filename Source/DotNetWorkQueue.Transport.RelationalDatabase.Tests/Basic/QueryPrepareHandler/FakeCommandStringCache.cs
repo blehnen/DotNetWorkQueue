@@ -22,6 +22,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             CommandCache[CommandStringTypes.GetDashboardErrorRetries] = "SELECT retries";
             CommandCache[CommandStringTypes.GetDashboardConfiguration] = "SELECT config";
             CommandCache[CommandStringTypes.GetDashboardJobs] = "SELECT jobs";
+            CommandCache[CommandStringTypes.GetDashboardMessageBody] = "SELECT Body, Headers FROM meta WHERE QueueID = @QueueId";
+            CommandCache[CommandStringTypes.GetDashboardMessageHeaders] = "SELECT Headers FROM meta WHERE QueueID = @QueueId";
         }
     }
 }
