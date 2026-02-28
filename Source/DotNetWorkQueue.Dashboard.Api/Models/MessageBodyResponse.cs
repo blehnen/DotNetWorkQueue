@@ -37,7 +37,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Models
         public string TypeName { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether interceptors (compression/encryption) were applied and reversed.
+        /// Gets or sets a value indicating whether one or more interceptors were applied and reversed.
+        /// Interceptors are user-defined and may include compression, encryption, or any custom transformation.
         /// </summary>
         public bool WasIntercepted { get; set; }
 

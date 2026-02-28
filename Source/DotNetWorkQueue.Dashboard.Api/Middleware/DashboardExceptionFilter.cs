@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Middleware
                     break;
 
                 case InvalidOperationException:
-                    _logger.LogInformation(context.Exception, "Resource not found: {Message}", context.Exception.Message);
+                    _logger.LogWarning(context.Exception, "Resource not found: {Message}", context.Exception.Message);
                     context.Result = new ObjectResult(new { error = context.Exception.Message })
                     {
                         StatusCode = 404
