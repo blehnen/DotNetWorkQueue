@@ -28,7 +28,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -264,6 +266,31 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                     new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.None });
                 var typeName = ((object)newMessage.Body)?.GetType().FullName;
 
+                // Attempt typed re-deserialization when the producer stamped a body type header.
+                // Stage 1: type already loaded in AppDomain (embedded dashboard).
+                // Stage 2: load assembly from bin folder (standalone dashboard with user DLLs present).
+                if (headers.TryGetValue("Queue-MessageBodyType", out var rawTypeName) && rawTypeName is string portableName)
+                {
+                    var resolvedType = ResolveMessageBodyType(portableName);
+                    if (resolvedType != null)
+                    {
+                        try
+                        {
+                            var typedBody = JsonConvert.DeserializeObject(bodyJson, resolvedType);
+                            bodyJson = JsonConvert.SerializeObject(typedBody, Formatting.Indented,
+                                new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.None });
+                            typeName = resolvedType.FullName;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex,
+                                "Type header present for {TypeName} but re-deserialization failed for message {MessageId}",
+                                portableName, messageId);
+                            // fall through — bodyJson and typeName retain their JObject values
+                        }
+                    }
+                }
+
                 return new MessageBodyResponse
                 {
                     Body = bodyJson,
@@ -332,6 +359,44 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTypeWrapper<>))
                 return type.GetProperty("Value")?.GetValue(value);
             return value.ToString();
+        }
+
+        /// <summary>
+        /// Attempts to resolve a portable type name ("TypeFullName, AssemblySimpleName") to a
+        /// <see cref="Type"/>. Stage 1 checks the AppDomain (embedded scenario). Stage 2 tries
+        /// to load the assembly from <see cref="AppContext.BaseDirectory"/> (standalone scenario
+        /// where the user has placed their POCO DLLs in the dashboard's bin folder).
+        /// Returns null if the type cannot be resolved; never throws.
+        /// </summary>
+        private static Type ResolveMessageBodyType(string portableName)
+        {
+            // Stage 1: already loaded in AppDomain
+            var type = Type.GetType(portableName);
+            if (type != null)
+                return type;
+
+            // Stage 2: try loading from bin folder
+            // portableName format: "TypeFullName, AssemblySimpleName"
+            var commaIndex = portableName.IndexOf(',');
+            if (commaIndex < 0)
+                return null;
+
+            var typeFullName = portableName[..commaIndex].Trim();
+            var assemblySimpleName = portableName[(commaIndex + 1)..].Trim();
+            var assemblyPath = Path.Combine(AppContext.BaseDirectory, assemblySimpleName + ".dll");
+
+            if (!File.Exists(assemblyPath))
+                return null;
+
+            try
+            {
+                var assembly = Assembly.LoadFrom(assemblyPath);
+                return assembly.GetType(typeFullName);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private IContainer GetContainer(Guid queueId)

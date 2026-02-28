@@ -38,6 +38,7 @@ namespace DotNetWorkQueue.Messages
             MessageInterceptorGraph =
                 messageContextDataFactory.Create("Queue-MessageInterceptorGraph",
                     new MessageInterceptorsGraph());
+            MessageBodyType = messageContextDataFactory.Create<string>("Queue-MessageBodyType", null);
         }
 
         /// <inheritdoc/>
@@ -45,5 +46,8 @@ namespace DotNetWorkQueue.Messages
 
         /// <inheritdoc/>
         public IMessageContextData<MessageInterceptorsGraph> MessageInterceptorGraph { get; }
+
+        /// <inheritdoc/>
+        public IMessageContextData<string> MessageBodyType { get; }
     }
 }

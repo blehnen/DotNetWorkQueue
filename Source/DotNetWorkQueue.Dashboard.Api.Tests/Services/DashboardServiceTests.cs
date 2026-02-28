@@ -426,6 +426,113 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.DecodingError.Should().Be("Corrupt data");
         }
 
+        [Fact]
+        public async Task GetMessageBody_Uses_TypeHeader_When_Type_Is_Resolvable()
+        {
+            // Use System.String — always loaded in the AppDomain, so ResolveMessageBodyType Stage 1 succeeds.
+            var portableName = $"{typeof(string).FullName}, {typeof(string).Assembly.GetName().Name}";
+
+            var api = CreateApi(out _, out var queueId);
+            var container = SetupBodyDecodeContainer(queueId, api,
+                new Dictionary<string, object>
+                {
+                    { "Queue-MessageInterceptorGraph", new MessageInterceptorsGraph() },
+                    { "Queue-MessageBodyType", portableName }
+                },
+                bodyValue: "hello");
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, 42);
+
+            result.Should().NotBeNull();
+            result.DecodingError.Should().BeNull();
+            result.TypeName.Should().Be("System.String");
+        }
+
+        [Fact]
+        public async Task GetMessageBody_Falls_Back_To_JObject_When_TypeHeader_Not_Resolvable()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = SetupBodyDecodeContainer(queueId, api,
+                new Dictionary<string, object>
+                {
+                    { "Queue-MessageInterceptorGraph", new MessageInterceptorsGraph() },
+                    { "Queue-MessageBodyType", "NotReal.Type, NotReal" }
+                },
+                bodyValue: "hello");
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, 42);
+
+            result.Should().NotBeNull();
+            result.DecodingError.Should().BeNull();
+            result.Body.Should().NotBeNullOrEmpty();
+            // TypeName comes from the JObject/raw body since the header type couldn't be resolved
+            result.TypeName.Should().Be("System.String");
+        }
+
+        [Fact]
+        public async Task GetMessageBody_Falls_Back_To_JObject_When_TypeHeader_Absent()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = SetupBodyDecodeContainer(queueId, api,
+                new Dictionary<string, object>
+                {
+                    { "Queue-MessageInterceptorGraph", new MessageInterceptorsGraph() }
+                    // no Queue-MessageBodyType
+                },
+                bodyValue: "hello");
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, 42);
+
+            result.Should().NotBeNull();
+            result.DecodingError.Should().BeNull();
+            result.Body.Should().NotBeNullOrEmpty();
+        }
+
+        private static IContainer SetupBodyDecodeContainer(Guid queueId, IDashboardApi api,
+            Dictionary<string, object> headers, dynamic bodyValue)
+        {
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var bodyBytes = new byte[] { 1, 2, 3 };
+            var headerBytes = new byte[] { 4, 5, 6 };
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult(new DashboardMessageBody
+            {
+                Body = bodyBytes,
+                Headers = headerBytes
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
+
+            var graph = (MessageInterceptorsGraph)headers["Queue-MessageInterceptorGraph"];
+
+            var internalSerializer = Substitute.For<IInternalSerializer>();
+            internalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerBytes).Returns(headers);
+
+            var serializer = Substitute.For<ASerializer>(Substitute.For<IMessageInterceptorRegistrar>());
+            serializer.BytesToMessage<MessageBody>(bodyBytes, graph, Arg.Any<IDictionary<string, object>>())
+                .Returns(new MessageBody { Body = bodyValue });
+
+            var compositeSerialization = Substitute.For<ICompositeSerialization>();
+            compositeSerialization.InternalSerializer.Returns(internalSerializer);
+            compositeSerialization.Serializer.Returns(serializer);
+            container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
+
+            var standardHeaders = Substitute.For<IHeaders>();
+            var messageInterceptorGraphData = Substitute.For<IMessageContextData<MessageInterceptorsGraph>>();
+            messageInterceptorGraphData.Name.Returns("Queue-MessageInterceptorGraph");
+            standardHeaders.StandardHeaders.MessageInterceptorGraph.Returns(messageInterceptorGraphData);
+            container.GetInstance<IHeaders>().Returns(standardHeaders);
+
+            container.GetInstance<IMessageFactory>().Returns(new MessageFactory());
+
+            return container;
+        }
+
         private static void SetupJobTableExists(IContainer container, bool exists)
         {
             var tableExistsHandler = Substitute.For<IQueryHandler<GetTableExistsQuery, bool>>();

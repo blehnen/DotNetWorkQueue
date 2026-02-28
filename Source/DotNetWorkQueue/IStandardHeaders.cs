@@ -42,6 +42,13 @@ namespace DotNetWorkQueue
         /// The message interceptor graph.
         /// </value>
         IMessageContextData<MessageInterceptorsGraph> MessageInterceptorGraph { get; }
+
+        /// <summary>
+        /// Gets the header that stores the portable .NET type name of the message body
+        /// ("TypeFullName, AssemblySimpleName"). Written by the producer at enqueue time;
+        /// used by the dashboard to attempt typed deserialization.
+        /// </summary>
+        IMessageContextData<string> MessageBodyType { get; }
     }
 
     /// <summary>

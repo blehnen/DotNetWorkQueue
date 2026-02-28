@@ -47,6 +47,21 @@ namespace DotNetWorkQueue.Queue
         public void AddHeaders(IMessage message, IAdditionalMessageData data)
         {
             message.SetHeader(_headers.StandardHeaders.FirstPossibleDeliveryDate, new ValueTypeWrapper<DateTime>(_getFirstMessageDeliveryTime.GetTime(message, data)));
+
+            // Record the portable body type for the dashboard.
+            // Skip delegate types (method/LINQ queues) — Action<T>/expression types are not meaningful to display.
+            var bodyType = ((object)message.Body)?.GetType();
+            if (bodyType != null && !typeof(Delegate).IsAssignableFrom(bodyType))
+                message.SetHeader(_headers.StandardHeaders.MessageBodyType, GetPortableTypeName(bodyType));
+        }
+
+        /// <summary>
+        /// Returns "TypeFullName, AssemblySimpleName" — version, culture and public key token are
+        /// stripped so the header remains resolvable across assembly version changes.
+        /// </summary>
+        private static string GetPortableTypeName(Type type)
+        {
+            return $"{type.FullName}, {type.Assembly.GetName().Name}";
         }
     }
 }
