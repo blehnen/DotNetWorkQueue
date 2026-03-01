@@ -191,6 +191,37 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             CommandCache.Add(CommandStringTypes.GetDashboardMessageHeaders,
                 $"SELECT Headers FROM {TableNameHelper.QueueName} WITH (NOLOCK) WHERE QueueID = @QueueId");
+
+            // Dashboard write commands
+            CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_MetaDataErrors,
+                $"DELETE FROM {TableNameHelper.MetaDataErrorsName} WHERE QueueID IN (SELECT QueueID FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Error)})");
+
+            CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_ErrorTracking,
+                $"DELETE FROM {TableNameHelper.ErrorTrackingName} WHERE QueueID IN (SELECT QueueID FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Error)})");
+
+            CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_Queue,
+                $"DELETE FROM {TableNameHelper.QueueName} WHERE QueueID IN (SELECT QueueID FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Error)})");
+
+            CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_Status,
+                $"DELETE FROM {TableNameHelper.StatusName} WHERE QueueID IN (SELECT QueueID FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Error)})");
+
+            CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_MetaData,
+                $"DELETE FROM {TableNameHelper.MetaDataName} WHERE Status = {Convert.ToInt32(QueueStatuses.Error)}");
+
+            CommandCache.Add(CommandStringTypes.DashboardRequeueErrorMessage,
+                $"UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueId AND Status = {Convert.ToInt32(QueueStatuses.Error)}");
+
+            CommandCache.Add(CommandStringTypes.DashboardRequeueStatusTable,
+                $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE QueueID = @QueueId");
+
+            CommandCache.Add(CommandStringTypes.DashboardResetStaleMessage,
+                $"UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueId AND Status = {Convert.ToInt32(QueueStatuses.Processing)}");
+
+            CommandCache.Add(CommandStringTypes.DashboardResetStaleStatusTable,
+                $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE QueueID = @QueueId");
+
+            CommandCache.Add(CommandStringTypes.DashboardUpdateMessageBody,
+                $"UPDATE {TableNameHelper.QueueName} SET Body = @Body, Headers = @Headers WHERE QueueID = @QueueId");
         }
     }
 }

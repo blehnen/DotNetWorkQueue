@@ -189,6 +189,81 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Deletes a single message from the queue.
+        /// </summary>
+        [HttpDelete("{queueId:guid}/messages/{messageId:long}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> DeleteMessage(Guid queueId, long messageId)
+        {
+            var deleted = await _service.DeleteMessageAsync(queueId, messageId);
+            return deleted ? NoContent() : NotFound();
+        }
+
+        /// <summary>
+        /// Deletes all error messages from the queue. Returns the number of records deleted.
+        /// </summary>
+        [HttpDelete("{queueId:guid}/errors")]
+        [ProducesResponseType(typeof(DeleteAllResponse), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> DeleteAllErrors(Guid queueId)
+        {
+            var count = await _service.DeleteAllErrorMessagesAsync(queueId);
+            return Ok(new DeleteAllResponse { Deleted = count });
+        }
+
+        /// <summary>
+        /// Requeues an error message, moving it back to Waiting status.
+        /// </summary>
+        [HttpPost("{queueId:guid}/messages/{messageId:long}/requeue")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> RequeueErrorMessage(Guid queueId, long messageId)
+        {
+            var result = await _service.RequeueErrorMessageAsync(queueId, messageId);
+            return result ? NoContent() : NotFound();
+        }
+
+        /// <summary>
+        /// Resets a stale (Processing) message back to Waiting status.
+        /// Returns 404 if the message was not found in Processing state.
+        /// </summary>
+        [HttpPost("{queueId:guid}/messages/{messageId:long}/reset")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> ResetStaleMessage(Guid queueId, long messageId)
+        {
+            var result = await _service.ResetStaleMessageAsync(queueId, messageId);
+            return result ? NoContent() : NotFound();
+        }
+
+        /// <summary>
+        /// Re-encodes and saves a new message body. The JSON must be deserializable to the original
+        /// message type; the operation is rejected if the type cannot be resolved.
+        /// </summary>
+        [HttpPut("{queueId:guid}/messages/{messageId:long}/body")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(409)]
+        public async Task<IActionResult> EditMessageBody(Guid queueId, long messageId, [FromBody] EditMessageBodyRequest request)
+        {
+            if (request?.Body == null)
+                return BadRequest("Body is required.");
+
+            var result = await _service.EditMessageBodyAsync(queueId, messageId, request.Body);
+            return result switch
+            {
+                EditMessageBodyResult.Success => NoContent(),
+                EditMessageBodyResult.NotFound => NotFound(),
+                EditMessageBodyResult.TypeUnresolvable => BadRequest("Message type cannot be resolved; body cannot be safely round-tripped."),
+                EditMessageBodyResult.MessageBeingProcessed => Conflict("Message is currently being processed and cannot be edited."),
+                EditMessageBodyResult.InvalidJson => BadRequest("The supplied JSON could not be deserialized to the message's type."),
+                _ => StatusCode(500)
+            };
+        }
+
         private static bool IsValidStatus(int status)
         {
             return Enum.IsDefined(typeof(QueueStatuses), (short)status);

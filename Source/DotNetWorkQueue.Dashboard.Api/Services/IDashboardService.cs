@@ -69,5 +69,29 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
 
         /// <summary>Gets the deserialized message headers for a specific message.</summary>
         Task<MessageHeadersResponse> GetMessageHeadersAsync(Guid queueId, long messageId);
+
+        /// <summary>Deletes a single message. Returns true if the message was found and deleted.</summary>
+        Task<bool> DeleteMessageAsync(Guid queueId, long messageId);
+
+        /// <summary>Deletes all error messages from the queue. Returns the number of records deleted.</summary>
+        Task<long> DeleteAllErrorMessagesAsync(Guid queueId);
+
+        /// <summary>
+        /// Moves an error message back to Waiting status and clears its error tracking records.
+        /// Returns true if the message was found and requeued.
+        /// </summary>
+        Task<bool> RequeueErrorMessageAsync(Guid queueId, long messageId);
+
+        /// <summary>
+        /// Resets a stale (Processing) message back to Waiting status.
+        /// Returns true if the message was found in Processing state and reset.
+        /// </summary>
+        Task<bool> ResetStaleMessageAsync(Guid queueId, long messageId);
+
+        /// <summary>
+        /// Re-encodes and persists a new message body. The supplied JSON must be deserializable to
+        /// the original message type. Returns a <see cref="EditMessageBodyResult"/> indicating outcome.
+        /// </summary>
+        Task<EditMessageBodyResult> EditMessageBodyAsync(Guid queueId, long messageId, string bodyJson);
     }
 }

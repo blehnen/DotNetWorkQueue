@@ -21,9 +21,11 @@ using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -401,6 +403,112 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             {
                 return null;
             }
+        }
+
+        /// <inheritdoc />
+        public Task<bool> DeleteMessageAsync(Guid queueId, long messageId)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<ICommandHandlerWithOutput<DeleteMessageCommand<long>, long>>();
+            var result = handler.Handle(new DeleteMessageCommand<long>(messageId));
+            return Task.FromResult(result > 0);
+        }
+
+        /// <inheritdoc />
+        public Task<long> DeleteAllErrorMessagesAsync(Guid queueId)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<ICommandHandlerWithOutput<DashboardDeleteAllErrorMessagesCommand, long>>();
+            var result = handler.Handle(new DashboardDeleteAllErrorMessagesCommand());
+            return Task.FromResult(result);
+        }
+
+        /// <inheritdoc />
+        public Task<bool> RequeueErrorMessageAsync(Guid queueId, long messageId)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<ICommandHandlerWithOutput<DashboardRequeueErrorMessageCommand, long>>();
+            var result = handler.Handle(new DashboardRequeueErrorMessageCommand(messageId));
+            return Task.FromResult(result > 0);
+        }
+
+        /// <inheritdoc />
+        public Task<bool> ResetStaleMessageAsync(Guid queueId, long messageId)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>>();
+            var result = handler.Handle(new DashboardResetStaleMessageCommand(messageId));
+            return Task.FromResult(result > 0);
+        }
+
+        /// <inheritdoc />
+        public async Task<EditMessageBodyResult> EditMessageBodyAsync(Guid queueId, long messageId, string bodyJson)
+        {
+            var container = GetContainer(queueId);
+
+            // Step 1: Load the raw body + headers from the DB.
+            var bodyHandler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            var rawData = await bodyHandler.HandleAsync(new GetDashboardMessageBodyQuery(messageId)).ConfigureAwait(false);
+            if (rawData == null)
+                return EditMessageBodyResult.NotFound;
+
+            // Step 2: Decode headers and resolve the original message type.
+            var serialization = container.GetInstance<ICompositeSerialization>();
+            var standardHeaders = container.GetInstance<IHeaders>();
+
+            IDictionary<string, object> headers;
+            try
+            {
+                headers = serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(rawData.Headers);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to decode headers for message {MessageId} in queue {QueueId}", messageId, queueId);
+                return EditMessageBodyResult.TypeUnresolvable;
+            }
+
+            if (!headers.TryGetValue("Queue-MessageBodyType", out var rawTypeName) || rawTypeName is not string portableName)
+                return EditMessageBodyResult.TypeUnresolvable;
+
+            var resolvedType = ResolveMessageBodyType(portableName);
+            if (resolvedType == null)
+                return EditMessageBodyResult.TypeUnresolvable;
+
+            // Step 3: Reject edits to messages currently being processed (status = 1).
+            var detailHandler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>>();
+            var detail = await detailHandler.HandleAsync(new GetDashboardMessageDetailQuery(messageId)).ConfigureAwait(false);
+            if (detail?.Status == 1)
+                return EditMessageBodyResult.MessageBeingProcessed;
+
+            // Step 4: Deserialize the caller-supplied JSON to the resolved type.
+            object typedObj;
+            try
+            {
+                typedObj = JsonConvert.DeserializeObject(bodyJson, resolvedType);
+            }
+            catch (Exception)
+            {
+                return EditMessageBodyResult.InvalidJson;
+            }
+            if (typedObj == null)
+                return EditMessageBodyResult.InvalidJson;
+
+            // Step 5: Re-encode the new body through the same serializer+interceptor pipeline
+            //         used when the message was originally produced.
+            var encResult = serialization.Serializer.MessageToBytes(new MessageBody { Body = typedObj }, headers);
+
+            // Step 6: Store the updated interceptor graph back in headers so the consumer can
+            //         reverse it in the correct order.
+            headers[standardHeaders.StandardHeaders.MessageInterceptorGraph.Name] = encResult.Graph;
+
+            // Step 7: Serialize the updated headers to bytes.
+            var newHeaderBytes = serialization.InternalSerializer.ConvertToBytes<IDictionary<string, object>>(headers);
+
+            // Step 8: Persist body + headers.
+            var updateHandler = container.GetInstance<ICommandHandlerWithOutput<DashboardUpdateMessageBodyCommand, long>>();
+            updateHandler.Handle(new DashboardUpdateMessageBodyCommand(messageId, encResult.Output, newHeaderBytes));
+
+            return EditMessageBodyResult.Success;
         }
 
         private IContainer GetContainer(Guid queueId)

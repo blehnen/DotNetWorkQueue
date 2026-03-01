@@ -269,5 +269,174 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             result.Should().BeOfType<NotFoundResult>();
         }
+
+        [Fact]
+        public async Task DeleteMessage_Returns_NoContent_When_Found()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.DeleteMessageAsync(queueId, 1).Returns(Task.FromResult(true));
+            var controller = new QueuesController(service);
+
+            var result = await controller.DeleteMessage(queueId, 1);
+
+            result.Should().BeOfType<NoContentResult>();
+        }
+
+        [Fact]
+        public async Task DeleteMessage_Returns_NotFound_When_Not_Found()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.DeleteMessageAsync(queueId, 999).Returns(Task.FromResult(false));
+            var controller = new QueuesController(service);
+
+            var result = await controller.DeleteMessage(queueId, 999);
+
+            result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task DeleteAllErrors_Returns_Deleted_Count()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.DeleteAllErrorMessagesAsync(queueId).Returns(Task.FromResult(5L));
+            var controller = new QueuesController(service);
+
+            var result = await controller.DeleteAllErrors(queueId);
+
+            result.Should().BeOfType<OkObjectResult>();
+            var ok = (OkObjectResult)result;
+            ((DeleteAllResponse)ok.Value).Deleted.Should().Be(5L);
+        }
+
+        [Fact]
+        public async Task RequeueErrorMessage_Returns_NoContent_When_Found()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.RequeueErrorMessageAsync(queueId, 1).Returns(Task.FromResult(true));
+            var controller = new QueuesController(service);
+
+            var result = await controller.RequeueErrorMessage(queueId, 1);
+
+            result.Should().BeOfType<NoContentResult>();
+        }
+
+        [Fact]
+        public async Task RequeueErrorMessage_Returns_NotFound_When_Not_Found()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.RequeueErrorMessageAsync(queueId, 999).Returns(Task.FromResult(false));
+            var controller = new QueuesController(service);
+
+            var result = await controller.RequeueErrorMessage(queueId, 999);
+
+            result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task ResetStaleMessage_Returns_NoContent_When_Reset()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.ResetStaleMessageAsync(queueId, 1).Returns(Task.FromResult(true));
+            var controller = new QueuesController(service);
+
+            var result = await controller.ResetStaleMessage(queueId, 1);
+
+            result.Should().BeOfType<NoContentResult>();
+        }
+
+        [Fact]
+        public async Task ResetStaleMessage_Returns_NotFound_When_Not_In_Processing()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.ResetStaleMessageAsync(queueId, 999).Returns(Task.FromResult(false));
+            var controller = new QueuesController(service);
+
+            var result = await controller.ResetStaleMessage(queueId, 999);
+
+            result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task EditMessageBody_Returns_BadRequest_When_Body_Is_Null()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var controller = new QueuesController(service);
+
+            var result = await controller.EditMessageBody(Guid.NewGuid(), 1, new EditMessageBodyRequest { Body = null });
+
+            result.Should().BeOfType<BadRequestObjectResult>();
+        }
+
+        [Fact]
+        public async Task EditMessageBody_Returns_NoContent_On_Success()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.EditMessageBodyAsync(queueId, 1, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.Success));
+            var controller = new QueuesController(service);
+
+            var result = await controller.EditMessageBody(queueId, 1, new EditMessageBodyRequest { Body = "{}" });
+
+            result.Should().BeOfType<NoContentResult>();
+        }
+
+        [Fact]
+        public async Task EditMessageBody_Returns_NotFound_When_Message_Not_Found()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.EditMessageBodyAsync(queueId, 999, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.NotFound));
+            var controller = new QueuesController(service);
+
+            var result = await controller.EditMessageBody(queueId, 999, new EditMessageBodyRequest { Body = "{}" });
+
+            result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task EditMessageBody_Returns_BadRequest_When_TypeUnresolvable()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.EditMessageBodyAsync(queueId, 1, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.TypeUnresolvable));
+            var controller = new QueuesController(service);
+
+            var result = await controller.EditMessageBody(queueId, 1, new EditMessageBodyRequest { Body = "{}" });
+
+            result.Should().BeOfType<BadRequestObjectResult>();
+        }
+
+        [Fact]
+        public async Task EditMessageBody_Returns_Conflict_When_Message_Being_Processed()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.EditMessageBodyAsync(queueId, 1, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.MessageBeingProcessed));
+            var controller = new QueuesController(service);
+
+            var result = await controller.EditMessageBody(queueId, 1, new EditMessageBodyRequest { Body = "{}" });
+
+            result.Should().BeOfType<ConflictObjectResult>();
+        }
+
+        [Fact]
+        public async Task EditMessageBody_Returns_BadRequest_When_Invalid_Json()
+        {
+            var service = Substitute.For<IDashboardService>();
+            var queueId = Guid.NewGuid();
+            service.EditMessageBodyAsync(queueId, 1, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.InvalidJson));
+            var controller = new QueuesController(service);
+
+            var result = await controller.EditMessageBody(queueId, 1, new EditMessageBodyRequest { Body = "{invalid}" });
+
+            result.Should().BeOfType<BadRequestObjectResult>();
+        }
     }
 }
