@@ -342,7 +342,47 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Dashboard: gets raw message headers by QueueID
         /// </summary>
-        GetDashboardMessageHeaders
+        GetDashboardMessageHeaders,
+        /// <summary>
+        /// Dashboard: deletes all error messages from the MetaDataErrors table
+        /// </summary>
+        DashboardDeleteAllErrors_MetaDataErrors,
+        /// <summary>
+        /// Dashboard: deletes all error messages from the ErrorTracking table
+        /// </summary>
+        DashboardDeleteAllErrors_ErrorTracking,
+        /// <summary>
+        /// Dashboard: deletes all error message bodies from the Queue table
+        /// </summary>
+        DashboardDeleteAllErrors_Queue,
+        /// <summary>
+        /// Dashboard: deletes all error messages from the Status table (only when EnableStatusTable is true)
+        /// </summary>
+        DashboardDeleteAllErrors_Status,
+        /// <summary>
+        /// Dashboard: deletes all error messages from MetaData (the final step — returns row count)
+        /// </summary>
+        DashboardDeleteAllErrors_MetaData,
+        /// <summary>
+        /// Dashboard: resets a single error message's MetaData back to Waiting status
+        /// </summary>
+        DashboardRequeueErrorMessage,
+        /// <summary>
+        /// Dashboard: resets a single error message's Status table entry back to Waiting (only when EnableStatusTable is true)
+        /// </summary>
+        DashboardRequeueStatusTable,
+        /// <summary>
+        /// Dashboard: resets a stale (heartbeat-expired) message back to Waiting in MetaData
+        /// </summary>
+        DashboardResetStaleMessage,
+        /// <summary>
+        /// Dashboard: resets a stale message's Status table entry back to Waiting (only when EnableStatusTable is true)
+        /// </summary>
+        DashboardResetStaleStatusTable,
+        /// <summary>
+        /// Dashboard: overwrites body and headers for a single message in the Queue table
+        /// </summary>
+        DashboardUpdateMessageBody
     }
 
     /// <summary>

@@ -22,6 +22,7 @@ using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Admin;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -363,6 +364,35 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             container
                 .Register<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>,
                     GetDashboardMessageHeadersQueryHandlerAsync>(LifeStyles.Singleton);
+
+            // Dashboard write command handlers
+            container
+                .Register<ICommandHandlerWithOutput<DashboardDeleteAllErrorMessagesCommand, long>,
+                    DashboardDeleteAllErrorMessagesCommandHandler>(LifeStyles.Singleton);
+            container
+                .Register<IPrepareCommandHandler<DashboardDeleteAllErrorMessagesCommand>,
+                    DashboardDeleteAllErrorMessagesPrepareHandler>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandlerWithOutput<DashboardRequeueErrorMessageCommand, long>,
+                    DashboardRequeueErrorMessageCommandHandler>(LifeStyles.Singleton);
+            container
+                .Register<IPrepareCommandHandler<DashboardRequeueErrorMessageCommand>,
+                    DashboardRequeueErrorMessagePrepareHandler>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>,
+                    DashboardResetStaleMessageCommandHandler>(LifeStyles.Singleton);
+            container
+                .Register<IPrepareCommandHandler<DashboardResetStaleMessageCommand>,
+                    DashboardResetStaleMessagePrepareHandler>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandlerWithOutput<DashboardUpdateMessageBodyCommand, long>,
+                    DashboardUpdateMessageBodyCommandHandler>(LifeStyles.Singleton);
+            container
+                .Register<IPrepareCommandHandler<DashboardUpdateMessageBodyCommand>,
+                    DashboardUpdateMessageBodyPrepareHandler>(LifeStyles.Singleton);
         }
 
         private void RegisterCommands(IContainer container, params Assembly[] target)
