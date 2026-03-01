@@ -151,6 +151,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             {
                 if (ex is PostgresException pgEx && pgEx.IsTransient)
                     return true;
+                // NpgsqlException is the base class of PostgresException; stream/network
+                // timeouts surface as NpgsqlException wrapping TimeoutException rather than
+                // as a PostgresException with an error code, so they need a separate check.
+                if (ex is NpgsqlException && ex.InnerException is TimeoutException)
+                    return true;
                 ex = ex.InnerException;
             }
             return false;
