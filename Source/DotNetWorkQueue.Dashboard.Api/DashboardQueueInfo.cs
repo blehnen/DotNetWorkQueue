@@ -46,6 +46,11 @@ namespace DotNetWorkQueue.Dashboard.Api
         public string ConnectionString { get; internal set; }
 
         /// <summary>
+        /// Gets a value indicating whether this queue's transport is relational.
+        /// </summary>
+        public bool IsRelationalTransport { get; internal set; }
+
+        /// <summary>
         /// Gets the optional interceptor configuration delegate.
         /// </summary>
         public Action<IContainer> InterceptorConfiguration { get; internal set; }

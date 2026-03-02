@@ -212,19 +212,16 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         {
             var container = GetContainer(queueId);
 
-            // The table-exists check is only available for relational transports that register
-            // ITableNameHelper. Non-relational transports (Redis, LiteDB) skip the check.
-            try
+            // Only relational transports register ITableNameHelper; check the transport flag
+            // instead of catching resolution failures.
+            var queueInfo = _dashboardApi.FindQueue(queueId);
+            if (queueInfo is { IsRelationalTransport: true })
             {
                 var tableNameHelper = container.GetInstance<ITableNameHelper>();
                 var tableExistsHandler = container.GetInstance<IQueryHandler<GetTableExistsQuery, bool>>();
                 var connectionInfo = container.GetInstance<IConnectionInformation>();
                 if (!tableExistsHandler.Handle(new GetTableExistsQuery(connectionInfo.ConnectionString, tableNameHelper.JobTableName)))
                     return new List<JobResponse>();
-            }
-            catch (Exception)
-            {
-                // Non-relational transport — ITableNameHelper not registered; skip table-exists check.
             }
 
             var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>();

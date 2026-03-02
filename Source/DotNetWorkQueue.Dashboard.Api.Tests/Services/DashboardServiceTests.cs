@@ -164,7 +164,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         [Fact]
         public async Task GetJobsByConnection_Returns_Jobs_From_First_Queue()
         {
-            var api = CreateApi(out var connectionId, out var queueId);
+            var api = CreateApi(out var connectionId, out var queueId, isRelational: true);
             var container = Substitute.For<IContainer>();
             api.GetQueueContainer(queueId).Returns(container);
 
@@ -219,7 +219,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             await act.Should().ThrowAsync<InvalidOperationException>();
         }
 
-        private static IDashboardApi CreateApi(out Guid connectionId, out Guid queueId)
+        private static IDashboardApi CreateApi(out Guid connectionId, out Guid queueId, bool isRelational = false)
         {
             connectionId = Guid.NewGuid();
             queueId = Guid.NewGuid();
@@ -229,7 +229,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 Id = queueId,
                 ConnectionId = connectionId,
                 QueueName = "TestQueue",
-                ConnectionString = "Server=test"
+                ConnectionString = "Server=test",
+                IsRelationalTransport = isRelational
             };
 
             var connectionInfo = new DashboardConnectionInfo
@@ -237,6 +238,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 Id = connectionId,
                 ConnectionString = "Server=test",
                 DisplayName = "Test Connection",
+                IsRelationalTransport = isRelational,
                 Queues = new List<DashboardQueueInfo> { queueInfo }
             };
 

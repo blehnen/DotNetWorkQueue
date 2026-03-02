@@ -47,5 +47,9 @@ namespace DotNetWorkQueue
         /// <param name="registrationType">Type of the registration.</param>
         /// <param name="connectionType">Type of the requested connection.</param>
         void SetDefaultsIfNeeded(IContainer container, RegistrationTypes registrationType, ConnectionTypes connectionType);
+        /// <summary>
+        /// Gets a value indicating whether this transport uses a relational database.
+        /// </summary>
+        bool IsRelationalTransport { get; }
     }
 }

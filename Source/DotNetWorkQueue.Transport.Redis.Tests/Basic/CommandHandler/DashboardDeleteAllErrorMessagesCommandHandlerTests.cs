@@ -17,7 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using DotNetWorkQueue.Transport.Redis.Basic;
+using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Redis.Basic.CommandHandler;
 using NSubstitute;
 using Xunit;
@@ -29,25 +29,17 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.CommandHandler
         [Fact]
         public void Create_Default()
         {
-            var connection = Substitute.For<IRedisConnection>();
-            var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
-            Assert.NotNull(new DashboardDeleteAllErrorMessagesCommandHandler(connection, redisNames));
+            var lua = Substitute.For<DashboardDeleteAllErrorMessagesLua>(
+                Substitute.For<IRedisConnection>(),
+                Substitute.For<Redis.Basic.RedisNames>(Substitute.For<IConnectionInformation>()));
+            Assert.NotNull(new DashboardDeleteAllErrorMessagesCommandHandler(lua));
         }
 
         [Fact]
-        public void Create_NullConnection_Throws()
+        public void Create_Null_Lua_Throws()
         {
-            var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
             Assert.Throws<ArgumentNullException>(
-                () => new DashboardDeleteAllErrorMessagesCommandHandler(null, redisNames));
-        }
-
-        [Fact]
-        public void Create_NullRedisNames_Throws()
-        {
-            var connection = Substitute.For<IRedisConnection>();
-            Assert.Throws<ArgumentNullException>(
-                () => new DashboardDeleteAllErrorMessagesCommandHandler(connection, null));
+                () => new DashboardDeleteAllErrorMessagesCommandHandler(null));
         }
     }
 }
