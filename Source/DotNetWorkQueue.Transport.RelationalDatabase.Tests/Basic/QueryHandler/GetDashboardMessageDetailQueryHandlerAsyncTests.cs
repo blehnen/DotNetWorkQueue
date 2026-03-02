@@ -21,9 +21,10 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
 using Xunit;
 
@@ -41,10 +42,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
             readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetDashboardMessageDetail, 1, reader).Returns(now);
             readColumn.ReadAsString(CommandStringTypes.GetDashboardMessageDetail, 2, reader).Returns("corr-42");
 
-            var result = await handler.HandleAsync(new GetDashboardMessageDetailQuery(42));
+            var result = await handler.HandleAsync(new GetDashboardMessageDetailQuery("42"));
 
             Assert.NotNull(result);
-            Assert.Equal(42L, result.QueueId);
+            Assert.Equal("42", result.QueueId);
             Assert.Equal("corr-42", result.CorrelationId);
         }
 
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
         {
             var (handler, _, _) = CreateHandler(false);
 
-            var result = await handler.HandleAsync(new GetDashboardMessageDetailQuery(999));
+            var result = await handler.HandleAsync(new GetDashboardMessageDetailQuery("999"));
 
             Assert.Null(result);
         }

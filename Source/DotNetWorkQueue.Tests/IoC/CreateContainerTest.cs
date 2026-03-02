@@ -142,6 +142,8 @@ namespace DotNetWorkQueue.Tests.IoC
             {
 
             }
+
+            public bool IsRelationalTransport => false;
         }
 
         internal class InternalSerializerNoOp : IInternalSerializer

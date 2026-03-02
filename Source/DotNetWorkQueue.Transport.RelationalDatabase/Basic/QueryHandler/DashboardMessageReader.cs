@@ -17,8 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             var message = new DashboardMessage();
             var columnIndex = 0;
 
-            message.QueueId = readColumn.ReadAsInt64(commandType, columnIndex++, reader);
+            message.QueueId = readColumn.ReadAsInt64(commandType, columnIndex++, reader).ToString();
             message.QueuedDateTime = readColumn.ReadAsDateTimeOffset(commandType, columnIndex++, reader);
             message.CorrelationId = readColumn.ReadAsString(commandType, columnIndex++, reader);
 

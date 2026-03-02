@@ -16,28 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Collections.Generic;
-using DotNetWorkQueue.Transport.Shared;
-
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic.Query
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query: gets error retry tracking records for a specific message.
-    /// </summary>
-    public class GetDashboardErrorRetriesQuery : IQuery<IReadOnlyList<DashboardErrorRetry>>
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GetDashboardErrorRetriesQuery"/> class.
-        /// </summary>
-        /// <param name="queueId">The queue identifier of the message.</param>
-        public GetDashboardErrorRetriesQuery(long queueId)
-        {
-            QueueId = queueId;
-        }
-
-        /// <summary>
-        /// Gets the queue identifier.
-        /// </summary>
-        public long QueueId { get; }
-    }
 }

@@ -16,27 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.Shared;
-
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic.Query
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query: gets the total message count with optional status filter.
-    /// </summary>
-    public class GetDashboardMessageCountQuery : IQuery<long>
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GetDashboardMessageCountQuery"/> class.
-        /// </summary>
-        /// <param name="statusFilter">Optional status value to filter by.</param>
-        public GetDashboardMessageCountQuery(int? statusFilter)
-        {
-            StatusFilter = statusFilter;
-        }
-
-        /// <summary>
-        /// Gets the optional status filter. Null for all statuses.
-        /// </summary>
-        public int? StatusFilter { get; }
-    }
 }

@@ -16,12 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic.Command
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
 {
-    /// <summary>
-    /// Dashboard command: deletes all messages that are in error status from all queue tables.
-    /// </summary>
-    public class DashboardDeleteAllErrorMessagesCommand
-    {
-    }
 }

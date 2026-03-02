@@ -19,8 +19,8 @@
 using System.Data;
 using System.Linq;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using NSubstitute;
 using Xunit;
 
@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             var handler = CreateHandler();
             var command = CreateDbCommand();
 
-            handler.Handle(new DashboardUpdateMessageBodyCommand(7, new byte[] { 1 }, new byte[] { 2 }), command,
+            handler.Handle(new DashboardUpdateMessageBodyCommand("7", new byte[] { 1 }, new byte[] { 2 }), command,
                 CommandStringTypes.DashboardUpdateMessageBody);
 
             Assert.NotNull(command.CommandText);
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             var handler = CreateHandler();
             var command = CreateDbCommand();
 
-            handler.Handle(new DashboardUpdateMessageBodyCommand(7, body, headerBytes), command,
+            handler.Handle(new DashboardUpdateMessageBodyCommand("7", body, headerBytes), command,
                 CommandStringTypes.DashboardUpdateMessageBody);
 
             var parameters = (DataParameterCollection)command.Parameters;

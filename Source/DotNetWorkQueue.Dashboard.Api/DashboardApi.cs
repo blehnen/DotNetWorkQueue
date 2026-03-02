@@ -90,6 +90,8 @@ namespace DotNetWorkQueue.Dashboard.Api
                     registration.ContainerConfig);
                 _queueContainers.Add(queueContainer);
 
+                var isRelational = IsRelationalTransport(registration.TransportInitType);
+
                 var queueInfos = new List<DashboardQueueInfo>();
                 foreach (var queueOption in registration.Queues)
                 {
@@ -104,6 +106,7 @@ namespace DotNetWorkQueue.Dashboard.Api
                         ConnectionId = connectionId,
                         QueueName = queueOption.QueueName,
                         ConnectionString = registration.ConnectionString,
+                        IsRelationalTransport = isRelational,
                         InterceptorConfiguration = queueOption.InterceptorConfiguration
                     };
 
@@ -117,8 +120,22 @@ namespace DotNetWorkQueue.Dashboard.Api
                     Id = connectionId,
                     ConnectionString = registration.ConnectionString,
                     DisplayName = registration.DisplayName,
+                    IsRelationalTransport = isRelational,
                     Queues = queueInfos
                 };
+            }
+        }
+
+        private static bool IsRelationalTransport(Type transportInitType)
+        {
+            try
+            {
+                var instance = (ITransportInit)Activator.CreateInstance(transportInitType);
+                return instance.IsRelationalTransport;
+            }
+            catch
+            {
+                return false;
             }
         }
 

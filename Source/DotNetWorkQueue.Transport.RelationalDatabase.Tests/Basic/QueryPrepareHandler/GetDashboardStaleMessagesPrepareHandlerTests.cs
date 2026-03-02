@@ -2,7 +2,7 @@ using System.Data;
 using System.Linq;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
 using Xunit;
 

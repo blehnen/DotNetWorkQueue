@@ -22,11 +22,10 @@ using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Admin;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
@@ -366,6 +365,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     GetDashboardMessageHeadersQueryHandlerAsync>(LifeStyles.Singleton);
 
             // Dashboard write command handlers
+            container
+                .Register<ICommandHandlerWithOutput<DashboardDeleteMessageCommand, long>,
+                    DashboardDeleteMessageCommandHandler>(LifeStyles.Singleton);
+
             container
                 .Register<ICommandHandlerWithOutput<DashboardDeleteAllErrorMessagesCommand, long>,
                     DashboardDeleteAllErrorMessagesCommandHandler>(LifeStyles.Singleton);

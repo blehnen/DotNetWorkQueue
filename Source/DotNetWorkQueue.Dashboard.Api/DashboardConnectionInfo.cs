@@ -42,6 +42,11 @@ namespace DotNetWorkQueue.Dashboard.Api
         public string DisplayName { get; internal set; }
 
         /// <summary>
+        /// Gets a value indicating whether this connection uses a relational transport.
+        /// </summary>
+        public bool IsRelationalTransport { get; internal set; }
+
+        /// <summary>
         /// Gets the queues on this connection.
         /// </summary>
         public IReadOnlyList<DashboardQueueInfo> Queues { get; internal set; }

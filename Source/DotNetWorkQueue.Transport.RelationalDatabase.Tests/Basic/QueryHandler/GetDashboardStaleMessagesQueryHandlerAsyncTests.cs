@@ -22,9 +22,10 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
 using Xunit;
 
@@ -44,7 +45,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
             var result = await handler.HandleAsync(new GetDashboardStaleMessagesQuery(60, 0, 25));
 
             Assert.Single(result);
-            Assert.Equal(1L, result[0].QueueId);
+            Assert.Equal("1", result[0].QueueId);
         }
 
         [Fact]

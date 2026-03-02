@@ -16,15 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Collections.Generic;
-using DotNetWorkQueue.Transport.Shared;
-
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic.Query
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query: gets all scheduled job records.
-    /// </summary>
-    public class GetDashboardJobsQuery : IQuery<IReadOnlyList<DashboardJob>>
-    {
-    }
 }

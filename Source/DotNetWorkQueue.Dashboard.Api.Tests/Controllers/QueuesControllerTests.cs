@@ -79,10 +79,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessageDetailAsync(queueId, 1).Returns(Task.FromResult(new MessageResponse { QueueId = 1 }));
+            service.GetMessageDetailAsync(queueId, "1").Returns(Task.FromResult(new MessageResponse { QueueId = "1" }));
             var controller = new QueuesController(service);
 
-            var result = await controller.GetMessageDetail(queueId, 1);
+            var result = await controller.GetMessageDetail(queueId, "1");
 
             result.Should().BeOfType<OkObjectResult>();
         }
@@ -92,10 +92,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessageDetailAsync(queueId, 999).Returns(Task.FromResult((MessageResponse)null));
+            service.GetMessageDetailAsync(queueId, "999").Returns(Task.FromResult((MessageResponse)null));
             var controller = new QueuesController(service);
 
-            var result = await controller.GetMessageDetail(queueId, 999);
+            var result = await controller.GetMessageDetail(queueId, "999");
 
             result.Should().BeOfType<NotFoundResult>();
         }
@@ -137,10 +137,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetErrorRetriesAsync(queueId, 1).Returns(Task.FromResult<IReadOnlyList<ErrorRetryResponse>>(new List<ErrorRetryResponse>()));
+            service.GetErrorRetriesAsync(queueId, "1").Returns(Task.FromResult<IReadOnlyList<ErrorRetryResponse>>(new List<ErrorRetryResponse>()));
             var controller = new QueuesController(service);
 
-            var result = await controller.GetErrorRetries(queueId, 1);
+            var result = await controller.GetErrorRetries(queueId, "1");
 
             result.Should().BeOfType<OkObjectResult>();
         }
@@ -217,13 +217,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessageBodyAsync(queueId, 1).Returns(Task.FromResult(new MessageBodyResponse
+            service.GetMessageBodyAsync(queueId, "1").Returns(Task.FromResult(new MessageBodyResponse
             {
                 Body = "{}", InterceptorChain = new List<string>()
             }));
             var controller = new QueuesController(service);
 
-            var result = await controller.GetMessageBody(queueId, 1);
+            var result = await controller.GetMessageBody(queueId, "1");
 
             result.Should().BeOfType<OkObjectResult>();
         }
@@ -233,10 +233,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessageBodyAsync(queueId, 999).Returns(Task.FromResult((MessageBodyResponse)null));
+            service.GetMessageBodyAsync(queueId, "999").Returns(Task.FromResult((MessageBodyResponse)null));
             var controller = new QueuesController(service);
 
-            var result = await controller.GetMessageBody(queueId, 999);
+            var result = await controller.GetMessageBody(queueId, "999");
 
             result.Should().BeOfType<NotFoundResult>();
         }
@@ -246,13 +246,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessageHeadersAsync(queueId, 1).Returns(Task.FromResult(new MessageHeadersResponse
+            service.GetMessageHeadersAsync(queueId, "1").Returns(Task.FromResult(new MessageHeadersResponse
             {
                 Headers = new Dictionary<string, object> { { "key", "value" } }
             }));
             var controller = new QueuesController(service);
 
-            var result = await controller.GetMessageHeaders(queueId, 1);
+            var result = await controller.GetMessageHeaders(queueId, "1");
 
             result.Should().BeOfType<OkObjectResult>();
         }
@@ -262,10 +262,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.GetMessageHeadersAsync(queueId, 999).Returns(Task.FromResult((MessageHeadersResponse)null));
+            service.GetMessageHeadersAsync(queueId, "999").Returns(Task.FromResult((MessageHeadersResponse)null));
             var controller = new QueuesController(service);
 
-            var result = await controller.GetMessageHeaders(queueId, 999);
+            var result = await controller.GetMessageHeaders(queueId, "999");
 
             result.Should().BeOfType<NotFoundResult>();
         }
@@ -275,10 +275,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.DeleteMessageAsync(queueId, 1).Returns(Task.FromResult(true));
+            service.DeleteMessageAsync(queueId, "1").Returns(Task.FromResult(true));
             var controller = new QueuesController(service);
 
-            var result = await controller.DeleteMessage(queueId, 1);
+            var result = await controller.DeleteMessage(queueId, "1");
 
             result.Should().BeOfType<NoContentResult>();
         }
@@ -288,10 +288,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.DeleteMessageAsync(queueId, 999).Returns(Task.FromResult(false));
+            service.DeleteMessageAsync(queueId, "999").Returns(Task.FromResult(false));
             var controller = new QueuesController(service);
 
-            var result = await controller.DeleteMessage(queueId, 999);
+            var result = await controller.DeleteMessage(queueId, "999");
 
             result.Should().BeOfType<NotFoundResult>();
         }
@@ -316,10 +316,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.RequeueErrorMessageAsync(queueId, 1).Returns(Task.FromResult(true));
+            service.RequeueErrorMessageAsync(queueId, "1").Returns(Task.FromResult(true));
             var controller = new QueuesController(service);
 
-            var result = await controller.RequeueErrorMessage(queueId, 1);
+            var result = await controller.RequeueErrorMessage(queueId, "1");
 
             result.Should().BeOfType<NoContentResult>();
         }
@@ -329,10 +329,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.RequeueErrorMessageAsync(queueId, 999).Returns(Task.FromResult(false));
+            service.RequeueErrorMessageAsync(queueId, "999").Returns(Task.FromResult(false));
             var controller = new QueuesController(service);
 
-            var result = await controller.RequeueErrorMessage(queueId, 999);
+            var result = await controller.RequeueErrorMessage(queueId, "999");
 
             result.Should().BeOfType<NotFoundResult>();
         }
@@ -342,10 +342,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.ResetStaleMessageAsync(queueId, 1).Returns(Task.FromResult(true));
+            service.ResetStaleMessageAsync(queueId, "1").Returns(Task.FromResult(true));
             var controller = new QueuesController(service);
 
-            var result = await controller.ResetStaleMessage(queueId, 1);
+            var result = await controller.ResetStaleMessage(queueId, "1");
 
             result.Should().BeOfType<NoContentResult>();
         }
@@ -355,10 +355,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.ResetStaleMessageAsync(queueId, 999).Returns(Task.FromResult(false));
+            service.ResetStaleMessageAsync(queueId, "999").Returns(Task.FromResult(false));
             var controller = new QueuesController(service);
 
-            var result = await controller.ResetStaleMessage(queueId, 999);
+            var result = await controller.ResetStaleMessage(queueId, "999");
 
             result.Should().BeOfType<NotFoundResult>();
         }
@@ -369,7 +369,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             var service = Substitute.For<IDashboardService>();
             var controller = new QueuesController(service);
 
-            var result = await controller.EditMessageBody(Guid.NewGuid(), 1, new EditMessageBodyRequest { Body = null });
+            var result = await controller.EditMessageBody(Guid.NewGuid(), "1", new EditMessageBodyRequest { Body = null });
 
             result.Should().BeOfType<BadRequestObjectResult>();
         }
@@ -379,10 +379,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.EditMessageBodyAsync(queueId, 1, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.Success));
+            service.EditMessageBodyAsync(queueId, "1", Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.Success));
             var controller = new QueuesController(service);
 
-            var result = await controller.EditMessageBody(queueId, 1, new EditMessageBodyRequest { Body = "{}" });
+            var result = await controller.EditMessageBody(queueId, "1", new EditMessageBodyRequest { Body = "{}" });
 
             result.Should().BeOfType<NoContentResult>();
         }
@@ -392,10 +392,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.EditMessageBodyAsync(queueId, 999, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.NotFound));
+            service.EditMessageBodyAsync(queueId, "999", Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.NotFound));
             var controller = new QueuesController(service);
 
-            var result = await controller.EditMessageBody(queueId, 999, new EditMessageBodyRequest { Body = "{}" });
+            var result = await controller.EditMessageBody(queueId, "999", new EditMessageBodyRequest { Body = "{}" });
 
             result.Should().BeOfType<NotFoundResult>();
         }
@@ -405,10 +405,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.EditMessageBodyAsync(queueId, 1, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.TypeUnresolvable));
+            service.EditMessageBodyAsync(queueId, "1", Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.TypeUnresolvable));
             var controller = new QueuesController(service);
 
-            var result = await controller.EditMessageBody(queueId, 1, new EditMessageBodyRequest { Body = "{}" });
+            var result = await controller.EditMessageBody(queueId, "1", new EditMessageBodyRequest { Body = "{}" });
 
             result.Should().BeOfType<BadRequestObjectResult>();
         }
@@ -418,10 +418,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.EditMessageBodyAsync(queueId, 1, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.MessageBeingProcessed));
+            service.EditMessageBodyAsync(queueId, "1", Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.MessageBeingProcessed));
             var controller = new QueuesController(service);
 
-            var result = await controller.EditMessageBody(queueId, 1, new EditMessageBodyRequest { Body = "{}" });
+            var result = await controller.EditMessageBody(queueId, "1", new EditMessageBodyRequest { Body = "{}" });
 
             result.Should().BeOfType<ConflictObjectResult>();
         }
@@ -431,10 +431,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             var queueId = Guid.NewGuid();
-            service.EditMessageBodyAsync(queueId, 1, Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.InvalidJson));
+            service.EditMessageBodyAsync(queueId, "1", Arg.Any<string>()).Returns(Task.FromResult(EditMessageBodyResult.InvalidJson));
             var controller = new QueuesController(service);
 
-            var result = await controller.EditMessageBody(queueId, 1, new EditMessageBodyRequest { Body = "{invalid}" });
+            var result = await controller.EditMessageBody(queueId, "1", new EditMessageBodyRequest { Body = "{invalid}" });
 
             result.Should().BeOfType<BadRequestObjectResult>();
         }

@@ -18,7 +18,8 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler

@@ -16,16 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Holds the raw headers bytes read from the queue table.
-    /// </summary>
-    public class DashboardMessageHeaders
-    {
-        /// <summary>
-        /// Gets or sets the raw headers bytes (plain JSON via IInternalSerializer).
-        /// </summary>
-        public byte[] Headers { get; set; }
-    }
 }

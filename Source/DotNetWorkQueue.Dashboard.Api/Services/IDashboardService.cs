@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         Task<long> GetMessageCountAsync(Guid queueId, int? statusFilter);
 
         /// <summary>Gets a single message detail.</summary>
-        Task<MessageResponse> GetMessageDetailAsync(Guid queueId, long messageId);
+        Task<MessageResponse> GetMessageDetailAsync(Guid queueId, string messageId);
 
         /// <summary>Gets messages with stale heartbeats.</summary>
         Task<PagedResponse<MessageResponse>> GetStaleMessagesAsync(Guid queueId, int thresholdSeconds, int pageIndex, int pageSize);
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         Task<PagedResponse<ErrorMessageResponse>> GetErrorsAsync(Guid queueId, int pageIndex, int pageSize);
 
         /// <summary>Gets error retry tracking records for a message.</summary>
-        Task<IReadOnlyList<ErrorRetryResponse>> GetErrorRetriesAsync(Guid queueId, long messageId);
+        Task<IReadOnlyList<ErrorRetryResponse>> GetErrorRetriesAsync(Guid queueId, string messageId);
 
         /// <summary>Gets queue configuration as JSON.</summary>
         Task<ConfigurationResponse> GetConfigurationAsync(Guid queueId);
@@ -65,13 +65,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         Task<IReadOnlyList<JobResponse>> GetJobsByConnectionAsync(Guid connectionId);
 
         /// <summary>Gets the decoded message body for a specific message.</summary>
-        Task<MessageBodyResponse> GetMessageBodyAsync(Guid queueId, long messageId);
+        Task<MessageBodyResponse> GetMessageBodyAsync(Guid queueId, string messageId);
 
         /// <summary>Gets the deserialized message headers for a specific message.</summary>
-        Task<MessageHeadersResponse> GetMessageHeadersAsync(Guid queueId, long messageId);
+        Task<MessageHeadersResponse> GetMessageHeadersAsync(Guid queueId, string messageId);
 
         /// <summary>Deletes a single message. Returns true if the message was found and deleted.</summary>
-        Task<bool> DeleteMessageAsync(Guid queueId, long messageId);
+        Task<bool> DeleteMessageAsync(Guid queueId, string messageId);
 
         /// <summary>Deletes all error messages from the queue. Returns the number of records deleted.</summary>
         Task<long> DeleteAllErrorMessagesAsync(Guid queueId);
@@ -80,18 +80,18 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// Moves an error message back to Waiting status and clears its error tracking records.
         /// Returns true if the message was found and requeued.
         /// </summary>
-        Task<bool> RequeueErrorMessageAsync(Guid queueId, long messageId);
+        Task<bool> RequeueErrorMessageAsync(Guid queueId, string messageId);
 
         /// <summary>
         /// Resets a stale (Processing) message back to Waiting status.
         /// Returns true if the message was found in Processing state and reset.
         /// </summary>
-        Task<bool> ResetStaleMessageAsync(Guid queueId, long messageId);
+        Task<bool> ResetStaleMessageAsync(Guid queueId, string messageId);
 
         /// <summary>
         /// Re-encodes and persists a new message body. The supplied JSON must be deserializable to
         /// the original message type. Returns a <see cref="EditMessageBodyResult"/> indicating outcome.
         /// </summary>
-        Task<EditMessageBodyResult> EditMessageBodyAsync(Guid queueId, long messageId, string bodyJson);
+        Task<EditMessageBodyResult> EditMessageBodyAsync(Guid queueId, string messageId, string bodyJson);
     }
 }

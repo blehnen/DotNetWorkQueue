@@ -6,12 +6,12 @@ using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
@@ -88,8 +88,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var container = Substitute.For<IContainer>();
             api.GetQueueContainer(queueId).Returns(container);
 
-            var factory = Substitute.For<ITransportOptionsFactory>();
-            var options = Substitute.For<ITransportOptions>();
+            var options = Substitute.For<IBaseTransportOptions>();
             options.EnableStatus.Returns(true);
             options.EnablePriority.Returns(false);
             options.EnableHeartBeat.Returns(true);
@@ -97,8 +96,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             options.EnableMessageExpiration.Returns(true);
             options.EnableRoute.Returns(false);
             options.EnableStatusTable.Returns(true);
-            factory.Create().Returns(options);
-            container.GetInstance<ITransportOptionsFactory>().Returns(factory);
+            var creation = Substitute.For<IQueueCreation>();
+            creation.BaseTransportOptions.Returns(options);
+            container.GetInstance<IQueueCreation>().Returns(creation);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
             var result = service.GetFeatures(queueId);
@@ -138,7 +138,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>>().Returns(handler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageDetailAsync(queueId, 999);
+            var result = await service.GetMessageDetailAsync(queueId, "999");
 
             result.Should().BeNull();
         }
@@ -164,7 +164,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         [Fact]
         public async Task GetJobsByConnection_Returns_Jobs_From_First_Queue()
         {
-            var api = CreateApi(out var connectionId, out var queueId);
+            var api = CreateApi(out var connectionId, out var queueId, isRelational: true);
             var container = Substitute.For<IContainer>();
             api.GetQueueContainer(queueId).Returns(container);
 
@@ -219,7 +219,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             await act.Should().ThrowAsync<InvalidOperationException>();
         }
 
-        private static IDashboardApi CreateApi(out Guid connectionId, out Guid queueId)
+        private static IDashboardApi CreateApi(out Guid connectionId, out Guid queueId, bool isRelational = false)
         {
             connectionId = Guid.NewGuid();
             queueId = Guid.NewGuid();
@@ -229,7 +229,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 Id = queueId,
                 ConnectionId = connectionId,
                 QueueName = "TestQueue",
-                ConnectionString = "Server=test"
+                ConnectionString = "Server=test",
+                IsRelationalTransport = isRelational
             };
 
             var connectionInfo = new DashboardConnectionInfo
@@ -237,6 +238,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 Id = connectionId,
                 ConnectionString = "Server=test",
                 DisplayName = "Test Connection",
+                IsRelationalTransport = isRelational,
                 Queues = new List<DashboardQueueInfo> { queueInfo }
             };
 
@@ -292,7 +294,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<IMessageFactory>().Returns(new MessageFactory());
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageBodyAsync(queueId, 42);
+            var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
             result.Body.Should().NotBeNullOrEmpty();
@@ -314,7 +316,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageBodyAsync(queueId, 999);
+            var result = await service.GetMessageBodyAsync(queueId, "999");
 
             result.Should().BeNull();
         }
@@ -343,7 +345,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageBodyAsync(queueId, 42);
+            var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
             result.Body.Should().BeNull();
@@ -374,7 +376,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageHeadersAsync(queueId, 42);
+            var result = await service.GetMessageHeadersAsync(queueId, "42");
 
             result.Should().NotBeNull();
             result.Headers.Should().ContainKey("key");
@@ -393,7 +395,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>().Returns(handler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageHeadersAsync(queueId, 999);
+            var result = await service.GetMessageHeadersAsync(queueId, "999");
 
             result.Should().BeNull();
         }
@@ -421,7 +423,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageHeadersAsync(queueId, 42);
+            var result = await service.GetMessageHeadersAsync(queueId, "42");
 
             result.Should().NotBeNull();
             result.Headers.Should().BeNull();
@@ -444,7 +446,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 bodyValue: "hello");
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageBodyAsync(queueId, 42);
+            var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
             result.DecodingError.Should().BeNull();
@@ -464,7 +466,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 bodyValue: "hello");
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageBodyAsync(queueId, 42);
+            var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
             result.DecodingError.Should().BeNull();
@@ -486,7 +488,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 bodyValue: "hello");
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.GetMessageBodyAsync(queueId, 42);
+            var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
             result.DecodingError.Should().BeNull();
@@ -542,12 +544,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var container = Substitute.For<IContainer>();
             api.GetQueueContainer(queueId).Returns(container);
 
-            var handler = Substitute.For<ICommandHandlerWithOutput<DeleteMessageCommand<long>, long>>();
-            handler.Handle(Arg.Any<DeleteMessageCommand<long>>()).Returns(1L);
-            container.GetInstance<ICommandHandlerWithOutput<DeleteMessageCommand<long>, long>>().Returns(handler);
+            var handler = Substitute.For<ICommandHandlerWithOutput<DashboardDeleteMessageCommand, long>>();
+            handler.Handle(Arg.Any<DashboardDeleteMessageCommand>()).Returns(1L);
+            container.GetInstance<ICommandHandlerWithOutput<DashboardDeleteMessageCommand, long>>().Returns(handler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.DeleteMessageAsync(queueId, 42);
+            var result = await service.DeleteMessageAsync(queueId, "42");
 
             result.Should().BeTrue();
         }
@@ -559,12 +561,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var container = Substitute.For<IContainer>();
             api.GetQueueContainer(queueId).Returns(container);
 
-            var handler = Substitute.For<ICommandHandlerWithOutput<DeleteMessageCommand<long>, long>>();
-            handler.Handle(Arg.Any<DeleteMessageCommand<long>>()).Returns(0L);
-            container.GetInstance<ICommandHandlerWithOutput<DeleteMessageCommand<long>, long>>().Returns(handler);
+            var handler = Substitute.For<ICommandHandlerWithOutput<DashboardDeleteMessageCommand, long>>();
+            handler.Handle(Arg.Any<DashboardDeleteMessageCommand>()).Returns(0L);
+            container.GetInstance<ICommandHandlerWithOutput<DashboardDeleteMessageCommand, long>>().Returns(handler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.DeleteMessageAsync(queueId, 999);
+            var result = await service.DeleteMessageAsync(queueId, "999");
 
             result.Should().BeFalse();
         }
@@ -598,7 +600,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<ICommandHandlerWithOutput<DashboardRequeueErrorMessageCommand, long>>().Returns(handler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.RequeueErrorMessageAsync(queueId, 42);
+            var result = await service.RequeueErrorMessageAsync(queueId, "42");
 
             result.Should().BeTrue();
         }
@@ -615,7 +617,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<ICommandHandlerWithOutput<DashboardRequeueErrorMessageCommand, long>>().Returns(handler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.RequeueErrorMessageAsync(queueId, 999);
+            var result = await service.RequeueErrorMessageAsync(queueId, "999");
 
             result.Should().BeFalse();
         }
@@ -632,7 +634,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>>().Returns(handler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.ResetStaleMessageAsync(queueId, 42);
+            var result = await service.ResetStaleMessageAsync(queueId, "42");
 
             result.Should().BeTrue();
         }
@@ -649,7 +651,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>>().Returns(handler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.ResetStaleMessageAsync(queueId, 999);
+            var result = await service.ResetStaleMessageAsync(queueId, "999");
 
             result.Should().BeFalse();
         }
@@ -666,7 +668,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(bodyHandler);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.EditMessageBodyAsync(queueId, 999, "{}");
+            var result = await service.EditMessageBodyAsync(queueId, "999","{}");
 
             result.Should().Be(EditMessageBodyResult.NotFound);
         }
@@ -684,7 +686,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 messageStatus: 0);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.EditMessageBodyAsync(queueId, 42, "\"hello\"");
+            var result = await service.EditMessageBodyAsync(queueId, "42","\"hello\"");
 
             result.Should().Be(EditMessageBodyResult.TypeUnresolvable);
         }
@@ -703,7 +705,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 messageStatus: 1);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.EditMessageBodyAsync(queueId, 42, "\"hello\"");
+            var result = await service.EditMessageBodyAsync(queueId, "42","\"hello\"");
 
             result.Should().Be(EditMessageBodyResult.MessageBeingProcessed);
         }
@@ -722,7 +724,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 messageStatus: 0);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.EditMessageBodyAsync(queueId, 42, "{ not valid json");
+            var result = await service.EditMessageBodyAsync(queueId, "42","{ not valid json");
 
             result.Should().Be(EditMessageBodyResult.InvalidJson);
         }
@@ -741,7 +743,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 messageStatus: 0);
 
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
-            var result = await service.EditMessageBodyAsync(queueId, 42, "\"hello world\"");
+            var result = await service.EditMessageBodyAsync(queueId, "42","\"hello world\"");
 
             result.Should().Be(EditMessageBodyResult.Success);
         }

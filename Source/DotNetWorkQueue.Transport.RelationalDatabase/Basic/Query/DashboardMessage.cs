@@ -16,59 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query result: a single message from the metadata table.
-    /// Fields are nullable when the corresponding transport feature flag was not enabled.
-    /// </summary>
-    public class DashboardMessage
-    {
-        /// <summary>
-        /// Gets or sets the queue identifier (primary key).
-        /// </summary>
-        public long QueueId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the date/time the message was queued.
-        /// </summary>
-        public DateTimeOffset? QueuedDateTime { get; set; }
-
-        /// <summary>
-        /// Gets or sets the correlation identifier.
-        /// </summary>
-        public string CorrelationId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the message status. Null if status tracking is not enabled.
-        /// </summary>
-        public int? Status { get; set; }
-
-        /// <summary>
-        /// Gets or sets the message priority. Null if priority is not enabled.
-        /// </summary>
-        public int? Priority { get; set; }
-
-        /// <summary>
-        /// Gets or sets the scheduled process time. Null if delayed processing is not enabled.
-        /// </summary>
-        public DateTimeOffset? QueueProcessTime { get; set; }
-
-        /// <summary>
-        /// Gets or sets the last heartbeat timestamp. Null if heartbeat is not enabled.
-        /// </summary>
-        public DateTimeOffset? HeartBeat { get; set; }
-
-        /// <summary>
-        /// Gets or sets the expiration time. Null if message expiration is not enabled.
-        /// </summary>
-        public DateTimeOffset? ExpirationTime { get; set; }
-
-        /// <summary>
-        /// Gets or sets the message route. Null if routing is not enabled.
-        /// </summary>
-        public string Route { get; set; }
-    }
 }

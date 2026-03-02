@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
@@ -26,9 +26,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
         [Fact]
         public void Create_Default()
         {
-            const long id = 42L;
+            const string id = "42";
             var test = new DashboardRequeueErrorMessageCommand(id);
-            Assert.Equal(id, test.QueueId);
+            Assert.Equal(id, test.MessageId);
         }
     }
 }

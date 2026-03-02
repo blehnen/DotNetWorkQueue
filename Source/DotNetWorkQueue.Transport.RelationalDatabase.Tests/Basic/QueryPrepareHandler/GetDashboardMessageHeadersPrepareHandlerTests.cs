@@ -2,7 +2,7 @@ using System.Data;
 using System.Linq;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
 using Xunit;
 
@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             var handler = CreateHandler();
             var command = CreateDbCommand();
 
-            handler.Handle(new GetDashboardMessageHeadersQuery(42), command, CommandStringTypes.GetDashboardMessageHeaders);
+            handler.Handle(new GetDashboardMessageHeadersQuery("42"), command, CommandStringTypes.GetDashboardMessageHeaders);
 
             Assert.NotNull(command.CommandText);
         }
@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             var handler = CreateHandler();
             var command = CreateDbCommand();
 
-            handler.Handle(new GetDashboardMessageHeadersQuery(42), command, CommandStringTypes.GetDashboardMessageHeaders);
+            handler.Handle(new GetDashboardMessageHeadersQuery("42"), command, CommandStringTypes.GetDashboardMessageHeaders);
 
             var parameters = (DataParameterCollection)command.Parameters;
             var param = parameters.First();

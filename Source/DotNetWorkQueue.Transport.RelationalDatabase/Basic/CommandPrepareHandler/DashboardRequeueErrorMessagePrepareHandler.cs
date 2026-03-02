@@ -17,7 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler
@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
                 var param = dbCommand.CreateParameter();
                 param.ParameterName = "@QueueId";
                 param.DbType = DbType.Int64;
-                param.Value = command.QueueId;
+                param.Value = long.Parse(command.MessageId);
                 dbCommand.Parameters.Add(param);
             }
             dbCommand.CommandText = _commandCache.GetCommand(commandType);

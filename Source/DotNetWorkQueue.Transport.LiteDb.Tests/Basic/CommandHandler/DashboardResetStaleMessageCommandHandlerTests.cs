@@ -1,0 +1,77 @@
+// ---------------------------------------------------------------------
+//This file is part of DotNetWorkQueue
+//Copyright © 2015-2026 Brian Lehnen
+//
+//This library is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This library is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// ---------------------------------------------------------------------
+using System;
+using DotNetWorkQueue.Transport.LiteDb.Basic;
+using DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler;
+using NSubstitute;
+using Xunit;
+
+namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
+{
+    public class DashboardResetStaleMessageCommandHandlerTests
+    {
+        [Fact]
+        public void Create_Default()
+        {
+            var optionsFactory = Substitute.For<ILiteDbMessageQueueTransportOptionsFactory>();
+            var connectionManager = CreateConnectionManager();
+            var tableNameHelper = CreateTableNameHelper();
+            Assert.NotNull(new DashboardResetStaleMessageCommandHandler(optionsFactory, connectionManager, tableNameHelper));
+        }
+
+        [Fact]
+        public void Create_NullOptionsFactory_Throws()
+        {
+            var connectionManager = CreateConnectionManager();
+            var tableNameHelper = CreateTableNameHelper();
+            Assert.Throws<ArgumentNullException>(
+                () => new DashboardResetStaleMessageCommandHandler(null, connectionManager, tableNameHelper));
+        }
+
+        [Fact]
+        public void Create_NullConnectionManager_Throws()
+        {
+            var optionsFactory = Substitute.For<ILiteDbMessageQueueTransportOptionsFactory>();
+            var tableNameHelper = CreateTableNameHelper();
+            Assert.Throws<ArgumentNullException>(
+                () => new DashboardResetStaleMessageCommandHandler(optionsFactory, null, tableNameHelper));
+        }
+
+        [Fact]
+        public void Create_NullTableNameHelper_Throws()
+        {
+            var optionsFactory = Substitute.For<ILiteDbMessageQueueTransportOptionsFactory>();
+            var connectionManager = CreateConnectionManager();
+            Assert.Throws<ArgumentNullException>(
+                () => new DashboardResetStaleMessageCommandHandler(optionsFactory, connectionManager, null));
+        }
+
+        private static LiteDbConnectionManager CreateConnectionManager()
+        {
+            return new LiteDbConnectionManager(
+                Substitute.For<IConnectionInformation>(),
+                Substitute.For<ICreationScope>());
+        }
+
+        private static TableNameHelper CreateTableNameHelper()
+        {
+            return new TableNameHelper(Substitute.For<IConnectionInformation>());
+        }
+    }
+}

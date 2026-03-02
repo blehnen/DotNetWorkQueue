@@ -19,8 +19,9 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler

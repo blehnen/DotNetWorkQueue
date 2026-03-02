@@ -16,28 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
-
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query result: a scheduled job record.
-    /// </summary>
-    public class DashboardJob
-    {
-        /// <summary>
-        /// Gets or sets the job name.
-        /// </summary>
-        public string JobName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the last known event time for the job.
-        /// </summary>
-        public DateTimeOffset? JobEventTime { get; set; }
-
-        /// <summary>
-        /// Gets or sets the last scheduled time for the job.
-        /// </summary>
-        public DateTimeOffset? JobScheduledTime { get; set; }
-    }
 }

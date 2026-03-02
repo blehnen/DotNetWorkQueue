@@ -16,42 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Collections.Generic;
-using DotNetWorkQueue.Transport.Shared;
-
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic.Query
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query: gets a paged list of messages from the metadata table.
-    /// </summary>
-    public class GetDashboardMessagesQuery : IQuery<IReadOnlyList<DashboardMessage>>
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GetDashboardMessagesQuery"/> class.
-        /// </summary>
-        /// <param name="pageIndex">The zero-based page index.</param>
-        /// <param name="pageSize">The number of records per page.</param>
-        /// <param name="statusFilter">Optional status value to filter by.</param>
-        public GetDashboardMessagesQuery(int pageIndex, int pageSize, int? statusFilter)
-        {
-            PageIndex = pageIndex;
-            PageSize = pageSize;
-            StatusFilter = statusFilter;
-        }
-
-        /// <summary>
-        /// Gets the zero-based page index.
-        /// </summary>
-        public int PageIndex { get; }
-
-        /// <summary>
-        /// Gets the number of records per page.
-        /// </summary>
-        public int PageSize { get; }
-
-        /// <summary>
-        /// Gets the optional status filter. Null for all statuses.
-        /// </summary>
-        public int? StatusFilter { get; }
-    }
 }

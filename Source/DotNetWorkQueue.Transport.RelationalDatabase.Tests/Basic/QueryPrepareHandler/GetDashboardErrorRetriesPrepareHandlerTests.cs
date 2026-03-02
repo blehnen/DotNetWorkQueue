@@ -2,7 +2,7 @@ using System.Data;
 using System.Linq;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
 using Xunit;
 
@@ -17,7 +17,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             var handler = new GetDashboardErrorRetriesPrepareHandler(cache);
             var command = CreateDbCommand();
 
-            handler.Handle(new GetDashboardErrorRetriesQuery(42), command, CommandStringTypes.GetDashboardErrorRetries);
+            handler.Handle(new GetDashboardErrorRetriesQuery("42"), command, CommandStringTypes.GetDashboardErrorRetries);
 
             Assert.Equal("SELECT retries", command.CommandText);
         }
@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             var handler = new GetDashboardErrorRetriesPrepareHandler(cache);
             var command = CreateDbCommand();
 
-            handler.Handle(new GetDashboardErrorRetriesQuery(42), command, CommandStringTypes.GetDashboardErrorRetries);
+            handler.Handle(new GetDashboardErrorRetriesQuery("42"), command, CommandStringTypes.GetDashboardErrorRetries);
 
             var parameters = (DataParameterCollection)command.Parameters;
             var param = parameters.First();

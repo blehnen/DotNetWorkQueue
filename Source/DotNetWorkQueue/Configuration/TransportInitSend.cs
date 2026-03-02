@@ -52,5 +52,8 @@ namespace DotNetWorkQueue.Configuration
         {
 
         }
+
+        /// <inheritdoc />
+        public virtual bool IsRelationalTransport => false;
     }
 }

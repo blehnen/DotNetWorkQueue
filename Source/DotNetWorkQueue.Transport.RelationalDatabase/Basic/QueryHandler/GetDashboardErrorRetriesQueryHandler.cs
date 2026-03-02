@@ -18,8 +18,9 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                             results.Add(new DashboardErrorRetry
                             {
                                 ErrorTrackingId = _readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 0, reader),
-                                QueueId = _readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, reader),
+                                QueueId = _readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, reader).ToString(),
                                 ExceptionType = _readColumn.ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, reader),
                                 RetryCount = _readColumn.ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, reader)
                             });
