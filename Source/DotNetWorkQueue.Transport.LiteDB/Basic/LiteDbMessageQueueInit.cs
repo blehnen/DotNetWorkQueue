@@ -168,6 +168,44 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandlerWithOutputAsync<SendMessageCommand, int>),
                 typeof(SendMessageCommandHandlerAsyncDecorator), LifeStyles.Singleton);
+
+            // Dashboard read handlers
+            container.Register<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>,
+                GetDashboardStatusCountsQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardMessagesQuery, IReadOnlyList<DashboardMessage>>,
+                GetDashboardMessagesQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardMessageCountQuery, long>,
+                GetDashboardMessageCountQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>,
+                GetDashboardMessageDetailQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardStaleMessagesQuery, IReadOnlyList<DashboardMessage>>,
+                GetDashboardStaleMessagesQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardErrorMessagesQuery, IReadOnlyList<DashboardErrorMessage>>,
+                GetDashboardErrorMessagesQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardErrorMessageCountQuery, long>,
+                GetDashboardErrorMessageCountQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardErrorRetriesQuery, IReadOnlyList<DashboardErrorRetry>>,
+                GetDashboardErrorRetriesQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardConfigurationQuery, byte[]>,
+                GetDashboardConfigurationQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>,
+                GetDashboardJobsQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>,
+                GetDashboardMessageBodyQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>,
+                GetDashboardMessageHeadersQueryHandlerAsync>(LifeStyles.Singleton);
+
+            // Dashboard write handlers
+            container.Register<ICommandHandlerWithOutput<DashboardDeleteMessageCommand, long>,
+                DashboardDeleteMessageCommandHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<DashboardDeleteAllErrorMessagesCommand, long>,
+                DashboardDeleteAllErrorMessagesCommandHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<DashboardRequeueErrorMessageCommand, long>,
+                DashboardRequeueErrorMessageCommandHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>,
+                DashboardResetStaleMessageCommandHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<DashboardUpdateMessageBodyCommand, long>,
+                DashboardUpdateMessageBodyCommandHandler>(LifeStyles.Singleton);
         }
 
         /// <summary>

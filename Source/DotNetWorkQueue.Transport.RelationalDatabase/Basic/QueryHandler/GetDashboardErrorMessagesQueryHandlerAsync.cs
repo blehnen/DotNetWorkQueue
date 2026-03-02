@@ -20,8 +20,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
@@ -73,7 +74,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             var columnIndex = 0;
 
             message.Id = _readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorMessages, columnIndex++, reader);
-            message.QueueId = _readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorMessages, columnIndex++, reader);
+            message.QueueId = _readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorMessages, columnIndex++, reader).ToString();
             message.LastException = _readColumn.ReadAsString(CommandStringTypes.GetDashboardErrorMessages, columnIndex++, reader);
             message.LastExceptionDate = _readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetDashboardErrorMessages, columnIndex++, reader);
 

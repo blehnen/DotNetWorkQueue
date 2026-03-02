@@ -16,29 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.Shared;
-
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic.Query
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query: gets raw message body and headers by queue ID.
-    /// Both columns are needed because the interceptor graph (stored in headers)
-    /// is required to decode the body.
-    /// </summary>
-    public class GetDashboardMessageBodyQuery : IQuery<DashboardMessageBody>
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GetDashboardMessageBodyQuery"/> class.
-        /// </summary>
-        /// <param name="queueId">The queue identifier of the message.</param>
-        public GetDashboardMessageBodyQuery(long queueId)
-        {
-            QueueId = queueId;
-        }
-
-        /// <summary>
-        /// Gets the queue identifier.
-        /// </summary>
-        public long QueueId { get; }
-    }
 }

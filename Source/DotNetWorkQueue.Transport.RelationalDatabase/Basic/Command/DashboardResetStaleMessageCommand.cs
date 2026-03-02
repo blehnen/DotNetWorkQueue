@@ -16,23 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic.Command
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
 {
-    /// <summary>
-    /// Dashboard command: resets a stale (heartbeat-expired, Status=1) message back to Waiting status.
-    /// </summary>
-    public class DashboardResetStaleMessageCommand
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DashboardResetStaleMessageCommand"/> class.
-        /// </summary>
-        /// <param name="queueId">The queue identifier of the stale message to reset.</param>
-        public DashboardResetStaleMessageCommand(long queueId)
-        {
-            QueueId = queueId;
-        }
-
-        /// <summary>Gets the queue identifier.</summary>
-        public long QueueId { get; }
-    }
 }

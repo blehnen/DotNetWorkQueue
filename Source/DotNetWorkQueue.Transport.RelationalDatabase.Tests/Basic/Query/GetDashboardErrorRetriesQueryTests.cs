@@ -1,4 +1,4 @@
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using Xunit;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
@@ -8,8 +8,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
         [Fact]
         public void Create_Default()
         {
-            var test = new GetDashboardErrorRetriesQuery(99);
-            Assert.Equal(99, test.QueueId);
+            var test = new GetDashboardErrorRetriesQuery("99");
+            Assert.Equal("99", test.MessageId);
         }
     }
 }

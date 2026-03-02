@@ -18,7 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
@@ -43,7 +44,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             var queueId = dbCommand.CreateParameter();
             queueId.ParameterName = "@QueueId";
             queueId.DbType = DbType.Int64;
-            queueId.Value = query.QueueId;
+            queueId.Value = long.Parse(query.MessageId);
             dbCommand.Parameters.Add(queueId);
         }
     }

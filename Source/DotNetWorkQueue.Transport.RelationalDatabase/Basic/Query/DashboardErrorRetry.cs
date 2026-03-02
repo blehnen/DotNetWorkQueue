@@ -16,31 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query result: an error retry tracking record for a specific message.
-    /// </summary>
-    public class DashboardErrorRetry
-    {
-        /// <summary>
-        /// Gets or sets the error tracking identifier.
-        /// </summary>
-        public long ErrorTrackingId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the queue identifier of the message.
-        /// </summary>
-        public long QueueId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the exception type that was tracked.
-        /// </summary>
-        public string ExceptionType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the number of retries for this exception type.
-        /// </summary>
-        public int RetryCount { get; set; }
-    }
 }

@@ -19,11 +19,10 @@
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Serialization;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Microsoft.Extensions.Logging;
@@ -80,8 +79,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         public QueueFeaturesResponse GetFeatures(Guid queueId)
         {
             var container = GetContainer(queueId);
-            var factory = container.GetInstance<ITransportOptionsFactory>();
-            var options = factory.Create();
+            var creation = container.GetInstance<IQueueCreation>();
+            var options = creation.BaseTransportOptions;
             return new QueueFeaturesResponse
             {
                 EnablePriority = options.EnablePriority,
@@ -134,7 +133,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public async Task<MessageResponse> GetMessageDetailAsync(Guid queueId, long messageId)
+        public async Task<MessageResponse> GetMessageDetailAsync(Guid queueId, string messageId)
         {
             var container = GetContainer(queueId);
             var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>>();
@@ -183,7 +182,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyList<ErrorRetryResponse>> GetErrorRetriesAsync(Guid queueId, long messageId)
+        public async Task<IReadOnlyList<ErrorRetryResponse>> GetErrorRetriesAsync(Guid queueId, string messageId)
         {
             var container = GetContainer(queueId);
             var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardErrorRetriesQuery, IReadOnlyList<DashboardErrorRetry>>>();
@@ -213,11 +212,20 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         {
             var container = GetContainer(queueId);
 
-            var tableExistsHandler = container.GetInstance<IQueryHandler<GetTableExistsQuery, bool>>();
-            var connectionInfo = container.GetInstance<IConnectionInformation>();
-            var tableNameHelper = container.GetInstance<ITableNameHelper>();
-            if (!tableExistsHandler.Handle(new GetTableExistsQuery(connectionInfo.ConnectionString, tableNameHelper.JobTableName)))
-                return new List<JobResponse>();
+            // The table-exists check is only available for relational transports that register
+            // ITableNameHelper. Non-relational transports (Redis, LiteDB) skip the check.
+            try
+            {
+                var tableNameHelper = container.GetInstance<ITableNameHelper>();
+                var tableExistsHandler = container.GetInstance<IQueryHandler<GetTableExistsQuery, bool>>();
+                var connectionInfo = container.GetInstance<IConnectionInformation>();
+                if (!tableExistsHandler.Handle(new GetTableExistsQuery(connectionInfo.ConnectionString, tableNameHelper.JobTableName)))
+                    return new List<JobResponse>();
+            }
+            catch (Exception)
+            {
+                // Non-relational transport — ITableNameHelper not registered; skip table-exists check.
+            }
 
             var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>();
             var result = await handler.HandleAsync(new GetDashboardJobsQuery()).ConfigureAwait(false);
@@ -242,7 +250,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public async Task<MessageBodyResponse> GetMessageBodyAsync(Guid queueId, long messageId)
+        public async Task<MessageBodyResponse> GetMessageBodyAsync(Guid queueId, string messageId)
         {
             var container = GetContainer(queueId);
             var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
@@ -270,7 +278,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                 // Attempt typed re-deserialization when the producer stamped a body type header.
                 // Stage 1: type already loaded in AppDomain (embedded dashboard).
                 // Stage 2: load assembly from bin folder (standalone dashboard with user DLLs present).
-                if (headers.TryGetValue("Queue-MessageBodyType", out var rawTypeName) && rawTypeName is string portableName)
+                if (headers.TryGetValue("Queue-MessageBodyType", out var rawTypeName) && rawTypeName?.ToString() is string portableName && portableName.Length > 0)
                 {
                     var resolvedType = ResolveMessageBodyType(portableName);
                     if (resolvedType != null)
@@ -318,7 +326,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public async Task<MessageHeadersResponse> GetMessageHeadersAsync(Guid queueId, long messageId)
+        public async Task<MessageHeadersResponse> GetMessageHeadersAsync(Guid queueId, string messageId)
         {
             var container = GetContainer(queueId);
             var handler = container.GetInstance<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>();
@@ -364,6 +372,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             var type = value.GetType();
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTypeWrapper<>))
                 return type.GetProperty("Value")?.GetValue(value);
+            // Handle transport-specific correlation ID types (e.g. RedisQueueCorrelationIdSerialized)
+            // that have a Guid Id property but no ToString override.
+            var idProp = type.GetProperty("Id");
+            if (idProp != null && idProp.PropertyType == typeof(Guid))
+                return idProp.GetValue(value)?.ToString();
             return value.ToString();
         }
 
@@ -406,11 +419,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public Task<bool> DeleteMessageAsync(Guid queueId, long messageId)
+        public Task<bool> DeleteMessageAsync(Guid queueId, string messageId)
         {
             var container = GetContainer(queueId);
-            var handler = container.GetInstance<ICommandHandlerWithOutput<DeleteMessageCommand<long>, long>>();
-            var result = handler.Handle(new DeleteMessageCommand<long>(messageId));
+            var handler = container.GetInstance<ICommandHandlerWithOutput<DashboardDeleteMessageCommand, long>>();
+            var result = handler.Handle(new DashboardDeleteMessageCommand(messageId));
             return Task.FromResult(result > 0);
         }
 
@@ -424,7 +437,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public Task<bool> RequeueErrorMessageAsync(Guid queueId, long messageId)
+        public Task<bool> RequeueErrorMessageAsync(Guid queueId, string messageId)
         {
             var container = GetContainer(queueId);
             var handler = container.GetInstance<ICommandHandlerWithOutput<DashboardRequeueErrorMessageCommand, long>>();
@@ -433,7 +446,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public Task<bool> ResetStaleMessageAsync(Guid queueId, long messageId)
+        public Task<bool> ResetStaleMessageAsync(Guid queueId, string messageId)
         {
             var container = GetContainer(queueId);
             var handler = container.GetInstance<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>>();
@@ -442,7 +455,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public async Task<EditMessageBodyResult> EditMessageBodyAsync(Guid queueId, long messageId, string bodyJson)
+        public async Task<EditMessageBodyResult> EditMessageBodyAsync(Guid queueId, string messageId, string bodyJson)
         {
             var container = GetContainer(queueId);
 
@@ -467,10 +480,27 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                 return EditMessageBodyResult.TypeUnresolvable;
             }
 
-            if (!headers.TryGetValue("Queue-MessageBodyType", out var rawTypeName) || rawTypeName is not string portableName)
-                return EditMessageBodyResult.TypeUnresolvable;
+            // Resolve the message body type — prefer the explicit header, fall back to runtime type from deserialization.
+            Type resolvedType = null;
+            var portableName = headers.TryGetValue("Queue-MessageBodyType", out var rawTypeName) ? rawTypeName?.ToString() : null;
+            if (!string.IsNullOrEmpty(portableName))
+                resolvedType = ResolveMessageBodyType(portableName);
 
-            var resolvedType = ResolveMessageBodyType(portableName);
+            // Fallback: decode the existing body and use its runtime type (handles messages produced before the header was added).
+            if (resolvedType == null)
+            {
+                try
+                {
+                    var graph = (MessageInterceptorsGraph)headers[standardHeaders.StandardHeaders.MessageInterceptorGraph.Name];
+                    var decodedBody = serialization.Serializer.BytesToMessage<MessageBody>(rawData.Body, graph, headers).Body;
+                    resolvedType = ((object)decodedBody)?.GetType();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to decode existing body to infer type for message {MessageId}", messageId);
+                }
+            }
+
             if (resolvedType == null)
                 return EditMessageBodyResult.TypeUnresolvable;
 

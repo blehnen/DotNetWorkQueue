@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Models
         public long Id { get; set; }
 
         /// <summary>Gets or sets the queue identifier.</summary>
-        public long QueueId { get; set; }
+        public string QueueId { get; set; }
 
         /// <summary>Gets or sets the last exception message and stack trace.</summary>
         public string LastException { get; set; }

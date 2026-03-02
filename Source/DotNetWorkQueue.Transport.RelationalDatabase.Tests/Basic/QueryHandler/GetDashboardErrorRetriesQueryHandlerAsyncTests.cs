@@ -21,9 +21,10 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
 using Xunit;
 
@@ -41,11 +42,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
             readColumn.ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, reader).Returns("TimeoutException");
             readColumn.ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, reader).Returns(3);
 
-            var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery(42));
+            var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery("42"));
 
             Assert.Single(result);
             Assert.Equal(10L, result[0].ErrorTrackingId);
-            Assert.Equal(42L, result[0].QueueId);
+            Assert.Equal("42", result[0].QueueId);
             Assert.Equal("TimeoutException", result[0].ExceptionType);
             Assert.Equal(3, result[0].RetryCount);
         }
@@ -55,7 +56,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
         {
             var (handler, _, _) = CreateHandler(0);
 
-            var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery(42));
+            var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery("42"));
 
             Assert.Empty(result);
         }

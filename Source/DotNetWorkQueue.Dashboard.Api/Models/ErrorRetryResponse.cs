@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Models
         public long ErrorTrackingId { get; set; }
 
         /// <summary>Gets or sets the queue identifier.</summary>
-        public long QueueId { get; set; }
+        public string QueueId { get; set; }
 
         /// <summary>Gets or sets the exception type.</summary>
         public string ExceptionType { get; set; }

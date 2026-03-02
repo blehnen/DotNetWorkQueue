@@ -20,9 +20,10 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
 using Xunit;
 
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             readColumn.ReadAsByteArray(CommandStringTypes.GetDashboardMessageHeaders, 0, reader).Returns(headerBytes);
 
-            var result = await handler.HandleAsync(new GetDashboardMessageHeadersQuery(42));
+            var result = await handler.HandleAsync(new GetDashboardMessageHeadersQuery("42"));
 
             Assert.NotNull(result);
             Assert.Equal(headerBytes, result.Headers);
@@ -49,7 +50,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
         {
             var (handler, _, _) = CreateHandler(false);
 
-            var result = await handler.HandleAsync(new GetDashboardMessageHeadersQuery(999));
+            var result = await handler.HandleAsync(new GetDashboardMessageHeadersQuery("999"));
 
             Assert.Null(result);
         }

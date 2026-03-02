@@ -16,22 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Holds the raw body and headers bytes read from the queue table.
-    /// Both are needed because the interceptor graph (in headers) is required to decode the body.
-    /// </summary>
-    public class DashboardMessageBody
-    {
-        /// <summary>
-        /// Gets or sets the raw message body bytes (potentially compressed/encrypted).
-        /// </summary>
-        public byte[] Body { get; set; }
-
-        /// <summary>
-        /// Gets or sets the raw headers bytes (plain JSON via IInternalSerializer).
-        /// </summary>
-        public byte[] Headers { get; set; }
-    }
 }

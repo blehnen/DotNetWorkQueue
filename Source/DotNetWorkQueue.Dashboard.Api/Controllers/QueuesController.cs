@@ -101,10 +101,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         /// <summary>
         /// Gets a single message detail by message ID.
         /// </summary>
-        [HttpGet("{queueId:guid}/messages/{messageId:long}")]
+        [HttpGet("{queueId:guid}/messages/{messageId}")]
         [ProducesResponseType(typeof(MessageResponse), 200)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> GetMessageDetail(Guid queueId, long messageId)
+        public async Task<IActionResult> GetMessageDetail(Guid queueId, string messageId)
         {
             var result = await _service.GetMessageDetailAsync(queueId, messageId);
             if (result == null)
@@ -142,10 +142,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         /// <summary>
         /// Gets error retry tracking records for a specific message.
         /// </summary>
-        [HttpGet("{queueId:guid}/messages/{messageId:long}/retries")]
+        [HttpGet("{queueId:guid}/messages/{messageId}/retries")]
         [ProducesResponseType(typeof(IReadOnlyList<ErrorRetryResponse>), 200)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> GetErrorRetries(Guid queueId, long messageId)
+        public async Task<IActionResult> GetErrorRetries(Guid queueId, string messageId)
         {
             return Ok(await _service.GetErrorRetriesAsync(queueId, messageId));
         }
@@ -164,10 +164,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         /// <summary>
         /// Gets the decoded message body for a specific message.
         /// </summary>
-        [HttpGet("{queueId:guid}/messages/{messageId:long}/body")]
+        [HttpGet("{queueId:guid}/messages/{messageId}/body")]
         [ProducesResponseType(typeof(MessageBodyResponse), 200)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> GetMessageBody(Guid queueId, long messageId)
+        public async Task<IActionResult> GetMessageBody(Guid queueId, string messageId)
         {
             var result = await _service.GetMessageBodyAsync(queueId, messageId);
             if (result == null)
@@ -178,10 +178,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         /// <summary>
         /// Gets the message headers for a specific message.
         /// </summary>
-        [HttpGet("{queueId:guid}/messages/{messageId:long}/headers")]
+        [HttpGet("{queueId:guid}/messages/{messageId}/headers")]
         [ProducesResponseType(typeof(MessageHeadersResponse), 200)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> GetMessageHeaders(Guid queueId, long messageId)
+        public async Task<IActionResult> GetMessageHeaders(Guid queueId, string messageId)
         {
             var result = await _service.GetMessageHeadersAsync(queueId, messageId);
             if (result == null)
@@ -192,10 +192,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         /// <summary>
         /// Deletes a single message from the queue.
         /// </summary>
-        [HttpDelete("{queueId:guid}/messages/{messageId:long}")]
+        [HttpDelete("{queueId:guid}/messages/{messageId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteMessage(Guid queueId, long messageId)
+        public async Task<IActionResult> DeleteMessage(Guid queueId, string messageId)
         {
             var deleted = await _service.DeleteMessageAsync(queueId, messageId);
             return deleted ? NoContent() : NotFound();
@@ -216,10 +216,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         /// <summary>
         /// Requeues an error message, moving it back to Waiting status.
         /// </summary>
-        [HttpPost("{queueId:guid}/messages/{messageId:long}/requeue")]
+        [HttpPost("{queueId:guid}/messages/{messageId}/requeue")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> RequeueErrorMessage(Guid queueId, long messageId)
+        public async Task<IActionResult> RequeueErrorMessage(Guid queueId, string messageId)
         {
             var result = await _service.RequeueErrorMessageAsync(queueId, messageId);
             return result ? NoContent() : NotFound();
@@ -229,10 +229,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         /// Resets a stale (Processing) message back to Waiting status.
         /// Returns 404 if the message was not found in Processing state.
         /// </summary>
-        [HttpPost("{queueId:guid}/messages/{messageId:long}/reset")]
+        [HttpPost("{queueId:guid}/messages/{messageId}/reset")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> ResetStaleMessage(Guid queueId, long messageId)
+        public async Task<IActionResult> ResetStaleMessage(Guid queueId, string messageId)
         {
             var result = await _service.ResetStaleMessageAsync(queueId, messageId);
             return result ? NoContent() : NotFound();
@@ -242,12 +242,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         /// Re-encodes and saves a new message body. The JSON must be deserializable to the original
         /// message type; the operation is rejected if the type cannot be resolved.
         /// </summary>
-        [HttpPut("{queueId:guid}/messages/{messageId:long}/body")]
+        [HttpPut("{queueId:guid}/messages/{messageId}/body")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(409)]
-        public async Task<IActionResult> EditMessageBody(Guid queueId, long messageId, [FromBody] EditMessageBodyRequest request)
+        public async Task<IActionResult> EditMessageBody(Guid queueId, string messageId, [FromBody] EditMessageBodyRequest request)
         {
             if (request?.Body == null)
                 return BadRequest("Body is required.");

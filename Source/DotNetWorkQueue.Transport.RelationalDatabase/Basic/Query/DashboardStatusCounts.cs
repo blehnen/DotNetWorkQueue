@@ -16,31 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query result: queue status counts by category
-    /// </summary>
-    public class DashboardStatusCounts
-    {
-        /// <summary>
-        /// Gets or sets the number of messages waiting to be processed.
-        /// </summary>
-        public long Waiting { get; set; }
-
-        /// <summary>
-        /// Gets or sets the number of messages currently being processed.
-        /// </summary>
-        public long Processing { get; set; }
-
-        /// <summary>
-        /// Gets or sets the number of messages in error state.
-        /// </summary>
-        public long Error { get; set; }
-
-        /// <summary>
-        /// Gets or sets the total number of messages in the queue.
-        /// </summary>
-        public long Total { get; set; }
-    }
 }

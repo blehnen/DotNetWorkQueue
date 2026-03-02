@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Models
     public class MessageResponse
     {
         /// <summary>Gets or sets the queue identifier (primary key).</summary>
-        public long QueueId { get; set; }
+        public string QueueId { get; set; }
 
         /// <summary>Gets or sets the date/time the message was queued.</summary>
         public DateTimeOffset? QueuedDateTime { get; set; }

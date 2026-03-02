@@ -22,9 +22,10 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             Assert.Single(result);
             Assert.Equal(1L, result[0].Id);
-            Assert.Equal(100L, result[0].QueueId);
+            Assert.Equal("100", result[0].QueueId);
             Assert.Equal("NullReferenceException", result[0].LastException);
         }
 

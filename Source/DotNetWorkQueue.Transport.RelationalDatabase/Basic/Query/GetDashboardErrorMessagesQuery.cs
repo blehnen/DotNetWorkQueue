@@ -16,35 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Collections.Generic;
-using DotNetWorkQueue.Transport.Shared;
-
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic.Query
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
 {
-    /// <summary>
-    /// Dashboard query: gets a paged list of error messages.
-    /// </summary>
-    public class GetDashboardErrorMessagesQuery : IQuery<IReadOnlyList<DashboardErrorMessage>>
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GetDashboardErrorMessagesQuery"/> class.
-        /// </summary>
-        /// <param name="pageIndex">The zero-based page index.</param>
-        /// <param name="pageSize">The number of records per page.</param>
-        public GetDashboardErrorMessagesQuery(int pageIndex, int pageSize)
-        {
-            PageIndex = pageIndex;
-            PageSize = pageSize;
-        }
-
-        /// <summary>
-        /// Gets the zero-based page index.
-        /// </summary>
-        public int PageIndex { get; }
-
-        /// <summary>
-        /// Gets the number of records per page.
-        /// </summary>
-        public int PageSize { get; }
-    }
 }

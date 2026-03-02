@@ -16,35 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+// Type moved to DotNetWorkQueue.Transport.Shared.Basic.Command
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
 {
-    /// <summary>
-    /// Dashboard command: overwrites the body and headers of a single message in the Queue table.
-    /// Both columns must be updated together because interceptors (compression, encryption) write
-    /// markers into the headers when encoding.
-    /// </summary>
-    public class DashboardUpdateMessageBodyCommand
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DashboardUpdateMessageBodyCommand"/> class.
-        /// </summary>
-        /// <param name="queueId">The queue identifier of the message to update.</param>
-        /// <param name="body">The re-encoded message body bytes.</param>
-        /// <param name="headers">The updated message headers bytes (with fresh interceptor markers).</param>
-        public DashboardUpdateMessageBodyCommand(long queueId, byte[] body, byte[] headers)
-        {
-            QueueId = queueId;
-            Body = body;
-            Headers = headers;
-        }
-
-        /// <summary>Gets the queue identifier.</summary>
-        public long QueueId { get; }
-
-        /// <summary>Gets the re-encoded message body bytes.</summary>
-        public byte[] Body { get; }
-
-        /// <summary>Gets the updated headers bytes.</summary>
-        public byte[] Headers { get; }
-    }
 }
