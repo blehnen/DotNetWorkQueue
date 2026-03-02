@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
+    <NoWarn>1701;1702;1705;NU1701;NU1603</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
+    <NoWarn>1701;1702;1705;NU1701;NU1603</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+    <NoWarn>1701;1702;1705;NU1701;NU1603</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
+    <NoWarn>1701;1702;1705;NU1701;NU1603</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\xunit.runner.json" Link="xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Update="connectionstring.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.13" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.3" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="FluentAssertions" Version="8.8.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.console" Version="2.9.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.Dashboard.Api\DotNetWorkQueue.Dashboard.Api.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SqlServer\DotNetWorkQueue.Transport.SqlServer.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.PostgreSQL\DotNetWorkQueue.Transport.PostgreSQL.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.Redis\DotNetWorkQueue.Transport.Redis.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.LiteDB\DotNetWorkQueue.Transport.LiteDB.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.Memory\DotNetWorkQueue.Transport.Memory.csproj" />
+  </ItemGroup>
+
+</Project>

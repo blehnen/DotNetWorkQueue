@@ -40,10 +40,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
         /// <inheritdoc />
         public void Handle(DashboardResetStaleMessageCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
         {
-            if (!dbCommand.Parameters.Contains("@QueueId"))
+            if (!dbCommand.Parameters.Contains("@QueueID"))
             {
                 var param = dbCommand.CreateParameter();
-                param.ParameterName = "@QueueId";
+                param.ParameterName = "@QueueID";
                 param.DbType = DbType.Int64;
                 param.Value = long.Parse(command.MessageId);
                 dbCommand.Parameters.Add(param);

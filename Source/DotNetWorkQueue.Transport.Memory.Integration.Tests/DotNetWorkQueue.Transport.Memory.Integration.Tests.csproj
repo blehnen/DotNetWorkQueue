@@ -40,6 +40,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.Memory\DotNetWorkQueue.Transport.Memory.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>
 
