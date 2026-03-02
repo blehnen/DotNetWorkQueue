@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             var parameters = (DataParameterCollection)command.Parameters;
             Assert.Equal(3, parameters.Count);
 
-            var queueIdParam = parameters.First(p => p.ParameterName == "@QueueId");
+            var queueIdParam = parameters.First(p => p.ParameterName == "@QueueID");
             Assert.Equal(7L, queueIdParam.Value);
 
             var bodyParam = parameters.First(p => p.ParameterName == "@Body");

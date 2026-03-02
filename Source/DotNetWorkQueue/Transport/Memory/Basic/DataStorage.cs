@@ -25,6 +25,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -170,6 +171,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                         CorrelationId = (Guid)inputData.CorrelationId.Id.Value,
                         Headers = message.Headers,
                         Id = Guid.NewGuid(),
+                        QueuedDateTime = DateTime.UtcNow,
                         JobEventTime = eventTime,
                         JobName = jobName,
                         JobScheduledTime = scheduledTime
@@ -687,6 +689,144 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     return Interlocked.CompareExchange(ref valueQw.ProcessedCount, 0, 0);
                 }
                 return 0;
+            }
+            finally
+            {
+                if (tookLock)
+                    _lock.ExitReadLock();
+            }
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyList<QueueItem> GetWaitingMessages(int skip, int take)
+        {
+            if (Complete)
+                return new List<QueueItem>();
+
+            var tookLock = false;
+            try
+            {
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
+
+                if (Complete)
+                    return new List<QueueItem>();
+
+                if (QueueData.TryGetValue(_connectionInformation, out var value))
+                {
+                    return value.Values.Skip(skip).Take(take).ToList();
+                }
+                return new List<QueueItem>();
+            }
+            finally
+            {
+                if (tookLock)
+                    _lock.ExitReadLock();
+            }
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyList<QueueItem> GetProcessingMessages(int skip, int take)
+        {
+            if (Complete)
+                return new List<QueueItem>();
+
+            var tookLock = false;
+            try
+            {
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
+
+                if (Complete)
+                    return new List<QueueItem>();
+
+                if (QueueWorking.TryGetValue(_connectionInformation, out var value))
+                {
+                    return value.Values.Skip(skip).Take(take).ToList();
+                }
+                return new List<QueueItem>();
+            }
+            finally
+            {
+                if (tookLock)
+                    _lock.ExitReadLock();
+            }
+        }
+
+        /// <inheritdoc />
+        public QueueItem FindMessage(Guid id, out bool isProcessing)
+        {
+            isProcessing = false;
+            if (Complete)
+                return null;
+
+            var tookLock = false;
+            try
+            {
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
+
+                if (Complete)
+                    return null;
+
+                if (QueueData.TryGetValue(_connectionInformation, out var valueQd))
+                {
+                    if (valueQd.TryGetValue(id, out var item))
+                    {
+                        return item;
+                    }
+                }
+
+                if (QueueWorking.TryGetValue(_connectionInformation, out var valueQw))
+                {
+                    if (valueQw.TryGetValue(id, out var item))
+                    {
+                        isProcessing = true;
+                        return item;
+                    }
+                }
+
+                return null;
+            }
+            finally
+            {
+                if (tookLock)
+                    _lock.ExitReadLock();
+            }
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, Guid> GetJobNames()
+        {
+            if (Complete)
+                return new Dictionary<string, Guid>();
+
+            var tookLock = false;
+            try
+            {
+                if (!_lock.IsReadLockHeld)
+                {
+                    _lock.EnterReadLock();
+                    tookLock = true;
+                }
+
+                if (Complete)
+                    return new Dictionary<string, Guid>();
+
+                if (Jobs.TryGetValue(_connectionInformation, out var value))
+                {
+                    return new Dictionary<string, Guid>(value);
+                }
+                return new Dictionary<string, Guid>();
             }
             finally
             {

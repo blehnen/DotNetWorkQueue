@@ -35,27 +35,27 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public DeleteLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
-            Script = @"redis.call('zrem', @workingkey, @uuid) 
-                     redis.call('hdel', @valueskey, @uuid) 
-                     redis.call('hdel', @headerskey, @uuid) 
-                     redis.call('hdel', @metakey, @uuid) 
-                     redis.call('LREM', @pendingkey, -1, @uuid) 
-                     redis.call('LREM', @errorkey, -1, @uuid) 
-                     redis.call('zrem', @delaykey, @uuid) 
-                     redis.call('zrem', @errortimekey, @uuid) 
-                     redis.call('zrem', @expirekey, @uuid) 
-                     redis.call('hdel', @StatusKey, @uuid) 
+            Script = @"redis.call('zrem', @workingkey, @uuid)
+                     local deleted = redis.call('hdel', @valueskey, @uuid)
+                     redis.call('hdel', @headerskey, @uuid)
+                     redis.call('hdel', @metakey, @uuid)
+                     redis.call('LREM', @pendingkey, -1, @uuid)
+                     redis.call('LREM', @errorkey, -1, @uuid)
+                     redis.call('zrem', @delaykey, @uuid)
+                     redis.call('zrem', @errortimekey, @uuid)
+                     redis.call('zrem', @expirekey, @uuid)
+                     redis.call('hdel', @StatusKey, @uuid)
 
-                     local jobName = redis.call('hget', @JobIDKey, @uuid) 
+                     local jobName = redis.call('hget', @JobIDKey, @uuid)
                      if (jobName) then
-                        redis.call('hdel', @JobIDKey, @uuid) 
-                        redis.call('hdel', @JobKey, jobName) 
+                        redis.call('hdel', @JobIDKey, @uuid)
+                        redis.call('hdel', @JobKey, jobName)
                      end
-                     local routeName = redis.call('hget', @RouteIDKey, @uuid) 
+                     local routeName = redis.call('hget', @RouteIDKey, @uuid)
                      if(routeName) then
-                         redis.call('hdel', @RouteIDKey, @uuid) 
+                         redis.call('hdel', @RouteIDKey, @uuid)
                      end
-                     return 1";
+                     return deleted";
         }
         /// <summary>
         /// Deletes the specified message.

@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 
                         // Reset the message status back to Waiting (only if currently in Error state)
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.DashboardRequeueErrorMessage);
-                        commandSql.ExecuteNonQuery();
+                        var rowsAffected = commandSql.ExecuteNonQuery();
 
                         if (_options.Value.EnableStatusTable)
                         {
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                         }
 
                         trans.Commit();
-                        return 1;
+                        return rowsAffected;
                     }
                 }
             }

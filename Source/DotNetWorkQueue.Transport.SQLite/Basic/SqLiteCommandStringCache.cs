@@ -204,19 +204,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 $"DELETE FROM {TableNameHelper.MetaDataName} WHERE Status = {Convert.ToInt32(QueueStatuses.Error)}");
 
             CommandCache.Add(CommandStringTypes.DashboardRequeueErrorMessage,
-                $"UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueId AND Status = {Convert.ToInt32(QueueStatuses.Error)}");
+                $"UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueID AND Status = {Convert.ToInt32(QueueStatuses.Error)}");
 
             CommandCache.Add(CommandStringTypes.DashboardRequeueStatusTable,
-                $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE QueueID = @QueueId");
+                $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE QueueID = @QueueID");
 
             CommandCache.Add(CommandStringTypes.DashboardResetStaleMessage,
-                $"UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueId AND Status = {Convert.ToInt32(QueueStatuses.Processing)}");
+                $"UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueID AND Status = {Convert.ToInt32(QueueStatuses.Processing)}");
 
             CommandCache.Add(CommandStringTypes.DashboardResetStaleStatusTable,
-                $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE QueueID = @QueueId");
+                $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE QueueID = @QueueID");
 
             CommandCache.Add(CommandStringTypes.DashboardUpdateMessageBody,
-                $"UPDATE {TableNameHelper.QueueName} SET Body = @Body, Headers = @Headers WHERE QueueID = @QueueId");
+                $"UPDATE {TableNameHelper.QueueName} SET Body = @Body, Headers = @Headers WHERE QueueID = @QueueID");
         }
     }
 }

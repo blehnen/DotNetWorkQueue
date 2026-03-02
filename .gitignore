@@ -433,3 +433,5 @@ Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.xml
 Source/DotNetWorkQueue.Transport.RelationalDatabase/DotNetWorkQueue.Transport.RelationalDatabase.xml
 Source/DotNetWorkQueue.Transport.Shared/DotNetWorkQueue.Transport.Shared.xml
 Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.xml
+.agents/
+.claude/

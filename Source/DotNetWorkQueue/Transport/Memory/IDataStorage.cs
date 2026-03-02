@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Transport.Memory.Basic;
 namespace DotNetWorkQueue.Transport.Memory
 {
     /// <summary>
@@ -101,5 +102,35 @@ namespace DotNetWorkQueue.Transport.Memory
         /// </summary>
         /// <returns></returns>
         long GetDequeueCount();
+
+        /// <summary>
+        /// Gets waiting messages with paging support.
+        /// </summary>
+        /// <param name="skip">The number of records to skip.</param>
+        /// <param name="take">The number of records to take.</param>
+        /// <returns></returns>
+        IReadOnlyList<QueueItem> GetWaitingMessages(int skip, int take);
+
+        /// <summary>
+        /// Gets processing messages with paging support.
+        /// </summary>
+        /// <param name="skip">The number of records to skip.</param>
+        /// <param name="take">The number of records to take.</param>
+        /// <returns></returns>
+        IReadOnlyList<QueueItem> GetProcessingMessages(int skip, int take);
+
+        /// <summary>
+        /// Finds a message by its identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="isProcessing">if set to <c>true</c> the message is currently being processed.</param>
+        /// <returns></returns>
+        QueueItem FindMessage(Guid id, out bool isProcessing);
+
+        /// <summary>
+        /// Gets the job names and their associated message identifiers.
+        /// </summary>
+        /// <returns></returns>
+        IReadOnlyDictionary<string, Guid> GetJobNames();
     }
 }

@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 
                         //delete the message body
                         _prepareCommand.Handle(inner, commandSql, CommandStringTypes.DeleteFromQueue);
-                        commandSql.ExecuteNonQuery();
+                        var rowsAffected = commandSql.ExecuteNonQuery();
 
                         //delete any error tracking information
                         _prepareCommand.Handle(inner, commandSql, CommandStringTypes.DeleteFromErrorTracking);
@@ -90,16 +90,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                         commandSql.ExecuteNonQuery();
 
                         //delete status record
-                        if (!_options.Value.EnableStatusTable)
+                        if (_options.Value.EnableStatusTable)
                         {
-                            trans.Commit();
-                            return 1;
+                            _prepareCommand.Handle(inner, commandSql, CommandStringTypes.DeleteFromStatus);
+                            commandSql.ExecuteNonQuery();
                         }
 
-                        _prepareCommand.Handle(inner, commandSql, CommandStringTypes.DeleteFromStatus);
-                        commandSql.ExecuteNonQuery();
                         trans.Commit();
-                        return 1;
+                        return rowsAffected;
                     }
                 }
             }

@@ -29,11 +29,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             CommandCache[CommandStringTypes.DashboardDeleteAllErrors_Queue] = "DELETE FROM Queue";
             CommandCache[CommandStringTypes.DashboardDeleteAllErrors_Status] = "DELETE FROM Status";
             CommandCache[CommandStringTypes.DashboardDeleteAllErrors_MetaData] = "DELETE FROM MetaData WHERE Status = 2";
-            CommandCache[CommandStringTypes.DashboardRequeueErrorMessage] = "UPDATE MetaData SET Status = 0 WHERE QueueID = @QueueId AND Status = 2";
-            CommandCache[CommandStringTypes.DashboardRequeueStatusTable] = "UPDATE Status SET Status = 0 WHERE QueueID = @QueueId";
-            CommandCache[CommandStringTypes.DashboardResetStaleMessage] = "UPDATE MetaData SET Status = 0, HeartBeat = NULL WHERE QueueID = @QueueId AND Status = 1";
-            CommandCache[CommandStringTypes.DashboardResetStaleStatusTable] = "UPDATE Status SET Status = 0 WHERE QueueID = @QueueId AND Status = 1";
-            CommandCache[CommandStringTypes.DashboardUpdateMessageBody] = "UPDATE Queue SET Body = @Body, Headers = @Headers WHERE QueueID = @QueueId";
+            CommandCache[CommandStringTypes.DashboardRequeueErrorMessage] = "UPDATE MetaData SET Status = 0 WHERE QueueID = @QueueID AND Status = 2";
+            CommandCache[CommandStringTypes.DashboardRequeueStatusTable] = "UPDATE Status SET Status = 0 WHERE QueueID = @QueueID";
+            CommandCache[CommandStringTypes.DashboardResetStaleMessage] = "UPDATE MetaData SET Status = 0, HeartBeat = NULL WHERE QueueID = @QueueID AND Status = 1";
+            CommandCache[CommandStringTypes.DashboardResetStaleStatusTable] = "UPDATE Status SET Status = 0 WHERE QueueID = @QueueID AND Status = 1";
+            CommandCache[CommandStringTypes.DashboardUpdateMessageBody] = "UPDATE Queue SET Body = @Body, Headers = @Headers WHERE QueueID = @QueueID";
         }
     }
 }
