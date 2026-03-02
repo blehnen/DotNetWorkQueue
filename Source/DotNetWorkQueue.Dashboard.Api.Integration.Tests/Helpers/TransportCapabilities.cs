@@ -25,6 +25,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
         public bool HasConfiguration { get; init; }
         public bool HasJobs { get; init; }
         public bool HasWriteOperations { get; init; }
+        public bool HasEditBody { get; init; }
 
         public static TransportCapabilities SqlServer => new()
         {
@@ -32,7 +33,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             HasStaleMessages = true,
             HasConfiguration = true,
             HasJobs = true,
-            HasWriteOperations = true
+            HasWriteOperations = true,
+            HasEditBody = true
         };
 
         public static TransportCapabilities PostgreSql => new()
@@ -41,7 +43,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             HasStaleMessages = true,
             HasConfiguration = true,
             HasJobs = true,
-            HasWriteOperations = true
+            HasWriteOperations = true,
+            HasEditBody = true
         };
 
         public static TransportCapabilities Sqlite => new()
@@ -50,7 +53,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             HasStaleMessages = true,
             HasConfiguration = true,
             HasJobs = true,
-            HasWriteOperations = true
+            HasWriteOperations = true,
+            HasEditBody = true
         };
 
         public static TransportCapabilities Redis => new()
@@ -59,7 +63,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             HasStaleMessages = true,
             HasConfiguration = false,
             HasJobs = false,
-            HasWriteOperations = true
+            HasWriteOperations = true,
+            HasEditBody = false
         };
 
         public static TransportCapabilities LiteDb => new()
@@ -68,7 +73,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             HasStaleMessages = true,
             HasConfiguration = false,
             HasJobs = false,
-            HasWriteOperations = true
+            HasWriteOperations = true,
+            HasEditBody = false
         };
 
         public static TransportCapabilities Memory => new()
@@ -77,7 +83,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             HasStaleMessages = false,
             HasConfiguration = false,
             HasJobs = false,
-            HasWriteOperations = true
+            HasWriteOperations = true,
+            HasEditBody = false
         };
     }
 }
