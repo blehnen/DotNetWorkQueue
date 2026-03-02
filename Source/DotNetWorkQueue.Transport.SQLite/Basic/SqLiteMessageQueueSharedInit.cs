@@ -279,5 +279,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         protected virtual void SetupPolicy(IContainer container)
         { //no-op unless overridden
         }
+
+        /// <inheritdoc />
+        public override bool IsRelationalTransport => true;
     }
 }

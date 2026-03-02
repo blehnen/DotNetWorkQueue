@@ -205,5 +205,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             RetrySqlPolicyCreation.Register(container);
         }
+
+        /// <inheritdoc />
+        public override bool IsRelationalTransport => true;
     }
 }

@@ -162,6 +162,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             // Dashboard Lua scripts (explicit registration so they can be injected into command handlers)
             container.Register<DashboardRequeueErrorMessageLua>(LifeStyles.Singleton);
             container.Register<DashboardResetStaleMessageLua>(LifeStyles.Singleton);
+            container.Register<DashboardDeleteAllErrorMessagesLua>(LifeStyles.Singleton);
+            container.Register<DashboardUpdateMessageBodyLua>(LifeStyles.Singleton);
 
             // Dashboard read handlers
             container.Register<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>,

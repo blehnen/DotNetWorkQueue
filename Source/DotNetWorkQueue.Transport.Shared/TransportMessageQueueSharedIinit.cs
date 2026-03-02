@@ -40,7 +40,5 @@ namespace DotNetWorkQueue.Transport.Shared
             container.Register<ITransportHandleMessage, TransportHandleMessage>(LifeStyles.Singleton);
         }
 
-        /// <inheritdoc />
-        public override bool IsRelationalTransport => true;
     }
 }

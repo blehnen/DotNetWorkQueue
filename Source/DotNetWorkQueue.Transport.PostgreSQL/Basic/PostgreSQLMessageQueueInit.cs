@@ -215,5 +215,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             RetrySqlPolicyCreation.Register(container);
         }
+
+        /// <inheritdoc />
+        public override bool IsRelationalTransport => true;
     }
 }
