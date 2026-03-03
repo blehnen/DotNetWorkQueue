@@ -193,23 +193,25 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 $"SELECT Headers FROM {TableNameHelper.QueueName} WITH (NOLOCK) WHERE QueueID = @QueueID");
 
             // Dashboard write commands
-            CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_MetaDataErrors,
-                $"DELETE FROM {TableNameHelper.MetaDataErrorsName} WHERE QueueID IN (SELECT QueueID FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Error)})");
-
+            // Use MetaDataErrors as the source of error QueueIDs (MetaData records are deleted by MoveRecordToErrorQueue)
             CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_ErrorTracking,
-                $"DELETE FROM {TableNameHelper.ErrorTrackingName} WHERE QueueID IN (SELECT QueueID FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Error)})");
+                $"DELETE FROM {TableNameHelper.ErrorTrackingName} WHERE QueueID IN (SELECT DISTINCT QueueID FROM {TableNameHelper.MetaDataErrorsName})");
 
             CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_Queue,
-                $"DELETE FROM {TableNameHelper.QueueName} WHERE QueueID IN (SELECT QueueID FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Error)})");
-
-            CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_Status,
-                $"DELETE FROM {TableNameHelper.StatusName} WHERE QueueID IN (SELECT QueueID FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Error)})");
+                $"DELETE FROM {TableNameHelper.QueueName} WHERE QueueID IN (SELECT DISTINCT QueueID FROM {TableNameHelper.MetaDataErrorsName})");
 
             CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_MetaData,
-                $"DELETE FROM {TableNameHelper.MetaDataName} WHERE Status = {Convert.ToInt32(QueueStatuses.Error)}");
+                $"DELETE FROM {TableNameHelper.MetaDataName} WHERE QueueID IN (SELECT DISTINCT QueueID FROM {TableNameHelper.MetaDataErrorsName})");
 
+            CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_Status,
+                $"DELETE FROM {TableNameHelper.StatusName} WHERE QueueID IN (SELECT DISTINCT QueueID FROM {TableNameHelper.MetaDataErrorsName})");
+
+            CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_MetaDataErrors,
+                $"DELETE FROM {TableNameHelper.MetaDataErrorsName}");
+
+            // Requeue: MERGE into MetaData (may not exist after MoveRecordToErrorQueue deletes it)
             CommandCache.Add(CommandStringTypes.DashboardRequeueErrorMessage,
-                $"UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueID AND Status = {Convert.ToInt32(QueueStatuses.Error)}");
+                $"IF EXISTS (SELECT 1 FROM {TableNameHelper.MetaDataErrorsName} WHERE QueueID = @QueueID) BEGIN IF EXISTS (SELECT 1 FROM {TableNameHelper.MetaDataName} WHERE QueueID = @QueueID) UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueID; ELSE INSERT INTO {TableNameHelper.MetaDataName} (QueueID, CorrelationID, QueuedDateTime, Status) VALUES (@QueueID, @CorrelationID, GETUTCDATE(), {Convert.ToInt32(QueueStatuses.Waiting)}); END");
 
             CommandCache.Add(CommandStringTypes.DashboardRequeueStatusTable,
                 $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE QueueID = @QueueID");

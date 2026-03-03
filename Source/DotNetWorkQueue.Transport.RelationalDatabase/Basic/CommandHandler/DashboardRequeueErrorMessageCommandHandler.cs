@@ -70,16 +70,17 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                     {
                         commandSql.Transaction = trans;
 
+                        // Re-create MetaData record first (uses MetaDataErrors to verify error exists)
+                        // Must run before deleting from MetaDataErrors since the SQL references it
+                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DashboardRequeueErrorMessage);
+                        var rowsAffected = commandSql.ExecuteNonQuery();
+
                         // Remove error tracking records for this message
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromMetaDataErrors);
                         commandSql.ExecuteNonQuery();
 
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromErrorTracking);
                         commandSql.ExecuteNonQuery();
-
-                        // Reset the message status back to Waiting (only if currently in Error state)
-                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DashboardRequeueErrorMessage);
-                        var rowsAffected = commandSql.ExecuteNonQuery();
 
                         if (_options.Value.EnableStatusTable)
                         {

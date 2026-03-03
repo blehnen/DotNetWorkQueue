@@ -65,18 +65,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 $"api/v1/dashboard/connections/{connections[0].Id}/queues");
             _queueId = queues[0].Id;
 
-            // Start consumer with short heartbeat, wait for processing, then dispose to create stale
+            // Start consumer with non-updating heartbeat; message stays in Processing
+            // but the initial heartbeat timestamp becomes stale
             _consumerHelper = new ConsumerStateHelper<SqlServerMessageQueueInit>();
             _consumerHelper.StartBlockingConsumerShortHeartBeat(_fixture.QueueConnection, _fixture.Scope);
             await DashboardPollingHelper.WaitForStatusAsync(_server.Client, _queueId,
                 s => s.Processing >= 1);
 
-            // Dispose consumer to stop heartbeat updates
-            _consumerHelper.Dispose();
-            _consumerHelper = null;
-
-            // Wait for heartbeat to expire
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            // Poll until stale messages appear (initial heartbeat expired)
+            await DashboardPollingHelper.WaitForStaleAsync(_server.Client, _queueId);
         }
 
         public async Task DisposeAsync()

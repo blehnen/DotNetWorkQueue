@@ -69,13 +69,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                     {
                         commandSql.Transaction = trans;
 
-                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DashboardDeleteAllErrors_MetaDataErrors);
-                        commandSql.ExecuteNonQuery();
-
+                        // Delete dependent tables first (they reference MetaDataErrors for QueueIDs)
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.DashboardDeleteAllErrors_ErrorTracking);
                         commandSql.ExecuteNonQuery();
 
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.DashboardDeleteAllErrors_Queue);
+                        commandSql.ExecuteNonQuery();
+
+                        // Safety: also remove any MetaData records that may still exist
+                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DashboardDeleteAllErrors_MetaData);
                         commandSql.ExecuteNonQuery();
 
                         if (_options.Value.EnableStatusTable)
@@ -84,7 +86,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                             commandSql.ExecuteNonQuery();
                         }
 
-                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DashboardDeleteAllErrors_MetaData);
+                        // Delete MetaDataErrors last (its QueueIDs are used by the sub-queries above)
+                        _prepareCommand.Handle(command, commandSql, CommandStringTypes.DashboardDeleteAllErrors_MetaDataErrors);
                         var count = commandSql.ExecuteNonQuery();
 
                         trans.Commit();

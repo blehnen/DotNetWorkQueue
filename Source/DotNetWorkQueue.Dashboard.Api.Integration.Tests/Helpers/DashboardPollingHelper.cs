@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -43,6 +44,44 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             }
             throw new TimeoutException(
                 $"Status predicate not met within {timeoutSeconds}s for queue {queueId}");
+        }
+
+        public static async Task WaitForStaleAsync(
+            HttpClient client,
+            Guid queueId,
+            int thresholdSeconds = 1,
+            int timeoutSeconds = 30)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            while (DateTime.UtcNow < deadline)
+            {
+                var paged = await client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
+                    $"api/v1/dashboard/queues/{queueId}/messages/stale?thresholdSeconds={thresholdSeconds}");
+                if (paged?.Items != null && paged.Items.Count > 0)
+                    return;
+                await Task.Delay(1000);
+            }
+            throw new TimeoutException(
+                $"No stale messages detected within {timeoutSeconds}s for queue {queueId}");
+        }
+
+        public static async Task WaitForErrorsAsync(
+            HttpClient client,
+            Guid queueId,
+            int expectedCount,
+            int timeoutSeconds = 30)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            while (DateTime.UtcNow < deadline)
+            {
+                var status = await client.GetFromJsonAsync<QueueStatusResponse>(
+                    $"api/v1/dashboard/queues/{queueId}/status");
+                if (status != null && status.Error >= expectedCount)
+                    return;
+                await Task.Delay(500);
+            }
+            throw new TimeoutException(
+                $"Expected {expectedCount} errors within {timeoutSeconds}s for queue {queueId}");
         }
     }
 }

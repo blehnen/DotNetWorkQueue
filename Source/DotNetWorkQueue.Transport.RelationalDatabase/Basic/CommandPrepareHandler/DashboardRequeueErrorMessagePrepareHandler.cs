@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Data;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
@@ -48,6 +49,29 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
                 param.Value = long.Parse(command.MessageId);
                 dbCommand.Parameters.Add(param);
             }
+
+            // Add parameters needed for INSERT into MetaData (when record was deleted by MoveRecordToErrorQueue)
+            if (commandType == CommandStringTypes.DashboardRequeueErrorMessage)
+            {
+                if (!dbCommand.Parameters.Contains("@CorrelationID"))
+                {
+                    var correlationParam = dbCommand.CreateParameter();
+                    correlationParam.ParameterName = "@CorrelationID";
+                    correlationParam.DbType = DbType.Guid;
+                    correlationParam.Value = Guid.NewGuid();
+                    dbCommand.Parameters.Add(correlationParam);
+                }
+
+                if (!dbCommand.Parameters.Contains("@QueuedDateTime"))
+                {
+                    var dateParam = dbCommand.CreateParameter();
+                    dateParam.ParameterName = "@QueuedDateTime";
+                    dateParam.DbType = DbType.Int64;
+                    dateParam.Value = DateTime.UtcNow.Ticks;
+                    dbCommand.Parameters.Add(dateParam);
+                }
+            }
+
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
         }
     }

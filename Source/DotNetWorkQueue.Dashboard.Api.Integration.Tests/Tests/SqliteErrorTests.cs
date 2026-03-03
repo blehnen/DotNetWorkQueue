@@ -66,10 +66,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 $"api/v1/dashboard/connections/{connections[0].Id}/queues");
             _queueId = queues[0].Id;
 
-            using var errorCountdown = new CountdownEvent(2);
+            var errorCountdown = new CountdownEvent(2);
             _consumerHelper = new ConsumerStateHelper<SqLiteMessageQueueInit>();
             _consumerHelper.StartErrorConsumer(_fixture.QueueConnection, _fixture.Scope, errorCountdown);
             errorCountdown.Wait(TimeSpan.FromSeconds(30));
+
+            // Poll until errors are visible via the dashboard API
+            await DashboardPollingHelper.WaitForErrorsAsync(_server.Client, _queueId, 2);
         }
 
         public async Task DisposeAsync()

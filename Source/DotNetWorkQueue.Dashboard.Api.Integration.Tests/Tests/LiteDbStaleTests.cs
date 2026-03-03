@@ -69,10 +69,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             await DashboardPollingHelper.WaitForStatusAsync(_server.Client, _queueId,
                 s => s.Processing >= 1);
 
-            _consumerHelper.Dispose();
-            _consumerHelper = null;
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            // Poll until stale messages appear (initial heartbeat expired)
+            await DashboardPollingHelper.WaitForStaleAsync(_server.Client, _queueId);
         }
 
         public async Task DisposeAsync()

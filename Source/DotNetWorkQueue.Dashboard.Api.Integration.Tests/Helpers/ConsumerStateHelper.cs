@@ -81,8 +81,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
 
         public void StartBlockingConsumerShortHeartBeat(QueueConnection queueConnection,
             ICreationScope scope,
-            int workerCount = 1,
-            int heartBeatSeconds = 2)
+            int workerCount = 1)
         {
             _blockSignal = new ManualResetEventSlim(false);
             _container = new QueueContainer<TTransportInit>(
@@ -91,9 +90,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
 
             _consumer.Configuration.Worker.WorkerCount = workerCount;
             _consumer.Configuration.Worker.SingleWorkerWhenNoWorkFound = true;
-            _consumer.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(heartBeatSeconds);
-            _consumer.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(1);
-            _consumer.Configuration.HeartBeat.UpdateTime = "sec(*/" + heartBeatSeconds + ")";
+            // HeartBeat is written at dequeue time (ReceiveMessage sets HeartBeat = NOW in ticks).
+            // By NOT setting UpdateTime, the HeartBeatWorker never schedules updates,
+            // so HeartBeat stays at its dequeue-time value and becomes stale within seconds.
+            // Keep Time large (300s) so the consumer's heartbeat monitor doesn't reset
+            // the message back to Waiting before the Dashboard stale query can detect it.
+            _consumer.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(300);
+            _consumer.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(150);
 
             var signal = _blockSignal;
             _consumer.Start<FakeMessage>((message, notifications) =>
