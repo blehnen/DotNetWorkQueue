@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -21,12 +21,16 @@ using DotNetWorkQueue.Transport.Shared.Basic.Chaos;
 using DotNetWorkQueue.Transport.SqlServer.Decorator;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
 using Polly;
-using Polly.Contrib.Simmy;
-using Polly.Contrib.Simmy.Outcomes;
-using Polly.Contrib.WaitAndRetry;
+using Polly.Retry;
+using Polly.Simmy;
+using Polly.Simmy.Fault;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -47,65 +51,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             var tracer = container.GetInstance<ActivitySource>();
             var log = container.GetInstance<ILogger>();
 
-            InjectOutcomePolicy chaosPolicy = null;
-            AsyncInjectOutcomePolicy chaosPolicyAsync = null;
-
-            //do not create unless enabled due to the overhead
-            if (policies.EnableChaos)
-            {
-                chaosPolicy = CreateRetryChaos(policies);
-                chaosPolicyAsync = CreateRetryChaosAsync(policies);
-            }
-
-            var delay = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
-            var delayAsync = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs), retryCount: RetryConstants.RetryCount);
-
-            var retrySql = Policy
-                 .Handle<Exception>(ex => HasRetryableSqlException(ex))
-                 .WaitAndRetry(delay,
-                     (exception, timeSpan, retryCount, context) =>
-                     {
-                         log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
-                         if (Activity.Current != null)
-                         {
-                             using (var scope = tracer.StartActivity("RetrySqlPolicy"))
-                             {
-                                 try
-                                 {
-                                     scope?.SetTag("RetryTime", timeSpan.ToString());
-                                     scope?.AddException(exception);
-                                 }
-                                 finally
-                                 {
-                                     scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
-                                 }
-                             }
-                         }
-                     });
-
-            var retrySqlAsync = Policy
-                .Handle<Exception>(ex => HasRetryableSqlException(ex))
-                .WaitAndRetryAsync(delayAsync,
-                    (exception, timeSpan, retryCount, context) =>
-                    {
-                        log.LogWarning($"An error has occurred; we will try to re-run the transaction in {timeSpan.TotalMilliseconds} ms. An error has occurred {retryCount} times{System.Environment.NewLine}{exception}");
-                        if (Activity.Current != null)
-                        {
-                            using (var scope = tracer.StartActivity("RetrySqlPolicy"))
-                            {
-                                try
-                                {
-                                    scope?.SetTag("RetryTime", timeSpan.ToString());
-                                    scope?.AddException(exception);
-                                }
-                                finally
-                                {
-                                    scope?.SetEndTime(scope.StartTimeUtc.Add(timeSpan));
-                                }
-                            }
-                        }
-                    });
-
             //RetryCommandHandler
             policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandler,
                 new TransportPolicyDefinition(
@@ -113,10 +58,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     "A policy for retrying a failed command. This checks specific" +
                     "SQL server errors, such as deadlocks, and retries the command" +
                     "after a short pause"));
-            if (chaosPolicy != null)
-                policies.Registry[TransportPolicyDefinitions.RetryCommandHandler] = retrySql.Wrap(chaosPolicy);
-            else
-                policies.Registry[TransportPolicyDefinitions.RetryCommandHandler] = retrySql;
+            policies.Registry.TryAddBuilder(TransportPolicyDefinitions.RetryCommandHandler,
+                (builder, _) =>
+                {
+                    builder.AddRetry(CreateRetryOptions(log, tracer));
+                    if (policies.EnableChaos)
+                        builder.AddChaosFault(CreateChaosOptions(policies));
+                });
 
             //RetryCommandHandlerAsync
             policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryCommandHandlerAsync,
@@ -125,10 +73,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     "A policy for retrying a failed command. This checks specific" +
                     "SQL server errors, such as deadlocks, and retries the command" +
                     "after a short pause"));
-            if (chaosPolicyAsync != null)
-                policies.Registry[TransportPolicyDefinitions.RetryCommandHandlerAsync] = retrySqlAsync.WrapAsync(chaosPolicyAsync);
-            else
-                policies.Registry[TransportPolicyDefinitions.RetryCommandHandlerAsync] = retrySqlAsync;
+            policies.Registry.TryAddBuilder(TransportPolicyDefinitions.RetryCommandHandlerAsync,
+                (builder, _) =>
+                {
+                    builder.AddRetry(CreateRetryOptions(log, tracer));
+                    if (policies.EnableChaos)
+                        builder.AddChaosFault(CreateChaosOptions(policies));
+                });
 
             //RetryQueryHandler
             policies.TransportDefinition.TryAdd(TransportPolicyDefinitions.RetryQueryHandler,
@@ -137,10 +88,57 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     "A policy for retrying a failed query. This checks specific" +
                     "SQL server errors, such as deadlocks, and retries the query" +
                     "after a short pause"));
-            if (chaosPolicy != null)
-                policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql.Wrap(chaosPolicy);
-            else
-                policies.Registry[TransportPolicyDefinitions.RetryQueryHandler] = retrySql;
+            policies.Registry.TryAddBuilder(TransportPolicyDefinitions.RetryQueryHandler,
+                (builder, _) =>
+                {
+                    builder.AddRetry(CreateRetryOptions(log, tracer));
+                    if (policies.EnableChaos)
+                        builder.AddChaosFault(CreateChaosOptions(policies));
+                });
+        }
+
+        private static RetryStrategyOptions CreateRetryOptions(ILogger log, ActivitySource tracer)
+        {
+            return new RetryStrategyOptions
+            {
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(ex => HasRetryableSqlException(ex)),
+                MaxRetryAttempts = RetryConstants.RetryCount,
+                Delay = TimeSpan.FromMilliseconds(RetryConstants.FirstWaitInMs),
+                BackoffType = DelayBackoffType.Exponential,
+                UseJitter = true,
+                OnRetry = args =>
+                {
+                    log.LogWarning($"An error has occurred; we will try to re-run the transaction in {args.RetryDelay.TotalMilliseconds} ms. An error has occurred {args.AttemptNumber + 1} times{System.Environment.NewLine}{args.Outcome.Exception}");
+                    if (Activity.Current != null)
+                    {
+                        using (var scope = tracer.StartActivity("RetrySqlPolicy"))
+                        {
+                            try
+                            {
+                                scope?.SetTag("RetryTime", args.RetryDelay.ToString());
+                                if (args.Outcome.Exception != null)
+                                    scope?.AddException(args.Outcome.Exception);
+                            }
+                            finally
+                            {
+                                scope?.SetEndTime(scope.StartTimeUtc.Add(args.RetryDelay));
+                            }
+                        }
+                    }
+                    return default;
+                }
+            };
+        }
+
+        private static ChaosFaultStrategyOptions CreateChaosOptions(IPolicies policies)
+        {
+            return new ChaosFaultStrategyOptions
+            {
+                FaultGenerator = _ => new ValueTask<Exception>(MockSqlException.Create()),
+                InjectionRateGenerator = args => new ValueTask<double>(
+                    ChaosPolicyShared.InjectionRate(args.Context, RetryConstants.RetryCount, RetryAttempts)),
+                EnabledGenerator = args => new ValueTask<bool>(policies.EnableChaos)
+            };
         }
 
         private static bool HasRetryableSqlException(Exception ex)
@@ -152,30 +150,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 ex = ex.InnerException;
             }
             return false;
-        }
-
-        private static InjectOutcomePolicy CreateRetryChaos(IPolicies policies)
-        {
-            return MonkeyPolicy.InjectException(with =>
-                with.Fault(Behaviour())
-                    .InjectionRate((context, token) => ChaosPolicyShared.InjectionRate(context, RetryConstants.RetryCount, RetryAttempts))
-                    .Enabled(policies.EnableChaos)
-            );
-        }
-
-        private static AsyncInjectOutcomePolicy CreateRetryChaosAsync(IPolicies policies)
-        {
-            return MonkeyPolicy.InjectExceptionAsync(with =>
-                with.Fault(Behaviour())
-                    .InjectionRate((context, token) => ChaosPolicyShared.InjectionRateAsync(context, RetryConstants.RetryCount, RetryAttempts))
-                    .Enabled(policies.EnableChaos)
-            );
-
-        }
-
-        private static SqlException Behaviour()
-        {
-            return MockSqlException.Create();
         }
     }
 }

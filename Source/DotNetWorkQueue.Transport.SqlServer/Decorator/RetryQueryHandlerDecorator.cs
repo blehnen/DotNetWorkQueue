@@ -48,12 +48,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
         public TResult Handle(TQuery query)
         {
             Guard.NotNull(() => query, query);
-            if (_policies.Registry.TryGet<ISyncPolicy>(TransportPolicyDefinitions.RetryQueryHandler, out var policy))
+            if (_policies.Registry.TryGetPipeline(TransportPolicyDefinitions.RetryQueryHandler, out var pipeline))
             {
-                var result = policy.ExecuteAndCapture(() => _decorated.Handle(query));
-                if (result.FinalException != null)
-                    throw result.FinalException;
-                return result.Result;
+                return pipeline.Execute(_ => _decorated.Handle(query));
             }
             return _decorated.Handle(query);
         }

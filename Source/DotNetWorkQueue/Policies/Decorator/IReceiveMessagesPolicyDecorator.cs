@@ -41,15 +41,11 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <inheritdoc />
         public IReceivedMessageInternal ReceiveMessage(IMessageContext context)
         {
-            IReceivedMessageInternal result = null;
-
-            if (_policies.Registry.TryGet<ISyncPolicy>(_policies.Definition.ReceiveMessageFromTransport, out var policy))
+            if (_policies.Registry.TryGetPipeline(_policies.Definition.ReceiveMessageFromTransport, out var pipeline))
             {
-                policy.Execute(() => result = _handler.ReceiveMessage(context));
+                return pipeline.Execute(_ => _handler.ReceiveMessage(context));
             }
-            else //no policy found
-                result = _handler.ReceiveMessage(context);
-            return result;
+            return _handler.ReceiveMessage(context);
         }
 
         /// <inheritdoc />

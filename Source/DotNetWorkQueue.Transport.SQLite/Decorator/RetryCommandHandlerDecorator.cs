@@ -48,9 +48,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// <inheritdoc />
         public void Handle(TCommand command)
         {
-            if (_policies.Registry.TryGet<ISyncPolicy>(TransportPolicyDefinitions.RetryCommandHandler, out var policy))
+            if (_policies.Registry.TryGetPipeline(TransportPolicyDefinitions.RetryCommandHandler, out var pipeline))
             {
-                policy.Execute(() => _decorated.Handle(command));
+                pipeline.Execute(_ => _decorated.Handle(command));
             }
             else //no policy found
                 _decorated.Handle(command);

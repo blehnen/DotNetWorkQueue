@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -18,9 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Validation;
 using Polly;
 
 namespace DotNetWorkQueue.Transport.Shared.Basic.Chaos
@@ -55,63 +52,25 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Chaos
         /// <summary>
         /// Returns the injection rate for a failure
         /// </summary>
-        /// <param name="context">The context.</param>
+        /// <param name="context">The resilience context.</param>
         /// <param name="retryAttempts">The retry attempts.</param>
         /// <param name="keyName">Name of the key.</param>
         /// <returns></returns>
-        public static double InjectionRate(Context context, int retryAttempts, string keyName)
+        public static double InjectionRate(ResilienceContext context, int retryAttempts, string keyName)
         {
-            //check retry count;
-            if (context.ContainsKey(keyName))
+            var key = new ResiliencePropertyKey<int>(keyName);
+            if (context.Properties.TryGetValue(key, out var value))
             {
-                context.TryGetValue(keyName, out var value);
-                context[keyName] = (int)context[keyName] + 1;
-                if (value is int intValue1)
-                {
-                    if (intValue1 >= retryAttempts)
-                        return 0; //no more errors, lets continue
-                    return intValue1 == 0 ? 0.5 : 0.25;
-                }
+                context.Properties.Set(key, value + 1);
+                if (value >= retryAttempts)
+                    return 0; //no more errors, lets continue
+                return value == 0 ? 0.5 : 0.25;
             }
             else
             {
-                context.Add(keyName, 1);
+                context.Properties.Set(key, 1);
             }
             return 0.5;
-        }
-
-        /// <summary>
-        /// Returns the injection rate for a failure
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <param name="retryAttempts">The retry attempts.</param>
-        /// <param name="keyName">Name of the key.</param>
-        /// <returns></returns>
-        public static async Task<double> InjectionRateAsync(Context context, int retryAttempts, string keyName)
-        {
-            return await RunAsync(() => InjectionRate(context, retryAttempts, keyName));
-        }
-
-        /// <summary>
-        /// Runs a sync method async; used for libraries who demand an async function, but we don't have one
-        /// </summary>
-        /// <typeparam name="T">the output type</typeparam>
-        /// <param name="function">The function.</param>
-        /// <returns></returns>
-        public static Task<T> RunAsync<T>(Func<T> function)
-        {
-            Guard.NotNull(() => function, function);
-            var tcs = new TaskCompletionSource<T>();
-            ThreadPool.QueueUserWorkItem(_ =>
-            {
-                try
-                {
-                    T result = function();
-                    tcs.SetResult(result);
-                }
-                catch (Exception exc) { tcs.SetException(exc); }
-            });
-            return tcs.Task;
         }
     }
 }

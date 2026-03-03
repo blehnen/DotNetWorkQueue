@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     {
         private readonly ISQLiteTransactionWrapper _decorated;
         private readonly IPolicies _policies;
-        private Policy _policy;
+        private ResiliencePipeline _pipeline;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BeginTransactionRetryDecorator"/> class.
@@ -55,15 +55,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// <inheritdoc />
         public IDbTransaction BeginTransaction()
         {
-            if (_policy == null)
+            if (_pipeline == null)
             {
-                _policies.Registry.TryGet(TransportPolicyDefinitions.BeginTransaction, out _policy);
+                _policies.Registry.TryGetPipeline(TransportPolicyDefinitions.BeginTransaction, out _pipeline);
             }
-            if (_policy == null) return _decorated.BeginTransaction();
-            var result = _policy.ExecuteAndCapture(() => _decorated.BeginTransaction());
-            if (result.FinalException != null)
-                throw result.FinalException;
-            return result.Result;
+            if (_pipeline == null) return _decorated.BeginTransaction();
+            return _pipeline.Execute(_ => _decorated.BeginTransaction());
         }
     }
 }
