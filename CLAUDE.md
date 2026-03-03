@@ -42,9 +42,19 @@ dotnet test "Source\DotNetWorkQueue.Transport.LiteDb.Tests\DotNetWorkQueue.Trans
 dotnet test "Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj"
 dotnet test "Source\DotNetWorkQueue.AppMetrics.Tests\DotNetWorkQueue.AppMetrics.Tests.csproj"
 
+# Additional unit test projects:
+dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Tests\DotNetWorkQueue.Dashboard.Api.Tests.csproj"
+dotnet test "Source\DotNetWorkQueue.Transport.Memory.Tests\DotNetWorkQueue.Transport.Memory.Tests.csproj"
+
 # In-memory integration tests (no external services needed):
 dotnet test "Source\DotNetWorkQueue.Transport.Memory.Integration.Tests\DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj"
 dotnet test "Source\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj"
+
+# Dashboard API integration tests (Memory/SQLite/LiteDb only, no external services):
+dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~Memory|FullyQualifiedName~Sqlite|FullyQualifiedName~LiteDb"
+
+# Dashboard API integration tests (all transports, requires running services):
+dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj"
 ```
 
 Integration tests for SQL Server, PostgreSQL, Redis, SQLite, and LiteDb require running instances of those services and connection strings configured in `connectionstring.txt` files within each integration test project.
@@ -94,4 +104,4 @@ Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (thre
 - Interface prefix: `I` (e.g., `IQueue`); Factory suffix: `Factory`; Config suffix: `Configuration`
 - Abstract base classes use prefix `A` or suffix `Base`
 - Thread-safe disposal via `Interlocked` operations throughout
-- CI runs on TeamCity (master branch only)
+- **CI**: TeamCity is the local CI server and runs all tests (unit + integration across all transports). AppVeyor (`appveyor.yml`) provides lightweight cloud builds on all branches — runs unit tests and in-memory integration tests only (no external services like SQL Server, PostgreSQL, or Redis).
