@@ -134,7 +134,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             return new ChaosFaultStrategyOptions
             {
-                FaultGenerator = _ => new ValueTask<Exception>(MockSqlException.Create()),
+                FaultGenerator = _ => new ValueTask<Exception>(
+                    MockSqlException.Create((int)ChaosPolicyShared.GetRandomEnum<RetryableSqlErrors>())),
                 InjectionRateGenerator = args => new ValueTask<double>(
                     ChaosPolicyShared.InjectionRate(args.Context, RetryConstants.RetryCount, RetryAttempts)),
                 EnabledGenerator = args => new ValueTask<bool>(policies.EnableChaos)
