@@ -18,41 +18,27 @@ See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth doc
 
 ## Installation
 
-**Base**
-
-| Package | NuGet |
-|---------|-------|
-| DotNetWorkQueue | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue)](https://www.nuget.org/packages/DotNetWorkQueue/) |
+| Package | Description | NuGet |
+|---------|-------------|-------|
+| DotNetWorkQueue | Core library with all abstractions, interfaces, and default implementations | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue)](https://www.nuget.org/packages/DotNetWorkQueue/) |
 
 **Transports**
 
-| Package | NuGet |
-|---------|-------|
-| DotNetWorkQueue.Transport.Redis | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.Redis)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/) |
-| DotNetWorkQueue.Transport.SqlServer | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.SqlServer)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/) |
-| DotNetWorkQueue.Transport.SQLite | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.SQLite)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/) |
-| DotNetWorkQueue.Transport.PostgreSQL | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.PostgreSQL)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.PostgreSQL/) |
-| DotNetWorkQueue.Transport.LiteDb | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.LiteDb)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.LiteDb/) |
+| Package | Description | NuGet |
+|---------|-------------|-------|
+| DotNetWorkQueue.Transport.SqlServer | SQL Server transport using Microsoft.Data.SqlClient | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.SqlServer)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SqlServer/) |
+| DotNetWorkQueue.Transport.PostgreSQL | PostgreSQL transport using Npgsql | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.PostgreSQL)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.PostgreSQL/) |
+| DotNetWorkQueue.Transport.Redis | Redis transport using StackExchange.Redis | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.Redis)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/) |
+| DotNetWorkQueue.Transport.SQLite | SQLite transport using System.Data.SQLite | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.SQLite)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/) |
+| DotNetWorkQueue.Transport.LiteDb | LiteDB embedded NoSQL transport | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.LiteDb)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.LiteDb/) |
+| DotNetWorkQueue.Transport.Memory | In-memory transport for testing and lightweight scenarios | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.Memory)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Memory/) |
 
-**Transports (In-Memory)**
+**Dashboard & Metrics**
 
-| Package | NuGet |
-|---------|-------|
-| DotNetWorkQueue.Transport.Memory | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.Memory)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Memory/) |
-
-**Dashboard**
-
-| Package | NuGet |
-|---------|-------|
-| DotNetWorkQueue.Dashboard.Api | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Dashboard.Api)](https://www.nuget.org/packages/DotNetWorkQueue.Dashboard.Api/) |
-
-The Dashboard API provides a REST API for monitoring and managing queues across all transports. It exposes endpoints for viewing queue status, message counts, error counts, and performing administrative actions such as deleting messages and purging error queues. Built on ASP.NET Core with Swagger/OpenAPI documentation.
-
-**Metrics**
-
-| Package | NuGet |
-|---------|-------|
-| DotNetWorkQueue.AppMetrics | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.AppMetrics)](https://www.nuget.org/packages/DotNetWorkQueue.AppMetrics/) |
+| Package | Description | NuGet |
+|---------|-------------|-------|
+| DotNetWorkQueue.Dashboard.Api | REST API for monitoring and managing queues across all transports. Includes queue status, message counts, error tracking, and admin actions. Built on ASP.NET Core with Swagger/OpenAPI. | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Dashboard.Api)](https://www.nuget.org/packages/DotNetWorkQueue.Dashboard.Api/) |
+| DotNetWorkQueue.AppMetrics | Metrics integration using App.Metrics | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.AppMetrics)](https://www.nuget.org/packages/DotNetWorkQueue.AppMetrics/) |
 
 ---
 
@@ -67,25 +53,13 @@ The Dashboard API provides a REST API for monitoring and managing queues across 
 
 ## Usage — POCO
 
-**Producers**
-
-| Transport | Sample |
-|-----------|--------|
-| SQL Server | [SQLServerProducer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLServer/SQLServerProducer/Program.cs) |
-| SQLite | [SQLiteProducer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLite/SQLiteProducer/Program.cs) |
-| Redis | [RedisProducer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/Redis/RedisProducer/Program.cs) |
-| PostgreSQL | [PostgreSQLProducer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/PostgreSQL/PostgreSQLProducer/Program.cs) |
-| LiteDb | [LiteDbProducer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/LiteDb/LiteDbProducer/Program.cs) |
-
-**Consumers**
-
-| Transport | Sample |
-|-----------|--------|
-| SQL Server | [SQLServerConsumer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLServer/SQLServerConsumer/Program.cs) |
-| SQLite | [SQLiteConsumer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLite/SQLiteConsumer/Program.cs) |
-| Redis | [RedisConsumer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/Redis/RedisConsumer/Program.cs) |
-| PostgreSQL | [PostGreSQLConsumer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/PostgreSQL/PostGreSQLConsumer/Program.cs) |
-| LiteDb | [LiteDbConsumer/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/LiteDb/LiteDbConsumer/Program.cs) |
+| Transport | Producer | Consumer |
+|-----------|----------|----------|
+| SQL Server | [SQLServerProducer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLServer/SQLServerProducer/Program.cs) | [SQLServerConsumer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLServer/SQLServerConsumer/Program.cs) |
+| PostgreSQL | [PostgreSQLProducer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/PostgreSQL/PostgreSQLProducer/Program.cs) | [PostgreSQLConsumer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/PostgreSQL/PostGreSQLConsumer/Program.cs) |
+| Redis | [RedisProducer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/Redis/RedisProducer/Program.cs) | [RedisConsumer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/Redis/RedisConsumer/Program.cs) |
+| SQLite | [SQLiteProducer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLite/SQLiteProducer/Program.cs) | [SQLiteConsumer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLite/SQLiteConsumer/Program.cs) |
+| LiteDb | [LiteDbProducer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/LiteDb/LiteDbProducer/Program.cs) | [LiteDbConsumer](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/LiteDb/LiteDbConsumer/Program.cs) |
 
 ---
 
@@ -193,53 +167,21 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 ## Third-Party Libraries
 
-### DotNetWorkQueue
+**Core (DotNetWorkQueue):** [SimpleInjector](https://simpleinjector.org/index.html), [Polly](https://github.com/App-vNext/Polly), [Newtonsoft.Json](http://www.newtonsoft.com/json), [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-dotnet), [Microsoft.Extensions.Caching.Memory](https://github.com/dotnet/runtime), [Microsoft.IO.RecyclableMemoryStream](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream)
 
-- [SimpleInjector](https://simpleinjector.org/index.html)
-- [Polly](https://github.com/App-vNext/Polly)
-- [Newtonsoft.Json](http://www.newtonsoft.com/json)
-- [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-dotnet)
-- [Microsoft.Extensions.Caching.Memory](https://github.com/dotnet/runtime)
-- [Microsoft.IO.RecyclableMemoryStream](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream)
-- Custom libraries in `/Lib`: [Schyntax](https://github.com/blehnen/cs-schyntax), [Aq.ExpressionJsonSerializer](https://github.com/blehnen/expression-json-serializer), [JpLabs.DynamicCode](http://jp-labs.blogspot.com/2008/11/dynamic-lambda-expressions-using.html)
+Custom libraries in `/Lib`: [Schyntax](https://github.com/blehnen/cs-schyntax), [Aq.ExpressionJsonSerializer](https://github.com/blehnen/expression-json-serializer), [JpLabs.DynamicCode](http://jp-labs.blogspot.com/2008/11/dynamic-lambda-expressions-using.html), [GuerrillaNTP](https://github.com/blehnen/GuerrillaNtp)
 
-### DotNetWorkQueue.Transport.Redis
+| Package | Dependencies |
+|---------|-------------|
+| Transport.SqlServer | [Microsoft.Data.SqlClient](https://github.com/dotnet/SqlClient) |
+| Transport.PostgreSQL | [Npgsql](http://www.npgsql.org/) |
+| Transport.Redis | [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis), [MsgPack-CLI](https://github.com/msgpack/msgpack-cli) |
+| Transport.SQLite | [System.Data.SQLite](https://www.sqlite.org/) |
+| Transport.LiteDb | [LiteDb](https://www.litedb.org/) |
+| Dashboard.Api | [Swashbuckle.AspNetCore](https://github.com/domaindrivendev/Swashbuckle.AspNetCore) |
+| AppMetrics | [App.Metrics](https://github.com/AppMetrics/AppMetrics) |
 
-- [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)
-- [MsgPack-CLI](https://github.com/msgpack/msgpack-cli)
-- Custom library in `/Lib`: [GuerrillaNTP](https://github.com/blehnen/GuerrillaNtp)
-
-### DotNetWorkQueue.Transport.SqlServer
-
-- [Microsoft.Data.SqlClient](https://github.com/dotnet/SqlClient)
-
-### DotNetWorkQueue.Transport.SQLite
-
-- [System.Data.SQLite](https://www.sqlite.org/)
-
-### DotNetWorkQueue.Transport.PostgreSQL
-
-- [Npgsql](http://www.npgsql.org/)
-
-### DotNetWorkQueue.Transport.LiteDb
-
-- [LiteDb](https://www.litedb.org/)
-
-### DotNetWorkQueue.AppMetrics
-
-- [AppMetrics](https://github.com/AppMetrics/AppMetrics)
-
-### DotNetWorkQueue.Dashboard.Api
-
-- [Swashbuckle.AspNetCore](https://github.com/domaindrivendev/Swashbuckle.AspNetCore)
-
-### Unit / Integration Tests
-
-- [xUnit](https://github.com/xunit/xunit)
-- [NSubstitute](http://nsubstitute.github.io/)
-- [AutoFixture](https://github.com/AutoFixture/AutoFixture)
-- [FluentAssertions](http://www.fluentassertions.com/)
-- [Tynamix.ObjectFiller](http://objectfiller.net/)
+**Tests:** [xUnit](https://github.com/xunit/xunit), [NSubstitute](http://nsubstitute.github.io/), [AutoFixture](https://github.com/AutoFixture/AutoFixture), [FluentAssertions](http://www.fluentassertions.com/), [Tynamix.ObjectFiller](http://objectfiller.net/)
 
 ---
 
