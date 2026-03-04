@@ -20,9 +20,7 @@ using System;
 using System.Text;
 using System.Threading;
 using DotNetWorkQueue.Messages;
-using Polly;
-using Polly.Caching;
-using Polly.Caching.Memory;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace DotNetWorkQueue.LinqCompile.Decorator
 {
@@ -33,7 +31,8 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
     public class LinqCompileCacheDecorator : ILinqCompiler
     {
         private readonly ILinqCompiler _handler;
-        private readonly CachePolicy<Action<object, object>> _cacheActions;
+        private readonly IMemoryCache _cache;
+        private readonly TimeSpan _slidingExpiration;
 
         private readonly ICounter _counterActionCacheHit;
         private readonly ICounter _counterActionCacheMiss;
@@ -41,37 +40,26 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
 
         /// <summary>Initializes a new instance of the <see cref="LinqCompileCacheDecorator"/> class.</summary>
         /// <param name="handler">The handler.</param>
-        /// <param name="cacheProvider"></param>
+        /// <param name="cache">The memory cache.</param>
         /// <param name="cachePolicy">The cache policy.</param>
         /// <param name="metrics">The metrics.</param>
         /// <param name="connectionInformation">The connection information.</param>
         public LinqCompileCacheDecorator(
             ILinqCompiler handler,
-            MemoryCacheProvider cacheProvider,
+            IMemoryCache cache,
             ICachePolicy<ILinqCompiler> cachePolicy,
             IMetrics metrics,
-             IConnectionInformation connectionInformation)
+            IConnectionInformation connectionInformation)
         {
             _handler = handler;
-            _cacheActions = Policy.Cache<Action<object, object>>(cacheProvider, new SlidingTtl(cachePolicy.SlidingExpiration)
-            , OnCacheGetAction, OnCacheMissAction, (context, s) => { }, (context, s, arg3) => { },
-            (context, s, arg3) => { });
+            _cache = cache;
+            _slidingExpiration = cachePolicy.SlidingExpiration;
 
             var name = handler.GetType().Name;
 
             _counterActionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheHitCounter", Units.Items);
             _counterActionCacheMiss = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheMissCounter", Units.Items);
             _counterActionCacheUnique = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionUniqueFlaggedCounter", Units.Items);
-        }
-
-        private void OnCacheMissAction(Context arg1, string arg2)
-        {
-            _counterActionCacheMiss.Increment(arg1.OperationKey);
-        }
-
-        private void OnCacheGetAction(Context arg1, string arg2)
-        {
-            _counterActionCacheHit.Increment(arg1.OperationKey);
         }
 
         /// <summary>
@@ -88,7 +76,16 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
             }
 
             var key = GenerateKey(linqExpression);
-            return _cacheActions.Execute(context => _handler.CompileAction(linqExpression), new Context(key));
+            if (_cache.TryGetValue(key, out Action<object, object> cached))
+            {
+                _counterActionCacheHit.Increment(key);
+                return cached;
+            }
+
+            _counterActionCacheMiss.Increment(key);
+            var compiled = _handler.CompileAction(linqExpression);
+            _cache.Set(key, compiled, new MemoryCacheEntryOptions { SlidingExpiration = _slidingExpiration });
+            return compiled;
         }
 
         /// <summary>

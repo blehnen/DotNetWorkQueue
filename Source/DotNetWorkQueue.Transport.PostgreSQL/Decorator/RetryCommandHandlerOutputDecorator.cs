@@ -49,12 +49,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         {
             Guard.NotNull(() => command, command);
 
-            if (_policies.Registry.TryGet<ISyncPolicy>(TransportPolicyDefinitions.RetryCommandHandler, out var policy))
+            if (_policies.Registry.TryGetPipeline(TransportPolicyDefinitions.RetryCommandHandler, out var pipeline))
             {
-                var result = policy.ExecuteAndCapture(() => _decorated.Handle(command));
-                if (result.FinalException != null)
-                    throw result.FinalException;
-                return result.Result;
+                return pipeline.Execute(_ => _decorated.Handle(command));
             }
             return _decorated.Handle(command);
         }

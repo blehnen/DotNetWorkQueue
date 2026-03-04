@@ -21,7 +21,7 @@ using Polly;
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static class TransportPolicyDefinitions
     {
@@ -31,17 +31,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <value>
         /// A policy for retrying a failed command
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        /// <remarks>The expected type is <see cref="ResiliencePipeline"/>.</remarks>
         public static string RetryCommandHandler => "SqlServerRetryCommandHandler";
 
         /// <summary>
-        /// A policy for retrying a failed command
+        /// A policy for retrying a failed command (async)
         /// </summary>
         /// <value>
         /// A policy for retrying a failed command
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
-        public static string RetryCommandHandlerAsync => "SqlServerRetryCommandHandlerAsync";
+        /// <remarks>V8 uses a unified pipeline. Returns the same key as <see cref="RetryCommandHandler"/>.</remarks>
+        public static string RetryCommandHandlerAsync => "SqlServerRetryCommandHandler";
 
         /// <summary>
         /// A policy for retrying a failed query

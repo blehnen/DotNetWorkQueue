@@ -37,8 +37,6 @@ using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Polly;
-using Polly.Caching.Memory;
 using Polly.Registry;
 using System;
 using System.Diagnostics;
@@ -105,8 +103,7 @@ namespace DotNetWorkQueue.IoC
 
             //object cache
             var memoryCache = new MemoryCache(new MemoryCacheOptions());
-            var memoryCacheProvider = new MemoryCacheProvider(memoryCache);
-            container.Register(() => memoryCacheProvider, LifeStyles.Singleton);
+            container.Register<IMemoryCache>(() => memoryCache, LifeStyles.Singleton);
 
             //object pool for linq 
             container.Register<IObjectPool<DynamicCodeCompiler>>(
@@ -305,7 +302,7 @@ namespace DotNetWorkQueue.IoC
             container.RegisterCollection<IMessageInterceptor>(Enumerable.Empty<Type>());
 
             container.Register<IPolicies, Policies.Policies>(LifeStyles.Singleton);
-            container.Register<PolicyRegistry>(LifeStyles.Singleton);
+            container.Register<ResiliencePipelineRegistry<string>>(() => new ResiliencePipelineRegistry<string>(), LifeStyles.Singleton);
             container.Register<PolicyDefinitions>(LifeStyles.Singleton);
 
             //because of it's usage in 'standard' modules, this must always be added.
@@ -361,24 +358,9 @@ namespace DotNetWorkQueue.IoC
         /// <param name="registrationType">Type of the registration.</param>
         public static void SetupDefaultPolicies(IContainer container, RegistrationTypes registrationType)
         {
-            var policies = container.GetInstance<IPolicies>();
-            var noOp = Policy.NoOp(); //thread safe - can be re-used
-            var noOpAsync = Policy.NoOpAsync();
-
-            //ReceiveMessageFromTransport
-            policies.Registry[policies.Definition.ReceiveMessageFromTransport] = noOp;
-            //SendHeartBeat
-            policies.Registry[policies.Definition.SendHeartBeat] = noOp;
-            //SendMessage
-            policies.Registry[policies.Definition.SendMessage] = noOp;
-
-
-            //ReceiveMessageFromTransportASync
-            policies.Registry[policies.Definition.ReceiveMessageFromTransportAsync] = noOpAsync;
-            //SendHeartBeatAsync
-            policies.Registry[policies.Definition.SendHeartBeatAsync] = noOpAsync;
-            //SendMessageAsync
-            policies.Registry[policies.Definition.SendMessageAsync] = noOpAsync;
+            //V8 ResiliencePipelineRegistry returns an empty (no-op) pipeline by default
+            //when TryGetPipeline finds no match, so no explicit no-op registration is needed.
+            //Transport-specific policies are registered by each transport's init class.
         }
 
         /// <summary>

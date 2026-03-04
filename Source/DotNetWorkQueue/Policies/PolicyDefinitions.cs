@@ -29,17 +29,17 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// The receive message from transport.
         /// </value>
-        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type.</remarks>
+        /// <remarks>The expected type is <see cref="Polly.ResiliencePipeline"/>.</remarks>
         public string ReceiveMessageFromTransport => "ReceiveMessageFromTransport";
 
         /// <summary>
-        /// The receive message from transport policy
+        /// The receive message from transport policy (async)
         /// </summary>
         /// <value>
         /// The receive message from transport.
         /// </value>
-        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type. Policy must be async.</remarks>
-        public string ReceiveMessageFromTransportAsync => "ReceiveMessageFromTransportAsync";
+        /// <remarks>V8 uses a unified pipeline for sync and async. Returns the same key as <see cref="ReceiveMessageFromTransport"/>.</remarks>
+        public string ReceiveMessageFromTransportAsync => "ReceiveMessageFromTransport";
 
         /// <summary>
         /// Send message command
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// Send message command
         /// </value>
-        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type</remarks>
+        /// <remarks>The expected type is <see cref="Polly.ResiliencePipeline"/>.</remarks>
         public string SendMessage => "SendMessage";
 
         /// <summary>
@@ -56,25 +56,25 @@ namespace DotNetWorkQueue.Policies
         /// <value>
         /// Send heartbeat command
         /// </value>
-        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type</remarks>
+        /// <remarks>The expected type is <see cref="Polly.ResiliencePipeline"/>.</remarks>
         public string SendHeartBeat => "SendHeartBeat";
 
         /// <summary>
-        /// Send message command
+        /// Send message command (async)
         /// </summary>
         /// <value>
         /// Send message command
         /// </value>
-        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type. Policy must be async.</remarks>
-        public string SendMessageAsync => "SendMessageAsync";
+        /// <remarks>V8 uses a unified pipeline for sync and async. Returns the same key as <see cref="SendMessage"/>.</remarks>
+        public string SendMessageAsync => "SendMessage";
 
         /// <summary>
-        /// Send heartbeat command
+        /// Send heartbeat command (async)
         /// </summary>
         /// <value>
         /// Send heartbeat command
         /// </value>
-        /// <remarks><seealso cref="Polly.Policy"></seealso> is the expected type. Policy must be async.</remarks>
-        public string SendHeartBeatAsync => "SendHeartBeatAsync";
+        /// <remarks>V8 uses a unified pipeline for sync and async. Returns the same key as <see cref="SendHeartBeat"/>.</remarks>
+        public string SendHeartBeatAsync => "SendHeartBeat";
     }
 }

@@ -23,7 +23,7 @@ using Polly.Registry;
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public interface IPolicies
     {
@@ -33,7 +33,7 @@ namespace DotNetWorkQueue
         /// <value>
         /// The registry.
         /// </value>
-        PolicyRegistry Registry { get; }
+        ResiliencePipelineRegistry<string> Registry { get; }
         /// <summary>
         /// Gets the definition.
         /// </summary>

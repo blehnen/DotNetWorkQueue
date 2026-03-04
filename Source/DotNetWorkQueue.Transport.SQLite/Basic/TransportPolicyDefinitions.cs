@@ -21,7 +21,7 @@ using Polly;
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static class TransportPolicyDefinitions
     {
@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <value>
         /// A policy for retrying when a new transaction fails to start
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        /// <remarks>The expected type is <see cref="ResiliencePipeline"/>.</remarks>
         public static string BeginTransaction => "SqliteBeginTransaction";
 
         /// <summary>
@@ -40,17 +40,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <value>
         /// A policy for retrying a failed command
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
+        /// <remarks>The expected type is <see cref="ResiliencePipeline"/>.</remarks>
         public static string RetryCommandHandler => "SqliteRetryCommandHandler";
 
         /// <summary>
-        /// A policy for retrying a failed command
+        /// A policy for retrying a failed command (async)
         /// </summary>
         /// <value>
         /// A policy for retrying a failed command
         /// </value>
-        /// <remarks><seealso cref="Policy"></seealso> is the expected type</remarks>
-        public static string RetryCommandHandlerAsync => "SqliteRetryCommandHandlerAsync";
+        /// <remarks>V8 uses a unified pipeline. Returns the same key as <see cref="RetryCommandHandler"/>.</remarks>
+        public static string RetryCommandHandlerAsync => "SqliteRetryCommandHandler";
 
         /// <summary>
         /// A policy for retrying a failed query

@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Policies
         /// </summary>
         /// <param name="policyRegistry">The policy registry.</param>
         /// <param name="definitions">The send policy definitions.</param>
-        public Policies(PolicyRegistry policyRegistry,
+        public Policies(ResiliencePipelineRegistry<string> policyRegistry,
             PolicyDefinitions definitions)
         {
             Registry = policyRegistry;
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Policies
         }
 
         /// <inheritdoc />
-        public PolicyRegistry Registry { get; }
+        public ResiliencePipelineRegistry<string> Registry { get; }
 
         /// <inheritdoc />
         public PolicyDefinitions Definition { get; }

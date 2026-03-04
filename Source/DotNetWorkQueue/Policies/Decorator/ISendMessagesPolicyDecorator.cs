@@ -48,14 +48,11 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <returns></returns>
         public IQueueOutputMessage Send(IMessage messageToSend, IAdditionalMessageData data)
         {
-            IQueueOutputMessage result = null;
-            if (_policies.Registry.TryGet<ISyncPolicy>(_policies.Definition.SendMessage, out var policy))
+            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendMessage, out var pipeline))
             {
-                policy.Execute(() => result = _handler.Send(messageToSend, data));
+                return pipeline.Execute(_ => _handler.Send(messageToSend, data));
             }
-            else //no policy found
-                result = _handler.Send(messageToSend, data);
-            return result;
+            return _handler.Send(messageToSend, data);
         }
 
         /// <summary>
@@ -65,14 +62,11 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <returns></returns>
         public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
-            IQueueOutputMessages result = null;
-            if (_policies.Registry.TryGet<ISyncPolicy>(_policies.Definition.SendMessage, out var policy))
+            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendMessage, out var pipeline))
             {
-                policy.Execute(() => result = _handler.Send(messages));
+                return pipeline.Execute(_ => _handler.Send(messages));
             }
-            else //no policy found
-                result = _handler.Send(messages);
-            return result;
+            return _handler.Send(messages);
         }
 
         /// <summary>
@@ -83,15 +77,11 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <returns></returns>
         public async Task<IQueueOutputMessage> SendAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
-            IQueueOutputMessage result = null;
-            if (_policies.Registry.TryGet<IAsyncPolicy>(_policies.Definition.SendMessageAsync, out var policy))
+            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendMessageAsync, out var pipeline))
             {
-                await policy.ExecuteAsync(async () => result = await _handler.SendAsync(messageToSend, data).ConfigureAwait(false)).ConfigureAwait(false);
+                return await pipeline.ExecuteAsync(async _ => await _handler.SendAsync(messageToSend, data).ConfigureAwait(false)).ConfigureAwait(false);
             }
-            else //no policy found
-                result = await _handler.SendAsync(messageToSend, data).ConfigureAwait(false);
-
-            return result;
+            return await _handler.SendAsync(messageToSend, data).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -101,15 +91,11 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <returns></returns>
         public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
-            IQueueOutputMessages result = null;
-            if (_policies.Registry.TryGet<IAsyncPolicy>(_policies.Definition.SendMessageAsync, out var policy))
+            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendMessageAsync, out var pipeline))
             {
-                await policy.ExecuteAsync(async () => result = await _handler.SendAsync(messages).ConfigureAwait(false)).ConfigureAwait(false);
+                return await pipeline.ExecuteAsync(async _ => await _handler.SendAsync(messages).ConfigureAwait(false)).ConfigureAwait(false);
             }
-            else //no policy found
-                result = await _handler.SendAsync(messages).ConfigureAwait(false);
-
-            return result;
+            return await _handler.SendAsync(messages).ConfigureAwait(false);
         }
     }
 }

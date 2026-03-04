@@ -41,14 +41,11 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <inheritdoc />
         public IHeartBeatStatus Send(IMessageContext context)
         {
-            IHeartBeatStatus result = null;
-            if (_policies.Registry.TryGet<ISyncPolicy>(_policies.Definition.SendHeartBeat, out var policy))
+            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendHeartBeat, out var pipeline))
             {
-                policy.Execute(() => result = _handler.Send(context));
+                return pipeline.Execute(_ => _handler.Send(context));
             }
-            else //no policy found
-                result = _handler.Send(context);
-            return result;
+            return _handler.Send(context);
         }
     }
 }

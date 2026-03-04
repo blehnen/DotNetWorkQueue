@@ -49,13 +49,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
         public async Task<TOutput> HandleAsync(TCommand command)
         {
             Guard.NotNull(() => command, command);
-            if (_policies.Registry.TryGet<IAsyncPolicy>(TransportPolicyDefinitions.RetryCommandHandlerAsync,
-                    out var policy))
+            if (_policies.Registry.TryGetPipeline(TransportPolicyDefinitions.RetryCommandHandlerAsync, out var pipeline))
             {
-                var result = await policy.ExecuteAndCaptureAsync(() => _decorated.HandleAsync(command)).ConfigureAwait(false);
-                if (result.FinalException != null)
-                    throw result.FinalException;
-                return result.Result;
+                return await pipeline.ExecuteAsync(async _ => await _decorated.HandleAsync(command).ConfigureAwait(false)).ConfigureAwait(false);
             }
             return await _decorated.HandleAsync(command).ConfigureAwait(false);
         }
