@@ -34,6 +34,20 @@ See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth doc
 | DotNetWorkQueue.Transport.PostgreSQL | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.PostgreSQL)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.PostgreSQL/) |
 | DotNetWorkQueue.Transport.LiteDb | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.LiteDb)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.LiteDb/) |
 
+**Transports (In-Memory)**
+
+| Package | NuGet |
+|---------|-------|
+| DotNetWorkQueue.Transport.Memory | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.Memory)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Memory/) |
+
+**Dashboard**
+
+| Package | NuGet |
+|---------|-------|
+| DotNetWorkQueue.Dashboard.Api | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Dashboard.Api)](https://www.nuget.org/packages/DotNetWorkQueue.Dashboard.Api/) |
+
+The Dashboard API provides a REST API for monitoring and managing queues across all transports. It exposes endpoints for viewing queue status, message counts, error counts, and performing administrative actions such as deleting messages and purging error queues. Built on ASP.NET Core with Swagger/OpenAPI documentation.
+
 **Metrics**
 
 | Package | NuGet |
@@ -159,7 +173,7 @@ To consume and process scheduled jobs, use a [LINQ Consumer](https://github.com/
 
 ## Building the Source
 
-You'll need Visual Studio 2022/2026 (any edition) and the .NET Core 2.0 / 8.0 / 10.0 SDKs installed.
+You'll need Visual Studio 2022/2026 (any edition) and the .NET 8.0 / 10.0 SDKs installed.
 
 All references are either on NuGet or in the `\lib` folder. Building from Visual Studio should restore all required files automatically.
 
@@ -181,35 +195,27 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 ### DotNetWorkQueue
 
-- [LibLog](https://github.com/damianh/LibLog)
-- [NetFX-Guard](http://netfx.codeplex.com/)
 - [SimpleInjector](https://simpleinjector.org/index.html)
-- [Microsoft.IO.RecyclableMemoryStream](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream)
-- [Newtonsoft.Json](http://www.newtonsoft.com/json)
-- [JpLabs.DynamicCode](http://jp-labs.blogspot.com/2008/11/dynamic-lambda-expressions-using.html)
-- [JsonNet.PrivateSetterContractResolvers](https://github.com/danielwertheim/jsonnet-privatesetterscontractresolvers)
-- [Expression-JSON-Serializer](https://github.com/blehnen/expression-json-serializer)
-- [Schtick](https://github.com/schyntax/cs-schtick)
-- [Schyntax](https://github.com/blehnen/cs-schyntax)
 - [Polly](https://github.com/App-vNext/Polly)
+- [Newtonsoft.Json](http://www.newtonsoft.com/json)
+- [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-dotnet)
+- [Microsoft.Extensions.Caching.Memory](https://github.com/dotnet/runtime)
+- [Microsoft.IO.RecyclableMemoryStream](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream)
+- Custom libraries in `/Lib`: [Schyntax](https://github.com/blehnen/cs-schyntax), [Aq.ExpressionJsonSerializer](https://github.com/blehnen/expression-json-serializer), [JpLabs.DynamicCode](http://jp-labs.blogspot.com/2008/11/dynamic-lambda-expressions-using.html)
 
 ### DotNetWorkQueue.Transport.Redis
 
-- [GuerrillaNTP](https://github.com/blehnen/GuerrillaNtp)
-- [MsgPack-CLI](https://github.com/msgpack/msgpack-cli)
 - [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)
+- [MsgPack-CLI](https://github.com/msgpack/msgpack-cli)
+- Custom library in `/Lib`: [GuerrillaNTP](https://github.com/blehnen/GuerrillaNtp)
 
 ### DotNetWorkQueue.Transport.SqlServer
 
-_(No additional dependencies)_
+- [Microsoft.Data.SqlClient](https://github.com/dotnet/SqlClient)
 
 ### DotNetWorkQueue.Transport.SQLite
 
 - [System.Data.SQLite](https://www.sqlite.org/)
-
-### DotNetWorkQueue.Transport.SQLite.Microsoft
-
-- [Microsoft.Data.Sqlite](https://github.com/aspnet/Microsoft.Data.Sqlite)
 
 ### DotNetWorkQueue.Transport.PostgreSQL
 
@@ -223,14 +229,17 @@ _(No additional dependencies)_
 
 - [AppMetrics](https://github.com/AppMetrics/AppMetrics)
 
+### DotNetWorkQueue.Dashboard.Api
+
+- [Swashbuckle.AspNetCore](https://github.com/domaindrivendev/Swashbuckle.AspNetCore)
+
 ### Unit / Integration Tests
 
-- [AutoFixture](https://github.com/AutoFixture/AutoFixture)
-- [CompareNetObjects](http://comparenetobjects.codeplex.com/)
-- [FluentAssertions](http://www.fluentassertions.com/)
-- [NSubstitute](http://nsubstitute.github.io/)
-- [ObjectFiller](http://objectfiller.net/)
 - [xUnit](https://github.com/xunit/xunit)
+- [NSubstitute](http://nsubstitute.github.io/)
+- [AutoFixture](https://github.com/AutoFixture/AutoFixture)
+- [FluentAssertions](http://www.fluentassertions.com/)
+- [Tynamix.ObjectFiller](http://objectfiller.net/)
 
 ---
 
