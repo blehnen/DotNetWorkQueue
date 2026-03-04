@@ -457,6 +457,12 @@ namespace DotNetWorkQueue
             return CreateAdminContainer(queueConnection, null);
         }
 
+        /// <summary>
+        /// Creates the admin container for the dashboard.api
+        /// </summary>
+        /// <param name="queueConnection"></param>
+        /// <param name="registerServiceInternal"></param>
+        /// <returns></returns>
         public IContainer CreateAdminContainer(QueueConnection queueConnection, Action<IContainer> registerServiceInternal)
         {
             ThrowIfDisposed();

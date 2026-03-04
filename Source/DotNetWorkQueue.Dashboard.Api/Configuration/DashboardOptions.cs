@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         public string AuthorizationPolicy { get; set; }
 
         /// <summary>
-        /// Internal list of connection registrations populated by <see cref="AddConnection{TTransportInit}"/>.
+        /// Internal list of connection registrations.
         /// </summary>
         internal List<DashboardConnectionRegistration> ConnectionRegistrations { get; } = new List<DashboardConnectionRegistration>();
 
