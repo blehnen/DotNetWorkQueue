@@ -1,3 +1,7 @@
+### 0.9.0 — 2026‑03‑04
+- Add dashboard.api for viewing and modifiing messages in transports
+- Switch from Polly V7 to Polly V8
+
 ### 0.8.1 — 2026‑02‑22
 - Use Claude code to find and fix various long‑standing race conditions  
 - Use Claude code to fix issue with multiple heartbeat schedulers that were inside the same process
