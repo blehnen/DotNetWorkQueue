@@ -143,6 +143,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 sb.AppendLine(needWhere
                     ? "where ExpirationTime > getutcdate() "
                     : "AND ExpirationTime > getutcdate() ");
+                needWhere = false;
             }
 
             //if true, the query can be added to via user settings

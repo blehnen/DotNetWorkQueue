@@ -94,6 +94,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             if (options.EnableRoute && routes != null && routes.Count > 0)
             {
                 sb.AppendLine(needWhere ? "where Route IN ( " : "AND Route IN ( ");
+                needWhere = false;
 
                 for (var i = 1; i - 1 < routes.Count; i++)
                 {
@@ -222,11 +223,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         private static string GenerateTempTableName()
         {
             var encoded = new UTF8Encoding().GetBytes(Guid.NewGuid().ToString());
-            var hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encoded);
-            return "I" + BitConverter.ToString(hash)
-               .Replace("-", string.Empty)
-               .Replace("_", string.Empty)
-               .ToLower();
+            using (var hasher = MD5.Create())
+            {
+                var hash = hasher.ComputeHash(encoded);
+                return "I" + BitConverter.ToString(hash)
+                   .Replace("-", string.Empty)
+                   .Replace("_", string.Empty)
+                   .ToLower();
+            }
         }
     }
 }

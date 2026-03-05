@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Schema
         /// <inheritdoc />
         public bool Create(LiteDbConnectionManager connection, LiteDbMessageQueueTransportOptions options, TableNameHelper helper)
         {
-            var db = connection.GetDatabase();
+            using (var db = connection.GetDatabase())
             {
                 var col = db.Database.GetCollection<JobsTable>(helper.JobTableName);
 

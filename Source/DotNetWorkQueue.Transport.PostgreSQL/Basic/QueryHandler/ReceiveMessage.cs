@@ -105,6 +105,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             if (options.EnableRoute && routes != null && routes.Count > 0)
             {
                 sb.AppendLine(needWhere ? "where Route IN ( " : "AND Route IN ( ");
+                needWhere = false;
 
                 for (var i = 1; i - 1 < routes.Count; i++)
                 {

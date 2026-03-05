@@ -72,8 +72,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 
             InitRoutes();
 
-            var db = Connection.Connection.GetDatabase();
-
             if (_routes == null)
             {
                 var result = TryExecute(GetParameters(unixTime, null));
@@ -110,7 +108,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 
             InitRoutes();
 
-            var db = Connection.Connection.GetDatabase();
             if (_routes == null)
             {
                 var result = await TryExecuteAsync(GetParameters(unixTime, null)).ConfigureAwait(false);

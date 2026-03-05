@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
     internal class EnqueueLua : BaseLua
     {
         private const string DateTimeFormat = "MM/dd/yyyy hh:mm:ss.fff tt";
-        private const string DateTimeScheduler = "MM/dd/yyyy hh:mm:ss tt";
+        internal const string DateTimeScheduler = "MM/dd/yyyy hh:mm:ss tt";
 
         /// <inheritdoc />
         /// <summary>
@@ -115,6 +115,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public async Task<string> ExecuteAsync(string messageId, byte[] message, byte[] headers, byte[] metaData, string jobName,
              DateTimeOffset scheduledTime, DateTimeOffset eventTime, string route)
         {
+            if (Connection.IsDisposed)
+                return null;
+
             var result = await TryExecuteAsync(GetParameters(messageId, message, headers, metaData, jobName, scheduledTime,
                 eventTime, route)).ConfigureAwait(false);
             if (result.IsNull)

@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 StatusKey = (RedisKey)RedisNames.Status,
                 JobEventKey = (RedisKey)RedisNames.JobEvent,
                 JobNameScheduled = string.Concat(jobName, "|scheduled"),
-                ScheduledTime = scheduledTime.ToString(CultureInfo.InvariantCulture)
+                ScheduledTime = scheduledTime.ToString(EnqueueLua.DateTimeScheduler, CultureInfo.InvariantCulture)
             };
         }
     }
