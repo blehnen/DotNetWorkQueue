@@ -122,8 +122,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                         {
                             _db?.Dispose();
                             _db = null;
-                            _disposedValue = true;
                         }
+                        _disposedValue = true;
                     }
                 }
             }

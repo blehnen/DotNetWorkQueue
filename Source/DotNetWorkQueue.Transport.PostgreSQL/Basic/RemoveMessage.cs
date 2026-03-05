@@ -16,13 +16,16 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
@@ -38,6 +41,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand<long>, long> _deleteMessageCommand;
         private readonly ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> _deleteTransactionalMessageCommand;
         private readonly IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> _headers;
+        private readonly ILogger _log;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RemoveMessage"/> class.
@@ -47,23 +51,27 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="deleteMessageCommand">The delete message command.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="deleteTransactionalMessageCommand">The delete transactional message command.</param>
+        /// <param name="log">The log.</param>
         public RemoveMessage(QueueConsumerConfiguration configuration,
             ICommandHandler<DeleteStatusTableStatusCommand<long>> deleteStatusCommandHandler,
             ICommandHandlerWithOutput<DeleteMessageCommand<long>, long> deleteMessageCommand,
             IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> headers,
-            ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand)
+            ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand,
+            ILogger log)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => deleteStatusCommandHandler, deleteStatusCommandHandler);
             Guard.NotNull(() => deleteMessageCommand, deleteMessageCommand);
             Guard.NotNull(() => headers, headers);
             Guard.NotNull(() => deleteTransactionalMessageCommand, deleteTransactionalMessageCommand);
+            Guard.NotNull(() => log, log);
 
             _configuration = configuration;
             _deleteStatusCommandHandler = deleteStatusCommandHandler;
             _deleteMessageCommand = deleteMessageCommand;
             _headers = headers;
             _deleteTransactionalMessageCommand = deleteTransactionalMessageCommand;
+            _log = log;
         }
 
         /// <inheritdoc />
@@ -95,12 +103,35 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //delete the message, and then commit the transaction
             var count = _deleteTransactionalMessageCommand.Handle(new DeleteTransactionalMessageCommand((long)context.MessageId.Id.Value, context));
-            connection.Transaction.Commit();
+
+            try
+            {
+                connection.Transaction.Commit();
+            }
+            catch (Exception e)
+            {
+                _log.LogError($"Failed to commit a transaction; this might be due to a DB timeout{System.Environment.NewLine}{e}");
+
+                //don't attempt to use the transaction again at this point.
+                connection.Transaction = null;
+
+                throw;
+            }
+
+            //ensure that transaction won't be used anymore
+            connection.Transaction.Dispose();
             connection.Transaction = null;
 
             if (_configuration.Options().EnableStatusTable)
             {
-                _deleteStatusCommandHandler.Handle(new DeleteStatusTableStatusCommand<long>((long)context.MessageId.Id.Value));
+                try
+                {
+                    _deleteStatusCommandHandler.Handle(new DeleteStatusTableStatusCommand<long>((long)context.MessageId.Id.Value));
+                }
+                catch (Exception e)
+                {
+                    _log.LogWarning($"Failed to delete status table record for message {context.MessageId.Id.Value}; record may be orphaned{System.Environment.NewLine}{e}");
+                }
             }
             return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
         }

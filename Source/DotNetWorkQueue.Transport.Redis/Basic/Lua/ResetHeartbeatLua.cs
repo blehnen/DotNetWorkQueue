@@ -87,7 +87,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 
                 if (headers != null)
                     returnData.Add(new ResetHeartBeatOutput(new RedisQueueId(queueId), new ReadOnlyDictionary<string, object>(headers), start, end));
-                returnData.Add(new ResetHeartBeatOutput(new RedisQueueId(queueId), null, start, end));
+                else
+                    returnData.Add(new ResetHeartBeatOutput(new RedisQueueId(queueId), null, start, end));
             }
 
             return returnData;

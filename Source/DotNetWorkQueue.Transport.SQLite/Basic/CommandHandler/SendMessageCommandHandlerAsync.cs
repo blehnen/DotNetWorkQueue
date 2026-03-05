@@ -170,10 +170,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                                 {
                                     command.Transaction = trans;
                                     await _readerAsync.ExecuteNonQueryAsync(command).ConfigureAwait(false);
-                                    var commandId = connection.CreateCommand();
-                                    commandId.Transaction = trans;
-                                    commandId.CommandText = "SELECT last_insert_rowid();";
-                                    id = Convert.ToInt64(await _readerAsync.ExecuteScalarAsync(commandId).ConfigureAwait(false));
+                                    using (var commandId = connection.CreateCommand())
+                                    {
+                                        commandId.Transaction = trans;
+                                        commandId.CommandText = "SELECT last_insert_rowid();";
+                                        id = Convert.ToInt64(await _readerAsync.ExecuteScalarAsync(commandId).ConfigureAwait(false));
+                                    }
                                     if (id > 0)
                                     {
                                         commandMeta.Transaction = trans;

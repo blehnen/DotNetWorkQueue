@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         {
             using (var commandSql = command.Connection.CreateCommand())
             {
-                commandSql.Transaction = commandSql.Transaction;
+                commandSql.Transaction = command.Transaction;
                 commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SetJobLastKnownEvent);
 
                 var param = commandSql.CreateParameter();

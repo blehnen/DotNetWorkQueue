@@ -146,6 +146,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                 var colData = db.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
                 var data = colData.FindById(record.QueueId);
 
+                if (data == null)
+                {
+                    //orphaned metadata record with no matching queue body - revert status
+                    record.HeartBeat = null;
+                    record.Status = QueueStatuses.Waiting;
+                    col.Update(record);
+                    return null;
+                }
+
                 Schema.StatusTable status = null;
                 if (_options.Value.EnableStatusTable)
                 {

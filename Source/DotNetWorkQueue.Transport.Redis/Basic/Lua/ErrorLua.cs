@@ -35,10 +35,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public ErrorLua(IRedisConnection connection, RedisNames redisNames)
             : base(connection, redisNames)
         {
-            Script = @"redis.call('zrem', @workingkey, @uuid) 
-                     redis.call('lpush', @errorkey, @uuid) 
-                     redis.call('zadd', @errortimekey, @timestamp, @uuid) 
-                     redis.call('hset', @StatusKey, @uuid, '2') ";
+            Script = @"redis.call('zrem', @workingkey, @uuid)
+                     redis.call('lpush', @errorkey, @uuid)
+                     redis.call('zadd', @errortimekey, @timestamp, @uuid)
+                     redis.call('hset', @StatusKey, @uuid, '2')
+                     return 1";
         }
         /// <summary>
         /// Executes the specified message identifier.

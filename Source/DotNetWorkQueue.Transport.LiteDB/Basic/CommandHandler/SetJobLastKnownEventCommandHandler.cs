@@ -55,6 +55,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             { //this job already existed; just update the time stamps to the last run
                 results[0].JobScheduledTime = command.JobScheduledTime;
                 results[0].JobEventTime = command.JobEventTime;
+                col.Update(results[0]);
             }
             else
             { //this is a brand new job entry

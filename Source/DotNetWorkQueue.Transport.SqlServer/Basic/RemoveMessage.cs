@@ -125,7 +125,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             if (_configuration.Options().EnableStatusTable)
             {
-                _deleteStatusCommandHandler.Handle(new DeleteStatusTableStatusCommand<long>((long)context.MessageId.Id.Value));
+                try
+                {
+                    _deleteStatusCommandHandler.Handle(new DeleteStatusTableStatusCommand<long>((long)context.MessageId.Id.Value));
+                }
+                catch (Exception e)
+                {
+                    _log.LogWarning($"Failed to delete status table record for message {context.MessageId.Id.Value}; record may be orphaned{System.Environment.NewLine}{e}");
+                }
             }
             return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
         }

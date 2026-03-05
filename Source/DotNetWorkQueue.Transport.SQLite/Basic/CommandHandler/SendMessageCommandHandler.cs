@@ -162,10 +162,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                                 {
                                     command.Transaction = trans;
                                     command.ExecuteNonQuery();
-                                    var commandId = connection.CreateCommand();
-                                    commandId.Transaction = trans;
-                                    commandId.CommandText = "SELECT last_insert_rowid();";
-                                    id = Convert.ToInt64(commandId.ExecuteScalar());
+                                    using (var commandId = connection.CreateCommand())
+                                    {
+                                        commandId.Transaction = trans;
+                                        commandId.CommandText = "SELECT last_insert_rowid();";
+                                        id = Convert.ToInt64(commandId.ExecuteScalar());
+                                    }
                                     if (id > 0)
                                     {
                                         commandMeta.Transaction = trans;

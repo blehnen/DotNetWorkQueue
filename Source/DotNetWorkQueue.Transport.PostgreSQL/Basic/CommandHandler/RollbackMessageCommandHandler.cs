@@ -107,7 +107,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 command.CommandText = GetRollbackSql(false, false);
                             }
                         }
-                        command.ExecuteNonQuery();
+                        if (!string.IsNullOrEmpty(command.CommandText))
+                        {
+                            command.ExecuteNonQuery();
+                        }
                     }
 
                     if (_options.Value.EnableStatusTable)
@@ -190,6 +193,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                     sb.Append(", ");
                 }
                 sb.AppendFormat(" status = {0} ", Convert.ToInt16(QueueStatuses.Waiting));
+                bNeedComma = true;
+            }
+            if (!bNeedComma)
+            {
+                //no columns to update - nothing to rollback
+                return string.Empty;
             }
             sb.Append(" where queueid = @queueid");
             if (includeHeartBeatDate)

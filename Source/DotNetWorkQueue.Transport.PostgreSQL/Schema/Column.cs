@@ -174,7 +174,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Schema
                     }
                     return $"{Name} {Type} {NullableText}";
                 case ColumnTypes.Numeric:
-                    return $"{Name} {Type}({Precision},{Scale} {NullableText}";
+                    return $"{Name} {Type}({Precision},{Scale}) {NullableText}";
                 case ColumnTypes.Varchar:
                 case ColumnTypes.Varbit:
                     var lengthString = Length.ToString();

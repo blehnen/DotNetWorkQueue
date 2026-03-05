@@ -53,6 +53,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                      end
                      local routeName = redis.call('hget', @RouteIDKey, @uuid)
                      if(routeName) then
+                         local routePending = @pendingkey .. '_}' .. routeName
+                         redis.call('LREM', routePending, -1, @uuid)
                          redis.call('hdel', @RouteIDKey, @uuid)
                      end
                      return deleted";
