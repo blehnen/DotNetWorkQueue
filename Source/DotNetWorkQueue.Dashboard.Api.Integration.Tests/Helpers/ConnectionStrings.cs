@@ -31,10 +31,23 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             }
         }
 
-        public static string PostgreSql =>
-            "Server=192.168.0.2;Port=5432;Database=integrationtesting;Maximum Pool Size=250;userid=brian;Trust Server Certificate=true;Keepalive=15;Tcp Keepalive=true;";
+        public static string PostgreSql
+        {
+            get
+            {
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "connectionstring-postgresql.txt");
+                return File.ReadAllText(path).Trim();
+            }
+        }
 
-        public static string Redis => "192.168.0.2,defaultDatabase=1,syncTimeout=15000";
+        public static string Redis
+        {
+            get
+            {
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "connectionstring-redis.txt");
+                return File.ReadAllText(path).Trim();
+            }
+        }
 
         public static string CreateSqliteInMemory(string queueName) =>
             $"FullUri=file:{queueName}?mode=memory&cache=shared;Version=3;";

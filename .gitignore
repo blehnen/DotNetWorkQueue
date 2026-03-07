@@ -11,6 +11,10 @@
 *.sln.docstates
 *.env
 
+# Connection strings for integration tests
+connectionstring.txt
+connectionstring-*.txt
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
