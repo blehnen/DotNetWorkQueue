@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	  <TargetFrameworks>net10.0;net8.0;net48;netstandard2.0;</TargetFrameworks>
-    <Version>0.9.0</Version>
+    <Version>0.9.1</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <Description>SQLite transport for https://github.com/blehnen/DotNetWorkQueue</Description>
@@ -14,6 +14,7 @@
 https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageReleaseNotes>
     <PackageTags>SQLite</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
@@ -67,6 +68,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader" Link="DotNetWorkQueue.licenseheader" />
   </ItemGroup>
 

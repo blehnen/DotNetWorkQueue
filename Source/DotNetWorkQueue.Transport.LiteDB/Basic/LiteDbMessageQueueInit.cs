@@ -204,6 +204,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 DashboardRequeueErrorMessageCommandHandler>(LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>,
                 DashboardResetStaleMessageCommandHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<DashboardRequeueAllErrorMessagesCommand, long>,
+                DashboardRequeueAllErrorMessagesCommandHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<DashboardResetAllStaleMessagesCommand, long>,
+                DashboardResetAllStaleMessagesCommandHandler>(LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutput<DashboardUpdateMessageBodyCommand, long>,
                 DashboardUpdateMessageBodyCommandHandler>(LifeStyles.Singleton);
         }

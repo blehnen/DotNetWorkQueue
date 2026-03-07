@@ -1,0 +1,326 @@
+@using DotNetWorkQueue.Dashboard.Ui.Services
+
+<MudDrawer Open="Open" OpenChanged="OpenChanged" Anchor="Anchor.End" Elevation="4"
+           Variant="DrawerVariant.Temporary" Width="550px">
+    <MudDrawerHeader>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Style="width: 100%;">
+            <MudText Typo="Typo.h6">Message Detail</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="Close" Size="Size.Small" />
+        </MudStack>
+    </MudDrawerHeader>
+
+    <div class="pa-4" style="overflow-y: auto;">
+        @if (_loading)
+        {
+            <MudProgressCircular Indeterminate="true" />
+        }
+        else if (_detailError != null)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">@_detailError</MudAlert>
+        }
+        else if (_message != null)
+        {
+            @* Metadata *@
+            <MudText Typo="Typo.caption">Queue ID</MudText>
+            <MudText Typo="Typo.body2" Style="font-family: monospace; word-break: break-all;" Class="mb-2">@_message.QueueId</MudText>
+
+            <MudText Typo="Typo.caption">Correlation ID</MudText>
+            <MudText Typo="Typo.body2" Style="font-family: monospace;" Class="mb-2">@(_message.CorrelationId ?? "-")</MudText>
+
+            <MudGrid Class="mb-3">
+                <MudItem xs="6">
+                    <MudText Typo="Typo.caption">Status</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(_message.Status)" Variant="Variant.Filled">
+                        @GetStatusName(_message.Status)
+                    </MudChip>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudText Typo="Typo.caption">Priority</MudText>
+                    <MudText Typo="Typo.body2">@(_message.Priority?.ToString() ?? "-")</MudText>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudText Typo="Typo.caption">Queued</MudText>
+                    <MudText Typo="Typo.body2">@FormatDate(_message.QueuedDateTime)</MudText>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudText Typo="Typo.caption">HeartBeat</MudText>
+                    <MudText Typo="Typo.body2">@FormatDate(_message.HeartBeat)</MudText>
+                </MudItem>
+                @if (_message.QueueProcessTime != null)
+                {
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.caption">Process Time</MudText>
+                        <MudText Typo="Typo.body2">@FormatDate(_message.QueueProcessTime)</MudText>
+                    </MudItem>
+                }
+                @if (_message.ExpirationTime != null)
+                {
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.caption">Expires</MudText>
+                        <MudText Typo="Typo.body2">@FormatDate(_message.ExpirationTime)</MudText>
+                    </MudItem>
+                }
+                @if (_message.Route != null)
+                {
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.caption">Route</MudText>
+                        <MudText Typo="Typo.body2">@_message.Route</MudText>
+                    </MudItem>
+                }
+            </MudGrid>
+
+            <MudDivider Class="my-3" />
+
+            @* Body *@
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Body</MudText>
+            @if (_bodyLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+            }
+            else if (_body != null)
+            {
+                @if (_body.DecodingError != null)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">@_body.DecodingError</MudAlert>
+                }
+                @if (_body.TypeName != null)
+                {
+                    <MudText Typo="Typo.caption" Class="mb-1">Type: @_body.TypeName</MudText>
+                }
+                @if (_body.WasIntercepted && _body.InterceptorChain?.Count > 0)
+                {
+                    <MudText Typo="Typo.caption" Class="mb-1">Interceptors: @string.Join(" > ", _body.InterceptorChain)</MudText>
+                }
+                <MudPaper Elevation="0" Class="pa-2 mb-3" Style="overflow-x: auto; background: rgba(0,0,0,0.15);">
+                    <pre style="margin: 0; white-space: pre-wrap; font-size: 0.8rem;">@FormatJson(_body.Body)</pre>
+                </MudPaper>
+
+                @if (_message.Status is 0 or 2 && !_editMode)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Edit" OnClick="StartEdit" Class="mb-3">Edit Body</MudButton>
+                }
+                @if (_editMode)
+                {
+                    <MudTextField T="string" @bind-Value="_editBodyJson" Label="Edit Body (JSON)"
+                                  Variant="Variant.Outlined" Lines="6"
+                                  Style="font-family: monospace; font-size: 0.8rem;" Class="mb-2" />
+                    <MudStack Row="true" Spacing="2" Class="mb-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                   OnClick="SaveBody" Disabled="_saving">@(_saving ? "Saving..." : "Save")</MudButton>
+                        <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="CancelEdit">Cancel</MudButton>
+                    </MudStack>
+                }
+            }
+
+            <MudDivider Class="my-3" />
+
+            @* Headers *@
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Headers</MudText>
+            @if (_headersLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+            }
+            else if (_headers?.Headers != null && _headers.Headers.Count > 0)
+            {
+                <MudSimpleTable Dense="true" Elevation="0" Class="mb-3">
+                    <thead><tr><th>Key</th><th>Value</th></tr></thead>
+                    <tbody>
+                        @foreach (var h in _headers.Headers)
+                        {
+                            <tr>
+                                <td style="font-family: monospace; font-size: 0.8rem;">@h.Key</td>
+                                <td style="font-family: monospace; font-size: 0.8rem; word-break: break-all;">@h.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </MudSimpleTable>
+            }
+            else if (_headers?.DecodingError != null)
+            {
+                <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3">@_headers.DecodingError</MudAlert>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">No headers.</MudText>
+            }
+
+            @* Retries *@
+            @if (_retries != null && _retries.Count > 0)
+            {
+                <MudDivider Class="my-3" />
+                <MudText Typo="Typo.subtitle2" Class="mb-1">Error Retries</MudText>
+                <MudSimpleTable Dense="true" Elevation="0" Class="mb-3">
+                    <thead><tr><th>Exception Type</th><th>Count</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in _retries)
+                        {
+                            <tr>
+                                <td style="font-family: monospace; font-size: 0.8rem;">@r.ExceptionType</td>
+                                <td>@r.RetryCount</td>
+                            </tr>
+                        }
+                    </tbody>
+                </MudSimpleTable>
+            }
+
+            <MudDivider Class="my-3" />
+
+            @* Actions *@
+            <MudStack Row="true" Spacing="2">
+                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                           StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteMessage">@(_confirmDelete ? "Click to Confirm" : "Delete")</MudButton>
+                @if (_message.Status == 2)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Replay" OnClick="RequeueMessage">Requeue</MudButton>
+                }
+                @if (_message.Status == 1)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.RestartAlt" OnClick="ResetMessage">Reset</MudButton>
+                }
+            </MudStack>
+        }
+    </div>
+</MudDrawer>
+
+@code {
+    [Parameter] public Guid QueueId { get; set; }
+    [Parameter] public string? MessageId { get; set; }
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+    [Parameter] public IDashboardApiClient Api { get; set; } = default!;
+    [Parameter] public ISnackbar Snackbar { get; set; } = default!;
+    [Parameter] public EventCallback OnDataChanged { get; set; }
+
+    private MessageResponse? _message;
+    private MessageBodyResponse? _body;
+    private MessageHeadersResponse? _headers;
+    private List<ErrorRetryResponse>? _retries;
+    private bool _loading;
+    private bool _bodyLoading;
+    private bool _headersLoading;
+
+    private bool _editMode;
+    private bool _saving;
+    private bool _confirmDelete;
+    private string? _editBodyJson;
+
+    private string? _lastLoadedMessageId;
+    private string? _detailError;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Open)
+        {
+            _lastLoadedMessageId = null;
+            return;
+        }
+
+        if (MessageId != null && MessageId != _lastLoadedMessageId)
+        {
+            _lastLoadedMessageId = MessageId;
+            _editMode = false;
+            _editBodyJson = null;
+            _confirmDelete = false;
+            await LoadMessage();
+        }
+    }
+
+    private async Task LoadMessage()
+    {
+        _loading = true;
+        _bodyLoading = true;
+        _headersLoading = true;
+        _detailError = null;
+        _message = null; _body = null; _headers = null; _retries = null;
+        StateHasChanged();
+
+        try { _message = await Api.GetMessageDetailAsync(QueueId, MessageId!); }
+        catch (Exception ex) { _detailError = ex.Message; }
+        _loading = false;
+        StateHasChanged();
+
+        var t1 = LoadBody();
+        var t2 = LoadHeaders();
+        var t3 = LoadRetries();
+        await Task.WhenAll(t1, t2, t3);
+    }
+
+    private async Task LoadBody()
+    {
+        try { _body = await Api.GetMessageBodyAsync(QueueId, MessageId!); } catch { }
+        _bodyLoading = false; StateHasChanged();
+    }
+
+    private async Task LoadHeaders()
+    {
+        try { _headers = await Api.GetMessageHeadersAsync(QueueId, MessageId!); } catch { }
+        _headersLoading = false; StateHasChanged();
+    }
+
+    private async Task LoadRetries()
+    {
+        try { _retries = await Api.GetMessageRetriesAsync(QueueId, MessageId!); } catch { }
+        StateHasChanged();
+    }
+
+    private void Close() => OpenChanged.InvokeAsync(false);
+
+    private async Task DeleteMessage()
+    {
+        if (!_confirmDelete) { _confirmDelete = true; return; }
+        _confirmDelete = false;
+        if (await Api.DeleteMessageAsync(QueueId, MessageId!))
+        { Snackbar.Add("Message deleted.", Severity.Success); await OnDataChanged.InvokeAsync(); await OpenChanged.InvokeAsync(false); }
+        else Snackbar.Add("Failed to delete.", Severity.Error);
+    }
+
+    private async Task RequeueMessage()
+    {
+        if (await Api.RequeueMessageAsync(QueueId, MessageId!))
+        { Snackbar.Add("Message requeued.", Severity.Success); await OnDataChanged.InvokeAsync(); await LoadMessage(); }
+        else Snackbar.Add("Failed to requeue.", Severity.Error);
+    }
+
+    private async Task ResetMessage()
+    {
+        if (await Api.ResetMessageAsync(QueueId, MessageId!))
+        { Snackbar.Add("Message reset.", Severity.Success); await OnDataChanged.InvokeAsync(); await LoadMessage(); }
+        else Snackbar.Add("Failed to reset.", Severity.Error);
+    }
+
+    private void StartEdit() { _editBodyJson = FormatJson(_body?.Body); _editMode = true; }
+    private void CancelEdit() { _editMode = false; _editBodyJson = null; }
+
+    private async Task SaveBody()
+    {
+        if (string.IsNullOrWhiteSpace(_editBodyJson)) return;
+        _saving = true;
+        try
+        {
+            if (await Api.UpdateMessageBodyAsync(QueueId, MessageId!, new EditMessageBodyRequest { Body = _editBodyJson }))
+            { Snackbar.Add("Body updated.", Severity.Success); _editMode = false; await LoadBody(); }
+            else Snackbar.Add("Failed to update. Message may be processing or JSON invalid.", Severity.Error);
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        finally { _saving = false; }
+    }
+
+    private static string FormatJson(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return "(empty)";
+        try
+        {
+            var parsed = System.Text.Json.JsonDocument.Parse(json);
+            return System.Text.Json.JsonSerializer.Serialize(parsed, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        }
+        catch { return json; }
+    }
+
+    private static string FormatDate(DateTimeOffset? dt) => dt == null || dt.Value == DateTimeOffset.MinValue ? "-" : dt.Value.LocalDateTime.ToString("G");
+    private static string GetStatusName(int? s) => s switch { 0 => "Waiting", 1 => "Processing", 2 => "Error", 3 => "Processed", _ => "Unknown" };
+    private static Color GetStatusColor(int? s) => s switch { 0 => Color.Info, 1 => Color.Warning, 2 => Color.Error, 3 => Color.Success, _ => Color.Default };
+}

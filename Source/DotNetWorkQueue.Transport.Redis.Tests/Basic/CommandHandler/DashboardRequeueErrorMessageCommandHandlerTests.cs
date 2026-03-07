@@ -20,6 +20,7 @@ using System;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
+using DotNetWorkQueue.Transport.Shared;
 using NSubstitute;
 using Xunit;
 
@@ -33,14 +34,18 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.CommandHandler
             var connection = Substitute.For<IRedisConnection>();
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
             var requeueLua = new DashboardRequeueErrorMessageLua(connection, redisNames);
-            Assert.NotNull(new DashboardRequeueErrorMessageCommandHandler(requeueLua));
+            var serializer = Substitute.For<IInternalSerializer>();
+            Assert.NotNull(new DashboardRequeueErrorMessageCommandHandler(requeueLua, connection, redisNames, serializer));
         }
 
         [Fact]
         public void Create_NullRequeueLua_Throws()
         {
+            var connection = Substitute.For<IRedisConnection>();
+            var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
+            var serializer = Substitute.For<IInternalSerializer>();
             Assert.Throws<ArgumentNullException>(
-                () => new DashboardRequeueErrorMessageCommandHandler(null));
+                () => new DashboardRequeueErrorMessageCommandHandler(null, connection, redisNames, serializer));
         }
     }
 }

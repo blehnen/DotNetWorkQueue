@@ -312,6 +312,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// </summary>
         GetDashboardMessageDetail,
         /// <summary>
+        /// Dashboard: gets a single message detail from the error table (fallback when MetaData record was deleted by MoveRecordToErrorQueue)
+        /// </summary>
+        GetDashboardMessageDetailFromErrors,
+        /// <summary>
         /// Dashboard: gets messages with stale heartbeats
         /// </summary>
         GetDashboardStaleMessages,
@@ -382,7 +386,31 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Dashboard: overwrites body and headers for a single message in the Queue table
         /// </summary>
-        DashboardUpdateMessageBody
+        DashboardUpdateMessageBody,
+        /// <summary>
+        /// Dashboard: requeues all error messages — resets MetaData status to Waiting for all error records
+        /// </summary>
+        DashboardRequeueAllErrors,
+        /// <summary>
+        /// Dashboard: requeues all error messages — updates Status table (only when EnableStatusTable is true)
+        /// </summary>
+        DashboardRequeueAllErrors_StatusTable,
+        /// <summary>
+        /// Dashboard: requeues all error messages — deletes all error tracking records
+        /// </summary>
+        DashboardRequeueAllErrors_ErrorTracking,
+        /// <summary>
+        /// Dashboard: requeues all error messages — deletes all MetaDataErrors records
+        /// </summary>
+        DashboardRequeueAllErrors_MetaDataErrors,
+        /// <summary>
+        /// Dashboard: resets all stale (Processing) messages back to Waiting in MetaData
+        /// </summary>
+        DashboardResetAllStaleMessages,
+        /// <summary>
+        /// Dashboard: resets all stale messages in the Status table (only when EnableStatusTable is true)
+        /// </summary>
+        DashboardResetAllStaleMessages_StatusTable
     }
 
     /// <summary>

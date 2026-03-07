@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 
         public void Handle(GetDashboardMessageDetailQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
         {
-            dbCommand.CommandText = string.Format(_commandCache.GetCommand(CommandStringTypes.GetDashboardMessageDetail), _dynamicColumns.Value);
+            dbCommand.CommandText = string.Format(_commandCache.GetCommand(commandType), _dynamicColumns.Value);
 
             var queueId = dbCommand.CreateParameter();
             queueId.ParameterName = "@QueueId";

@@ -1,0 +1,128 @@
+@using DotNetWorkQueue.Dashboard.Ui.Services
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-4">
+    <MudNumericField T="int" Label="Threshold (seconds)" Value="_thresholdSeconds" ValueChanged="OnThresholdChanged"
+                     Variant="Variant.Outlined" Margin="Margin.Dense" Min="1" Style="max-width: 200px;" />
+    <MudText Typo="Typo.body2" Color="Color.Secondary">Total: @_totalCount</MudText>
+    <MudSpacer />
+    @if (_totalCount > 0)
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.RestartAlt"
+                   OnClick="ResetAllStale">
+            @(_confirmResetAll ? "Click Again to Confirm" : "Reset All")
+        </MudButton>
+    }
+</MudStack>
+
+@if (_error != null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+}
+
+<MudTable T="MessageResponse" Items="_messages" Loading="_loading" Dense="true" Hover="true" Elevation="0"
+          Breakpoint="Breakpoint.Sm">
+    <HeaderContent>
+        <MudTh>Queue ID</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Queued</MudTh>
+        <MudTh>HeartBeat</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Queue ID">
+            <MudLink Typo="Typo.body2" Style="font-family: monospace; cursor: pointer;"
+                     OnClick="@(() => OnMessageSelected.InvokeAsync(context.QueueId))">
+                @TruncateId(context.QueueId)
+            </MudLink>
+        </MudTd>
+        <MudTd DataLabel="Status">
+            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled">
+                @GetStatusName(context.Status)
+            </MudChip>
+        </MudTd>
+        <MudTd DataLabel="Queued">@FormatDate(context.QueuedDateTime)</MudTd>
+        <MudTd DataLabel="HeartBeat">@FormatDate(context.HeartBeat)</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info"
+                       StartIcon="@Icons.Material.Filled.RestartAlt"
+                       OnClick="@(() => ResetMessage(context.QueueId))">Reset</MudButton>
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent><MudText>No stale messages found.</MudText></NoRecordsContent>
+</MudTable>
+
+@if (_totalCount > _pageSize)
+{
+    <div class="d-flex justify-center mt-4">
+        <MudPagination Count="@TotalPages" Selected="@(_pageIndex + 1)" SelectedChanged="OnPageChanged" Color="Color.Primary" />
+    </div>
+}
+
+@code {
+    [Parameter] public Guid QueueId { get; set; }
+    [Parameter] public IDashboardApiClient Api { get; set; } = default!;
+    [Parameter] public ISnackbar Snackbar { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnMessageSelected { get; set; }
+    [Parameter] public EventCallback OnDataChanged { get; set; }
+    [Parameter] public int RefreshVersion { get; set; }
+
+    private List<MessageResponse>? _messages;
+    private long _totalCount;
+    private int _pageIndex;
+    private int _pageSize = 25;
+    private int _thresholdSeconds = 60;
+    private int _lastRefreshVersion;
+    private bool _loading = true;
+    private bool _confirmResetAll;
+    private string? _error;
+    private int TotalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+
+    protected override async Task OnInitializedAsync() { _lastRefreshVersion = RefreshVersion; await LoadMessages(); }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (RefreshVersion != _lastRefreshVersion) { _lastRefreshVersion = RefreshVersion; await LoadMessages(); }
+    }
+
+    private async Task LoadMessages()
+    {
+        _loading = true; _error = null;
+        try
+        {
+            var result = await Api.GetStaleMessagesAsync(QueueId, _thresholdSeconds, _pageIndex, _pageSize);
+            _messages = result.Items?.ToList();
+            _totalCount = result.TotalCount;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private async Task OnThresholdChanged(int value) { _thresholdSeconds = value; _pageIndex = 0; await LoadMessages(); }
+    private async Task OnPageChanged(int page) { _pageIndex = page - 1; await LoadMessages(); }
+
+    private async Task ResetAllStale()
+    {
+        if (!_confirmResetAll) { _confirmResetAll = true; return; }
+        _confirmResetAll = false;
+        try
+        {
+            var result = await Api.ResetAllStaleAsync(QueueId);
+            Snackbar.Add($"Reset {result.Count} stale message(s).", Severity.Success);
+            await LoadMessages();
+            await OnDataChanged.InvokeAsync();
+        }
+        catch (Exception ex) { Snackbar.Add($"Failed: {ex.Message}", Severity.Error); }
+    }
+
+    private async Task ResetMessage(string? id)
+    {
+        if (id == null) return;
+        if (await Api.ResetMessageAsync(QueueId, id)) { Snackbar.Add("Message reset.", Severity.Success); await LoadMessages(); await OnDataChanged.InvokeAsync(); }
+        else Snackbar.Add("Failed to reset.", Severity.Error);
+    }
+
+    private static string TruncateId(string? id) => string.IsNullOrEmpty(id) ? "-" : (id.Length > 12 ? id[..12] + "..." : id);
+    private static string FormatDate(DateTimeOffset? dt) => dt == null || dt.Value == DateTimeOffset.MinValue ? "-" : dt.Value.LocalDateTime.ToString("G");
+    private static string GetStatusName(int? s) => s switch { 0 => "Waiting", 1 => "Processing", 2 => "Error", 3 => "Processed", _ => "Unknown" };
+}

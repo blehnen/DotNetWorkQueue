@@ -1,3 +1,21 @@
+### 0.9.1 — ????
+- Add Blazor Server dashboard UI (MudBlazor) for monitoring and managing queues
+- Add optional login page for dashboard UI with SHA256 hashed password (`DashboardAuth` config)
+- Dashboard.api
+  - Fix SQL Server 404 on message detail for error messages (fallback to MetaDataErrors table)
+  - Fix SQL Server requeue failing with NULL ExpirationTime (copy all columns from MetaDataErrors)
+  - Fix PostgreSQL/SQLite requeue leaving wrong status after INSERT (use ON CONFLICT DO NOTHING + UPDATE)
+  - Fix Redis requeue not clearing error tracking in serialized metadata
+  - Fix Redis delayed/scheduled column not populating in message list
+  - Fix LiteDB message body/headers/update queries failing with BsonMapper error (use FindById)
+  - Fix dashboard body type showing interceptor name instead of actual message type
+  - Add API key authentication for dashboard API (`DashboardOptions.ApiKey` + `X-Api-Key` header)
+  - Add Swagger API key support when API key is enabled
+  - Add bulk operations: Requeue All Errors, Reset All Stale, Delete All Errors
+  - Add delayed message visibility (Scheduled column + Delayed chip)cv
+  - Add two-click delete confirmation for single-record deletes
+  - Add edit body support for messages in Error status
+
 ### 0.9.0 — 2026‑03‑04
 - Add dashboard.api for viewing and modifiing messages in transports
 - Switch from Polly V7 to Polly V8

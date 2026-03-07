@@ -89,6 +89,18 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         Task<bool> ResetStaleMessageAsync(Guid queueId, string messageId);
 
         /// <summary>
+        /// Requeues all error messages back to Waiting status and clears their error tracking records.
+        /// Returns the number of messages requeued.
+        /// </summary>
+        Task<long> RequeueAllErrorMessagesAsync(Guid queueId);
+
+        /// <summary>
+        /// Resets all stale (Processing) messages back to Waiting status.
+        /// Returns the number of messages reset.
+        /// </summary>
+        Task<long> ResetAllStaleMessagesAsync(Guid queueId);
+
+        /// <summary>
         /// Re-encodes and persists a new message body. The supplied JSON must be deserializable to
         /// the original message type. Returns a <see cref="EditMessageBodyResult"/> indicating outcome.
         /// </summary>

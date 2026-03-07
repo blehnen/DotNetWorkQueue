@@ -163,6 +163,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<DashboardRequeueErrorMessageLua>(LifeStyles.Singleton);
             container.Register<DashboardResetStaleMessageLua>(LifeStyles.Singleton);
             container.Register<DashboardDeleteAllErrorMessagesLua>(LifeStyles.Singleton);
+            container.Register<DashboardRequeueAllErrorMessagesLua>(LifeStyles.Singleton);
+            container.Register<DashboardResetAllStaleMessagesLua>(LifeStyles.Singleton);
             container.Register<DashboardUpdateMessageBodyLua>(LifeStyles.Singleton);
 
             // Dashboard read handlers
@@ -200,6 +202,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 DashboardRequeueErrorMessageCommandHandler>(LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>,
                 DashboardResetStaleMessageCommandHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<DashboardRequeueAllErrorMessagesCommand, long>,
+                DashboardRequeueAllErrorMessagesCommandHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<DashboardResetAllStaleMessagesCommand, long>,
+                DashboardResetAllStaleMessagesCommandHandler>(LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutput<DashboardUpdateMessageBodyCommand, long>,
                 DashboardUpdateMessageBodyCommandHandler>(LifeStyles.Singleton);
 

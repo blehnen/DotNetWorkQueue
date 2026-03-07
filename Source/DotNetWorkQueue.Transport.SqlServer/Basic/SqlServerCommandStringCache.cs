@@ -183,6 +183,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             CommandCache.Add(CommandStringTypes.GetDashboardMessageDetail,
                 $"SELECT QueueID, QueuedDateTime, CorrelationID{{0}} FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE QueueID = @QueueID");
 
+            CommandCache.Add(CommandStringTypes.GetDashboardMessageDetailFromErrors,
+                $"SELECT QueueID, QueuedDateTime, CorrelationID{{0}} FROM {TableNameHelper.MetaDataErrorsName} WITH (NOLOCK) WHERE QueueID = @QueueID");
+
             CommandCache.Add(CommandStringTypes.GetDashboardStaleMessages,
                 $"SELECT QueueID, QueuedDateTime, CorrelationID{{0}} FROM {TableNameHelper.MetaDataName} WITH (NOLOCK) WHERE Status = {Convert.ToInt32(QueueStatuses.Processing)} AND HeartBeat IS NOT NULL AND DATEDIFF(SECOND, HeartBeat, GETUTCDATE()) > @Threshold ORDER BY HeartBeat ASC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
 
@@ -209,9 +212,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             CommandCache.Add(CommandStringTypes.DashboardDeleteAllErrors_MetaDataErrors,
                 $"DELETE FROM {TableNameHelper.MetaDataErrorsName}");
 
-            // Requeue: MERGE into MetaData (may not exist after MoveRecordToErrorQueue deletes it)
+            // Requeue: copy row from MetaDataErrors into MetaData (may not exist after MoveRecordToErrorQueue deletes it), then set status to Waiting
             CommandCache.Add(CommandStringTypes.DashboardRequeueErrorMessage,
-                $"IF EXISTS (SELECT 1 FROM {TableNameHelper.MetaDataErrorsName} WHERE QueueID = @QueueID) BEGIN IF EXISTS (SELECT 1 FROM {TableNameHelper.MetaDataName} WHERE QueueID = @QueueID) UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueID; ELSE INSERT INTO {TableNameHelper.MetaDataName} (QueueID, CorrelationID, QueuedDateTime, Status) VALUES (@QueueID, @CorrelationID, GETUTCDATE(), {Convert.ToInt32(QueueStatuses.Waiting)}); END");
+                $"IF EXISTS (SELECT 1 FROM {TableNameHelper.MetaDataErrorsName} WHERE QueueID = @QueueID) BEGIN IF NOT EXISTS (SELECT 1 FROM {TableNameHelper.MetaDataName} WHERE QueueID = @QueueID) INSERT INTO {TableNameHelper.MetaDataName} (QueueID, CorrelationID, QueuedDateTime{{0}}) SELECT QueueID, CorrelationID, QueuedDateTime{{0}} FROM {TableNameHelper.MetaDataErrorsName} WHERE QueueID = @QueueID; UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID = @QueueID; END");
 
             CommandCache.Add(CommandStringTypes.DashboardRequeueStatusTable,
                 $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE QueueID = @QueueID");
@@ -224,6 +227,26 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             CommandCache.Add(CommandStringTypes.DashboardUpdateMessageBody,
                 $"UPDATE {TableNameHelper.QueueName} SET Body = @Body, Headers = @Headers WHERE QueueID = @QueueID");
+
+            // Requeue all errors: copy rows from MetaDataErrors into MetaData (preserves all columns), then set status to Waiting
+            CommandCache.Add(CommandStringTypes.DashboardRequeueAllErrors,
+                $"INSERT INTO {TableNameHelper.MetaDataName} (QueueID, CorrelationID, QueuedDateTime{{0}}) SELECT QueueID, CorrelationID, QueuedDateTime{{0}} FROM {TableNameHelper.MetaDataErrorsName} e WHERE NOT EXISTS (SELECT 1 FROM {TableNameHelper.MetaDataName} m WHERE m.QueueID = e.QueueID); UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE QueueID IN (SELECT QueueID FROM {TableNameHelper.MetaDataErrorsName});");
+
+            CommandCache.Add(CommandStringTypes.DashboardRequeueAllErrors_ErrorTracking,
+                $"DELETE FROM {TableNameHelper.ErrorTrackingName} WHERE QueueID IN (SELECT DISTINCT QueueID FROM {TableNameHelper.MetaDataErrorsName})");
+
+            CommandCache.Add(CommandStringTypes.DashboardRequeueAllErrors_MetaDataErrors,
+                $"DELETE FROM {TableNameHelper.MetaDataErrorsName}");
+
+            CommandCache.Add(CommandStringTypes.DashboardRequeueAllErrors_StatusTable,
+                $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE QueueID IN (SELECT DISTINCT QueueID FROM {TableNameHelper.MetaDataErrorsName})");
+
+            // Reset all stale: set all Processing messages back to Waiting
+            CommandCache.Add(CommandStringTypes.DashboardResetAllStaleMessages,
+                $"UPDATE {TableNameHelper.MetaDataName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)}, HeartBeat = NULL WHERE Status = {Convert.ToInt32(QueueStatuses.Processing)}");
+
+            CommandCache.Add(CommandStringTypes.DashboardResetAllStaleMessages_StatusTable,
+                $"UPDATE {TableNameHelper.StatusName} SET Status = {Convert.ToInt32(QueueStatuses.Waiting)} WHERE Status = {Convert.ToInt32(QueueStatuses.Processing)}");
         }
     }
 }

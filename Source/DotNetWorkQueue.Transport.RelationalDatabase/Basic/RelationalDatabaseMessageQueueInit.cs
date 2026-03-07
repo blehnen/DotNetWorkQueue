@@ -391,6 +391,20 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     DashboardResetStaleMessagePrepareHandler>(LifeStyles.Singleton);
 
             container
+                .Register<ICommandHandlerWithOutput<DashboardRequeueAllErrorMessagesCommand, long>,
+                    DashboardRequeueAllErrorMessagesCommandHandler>(LifeStyles.Singleton);
+            container
+                .Register<IPrepareCommandHandler<DashboardRequeueAllErrorMessagesCommand>,
+                    DashboardRequeueAllErrorMessagesPrepareHandler>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandlerWithOutput<DashboardResetAllStaleMessagesCommand, long>,
+                    DashboardResetAllStaleMessagesCommandHandler>(LifeStyles.Singleton);
+            container
+                .Register<IPrepareCommandHandler<DashboardResetAllStaleMessagesCommand>,
+                    DashboardResetAllStaleMessagesPrepareHandler>(LifeStyles.Singleton);
+
+            container
                 .Register<ICommandHandlerWithOutput<DashboardUpdateMessageBodyCommand, long>,
                     DashboardUpdateMessageBodyCommandHandler>(LifeStyles.Singleton);
             container

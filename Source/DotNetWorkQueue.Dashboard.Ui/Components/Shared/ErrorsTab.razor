@@ -1,0 +1,155 @@
+@using DotNetWorkQueue.Dashboard.Ui.Services
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-4">
+    <MudText Typo="Typo.body2" Color="Color.Secondary">Total: @_totalCount</MudText>
+    <MudSpacer />
+    @if (_totalCount > 0)
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.Replay"
+                   OnClick="RequeueAllErrors">
+            @(_confirmRequeueAll ? "Click Again to Confirm" : "Requeue All")
+        </MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.DeleteSweep"
+                   OnClick="DeleteAllErrors">
+            @(_confirmDeleteAll ? "Click Again to Confirm" : "Delete All")
+        </MudButton>
+    }
+</MudStack>
+
+@if (_error != null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+}
+
+<MudTable T="ErrorMessageResponse" Items="_errors" Loading="_loading" Dense="true" Hover="true" Elevation="0"
+          Breakpoint="Breakpoint.Sm">
+    <HeaderContent>
+        <MudTh>Queue ID</MudTh>
+        <MudTh>Exception Date</MudTh>
+        <MudTh>Exception</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Queue ID">
+            <MudLink Typo="Typo.body2" Style="font-family: monospace; cursor: pointer;"
+                     OnClick="@(() => OnMessageSelected.InvokeAsync(context.QueueId))">
+                @TruncateId(context.QueueId)
+            </MudLink>
+        </MudTd>
+        <MudTd DataLabel="Exception Date">@(context.LastExceptionDate?.LocalDateTime.ToString("G") ?? "-")</MudTd>
+        <MudTd DataLabel="Exception">
+            <MudText Typo="Typo.body2" Style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                @(context.LastException ?? "-")
+            </MudText>
+        </MudTd>
+        <MudTd DataLabel="Actions">
+            <MudStack Row="true" Spacing="1">
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning"
+                           StartIcon="@Icons.Material.Filled.Replay"
+                           OnClick="@(() => RequeueMessage(context.QueueId))">Requeue</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Delete"
+                           OnClick="@(() => DeleteMessage(context.QueueId))">@(_confirmDeleteId == context.QueueId ? "Confirm?" : "Delete")</MudButton>
+            </MudStack>
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent><MudText>No error messages.</MudText></NoRecordsContent>
+</MudTable>
+
+@if (_totalCount > _pageSize)
+{
+    <div class="d-flex justify-center mt-4">
+        <MudPagination Count="@TotalPages" Selected="@(_pageIndex + 1)" SelectedChanged="OnPageChanged" Color="Color.Primary" />
+    </div>
+}
+
+@code {
+    [Parameter] public Guid QueueId { get; set; }
+    [Parameter] public IDashboardApiClient Api { get; set; } = default!;
+    [Parameter] public ISnackbar Snackbar { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnMessageSelected { get; set; }
+    [Parameter] public EventCallback OnDataChanged { get; set; }
+    [Parameter] public int RefreshVersion { get; set; }
+
+    private List<ErrorMessageResponse>? _errors;
+    private long _totalCount;
+    private int _pageIndex;
+    private int _pageSize = 25;
+    private int _lastRefreshVersion;
+    private bool _loading = true;
+    private bool _confirmDeleteAll;
+    private bool _confirmRequeueAll;
+    private string? _confirmDeleteId;
+    private string? _error;
+    private int TotalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+
+    protected override async Task OnInitializedAsync() { _lastRefreshVersion = RefreshVersion; await LoadErrors(); }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (RefreshVersion != _lastRefreshVersion) { _lastRefreshVersion = RefreshVersion; await LoadErrors(); }
+    }
+
+    private async Task LoadErrors()
+    {
+        _loading = true; _error = null;
+        try
+        {
+            var result = await Api.GetErrorsAsync(QueueId, _pageIndex, _pageSize);
+            _errors = result.Items?.ToList();
+            _totalCount = result.TotalCount;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private async Task OnPageChanged(int page) { _pageIndex = page - 1; await LoadErrors(); }
+
+    private async Task RequeueMessage(string? id)
+    {
+        if (id == null) return;
+        if (await Api.RequeueMessageAsync(QueueId, id)) { Snackbar.Add("Message requeued.", Severity.Success); await LoadErrors(); await OnDataChanged.InvokeAsync(); }
+        else Snackbar.Add("Failed to requeue.", Severity.Error);
+    }
+
+    private async Task DeleteMessage(string? id)
+    {
+        if (id == null) return;
+        if (_confirmDeleteId != id) { _confirmDeleteId = id; return; }
+        _confirmDeleteId = null;
+        if (await Api.DeleteMessageAsync(QueueId, id)) { Snackbar.Add("Message deleted.", Severity.Success); await LoadErrors(); await OnDataChanged.InvokeAsync(); }
+        else Snackbar.Add("Failed to delete.", Severity.Error);
+    }
+
+    private async Task RequeueAllErrors()
+    {
+        if (!_confirmRequeueAll) { _confirmRequeueAll = true; return; }
+        _confirmRequeueAll = false;
+        try
+        {
+            var result = await Api.RequeueAllErrorsAsync(QueueId);
+            Snackbar.Add($"Requeued {result.Count} error(s).", Severity.Success);
+            await LoadErrors();
+            await OnDataChanged.InvokeAsync();
+        }
+        catch (Exception ex) { Snackbar.Add($"Failed: {ex.Message}", Severity.Error); }
+    }
+
+    private async Task DeleteAllErrors()
+    {
+        if (!_confirmDeleteAll) { _confirmDeleteAll = true; return; }
+        _confirmDeleteAll = false;
+        try
+        {
+            var result = await Api.DeleteAllErrorsAsync(QueueId);
+            Snackbar.Add($"Deleted {result.Deleted} error(s).", Severity.Success);
+            await LoadErrors();
+            await OnDataChanged.InvokeAsync();
+        }
+        catch (Exception ex) { Snackbar.Add($"Failed: {ex.Message}", Severity.Error); }
+    }
+
+    private static string TruncateId(string? id) => string.IsNullOrEmpty(id) ? "-" : (id.Length > 12 ? id[..12] + "..." : id);
+}

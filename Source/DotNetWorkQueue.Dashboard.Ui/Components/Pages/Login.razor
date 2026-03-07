@@ -1,0 +1,64 @@
+@page "/login"
+@layout EmptyLayout
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject DashboardAuthConfig AuthConfig
+
+<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="d-flex align-center justify-center" Style="height: 100vh;">
+    <MudPaper Class="pa-8" Elevation="4" Style="width: 100%;">
+        <MudStack AlignItems="AlignItems.Center" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Large" Color="Color.Primary" />
+            <MudText Typo="Typo.h5">Dashboard Login</MudText>
+        </MudStack>
+
+        @if (_error)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">Invalid username or password.</MudAlert>
+        }
+
+        <MudTextField T="string" @bind-Value="_username" Label="Username" Variant="Variant.Outlined"
+                      Class="mb-3" Immediate="true" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Person"
+                      OnKeyDown="OnKeyDown" />
+        <MudTextField T="string" @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
+                      InputType="InputType.Password" Class="mb-4" Immediate="true"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock"
+                      OnKeyDown="OnKeyDown" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                   OnClick="Submit" Disabled="_submitting">
+            @(_submitting ? "Signing in..." : "Sign In")
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string _username = "";
+    private string _password = "";
+    private bool _error;
+    private bool _submitting;
+
+    protected override void OnInitialized()
+    {
+        if (!AuthConfig.IsEnabled)
+            Nav.NavigateTo("/", forceLoad: true);
+
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).ContainsKey("error"))
+            _error = true;
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await Submit();
+    }
+
+    private async Task Submit()
+    {
+        if (string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_password))
+            return;
+
+        _submitting = true;
+        await JS.InvokeVoidAsync("dashboardSubmitLogin", "/auth/login", _username, _password);
+    }
+}

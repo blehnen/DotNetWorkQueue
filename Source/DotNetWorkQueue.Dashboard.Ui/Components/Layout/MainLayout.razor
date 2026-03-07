@@ -1,0 +1,76 @@
+@inherits LayoutComponentBase
+@inject DashboardAuthConfig AuthConfig
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthProvider
+
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+@if (_ready)
+{
+    <MudLayout>
+        <MudAppBar Elevation="1">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                           OnClick="@ToggleDrawer" />
+            <MudText Typo="Typo.h6" Class="ml-3">DotNetWorkQueue Dashboard</MudText>
+            <MudSpacer />
+            @if (AuthConfig.IsEnabled)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit"
+                               title="Sign out" OnClick="Logout" />
+            }
+        </MudAppBar>
+        <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+            <NavMenu />
+        </MudDrawer>
+        <MudMainContent Class="pa-4">
+            @Body
+        </MudMainContent>
+    </MudLayout>
+}
+
+@code {
+    private bool _drawerOpen = true;
+    private bool _ready;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#1976d2",
+            Secondary = "#424242",
+            AppbarBackground = "#1976d2"
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#90caf9",
+            Secondary = "#ce93d8",
+            AppbarBackground = "#1e1e2d"
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthConfig.IsEnabled)
+        {
+            _ready = true;
+            return;
+        }
+
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        if (state.User.Identity?.IsAuthenticated ?? false)
+            _ready = true;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && AuthConfig.IsEnabled && !_ready)
+            Nav.NavigateTo("/login", forceLoad: true);
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private void Logout() => Nav.NavigateTo("/auth/logout", forceLoad: true);
+}

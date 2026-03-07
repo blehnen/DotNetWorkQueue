@@ -27,15 +27,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
     public class DashboardRequeueErrorMessagePrepareHandler : IPrepareCommandHandler<DashboardRequeueErrorMessageCommand>
     {
         private readonly CommandStringCache _commandCache;
+        private readonly Lazy<string> _dynamicColumns;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DashboardRequeueErrorMessagePrepareHandler"/> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
-        public DashboardRequeueErrorMessagePrepareHandler(CommandStringCache commandCache)
+        /// <param name="optionsFactory">The transport options factory.</param>
+        public DashboardRequeueErrorMessagePrepareHandler(CommandStringCache commandCache, ITransportOptionsFactory optionsFactory)
         {
             Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(() => optionsFactory, optionsFactory);
             _commandCache = commandCache;
+            _dynamicColumns = new Lazy<string>(() => DashboardDynamicColumnHelper.BuildDynamicColumns(optionsFactory.Create()));
         }
 
         /// <inheritdoc />
@@ -50,29 +54,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
                 dbCommand.Parameters.Add(param);
             }
 
-            // Add parameters needed for INSERT into MetaData (when record was deleted by MoveRecordToErrorQueue)
-            if (commandType == CommandStringTypes.DashboardRequeueErrorMessage)
-            {
-                if (!dbCommand.Parameters.Contains("@CorrelationID"))
-                {
-                    var correlationParam = dbCommand.CreateParameter();
-                    correlationParam.ParameterName = "@CorrelationID";
-                    correlationParam.DbType = DbType.Guid;
-                    correlationParam.Value = Guid.NewGuid();
-                    dbCommand.Parameters.Add(correlationParam);
-                }
-
-                if (!dbCommand.Parameters.Contains("@QueuedDateTime"))
-                {
-                    var dateParam = dbCommand.CreateParameter();
-                    dateParam.ParameterName = "@QueuedDateTime";
-                    dateParam.DbType = DbType.Int64;
-                    dateParam.Value = DateTime.UtcNow.Ticks;
-                    dbCommand.Parameters.Add(dateParam);
-                }
-            }
-
-            dbCommand.CommandText = _commandCache.GetCommand(commandType);
+            dbCommand.CommandText = string.Format(_commandCache.GetCommand(commandType), _dynamicColumns.Value);
         }
     }
 }

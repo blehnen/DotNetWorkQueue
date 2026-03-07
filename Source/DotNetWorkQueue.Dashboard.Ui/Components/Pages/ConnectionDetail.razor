@@ -1,0 +1,132 @@
+@page "/connections/{ConnectionId:guid}"
+@inject IDashboardApiClient Api
+@inject NavigationManager Navigation
+
+<PageTitle>Dashboard - Connection</PageTitle>
+
+<MudBreadcrumbs Items="_breadcrumbs" Class="mb-4" />
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_error != null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadData">Retry</MudButton>
+}
+else
+{
+    <MudText Typo="Typo.h4" Class="mb-4">Queues</MudText>
+
+    @if (_queues == null || _queues.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info" Class="mb-4">No queues found for this connection.</MudAlert>
+    }
+    else
+    {
+        <MudGrid Class="mb-6">
+            @foreach (var queue in _queues)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="2" Class="cursor-pointer" @onclick="() => NavigateToQueue(queue)">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">@queue.QueueName</MudText>
+                            </CardHeaderContent>
+                            <CardHeaderActions>
+                                <MudIcon Icon="@Icons.Material.Filled.Queue" Color="Color.Primary" />
+                            </CardHeaderActions>
+                        </MudCardHeader>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+
+    <MudText Typo="Typo.h4" Class="mb-4">Scheduled Jobs</MudText>
+
+    @if (_jobs == null || _jobs.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">No scheduled jobs found for this connection.</MudAlert>
+    }
+    else
+    {
+        <MudSimpleTable Elevation="2" Dense="true" Hover="true">
+            <thead>
+                <tr>
+                    <th>Job Name</th>
+                    <th>Last Event Time</th>
+                    <th>Last Scheduled Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var job in _jobs)
+                {
+                    <tr>
+                        <td>@job.JobName</td>
+                        <td>@(job.JobEventTime?.LocalDateTime.ToString("G") ?? "-")</td>
+                        <td>@(job.JobScheduledTime?.LocalDateTime.ToString("G") ?? "-")</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    }
+}
+
+@code {
+    [Parameter] public Guid ConnectionId { get; set; }
+
+    private List<QueueInfoResponse>? _queues;
+    private List<JobResponse>? _jobs;
+    private string? _connectionName;
+    private bool _loading = true;
+    private string? _error;
+
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Connections", href: "/"),
+        new BreadcrumbItem("Connection", href: null, disabled: true)
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            var connectionsTask = Api.GetConnectionsAsync();
+            var queuesTask = Api.GetQueuesAsync(ConnectionId);
+            var jobsTask = Api.GetJobsAsync(ConnectionId);
+            var connections = await connectionsTask;
+            _connectionName = connections.FirstOrDefault(c => c.Id == ConnectionId)?.DisplayName;
+            _breadcrumbs = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem("Connections", href: "/"),
+                new BreadcrumbItem(_connectionName ?? "Connection", href: null, disabled: true)
+            };
+            _queues = await queuesTask;
+            _jobs = await jobsTask;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void NavigateToQueue(QueueInfoResponse queue)
+    {
+        var connName = Uri.EscapeDataString(_connectionName ?? "Connection");
+        var queueName = Uri.EscapeDataString(queue.QueueName ?? "Queue");
+        Navigation.NavigateTo($"/queues/{queue.Id}?conn={connName}&connId={ConnectionId}&queue={queueName}");
+    }
+}

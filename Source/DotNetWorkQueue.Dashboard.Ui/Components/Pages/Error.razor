@@ -1,0 +1,26 @@
+@page "/Error"
+@using System.Diagnostics
+
+<PageTitle>Error</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudText Typo="Typo.h4" Color="Color.Error" Class="mb-4">Error</MudText>
+    <MudText Typo="Typo.body1" Class="mb-4">An unexpected error has occurred.</MudText>
+
+    @if (ShowRequestId)
+    {
+        <MudText Typo="Typo.body2">
+            <strong>Request ID:</strong> @RequestId
+        </MudText>
+    }
+</MudContainer>
+
+@code {
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    private string? RequestId { get; set; }
+    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+    protected override void OnInitialized() =>
+        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}

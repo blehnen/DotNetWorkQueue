@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="DotNetWorkQueue.Dashboard.Ui.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="_framework/blazor.web.js"></script>
+    <script>
+        window.dashboardSubmitLogin = function (action, username, password) {
+            var f = document.createElement('form');
+            f.method = 'POST';
+            f.action = action;
+            var u = document.createElement('input');
+            u.type = 'hidden'; u.name = 'username'; u.value = username;
+            f.appendChild(u);
+            var p = document.createElement('input');
+            p.type = 'hidden'; p.name = 'password'; p.value = password;
+            f.appendChild(p);
+            document.body.appendChild(f);
+            f.submit();
+        };
+    </script>
+</body>
+
+</html>

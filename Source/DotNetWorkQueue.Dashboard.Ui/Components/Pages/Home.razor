@@ -1,0 +1,87 @@
+@page "/"
+@inject IDashboardApiClient Api
+
+<PageTitle>Dashboard - Connections</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Connections</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_error != null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">
+        Failed to load connections: @_error
+    </MudAlert>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadConnections">
+        Retry
+    </MudButton>
+}
+else if (_connections == null || _connections.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">
+        No connections registered. Configure connections in the Dashboard API.
+    </MudAlert>
+}
+else
+{
+    <MudGrid>
+        @foreach (var connection in _connections)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="2" Class="cursor-pointer" @onclick="() => NavigateToConnection(connection.Id)">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@connection.DisplayName</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Primary" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @connection.QueueCount queue@(connection.QueueCount != 1 ? "s" : "")
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private List<ConnectionResponse>? _connections;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadConnections();
+    }
+
+    private async Task LoadConnections()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _connections = await Api.GetConnectionsAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void NavigateToConnection(Guid connectionId)
+    {
+        Navigation.NavigateTo($"/connections/{connectionId}");
+    }
+}

@@ -45,9 +45,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             using (var db = _connectionInformation.GetDatabase())
             {
                 var col = db.Database.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
-                var record = col.Query()
-                    .Where(x => x.Id == id)
-                    .FirstOrDefault();
+                var record = col.FindById(id);
 
                 if (record == null)
                     return 0;
