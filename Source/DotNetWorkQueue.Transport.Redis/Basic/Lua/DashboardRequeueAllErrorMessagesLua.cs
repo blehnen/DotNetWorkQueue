@@ -36,6 +36,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                        for i, id in ipairs(ids) do
                            redis.call('zrem', @errortimekey, id)
                            redis.call('hset', @StatusKey, id, '0')
+                           local metaBytes = redis.call('hget', @MetaDataKey, id)
+                           if metaBytes then
+                               local ok, meta = pcall(cjson.decode, metaBytes)
+                               if ok and meta and meta['ErrorTracking'] and meta['ErrorTracking']['Errors'] then
+                                   meta['ErrorTracking']['Errors'] = {}
+                                   redis.call('hset', @MetaDataKey, id, cjson.encode(meta))
+                               end
+                           end
                            local routeName = redis.call('hget', @RouteIDKey, id)
                            if(routeName) then
                                local routePending = @pendingkey .. '_}' .. routeName
@@ -67,6 +75,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 errorkey = (RedisKey)RedisNames.Error,
                 errortimekey = (RedisKey)RedisNames.ErrorTime,
                 StatusKey = (RedisKey)RedisNames.Status,
+                MetaDataKey = (RedisKey)RedisNames.MetaData,
                 pendingkey = (RedisKey)RedisNames.Pending,
                 channel = RedisNames.Notification,
                 RouteIDKey = (RedisKey)RedisNames.Route
