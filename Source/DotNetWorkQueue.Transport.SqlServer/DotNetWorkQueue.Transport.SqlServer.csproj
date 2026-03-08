@@ -3,7 +3,7 @@
   <PropertyGroup>
 	  <TargetFrameworks>net10.0;net8.0;net48;netstandard2.0;</TargetFrameworks>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.9.0</Version>
+    <Version>0.9.1</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <Description>SQL server transport for https://github.com/blehnen/DotNetWorkQueue </Description>
@@ -15,6 +15,7 @@
 https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageReleaseNotes>
     <PackageTags>SqlServer</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
@@ -55,6 +56,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader" Link="DotNetWorkQueue.licenseheader" />
   </ItemGroup>
 

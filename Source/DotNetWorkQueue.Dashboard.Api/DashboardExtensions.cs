@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 
 namespace DotNetWorkQueue.Dashboard.Api
@@ -58,6 +59,7 @@ namespace DotNetWorkQueue.Dashboard.Api
             services.AddControllers(mvcOptions =>
                 {
                     mvcOptions.Filters.Add<DashboardExceptionFilter>();
+                    mvcOptions.Filters.Add(new ApiKeyAuthorizationFilter(options));
 
                     if (!string.IsNullOrEmpty(options.AuthorizationPolicy))
                     {
@@ -72,12 +74,37 @@ namespace DotNetWorkQueue.Dashboard.Api
                 services.AddEndpointsApiExplorer();
                 services.AddSwaggerGen(c =>
                 {
-                    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                    c.SwaggerDoc("v1", new OpenApiInfo
                     {
                         Title = "DotNetWorkQueue Dashboard",
                         Version = "v1",
                         Description = "REST API for monitoring and managing DotNetWorkQueue"
                     });
+
+                    if (!string.IsNullOrEmpty(options.ApiKey))
+                    {
+                        c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+                        {
+                            Type = SecuritySchemeType.ApiKey,
+                            In = ParameterLocation.Header,
+                            Name = "X-Api-Key",
+                            Description = "API key for dashboard access"
+                        });
+                        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                        {
+                            {
+                                new OpenApiSecurityScheme
+                                {
+                                    Reference = new OpenApiReference
+                                    {
+                                        Type = ReferenceType.SecurityScheme,
+                                        Id = "ApiKey"
+                                    }
+                                },
+                                Array.Empty<string>()
+                            }
+                        });
+                    }
                 });
             }
 

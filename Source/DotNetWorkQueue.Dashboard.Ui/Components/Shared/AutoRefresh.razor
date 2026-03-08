@@ -1,0 +1,82 @@
+@implements IDisposable
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+    <MudToggleIconButton Toggled="_enabled" ToggledChanged="OnToggled"
+                         Icon="@Icons.Material.Filled.PlayArrow" ToggledIcon="@Icons.Material.Filled.Pause"
+                         Color="Color.Default" ToggledColor="Color.Primary"
+                         Size="Size.Small"
+                         aria-label="@(_enabled ? "Pause auto-refresh" : "Start auto-refresh")" />
+    <MudSelect T="int" Value="_intervalSeconds" ValueChanged="OnIntervalChanged"
+               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+               Style="max-width: 100px;" Label="Interval">
+        <MudSelectItem T="int" Value="5">5s</MudSelectItem>
+        <MudSelectItem T="int" Value="10">10s</MudSelectItem>
+        <MudSelectItem T="int" Value="30">30s</MudSelectItem>
+        <MudSelectItem T="int" Value="60">60s</MudSelectItem>
+    </MudSelect>
+</MudStack>
+
+@code {
+    [Parameter] public EventCallback OnRefresh { get; set; }
+    [Parameter] public int DefaultIntervalSeconds { get; set; } = 10;
+
+    private bool _enabled;
+    private int _intervalSeconds;
+    private Timer? _timer;
+    private bool _disposed;
+
+    protected override void OnInitialized()
+    {
+        _intervalSeconds = DefaultIntervalSeconds;
+    }
+
+    private void OnToggled(bool toggled)
+    {
+        _enabled = toggled;
+        if (_enabled)
+            StartTimer();
+        else
+            StopTimer();
+    }
+
+    private void OnIntervalChanged(int value)
+    {
+        _intervalSeconds = value;
+        if (_enabled)
+        {
+            StopTimer();
+            StartTimer();
+        }
+    }
+
+    private void StartTimer()
+    {
+        _timer = new Timer(async _ =>
+        {
+            if (_disposed) return;
+            try
+            {
+                await InvokeAsync(async () =>
+                {
+                    if (_disposed) return;
+                    await OnRefresh.InvokeAsync();
+                    StateHasChanged();
+                });
+            }
+            catch (ObjectDisposedException) { }
+        }, null, _intervalSeconds * 1000, _intervalSeconds * 1000);
+    }
+
+    private void StopTimer()
+    {
+        _timer?.Dispose();
+        _timer = null;
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        _timer?.Dispose();
+        _timer = null;
+    }
+}

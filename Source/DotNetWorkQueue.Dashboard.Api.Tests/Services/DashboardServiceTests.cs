@@ -471,8 +471,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().NotBeNull();
             result.DecodingError.Should().BeNull();
             result.Body.Should().NotBeNullOrEmpty();
-            // TypeName comes from the JObject/raw body since the header type couldn't be resolved
-            result.TypeName.Should().Be("System.String");
+            // TypeName comes from the header value since the type couldn't be resolved at runtime
+            result.TypeName.Should().Be("NotReal.Type, NotReal");
         }
 
         [Fact]

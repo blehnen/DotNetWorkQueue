@@ -39,6 +39,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         public string AuthorizationPolicy { get; set; }
 
         /// <summary>
+        /// Optional API key for simple authentication.
+        /// When set, all dashboard endpoints require an <c>X-Api-Key</c> header matching this value.
+        /// When null or empty, no API key check is performed.
+        /// This is independent of <see cref="AuthorizationPolicy"/> — both can be used together.
+        /// </summary>
+        public string ApiKey { get; set; }
+
+        /// <summary>
         /// Internal list of connection registrations.
         /// </summary>
         internal List<DashboardConnectionRegistration> ConnectionRegistrations { get; } = new List<DashboardConnectionRegistration>();

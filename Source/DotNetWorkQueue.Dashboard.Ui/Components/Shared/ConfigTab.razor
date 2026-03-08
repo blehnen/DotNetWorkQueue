@@ -1,0 +1,47 @@
+@using DotNetWorkQueue.Dashboard.Ui.Services
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_error != null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadConfig">Retry</MudButton>
+}
+else
+{
+    <MudPaper Elevation="0" Class="pa-3" Style="overflow-x: auto;">
+        <pre style="margin: 0; white-space: pre-wrap; font-size: 0.85rem;">@FormatJson(_config?.ConfigurationJson)</pre>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public Guid QueueId { get; set; }
+    [Parameter] public IDashboardApiClient Api { get; set; } = default!;
+
+    private ConfigurationResponse? _config;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await LoadConfig();
+
+    private async Task LoadConfig()
+    {
+        _loading = true; _error = null;
+        try { _config = await Api.GetQueueConfigurationAsync(QueueId); }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private static string FormatJson(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return "(no configuration)";
+        try
+        {
+            var parsed = System.Text.Json.JsonDocument.Parse(json);
+            return System.Text.Json.JsonSerializer.Serialize(parsed, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        }
+        catch { return json; }
+    }
+}

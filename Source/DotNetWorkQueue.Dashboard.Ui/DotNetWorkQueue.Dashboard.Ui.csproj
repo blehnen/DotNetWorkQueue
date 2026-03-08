@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <Version>0.9.1</Version>
+    <Authors>Brian Lehnen</Authors>
+    <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
+    <Description>Blazor Server dashboard UI for DotNetWorkQueue - provides a web interface for monitoring and managing queues</Description>
+    <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/blehnen/DotNetWorkQueue</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="9.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader" Link="DotNetWorkQueue.licenseheader" />
+  </ItemGroup>
+
+</Project>

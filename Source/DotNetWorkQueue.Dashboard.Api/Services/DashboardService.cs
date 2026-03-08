@@ -277,6 +277,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                 // Stage 2: load assembly from bin folder (standalone dashboard with user DLLs present).
                 if (headers.TryGetValue("Queue-MessageBodyType", out var rawTypeName) && rawTypeName?.ToString() is string portableName && portableName.Length > 0)
                 {
+                    // Always prefer the header type name for display — it's the actual message type
+                    // even when the assembly isn't loaded and we can't resolve the CLR type.
+                    typeName = portableName;
+
                     var resolvedType = ResolveMessageBodyType(portableName);
                     if (resolvedType != null)
                     {
@@ -449,6 +453,24 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             var handler = container.GetInstance<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>>();
             var result = handler.Handle(new DashboardResetStaleMessageCommand(messageId));
             return Task.FromResult(result > 0);
+        }
+
+        /// <inheritdoc />
+        public Task<long> RequeueAllErrorMessagesAsync(Guid queueId)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<ICommandHandlerWithOutput<DashboardRequeueAllErrorMessagesCommand, long>>();
+            var result = handler.Handle(new DashboardRequeueAllErrorMessagesCommand());
+            return Task.FromResult(result);
+        }
+
+        /// <inheritdoc />
+        public Task<long> ResetAllStaleMessagesAsync(Guid queueId)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<ICommandHandlerWithOutput<DashboardResetAllStaleMessagesCommand, long>>();
+            var result = handler.Handle(new DashboardResetAllStaleMessagesCommand());
+            return Task.FromResult(result);
         }
 
         /// <inheritdoc />

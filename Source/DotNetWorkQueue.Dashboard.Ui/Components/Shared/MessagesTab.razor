@@ -1,0 +1,149 @@
+@using DotNetWorkQueue.Dashboard.Ui.Services
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-4">
+    <MudSelect T="int?" Label="Status Filter" Value="_statusFilter" ValueChanged="OnStatusFilterChanged"
+               Variant="Variant.Outlined" Margin="Margin.Dense" Style="max-width: 200px;">
+        <MudSelectItem T="int?" Value="@((int?)null)">All</MudSelectItem>
+        <MudSelectItem T="int?" Value="0">Waiting</MudSelectItem>
+        <MudSelectItem T="int?" Value="1">Processing</MudSelectItem>
+        <MudSelectItem T="int?" Value="2">Error</MudSelectItem>
+        <MudSelectItem T="int?" Value="3">Processed</MudSelectItem>
+    </MudSelect>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">Total: @_totalCount</MudText>
+</MudStack>
+
+@if (_error != null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+}
+
+<MudTable T="MessageResponse" Items="_messages" Loading="_loading" Dense="true" Hover="true"
+          Elevation="0" Breakpoint="Breakpoint.Sm" OnRowClick="OnRowClick" RowClass="cursor-pointer">
+    <HeaderContent>
+        <MudTh>Queue ID</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Queued</MudTh>
+        @if (Features?.EnableDelayedProcessing == true)
+        {
+            <MudTh>Scheduled</MudTh>
+        }
+        <MudTh>Priority</MudTh>
+        <MudTh>HeartBeat</MudTh>
+        <MudTh>Route</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Queue ID">
+            <MudText Typo="Typo.body2" Style="font-family: monospace;">@TruncateId(context.QueueId)</MudText>
+        </MudTd>
+        <MudTd DataLabel="Status">
+            @if (IsDelayed(context))
+            {
+                <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Filled"
+                         Icon="@Icons.Material.Filled.Schedule">
+                    Delayed
+                </MudChip>
+            }
+            else
+            {
+                <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)" Variant="Variant.Filled">
+                    @GetStatusName(context.Status)
+                </MudChip>
+            }
+        </MudTd>
+        <MudTd DataLabel="Queued">@FormatDate(context.QueuedDateTime)</MudTd>
+        @if (Features?.EnableDelayedProcessing == true)
+        {
+            <MudTd DataLabel="Scheduled">@FormatDate(context.QueueProcessTime)</MudTd>
+        }
+        <MudTd DataLabel="Priority">@(context.Priority?.ToString() ?? "-")</MudTd>
+        <MudTd DataLabel="HeartBeat">@FormatDate(context.HeartBeat)</MudTd>
+        <MudTd DataLabel="Route">@(context.Route ?? "-")</MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No messages found.</MudText>
+    </NoRecordsContent>
+</MudTable>
+
+@if (_totalCount > _pageSize)
+{
+    <div class="d-flex justify-center mt-4">
+        <MudPagination Count="@TotalPages" Selected="@(_pageIndex + 1)" SelectedChanged="OnPageChanged" Color="Color.Primary" />
+    </div>
+}
+
+@code {
+    [Parameter] public Guid QueueId { get; set; }
+    [Parameter] public IDashboardApiClient Api { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnMessageSelected { get; set; }
+    [Parameter] public QueueFeaturesResponse? Features { get; set; }
+    [Parameter] public int? StatusFilter { get; set; }
+    [Parameter] public int StatusFilterVersion { get; set; }
+    [Parameter] public int RefreshVersion { get; set; }
+
+    private List<MessageResponse>? _messages;
+    private long _totalCount;
+    private int _pageIndex;
+    private int _pageSize = 25;
+    private int? _statusFilter;
+    private int _lastFilterVersion;
+    private int _lastRefreshVersion;
+    private bool _loading = true;
+    private string? _error;
+    private int TotalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _statusFilter = StatusFilter;
+        _lastFilterVersion = StatusFilterVersion;
+        _lastRefreshVersion = RefreshVersion;
+        await LoadMessages();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (StatusFilterVersion != _lastFilterVersion)
+        {
+            _lastFilterVersion = StatusFilterVersion;
+            _lastRefreshVersion = RefreshVersion;
+            _statusFilter = StatusFilter;
+            _pageIndex = 0;
+            await LoadMessages();
+        }
+        else if (RefreshVersion != _lastRefreshVersion)
+        {
+            _lastRefreshVersion = RefreshVersion;
+            await LoadMessages();
+        }
+    }
+
+    private async Task LoadMessages()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            var result = await Api.GetMessagesAsync(QueueId, _pageIndex, _pageSize, _statusFilter);
+            _messages = result.Items?.ToList();
+            _totalCount = result.TotalCount;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private async Task OnStatusFilterChanged(int? value) { _statusFilter = value; _pageIndex = 0; await LoadMessages(); }
+    private async Task OnPageChanged(int page) { _pageIndex = page - 1; await LoadMessages(); }
+
+    private async Task OnRowClick(TableRowClickEventArgs<MessageResponse> args)
+    {
+        if (args.Item?.QueueId != null)
+            await OnMessageSelected.InvokeAsync(args.Item.QueueId);
+    }
+
+    private static bool IsDelayed(MessageResponse msg) =>
+        msg.Status == 0 && msg.QueueProcessTime != null && msg.QueueProcessTime.Value != DateTimeOffset.MinValue && msg.QueueProcessTime.Value > DateTimeOffset.Now;
+
+    private static string TruncateId(string? id) => string.IsNullOrEmpty(id) ? "-" : (id.Length > 12 ? id[..12] + "..." : id);
+    private static string GetStatusName(int? s) => s switch { 0 => "Waiting", 1 => "Processing", 2 => "Error", 3 => "Processed", _ => "Unknown" };
+    private static string FormatDate(DateTimeOffset? dt) => dt == null || dt.Value == DateTimeOffset.MinValue ? "-" : dt.Value.LocalDateTime.ToString("G");
+    private static Color GetStatusColor(int? s) => s switch { 0 => Color.Info, 1 => Color.Warning, 2 => Color.Error, 3 => Color.Success, _ => Color.Default };
+}

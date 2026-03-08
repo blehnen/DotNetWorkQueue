@@ -60,6 +60,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             var errorIds = new HashSet<string>(
                 db.ListRange(_redisNames.Error, 0, -1).Select(x => x.ToString()));
 
+            // Get delayed processing times from the Delayed sorted set
+            var delayedEntries = db.SortedSetRangeByRankWithScores(_redisNames.Delayed, 0, -1);
+            var delayedTimes = new Dictionary<string, double>();
+            foreach (var d in delayedEntries)
+                delayedTimes[d.Element.ToString()] = d.Score;
+
             var result = new List<DashboardMessage>();
             foreach (var entry in allEntries)
             {
@@ -83,12 +89,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                     }
                 }
 
-                result.Add(new DashboardMessage
+                var msg = new DashboardMessage
                 {
                     QueueId = id,
                     Status = status,
                     QueuedDateTime = queueDateTime > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(queueDateTime) : (DateTimeOffset?)null
-                });
+                };
+
+                if (delayedTimes.TryGetValue(id, out var delayedScore) && delayedScore > 0)
+                    msg.QueueProcessTime = DateTimeOffset.FromUnixTimeMilliseconds((long)delayedScore);
+
+                result.Add(msg);
             }
 
             // Apply paging

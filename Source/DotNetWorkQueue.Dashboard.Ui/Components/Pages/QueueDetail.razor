@@ -1,0 +1,255 @@
+@page "/queues/{QueueId:guid}"
+@inject IDashboardApiClient Api
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Dashboard - @(_queueName ?? "Queue")</PageTitle>
+
+<MudBreadcrumbs Items="_breadcrumbs" Class="mb-2" />
+
+@if (!string.IsNullOrEmpty(_connectionDisplayName) || !string.IsNullOrEmpty(_queueName))
+{
+    <MudText Typo="Typo.h5" Class="mb-4">
+        @if (!string.IsNullOrEmpty(_connectionDisplayName))
+        {
+            <MudLink Typo="Typo.h5" Href="@($"/connections/{_connectionId}")">@_connectionDisplayName</MudLink><MudText Typo="Typo.h5" Inline="true" Color="Color.Secondary"> / </MudText>
+        }
+        @(_queueName ?? "Queue")
+    </MudText>
+}
+
+@if (_initialLoading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_error != null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadInitial">Retry</MudButton>
+}
+else
+{
+    @* Status cards — always visible *@
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-3">
+        <MudText Typo="Typo.h5">Status</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="ManualRefresh" Size="Size.Small" aria-label="Refresh" />
+        <AutoRefresh OnRefresh="RefreshCurrentTab" DefaultIntervalSeconds="10" />
+    </MudStack>
+
+    <MudGrid Class="mb-4">
+        <MudItem xs="6" sm="3">
+            <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="@(() => FilterMessages(0))">
+                <MudText Typo="Typo.h4" Color="Color.Info">@(_status?.Waiting ?? 0)</MudText>
+                <MudText Typo="Typo.body2">Waiting</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" sm="3">
+            <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="@(() => FilterMessages(1))">
+                <MudText Typo="Typo.h4" Color="Color.Warning">@(_status?.Processing ?? 0)</MudText>
+                <MudText Typo="Typo.body2">Processing</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" sm="3">
+            <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="GoToErrors">
+                <MudText Typo="Typo.h4" Color="Color.Error">@(_status?.Error ?? 0)</MudText>
+                <MudText Typo="Typo.body2">Error</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" sm="3">
+            <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="@(() => FilterMessages(null))">
+                <MudText Typo="Typo.h4">@(_status?.Total ?? 0)</MudText>
+                <MudText Typo="Typo.body2">Total</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @* Features chips *@
+    @if (_features != null)
+    {
+        <MudChipSet T="string" ReadOnly="true" Class="mb-4">
+            @if (_features.EnableStatus) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Status</MudChip> }
+            @if (_features.EnableStatusTable) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Status Table</MudChip> }
+            @if (_features.EnableHeartBeat) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">HeartBeat</MudChip> }
+            @if (_features.EnablePriority) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Priority</MudChip> }
+            @if (_features.EnableDelayedProcessing) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Delayed Processing</MudChip> }
+            @if (_features.EnableMessageExpiration) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Expiration</MudChip> }
+            @if (_features.EnableRoute) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Routing</MudChip> }
+        </MudChipSet>
+    }
+
+    @* Tabs *@
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true"
+             ActivePanelIndex="_activeTab" ActivePanelIndexChanged="OnTabChanged">
+        <MudTabPanel Text="Messages" Icon="@Icons.Material.Filled.List">
+            <MessagesTab QueueId="QueueId" Api="Api" Features="_features" OnMessageSelected="OpenMessageDrawer" StatusFilter="_messagesStatusFilter" StatusFilterVersion="_filterVersion" RefreshVersion="_refreshVersion" />
+        </MudTabPanel>
+        <MudTabPanel Text="Errors" Icon="@Icons.Material.Filled.Error" BadgeData="@ErrorBadge" BadgeColor="Color.Error">
+            <ErrorsTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" />
+        </MudTabPanel>
+        <MudTabPanel Text="Stale" Icon="@Icons.Material.Filled.Timer" BadgeData="@StaleBadge" BadgeColor="Color.Warning">
+            <StaleTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" />
+        </MudTabPanel>
+        <MudTabPanel Text="Configuration" Icon="@Icons.Material.Filled.Settings">
+            <ConfigTab QueueId="QueueId" Api="Api" />
+        </MudTabPanel>
+    </MudTabs>
+}
+
+@* Message detail drawer *@
+<MessageDetailDrawer QueueId="QueueId" MessageId="@_selectedMessageId" Open="@_drawerOpen"
+                     OpenChanged="OnDrawerClosed" Api="Api" Snackbar="Snackbar" OnDataChanged="RefreshCounts" />
+
+@code {
+    [Parameter] public Guid QueueId { get; set; }
+
+    private QueueStatusResponse? _status;
+    private QueueFeaturesResponse? _features;
+    private bool _initialLoading = true;
+    private string? _error;
+    private int _activeTab;
+    private int? _messagesStatusFilter;
+    private int _filterVersion;
+    private int _refreshVersion;
+
+    private bool _drawerOpen;
+    private string? _selectedMessageId;
+
+    private long _staleCount;
+    private string? _queueName;
+    private string? _connectionDisplayName;
+    private string? _connectionId;
+
+    private object? ErrorBadge => _status?.Error > 0 ? _status.Error : null;
+    private object? StaleBadge => _staleCount > 0 ? _staleCount : null;
+
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Connections", href: "/"),
+        new BreadcrumbItem("Queue", href: null, disabled: true)
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var connName = query["conn"];
+        _connectionId = query["connId"];
+        _queueName = query["queue"];
+        _connectionDisplayName = connName;
+        var connId = _connectionId;
+
+        // Fallback: look up names from the API if not in query string
+        if (string.IsNullOrEmpty(_queueName) || string.IsNullOrEmpty(connName))
+        {
+            try
+            {
+                var connections = await Api.GetConnectionsAsync();
+                foreach (var conn in connections)
+                {
+                    var queues = await Api.GetQueuesAsync(conn.Id);
+                    var match = queues.FirstOrDefault(q => q.Id == QueueId);
+                    if (match != null)
+                    {
+                        _queueName ??= match.QueueName;
+                        _connectionDisplayName ??= conn.DisplayName;
+                        connName = conn.DisplayName;
+                        connId = conn.Id.ToString();
+                        _connectionId = connId;
+                        break;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        var crumbs = new List<BreadcrumbItem> { new("Connections", href: "/") };
+        if (!string.IsNullOrEmpty(connName) && !string.IsNullOrEmpty(connId))
+            crumbs.Add(new BreadcrumbItem(connName, href: $"/connections/{connId}"));
+        crumbs.Add(new BreadcrumbItem(_queueName ?? "Queue", href: null, disabled: true));
+        _breadcrumbs = crumbs;
+
+        await LoadInitial();
+    }
+
+    private async Task LoadInitial()
+    {
+        _initialLoading = true;
+        _error = null;
+        try
+        {
+            var statusTask = Api.GetQueueStatusAsync(QueueId);
+            var featuresTask = Api.GetQueueFeaturesAsync(QueueId);
+            var staleTask = Api.GetStaleMessagesAsync(QueueId, 60, 0, 1);
+            _status = await statusTask;
+            _features = await featuresTask;
+            _staleCount = (await staleTask).TotalCount;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _initialLoading = false;
+        }
+    }
+
+    private async Task RefreshCurrentTab()
+    {
+        _refreshVersion++;
+        try
+        {
+            _status = await Api.GetQueueStatusAsync(QueueId);
+            var stale = await Api.GetStaleMessagesAsync(QueueId, 60, 0, 1);
+            _staleCount = stale.TotalCount;
+        }
+        catch { }
+    }
+
+    private async Task ManualRefresh()
+    {
+        await RefreshCurrentTab();
+    }
+
+    private async Task RefreshCounts()
+    {
+        try
+        {
+            var statusTask = Api.GetQueueStatusAsync(QueueId);
+            var staleTask = Api.GetStaleMessagesAsync(QueueId, 60, 0, 1);
+            _status = await statusTask;
+            _staleCount = (await staleTask).TotalCount;
+        }
+        catch { }
+    }
+
+    private void OnTabChanged(int index)
+    {
+        _activeTab = index;
+    }
+
+    private void FilterMessages(int? status)
+    {
+        _messagesStatusFilter = status;
+        _filterVersion++;
+        _activeTab = 0;
+    }
+
+    private void GoToErrors()
+    {
+        _activeTab = 1;
+    }
+
+    private void OpenMessageDrawer(string messageId)
+    {
+        _selectedMessageId = messageId;
+        _drawerOpen = true;
+    }
+
+    private void OnDrawerClosed(bool open)
+    {
+        _drawerOpen = open;
+        if (!open) _selectedMessageId = null;
+    }
+}

@@ -55,6 +55,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             using (var connection = (DbConnection)_dbConnectionFactory.Create())
             {
                 await connection.OpenAsync().ConfigureAwait(false);
+
+                // Try MetaData first
                 using (var command = connection.CreateCommand())
                 {
                     _prepareQuery.Handle(query, command, CommandStringTypes.GetDashboardMessageDetail);
@@ -64,6 +66,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                         {
                             return DashboardMessageReader.ReadMessage(reader, _readColumn,
                                 CommandStringTypes.GetDashboardMessageDetail, _options.Value);
+                        }
+                    }
+                }
+
+                // Fallback to MetaDataErrors (MoveRecordToErrorQueue deletes the MetaData row)
+                using (var command = connection.CreateCommand())
+                {
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetDashboardMessageDetailFromErrors);
+                    using (var reader = await ((DbCommand)command).ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        if (await reader.ReadAsync().ConfigureAwait(false))
+                        {
+                            var msg = DashboardMessageReader.ReadMessage(reader, _readColumn,
+                                CommandStringTypes.GetDashboardMessageDetailFromErrors, _options.Value);
+                            msg.Status = 2; // Error — we know it's in the error table
+                            return msg;
                         }
                     }
                 }

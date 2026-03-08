@@ -27,7 +27,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
     {
         private readonly DashboardRequeueErrorMessageLua _requeueLua;
 
-        public DashboardRequeueErrorMessageCommandHandler(DashboardRequeueErrorMessageLua requeueLua)
+        public DashboardRequeueErrorMessageCommandHandler(
+            DashboardRequeueErrorMessageLua requeueLua)
         {
             Guard.NotNull(() => requeueLua, requeueLua);
             _requeueLua = requeueLua;

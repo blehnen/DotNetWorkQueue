@@ -57,7 +57,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
         private static DashboardRequeueErrorMessagePrepareHandler CreateHandler()
         {
-            return new DashboardRequeueErrorMessagePrepareHandler(new FakeCommandStringCache());
+            var optionsFactory = Substitute.For<ITransportOptionsFactory>();
+            optionsFactory.Create().Returns(Substitute.For<ITransportOptions>());
+            return new DashboardRequeueErrorMessagePrepareHandler(new FakeCommandStringCache(), optionsFactory);
         }
 
         private static IDbCommand CreateDbCommand()

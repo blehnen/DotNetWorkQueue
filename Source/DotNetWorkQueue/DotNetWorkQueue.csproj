@@ -4,7 +4,7 @@
     <TargetFrameworks>net10.0;net8.0;net48;netstandard2.0;</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.9.0</Version>
+    <Version>0.9.1</Version>
 	  <Description>
 		  Work queue for dot net 4.8, dot net standard 2.0, 8.0 and 10.0. Supports scheduling, delayed processing, prioritized queues, message expiration, retries with configurable back-off and more.
 		  SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
@@ -18,6 +18,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>Tasks Jobs Scheduler Threading Queues</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
@@ -113,6 +114,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     </Reference>
   </ItemGroup>
   
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup>
     <Reference Include="JpLabs.DynamicCode">
       <HintPath>..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll</HintPath>

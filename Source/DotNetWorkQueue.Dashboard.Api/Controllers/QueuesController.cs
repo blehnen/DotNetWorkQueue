@@ -239,6 +239,28 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         }
 
         /// <summary>
+        /// Requeues all error messages back to Waiting status. Returns the number of messages requeued.
+        /// </summary>
+        [HttpPost("{queueId:guid}/errors/requeue-all")]
+        [ProducesResponseType(typeof(BulkActionResponse), 200)]
+        public async Task<IActionResult> RequeueAllErrors(Guid queueId)
+        {
+            var count = await _service.RequeueAllErrorMessagesAsync(queueId);
+            return Ok(new BulkActionResponse { Count = count });
+        }
+
+        /// <summary>
+        /// Resets all stale (Processing) messages back to Waiting status. Returns the number of messages reset.
+        /// </summary>
+        [HttpPost("{queueId:guid}/messages/reset-all")]
+        [ProducesResponseType(typeof(BulkActionResponse), 200)]
+        public async Task<IActionResult> ResetAllStaleMessages(Guid queueId)
+        {
+            var count = await _service.ResetAllStaleMessagesAsync(queueId);
+            return Ok(new BulkActionResponse { Count = count });
+        }
+
+        /// <summary>
         /// Re-encodes and saves a new message body. The JSON must be deserializable to the original
         /// message type; the operation is rejected if the type cannot be resolved.
         /// </summary>
