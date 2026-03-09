@@ -17,17 +17,18 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
 {
+    [TestClass]
     public class DashboardDeleteAllErrorMessagesCommandTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = new DashboardDeleteAllErrorMessagesCommand();
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
     }
 }

@@ -23,13 +23,14 @@ using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
 using FluentAssertions;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class AddStandardMessageHeadersTests
     {
-        [Fact]
+        [TestMethod]
         public void AddHeaders_Stamps_MessageBodyType_As_PortableName()
         {
             var (sut, message) = CreateSut(new SimpleTestBody());
@@ -41,7 +42,7 @@ namespace DotNetWorkQueue.Tests.Queue
             stamped.Should().Be($"{typeof(SimpleTestBody).FullName}, {typeof(SimpleTestBody).Assembly.GetName().Name}");
         }
 
-        [Fact]
+        [TestMethod]
         public void AddHeaders_PortableName_Does_Not_Contain_Version()
         {
             var (sut, message) = CreateSut(new SimpleTestBody());
@@ -54,7 +55,7 @@ namespace DotNetWorkQueue.Tests.Queue
             stamped.Should().NotContain("PublicKeyToken=");
         }
 
-        [Fact]
+        [TestMethod]
         public void AddHeaders_Does_Not_Stamp_MessageBodyType_For_Delegate_Body()
         {
             Action<string> delegateBody = _ => { };
@@ -65,7 +66,7 @@ namespace DotNetWorkQueue.Tests.Queue
             message.Headers.Should().NotContainKey("Queue-MessageBodyType");
         }
 
-        [Fact]
+        [TestMethod]
         public void AddHeaders_Always_Stamps_FirstPossibleDeliveryDate()
         {
             var (sut, message) = CreateSut(new SimpleTestBody());

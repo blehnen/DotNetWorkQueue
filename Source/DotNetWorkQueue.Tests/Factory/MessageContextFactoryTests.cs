@@ -1,20 +1,21 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class MessageContextFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var factory = Create();
             var test = factory.Create();
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
         private IMessageContextFactory Create()
         {

@@ -1,48 +1,49 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Queue;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class WorkerNotificationTests
     {
-        [Fact]
+        [TestMethod]
         public void Rollback_Disabled_Default()
         {
             var test = Create();
-            Assert.False(test.TransportSupportsRollback);
+            Assert.IsFalse(test.TransportSupportsRollback);
         }
 
-        [Fact]
+        [TestMethod]
         public void Rollback_Enabled()
         {
             var test = Create(true);
-            Assert.True(test.TransportSupportsRollback);
+            Assert.IsTrue(test.TransportSupportsRollback);
         }
 
-        [Fact]
+        [TestMethod]
         public void WorkerStopping_NotNull()
         {
             var test = Create();
-            Assert.NotNull(test.WorkerStopping);
+            Assert.IsNotNull(test.WorkerStopping);
         }
 
-        [Fact]
+        [TestMethod]
         public void HeaderNames_NotNull()
         {
             var test = Create();
-            Assert.NotNull(test.HeaderNames);
+            Assert.IsNotNull(test.HeaderNames);
         }
 
-        [Fact]
+        [TestMethod]
         public void Log_NotNull()
         {
             var test = Create();
-            Assert.NotNull(test.Log);
+            Assert.IsNotNull(test.Log);
         }
 
         private WorkerNotification Create(bool enableRollback = false)

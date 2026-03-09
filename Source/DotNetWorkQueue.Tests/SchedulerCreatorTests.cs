@@ -1,17 +1,17 @@
-﻿using System;
-using Xunit;
+using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests
 {
-    [Collection("IoC")]
+    [TestClass]
     public class SchedulerCreatorTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Null_Services_Fails()
         {
             using (var test = new SchedulerContainer(null))
             {
-                Assert.Throws<NullReferenceException>(
+                Assert.ThrowsExactly<NullReferenceException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Tests
                     });
             }
         }
-        [Fact]
+        [TestMethod]
         public void Create_TaskScheduler()
         {
             using (var test = new SchedulerContainer())
@@ -30,20 +30,20 @@ namespace DotNetWorkQueue.Tests
                 }
             }
         }
-        [Fact]
+        [TestMethod]
         public void Create_CreateTaskFactory()
         {
             using (var test = new SchedulerContainer())
             {
-                Assert.NotNull(test.CreateTaskFactory());
+                Assert.IsNotNull(test.CreateTaskFactory());
             }
         }
-        [Fact]
+        [TestMethod]
         public void Create_CreateTaskFactory2()
         {
             using (var test = new SchedulerContainer())
             {
-                Assert.NotNull(test.CreateTaskFactory(test.CreateTaskScheduler()));
+                Assert.IsNotNull(test.CreateTaskFactory(test.CreateTaskScheduler()));
             }
         }
     }

@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerPoisonMessage
     {
-        [Theory]
-        [InlineData(2, 60, 1, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(10, 60, 5, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(2, 60, 1, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        [TestMethod]
+        [DataRow(2, 60, 1, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(10, 60, 5, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         DataRow(2, 60, 1, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))

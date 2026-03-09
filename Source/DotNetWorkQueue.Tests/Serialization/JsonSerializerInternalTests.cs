@@ -1,35 +1,36 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Serialization;
 using Newtonsoft.Json;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Serialization
 {
+    [TestClass]
     public class JsonSerializerInternalTests
     {
-        [Fact]
+        [TestMethod]
         public void ConvertToBytes_Null_Exception()
         {
             var test = Create();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
            delegate
            {
                test.ConvertToBytes<Uri>(null);
            });
         }
-        [Fact]
+        [TestMethod]
         public void ConvertBytesTo_Null_Exception()
         {
             var test = Create();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
            delegate
            {
                test.ConvertBytesTo<Uri>(null);
            });
         }
-        [Fact]
+        [TestMethod]
         public void Test_Serialization()
         {
             var test = Create();
@@ -41,10 +42,10 @@ namespace DotNetWorkQueue.Tests.Serialization
             var serializedBytes = test.ConvertToBytes(testData);
             var testData2 = test.ConvertBytesTo<TestData>(serializedBytes);
 
-            Assert.Equal(testData.Data, testData2.Data);
+            CollectionAssert.AreEqual(testData.Data, testData2.Data);
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_Serialization_With_Interface_Exception()
         {
             var test = Create();
@@ -55,11 +56,11 @@ namespace DotNetWorkQueue.Tests.Serialization
 
             var serializedBytes = test.ConvertToBytes(testData);
 
-            Assert.Throws<JsonSerializationException>(
+            Assert.ThrowsExactly<JsonSerializationException>(
            delegate
            {
                var testData2 = test.ConvertBytesTo<ITestData>(serializedBytes);
-               Assert.Null(testData2);
+               Assert.IsNull(testData2);
            });
         }
 

@@ -1,19 +1,20 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class RetryDelayFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = Create().Create();
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
         private IRetryDelayFactory Create()
         {

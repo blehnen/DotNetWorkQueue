@@ -1,18 +1,18 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class MultiConsumerAsync
     {
-        [Theory]
-        [InlineData(100, 1, 400, 10, 1, 5, false, IntegrationConnectionInfo.ConnectionTypes.Shared),
-         InlineData(50, 0, 180, 10, 1, 0, false, IntegrationConnectionInfo.ConnectionTypes.Shared),
-         InlineData(10, 0, 180, 10, 1, 0, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        [TestMethod]
+        [DataRow(100, 1, 400, 10, 1, 5, false, IntegrationConnectionInfo.ConnectionTypes.Shared),
+         DataRow(50, 0, 180, 10, 1, 0, false, IntegrationConnectionInfo.ConnectionTypes.Shared),
+         DataRow(10, 0, 180, 10, 1, 0, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public async Task Run(int messageCount, int runtime, int timeOut, int workerCount,
             int readerCount, int queueSize, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

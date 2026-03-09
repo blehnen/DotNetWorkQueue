@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
 {
-    [Collection("consumer")]
+    [TestClass]
     public class SimpleConsumer
     {
-        [Theory]
-        [InlineData(1000, 0, 240, 5),
-        InlineData(50, 5, 200, 10),
-        InlineData(10, 15, 180, 7)]
+        [TestMethod]
+        [DataRow(1000, 0, 240, 5),
+        DataRow(50, 5, 200, 10),
+        DataRow(10, 15, 180, 7)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount)
         {
             using (var connectionInfo = new IntegrationConnectionInfo())

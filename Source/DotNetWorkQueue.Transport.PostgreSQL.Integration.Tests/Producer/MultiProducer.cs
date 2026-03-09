@@ -1,16 +1,16 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
 {
-    [Collection("producer")]
+    [TestClass]
     public class MultiProducer
     {
-        [Theory]
-        [InlineData(1000, false),
-         InlineData(10, true)]
+        [TestMethod]
+        [DataRow(1000, false),
+         DataRow(10, true)]
         public void Run(int messageCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

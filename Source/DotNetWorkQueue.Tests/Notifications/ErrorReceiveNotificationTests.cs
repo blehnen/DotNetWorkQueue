@@ -1,16 +1,17 @@
-﻿using DotNetWorkQueue.Notifications;
+using DotNetWorkQueue.Notifications;
 using System;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Notifications
 {
+    [TestClass]
     public class ErrorReceiveNotificationTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Test()
         {
             var notify = new ErrorReceiveNotification(new Exception());
-            Assert.NotNull(notify.Error);
+            Assert.IsNotNull(notify.Error);
         }
     }
 }

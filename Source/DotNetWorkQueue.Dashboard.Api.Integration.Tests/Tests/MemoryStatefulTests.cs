@@ -26,17 +26,19 @@ using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
-    public class MemoryStatefulTests : IAsyncLifetime
+    [TestClass]
+    public class MemoryStatefulTests
     {
         private DashboardTestServer _server;
         private TransportFixture<MemoryDashboardInit, MessageQueueCreation> _fixture;
         private ConsumerStateHelper<MemoryDashboardInit> _consumerHelper;
         private Guid _queueId;
 
+        [TestInitialize]
         public async Task InitializeAsync()
         {
             var queueName = QueueNameGenerator.Create();
@@ -71,14 +73,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 s => s.Processing >= 2);
         }
 
-        public async Task DisposeAsync()
+        [TestCleanup]
+        public async Task CleanupAsync()
         {
             _consumerHelper?.Dispose();
             if (_server != null) await _server.DisposeAsync();
             _fixture?.Dispose();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Status_WithProcessing()
         {
             var status = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
@@ -88,7 +91,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             status.Total.Should().Be(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task MessageCount_ProcessingFilter()
         {
             var response = await _server.Client.GetAsync(
@@ -98,7 +101,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             count.Should().Be(2);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Messages_ProcessingFilter()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -106,7 +109,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items.Should().HaveCount(2);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Messages_NoFilter_AllStates()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -114,7 +117,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items.Should().HaveCount(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task MessageDetail_ProcessingMessage()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -127,7 +130,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             detail.QueueId.Should().Be(messageId);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task MessageBody_ProcessingMessage()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -140,7 +143,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             body.Body.Should().NotBeNullOrEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteMessage_Processing()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(

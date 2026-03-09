@@ -1,28 +1,29 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Messages;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class MessageHandlerRegistrationTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Null_Set_Fails()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageHandlerRegistration>();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
             delegate
             {
                 test.Set<FakeMessage>(null);
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void GetHandler()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -33,10 +34,10 @@ namespace DotNetWorkQueue.Tests.Messages
             }
 
             test.Set((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
-            Assert.Equal((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action, test.GetHandler());
+            Assert.AreEqual((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action, test.GetHandler());
         }
 
-        [Fact]
+        [TestMethod]
         public void GenerateMessage()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -58,8 +59,10 @@ namespace DotNetWorkQueue.Tests.Messages
 
             var message = test.GenerateMessage(rec);
 
-            Assert.IsAssignableFrom<FakeMessage>(message.Body);
+            Assert.IsInstanceOfType<FakeMessage>(message.Body);
         }
+
+        [TestClass]
 
         public class FakeMessage
         {

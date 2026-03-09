@@ -1,21 +1,22 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 using System.Collections.Concurrent;
 using System.Threading;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class WorkerNameFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var factory = Create();
-            Assert.NotNull(factory.Create());
+            Assert.IsNotNull(factory.Create());
         }
-        [Fact]
+        [TestMethod]
         public void Create_Multi_Threaded()
         {
             const int numThreads = 25;
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Tests.Factory
                 }).Start();
             }
             resetEvent.WaitOne();
-            Assert.Equal(numThreads, names.Count);
+            Assert.AreEqual(numThreads, names.Count);
         }
         private IWorkerNameFactory Create()
         {

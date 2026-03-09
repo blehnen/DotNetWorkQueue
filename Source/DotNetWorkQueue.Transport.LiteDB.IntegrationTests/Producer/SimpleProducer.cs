@@ -1,27 +1,27 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
 {
-    [Collection("Producer")]
+    [TestClass]
     public class SimpleProducer
     {
-        [Theory]
-        [InlineData(1000, true, true, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(100, false, true, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(100, false, false, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(100, true, false, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(100, false, true, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(100, true, true, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        [TestMethod]
+        [DataRow(1000, true, true, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(100, false, true, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(100, false, false, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(100, true, false, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(100, false, true, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(100, true, true, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
 
-         InlineData(10, true, true, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, false, true, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, false, false, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, true, false, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, false, true, false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+         DataRow(10, true, true, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         DataRow(10, false, true, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         DataRow(10, false, false, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         DataRow(10, true, false, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         DataRow(10, false, true, false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(
             int messageCount,
             bool interceptors,

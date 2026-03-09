@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
@@ -46,14 +46,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             var currentCount = processedCount.GetErrorCount(message.MessageId.Id.Value.ToString());
             if (currentCount == 0)
             {
-                Assert.False(message.PreviousErrors.ContainsKey(typeof(IndexOutOfRangeException).ToString()));
+                Assert.IsFalse(message.PreviousErrors.ContainsKey(typeof(IndexOutOfRangeException).ToString()));
             }
             else
             {
                 var messageCountFromMessage = Convert.ToInt64(message.PreviousErrors[typeof(IndexOutOfRangeException).ToString()]);
 
                 //our count and the message count should match
-                Assert.Equal(currentCount, messageCountFromMessage);
+                Assert.AreEqual(currentCount, messageCountFromMessage);
             }
 
             Interlocked.Increment(ref processedCount.ProcessedCount);

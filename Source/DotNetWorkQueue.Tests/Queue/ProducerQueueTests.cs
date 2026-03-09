@@ -1,39 +1,39 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class ProducerQueueTests
     {
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             using (var test = CreateQueue())
             {
-                Assert.False(test.IsDisposed);
+                Assert.IsFalse(test.IsDisposed);
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             var test = CreateQueue();
             test.Dispose();
-            Assert.True(test.IsDisposed);
+            Assert.IsTrue(test.IsDisposed);
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Call_Dispose_Multiple_Times_Ok()
         {
             using (var test = CreateQueue())
@@ -42,20 +42,20 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Get_ReadOnlyConfiguration_Set_After_First_Message()
         {
             var test = CreateQueue();
             test.Send(new FakeMessage());
-            Assert.True(test.Configuration.IsReadOnly);
+            Assert.IsTrue(test.Configuration.IsReadOnly);
         }
 
-        [Fact]
+        [TestMethod]
         public void Send_Null_Message_Exception()
         {
             using (var test = CreateQueue())
             {
-                Assert.Throws<ArgumentNullException>(
+                Assert.ThrowsExactly<ArgumentNullException>(
                     delegate
                     {
                         FakeMessage message = null;
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Send_Null_AdditionalData_NoException()
         {
             using (var test = CreateQueue())
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Send_Message()
         {
             using (var test = CreateQueue())
@@ -83,9 +83,11 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Theory, AutoData]
-        public void Send_Message_And_Data(string value)
+        [TestMethod]
+        public void Send_Message_And_Data()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             using (var test = CreateQueue())
             {
                 var data = new FakeAMessageData();
@@ -101,6 +103,8 @@ namespace DotNetWorkQueue.Tests.Queue
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             return fixture.Create<ProducerQueue<FakeMessage>>();
         }
+
+        [TestClass]
 
         public class FakeMessage
         {

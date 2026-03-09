@@ -1,15 +1,16 @@
-﻿using DotNetWorkQueue.Queue;
-using Xunit;
+using DotNetWorkQueue.Queue;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class QueueScriptTests
     {
-        [Fact]
+        [TestMethod]
         public void HasScript()
         {
             var script = new QueueScript("true", true);
-            Assert.True(script.HasScript);
+            Assert.IsTrue(script.HasScript);
         }
     }
 }

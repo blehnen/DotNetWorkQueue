@@ -4,13 +4,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareHandler
 {
+    [TestClass]
     public class GetDashboardErrorRetriesPrepareHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle_Sets_CommandText()
         {
             var cache = new FakeCommandStringCache();
@@ -19,10 +20,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             handler.Handle(new GetDashboardErrorRetriesQuery("42"), command, CommandStringTypes.GetDashboardErrorRetries);
 
-            Assert.Equal("SELECT retries", command.CommandText);
+            Assert.AreEqual("SELECT retries", command.CommandText);
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Adds_QueueId_Parameter()
         {
             var cache = new FakeCommandStringCache();
@@ -33,8 +34,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             var parameters = (DataParameterCollection)command.Parameters;
             var param = parameters.First();
-            Assert.Equal("@QueueId", param.ParameterName);
-            Assert.Equal(42L, param.Value);
+            Assert.AreEqual("@QueueId", param.ParameterName);
+            Assert.AreEqual(42L, param.Value);
         }
 
         private static IDbCommand CreateDbCommand()

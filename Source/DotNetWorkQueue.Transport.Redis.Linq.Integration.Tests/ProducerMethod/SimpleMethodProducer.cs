@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
@@ -6,38 +6,38 @@ using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("Producer")]
+    [TestClass]
     public class SimpleMethodProducer
     {
-        [Theory]
-        [InlineData(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+        [TestMethod]
+        [DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
 #if NETFULL
-         InlineData(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         InlineData(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
 #endif
-         InlineData(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         InlineData(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+         DataRow(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
         public void Run(
             int messageCount,
             bool interceptors,

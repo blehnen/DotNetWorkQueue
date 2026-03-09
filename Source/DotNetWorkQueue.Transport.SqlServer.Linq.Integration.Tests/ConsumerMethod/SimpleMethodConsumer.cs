@@ -1,24 +1,24 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class SimpleMethodConsumer
     {
-        [Theory]
-        [InlineData(1000, 0, 240, 5, false, LinqMethodTypes.Compiled, false),
+        [TestMethod]
+        [DataRow(1000, 0, 240, 5, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
-         InlineData(50, 5, 200, 10, true, LinqMethodTypes.Dynamic, false),
-         InlineData(10, 15, 180, 7, false, LinqMethodTypes.Dynamic, false),
+         DataRow(50, 5, 200, 10, true, LinqMethodTypes.Dynamic, false),
+         DataRow(10, 15, 180, 7, false, LinqMethodTypes.Dynamic, false),
 #endif
-         InlineData(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true)]
+         DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
@@ -6,18 +6,18 @@ using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerMethodErrorTable
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(10, 60, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+        [DataRow(10, 60, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
 #else
-        [InlineData(1, 40, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+        [DataRow(1, 40, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
 #endif
         public void Run(int messageCount, int timeOut,
             int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using AutoFixture;
@@ -7,24 +7,25 @@ using DotNetWorkQueue.Queue;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class StopWorkerTests
     {
-        [Fact]
+        [TestMethod]
         public void Stop_Workers_Null_Fails()
         {
             var test = Create();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 delegate
                 {
                     test.Stop(null);
                 });
         }
 
-        [Fact]
+        [TestMethod]
         public void Stop_Workers()
         {
             var test = Create();
@@ -41,7 +42,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Cancel_Set()
         {
             var cancellation = new CancellationTokenSource();
@@ -49,7 +50,7 @@ namespace DotNetWorkQueue.Tests.Queue
             cancel.StopTokenSource.Returns(cancellation);
             var test = Create(cancel);
             test.SetCancelTokenForStopping();
-            Assert.True(cancellation.IsCancellationRequested);
+            Assert.IsTrue(cancellation.IsCancellationRequested);
         }
 
         private StopWorker Create(IQueueCancelWork cancelWork)

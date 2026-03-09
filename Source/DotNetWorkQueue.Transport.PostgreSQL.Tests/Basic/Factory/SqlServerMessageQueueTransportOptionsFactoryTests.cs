@@ -1,15 +1,16 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.Factory
 {
+    [TestClass]
     public class PostgreSqlMessageQueueTransportOptionsFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());

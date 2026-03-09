@@ -27,11 +27,11 @@ using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
 {
-    [Collection("dashboard")]
+    [TestClass]
     public class DashboardQueries
     {
         #region Helpers
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                            queueCreator.GetQueueCreation<MessageQueueCreation>(connection))
                     {
                         var createResult = oCreation.CreateQueue();
-                        Assert.True(createResult.Success, createResult.ErrorMessage);
+                        Assert.IsTrue(createResult.Success, createResult.ErrorMessage);
                         var scope = oCreation.Scope;
 
                         try
@@ -112,7 +112,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
 
         #region Status & Counts
 
-        [Fact]
+        [TestMethod]
         public void StatusCounts_AllWaiting()
         {
             RunDashboardTest(5, container =>
@@ -131,7 +131,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void StatusCounts_WithProcessing()
         {
             RunDashboardTest(5, 2, container =>
@@ -150,7 +150,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void MessageCount_NoFilter()
         {
             RunDashboardTest(5, container =>
@@ -164,7 +164,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void MessageCount_WaitingFilter()
         {
             RunDashboardTest(5, 2, container =>
@@ -178,7 +178,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void MessageCount_ProcessingFilter()
         {
             RunDashboardTest(5, 2, container =>
@@ -192,7 +192,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void MessageCount_ErrorFilter()
         {
             RunDashboardTest(5, container =>
@@ -210,7 +210,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
 
         #region Message Listing
 
-        [Fact]
+        [TestMethod]
         public void Messages_NoFilter()
         {
             RunDashboardTest(3, container =>
@@ -231,7 +231,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void Messages_WaitingFilter()
         {
             RunDashboardTest(3, 1, container =>
@@ -251,7 +251,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void Messages_ProcessingFilter()
         {
             RunDashboardTest(3, 1, container =>
@@ -268,7 +268,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void Messages_ErrorFilter_Empty()
         {
             RunDashboardTest(3, container =>
@@ -288,7 +288,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
 
         #region Message Detail, Body, Headers
 
-        [Fact]
+        [TestMethod]
         public void MessageDetail_Exists()
         {
             RunDashboardTest(1, container =>
@@ -319,7 +319,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void MessageDetail_NotFound()
         {
             RunDashboardTest(0, container =>
@@ -336,7 +336,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void MessageBody_HasBytes()
         {
             RunDashboardTest(1, container =>
@@ -364,7 +364,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void MessageHeaders_HasBytes()
         {
             RunDashboardTest(1, container =>
@@ -395,7 +395,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
 
         #region Jobs
 
-        [Fact]
+        [TestMethod]
         public void Jobs_WhenEmpty()
         {
             RunDashboardTest(0, container =>
@@ -415,7 +415,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
 
         #region Commands
 
-        [Fact]
+        [TestMethod]
         public void DeleteMessage_Exists()
         {
             RunDashboardTest(1, container =>
@@ -451,7 +451,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void DeleteMessage_NotFound()
         {
             RunDashboardTest(0, container =>
@@ -467,7 +467,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void DeleteMessage_Processing()
         {
             RunDashboardTest(2, 1, container =>
@@ -508,7 +508,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
 
         #region No-op Handlers
 
-        [Fact]
+        [TestMethod]
         public void StaleMessages_Empty()
         {
             RunDashboardTest(0, container =>
@@ -524,7 +524,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void ErrorMessages_Empty()
         {
             RunDashboardTest(0, container =>
@@ -540,7 +540,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void ErrorMessageCount_Zero()
         {
             RunDashboardTest(0, container =>
@@ -555,7 +555,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void ErrorRetries_Empty()
         {
             RunDashboardTest(0, container =>
@@ -572,7 +572,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void Configuration_Null()
         {
             RunDashboardTest(0, container =>
@@ -587,7 +587,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void DeleteAllErrors_Zero()
         {
             RunDashboardTest(0, container =>
@@ -602,7 +602,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void RequeueError_Zero()
         {
             RunDashboardTest(0, container =>
@@ -618,7 +618,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void ResetStale_Zero()
         {
             RunDashboardTest(0, container =>
@@ -634,7 +634,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void UpdateBody_Zero()
         {
             RunDashboardTest(0, container =>

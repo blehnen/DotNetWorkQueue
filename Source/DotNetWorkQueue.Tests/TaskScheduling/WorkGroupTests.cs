@@ -1,97 +1,98 @@
-﻿using DotNetWorkQueue.TaskScheduling;
+using DotNetWorkQueue.TaskScheduling;
 using System;
 using System.Collections.Generic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
+    [TestClass]
     public class WorkGroupTests
     {
         private const string Name = "test";
 
-        [Fact]
+        [TestMethod]
         public void Create_Null_Constructor_Fails()
         {
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
             delegate
             {
                 var test = new WorkGroup(null, 0);
-                Assert.Null(test);
+                Assert.IsNull(test);
             });
         }
-        [Fact]
+        [TestMethod]
         public void Create_Zero_Concurrency_Fails()
         {
-            Assert.Throws<ArgumentException>(
+            Assert.ThrowsExactly<ArgumentException>(
             delegate
             {
                 var test = new WorkGroup(Name, 0);
-                Assert.Null(test);
+                Assert.IsNull(test);
             });
         }
 
 
-        [Fact]
+        [TestMethod]
         public void GetSet_Name()
         {
             var test = new WorkGroup(Name, 1);
-            Assert.Equal(Name, test.Name);
+            Assert.AreEqual(Name, test.Name);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_Concurrency()
         {
             var test = new WorkGroup(Name, 1);
-            Assert.Equal(1, test.ConcurrencyLevel);
+            Assert.AreEqual(1, test.ConcurrencyLevel);
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_ToString()
         {
             var test = new WorkGroup(Name, 1);
-            Assert.Equal(Name, test.ToString());
+            Assert.AreEqual(Name, test.ToString());
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_Equals()
         {
             var test = new WorkGroup(Name, 1);
             var test2 = new WorkGroup(Name, 50);
-            Assert.True(test.Equals(test2));
+            Assert.IsTrue(test.Equals(test2));
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_NotEquals()
         {
             var test = new WorkGroup(Name, 1);
             var test2 = new WorkGroup("not-equal", 50);
-            Assert.False(test.Equals(test2));
+            Assert.IsFalse(test.Equals(test2));
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_Equals_Null_False()
         {
             var test = new WorkGroup(Name, 1);
-            Assert.False(test.Equals(null));
+            Assert.IsFalse(test.Equals(null));
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_HashCode_Equals()
         {
             var test = new WorkGroup(Name, 1);
             var test2 = new WorkGroup(Name, 50);
-            Assert.Equal(test.GetHashCode(), test2.GetHashCode());
+            Assert.AreEqual(test.GetHashCode(), test2.GetHashCode());
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_HashCode_NotEquals()
         {
             var test = new WorkGroup(Name, 1);
             var test2 = new WorkGroup("Another Name", 50);
-            Assert.NotEqual(test.GetHashCode(), test2.GetHashCode());
+            Assert.AreNotEqual(test.GetHashCode(), test2.GetHashCode());
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_Hash_Duplicate_Fails()
         {
             // ReSharper disable once CollectionNeverQueried.Local
@@ -100,14 +101,14 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             var test2 = new WorkGroup(Name, 50);
 
             tests.Add(test, test);
-            Assert.Throws<ArgumentException>(
+            Assert.ThrowsExactly<ArgumentException>(
            delegate
            {
                tests.Add(test2, test2);
            });
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_Hash()
         {
             var tests = new Dictionary<WorkGroup, WorkGroup>();
@@ -117,13 +118,13 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             tests.Add(test, test);
             tests.Add(test2, test2);
 
-            Assert.Equal(2, tests.Count);
-            Assert.Equal(test, tests[test]);
-            Assert.Equal(test2, tests[test2]);
-            Assert.NotEqual(test, tests[test2]);
+            Assert.AreEqual(2, tests.Count);
+            Assert.AreEqual(test, tests[test]);
+            Assert.AreEqual(test2, tests[test2]);
+            Assert.AreNotEqual(test, tests[test2]);
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_Hash_Multi()
         {
             var tests = new Dictionary<WorkGroup, WorkGroup>(100000);
@@ -132,7 +133,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
                 var test = new WorkGroup(string.Concat(Name, i.ToString()), i + 1);
                 tests.Add(test, test);
             }
-            Assert.Equal(100000, tests.Count);
+            Assert.AreEqual(100000, tests.Count);
         }
     }
 }

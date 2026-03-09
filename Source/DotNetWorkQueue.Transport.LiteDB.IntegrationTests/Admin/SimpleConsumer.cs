@@ -1,17 +1,17 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Admin
 {
-    [Collection("Consumeradmin")]
+    [TestClass]
     public class SimpleConsumer
     {
-        [Theory]
-        [InlineData(7, 10, 120, 2, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-        InlineData(2, 10, 120, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-        InlineData(15, 10, 120, 4, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        [TestMethod]
+        [DataRow(7, 10, 120, 2, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        DataRow(2, 10, 120, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+        DataRow(15, 10, 120, 4, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))

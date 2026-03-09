@@ -1,29 +1,30 @@
-﻿using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Tests
 {
+    [TestClass]
     public class LiteDbConnectionInformationTests
     {
         private const string GoodConnection =
             @"FileName=c:\temp\test.db;";
 
-        [Fact()]
+        [TestMethod]
         public void LiteDbConnectionInformation_Test()
         {
             var test = new LiteDbConnectionInformation(new QueueConnection("blah", GoodConnection));
-            Assert.Equal("blah", test.QueueName);
-            Assert.Equal(GoodConnection, test.ConnectionString);
+            Assert.AreEqual("blah", test.QueueName);
+            Assert.AreEqual(GoodConnection, test.ConnectionString);
         }
 
-        [Fact()]
+        [TestMethod]
         public void Clone_Test()
         {
             var test = new LiteDbConnectionInformation(new QueueConnection("blah", GoodConnection));
             var clone = test.Clone();
 
-            Assert.Equal(test.ConnectionString, clone.ConnectionString);
-            Assert.Equal(test.QueueName, clone.QueueName);
+            Assert.AreEqual(test.ConnectionString, clone.ConnectionString);
+            Assert.AreEqual(test.QueueName, clone.QueueName);
         }
     }
 }

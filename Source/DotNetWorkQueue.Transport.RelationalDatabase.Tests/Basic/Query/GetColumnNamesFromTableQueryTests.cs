@@ -1,16 +1,17 @@
-﻿using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
-using Xunit;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
 {
+    [TestClass]
     public class GetColumnNamesFromTableQueryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = new GetColumnNamesFromTableQuery("test1", "test2");
-            Assert.Equal("test1", test.ConnectionString);
-            Assert.Equal("test2", test.TableName);
+            Assert.AreEqual("test1", test.ConnectionString);
+            Assert.AreEqual("test2", test.TableName);
         }
     }
 }

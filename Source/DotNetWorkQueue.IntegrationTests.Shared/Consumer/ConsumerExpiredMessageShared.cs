@@ -1,8 +1,8 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 {
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             }
                         }
 
-                        Assert.Equal(0, processedCount.ProcessedCount);
+                        Assert.AreEqual(0, processedCount.ProcessedCount);
                         VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(), 0);
                         VerifyMetrics.VerifyExpiredMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
                             messageCount);

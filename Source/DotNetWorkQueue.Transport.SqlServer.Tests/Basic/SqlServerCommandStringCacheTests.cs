@@ -1,32 +1,33 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using NSubstitute;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
 {
+    [TestClass]
     public class SqlServerCommandStringCacheTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Key_Missing()
         {
             var test = Create();
-            Assert.False(test.Contains("test"));
+            Assert.IsFalse(test.Contains("test"));
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_Key()
         {
             var test = Create();
             test.Add("test", "command");
-            Assert.True(test.Contains("test"));
-            Assert.Equal("command", test.Get("test").CommandText);
+            Assert.IsTrue(test.Contains("test"));
+            Assert.AreEqual("command", test.Get("test").CommandText);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Threaded_Query()
         {
             var test = Create();

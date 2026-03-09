@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class SimpleConsumer
     {
-        [Theory]
-        [InlineData(500, 0, 240, 5, ConnectionInfoTypes.Linux),
-        InlineData(50, 5, 200, 10, ConnectionInfoTypes.Linux)]
+        [TestMethod]
+        [DataRow(500, 0, 240, 5, ConnectionInfoTypes.Linux),
+        DataRow(50, 5, 200, 10, ConnectionInfoTypes.Linux)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();

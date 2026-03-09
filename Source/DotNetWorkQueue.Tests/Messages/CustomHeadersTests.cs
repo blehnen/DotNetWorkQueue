@@ -1,21 +1,22 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Messages;
 using NSubstitute;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class CustomHeadersTests
     {
-        [Theory, AutoData]
-        public void Create_Default_GetSet(string name)
+        [TestMethod]
+        public void Create_Default_GetSet()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
 
             var testData = new TestData();
 
@@ -26,9 +27,11 @@ namespace DotNetWorkQueue.Tests.Messages
             customHeaders.Add(name, testData);
             var data = customHeaders.Get<TestData>(name);
 
-            Assert.Equal(testData, data.Default);
-            Assert.Equal(name, data.Name);
+            Assert.AreEqual(testData, data.Default);
+            Assert.AreEqual(name, data.Name);
         }
+
+        [TestClass]
 
         public class TestData
         {

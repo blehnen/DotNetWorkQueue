@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         {
             var db = _connection.Connection.GetDatabase();
             var records = !string.IsNullOrEmpty(route) ? db.ListLength(_redisNames.PendingRoute(route)) : db.HashLength(_redisNames.Status);
-            Assert.Equal(messageCount, records);
+            Assert.AreEqual(messageCount, records);
         }
 
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
@@ -53,12 +53,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         {
             var db = _connection.Connection.GetDatabase();
             var records = !string.IsNullOrEmpty(route) ? db.ListLength(_redisNames.PendingRoute(route)) : db.HashLength(_redisNames.Status);
-            Assert.Equal(messageCount, records);
+            Assert.AreEqual(messageCount, records);
 
             var hashes = db.HashGetAll(_redisNames.Status);
             foreach (var hash in hashes)
             {
-                Assert.Equal(expectedStatus.ToString(), hash.Value.ToString());
+                Assert.AreEqual(expectedStatus.ToString(), hash.Value.ToString());
             }
         }
 
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         {
             var db = _connection.Connection.GetDatabase();
             var records = db.SortedSetLength(_redisNames.Delayed);
-            Assert.Equal(messageCount, records);
+            Assert.AreEqual(messageCount, records);
         }
 
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         {
             var db = _connection.Connection.GetDatabase();
             var records = db.SortedSetLength(_redisNames.Expiration);
-            Assert.Equal(messageCount, records);
+            Assert.AreEqual(messageCount, records);
         }
 
         [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
@@ -111,11 +111,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             if (!ignoreErrorTracking)
             {
                 records = db.ListLength(_redisNames.Error);
-                Assert.Equal(recordCount, records);
+                Assert.AreEqual(recordCount, records);
             }
 
             records = db.HashLength(_redisNames.Values);
-            Assert.Equal(recordCount, records);
+            Assert.AreEqual(recordCount, records);
 
             VerifyStatus(recordCount, expectedStatus);
         }
@@ -127,12 +127,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         {
             var db = _connection.Connection.GetDatabase();
             var records = db.HashLength(_redisNames.Status);
-            Assert.Equal(messageCount, records);
+            Assert.AreEqual(messageCount, records);
 
             var hashes = db.HashGetAll(_redisNames.Status);
             foreach (var hash in hashes)
             {
-                Assert.Equal(expectedStatus.ToString(), hash.Value.ToString());
+                Assert.AreEqual(expectedStatus.ToString(), hash.Value.ToString());
             }
         }
 
@@ -159,7 +159,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         {
             var db = _connection.Connection.GetDatabase();
             var records = db.HashLength(_redisNames.MetaData);
-            Assert.Equal(messageCount, records);
+            Assert.AreEqual(messageCount, records);
         }
 
         [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]

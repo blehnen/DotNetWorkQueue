@@ -1,20 +1,21 @@
-﻿using DotNetWorkQueue.Factory;
+using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Messages;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class StandardHeadersTests
     {
-        [Fact]
+        [TestMethod]
         public void MessageBodyType_Has_Correct_Name()
         {
             var sut = Create();
             sut.MessageBodyType.Name.Should().Be("Queue-MessageBodyType");
         }
 
-        [Fact]
+        [TestMethod]
         public void MessageBodyType_Default_Is_Null()
         {
             var sut = Create();

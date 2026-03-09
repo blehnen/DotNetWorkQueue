@@ -26,17 +26,19 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
-    public class SqliteErrorTests : IAsyncLifetime
+    [TestClass]
+    public class SqliteErrorTests
     {
         private DashboardTestServer _server;
         private TransportFixture<SqLiteMessageQueueInit, SqLiteMessageQueueCreation> _fixture;
         private ConsumerStateHelper<SqLiteMessageQueueInit> _consumerHelper;
         private Guid _queueId;
 
+        [TestInitialize]
         public async Task InitializeAsync()
         {
             var queueName = QueueNameGenerator.Create();
@@ -75,14 +77,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             await DashboardPollingHelper.WaitForErrorsAsync(_server.Client, _queueId, 2);
         }
 
-        public async Task DisposeAsync()
+        [TestCleanup]
+        public async Task CleanupAsync()
         {
             _consumerHelper?.Dispose();
             if (_server != null) await _server.DisposeAsync();
             _fixture?.Dispose();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Status_WithErrors()
         {
             var status = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
@@ -90,7 +93,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             status.Error.Should().BeGreaterThan(0);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Errors_AfterFailure()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
@@ -99,7 +102,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items[0].LastException.Should().NotBeNullOrEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteAllErrors_AfterFailure()
         {
             var response = await _server.Client.DeleteAsync(
@@ -113,7 +116,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items.Should().BeEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task RequeueError_Success()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(

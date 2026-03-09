@@ -1,23 +1,24 @@
-﻿using DotNetWorkQueue.TaskScheduling;
+using DotNetWorkQueue.TaskScheduling;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
+    [TestClass]
     public class StateInformationTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Null_Constructor_Ok()
         {
             var test = new StateInformation(null);
-            Assert.Null(test.Group);
+            Assert.IsNull(test.Group);
         }
-        [Fact]
+        [TestMethod]
         public void Create_With_WorkGroup()
         {
             var group = Substitute.For<IWorkGroup>();
             var test = new StateInformation(group);
-            Assert.Equal(group, test.Group);
+            Assert.AreEqual(group, test.Group);
         }
     }
 }

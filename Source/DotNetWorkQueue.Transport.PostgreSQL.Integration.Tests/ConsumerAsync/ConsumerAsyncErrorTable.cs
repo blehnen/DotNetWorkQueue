@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 {
-    [Collection("consumerasync")]
+    [TestClass]
     public class ConsumerAsyncErrorTable
     {
-        [Theory]
-        [InlineData(25, 120, 60, 1, 5, false, false),
-        InlineData(25, 120, 60, 1, 5, true, false),
-        InlineData(5, 120, 60, 1, 5, false, true),
-        InlineData(5, 120, 60, 1, 5, true, true)]
+        [TestMethod]
+        [DataRow(25, 120, 60, 1, 5, false, false),
+        DataRow(25, 120, 60, 1, 5, true, false),
+        DataRow(5, 120, 60, 1, 5, false, true),
+        DataRow(5, 120, 60, 1, 5, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool useTransactions, bool enableChaos)
         {

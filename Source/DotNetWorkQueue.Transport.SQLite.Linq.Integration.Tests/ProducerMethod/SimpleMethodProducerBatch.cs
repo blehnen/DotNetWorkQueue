@@ -1,37 +1,37 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using DotNetWorkQueue.Transport.SQLite.Schema;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("Producer")]
+    [TestClass]
     public class SimpleMethodProducerBatch
     {
-        [Theory]
-        [InlineData(1000, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
-         InlineData(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, false, false, false, false, false, true, false, true, LinqMethodTypes.Dynamic, false),
-         InlineData(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
-         InlineData(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
-         InlineData(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
-         InlineData(1000, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
+        [TestMethod]
+        [DataRow(1000, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, false),
+         DataRow(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, false),
+         DataRow(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
+         DataRow(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
+         DataRow(100, false, false, false, false, false, false, true, false, true, LinqMethodTypes.Dynamic, false),
+         DataRow(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
+         DataRow(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
+         DataRow(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
+         DataRow(1000, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
 
-         InlineData(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, true),
-         InlineData(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, true),
-         InlineData(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, true),
-         InlineData(10, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, true),
-         InlineData(10, false, false, false, false, false, false, true, false, true, LinqMethodTypes.Dynamic, true),
-         InlineData(10, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
-         InlineData(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
-         InlineData(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true),
-         InlineData(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
+         DataRow(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, true),
+         DataRow(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, true),
+         DataRow(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, true),
+         DataRow(10, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, true),
+         DataRow(10, false, false, false, false, false, false, true, false, true, LinqMethodTypes.Dynamic, true),
+         DataRow(10, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
+         DataRow(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
+         DataRow(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true),
+         DataRow(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
         public void Run(
             int messageCount,
             bool interceptors,

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using AutoFixture;
@@ -6,13 +6,14 @@ using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Queue;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class WaitForThreadToFinishTests
     {
-        [Fact]
+        [TestMethod]
         public void Wait()
         {
             var t = new Thread(RunMe);
@@ -22,10 +23,10 @@ namespace DotNetWorkQueue.Tests.Queue
             var test = Create();
             test.Wait(t);
             watch.Stop();
-            Assert.InRange(watch.ElapsedMilliseconds, 2950, 4250);
+            Assert.IsInRange(2950L, 4250L, watch.ElapsedMilliseconds);
         }
 
-        [Fact]
+        [TestMethod]
         public void Wait_Long()
         {
             var t = new Thread(RunMeLong);
@@ -35,10 +36,10 @@ namespace DotNetWorkQueue.Tests.Queue
             var test = Create();
             test.Wait(t);
             watch.Stop();
-            Assert.InRange(watch.ElapsedMilliseconds, 6950, 9000);
+            Assert.IsInRange(6950L, 9000L, watch.ElapsedMilliseconds);
         }
 
-        [Fact]
+        [TestMethod]
         public void Wait_With_Timeout()
         {
             var t = new Thread(RunMe);
@@ -48,7 +49,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var test = Create();
             test.Wait(t, TimeSpan.FromMilliseconds(1000));
             watch.Stop();
-            Assert.InRange(watch.ElapsedMilliseconds, 950, 3000);
+            Assert.IsInRange(950L, 3000L, watch.ElapsedMilliseconds);
         }
 
         private WaitForThreadToFinish Create()

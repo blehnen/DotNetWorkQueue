@@ -1,35 +1,35 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
 {
-    [Collection("Producer")]
+    [TestClass]
     public class SimpleProducerBatch
     {
-        [Theory]
-        [InlineData(1000, true, true, true, false, false, false, true, false, false, false),
-         InlineData(1000, false, true, true, false, false, false, true, false, false, false),
-         InlineData(1000, false, false, false, false, false, false, false, false, false, false),
-         InlineData(1000, true, false, false, false, false, false, false, false, false, false),
-         InlineData(1000, false, false, false, false, false, false, false, true, false, false),
-         InlineData(1000, false, false, false, false, false, false, true, true, false, false),
-         InlineData(1000, false, true, false, true, true, true, false, true, false, false),
-         InlineData(5000, false, true, true, false, true, true, true, true, false, false),
-         InlineData(5000, true, true, true, false, false, false, true, false, true, false),
+        [TestMethod]
+        [DataRow(1000, true, true, true, false, false, false, true, false, false, false),
+         DataRow(1000, false, true, true, false, false, false, true, false, false, false),
+         DataRow(1000, false, false, false, false, false, false, false, false, false, false),
+         DataRow(1000, true, false, false, false, false, false, false, false, false, false),
+         DataRow(1000, false, false, false, false, false, false, false, true, false, false),
+         DataRow(1000, false, false, false, false, false, false, true, true, false, false),
+         DataRow(1000, false, true, false, true, true, true, false, true, false, false),
+         DataRow(5000, false, true, true, false, true, true, true, true, false, false),
+         DataRow(5000, true, true, true, false, false, false, true, false, true, false),
 
-         InlineData(10, true, true, true, false, false, false, true, false, false, true),
-         InlineData(10, false, true, true, false, false, false, true, false, false, true),
-         InlineData(10, false, false, false, false, false, false, false, false, false, true),
-         InlineData(10, true, false, false, false, false, false, false, false, false, true),
-         InlineData(10, false, false, false, false, false, false, false, true, false, true),
-         InlineData(10, false, false, false, false, false, false, true, true, false, true),
-         InlineData(10, false, true, false, true, true, true, false, true, false, true),
-         InlineData(50, false, true, true, false, true, true, true, true, false, true),
-         InlineData(50, true, true, true, false, false, false, true, false, true, true)]
+         DataRow(10, true, true, true, false, false, false, true, false, false, true),
+         DataRow(10, false, true, true, false, false, false, true, false, false, true),
+         DataRow(10, false, false, false, false, false, false, false, false, false, true),
+         DataRow(10, true, false, false, false, false, false, false, false, false, true),
+         DataRow(10, false, false, false, false, false, false, false, true, false, true),
+         DataRow(10, false, false, false, false, false, false, true, true, false, true),
+         DataRow(10, false, true, false, true, true, true, false, true, false, true),
+         DataRow(50, false, true, true, false, true, true, true, true, false, true),
+         DataRow(50, true, true, true, false, false, false, true, false, true, true)]
         public void Run(
             int messageCount,
             bool interceptors,

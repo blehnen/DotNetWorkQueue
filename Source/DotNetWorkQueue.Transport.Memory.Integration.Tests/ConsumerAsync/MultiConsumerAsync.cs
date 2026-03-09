@@ -1,18 +1,18 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
 {
-    [Collection("consumerasync")]
+    [TestClass]
     public class MultiConsumerAsync
     {
-        [Theory]
-        [InlineData(10, 5, 65, 10, 1, 2),
-         InlineData(10, 8, 60, 7, 1, 1),
-         InlineData(100, 0, 30, 10, 5, 0)]
+        [TestMethod]
+        [DataRow(10, 5, 65, 10, 1, 2),
+         DataRow(10, 8, 60, 7, 1, 1),
+         DataRow(100, 0, 30, 10, 5, 0)]
         public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize)
         {
             using (var connectionInfo = new IntegrationConnectionInfo())

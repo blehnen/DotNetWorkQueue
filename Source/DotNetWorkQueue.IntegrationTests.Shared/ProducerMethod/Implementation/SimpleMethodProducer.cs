@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
 {
-    [Collection("Producer")]
     public class SimpleMethodProducer
     {
         public void Run<TTransportInit, TTransportCreate>(
@@ -33,7 +32,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
                 {
                     setOptions(oCreation);
                     var result = oCreation.CreateQueue();
-                    Assert.True(result.Success, result.ErrorMessage);
+                    Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
                     var id = Guid.NewGuid();

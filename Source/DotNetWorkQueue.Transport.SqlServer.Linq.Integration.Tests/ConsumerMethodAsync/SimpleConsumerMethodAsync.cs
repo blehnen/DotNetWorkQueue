@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
@@ -6,20 +6,20 @@ using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class SimpleConsumerMethodAsync
     {
-        [Theory]
-        [InlineData(50, 5, 200, 10, 1, 1, true, 1, LinqMethodTypes.Compiled, false),
+        [TestMethod]
+        [DataRow(50, 5, 200, 10, 1, 1, true, 1, LinqMethodTypes.Compiled, false),
 #if NETFULL
-         InlineData(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Dynamic, false),
-         InlineData(10, 5, 180, 7, 1, 1, true, 1, LinqMethodTypes.Dynamic, false),
+         DataRow(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Dynamic, false),
+         DataRow(10, 5, 180, 7, 1, 1, true, 1, LinqMethodTypes.Dynamic, false),
 #endif
-         InlineData(10, 5, 180, 7, 1, 2, false, 1, LinqMethodTypes.Compiled, true)]
+         DataRow(10, 5, 180, 7, 1, 2, false, 1, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

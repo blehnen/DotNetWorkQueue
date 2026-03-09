@@ -1,53 +1,59 @@
-﻿using AutoFixture.Xunit2;
 using DotNetWorkQueue.Exceptions;
 using NSubstitute;
 using System;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AutoFixture;
+using AutoFixture.AutoNSubstitute;
 
 namespace DotNetWorkQueue.Tests.Exceptions
 {
+    [TestClass]
     public class PoisonMessageExceptionTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Empty()
         {
             var e = new PoisonMessageException();
-            Assert.Equal("Exception of type 'DotNetWorkQueue.Exceptions.PoisonMessageException' was thrown.", e.Message);
-            Assert.Null(e.HeaderPayload);
-            Assert.Null(e.MessagePayload);
+            Assert.AreEqual("Exception of type 'DotNetWorkQueue.Exceptions.PoisonMessageException' was thrown.", e.Message);
+            Assert.IsNull(e.HeaderPayload);
+            Assert.IsNull(e.MessagePayload);
         }
-        [Fact]
+        [TestMethod]
         public void Create()
         {
             var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, null);
-            Assert.Equal("error", e.Message);
+            Assert.AreEqual("error", e.Message);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Format()
         {
             var e = new PoisonMessageException(Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, null, "error {0}", 1);
-            Assert.Equal("error 1", e.Message);
+            Assert.AreEqual("error 1", e.Message);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Inner()
         {
             var e = new PoisonMessageException("error", new Exception(), Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, null);
-            Assert.Equal("error", e.Message);
-            Assert.NotNull(e.InnerException);
+            Assert.AreEqual("error", e.Message);
+            Assert.IsNotNull(e.InnerException);
         }
 
-        [Theory, AutoData]
-        public void Create_MessagePayload(byte[] message)
+        [TestMethod]
+        public void Create_MessagePayload()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var message = fixture.Create<byte[]>();
             var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, message, null);
-            Assert.Equal(message, e.MessagePayload);
+            Assert.AreEqual(message, e.MessagePayload);
         }
 
-        [Theory, AutoData]
-        public void Create_HeaderPayload(byte[] header)
+        [TestMethod]
+        public void Create_HeaderPayload()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var header = fixture.Create<byte[]>();
             var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, header);
-            Assert.Equal(header, e.HeaderPayload);
+            Assert.AreEqual(header, e.HeaderPayload);
         }
     }
 }

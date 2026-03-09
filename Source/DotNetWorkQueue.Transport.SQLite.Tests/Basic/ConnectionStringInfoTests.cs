@@ -1,24 +1,25 @@
-﻿
+
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
+    [TestClass]
     public class ConnectionStringInfoTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_ConnectionStringInfo()
         {
             var test = new ConnectionStringInfo(false, @"c:\test\temp.db3");
-            Assert.False(test.IsInMemory);
-            Assert.Equal(@"c:\test\temp.db3", test.FileName);
-            Assert.True(test.IsValid);
+            Assert.IsFalse(test.IsInMemory);
+            Assert.AreEqual(@"c:\test\temp.db3", test.FileName);
+            Assert.IsTrue(test.IsValid);
         }
-        [Fact]
+        [TestMethod]
         public void Create_InMemoryIsValid()
         {
             var test = new ConnectionStringInfo(true, string.Empty);
-            Assert.True(test.IsValid);
+            Assert.IsTrue(test.IsValid);
         }
     }
 }

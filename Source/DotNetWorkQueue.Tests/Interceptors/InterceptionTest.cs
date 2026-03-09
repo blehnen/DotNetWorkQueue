@@ -1,16 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Interceptors;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Interceptors
 {
+    [TestClass]
     public class InterceptionTest
     {
-        [Fact]
+        [TestMethod]
         public void Interceptor_Multiple_Interceptors()
         {
             var list = new List<IMessageInterceptor>
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
                 Test(register, body);
             }
         }
-        [Fact]
+        [TestMethod]
         public void Interceptor_Single_Interceptors()
         {
             var list = new List<IMessageInterceptor> { new GZipMessageInterceptor(new GZipMessageInterceptorConfiguration()) };
@@ -42,7 +43,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Interceptor_Zero_Interceptors()
         {
             IMessageInterceptorRegistrar register = new MessageInterceptors(new List<IMessageInterceptor>(), new InterceptorFactory(Substitute.For<IContainerFactory>()));
@@ -58,7 +59,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
         {
             var serialization = register.MessageToBytes(Encoding.UTF8.GetBytes(body), null);
             var message = register.BytesToMessage(serialization.Output, serialization.Graph, null);
-            Assert.Equal(body, Encoding.UTF8.GetString(message));
+            Assert.AreEqual(body, Encoding.UTF8.GetString(message));
         }
     }
 }

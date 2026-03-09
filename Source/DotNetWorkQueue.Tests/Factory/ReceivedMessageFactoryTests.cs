@@ -1,14 +1,15 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Messages;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class ReceivedMessageFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Message()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -21,10 +22,10 @@ namespace DotNetWorkQueue.Tests.Factory
                 messageId,
                 correlationId);
 
-            Assert.Equal(messageInternal.MessageId, messageId);
-            Assert.Equal(messageInternal.Body, message.Body);
-            Assert.Equal(messageInternal.Headers, message.Headers);
-            Assert.Equal(messageInternal.CorrelationId, correlationId);
+            Assert.AreEqual(messageInternal.MessageId, messageId);
+            Assert.AreEqual(messageInternal.Body, message.Body);
+            CollectionAssert.AreEquivalent((System.Collections.ICollection)messageInternal.Headers, (System.Collections.ICollection)message.Headers);
+            Assert.AreEqual(messageInternal.CorrelationId, correlationId);
         }
         private IReceivedMessageFactory Create(IFixture fixture)
         {

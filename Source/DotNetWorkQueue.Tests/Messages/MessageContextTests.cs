@@ -1,23 +1,24 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Messages;
 using NSubstitute;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class MessageContextTests
     {
-        [Theory, AutoData]
-        public void GetSet_AdditionalContextData(string name)
+        [TestMethod]
+        public void GetSet_AdditionalContextData()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
 
             var test = fixture.Create<MessageContext>();
 
@@ -29,12 +30,13 @@ namespace DotNetWorkQueue.Tests.Messages
             test.Set(property, headerData);
 
             var headerData2 = test.Get(property);
-            Assert.Equal(headerData2, headerData);
+            Assert.AreEqual(headerData2, headerData);
         }
-        [Theory, AutoData]
-        public void GetSet_AdditionalContextData_Default_Value(string name)
+        [TestMethod]
+        public void GetSet_AdditionalContextData_Default_Value()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
             var test = fixture.Create<MessageContext>();
 
             var messageContextDataFactory = fixture.Create<IMessageContextDataFactory>();
@@ -44,65 +46,66 @@ namespace DotNetWorkQueue.Tests.Messages
 
             var property = messageContextDataFactory.Create(name, headerData);
             var headerData2 = test.Get(property);
-            Assert.Equal(headerData2, headerData);
+            Assert.AreEqual(headerData2, headerData);
 
             var headerData3 = test.Get(property);
-            Assert.Equal(headerData2, headerData3);
+            Assert.AreEqual(headerData2, headerData3);
         }
 
-        [Fact]
+        [TestMethod]
         public void WorkerNotification_NotNull()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageContext>();
-            Assert.NotNull(test.WorkerNotification);
+            Assert.IsNotNull(test.WorkerNotification);
         }
 
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageContext>();
-            Assert.False(test.IsDisposed);
+            Assert.IsFalse(test.IsDisposed);
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageContext>();
             test.Dispose();
-            Assert.True(test.IsDisposed);
+            Assert.IsTrue(test.IsDisposed);
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Commit_Exception()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageContext>();
             test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
+            Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.RaiseCommit();
             });
         }
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Rollback_Exception()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var test = fixture.Create<MessageContext>();
             test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
+            Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.RaiseRollback();
             });
         }
-        [Theory, AutoData]
-        public void Disposed_Instance_SetAdditionalContextData_Exception(string value)
+        [TestMethod]
+        public void Disposed_Instance_SetAdditionalContextData_Exception()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             var test = fixture.Create<MessageContext>();
             var messageContextDataFactory =
               fixture.Create<IMessageContextDataFactory>();
@@ -110,16 +113,17 @@ namespace DotNetWorkQueue.Tests.Messages
             var headerData = fixture.Create<HeaderData>();
             var property = messageContextDataFactory.Create(value, headerData);
             test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
+            Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.Set(property, headerData);
             });
         }
-        [Theory, AutoData]
-        public void Disposed_Instance_GetAdditionalContextData_Exception(string value)
+        [TestMethod]
+        public void Disposed_Instance_GetAdditionalContextData_Exception()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             var test = fixture.Create<MessageContext>();
             var messageContextDataFactory =
               fixture.Create<IMessageContextDataFactory>();
@@ -128,7 +132,7 @@ namespace DotNetWorkQueue.Tests.Messages
             var property = messageContextDataFactory.Create(value, headerData);
             test.Set(property, headerData);
             test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
+            Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.Get(property);
@@ -136,6 +140,7 @@ namespace DotNetWorkQueue.Tests.Messages
         }
 
         [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
+        [TestClass]
         public class HeaderData : IDisposable
         {
             [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]

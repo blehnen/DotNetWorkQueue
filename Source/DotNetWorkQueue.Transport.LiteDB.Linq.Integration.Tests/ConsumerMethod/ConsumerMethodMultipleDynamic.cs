@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerMethodMultipleDynamic
     {
-        [Theory]
-        [InlineData(100, 0, 240, 5, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(1000, 0, 240, 10, false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        [TestMethod]
+        [DataRow(100, 0, 240, 5, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(1000, 0, 240, 10, false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

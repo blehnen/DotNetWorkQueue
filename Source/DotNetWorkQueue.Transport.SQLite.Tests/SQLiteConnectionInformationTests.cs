@@ -1,8 +1,9 @@
-﻿using DotNetWorkQueue.Configuration;
-using Xunit;
+using DotNetWorkQueue.Configuration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests
 {
+    [TestClass]
     public class SqLiteConnectionInformationTests
     {
         private const string GoodConnection =
@@ -11,20 +12,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         private const string BadConnection =
            "Thisisabadconnectionstring";
 
-        [Fact]
+        [TestMethod]
         public void GetSet_Connection()
         {
             var test = new SqliteConnectionInformation(new QueueConnection(string.Empty, GoodConnection), null);
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
-        [Fact]
+        [TestMethod]
         public void Test_Clone()
         {
             var test = new SqliteConnectionInformation(new QueueConnection("blah", GoodConnection), null);
             var clone = test.Clone();
 
-            Assert.Equal(test.ConnectionString, clone.ConnectionString);
-            Assert.Equal(test.QueueName, clone.QueueName);
+            Assert.AreEqual(test.ConnectionString, clone.ConnectionString);
+            Assert.AreEqual(test.QueueName, clone.QueueName);
         }
     }
 }

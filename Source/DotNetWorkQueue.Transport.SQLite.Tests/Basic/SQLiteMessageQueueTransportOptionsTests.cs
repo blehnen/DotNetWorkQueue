@@ -1,80 +1,81 @@
-﻿using DotNetWorkQueue.Transport.SQLite.Basic;
-using Xunit;
+using DotNetWorkQueue.Transport.SQLite.Basic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
+    [TestClass]
     public class SqLiteMessageQueueTransportOptionsTests
     {
-        [Fact]
+        [TestMethod]
         public void Readonly()
         {
             var test = new SqLiteMessageQueueTransportOptions();
             test.SetReadOnly();
-            Assert.True(test.IsReadOnly);
+            Assert.IsTrue(test.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Test_DefaultNotReadOnly()
         {
             var test = new SqLiteMessageQueueTransportOptions();
-            Assert.False(test.IsReadOnly);
+            Assert.IsFalse(test.IsReadOnly);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_Priority()
         {
             var test = new SqLiteMessageQueueTransportOptions();
             var c = test.EnablePriority;
             test.EnablePriority = !c;
-            Assert.Equal(!c, test.EnablePriority);
+            Assert.AreEqual(!c, test.EnablePriority);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableStatus()
         {
             var test = new SqLiteMessageQueueTransportOptions();
             var c = test.EnableStatus;
             test.EnableStatus = !c;
-            Assert.Equal(!c, test.EnableStatus);
+            Assert.AreEqual(!c, test.EnableStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableHeartBeat()
         {
             var test = new SqLiteMessageQueueTransportOptions();
             var c = test.EnableHeartBeat;
             test.EnableHeartBeat = !c;
-            Assert.Equal(!c, test.EnableHeartBeat);
+            Assert.AreEqual(!c, test.EnableHeartBeat);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableDelayedProcessing()
         {
             var test = new SqLiteMessageQueueTransportOptions();
             var c = test.EnableDelayedProcessing;
             test.EnableDelayedProcessing = !c;
-            Assert.Equal(!c, test.EnableDelayedProcessing);
+            Assert.AreEqual(!c, test.EnableDelayedProcessing);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableStatusTable()
         {
             var test = new SqLiteMessageQueueTransportOptions();
             var c = test.EnableStatusTable;
             test.EnableStatusTable = !c;
-            Assert.Equal(!c, test.EnableStatusTable);
+            Assert.AreEqual(!c, test.EnableStatusTable);
         }
 
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableMessageExpiration()
         {
             var test = new SqLiteMessageQueueTransportOptions();
             var c = test.EnableMessageExpiration;
             test.EnableMessageExpiration = !c;
-            Assert.Equal(!c, test.EnableMessageExpiration);
+            Assert.AreEqual(!c, test.EnableMessageExpiration);
         }
 
-        [Fact]
+        [TestMethod]
         public void Validation()
         {
             var test = new SqLiteMessageQueueTransportOptions();

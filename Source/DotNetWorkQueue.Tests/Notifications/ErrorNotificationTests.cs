@@ -1,16 +1,17 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Notifications;
 using System;
 using System.Collections.Generic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Notifications
 {
+    [TestClass]
     public class ErrorNotificationTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Test()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -19,11 +20,11 @@ namespace DotNetWorkQueue.Tests.Notifications
             var headers = new Dictionary<string, object>();
             var notify = new ErrorNotification(messageId, correlationId, headers, new Exception());
 
-            Assert.NotNull(notify.Error);
-            Assert.NotNull(notify.CorrelationId);
-            Assert.NotNull(notify.Headers);
-            Assert.NotNull(notify.MessageId);
-            Assert.Null(notify.GetHeader<string>(new MessageContextData<string>("none", null)));
+            Assert.IsNotNull(notify.Error);
+            Assert.IsNotNull(notify.CorrelationId);
+            Assert.IsNotNull(notify.Headers);
+            Assert.IsNotNull(notify.MessageId);
+            Assert.IsNull(notify.GetHeader<string>(new MessageContextData<string>("none", null)));
         }
     }
 }

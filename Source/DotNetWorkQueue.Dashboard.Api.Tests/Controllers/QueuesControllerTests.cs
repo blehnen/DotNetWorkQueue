@@ -7,13 +7,14 @@ using DotNetWorkQueue.Dashboard.Api.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 {
+    [TestClass]
     public class QueuesControllerTests
     {
-        [Fact]
+        [TestMethod]
         public async Task GetStatus_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
@@ -31,7 +32,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             ((QueueStatusResponse)okResult.Value).Total.Should().Be(17);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetFeatures_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
@@ -44,7 +45,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessages_Passes_Parameters()
         {
             var service = Substitute.For<IDashboardService>();
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             await service.Received(1).GetMessagesAsync(queueId, 2, 50, 0);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageCount_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
@@ -74,7 +75,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             ((OkObjectResult)result).Value.Should().Be(42L);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageDetail_Returns_Ok_When_Found()
         {
             var service = Substitute.For<IDashboardService>();
@@ -87,7 +88,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageDetail_Returns_NotFound_When_Null()
         {
             var service = Substitute.For<IDashboardService>();
@@ -100,7 +101,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetStaleMessages_Uses_Default_Threshold()
         {
             var service = Substitute.For<IDashboardService>();
@@ -116,7 +117,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             await service.Received(1).GetStaleMessagesAsync(queueId, 60, 0, 25);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetErrors_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
@@ -132,7 +133,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetErrorRetries_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
@@ -145,7 +146,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetConfiguration_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
@@ -158,7 +159,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessages_Returns_BadRequest_For_Invalid_Status()
         {
             var service = Substitute.For<IDashboardService>();
@@ -169,7 +170,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<BadRequestObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessages_Accepts_Valid_Status()
         {
             var service = Substitute.For<IDashboardService>();
@@ -185,7 +186,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageCount_Returns_BadRequest_For_Invalid_Status()
         {
             var service = Substitute.For<IDashboardService>();
@@ -196,7 +197,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<BadRequestObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessages_Accepts_Null_Status()
         {
             var service = Substitute.For<IDashboardService>();
@@ -212,7 +213,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageBody_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
@@ -228,7 +229,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageBody_Returns_NotFound()
         {
             var service = Substitute.For<IDashboardService>();
@@ -241,7 +242,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageHeaders_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
@@ -257,7 +258,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageHeaders_Returns_NotFound()
         {
             var service = Substitute.For<IDashboardService>();
@@ -270,7 +271,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteMessage_Returns_NoContent_When_Found()
         {
             var service = Substitute.For<IDashboardService>();
@@ -283,7 +284,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NoContentResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteMessage_Returns_NotFound_When_Not_Found()
         {
             var service = Substitute.For<IDashboardService>();
@@ -296,7 +297,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteAllErrors_Returns_Deleted_Count()
         {
             var service = Substitute.For<IDashboardService>();
@@ -311,7 +312,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             ((DeleteAllResponse)ok.Value).Deleted.Should().Be(5L);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task RequeueErrorMessage_Returns_NoContent_When_Found()
         {
             var service = Substitute.For<IDashboardService>();
@@ -324,7 +325,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NoContentResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task RequeueErrorMessage_Returns_NotFound_When_Not_Found()
         {
             var service = Substitute.For<IDashboardService>();
@@ -337,7 +338,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task ResetStaleMessage_Returns_NoContent_When_Reset()
         {
             var service = Substitute.For<IDashboardService>();
@@ -350,7 +351,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NoContentResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task ResetStaleMessage_Returns_NotFound_When_Not_In_Processing()
         {
             var service = Substitute.For<IDashboardService>();
@@ -363,7 +364,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBody_Returns_BadRequest_When_Body_Is_Null()
         {
             var service = Substitute.For<IDashboardService>();
@@ -374,7 +375,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<BadRequestObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBody_Returns_NoContent_On_Success()
         {
             var service = Substitute.For<IDashboardService>();
@@ -387,7 +388,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NoContentResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBody_Returns_NotFound_When_Message_Not_Found()
         {
             var service = Substitute.For<IDashboardService>();
@@ -400,7 +401,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBody_Returns_BadRequest_When_TypeUnresolvable()
         {
             var service = Substitute.For<IDashboardService>();
@@ -413,7 +414,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<BadRequestObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBody_Returns_Conflict_When_Message_Being_Processed()
         {
             var service = Substitute.For<IDashboardService>();
@@ -426,7 +427,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<ConflictObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBody_Returns_BadRequest_When_Invalid_Json()
         {
             var service = Substitute.For<IDashboardService>();

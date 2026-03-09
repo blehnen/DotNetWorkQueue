@@ -17,13 +17,14 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
 {
+    [TestClass]
     public class DashboardUpdateMessageBodyCommandTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             const string id = "7";
@@ -32,9 +33,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
 
             var test = new DashboardUpdateMessageBodyCommand(id, body, headers);
 
-            Assert.Equal(id, test.MessageId);
-            Assert.Equal(body, test.Body);
-            Assert.Equal(headers, test.Headers);
+            Assert.AreEqual(id, test.MessageId);
+            Assert.AreEqual(body, test.Body);
+            Assert.AreEqual(headers, test.Headers);
         }
     }
 }

@@ -1,11 +1,11 @@
-﻿#region Using
+#region Using
 
 using System;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using LiteDB;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                     if (string.IsNullOrEmpty(route))
                     {
                         var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
-                        Assert.Equal(messageCount, col.Count());
+                        Assert.AreEqual(messageCount, col.Count());
                     }
                     else
                     {
@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         var results = col.Query()
                             .Where(x => x.Route.Equals(route))
                             .ToList();
-                        Assert.Equal(messageCount, results.Count);
+                        Assert.AreEqual(messageCount, results.Count);
                     }
                 }
             }
@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
                     foreach (var record in results)
                     {
-                        Assert.NotEqual(record.QueueProcessTime, record.QueuedDateTime);
+                        Assert.AreNotEqual(record.QueueProcessTime, record.QueuedDateTime);
                     }
                 }
             }
@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
                     foreach (var record in results)
                     {
-                        Assert.NotEqual(record.QueueProcessTime, record.QueuedDateTime);
+                        Assert.AreNotEqual(record.QueueProcessTime, record.QueuedDateTime);
                     }
                 }
             }
@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
                     foreach (var record in results)
                     {
-                        Assert.NotEqual(record.ExpirationTime, record.QueuedDateTime);
+                        Assert.AreNotEqual(record.ExpirationTime, record.QueuedDateTime);
                     }
                 }
             }
@@ -141,7 +141,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
                     foreach (var record in results)
                     {
-                        Assert.NotEqual(record.ExpirationTime, record.QueuedDateTime);
+                        Assert.AreNotEqual(record.ExpirationTime, record.QueuedDateTime);
                     }
                 }
             }
@@ -160,7 +160,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
                     foreach (var record in results)
                     {
-                        Assert.Equal(QueueStatuses.Waiting, record.Status);
+                        Assert.AreEqual(QueueStatuses.Waiting, record.Status);
                     }
                 }
             }
@@ -173,7 +173,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
                     foreach (var record in results)
                     {
-                        Assert.Equal(QueueStatuses.Waiting, record.Status);
+                        Assert.AreEqual(QueueStatuses.Waiting, record.Status);
                     }
                 }
             }
@@ -191,11 +191,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
 
                     if (string.IsNullOrWhiteSpace(route))
-                        Assert.Equal(results.Count, expectedMessageCount);
+                        Assert.AreEqual(results.Count, expectedMessageCount);
 
                     foreach (var record in results)
                     {
-                        Assert.Equal(QueueStatuses.Waiting, record.Status);
+                        Assert.AreEqual(QueueStatuses.Waiting, record.Status);
                     }
                 }
             }
@@ -208,11 +208,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
 
                     if (string.IsNullOrWhiteSpace(route))
-                        Assert.Equal(results.Count, expectedMessageCount);
+                        Assert.AreEqual(results.Count, expectedMessageCount);
 
                     foreach (var record in results)
                     {
-                        Assert.Equal(QueueStatuses.Waiting, record.Status);
+                        Assert.AreEqual(QueueStatuses.Waiting, record.Status);
                     }
                 }
             }
@@ -249,25 +249,25 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                     if (!ignoreMeta)
                     {
                         var col = conn.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
-                        Assert.Equal(recordCount, col.Count());
+                        Assert.AreEqual(recordCount, col.Count());
                     }
 
                     if (!ignoreErrorTracking)
                     {
                         var col = conn.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
-                        Assert.Equal(recordCount, col.Count());
+                        Assert.AreEqual(recordCount, col.Count());
                     }
 
                     var col2 = conn.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
-                    Assert.Equal(recordCount, col2.Count());
+                    Assert.AreEqual(recordCount, col2.Count());
 
                     var col3 = conn.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
-                    Assert.Equal(recordCount, col3.Count());
+                    Assert.AreEqual(recordCount, col3.Count());
 
                     if (_options.EnableStatusTable)
                     {
                         var col = conn.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
-                        Assert.Equal(recordCount, col.Count());
+                        Assert.AreEqual(recordCount, col.Count());
                     }
                 }
             }
@@ -278,25 +278,25 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                     if (!ignoreMeta)
                     {
                         var col = conn.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
-                        Assert.Equal(recordCount, col.Count());
+                        Assert.AreEqual(recordCount, col.Count());
                     }
 
                     if (!ignoreErrorTracking)
                     {
                         var col = conn.Database.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
-                        Assert.Equal(recordCount, col.Count());
+                        Assert.AreEqual(recordCount, col.Count());
                     }
 
                     var col2 = conn.Database.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
-                    Assert.Equal(recordCount, col2.Count());
+                    Assert.AreEqual(recordCount, col2.Count());
 
                     var col3 = conn.Database.GetCollection<Schema.QueueTable>(_tableNameHelper.QueueName);
-                    Assert.Equal(recordCount, col3.Count());
+                    Assert.AreEqual(recordCount, col3.Count());
 
                     if (_options.EnableStatusTable)
                     {
                         var col = conn.Database.GetCollection<Schema.StatusTable>(_tableNameHelper.StatusName);
-                        Assert.Equal(recordCount, col.Count());
+                        Assert.AreEqual(recordCount, col.Count());
                     }
                 }
             }
@@ -323,7 +323,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                 using (var conn = new LiteDatabase(_connection.ConnectionString))
                 {
                     var col = conn.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
-                    Assert.Equal(messageCount, col.Count());
+                    Assert.AreEqual(messageCount, col.Count());
 
                     //only check the two below tables if the error count is > 0.
                     //error count of 0 means we are processing poison messages
@@ -331,13 +331,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                     if (errorCount > 0)
                     {
                         var col2 = conn.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
-                        Assert.Equal(messageCount, col2.Count());
+                        Assert.AreEqual(messageCount, col2.Count());
 
                         var results = col2.Query()
                             .ToList();
                         foreach (var record in results)
                         {
-                            Assert.Equal(errorCount, record.RetryCount);
+                            Assert.AreEqual(errorCount, record.RetryCount);
                         }
                     }
                 }
@@ -347,7 +347,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                 using (var conn = connScope.GetDatabase())
                 {
                     var col = conn.Database.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
-                    Assert.Equal(messageCount, col.Count());
+                    Assert.AreEqual(messageCount, col.Count());
 
                     //only check the two below tables if the error count is > 0.
                     //error count of 0 means we are processing poison messages
@@ -355,13 +355,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                     if (errorCount > 0)
                     {
                         var col2 = conn.Database.GetCollection<Schema.ErrorTrackingTable>(_tableNameHelper.ErrorTrackingName);
-                        Assert.Equal(messageCount, col2.Count());
+                        Assert.AreEqual(messageCount, col2.Count());
 
                         var results = col2.Query()
                             .ToList();
                         foreach (var record in results)
                         {
-                            Assert.Equal(errorCount, record.RetryCount);
+                            Assert.AreEqual(errorCount, record.RetryCount);
                         }
                     }
                 }

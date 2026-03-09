@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class ConsumerAsyncRollBack
     {
-        [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux),
-         InlineData(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Linux)]
+        [TestMethod]
+        [DataRow(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux),
+         DataRow(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Linux)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();

@@ -1,36 +1,38 @@
-﻿#region Using
+#region Using
 
+using System.Linq;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
 {
+    [TestClass]
     public class ColumnsTests
     {
-        [Fact]
+        [TestMethod]
         public void Add_Column()
         {
             var test = new Columns();
             test.Add(new Column("testing", ColumnTypes.Bigint, true, null));
-            Assert.Contains(test.Items, item => item.Name == "testing");
+            Assert.IsTrue(test.Items.Any(item => item.Name == "testing"));
         }
-        [Fact]
+        [TestMethod]
         public void Remove_Column()
         {
             var test = new Columns();
             var column = new Column("testing", ColumnTypes.Bigint, true, null);
             test.Add(column);
             test.Remove(column);
-            Assert.DoesNotContain(test.Items, item => item.Name == "testing");
+            Assert.IsFalse(test.Items.Any(item => item.Name == "testing"));
         }
-        [Fact]
+        [TestMethod]
         public void Script()
         {
             var test = new Columns();
             test.Add(new Column("testing", ColumnTypes.Bigint, true, null));
-            Assert.Contains("testing", test.Script());
+            StringAssert.Contains(test.Script(), "testing");
         }
     }
 }

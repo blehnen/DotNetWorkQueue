@@ -1,11 +1,11 @@
-﻿#region Using
+#region Using
 
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
@@ -76,9 +76,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                     }
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(messageCount, records);
+                        Assert.AreEqual(messageCount, records);
                     }
                 }
             }
@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                         while (reader.Read())
                         {
                             var priority = (int)reader[0];
-                            Assert.Equal(5, priority);
+                            Assert.AreEqual(5, priority);
                         }
                     }
                 }
@@ -119,7 +119,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                     {
                         while (reader.Read())
                         {
-                            Assert.NotEqual(reader.GetDateTime(1).Ticks, reader.GetInt64(0));
+                            Assert.AreNotEqual(reader.GetDateTime(1).Ticks, reader.GetInt64(0));
                         }
                     }
                 }
@@ -139,7 +139,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                     {
                         while (reader.Read())
                         {
-                            Assert.NotEqual(reader.GetInt64(0), reader.GetDateTime(1).Ticks);
+                            Assert.AreNotEqual(reader.GetInt64(0), reader.GetDateTime(1).Ticks);
                         }
                     }
                 }
@@ -159,7 +159,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                     {
                         while (reader.Read())
                         {
-                            Assert.Equal(0, reader.GetInt32(0));
+                            Assert.AreEqual(0, reader.GetInt32(0));
                         }
                     }
                 }
@@ -179,7 +179,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                     {
                         while (reader.Read())
                         {
-                            Assert.Equal(0, reader.GetInt32(0));
+                            Assert.AreEqual(0, reader.GetInt32(0));
                         }
                     }
                 }
@@ -220,9 +220,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                         command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataName}";
                         using (var reader = command.ExecuteReader())
                         {
-                            Assert.True(reader.Read());
+                            Assert.IsTrue(reader.Read());
                             var records = reader.GetInt32(0);
-                            Assert.Equal(recordCount, records);
+                            Assert.AreEqual(recordCount, records);
                         }
                     }
 
@@ -231,26 +231,26 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                         command.CommandText = $"select count(*) from {_tableNameHelper.ErrorTrackingName}";
                         using (var reader = command.ExecuteReader())
                         {
-                            Assert.True(reader.Read());
+                            Assert.IsTrue(reader.Read());
                             var records = reader.GetInt32(0);
-                            Assert.Equal(recordCount, records);
+                            Assert.AreEqual(recordCount, records);
                         }
                     }
 
                     command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataErrorsName}";
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(recordCount, records);
+                        Assert.AreEqual(recordCount, records);
                     }
 
                     command.CommandText = $"select count(*) from {_tableNameHelper.QueueName}";
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(recordCount, records);
+                        Assert.AreEqual(recordCount, records);
                     }
 
                     if (_options.EnableStatusTable)
@@ -258,9 +258,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                         command.CommandText = $"select count(*) from {_tableNameHelper.StatusName}";
                         using (var reader = command.ExecuteReader())
                         {
-                            Assert.True(reader.Read());
+                            Assert.IsTrue(reader.Read());
                             var records = reader.GetInt32(0);
-                            Assert.Equal(recordCount, records);
+                            Assert.AreEqual(recordCount, records);
                         }
                     }
                 }
@@ -290,9 +290,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                     command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataErrorsName}";
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(messageCount, records);
+                        Assert.AreEqual(messageCount, records);
                     }
                 }
 
@@ -306,9 +306,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                         command.CommandText = $"select count(*) from {_tableNameHelper.ErrorTrackingName}";
                         using (var reader = command.ExecuteReader())
                         {
-                            Assert.True(reader.Read());
+                            Assert.IsTrue(reader.Read());
                             var records = reader.GetInt32(0);
-                            Assert.Equal(messageCount, records);
+                            Assert.AreEqual(messageCount, records);
                         }
                     }
 
@@ -319,7 +319,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                         {
                             while (reader.Read())
                             {
-                                Assert.Equal(errorCount, reader.GetInt32(0));
+                                Assert.AreEqual(errorCount, reader.GetInt32(0));
                             }
                         }
                     }

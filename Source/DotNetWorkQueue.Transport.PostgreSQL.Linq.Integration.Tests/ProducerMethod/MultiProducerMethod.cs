@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,20 +8,20 @@ using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("producer")]
+    [TestClass]
     public class MultiProducerMethod
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(100, LinqMethodTypes.Dynamic, true),
-         InlineData(1000, LinqMethodTypes.Compiled, false)]
+        [DataRow(100, LinqMethodTypes.Dynamic, true),
+         DataRow(1000, LinqMethodTypes.Compiled, false)]
 #else
-        [InlineData(1000, LinqMethodTypes.Compiled, false),
-        InlineData(100, LinqMethodTypes.Compiled, true)]
+        [DataRow(1000, LinqMethodTypes.Compiled, false),
+        DataRow(100, LinqMethodTypes.Compiled, true)]
 #endif
         public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

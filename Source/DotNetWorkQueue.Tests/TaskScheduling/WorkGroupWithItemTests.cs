@@ -1,13 +1,14 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
+    [TestClass]
     public class WorkGroupWithItemTests
     {
-        [Fact]
+        [TestMethod]
         public void Test()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());

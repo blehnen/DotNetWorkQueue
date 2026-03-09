@@ -1,9 +1,9 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 {
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             waitForFinish.Wait(timeOut * 1000);
                         }
 
-                        Assert.Equal(messageCount, processedCount.ProcessedCount);
+                        Assert.AreEqual(messageCount, processedCount.ProcessedCount);
                         VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
                             messageCount);
                         VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),

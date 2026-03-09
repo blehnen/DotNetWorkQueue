@@ -1,13 +1,14 @@
 using System;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests
 {
+    [TestClass]
     public class DashboardApiTests
     {
-        [Fact]
+        [TestMethod]
         public void Connections_Empty_When_No_Registrations()
         {
             var options = new DashboardOptions();
@@ -16,7 +17,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
             api.Connections.Should().BeEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public void FindQueue_Returns_Null_For_Unknown_Id()
         {
             var options = new DashboardOptions();
@@ -27,7 +28,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
             result.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void GetQueueContainer_Throws_For_Unknown_Id()
         {
             var options = new DashboardOptions();
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
             act.Should().Throw<InvalidOperationException>();
         }
 
-        [Fact]
+        [TestMethod]
         public void Dispose_Can_Be_Called_Multiple_Times()
         {
             var options = new DashboardOptions();
@@ -48,7 +49,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
             api.Dispose(); // should not throw
         }
 
-        [Fact]
+        [TestMethod]
         public void FindQueue_Throws_After_Dispose()
         {
             var options = new DashboardOptions();
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
             act.Should().Throw<ObjectDisposedException>();
         }
 
-        [Fact]
+        [TestMethod]
         public void GetQueueContainer_Throws_After_Dispose()
         {
             var options = new DashboardOptions();

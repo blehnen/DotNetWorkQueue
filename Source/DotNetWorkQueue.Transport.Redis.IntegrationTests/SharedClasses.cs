@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
             {
                 var db = connection.Connection.GetDatabase();
                 var records = db.HashLength(redisNames.Values);
-                Assert.Equal(messageCount, records);
+                Assert.AreEqual(messageCount, records);
             }
         }
 

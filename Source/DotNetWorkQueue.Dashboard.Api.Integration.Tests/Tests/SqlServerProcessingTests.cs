@@ -25,17 +25,19 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
-    public class SqlServerProcessingTests : IAsyncLifetime
+    [TestClass]
+    public class SqlServerProcessingTests
     {
         private DashboardTestServer _server;
         private TransportFixture<SqlServerMessageQueueInit, SqlServerMessageQueueCreation> _fixture;
         private ConsumerStateHelper<SqlServerMessageQueueInit> _consumerHelper;
         private Guid _queueId;
 
+        [TestInitialize]
         public async Task InitializeAsync()
         {
             var queueName = QueueNameGenerator.Create();
@@ -71,14 +73,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 s => s.Processing >= 1);
         }
 
-        public async Task DisposeAsync()
+        [TestCleanup]
+        public async Task CleanupAsync()
         {
             _consumerHelper?.Dispose();
             if (_server != null) await _server.DisposeAsync();
             _fixture?.Dispose();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Status_WithProcessing()
         {
             var status = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
@@ -86,7 +89,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             status.Processing.Should().BeGreaterThanOrEqualTo(1);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Messages_ProcessingFilter()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -94,7 +97,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items.Should().NotBeEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteMessage_Processing()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(

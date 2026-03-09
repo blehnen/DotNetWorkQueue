@@ -1,16 +1,17 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Queue;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class CommitMessageTests
     {
-        [Fact]
+        [TestMethod]
         public void Test_Commit()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());

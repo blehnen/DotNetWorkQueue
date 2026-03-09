@@ -1,16 +1,17 @@
-﻿using System.Threading;
+using System.Threading;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
 {
+    [TestClass]
     public class ResetHeartBeatTests
     {
-        [Fact()]
+        [TestMethod]
         public void Reset_Test()
         {
             var heart = new ResetHeartBeat();
-            Assert.Empty(heart.Reset(CancellationToken.None));
+            Assert.IsEmpty(heart.Reset(CancellationToken.None));
         }
     }
 }

@@ -4,13 +4,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareHandler
 {
+    [TestClass]
     public class GetDashboardStaleMessagesPrepareHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle_Sets_CommandText()
         {
             var handler = CreateHandler();
@@ -18,10 +19,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             handler.Handle(new GetDashboardStaleMessagesQuery(60, 0, 25), command, CommandStringTypes.GetDashboardStaleMessages);
 
-            Assert.NotNull(command.CommandText);
+            Assert.IsNotNull(command.CommandText);
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Adds_Three_Parameters()
         {
             var handler = CreateHandler();
@@ -30,14 +31,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             handler.Handle(new GetDashboardStaleMessagesQuery(120, 2, 50), command, CommandStringTypes.GetDashboardStaleMessages);
 
             var parameters = (DataParameterCollection)command.Parameters;
-            Assert.Equal(4, parameters.Count);
-            Assert.True(parameters.Any(p => p.ParameterName == "@Threshold"));
-            Assert.True(parameters.Any(p => p.ParameterName == "@ThresholdTicks"));
-            Assert.True(parameters.Any(p => p.ParameterName == "@Offset"));
-            Assert.True(parameters.Any(p => p.ParameterName == "@PageSize"));
+            Assert.AreEqual(4, parameters.Count);
+            Assert.IsTrue(parameters.Any(p => p.ParameterName == "@Threshold"));
+            Assert.IsTrue(parameters.Any(p => p.ParameterName == "@ThresholdTicks"));
+            Assert.IsTrue(parameters.Any(p => p.ParameterName == "@Offset"));
+            Assert.IsTrue(parameters.Any(p => p.ParameterName == "@PageSize"));
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Computes_Offset_From_PageIndex()
         {
             var handler = CreateHandler();
@@ -47,7 +48,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             var parameters = (DataParameterCollection)command.Parameters;
             var offset = parameters.First(p => p.ParameterName == "@Offset");
-            Assert.Equal(30, offset.Value); // 3 * 10
+            Assert.AreEqual(30, offset.Value); // 3 * 10
         }
 
         private static GetDashboardStaleMessagesPrepareHandler CreateHandler()

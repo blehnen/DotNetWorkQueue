@@ -1,28 +1,32 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobScheduler
 {
-    [CollectionDefinition("JobScheduler", DisableParallelization = true)]
+    [TestClass]
     public class JobSchedulerTests
     {
-        [SkippableTheory]
+        [TestMethod]
 #if NETFULL
 
 #else
 
 #endif
-        [InlineData(true, false),
-         InlineData(true, true)]
+        [DataRow(true, false),
+         DataRow(true, true)]
         public void Run(
             bool interceptors,
             bool dynamic)
         {
-            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
+            if (OsDetectionHelper.IsRunningOnServer(null))
+            {
+                Assert.Inconclusive("Test skipped on server");
+                return;
+            }
 
             var queueName = GenerateQueueName.Create();
             var consumer =

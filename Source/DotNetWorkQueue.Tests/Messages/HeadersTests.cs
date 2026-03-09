@@ -1,15 +1,16 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Messages;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class HeadersTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -20,8 +21,8 @@ namespace DotNetWorkQueue.Tests.Messages
             fixture.Inject(customHeaders);
             var test = fixture.Create<Headers>();
 
-            Assert.Equal(headers, test.StandardHeaders);
-            Assert.Equal(customHeaders, test.CustomHeaders);
+            Assert.AreEqual(headers, test.StandardHeaders);
+            Assert.AreEqual(customHeaders, test.CustomHeaders);
         }
     }
 }

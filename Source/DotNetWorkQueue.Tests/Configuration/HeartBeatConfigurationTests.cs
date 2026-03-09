@@ -1,96 +1,108 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class HeartbeatConfigurationTests
     {
-        [Fact]
+        [TestMethod]
         public void CreateDefaultConfiguration()
         {
             GetConfiguration();
         }
-        [Theory, AutoData]
-        public void SetAndGet_HeartBeatMonitorTime(int value)
+        [TestMethod]
+        public void SetAndGet_HeartBeatMonitorTime()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.MonitorTime = TimeSpan.FromSeconds(value);
 
-            Assert.Equal(TimeSpan.FromSeconds(value), configuration.MonitorTime);
+            Assert.AreEqual(TimeSpan.FromSeconds(value), configuration.MonitorTime);
         }
-        [Theory, AutoData]
-        public void SetAndGet_HeartBeatTime(int value)
+        [TestMethod]
+        public void SetAndGet_HeartBeatTime()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.Time = TimeSpan.FromSeconds(value);
 
-            Assert.Equal(TimeSpan.FromSeconds(value), configuration.Time);
+            Assert.AreEqual(TimeSpan.FromSeconds(value), configuration.Time);
         }
-        [Theory, AutoData]
-        public void SetAndGet_HeartBeatUpdateTime(string value)
+        [TestMethod]
+        public void SetAndGet_HeartBeatUpdateTime()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             var configuration = GetConfiguration();
             configuration.UpdateTime = value;
 
-            Assert.Equal(value, configuration.UpdateTime);
+            Assert.AreEqual(value, configuration.UpdateTime);
         }
-        [Fact]
+        [TestMethod]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.False(configuration.IsReadOnly);
+            Assert.IsFalse(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.True(configuration.IsReadOnly);
+            Assert.IsTrue(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Set_Readonly_SetsChildren()
         {
             var configuration = GetConfiguration(true);
             configuration.SetReadOnly();
             configuration.ThreadPoolConfiguration.Received(1).SetReadOnly();
         }
-        [Theory, AutoData]
-        public void Set_HeartBeatMonitorTime_WhenReadOnly_Fails(int value)
+        [TestMethod]
+        public void Set_HeartBeatMonitorTime_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.MonitorTime = TimeSpan.FromSeconds(value);
               });
         }
 
-        [Theory, AutoData]
-        public void Set_HeartBeatTime_WhenReadOnly_Fails(int value)
+        [TestMethod]
+        public void Set_HeartBeatTime_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.Time = TimeSpan.FromSeconds(value);
               });
         }
-        [Theory, AutoData]
-        public void Set_HeartBeatUpdateTime_WhenReadOnly_Fails(string value)
+        [TestMethod]
+        public void Set_HeartBeatUpdateTime_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.UpdateTime = value;

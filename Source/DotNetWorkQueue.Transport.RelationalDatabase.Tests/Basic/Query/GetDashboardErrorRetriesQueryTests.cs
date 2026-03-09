@@ -1,15 +1,16 @@
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
 {
+    [TestClass]
     public class GetDashboardErrorRetriesQueryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = new GetDashboardErrorRetriesQuery("99");
-            Assert.Equal("99", test.MessageId);
+            Assert.AreEqual("99", test.MessageId);
         }
     }
 }

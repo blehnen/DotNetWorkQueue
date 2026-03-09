@@ -1,18 +1,19 @@
-﻿using System;
+using System;
 using System.Text;
 using DotNetWorkQueue.Interceptors;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Interceptors
 {
+    [TestClass]
     public class GzipInterceptorTest
     {
         private readonly Random _random = new Random();
 
-        [Theory]
-        [InlineData(140, 160, 50),
-        InlineData(100000, 1000000, 10),
-        InlineData(1000000, 10000000, 1)]
+        [TestMethod]
+        [DataRow(140, 160, 50),
+        DataRow(100000, 1000000, 10),
+        DataRow(1000000, 10000000, 1)]
         public void ShouldCompressAndDecompress(int minLength,
            int maxLength,
            int count)
@@ -23,10 +24,10 @@ namespace DotNetWorkQueue.Tests.Interceptors
             }
         }
 
-        [Theory]
-        [InlineData(8),
-        InlineData(1000),
-        InlineData(10000)]
+        [TestMethod]
+        [DataRow(8),
+        DataRow(1000),
+        DataRow(10000)]
         public void ShouldNotCompress(int length)
         {
             foreach (var body in Helpers.RandomStrings(length - 1, length - 1, 1, _random))
@@ -44,11 +45,11 @@ namespace DotNetWorkQueue.Tests.Interceptors
             if (serialization.AddToGraph)
             {
                 var actual = Encoding.UTF8.GetString(gzip.BytesToMessage(serialization.Output, null));
-                Assert.Equal(body, actual);
+                Assert.AreEqual(body, actual);
             }
             else
             {
-                Assert.Equal(body, Encoding.UTF8.GetString(serialization.Output));
+                Assert.AreEqual(body, Encoding.UTF8.GetString(serialization.Output));
             }
         }
 
@@ -58,8 +59,8 @@ namespace DotNetWorkQueue.Tests.Interceptors
             var gzip = new GZipMessageInterceptor(configuration);
 
             var serialization = gzip.MessageToBytes(Encoding.UTF8.GetBytes(body), null);
-            Assert.False(serialization.AddToGraph);
-            Assert.Equal(body, Encoding.UTF8.GetString(serialization.Output));
+            Assert.IsFalse(serialization.AddToGraph);
+            Assert.AreEqual(body, Encoding.UTF8.GetString(serialization.Output));
         }
     }
 }

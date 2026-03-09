@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Messages;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Admin.Implementation
 {
@@ -37,19 +37,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin.Implementation
                 {
                     setOptions(oCreation);
                     var script = oCreation.CreationScript;
-                    Assert.NotNull(script);
+                    Assert.IsNotNull(script);
                     if (script.Supported)
                     {
-                        Assert.True(script.HasScript);
-                        Assert.Null(script.Errors);
+                        Assert.IsTrue(script.HasScript);
+                        Assert.IsNull(script.Errors);
                     }
                     else
                     {
-                        Assert.Null(script.Script);
-                        Assert.False(script.HasScript);
+                        Assert.IsNull(script.Script);
+                        Assert.IsFalse(script.HasScript);
                     }
                     var result = oCreation.CreateQueue();
-                    Assert.True(result.Success, result.ErrorMessage);
+                    Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
                     var producer = new ProducerShared();

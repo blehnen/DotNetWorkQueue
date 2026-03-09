@@ -1,26 +1,26 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
 {
-    [Collection("Producer")]
+    [TestClass]
     public class SimpleProducer
     {
-        [Theory]
-        [InlineData(100, true, false, false, false, ConnectionInfoTypes.Linux),
-         InlineData(100, false, false, false, false, ConnectionInfoTypes.Linux),
-         InlineData(500, true, false, false, false, ConnectionInfoTypes.Linux),
-         InlineData(500, false, false, false, false, ConnectionInfoTypes.Linux),
-         InlineData(100, true, true, false, false, ConnectionInfoTypes.Linux),
-         InlineData(100, false, true, false, false, ConnectionInfoTypes.Linux),
-         InlineData(100, true, false, true, false, ConnectionInfoTypes.Linux),
-         InlineData(100, false, false, false, true, ConnectionInfoTypes.Linux),
-         InlineData(100, true, false, true, true, ConnectionInfoTypes.Linux),
-         InlineData(100, true, true, true, false, ConnectionInfoTypes.Linux),
-         InlineData(100, false, true, true, true, ConnectionInfoTypes.Linux)]
+        [TestMethod]
+        [DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux),
+         DataRow(100, false, false, false, false, ConnectionInfoTypes.Linux),
+         DataRow(500, true, false, false, false, ConnectionInfoTypes.Linux),
+         DataRow(500, false, false, false, false, ConnectionInfoTypes.Linux),
+         DataRow(100, true, true, false, false, ConnectionInfoTypes.Linux),
+         DataRow(100, false, true, false, false, ConnectionInfoTypes.Linux),
+         DataRow(100, true, false, true, false, ConnectionInfoTypes.Linux),
+         DataRow(100, false, false, false, true, ConnectionInfoTypes.Linux),
+         DataRow(100, true, false, true, true, ConnectionInfoTypes.Linux),
+         DataRow(100, true, true, true, false, ConnectionInfoTypes.Linux),
+         DataRow(100, false, true, true, true, ConnectionInfoTypes.Linux)]
         public void Run(
             int messageCount,
             bool interceptors,

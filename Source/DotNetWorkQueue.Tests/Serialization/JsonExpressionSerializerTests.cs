@@ -1,40 +1,42 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Serialization;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Serialization
 {
+    [TestClass]
     public class JsonExpressionSerializerTests
     {
-        [Theory, AutoData]
-        public void RoundTripAction(int value)
+        [TestMethod]
+        public void RoundTripAction()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var test = Create();
             var bytes = test.ConvertMethodToBytes((message, notification) => Tester.SetValue(value));
             var method = test.ConvertBytesToMethod(bytes);
             method.Compile().DynamicInvoke(null, null);
-            Assert.Equal(Tester.GetValue(), value);
+            Assert.AreEqual(Tester.GetValue(), value);
         }
 
 
-        [Fact]
+        [TestMethod]
         public void ConvertToBytes_Null_Exception()
         {
             var test = Create();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
            delegate
            {
                test.ConvertMethodToBytes(null);
            });
         }
-        [Fact]
+        [TestMethod]
         public void BytesToMethod_Null_Exception()
         {
             var test = Create();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
            delegate
            {
                test.ConvertBytesToMethod(null);

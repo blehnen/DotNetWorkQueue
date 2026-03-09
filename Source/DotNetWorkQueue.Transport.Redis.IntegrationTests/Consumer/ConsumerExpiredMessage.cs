@@ -1,16 +1,16 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerExpiredMessage
     {
-        [Theory]
-        [InlineData(100, 0, 60, 5, ConnectionInfoTypes.Linux),
-        InlineData(500, 0, 120, 5, ConnectionInfoTypes.Linux)]
+        [TestMethod]
+        [DataRow(100, 0, 60, 5, ConnectionInfoTypes.Linux),
+        DataRow(500, 0, 120, 5, ConnectionInfoTypes.Linux)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();

@@ -1,17 +1,17 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerMethodErrorTable
     {
-        [Theory]
-        [InlineData(10, 60, 5, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(1, 60, 1, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+        [TestMethod]
+        [DataRow(10, 60, 5, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(1, 60, 1, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes,
             bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

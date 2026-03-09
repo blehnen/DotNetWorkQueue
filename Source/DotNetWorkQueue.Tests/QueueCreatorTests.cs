@@ -1,26 +1,28 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Tests.IoC;
 using NSubstitute;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests
 {
-    [Collection("IoC")]
+    [TestClass]
     public class QueueCreatorTests
     {
-        [Theory, AutoData]
-        public void Create_Null_Services_Fails(string queue, string connection)
+        [TestMethod]
+        public void Create_Null_Services_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
+            var connection = fixture.Create<string>();
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>(null))
             {
-                Assert.Throws<NullReferenceException>(
+                Assert.ThrowsExactly<NullReferenceException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
@@ -29,37 +31,48 @@ namespace DotNetWorkQueue.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateProducer(string queue, string connection)
+        [TestMethod]
+        public void Create_CreateProducer()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
+            var connection = fixture.Create<string>();
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
                 test.CreateProducer<FakeMessage>(new QueueConnection(queue, connection));
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumer(string queue, string connection)
+        [TestMethod]
+        public void Create_CreateConsumer()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
+            var connection = fixture.Create<string>();
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
                 test.CreateConsumer(new QueueConnection(queue, connection));
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumerQueueScheduler(string queue, string connection)
+        [TestMethod]
+        public void Create_CreateConsumerQueueScheduler()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
+            var connection = fixture.Create<string>();
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
                 test.CreateConsumerQueueScheduler(new QueueConnection(queue, connection));
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumerQueueSchedulerWithFactory(string queue, string connection)
+        [TestMethod]
+        public void Create_CreateConsumerQueueSchedulerWithFactory()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
+            var connection = fixture.Create<string>();
             var factory = fixture.Create<ITaskFactory>();
             factory.Scheduler.Returns(fixture.Create<ATaskScheduler>());
 
@@ -70,18 +83,24 @@ namespace DotNetWorkQueue.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumerAsync(string queue, string connection)
+        [TestMethod]
+        public void Create_CreateConsumerAsync()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
+            var connection = fixture.Create<string>();
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
                 test.CreateConsumerAsync(new QueueConnection(queue, connection));
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateAdminContainerAsync(string queue, string connection)
+        [TestMethod]
+        public void Create_CreateAdminContainerAsync()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
+            var connection = fixture.Create<string>();
             using (var test = new QueueContainer<CreateContainerTest.NoOpDuplexTransport>())
             {
                 test.CreateAdminContainer(new QueueConnection(queue, connection));

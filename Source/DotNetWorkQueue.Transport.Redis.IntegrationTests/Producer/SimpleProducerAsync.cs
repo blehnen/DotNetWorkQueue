@@ -1,21 +1,21 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
 {
-    [Collection("Producer")]
+    [TestClass]
     public class SimpleProducerAsync
     {
-        [Theory]
-        [InlineData(100, true, false, ConnectionInfoTypes.Linux),
-         InlineData(100, false, false, ConnectionInfoTypes.Linux),
-         InlineData(250, true, false, ConnectionInfoTypes.Linux),
-         InlineData(200, false, false, ConnectionInfoTypes.Linux),
-         InlineData(100, true, true, ConnectionInfoTypes.Linux),
-         InlineData(100, false, true, ConnectionInfoTypes.Linux)]
+        [TestMethod]
+        [DataRow(100, true, false, ConnectionInfoTypes.Linux),
+         DataRow(100, false, false, ConnectionInfoTypes.Linux),
+         DataRow(250, true, false, ConnectionInfoTypes.Linux),
+         DataRow(200, false, false, ConnectionInfoTypes.Linux),
+         DataRow(100, true, true, ConnectionInfoTypes.Linux),
+         DataRow(100, false, true, ConnectionInfoTypes.Linux)]
         public async Task Run(
             int messageCount,
             bool interceptors,

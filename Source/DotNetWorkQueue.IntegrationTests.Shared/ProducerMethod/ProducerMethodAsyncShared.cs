@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,7 +7,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Microsoft.Extensions.Logging;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
 {
@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                                       : new QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>,
                                           IAdditionalMessageData>(job, null));
                 var results = await queue.SendAsync(messages).ConfigureAwait(false);
-                Assert.False(results.HasErrors);
+                Assert.IsFalse(results.HasErrors);
             }
             else
             {
@@ -134,12 +134,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     if (data != null)
                     {
                         var result = await queue.SendAsync(job, data).ConfigureAwait(false);
-                        Assert.False(result.HasError);
+                        Assert.IsFalse(result.HasError);
                     }
                     else
                     {
                         var result = await queue.SendAsync(job).ConfigureAwait(false);
-                        Assert.False(result.HasError);
+                        Assert.IsFalse(result.HasError);
                     }
                 }
             }
@@ -159,7 +159,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
 generateData(queue.Configuration)
                                   select data != null ? new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, data) : new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, null));
                 var results = await queue.SendAsync(messages).ConfigureAwait(false);
-                Assert.False(results.HasErrors);
+                Assert.IsFalse(results.HasErrors);
             }
             else
             {
@@ -169,12 +169,12 @@ generateData(queue.Configuration)
                     if (data != null)
                     {
                         var result = await queue.SendAsync(job, data).ConfigureAwait(false);
-                        Assert.False(result.HasError);
+                        Assert.IsFalse(result.HasError);
                     }
                     else
                     {
                         var result = await queue.SendAsync(job).ConfigureAwait(false);
-                        Assert.False(result.HasError);
+                        Assert.IsFalse(result.HasError);
                     }
                 }
             }

@@ -1,48 +1,48 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Tests.IoC;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
+    [TestClass]
     public class SchedulerTests
     {
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             using (var test = Create(1))
             {
-                Assert.False(test.IsDisposed);
+                Assert.IsFalse(test.IsDisposed);
             }
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             using (var test = Create(1))
             {
                 test.Dispose();
-                Assert.True(test.IsDisposed);
+                Assert.IsTrue(test.IsDisposed);
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Configuration_Exception()
         {
             using (var test = Create(1))
             {
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.Configuration.SetReadOnly();
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Start_Exception()
         {
             using (var test = Create(1))
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
                 {
                 }
 
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
@@ -69,12 +69,12 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Null_Start_Exception()
         {
             using (var test = Create(1))
             {
-                Assert.Throws<ArgumentNullException>(
+                Assert.ThrowsExactly<ArgumentNullException>(
             delegate
             {
                 test.Start<FakeMessage>(null);
@@ -82,13 +82,13 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Get_TaskFactory_Exception()
         {
             using (var test = Create(1))
             {
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.TaskFactory.Scheduler.Configuration.MaximumThreads = 10;
@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Call_Start_Only_Once_Exception()
         {
             using (var test = Create(1))
@@ -106,7 +106,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
                 }
 
                 test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
-                Assert.Throws<DotNetWorkQueueException>(
+                Assert.ThrowsExactly<DotNetWorkQueueException>(
             delegate
             {
                 test.Start((Action<IReceivedMessage<FakeMessage>, IWorkerNotification>)Action);
@@ -114,24 +114,26 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_WorkGroup_No_Name_IsNull()
         {
             var group = Substitute.For<IWorkGroup>();
             using (var test = Create(1, group))
             {
-                Assert.Null(test.WorkGroup);
+                Assert.IsNull(test.WorkGroup);
             }
         }
 
-        [Theory, AutoData]
-        public void Set_WorkGroup(string value)
+        [TestMethod]
+        public void Set_WorkGroup()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             var group = Substitute.For<IWorkGroup>();
             group.Name.Returns(value);
             using (var test = Create(1, group))
             {
-                Assert.Equal(group, test.WorkGroup);
+                Assert.AreEqual(group, test.WorkGroup);
             }
         }
 

@@ -1,23 +1,24 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Queue;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class QueueWaitNoOpTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = Create();
             test.Wait();
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Default_Wait()
         {
             var test = Create();
@@ -26,10 +27,10 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 0, 100); //integration server is overloaded; 50 sometimes fails for the max...
+            Assert.IsInRange(0L, 100L, watch.ElapsedMilliseconds); //integration server is overloaded; 50 sometimes fails for the max...
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Default_Wait_Reset_Wait()
         {
             var test = Create();
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 0, 100);//integration server is overloaded; 50 sometimes fails for the max...
+            Assert.IsInRange(0L, 100L, watch.ElapsedMilliseconds);//integration server is overloaded; 50 sometimes fails for the max...
 
             test.Reset();
 
@@ -46,7 +47,7 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 0, 100);//integration server is overloaded; 50 sometimes fails for the max...
+            Assert.IsInRange(0L, 100L, watch.ElapsedMilliseconds);//integration server is overloaded; 50 sometimes fails for the max...
         }
 
         private IQueueWait Create()

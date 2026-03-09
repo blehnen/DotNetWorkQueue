@@ -25,11 +25,12 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
-    public class SqliteEndpointTests : IAsyncLifetime
+    [TestClass]
+    public class SqliteEndpointTests
     {
         private DashboardTestServer _server;
         private TransportFixture<SqLiteMessageQueueInit, SqLiteMessageQueueCreation> _fixture;
@@ -37,6 +38,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         private Guid _queueId;
         private string _queueName;
 
+        [TestInitialize]
         public async Task InitializeAsync()
         {
             _queueName = QueueNameGenerator.Create();
@@ -71,7 +73,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             _queueId = queues[0].Id;
         }
 
-        public async Task DisposeAsync()
+        [TestCleanup]
+        public async Task CleanupAsync()
         {
             if (_server != null) await _server.DisposeAsync();
             _fixture?.Dispose();
@@ -79,7 +82,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
         // === Connections & Discovery ===
 
-        [Fact]
+        [TestMethod]
         public async Task Connections_ReturnsOne()
         {
             var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
@@ -88,7 +91,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             connections[0].QueueCount.Should().Be(1);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Queues_ReturnsOne()
         {
             var queues = await _server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
@@ -97,7 +100,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             queues[0].QueueName.Should().Be(_queueName);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Queues_InvalidConnection_Returns404()
         {
             var response = await _server.Client.GetAsync(
@@ -107,7 +110,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
         // === Status & Features ===
 
-        [Fact]
+        [TestMethod]
         public async Task Status_AllWaiting()
         {
             var status = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
@@ -117,7 +120,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             status.Total.Should().Be(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Features_ReturnsExpected()
         {
             var features = await _server.Client.GetFromJsonAsync<QueueFeaturesResponse>(
@@ -129,7 +132,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
         // === Message Listing ===
 
-        [Fact]
+        [TestMethod]
         public async Task Messages_ReturnsAll()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -137,7 +140,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items.Should().HaveCount(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Messages_Pagination()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -146,7 +149,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.TotalCount.Should().Be(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Messages_WaitingFilter()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -154,7 +157,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items.Should().HaveCount(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task MessageCount_NoFilter()
         {
             var response = await _server.Client.GetAsync(
@@ -164,7 +167,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             count.Should().Be(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task MessageCount_WaitingFilter()
         {
             var response = await _server.Client.GetAsync(
@@ -174,7 +177,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             count.Should().Be(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task MessageCount_InvalidStatus_Returns400()
         {
             var response = await _server.Client.GetAsync(
@@ -184,7 +187,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
         // === Message Detail/Body/Headers ===
 
-        [Fact]
+        [TestMethod]
         public async Task MessageDetail_Exists()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -196,7 +199,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             detail.QueueId.Should().Be(messageId);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task MessageDetail_NotFound()
         {
             var response = await _server.Client.GetAsync(
@@ -204,7 +207,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task MessageBody_HasContent()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -216,7 +219,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             body.Body.Should().NotBeNullOrEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task MessageHeaders_HasContent()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -230,7 +233,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
         // === Delete ===
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteMessage_Exists()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -247,7 +250,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             count.Should().Be(4);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteMessage_NotFound()
         {
             var response = await _server.Client.DeleteAsync(
@@ -257,7 +260,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
         // === Relational-specific ===
 
-        [Fact]
+        [TestMethod]
         public async Task Configuration_ReturnsJson()
         {
             var config = await _server.Client.GetFromJsonAsync<ConfigurationResponse>(
@@ -265,7 +268,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             config.ConfigurationJson.Should().NotBeNullOrEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Jobs_ReturnsEmpty()
         {
             var jobs = await _server.Client.GetFromJsonAsync<List<JobResponse>>(
@@ -273,7 +276,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             jobs.Should().BeEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Errors_WhenEmpty()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
@@ -281,7 +284,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items.Should().BeEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task StaleMessages_WhenEmpty()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -289,7 +292,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items.Should().BeEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteAllErrors_WhenEmpty()
         {
             var response = await _server.Client.DeleteAsync(
@@ -299,7 +302,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             result.Deleted.Should().Be(0);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task RequeueError_NotFound()
         {
             var response = await _server.Client.PostAsync(

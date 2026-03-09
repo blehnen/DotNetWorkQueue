@@ -1,16 +1,17 @@
-﻿using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
 {
+    [TestClass]
     public class GetUtcDateQueryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = new GetUtcDateQuery("test");
-            Assert.Equal("test", test.ConnectionString);
+            Assert.AreEqual("test", test.ConnectionString);
         }
     }
 }

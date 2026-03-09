@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
 {
@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
             {
                 var data = (IDataStorage)dataStorage;
                 var messageCount = data.RecordCount;
-                Assert.Equal(recordCount, messageCount);
+                Assert.AreEqual(recordCount, messageCount);
             }
             else
             {

@@ -1,19 +1,20 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class WorkerNotificationFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var factory = Create();
-            Assert.NotNull(factory.Create());
+            Assert.IsNotNull(factory.Create());
         }
         private IWorkerNotificationFactory Create()
         {

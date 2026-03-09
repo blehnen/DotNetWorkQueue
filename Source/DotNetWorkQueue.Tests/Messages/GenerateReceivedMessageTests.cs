@@ -1,15 +1,16 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Messages;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class GenerateReceivedMessageTests
     {
-        [Fact]
+        [TestMethod]
         public void TestCreation()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -24,10 +25,10 @@ namespace DotNetWorkQueue.Tests.Messages
 
             IReceivedMessage<FakeMessage> translatedMessage = message;
 
-            Assert.Equal(translatedMessage.Body, rec.Body);
-            Assert.Equal(translatedMessage.CorrelationId, rec.CorrelationId);
-            Assert.Equal(translatedMessage.Headers, rec.Headers);
-            Assert.Equal(translatedMessage.MessageId, rec.MessageId);
+            Assert.AreEqual(translatedMessage.Body, rec.Body);
+            Assert.AreEqual(translatedMessage.CorrelationId, rec.CorrelationId);
+            CollectionAssert.AreEquivalent((System.Collections.ICollection)translatedMessage.Headers, (System.Collections.ICollection)rec.Headers);
+            Assert.AreEqual(translatedMessage.MessageId, rec.MessageId);
         }
 
         private class FakeMessage

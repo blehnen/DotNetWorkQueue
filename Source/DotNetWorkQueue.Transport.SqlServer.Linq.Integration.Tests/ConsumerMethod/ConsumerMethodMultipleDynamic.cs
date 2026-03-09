@@ -1,4 +1,4 @@
-﻿#if NETFULL
+#if NETFULL
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
@@ -7,20 +7,21 @@ using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethod
 {
+    [TestClass]
     public class ConsumerMethodMultipleDynamic
     {
-        [Collection("Consumer")]
+        [TestClass]
         public class SimpleMethodConsumer
         {
-            [Theory]
-            [InlineData(20, 0, 240, 5, false, true),
-            InlineData(2000, 0, 240, 25, false, false),
-            InlineData(2000, 0, 240, 25, true, false),
-            InlineData(20, 0, 240, 5, true, true)]
+            [TestMethod]
+            [DataRow(20, 0, 240, 5, false, true),
+            DataRow(2000, 0, 240, 25, false, false),
+            DataRow(2000, 0, 240, 25, true, false),
+            DataRow(20, 0, 240, 5, true, true)]
             public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
             {
                 var queueName = GenerateQueueName.Create();

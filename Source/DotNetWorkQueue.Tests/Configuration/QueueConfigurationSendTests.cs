@@ -1,22 +1,23 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class QueueConfigurationSendTests
     {
-        [Fact]
+        [TestMethod]
         public void DefaultCreation()
         {
             var test = Create();
-            Assert.NotNull(test.AdditionalConfiguration);
-            Assert.NotNull(test.HeaderNames);
-            Assert.NotNull(test.TimeConfiguration);
-            Assert.NotNull(test.TransportConfiguration);
+            Assert.IsNotNull(test.AdditionalConfiguration);
+            Assert.IsNotNull(test.HeaderNames);
+            Assert.IsNotNull(test.TimeConfiguration);
+            Assert.IsNotNull(test.TransportConfiguration);
         }
 
         private QueueConfigurationSend Create()

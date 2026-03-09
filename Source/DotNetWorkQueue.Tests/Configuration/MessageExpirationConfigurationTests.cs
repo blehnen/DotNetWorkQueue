@@ -1,68 +1,74 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class MessageExpirationConfigurationTests
     {
-        [Theory, AutoData]
-        public void SetAndGet_CheckExpiredMessagesTime(int value)
+        [TestMethod]
+        public void SetAndGet_CheckExpiredMessagesTime()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.MonitorTime = TimeSpan.FromSeconds(value);
 
-            Assert.Equal(TimeSpan.FromSeconds(value), configuration.MonitorTime);
+            Assert.AreEqual(TimeSpan.FromSeconds(value), configuration.MonitorTime);
         }
-        [Fact]
+        [TestMethod]
         public void SetAndGet_ClearExpiredMessagesEnabled()
         {
             var configuration = GetConfiguration();
             configuration.Enabled = true;
 
-            Assert.True(configuration.Enabled);
+            Assert.IsTrue(configuration.Enabled);
         }
-        [Fact]
+        [TestMethod]
         public void Get_ClearExpiredMessagesEnabled_DefaultsToFalse()
         {
             var configuration = GetConfiguration();
-            Assert.False(configuration.Enabled);
+            Assert.IsFalse(configuration.Enabled);
         }
-        [Fact]
+        [TestMethod]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.False(configuration.IsReadOnly);
+            Assert.IsFalse(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.True(configuration.IsReadOnly);
+            Assert.IsTrue(configuration.IsReadOnly);
         }
-        [Theory, AutoData]
-        public void Set_CheckExpiredMessagesTime_WhenReadOnly_Fails(int value)
+        [TestMethod]
+        public void Set_CheckExpiredMessagesTime_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.MonitorTime = TimeSpan.FromHours(value);
               });
         }
-        [Theory, AutoData]
-        public void Set_ClearExpiredMessagesEnabled_WhenReadOnly_Fails(bool value)
+        [TestMethod]
+        public void Set_ClearExpiredMessagesEnabled_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<bool>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.Enabled = value;

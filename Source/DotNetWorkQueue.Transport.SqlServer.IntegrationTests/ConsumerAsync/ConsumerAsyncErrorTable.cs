@@ -1,24 +1,24 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class ConsumerAsyncErrorTable
     {
-        [Theory]
-        [InlineData(1, 60, 1, 1, 0, false, false),
-        InlineData(25, 120, 20, 1, 5, false, false),
-        InlineData(1, 60, 1, 1, 0, true, false),
-        InlineData(25, 120, 20, 1, 5, true, false),
-        InlineData(2, 120, 20, 1, 5, false, true),
-        InlineData(1, 60, 1, 1, 0, true, true)]
+        [TestMethod]
+        [DataRow(1, 60, 1, 1, 0, false, false),
+        DataRow(25, 120, 20, 1, 5, false, false),
+        DataRow(1, 60, 1, 1, 0, true, false),
+        DataRow(25, 120, 20, 1, 5, true, false),
+        DataRow(2, 120, 20, 1, 5, false, true),
+        DataRow(1, 60, 1, 1, 0, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool useTransactions, bool enableChaos)
         {

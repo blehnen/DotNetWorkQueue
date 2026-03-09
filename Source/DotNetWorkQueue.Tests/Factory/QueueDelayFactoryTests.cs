@@ -1,24 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class QueueDelayFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var factory = Create();
             var test = factory.Create();
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Default_TimeSpans()
         {
             var factory = Create();
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.Tests.Factory
             var i = 0;
             foreach (var t in test)
             {
-                Assert.Equal(t, TimeSpan.FromHours(i + 1));
+                Assert.AreEqual(t, TimeSpan.FromHours(i + 1));
                 i++;
             }
         }

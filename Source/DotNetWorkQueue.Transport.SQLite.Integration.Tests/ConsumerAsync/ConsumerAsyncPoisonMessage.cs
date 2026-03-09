@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerAsyncPoisonMessage
     {
-        [Theory]
-        [InlineData(1, 60, 2, 2, 0, true, false),
-         InlineData(25, 60, 10, 2, 2, false, false),
-         InlineData(5, 60, 10, 2, 2, false, true)]
+        [TestMethod]
+        [DataRow(1, 60, 2, 2, 0, true, false),
+         DataRow(25, 60, 10, 2, 2, false, false),
+         DataRow(5, 60, 10, 2, 2, false, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

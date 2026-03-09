@@ -1,35 +1,36 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Memory;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Transport.Memory
 {
+    [TestClass]
     public class ConfigurationExtensionsForIAdditionalMessageDataTests
     {
-        [Fact()]
+        [TestMethod]
         public void SetDelay_Test()
         {
             var time = DateTime.UtcNow;
             var data = new AdditionalMessageData();
             data.SetDelay(time.TimeOfDay);
 
-            Assert.Equal(time.TimeOfDay, data.GetDelay());
+            Assert.AreEqual(time.TimeOfDay, data.GetDelay());
         }
 
-        [Fact()]
+        [TestMethod]
         public void GetDelay_Test()
         {
             var data = new AdditionalMessageData();
-            Assert.Null(data.GetDelay());
+            Assert.IsNull(data.GetDelay());
 
             var time = DateTime.UtcNow;
             data.SetDelay(time.TimeOfDay);
-            Assert.Equal(time.TimeOfDay, data.GetDelay());
+            Assert.AreEqual(time.TimeOfDay, data.GetDelay());
 
             time = DateTime.UtcNow.AddHours(1);
             data.SetDelay(time.TimeOfDay);
-            Assert.Equal(time.TimeOfDay, data.GetDelay());
+            Assert.AreEqual(time.TimeOfDay, data.GetDelay());
         }
     }
 }

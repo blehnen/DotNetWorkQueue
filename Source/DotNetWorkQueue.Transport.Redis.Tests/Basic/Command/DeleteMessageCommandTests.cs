@@ -1,18 +1,22 @@
-﻿using AutoFixture.Xunit2;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AutoFixture;
+using AutoFixture.AutoNSubstitute;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
 {
+    [TestClass]
     public class DeleteMessageCommandTests
     {
-        [Theory, AutoData]
-        public void Create_Default(string number)
+        [TestMethod]
+        public void Create_Default()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var number = fixture.Create<string>();
             var test = new DeleteMessageCommand<string>(number);
-            Assert.Equal(number, test.QueueId);
+            Assert.AreEqual(number, test.QueueId);
         }
     }
 }

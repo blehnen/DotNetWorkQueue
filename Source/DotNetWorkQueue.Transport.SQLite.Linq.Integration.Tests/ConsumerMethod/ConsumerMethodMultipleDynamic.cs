@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
@@ -6,18 +6,18 @@ using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerMethodMultipleDynamic
     {
-        [Theory]
-        [InlineData(500, 0, 240, 5, true, false),
-         InlineData(100, 0, 240, 5, true, true),
-         InlineData(100, 0, 240, 5, false, true),
-         InlineData(500, 0, 240, 5, false, false)]
+        [TestMethod]
+        [DataRow(500, 0, 240, 5, true, false),
+         DataRow(100, 0, 240, 5, true, true),
+         DataRow(100, 0, 240, 5, false, true),
+         DataRow(500, 0, 240, 5, false, false)]
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {

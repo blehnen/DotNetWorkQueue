@@ -1,19 +1,20 @@
-﻿using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
 {
+    [TestClass]
     public class SetErrorCountCommandTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             const int id = 19334;
             var type = "errorType";
             var test = new SetErrorCountCommand<long>(type, id);
-            Assert.Equal(id, test.QueueId);
-            Assert.Equal(type, test.ExceptionType);
+            Assert.AreEqual(id, test.QueueId);
+            Assert.AreEqual(type, test.ExceptionType);
         }
     }
 }

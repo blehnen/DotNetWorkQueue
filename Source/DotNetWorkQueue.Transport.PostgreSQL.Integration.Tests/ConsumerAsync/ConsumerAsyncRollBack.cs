@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 {
-    [Collection("consumerasync")]
+    [TestClass]
     public class ConsumerAsyncRollBack
     {
-        [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, false, false),
-         InlineData(50, 5, 200, 5, 1, 3, false, false),
-         InlineData(100, 1, 400, 5, 5, 5, true, false),
-         InlineData(50, 5, 200, 5, 1, 3, true, false),
-         InlineData(5, 5, 200, 5, 1, 3, true, true),
-         InlineData(5, 5, 200, 5, 1, 3, false, true)]
+        [TestMethod]
+        [DataRow(100, 1, 400, 5, 5, 5, false, false),
+         DataRow(50, 5, 200, 5, 1, 3, false, false),
+         DataRow(100, 1, 400, 5, 5, 5, true, false),
+         DataRow(50, 5, 200, 5, 1, 3, true, false),
+         DataRow(5, 5, 200, 5, 1, 3, true, true),
+         DataRow(5, 5, 200, 5, 1, 3, false, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, bool enableChaos)
         {

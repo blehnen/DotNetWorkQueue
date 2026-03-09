@@ -1,8 +1,8 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                         }
 
                         var count = MethodIncrementWrapper.Count(id);
-                        Assert.Equal(messageCount, count);
+                        Assert.AreEqual(messageCount, count);
                         VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
                             messageCount);
                         LoggerShared.CheckForErrors(queueConnection.Queue);

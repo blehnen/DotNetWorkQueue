@@ -26,16 +26,18 @@ using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
-    public class EmptyQueueTests : IAsyncLifetime
+    [TestClass]
+    public class EmptyQueueTests
     {
         private DashboardTestServer _server;
         private TransportFixture<MemoryDashboardInit, MessageQueueCreation> _fixture;
         private Guid _queueId;
 
+        [TestInitialize]
         public async Task InitializeAsync()
         {
             var queueName = QueueNameGenerator.Create();
@@ -61,13 +63,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             _queueId = queues[0].Id;
         }
 
-        public async Task DisposeAsync()
+        [TestCleanup]
+        public async Task CleanupAsync()
         {
             if (_server != null) await _server.DisposeAsync();
             _fixture?.Dispose();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Status_EmptyQueue()
         {
             var status = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
@@ -77,7 +80,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             status.Total.Should().Be(0);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Messages_EmptyQueue()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(

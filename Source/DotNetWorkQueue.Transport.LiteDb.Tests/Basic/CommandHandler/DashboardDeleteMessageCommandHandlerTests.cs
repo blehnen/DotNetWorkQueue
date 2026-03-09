@@ -20,33 +20,34 @@ using System;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
 {
+    [TestClass]
     public class DashboardDeleteMessageCommandHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var connectionManager = CreateConnectionManager();
             var tableNameHelper = CreateTableNameHelper();
-            Assert.NotNull(new DashboardDeleteMessageCommandHandler(connectionManager, tableNameHelper));
+            Assert.IsNotNull(new DashboardDeleteMessageCommandHandler(connectionManager, tableNameHelper));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullConnectionManager_Throws()
         {
             var tableNameHelper = CreateTableNameHelper();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new DashboardDeleteMessageCommandHandler(null, tableNameHelper));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullTableNameHelper_Throws()
         {
             var connectionManager = CreateConnectionManager();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new DashboardDeleteMessageCommandHandler(connectionManager, null));
         }
 

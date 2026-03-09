@@ -26,11 +26,12 @@ using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
-    public class MultiQueueTests : IAsyncLifetime
+    [TestClass]
+    public class MultiQueueTests
     {
         private DashboardTestServer _server;
         private TransportFixture<MemoryDashboardInit, MessageQueueCreation> _fixture1;
@@ -39,6 +40,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         private Guid _queueId1;
         private Guid _queueId2;
 
+        [TestInitialize]
         public async Task InitializeAsync()
         {
             var queueName1 = QueueNameGenerator.Create();
@@ -88,14 +90,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             }
         }
 
-        public async Task DisposeAsync()
+        [TestCleanup]
+        public async Task CleanupAsync()
         {
             if (_server != null) await _server.DisposeAsync();
             _fixture1?.Dispose();
             _fixture2?.Dispose();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetConnections_ReturnsBoth()
         {
             var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
@@ -104,7 +107,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             connections[0].QueueCount.Should().Be(2);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Messages_Isolated_PerQueue()
         {
             var paged1 = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -116,7 +119,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged2.Items.Should().HaveCount(2);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Status_Isolated_PerQueue()
         {
             var status1 = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
@@ -128,7 +131,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             status2.Waiting.Should().Be(2);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Queue_NotFound_Returns404()
         {
             var response = await _server.Client.GetAsync(

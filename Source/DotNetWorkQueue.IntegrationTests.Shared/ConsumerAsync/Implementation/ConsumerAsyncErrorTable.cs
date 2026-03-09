@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Messages;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
 {
@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                 {
                     setOptions(oCreation);
                     var result = oCreation.CreateQueue();
-                    Assert.True(result.Success, result.ErrorMessage);
+                    Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
                     //create data

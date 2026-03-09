@@ -1,17 +1,18 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Messages;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class RegisterMessagesTests
     {
-        [Fact]
+        [TestMethod]
         public void Register()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());

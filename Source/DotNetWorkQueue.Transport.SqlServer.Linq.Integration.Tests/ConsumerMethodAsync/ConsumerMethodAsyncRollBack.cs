@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
@@ -6,20 +6,20 @@ using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class ConsumerMethodAsyncRollBack
     {
-        [Theory]
-        [InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled, false),
+        [TestMethod]
+        [DataRow(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled, false),
 #if NETFULL
-         InlineData(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Dynamic, false),
-         InlineData(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Dynamic, false),
+         DataRow(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Dynamic, false),
+         DataRow(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Dynamic, false),
 #endif
-         InlineData(10, 5, 280, 7, 1, 1, false, LinqMethodTypes.Compiled, true)]
+         DataRow(10, 5, 280, 7, 1, 1, false, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

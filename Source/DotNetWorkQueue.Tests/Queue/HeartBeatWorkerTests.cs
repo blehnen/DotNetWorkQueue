@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using AutoFixture;
@@ -10,24 +10,25 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class HeartBeatWorkerTests
     {
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             using (var test = Create())
             {
-                Assert.False(test.IsDisposed);
+                Assert.IsFalse(test.IsDisposed);
             }
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Call_Dispose_Multiple_Times_Ok()
         {
             using (var test = Create())
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Call_Stop_Multiple_Times_Ok()
         {
             using (var test = Create())
@@ -46,33 +47,33 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             var test = Create();
             test.Dispose();
-            Assert.True(test.IsDisposed);
+            Assert.IsTrue(test.IsDisposed);
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Start_Exception()
         {
             var test = Create();
             test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
+            Assert.ThrowsExactly<ObjectDisposedException>(
                 delegate
                 {
                     test.Start();
                 });
         }
 
-        [Fact]
+        [TestMethod]
         public void Calling_Start_Multiple_Times_Exception()
         {
             using (var test = Create())
             {
                 test.Start();
-                Assert.Throws<DotNetWorkQueueException>(
+                Assert.ThrowsExactly<DotNetWorkQueueException>(
                     delegate
                     {
                         test.Start();
@@ -80,7 +81,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_Send_Exception()
         {
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();
@@ -95,13 +96,13 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Theory]
-        [InlineData(5),
-         InlineData(59),
-         InlineData(65),
-         InlineData(600),
-         InlineData(6000),
-         InlineData(60000)]
+        [TestMethod]
+        [DataRow(5),
+         DataRow(59),
+         DataRow(65),
+         DataRow(600),
+         DataRow(6000),
+         DataRow(60000)]
         public void Test_SendDiff(int seconds)
         {
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();

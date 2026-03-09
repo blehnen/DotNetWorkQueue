@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using DotNetWorkQueue.Queue;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class WaitForDelegateTests
     {
-        [Fact]
+        [TestMethod]
         public void Test_Timeout()
         {
             var timer = new Stopwatch();
@@ -15,9 +16,9 @@ namespace DotNetWorkQueue.Tests.Queue
             // ReSharper disable once EqualExpressionComparison
             WaitForDelegate.Wait(() => 1 == 1, TimeSpan.FromMilliseconds(1000));
             timer.Stop();
-            Assert.InRange(timer.ElapsedMilliseconds, 1000, 1575);
+            Assert.IsInRange(1000L, 1575L, timer.ElapsedMilliseconds);
         }
-        [Fact]
+        [TestMethod]
         public void Test_NoTimeout()
         {
             WaitForDelegate.Wait(() => 1 == 2);

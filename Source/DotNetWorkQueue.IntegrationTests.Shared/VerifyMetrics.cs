@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.IntegrationTests.Metrics;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         public static void VerifyPoisonMessageCount(string queueName, MetricsData data, long messageCount)
         {
             var count = GetPoisonMessageCount(data);
-            Assert.Equal(messageCount, count);
+            Assert.AreEqual(messageCount, count);
         }
         public static long GetExpiredMessageCount(MetricsData data)
         {
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         public static void VerifyExpiredMessageCount(string queueName, MetricsData data, long messageCount)
         {
             var count = GetExpiredMessageCount(data);
-            Assert.Equal(messageCount, count);
+            Assert.AreEqual(messageCount, count);
         }
         public static void VerifyRollBackCount(string queueName, MetricsData data, long messageCount, int rollbackCount, int failedCount)
         {
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             const string retryName = "MessageFailedProcessingRetryMeter";
             foreach (var metric in data.Counters.Where(counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.Equal(messageCount * rollbackCount, metric.Value.Value);
+                Assert.AreEqual(messageCount * rollbackCount, metric.Value.Value);
                 found = true;
                 break;
             }
@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                         data.Meters.Where(
                             counter => counter.Key.EndsWith(retryName, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    Assert.Equal(messageCount * failedCount, metric.Value.Value);
+                    Assert.AreEqual(messageCount * failedCount, metric.Value.Value);
                     found = true;
                     break;
                 }
@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             var name = "SendMessagesMeter";
             foreach (var meter in data.Meters.Where(timer => timer.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.Equal(messageCount, meter.Value.Value);
+                Assert.AreEqual(messageCount, meter.Value.Value);
                 found = true;
                 break;
             }
@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             var name = "SendMessagesMeter";
             foreach (var meter in data.Meters.Where(timer => timer.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.Equal(messageCount, meter.Value.Value);
+                Assert.AreEqual(messageCount, meter.Value.Value);
                 found = true;
                 break;
             }
@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             const string name = "CommitMessage.CommitCounter";
             foreach (var counter in data.Counters.Where(counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.Equal(messageCount, counter.Value.Value);
+                Assert.AreEqual(messageCount, counter.Value.Value);
                 found = true;
                 break;
             }

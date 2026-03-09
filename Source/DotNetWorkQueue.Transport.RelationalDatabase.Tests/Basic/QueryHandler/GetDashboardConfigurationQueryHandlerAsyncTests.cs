@@ -24,13 +24,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardConfigurationQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Configuration()
         {
             var (handler, readColumn, reader) = CreateHandler(true);
@@ -39,17 +40,17 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = await handler.HandleAsync(new GetDashboardConfigurationQuery());
 
-            Assert.Equal(expected, result);
+            Assert.AreEqual(expected, result);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Null_When_No_Rows()
         {
             var (handler, _, _) = CreateHandler(false);
 
             var result = await handler.HandleAsync(new GetDashboardConfigurationQuery());
 
-            Assert.Null(result);
+            Assert.IsNull(result);
         }
 
         private static (GetDashboardConfigurationQueryHandlerAsync handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(bool hasRows)

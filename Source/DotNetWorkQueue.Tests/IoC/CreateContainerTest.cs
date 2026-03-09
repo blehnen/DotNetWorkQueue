@@ -1,4 +1,4 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.IoC;
@@ -12,14 +12,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.IoC
 {
-    [Collection("IoC")]
+    [TestClass]
     public class CreateContainerTest
     {
-        [Fact]
+        [TestMethod]
         public void CreateContainer_NoWarnings_NoOpSendTransport()
         {
             var creator = new CreateContainer<NoOpSendTransport>();
@@ -28,13 +28,13 @@ namespace DotNetWorkQueue.Tests.IoC
             // Assert
             Container container = c.Container;
             var results = Analyzer.Analyze(container);
-            Assert.False(results.Any(), Environment.NewLine +
+            Assert.IsFalse(results.Any(), Environment.NewLine +
                                         string.Join(Environment.NewLine,
                                             from result in results
                                             select result.Description));
         }
 
-        [Fact]
+        [TestMethod]
         public void CreateContainer_NoWarnings_NoOpReceiveTransport()
         {
             var creator = new CreateContainer<NoOpReceiveTransport>();
@@ -43,16 +43,16 @@ namespace DotNetWorkQueue.Tests.IoC
             // Assert
             Container container = c.Container;
             var results = Analyzer.Analyze(container);
-            Assert.False(results.Any(), Environment.NewLine +
+            Assert.IsFalse(results.Any(), Environment.NewLine +
                                         string.Join(Environment.NewLine,
                                             from result in results
                                             select result.Description));
         }
 
-        [Fact]
+        [TestMethod]
         public void CreateContainer_BadTransport_Exception()
         {
-            Assert.Throws<DotNetWorkQueueException>(
+            Assert.ThrowsExactly<DotNetWorkQueueException>(
               delegate
               {
                   var creator = new CreateContainer<NoOpBadTransport>();

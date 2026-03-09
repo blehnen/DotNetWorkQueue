@@ -129,7 +129,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                     messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
-                    var outputMessage = await _handler.SendAsync(messageToSend, data);
+                    var outputMessage = await _handler.SendAsync(messageToSend, data).ConfigureAwait(false);
                     if (outputMessage.HasError)
                     {
                         scope?.SetStatus(ActivityStatusCode.Error);
@@ -166,7 +166,7 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
                         message.Message.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 }
             }
-            return await _handler.SendAsync(messages);
+            return await _handler.SendAsync(messages).ConfigureAwait(false);
         }
     }
 }

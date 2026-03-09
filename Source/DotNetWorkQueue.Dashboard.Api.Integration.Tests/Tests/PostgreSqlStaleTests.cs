@@ -25,17 +25,19 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
-    public class PostgreSqlStaleTests : IAsyncLifetime
+    [TestClass]
+    public class PostgreSqlStaleTests
     {
         private DashboardTestServer _server;
         private TransportFixture<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation> _fixture;
         private ConsumerStateHelper<PostgreSqlMessageQueueInit> _consumerHelper;
         private Guid _queueId;
 
+        [TestInitialize]
         public async Task InitializeAsync()
         {
             var queueName = QueueNameGenerator.Create();
@@ -74,14 +76,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             await DashboardPollingHelper.WaitForStaleAsync(_server.Client, _queueId);
         }
 
-        public async Task DisposeAsync()
+        [TestCleanup]
+        public async Task CleanupAsync()
         {
             _consumerHelper?.Dispose();
             if (_server != null) await _server.DisposeAsync();
             _fixture?.Dispose();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task StaleMessages_Detected()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -89,7 +92,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.Items.Should().NotBeEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task ResetStale_Success()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(

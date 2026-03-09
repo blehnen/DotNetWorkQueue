@@ -23,10 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\xunit.runner.json" Link="xunit.runner.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <None Update="connectionstring.txt">
+<None Update="connectionstring.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="connectionstring-postgresql.txt">
@@ -43,16 +40,9 @@
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.3" Condition="'$(TargetFramework)' == 'net10.0'" />
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.console" Version="2.9.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+    <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.1.0" />
+</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorkQueue.Dashboard.Api\DotNetWorkQueue.Dashboard.Api.csproj" />

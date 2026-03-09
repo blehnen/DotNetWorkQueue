@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
 {
@@ -38,9 +38,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                     command.CommandText = $"select count(*) from {helper.StatusName}";
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(messageCount, records);
+                        Assert.AreEqual(messageCount, records);
                     }
                 }
             }

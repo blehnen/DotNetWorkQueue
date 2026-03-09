@@ -1,9 +1,9 @@
-﻿#region Using
+#region Using
 
 using System;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
@@ -32,12 +32,12 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
             if (existingCount)
             {
                 var count = dataStorage.RecordCount;
-                Assert.Equal(recordCount, count);
+                Assert.AreEqual(recordCount, count);
             }
             else
             {
                 var count = dataStorage.GetDequeueCount();
-                Assert.Equal(recordCount, count);
+                Assert.AreEqual(recordCount, count);
             }
         }
     }
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
             {
                 var data = (IDataStorage)dataStorage;
                 var errors = data.GetErrorCount();
-                Assert.Equal(messageCount, errors);
+                Assert.AreEqual(messageCount, errors);
             }
         }
     }

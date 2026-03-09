@@ -1,17 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class RetryInformationFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var t = typeof(NullReferenceException);
@@ -20,15 +21,15 @@ namespace DotNetWorkQueue.Tests.Factory
             var factory = Create();
             var info = factory.Create(t, times);
 
-            Assert.Equal(info.ExceptionType, t);
-            Assert.Equal(info.Times, times);
-            Assert.Equal(info.MaxRetries, times.Count);
+            Assert.AreEqual(info.ExceptionType, t);
+            Assert.AreEqual(info.Times, times);
+            Assert.AreEqual(info.MaxRetries, times.Count);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Null_Params_Fails()
         {
             var factory = Create();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                delegate
                {
                    factory.Create(null, null);

@@ -1,14 +1,14 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
 {
-    [Collection("producer")]
+    [TestClass]
     public class MultiProducer
     {
-        [Fact]
+        [TestMethod]
         public void Run()
         {
             using (var connectionInfo = new IntegrationConnectionInfo())

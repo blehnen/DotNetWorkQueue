@@ -1,15 +1,16 @@
-﻿using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Queue;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class GetHeaderDefaultTests
     {
-        [Fact()]
+        [TestMethod]
         public void GetHeaders_Test()
         {
             var header = new GetHeaderDefault();
-            Assert.Throws<DotNetWorkQueueException>(() => header.GetHeaders(null));
+            Assert.ThrowsExactly<DotNetWorkQueueException>(() => header.GetHeaders(null));
         }
     }
 }

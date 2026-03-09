@@ -1,21 +1,21 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
 {
-    [CollectionDefinition("JobScheduler", DisableParallelization = true)]
+    [TestClass]
     public class JobSchedulerTests
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(true, ConnectionInfoTypes.Linux)]
+        [DataRow(true, ConnectionInfoTypes.Linux)]
 #else
-        [InlineData(false, ConnectionInfoTypes.Linux)]
+        [DataRow(false, ConnectionInfoTypes.Linux)]
 #endif
         public void Run(
             bool dynamic,

@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Tests
 {
+    [TestClass]
     public class SqlConnectionInformationTests
     {
         private const string GoodConnection =
@@ -12,30 +13,30 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         private const string BadConnection =
            "Thisisabadconnectionstring";
 
-        [Fact]
+        [TestMethod]
         public void GetSet_Connection()
         {
             var test = new SqlConnectionInformation(new QueueConnection(string.Empty, GoodConnection));
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
-        [Fact]
+        [TestMethod]
         public void GetSet_Connection_Bad_Exception()
         {
-            Assert.Throws<ArgumentException>(
+            Assert.ThrowsExactly<ArgumentException>(
             delegate
             {
                 // ReSharper disable once UnusedVariable
                 var test = new SqlConnectionInformation(new QueueConnection(string.Empty, BadConnection));
             });
         }
-        [Fact]
+        [TestMethod]
         public void Test_Clone()
         {
             var test = new SqlConnectionInformation(new QueueConnection("blah", GoodConnection));
             var clone = test.Clone();
 
-            Assert.Equal(test.ConnectionString, clone.ConnectionString);
-            Assert.Equal(test.QueueName, clone.QueueName);
+            Assert.AreEqual(test.ConnectionString, clone.ConnectionString);
+            Assert.AreEqual(test.QueueName, clone.QueueName);
         }
     }
 }

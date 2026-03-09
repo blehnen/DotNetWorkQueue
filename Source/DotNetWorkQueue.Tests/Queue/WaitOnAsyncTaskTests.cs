@@ -1,19 +1,20 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using DotNetWorkQueue.Queue;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class WaitOnAsyncTaskTests
     {
-        [Fact]
+        [TestMethod]
         public void Wait_None()
         {
             WaitOnAsyncTask.Wait(() => 1 == 2,
                 () => { });
         }
-        [Fact]
+        [TestMethod]
         public void Wait_Short()
         {
             var wait = new WaitSometime();
@@ -21,7 +22,7 @@ namespace DotNetWorkQueue.Tests.Queue
                 () => { });
         }
 
-        [Fact]
+        [TestMethod]
         public void Wait_Long()
         {
             var wait = new WaitSometime();

@@ -1,4 +1,4 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Redis.Basic;
@@ -7,13 +7,14 @@ using DotNetWorkQueue.Transport.Redis.Basic.MessageID;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Factory
 {
+    [TestClass]
     public class GetMessageIdFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create()
         {
             var redisId = new GetRedisIncrId();
@@ -32,17 +33,17 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Factory
             options.MessageIdLocation = MessageIdLocations.RedisIncr;
             var test = new GetMessageIdFactory(factory, options);
             var result = test.Create();
-            Assert.IsAssignableFrom<GetRedisIncrId>(result);
+            Assert.IsInstanceOfType<GetRedisIncrId>(result);
 
             options.MessageIdLocation = MessageIdLocations.Uuid;
             result = test.Create();
-            Assert.IsAssignableFrom<GetUuidMessageId>(result);
+            Assert.IsInstanceOfType<GetUuidMessageId>(result);
 
             options.MessageIdLocation = MessageIdLocations.Custom;
             test.Create();
 
             options.MessageIdLocation = (MessageIdLocations)99;
-            Assert.Throws<DotNetWorkQueueException>(
+            Assert.ThrowsExactly<DotNetWorkQueueException>(
            delegate
            {
                test.Create();

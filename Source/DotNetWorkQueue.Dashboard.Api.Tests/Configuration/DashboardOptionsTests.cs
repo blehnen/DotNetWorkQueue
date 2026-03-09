@@ -1,12 +1,13 @@
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
 {
+    [TestClass]
     public class DashboardOptionsTests
     {
-        [Fact]
+        [TestMethod]
         public void Defaults_Are_Correct()
         {
             var opts = new DashboardOptions();
@@ -14,14 +15,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             opts.AuthorizationPolicy.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void EnableSwagger_Can_Be_Disabled()
         {
             var opts = new DashboardOptions { EnableSwagger = false };
             opts.EnableSwagger.Should().BeFalse();
         }
 
-        [Fact]
+        [TestMethod]
         public void AuthorizationPolicy_Can_Be_Set()
         {
             var opts = new DashboardOptions { AuthorizationPolicy = "AdminOnly" };

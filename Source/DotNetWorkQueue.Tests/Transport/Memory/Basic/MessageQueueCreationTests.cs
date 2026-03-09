@@ -1,56 +1,57 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Transport.Memory.Basic.Factory;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
 {
+    [TestClass]
     public class MessageQueueCreationTests
     {
-        [Fact()]
+        [TestMethod]
         public void MessageQueueCreation_Test()
         {
             var queue = Create();
-            Assert.False(queue.IsDisposed);
-            Assert.True(queue.QueueExists);
-            Assert.NotNull(queue.ConnectionInfo);
-            Assert.NotNull(queue.Options);
-            Assert.NotNull(queue.Scope);
+            Assert.IsFalse(queue.IsDisposed);
+            Assert.IsTrue(queue.QueueExists);
+            Assert.IsNotNull(queue.ConnectionInfo);
+            Assert.IsNotNull(queue.Options);
+            Assert.IsNotNull(queue.Scope);
 
             var result = queue.CreateQueue();
-            Assert.Equal(QueueCreationStatus.Success, result.Status);
+            Assert.AreEqual(QueueCreationStatus.Success, result.Status);
 
             var delete = queue.RemoveQueue();
-            Assert.Equal(QueueRemoveStatus.Success, delete.Status);
+            Assert.AreEqual(QueueRemoveStatus.Success, delete.Status);
 
 
         }
 
-        [Fact()]
+        [TestMethod]
         public void CreateQueue_Test()
         {
             var queue = Create();
             var result = queue.CreateQueue();
-            Assert.Equal(QueueCreationStatus.Success, result.Status);
+            Assert.AreEqual(QueueCreationStatus.Success, result.Status);
         }
 
-        [Fact()]
+        [TestMethod]
         public void RemoveQueue_Test()
         {
             var queue = Create();
             var delete = queue.RemoveQueue();
-            Assert.Equal(QueueRemoveStatus.Success, delete.Status);
+            Assert.AreEqual(QueueRemoveStatus.Success, delete.Status);
         }
 
-        [Fact()]
+        [TestMethod]
         public void Dispose_Test()
         {
             var queue = Create();
-            Assert.False(queue.IsDisposed);
+            Assert.IsFalse(queue.IsDisposed);
             queue.Dispose();
-            Assert.True(queue.IsDisposed);
+            Assert.IsTrue(queue.IsDisposed);
         }
 
         private MessageQueueCreation Create()

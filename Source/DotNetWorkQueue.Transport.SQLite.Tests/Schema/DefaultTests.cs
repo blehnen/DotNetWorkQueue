@@ -1,27 +1,28 @@
-﻿#region Using
+#region Using
 
 using DotNetWorkQueue.Transport.SQLite.Schema;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
 {
+    [TestClass]
     public class DefaultTests
     {
-        [Fact]
+        [TestMethod]
         public void Default()
         {
             var test = new Default("test", "test1");
-            Assert.Equal("test", test.Name);
-            Assert.Equal("test1", test.Value);
+            Assert.AreEqual("test", test.Name);
+            Assert.AreEqual("test1", test.Value);
         }
-        [Fact]
+        [TestMethod]
         public void Script()
         {
             var test = new Default("test", "test1");
-            Assert.Contains("test", test.Script());
-            Assert.Contains("test1", test.Script());
+            StringAssert.Contains(test.Script(), "test");
+            StringAssert.Contains(test.Script(), "test1");
         }
     }
 }

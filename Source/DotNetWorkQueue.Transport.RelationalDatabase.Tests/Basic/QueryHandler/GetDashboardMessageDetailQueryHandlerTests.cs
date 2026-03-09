@@ -7,13 +7,14 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardMessageDetailQueryHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle_Returns_Message_When_Found()
         {
             var (handler, readColumn, reader) = CreateHandler(true);
@@ -25,19 +26,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = handler.Handle(new GetDashboardMessageDetailQuery("42"));
 
-            Assert.NotNull(result);
-            Assert.Equal("42", result.QueueId);
-            Assert.Equal("corr-42", result.CorrelationId);
+            Assert.IsNotNull(result);
+            Assert.AreEqual("42", result.QueueId);
+            Assert.AreEqual("corr-42", result.CorrelationId);
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Returns_Null_When_Not_Found()
         {
             var (handler, _, _) = CreateHandler(false);
 
             var result = handler.Handle(new GetDashboardMessageDetailQuery("999"));
 
-            Assert.Null(result);
+            Assert.IsNull(result);
         }
 
         private static (IQueryHandler<GetDashboardMessageDetailQuery, DashboardMessage> handler, IReadColumn readColumn, IDataReader reader) CreateHandler(bool hasRows)

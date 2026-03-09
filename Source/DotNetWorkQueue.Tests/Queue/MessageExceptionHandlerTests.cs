@@ -1,17 +1,18 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Queue;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class MessageExceptionHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Message_Handled()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -23,7 +24,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var context = fixture.Create<IMessageContext>();
             var exception = new Exception();
 
-            Assert.Throws<MessageException>(
+            Assert.ThrowsExactly<MessageException>(
            delegate
            {
                test.Handle(message, context, exception);
@@ -31,7 +32,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             error.Received(1).MessageFailedProcessing(message, context, exception);
         }
-        [Fact]
+        [TestMethod]
         public void Message_Handled_Exception_Throws_Exception()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -44,7 +45,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var context = fixture.Create<IMessageContext>();
             var exception = new Exception();
 
-            Assert.Throws<DotNetWorkQueueException>(
+            Assert.ThrowsExactly<DotNetWorkQueueException>(
             delegate
             {
                 test.Handle(message, context, exception);

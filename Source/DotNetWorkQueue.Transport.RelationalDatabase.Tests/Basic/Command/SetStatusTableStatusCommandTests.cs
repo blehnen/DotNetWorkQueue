@@ -1,18 +1,19 @@
-﻿using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
 {
+    [TestClass]
     public class SetStatusTableStatusCommandTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             const int id = 19334;
             var test = new SetStatusTableStatusCommand<long>(id, QueueStatuses.Processing);
-            Assert.Equal(id, test.QueueId);
-            Assert.Equal(QueueStatuses.Processing, test.Status);
+            Assert.AreEqual(id, test.QueueId);
+            Assert.AreEqual(QueueStatuses.Processing, test.Status);
         }
     }
 }

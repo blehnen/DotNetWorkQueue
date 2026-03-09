@@ -1,21 +1,25 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.JobScheduler
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class JobSchedulerMultipleTests
     {
-        [SkippableTheory]
-        [InlineData(2)]
+        [TestMethod]
+        [DataRow(2)]
         public void Run(
             int producerCount)
         {
-            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
+            if (OsDetectionHelper.IsRunningOnServer(null))
+            {
+                Assert.Inconclusive("Test skipped on server");
+                return;
+            }
             using (var connectionInfo = new IntegrationConnectionInfo(IntegrationConnectionInfo.ConnectionTypes.Direct))
             {
                 var queueName = GenerateQueueName.Create();

@@ -1,32 +1,33 @@
-﻿using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using DotNetWorkQueue.Transport.Redis.Basic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
 {
+    [TestClass]
     public class RedisQueueIdTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             const long id = 1;
             var test = new RedisQueueId(id.ToString());
-            Assert.Equal(id.ToString(), test.Id.Value);
-            Assert.True(test.HasValue);
+            Assert.AreEqual(id.ToString(), test.Id.Value);
+            Assert.IsTrue(test.HasValue);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Default_ToString()
         {
             const long id = 1;
             var test = new RedisQueueId(id.ToString());
-            Assert.Equal("1", test.ToString());
+            Assert.AreEqual("1", test.ToString());
         }
-        [Fact]
+        [TestMethod]
         public void Create_Default_Empty()
         {
             var id = string.Empty;
             var test = new RedisQueueId(id);
-            Assert.Equal(id, test.Id.Value);
-            Assert.False(test.HasValue);
+            Assert.AreEqual(id, test.Id.Value);
+            Assert.IsFalse(test.HasValue);
         }
     }
 }

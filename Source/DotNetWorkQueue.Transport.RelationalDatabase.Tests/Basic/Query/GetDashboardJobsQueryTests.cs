@@ -1,15 +1,16 @@
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
 {
+    [TestClass]
     public class GetDashboardJobsQueryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = new GetDashboardJobsQuery();
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
     }
 }

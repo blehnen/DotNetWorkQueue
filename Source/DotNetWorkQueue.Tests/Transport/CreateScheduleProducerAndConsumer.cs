@@ -1,15 +1,16 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using System;
 using System.Threading;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Transport
 {
+    [TestClass]
     public class CreateScheduleProducerAndConsumer
     {
-        [Fact()]
+        [TestMethod]
         public void Create_Test()
         {
             using (var schedulerContainer = new SchedulerContainer())

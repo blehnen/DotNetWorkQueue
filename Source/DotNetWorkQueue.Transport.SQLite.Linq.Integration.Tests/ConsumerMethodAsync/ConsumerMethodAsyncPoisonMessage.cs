@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
@@ -6,20 +6,20 @@ using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerMethodAsyncPoisonMessage
     {
-        [Theory]
-        [InlineData(1, 60, 1, 1, 0, true, LinqMethodTypes.Dynamic, false),
-         InlineData(10, 60, 5, 1, 0, false, LinqMethodTypes.Dynamic, false),
-         InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, false),
-         InlineData(10, 60, 5, 1, 0, true, LinqMethodTypes.Compiled, false),
-         InlineData(1, 60, 5, 1, 0, false, LinqMethodTypes.Dynamic, true),
-         InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
+        [TestMethod]
+        [DataRow(1, 60, 1, 1, 0, true, LinqMethodTypes.Dynamic, false),
+         DataRow(10, 60, 5, 1, 0, false, LinqMethodTypes.Dynamic, false),
+         DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, false),
+         DataRow(10, 60, 5, 1, 0, true, LinqMethodTypes.Compiled, false),
+         DataRow(1, 60, 5, 1, 0, false, LinqMethodTypes.Dynamic, true),
+         DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

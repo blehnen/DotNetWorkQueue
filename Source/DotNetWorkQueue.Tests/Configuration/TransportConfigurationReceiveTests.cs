@@ -1,22 +1,23 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class TransportConfigurationReceiveTests
     {
-        [Fact]
+        [TestMethod]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.False(configuration.IsReadOnly);
+            Assert.IsFalse(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();

@@ -2,22 +2,23 @@ using System;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic.CommandHandler;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Tests.Basic.CommandHandler
 {
+    [TestClass]
     public class DashboardUpdateMessageBodyCommandHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
-            Assert.NotNull(new DashboardUpdateMessageBodyCommandHandler(Substitute.For<IDataStorage>()));
+            Assert.IsNotNull(new DashboardUpdateMessageBodyCommandHandler(Substitute.For<IDataStorage>()));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullDataStorage_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() => new DashboardUpdateMessageBodyCommandHandler(null));
+            Assert.ThrowsExactly<ArgumentNullException>(() => new DashboardUpdateMessageBodyCommandHandler(null));
         }
     }
 }

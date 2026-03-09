@@ -1,84 +1,96 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class TaskSchedulerConfigurationTests
     {
-        [Fact]
+        [TestMethod]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.False(configuration.IsReadOnly);
+            Assert.IsFalse(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.True(configuration.IsReadOnly);
+            Assert.IsTrue(configuration.IsReadOnly);
         }
-        [Theory, AutoData]
-        public void SetAndGet_MaxQueueSize(int value)
+        [TestMethod]
+        public void SetAndGet_MaxQueueSize()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.MaxQueueSize = value;
-            Assert.Equal(value, configuration.MaxQueueSize);
+            Assert.AreEqual(value, configuration.MaxQueueSize);
         }
-        [Theory, AutoData]
-        public void SetAndGet_MaximumThreads(int value)
+        [TestMethod]
+        public void SetAndGet_MaximumThreads()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.MaximumThreads = value;
 
-            Assert.Equal(value, configuration.MaximumThreads);
+            Assert.AreEqual(value, configuration.MaximumThreads);
         }
-        [Theory, AutoData]
-        public void SetAndGet_WaitForThreadPoolToFinish(TimeSpan value)
+        [TestMethod]
+        public void SetAndGet_WaitForThreadPoolToFinish()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.WaitForThreadPoolToFinish = value;
 
-            Assert.Equal(value, configuration.WaitForThreadPoolToFinish);
+            Assert.AreEqual(value, configuration.WaitForThreadPoolToFinish);
         }
 
-        [Theory, AutoData]
-        public void Set_MaximumThreads_WhenReadOnly_Fails(int value)
+        [TestMethod]
+        public void Set_MaximumThreads_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.MaximumThreads = value;
               });
         }
-        [Theory, AutoData]
-        public void Set_MaxQueueSize_WhenReadOnly_Fails(int value)
+        [TestMethod]
+        public void Set_MaxQueueSize_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.MaxQueueSize = value;
               });
         }
-        [Theory, AutoData]
-        public void Set_WaitForThreadPoolToFinish_WhenReadOnly_Fails(TimeSpan value)
+        [TestMethod]
+        public void Set_WaitForThreadPoolToFinish_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.WaitForThreadPoolToFinish = value;

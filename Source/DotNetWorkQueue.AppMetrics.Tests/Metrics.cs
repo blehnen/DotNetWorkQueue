@@ -1,49 +1,57 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using Xunit;
-using AutoFixture.Xunit2;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.AppMetrics.Tests
 {
+    [TestClass]
     public class Metrics
     {
-        [Theory, AutoData]
-        public void Create(string name, string name2, string name3)
+        [TestMethod]
+        public void Create()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var name2 = fixture.Create<string>();
+            var name3 = fixture.Create<string>();
             using (var metric = new DotNetWorkQueue.AppMetrics.Metrics(name))
             {
                 metric.Gauge(name, () => 1, Units.Bytes);
-                Assert.NotNull(metric.Meter(name, Units.Bytes, TimeUnits.Seconds));
-                Assert.NotNull(metric.Meter(name2, name2, TimeUnits.Seconds));
-                Assert.NotNull(metric.Counter(name, Units.Bytes));
-                Assert.NotNull(metric.Counter(name2, name2));
-                Assert.NotNull(metric.Histogram(name, Units.Bytes, SamplingTypes.FavorRecent));
-                Assert.NotNull(metric.Timer(name, Units.Bytes, SamplingTypes.FavorRecent, TimeUnits.Seconds, TimeUnits.Seconds));
+                Assert.IsNotNull(metric.Meter(name, Units.Bytes, TimeUnits.Seconds));
+                Assert.IsNotNull(metric.Meter(name2, name2, TimeUnits.Seconds));
+                Assert.IsNotNull(metric.Counter(name, Units.Bytes));
+                Assert.IsNotNull(metric.Counter(name2, name2));
+                Assert.IsNotNull(metric.Histogram(name, Units.Bytes, SamplingTypes.FavorRecent));
+                Assert.IsNotNull(metric.Timer(name, Units.Bytes, SamplingTypes.FavorRecent, TimeUnits.Seconds, TimeUnits.Seconds));
 
                 var context = metric.Context(name3);
-                Assert.NotNull(context);
+                Assert.IsNotNull(context);
                 metric.ShutdownContext(name3);
-                Assert.NotNull(metric.CollectedMetrics);
+                Assert.IsNotNull(metric.CollectedMetrics);
             }
         }
 
-        [Theory, AutoData]
-        public void Create2(string name, string name2, string name3)
+        [TestMethod]
+        public void Create2()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var name2 = fixture.Create<string>();
+            var name3 = fixture.Create<string>();
             using (var metric = new DotNetWorkQueue.AppMetrics.Metrics(CreateAppMetrics()))
             {
                 metric.Gauge(name, () => 1, Units.Bytes);
-                Assert.NotNull(metric.Meter(name, Units.Bytes, TimeUnits.Seconds));
-                Assert.NotNull(metric.Meter(name2, name2, TimeUnits.Seconds));
-                Assert.NotNull(metric.Counter(name, Units.Bytes));
-                Assert.NotNull(metric.Counter(name2, name2));
-                Assert.NotNull(metric.Histogram(name, Units.Bytes, SamplingTypes.FavorRecent));
-                Assert.NotNull(metric.Timer(name, Units.Bytes, SamplingTypes.FavorRecent, TimeUnits.Seconds, TimeUnits.Seconds));
+                Assert.IsNotNull(metric.Meter(name, Units.Bytes, TimeUnits.Seconds));
+                Assert.IsNotNull(metric.Meter(name2, name2, TimeUnits.Seconds));
+                Assert.IsNotNull(metric.Counter(name, Units.Bytes));
+                Assert.IsNotNull(metric.Counter(name2, name2));
+                Assert.IsNotNull(metric.Histogram(name, Units.Bytes, SamplingTypes.FavorRecent));
+                Assert.IsNotNull(metric.Timer(name, Units.Bytes, SamplingTypes.FavorRecent, TimeUnits.Seconds, TimeUnits.Seconds));
 
                 var context = metric.Context(name3);
-                Assert.NotNull(context);
+                Assert.IsNotNull(context);
                 metric.ShutdownContext(name3);
-                Assert.Null(metric.CollectedMetrics);
+                Assert.IsNull(metric.CollectedMetrics);
             }
         }
 
