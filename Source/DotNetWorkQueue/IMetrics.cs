@@ -106,12 +106,10 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="name">Name of the metric. Must be unique across all histograms in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
-        /// <param name="samplingType">Type of the sampling to use (see SamplingType for details ).</param>
         /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         IHistogram Histogram(string name,
             Units unit,
-            SamplingTypes samplingType = SamplingTypes.FavorRecent,
             List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
@@ -119,25 +117,21 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="name">Name of the metric. Must be unique across all timers in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
-        /// <param name="samplingType">Type of the sampling to use (see SamplingType for details ).</param>
         /// <param name="rateUnit">Time unit for rates reporting. Defaults to Second ( occurrences / second ).</param>
         /// <param name="durationUnit">Time unit for reporting durations. Defaults to Milliseconds. </param>
         /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         ITimer Timer(string name,
             Units unit,
-            SamplingTypes samplingType = SamplingTypes.FavorRecent,
             TimeUnits rateUnit = TimeUnits.Seconds,
             TimeUnits durationUnit = TimeUnits.Milliseconds,
             List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
-        /// Gets the collected metrics.
+        /// Gets a snapshot of the collected metrics.
         /// </summary>
-        /// <value>
-        /// The collected metrics.
-        /// </value>
-        dynamic CollectedMetrics { get; }
+        /// <returns>A snapshot containing current counter and meter values.</returns>
+        MetricsSnapshot GetCollectedMetrics();
     }
 
     /// <summary>
@@ -225,12 +219,10 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="name">Name of the metric. Must be unique across all histograms in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
-        /// <param name="samplingType">Type of the sampling to use (see SamplingType for details ).</param>
         /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         IHistogram Histogram(string name,
             Units unit,
-            SamplingTypes samplingType = SamplingTypes.FavorRecent,
             List<KeyValuePair<string, string>> tags = null);
 
         /// <summary>
@@ -238,14 +230,12 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="name">Name of the metric. Must be unique across all timers in this context.</param>
         /// <param name="unit">Description of what the is being measured ( Unit.Requests , Unit.Items etc ) .</param>
-        /// <param name="samplingType">Type of the sampling to use (see SamplingType for details ).</param>
         /// <param name="rateUnit">Time unit for rates reporting. Defaults to Second ( occurrences / second ).</param>
         /// <param name="durationUnit">Time unit for reporting durations. Defaults to Milliseconds. </param>
         /// <param name="tags">Optional tags that can be associated with the metric.</param>
         /// <returns>Reference to the metric</returns>
         ITimer Timer(string name,
             Units unit,
-            SamplingTypes samplingType = SamplingTypes.FavorRecent,
             TimeUnits rateUnit = TimeUnits.Seconds,
             TimeUnits durationUnit = TimeUnits.Milliseconds,
             List<KeyValuePair<string, string>> tags = null);
@@ -430,24 +420,32 @@ namespace DotNetWorkQueue
     }
 
     /// <summary>
-    /// Type of the sampling to use
+    /// A snapshot of the collected metrics values.
     /// </summary>
-    public enum SamplingTypes
+    public class MetricsSnapshot
     {
         /// <summary>
-        /// Sampling will be done with a Exponentially Decaying Reservoir
+        /// Initializes a new instance of the <see cref="MetricsSnapshot"/> class.
         /// </summary>
-        FavorRecent = 0,
+        /// <param name="counters">The counter values.</param>
+        /// <param name="meters">The meter values.</param>
+        public MetricsSnapshot(
+            Dictionary<string, long> counters,
+            Dictionary<string, long> meters)
+        {
+            Counters = counters ?? new Dictionary<string, long>();
+            Meters = meters ?? new Dictionary<string, long>();
+        }
+
         /// <summary>
-        /// Sampling will done with a Uniform Reservoir.
+        /// Gets the counter values keyed by metric name.
         /// </summary>
-        LongTerm = 1,
+        public Dictionary<string, long> Counters { get; }
+
         /// <summary>
-        ///  Sampling will done with a Sliding Window Reservoir.  A histogram with a sliding
-        ///  window reservoir produces quantiles which are representative of the past
-        ///  N measurements.
+        /// Gets the meter values keyed by metric name.
         /// </summary>
-        SlidingWindow = 2
+        public Dictionary<string, long> Meters { get; }
     }
 
     /// <summary>

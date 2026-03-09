@@ -63,13 +63,13 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         }
 
         /// <inheritdoc />
-        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType, List<KeyValuePair<string, string>> tags = null)
+        public IHistogram Histogram(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             return new HistogramNoOp();
         }
 
         /// <inheritdoc />
-        public ITimer Timer(string name, Units unit, SamplingTypes samplingType, TimeUnits rateUnit, TimeUnits durationUnit, List<KeyValuePair<string, string>> tags = null)
+        public ITimer Timer(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, List<KeyValuePair<string, string>> tags = null)
         {
             return new TimerNoOp();
         }
@@ -81,7 +81,18 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         }
 
         /// <inheritdoc />
-        public dynamic CollectedMetrics => new MetricsData(_meters, _counters);
+        public MetricsSnapshot GetCollectedMetrics()
+        {
+            var counters = new Dictionary<string, long>();
+            foreach (var kvp in _counters)
+                counters[kvp.Key] = kvp.Value.Value;
+
+            var meters = new Dictionary<string, long>();
+            foreach (var kvp in _meters)
+                meters[kvp.Key] = kvp.Value.Value;
+
+            return new MetricsSnapshot(counters, meters);
+        }
 
         /// <inheritdoc />
         public void ShutdownContext(string contextName)

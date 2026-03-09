@@ -1,67 +1,60 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using DotNetWorkQueue.Exceptions;
-using DotNetWorkQueue.IntegrationTests.Metrics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
     internal static class VerifyMetrics
     {
-        public static long GetPoisonMessageCount(MetricsData data)
+        public static long GetPoisonMessageCount(MetricsSnapshot data)
         {
-            var names = new List<string>(1) { "PoisonHandleMeter" };
+            var name = "PoisonHandleMeter";
+            foreach (var metric in data.Meters.Where(
+                m => m.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return metric.Value;
+            }
+            return 0;
+        }
+
+        public static void VerifyPoisonMessageCount(string queueName, MetricsSnapshot data, long messageCount)
+        {
+            var count = GetPoisonMessageCount(data);
+            Assert.AreEqual(messageCount, count);
+        }
+
+        public static long GetExpiredMessageCount(MetricsSnapshot data)
+        {
+            var names = new[] { ".ClearMessages.ResetCounter", ".HandleAsync.Expired" };
             long count = 0;
             foreach (var name in names)
             {
-                foreach (
-                    var metric in
-                        data.Meters.Where(
-                            counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                foreach (var metric in data.Counters.Where(
+                    c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    count = count + metric.Value.Value;
+                    count = count + metric.Value;
                     break;
                 }
             }
             return count;
         }
 
-        public static void VerifyPoisonMessageCount(string queueName, MetricsData data, long messageCount)
-        {
-            var count = GetPoisonMessageCount(data);
-            Assert.AreEqual(messageCount, count);
-        }
-        public static long GetExpiredMessageCount(MetricsData data)
-        {
-            var names = new List<string>(2) { ".ClearMessages.ResetCounter", ".HandleAsync.Expired" };
-            long count = 0;
-            foreach (var name in names)
-            {
-                foreach (
-                    var metric in
-                        data.Counters.Where(
-                            counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    count = count + metric.Value.Value;
-                    break;
-                }
-            }
-            return count;
-        }
-        public static void VerifyExpiredMessageCount(string queueName, MetricsData data, long messageCount)
+        public static void VerifyExpiredMessageCount(string queueName, MetricsSnapshot data, long messageCount)
         {
             var count = GetExpiredMessageCount(data);
             Assert.AreEqual(messageCount, count);
         }
-        public static void VerifyRollBackCount(string queueName, MetricsData data, long messageCount, int rollbackCount, int failedCount)
+
+        public static void VerifyRollBackCount(string queueName, MetricsSnapshot data, long messageCount, int rollbackCount, int failedCount)
         {
             var found = false;
             const string name = "RollbackMessage.RollbackCounter";
             const string retryName = "MessageFailedProcessingRetryMeter";
-            foreach (var metric in data.Counters.Where(counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+            foreach (var metric in data.Counters.Where(
+                c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.AreEqual(messageCount * rollbackCount, metric.Value.Value);
+                Assert.AreEqual(messageCount * rollbackCount, metric.Value);
                 found = true;
                 break;
             }
@@ -73,64 +66,68 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             if (failedCount > 0)
             {
                 found = false;
-                foreach (
-                    var metric in
-                        data.Meters.Where(
-                            counter => counter.Key.EndsWith(retryName, StringComparison.InvariantCultureIgnoreCase)))
+                foreach (var metric in data.Meters.Where(
+                    m => m.Key.EndsWith(retryName, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    Assert.AreEqual(messageCount * failedCount, metric.Value.Value);
+                    Assert.AreEqual(messageCount * failedCount, metric.Value);
                     found = true;
                     break;
                 }
                 if (!found)
                 {
-                    throw new DotNetWorkQueueException($"Failed to find metric {name}");
+                    throw new DotNetWorkQueueException($"Failed to find metric {retryName}");
                 }
             }
         }
-        public static void VerifyProducedAsyncCount(string queueName, MetricsData data, long messageCount)
+
+        public static void VerifyProducedAsyncCount(string queueName, MetricsSnapshot data, long messageCount)
         {
             var found = false;
             var name = "SendMessagesMeter";
-            foreach (var meter in data.Meters.Where(timer => timer.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+            foreach (var meter in data.Meters.Where(
+                m => m.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.AreEqual(messageCount, meter.Value.Value);
+                Assert.AreEqual(messageCount, meter.Value);
                 found = true;
                 break;
             }
             if (!found)
             {
-                throw new DotNetWorkQueueException($"Failed to find timer {name}");
+                throw new DotNetWorkQueueException($"Failed to find meter {name}");
             }
         }
-        public static void VerifyProducedCount(string queueName, MetricsData data, long messageCount)
+
+        public static void VerifyProducedCount(string queueName, MetricsSnapshot data, long messageCount)
         {
             var found = false;
             var name = "SendMessagesMeter";
-            foreach (var meter in data.Meters.Where(timer => timer.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+            foreach (var meter in data.Meters.Where(
+                m => m.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.AreEqual(messageCount, meter.Value.Value);
+                Assert.AreEqual(messageCount, meter.Value);
                 found = true;
                 break;
             }
             if (!found)
             {
-                throw new DotNetWorkQueueException($"Failed to find timer {name}");
+                throw new DotNetWorkQueueException($"Failed to find meter {name}");
             }
         }
-        public static void VerifyProcessedCount(string queueName, MetricsData data, long messageCount)
+
+        public static void VerifyProcessedCount(string queueName, MetricsSnapshot data, long messageCount)
         {
             var found = false;
             const string name = "CommitMessage.CommitCounter";
-            foreach (var counter in data.Counters.Where(counter => counter.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+            foreach (var counter in data.Counters.Where(
+                c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.AreEqual(messageCount, counter.Value.Value);
+                Assert.AreEqual(messageCount, counter.Value);
                 found = true;
                 break;
             }
             if (!found)
             {
-                throw new DotNetWorkQueueException($"Failed to find timer {name}");
+                throw new DotNetWorkQueueException($"Failed to find counter {name}");
             }
         }
     }

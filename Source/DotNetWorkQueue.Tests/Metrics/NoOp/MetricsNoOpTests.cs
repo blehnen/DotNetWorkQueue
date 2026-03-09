@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Tests.Metrics.NoOp
         public void Test_Histogram()
         {
             var test = Create();
-            var result = test.Histogram("testing", Units.Bytes, SamplingTypes.LongTerm);
+            var result = test.Histogram("testing", Units.Bytes);
             Assert.IsNotNull(result);
         }
 
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Tests.Metrics.NoOp
         public void Test_Timer()
         {
             var test = Create();
-            var result = test.Timer("Testing", Units.Bytes, SamplingTypes.LongTerm, TimeUnits.Minutes, TimeUnits.Milliseconds);
+            var result = test.Timer("Testing", Units.Bytes, TimeUnits.Minutes, TimeUnits.Milliseconds);
             Assert.IsNotNull(result);
         }
 
@@ -87,7 +87,10 @@ namespace DotNetWorkQueue.Tests.Metrics.NoOp
         public void Test_CollectedMetrics()
         {
             var test = Create();
-            Assert.IsNull(test.CollectedMetrics);
+            var result = test.GetCollectedMetrics();
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Counters.Count);
+            Assert.AreEqual(0, result.Meters.Count);
         }
 
         private MetricsNoOp Create()

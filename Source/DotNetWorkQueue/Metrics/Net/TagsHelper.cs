@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -16,31 +16,25 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
+using System.Collections.Generic;
 
-namespace DotNetWorkQueue.AppMetrics
+namespace DotNetWorkQueue.Metrics.Net
 {
-    /// <inheritdoc />
-    internal class TimerContext : ITimerContext
+    internal static class TagsHelper
     {
-        private App.Metrics.Timer.TimerContext _timerContext;
+        private static readonly KeyValuePair<string, object>[] Empty = new KeyValuePair<string, object>[0];
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TimerContext"/> class.
-        /// </summary>
-        /// <param name="timerContext">The timer context.</param>
-        public TimerContext(App.Metrics.Timer.TimerContext timerContext)
+        public static KeyValuePair<string, object>[] Convert(List<KeyValuePair<string, string>> tags)
         {
-            _timerContext = timerContext;
-        }
+            if (tags == null || tags.Count == 0)
+                return Empty;
 
-        /// <inheritdoc />
-        public TimeSpan Elapsed => _timerContext.Elapsed;
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            _timerContext.Dispose();
+            var result = new KeyValuePair<string, object>[tags.Count];
+            for (var i = 0; i < tags.Count; i++)
+            {
+                result[i] = new KeyValuePair<string, object>(tags[i].Key, tags[i].Value);
+            }
+            return result;
         }
     }
 }

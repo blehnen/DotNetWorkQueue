@@ -57,13 +57,13 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         }
 
         /// <inheritdoc />
-        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType = SamplingTypes.FavorRecent, List<KeyValuePair<string, string>> tags = null)
+        public IHistogram Histogram(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             return new HistogramNoOp();
         }
 
         /// <inheritdoc />
-        public ITimer Timer(string name, Units unit, SamplingTypes samplingType = SamplingTypes.FavorRecent, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, List<KeyValuePair<string, string>> tags = null)
+        public ITimer Timer(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, List<KeyValuePair<string, string>> tags = null)
         {
             return new TimerNoOp();
         }
