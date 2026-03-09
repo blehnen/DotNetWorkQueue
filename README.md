@@ -33,12 +33,13 @@ See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth doc
 | DotNetWorkQueue.Transport.LiteDb | LiteDB embedded NoSQL transport | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.LiteDb)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.LiteDb/) |
 | DotNetWorkQueue.Transport.Memory | In-memory transport for testing and lightweight scenarios | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.Memory)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Memory/) |
 
-**Dashboard & Metrics**
+**Dashboard**
 
 | Package | Description | NuGet |
 |---------|-------------|-------|
 | DotNetWorkQueue.Dashboard.Api | REST API for monitoring and managing queues across all transports. Includes queue status, message counts, error tracking, and admin actions. Built on ASP.NET Core with Swagger/OpenAPI. | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Dashboard.Api)](https://www.nuget.org/packages/DotNetWorkQueue.Dashboard.Api/) |
-| DotNetWorkQueue.AppMetrics | Metrics integration using App.Metrics | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.AppMetrics)](https://www.nuget.org/packages/DotNetWorkQueue.AppMetrics/) |
+
+> **Metrics:** Built-in metrics are provided via `System.Diagnostics.Metrics` in the core library. No additional package is needed. To collect and export metrics, configure [OpenTelemetry.Metrics](https://github.com/open-telemetry/opentelemetry-dotnet) in your host application.
 
 ---
 
@@ -179,9 +180,8 @@ Custom libraries in `/Lib`: [Schyntax](https://github.com/blehnen/cs-schyntax), 
 | Transport.SQLite | [System.Data.SQLite](https://www.sqlite.org/) |
 | Transport.LiteDb | [LiteDb](https://www.litedb.org/) |
 | Dashboard.Api | [Swashbuckle.AspNetCore](https://github.com/domaindrivendev/Swashbuckle.AspNetCore) |
-| AppMetrics | [App.Metrics](https://github.com/AppMetrics/AppMetrics) |
 
-**Tests:** [xUnit](https://github.com/xunit/xunit), [NSubstitute](http://nsubstitute.github.io/), [AutoFixture](https://github.com/AutoFixture/AutoFixture), [FluentAssertions](http://www.fluentassertions.com/), [Tynamix.ObjectFiller](http://objectfiller.net/)
+**Tests:** [MSTest](https://github.com/microsoft/testfx), [NSubstitute](http://nsubstitute.github.io/), [AutoFixture](https://github.com/AutoFixture/AutoFixture), [FluentAssertions](http://www.fluentassertions.com/), [Tynamix.ObjectFiller](http://objectfiller.net/)
 
 ---
 
