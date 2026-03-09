@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Tests.Messages
             var headers = fixture.Create<Dictionary<string, object>>();
             var test = new Message(data, headers);
 
-            Assert.AreEqual(test.Headers.Count, headers.Count);
+            Assert.AreEqual(headers.Count, test.Headers.Count);
             CollectionAssert.AreEquivalent((System.Collections.ICollection)test.Headers, (System.Collections.ICollection)headers);
             Assert.AreNotSame(headers, test.Headers);
         }

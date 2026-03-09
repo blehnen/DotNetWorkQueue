@@ -191,7 +191,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
 
                     if (string.IsNullOrWhiteSpace(route))
-                        Assert.AreEqual(results.Count, expectedMessageCount);
+                        Assert.AreEqual(expectedMessageCount, results.Count);
 
                     foreach (var record in results)
                     {
@@ -208,7 +208,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                         .ToList();
 
                     if (string.IsNullOrWhiteSpace(route))
-                        Assert.AreEqual(results.Count, expectedMessageCount);
+                        Assert.AreEqual(expectedMessageCount, results.Count);
 
                     foreach (var record in results)
                     {
