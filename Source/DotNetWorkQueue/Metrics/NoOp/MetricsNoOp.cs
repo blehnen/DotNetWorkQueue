@@ -85,12 +85,12 @@ namespace DotNetWorkQueue.Metrics.NoOp
             return _meter;
         }
 
-        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType = SamplingTypes.FavorRecent, List<KeyValuePair<string, string>> tags = null)
+        public IHistogram Histogram(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             return _histogram;
         }
 
-        public ITimer Timer(string name, Units unit, SamplingTypes samplingType = SamplingTypes.FavorRecent, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, List<KeyValuePair<string, string>> tags = null)
+        public ITimer Timer(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, List<KeyValuePair<string, string>> tags = null)
         {
             return _timer;
         }
@@ -236,17 +236,22 @@ namespace DotNetWorkQueue.Metrics.NoOp
             return _counter;
         }
 
-        public IHistogram Histogram(string name, Units unit, SamplingTypes samplingType, List<KeyValuePair<string, string>> tags = null)
+        public IHistogram Histogram(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             return _histogram;
         }
 
-        public ITimer Timer(string name, Units unit, SamplingTypes samplingType, TimeUnits rateUnit, TimeUnits durationUnit, List<KeyValuePair<string, string>> tags = null)
+        public ITimer Timer(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, List<KeyValuePair<string, string>> tags = null)
         {
             return _timer;
         }
 
-        public dynamic CollectedMetrics => null;
+        public MetricsSnapshot GetCollectedMetrics()
+        {
+            return new MetricsSnapshot(
+                new System.Collections.Generic.Dictionary<string, long>(),
+                new System.Collections.Generic.Dictionary<string, long>());
+        }
 
         public void Dispose()
         {

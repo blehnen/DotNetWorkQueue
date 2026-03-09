@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -16,43 +16,48 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.AppMetrics
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.Threading;
+
+namespace DotNetWorkQueue.Metrics.Net
 {
-    /// <inheritdoc />
-    internal class Meter : IMeter
+    internal class MeterNet : IMeter
     {
-        private readonly App.Metrics.Meter.IMeter _meter;
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Meter"/> class.
-        /// </summary>
-        /// <param name="meter">The meter.</param>
-        public Meter(App.Metrics.Meter.IMeter meter)
+        private readonly Counter<long> _counter;
+        private readonly KeyValuePair<string, object>[] _tags;
+        private long _value;
+
+        public MeterNet(Counter<long> counter, KeyValuePair<string, object>[] tags)
         {
-            _meter = meter;
+            _counter = counter;
+            _tags = tags;
         }
 
-        /// <inheritdoc />
+        public long Value => Interlocked.Read(ref _value);
+
         public void Mark()
         {
-            _meter.Mark();
+            Interlocked.Increment(ref _value);
+            _counter.Add(1, _tags);
         }
 
-        /// <inheritdoc />
         public void Mark(string item)
         {
-            _meter.Mark(item);
+            Interlocked.Increment(ref _value);
+            _counter.Add(1, _tags);
         }
 
-        /// <inheritdoc />
         public void Mark(long count)
         {
-            _meter.Mark(count);
+            Interlocked.Add(ref _value, count);
+            _counter.Add(count, _tags);
         }
 
-        /// <inheritdoc />
         public void Mark(string item, long count)
         {
-            _meter.Mark(item, count);
+            Interlocked.Add(ref _value, count);
+            _counter.Add(count, _tags);
         }
     }
 }

@@ -42,8 +42,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             DisplayName = handler.DisplayName;
             _bytesToMessageTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToMessageTimer", Units.Calls);
             _messageToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertMessageToBytesTimer", Units.Calls);
-            _resultSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertMessageToBytesHistogram", Units.Bytes,
-                SamplingTypes.LongTerm);
+            _resultSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertMessageToBytesHistogram", Units.Bytes);
             _handler = handler;
         }
 

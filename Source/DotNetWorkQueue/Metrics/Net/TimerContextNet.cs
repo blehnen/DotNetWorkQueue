@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -16,24 +16,32 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.AppMetrics
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+
+namespace DotNetWorkQueue.Metrics.Net
 {
-    /// <inheritdoc />
-    internal class Histogram : IHistogram
+    internal class TimerContextNet : ITimerContext
     {
-        private readonly App.Metrics.Histogram.IHistogram _histogram;
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Histogram"/> class.
-        /// </summary>
-        /// <param name="histogram">The histogram.</param>
-        public Histogram(App.Metrics.Histogram.IHistogram histogram)
+        private readonly Histogram<double> _histogram;
+        private readonly KeyValuePair<string, object>[] _tags;
+        private readonly Stopwatch _stopwatch;
+
+        public TimerContextNet(Histogram<double> histogram, KeyValuePair<string, object>[] tags)
         {
             _histogram = histogram;
+            _tags = tags;
+            _stopwatch = Stopwatch.StartNew();
         }
-        /// <inheritdoc />
-        public void Update(long value, string userValue = null)
+
+        public TimeSpan Elapsed => _stopwatch.Elapsed;
+
+        public void Dispose()
         {
-            _histogram.Update(value, userValue);
+            _stopwatch.Stop();
+            _histogram.Record(_stopwatch.Elapsed.TotalMilliseconds, _tags);
         }
     }
 }

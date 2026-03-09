@@ -52,14 +52,12 @@ namespace DotNetWorkQueue.Metrics.Decorator
             _metricTimerMessage =
                 metrics.Timer($"{connectionInformation.QueueName}.{name}.MessageToBytesTimer", Units.Calls);
 
-            _metricHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.MessageToBytesHistogram", Units.Bytes,
-                SamplingTypes.LongTerm);
+            _metricHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.MessageToBytesHistogram", Units.Bytes);
 
-            _metricHistogramDelta = metrics.Histogram($"{connectionInformation.QueueName}.{name}.MessageToBytesDeltaHistogram", Units.Bytes,
-                SamplingTypes.LongTerm);
+            _metricHistogramDelta = metrics.Histogram($"{connectionInformation.QueueName}.{name}.MessageToBytesDeltaHistogram", Units.Bytes);
 
             _metricHistogramOptOut = metrics.Histogram($"{connectionInformation.QueueName}.{name}.OptOutOfGraphHistogram",
-                Units.Bytes, SamplingTypes.LongTerm);
+                Units.Bytes);
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -16,6 +16,25 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 
-[assembly: InternalsVisibleTo("DotNetWorkQueue.AppMetrics.Tests")]
+namespace DotNetWorkQueue.Metrics.Net
+{
+    internal class HistogramNet : IHistogram
+    {
+        private readonly Histogram<long> _histogram;
+        private readonly KeyValuePair<string, object>[] _tags;
+
+        public HistogramNet(Histogram<long> histogram, KeyValuePair<string, object>[] tags)
+        {
+            _histogram = histogram;
+            _tags = tags;
+        }
+
+        public void Update(long value, string userValue = null)
+        {
+            _histogram.Record(value, _tags);
+        }
+    }
+}

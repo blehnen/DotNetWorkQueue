@@ -25,6 +25,7 @@ using DotNetWorkQueue.JobScheduler;
 using DotNetWorkQueue.LinqCompile;
 using DotNetWorkQueue.LinqCompile.Decorator;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Metrics.Net;
 using DotNetWorkQueue.Metrics.NoOp;
 using DotNetWorkQueue.Policies;
 using DotNetWorkQueue.Policies.Decorator;
@@ -71,7 +72,7 @@ namespace DotNetWorkQueue.IoC
             container.Register<ISchedulerMessageHandler, SchedulerMessageHandler>(LifeStyles.Singleton);
             container.Register<ITaskSchedulerFactory, TaskSchedulerFactory>(LifeStyles.Singleton);
             container.Register<ITaskFactoryFactory, TaskFactoryFactory>(LifeStyles.Singleton);
-            container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
+            container.Register<IMetrics, MetricsNet>(LifeStyles.Singleton);
             container.Register<IJobSchedulerMetaData, JobSchedulerMetaData>(LifeStyles.Singleton);
         }
 
@@ -84,7 +85,7 @@ namespace DotNetWorkQueue.IoC
         {
             Guard.NotNull(() => container, container);
             RegisterSharedDefaults(container, connection);
-            container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
+            container.Register<IMetrics, MetricsNet>(LifeStyles.Singleton);
         }
 
         /// <summary>
@@ -144,7 +145,7 @@ namespace DotNetWorkQueue.IoC
                 .Register<IMessageHandlerRegistrationAsync, MessageHandlerRegistrationAsync>(LifeStyles.Singleton);
 
             container.Register<IGenerateReceivedMessage, GenerateReceivedMessage>(LifeStyles.Singleton);
-            container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
+            container.Register<IMetrics, MetricsNet>(LifeStyles.Singleton);
 
             //implementations required to send messages
             if ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)

@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -16,64 +16,72 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.AppMetrics
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.Threading;
+
+namespace DotNetWorkQueue.Metrics.Net
 {
-    internal class Counter : ICounter
+    internal class CounterNet : ICounter
     {
-        private readonly App.Metrics.Counter.ICounter _counter;
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Counter"/> class.
-        /// </summary>
-        /// <param name="counter">The counter.</param>
-        public Counter(App.Metrics.Counter.ICounter counter)
+        private readonly UpDownCounter<long> _counter;
+        private readonly KeyValuePair<string, object>[] _tags;
+        private long _value;
+
+        public CounterNet(UpDownCounter<long> counter, KeyValuePair<string, object>[] tags)
         {
             _counter = counter;
+            _tags = tags;
         }
-        /// <inheritdoc />
+
+        public long Value => Interlocked.Read(ref _value);
+
         public void Increment()
         {
-            _counter.Increment();
+            Interlocked.Increment(ref _value);
+            _counter.Add(1, _tags);
         }
-        /// <inheritdoc />
+
         public void Increment(string item)
         {
-            _counter.Increment(item);
+            Interlocked.Increment(ref _value);
+            _counter.Add(1, _tags);
         }
 
-        /// <inheritdoc />
         public void Increment(long amount)
         {
-            _counter.Increment(amount);
+            Interlocked.Add(ref _value, amount);
+            _counter.Add(amount, _tags);
         }
 
-        /// <inheritdoc />
         public void Increment(string item, long amount)
         {
-            _counter.Increment(item, amount);
+            Interlocked.Add(ref _value, amount);
+            _counter.Add(amount, _tags);
         }
 
-        /// <inheritdoc />
         public void Decrement()
         {
-            _counter.Decrement();
+            Interlocked.Decrement(ref _value);
+            _counter.Add(-1, _tags);
         }
 
-        /// <inheritdoc />
         public void Decrement(string item)
         {
-            _counter.Decrement(item);
+            Interlocked.Decrement(ref _value);
+            _counter.Add(-1, _tags);
         }
 
-        /// <inheritdoc />
         public void Decrement(long amount)
         {
-            _counter.Decrement(amount);
+            Interlocked.Add(ref _value, -amount);
+            _counter.Add(-amount, _tags);
         }
 
-        /// <inheritdoc />
         public void Decrement(string item, long amount)
         {
-            _counter.Decrement(item, amount);
+            Interlocked.Add(ref _value, -amount);
+            _counter.Add(-amount, _tags);
         }
     }
 }

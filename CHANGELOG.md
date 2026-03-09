@@ -1,4 +1,9 @@
 ### 0.9.1 — ????
+- **Breaking Change** — Replace `App.Metrics` with built-in `System.Diagnostics.Metrics`; `DotNetWorkQueue.AppMetrics` package is no longer needed. Users should configure OpenTelemetry.Metrics exporters in their host to collect metrics.
+- **Breaking Change** — Remove `SamplingTypes` enum from `IMetrics.Histogram()` and `IMetrics.Timer()` methods
+- **Breaking Change** — Replace `dynamic CollectedMetrics` property with typed `MetricsSnapshot GetCollectedMetrics()` on `IMetrics`
+- Migrate test framework from xUnit to MSTest
+- Fix 10 missing `.ConfigureAwait(false)` calls in Trace Decorator classes across all transports
 - Add Blazor Server dashboard UI (MudBlazor) for monitoring and managing queues
 - Add optional login page for dashboard UI with SHA256 hashed password (`DashboardAuth` config)
 - Dashboard.api

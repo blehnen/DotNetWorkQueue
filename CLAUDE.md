@@ -23,7 +23,7 @@ Release builds enable `TreatWarningsAsErrors` and XML documentation generation.
 
 ## Running Tests
 
-Tests use xUnit 2.9.3, NSubstitute for mocking, AutoFixture for test data, and FluentAssertions.
+Tests use MSTest 3.x, NSubstitute for mocking, AutoFixture for test data, and FluentAssertions.
 
 ```bash
 # Run all unit tests for a specific project
@@ -95,7 +95,7 @@ Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (thre
 - **Newtonsoft.Json 13.0.4** - Serialization
 - **Microsoft.Data.SqlClient 6.1.3** - SQL Server (replaced System.Data.SqlClient)
 - **OpenTelemetry 1.14.0** - Distributed tracing
-- **App.Metrics 4.3.0** - Metrics integration
+- **System.Diagnostics.Metrics** - Built-in metrics via `System.Diagnostics.DiagnosticSource` (users add OpenTelemetry.Metrics exporters to collect)
 - Custom libraries in `/Lib`: Schyntax (scheduling), Aq.ExpressionJsonSerializer (LINQ serialization), JpLabs.DynamicCode (dynamic lambdas)
 
 ## Conventions
