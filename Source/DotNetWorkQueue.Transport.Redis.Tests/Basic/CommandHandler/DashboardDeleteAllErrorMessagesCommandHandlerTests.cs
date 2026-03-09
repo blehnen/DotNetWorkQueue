@@ -20,25 +20,26 @@ using System;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Redis.Basic.CommandHandler;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.CommandHandler
 {
+    [TestClass]
     public class DashboardDeleteAllErrorMessagesCommandHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var lua = Substitute.For<DashboardDeleteAllErrorMessagesLua>(
                 Substitute.For<IRedisConnection>(),
                 Substitute.For<Redis.Basic.RedisNames>(Substitute.For<IConnectionInformation>()));
-            Assert.NotNull(new DashboardDeleteAllErrorMessagesCommandHandler(lua));
+            Assert.IsNotNull(new DashboardDeleteAllErrorMessagesCommandHandler(lua));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Null_Lua_Throws()
         {
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new DashboardDeleteAllErrorMessagesCommandHandler(null));
         }
     }

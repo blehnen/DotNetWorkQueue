@@ -1,24 +1,24 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("consumerasync")]
+    [TestClass]
     public class ConsumerMethodAsyncPoisonMessage
     {
-        [Theory]
-        [InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true),
+        [TestMethod]
+        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true),
 #if NETFULL
-        InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, true),
-         InlineData(50, 60, 20, 2, 2, true, LinqMethodTypes.Dynamic, false),
+        DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, true),
+         DataRow(50, 60, 20, 2, 2, true, LinqMethodTypes.Dynamic, false),
 #endif
-         InlineData(5, 60, 20, 2, 2, true, LinqMethodTypes.Compiled, true)]
+         DataRow(5, 60, 20, 2, 2, true, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

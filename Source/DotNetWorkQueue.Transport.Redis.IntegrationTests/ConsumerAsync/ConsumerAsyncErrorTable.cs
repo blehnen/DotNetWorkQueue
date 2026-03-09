@@ -1,19 +1,19 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class ConsumerAsyncErrorTable
     {
-        [Theory]
-        [InlineData(1, 60, 1, 1, 0, ConnectionInfoTypes.Linux)]
+        [TestMethod]
+        [DataRow(1, 60, 1, 1, 0, ConnectionInfoTypes.Linux)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
         {
             var queueName = GenerateQueueName.Create();

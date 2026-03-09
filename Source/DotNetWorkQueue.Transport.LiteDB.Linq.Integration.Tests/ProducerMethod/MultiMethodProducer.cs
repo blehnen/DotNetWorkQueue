@@ -1,19 +1,19 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class MultiMethodProducer
     {
-        [Theory]
-        [InlineData(100, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(10, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Shared),
-         InlineData(100, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct)]
+        [TestMethod]
+        [DataRow(100, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(10, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         DataRow(10, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Shared),
+         DataRow(100, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct)]
         public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos,
             IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

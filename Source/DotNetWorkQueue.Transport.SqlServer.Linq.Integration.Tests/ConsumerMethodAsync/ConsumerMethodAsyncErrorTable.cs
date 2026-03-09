@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
@@ -7,19 +7,19 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
 using NSubstitute.Extensions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class ConsumerMethodAsyncErrorTable
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
-        InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
+        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
+        DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
 #else
-        [InlineData(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
+        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
 #endif
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -6,16 +6,16 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
 {
-    [Collection("Producer")]
+    [TestClass]
     public class MultiProducer
     {
-        [Theory]
-        [InlineData(1000, false),
-         InlineData(10, true)]
+        [TestMethod]
+        [DataRow(1000, false),
+         DataRow(10, true)]
         public void Run(int messageCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

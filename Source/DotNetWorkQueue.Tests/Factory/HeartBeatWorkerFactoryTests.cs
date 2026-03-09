@@ -1,21 +1,22 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class HeartBeatWorkerFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Disabled()
         {
             var factory = Create(false);
             var monitor = factory.Create(Substitute.For<IMessageContext>());
-            Assert.IsAssignableFrom<INoOperation>(monitor);
+            Assert.IsInstanceOfType<INoOperation>(monitor);
         }
 
         private IHeartBeatWorkerFactory Create(bool enabled)

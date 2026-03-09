@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
@@ -8,14 +8,15 @@ using DotNetWorkQueue.Queue;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class QueueMonitorTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             using (var test = Create())
@@ -25,33 +26,33 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             using (var test = Create())
             {
-                Assert.False(test.IsDisposed);
+                Assert.IsFalse(test.IsDisposed);
             }
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             using (var test = Create())
             {
                 test.Dispose();
-                Assert.True(test.IsDisposed);
+                Assert.IsTrue(test.IsDisposed);
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Start_Called_Only_Once_Exception()
         {
             using (var test = Create())
             {
                 test.Start();
-                Assert.Throws<DotNetWorkQueueException>(
+                Assert.ThrowsExactly<DotNetWorkQueueException>(
             delegate
             {
                 test.Start();
@@ -59,13 +60,13 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Start_Called_After_Dispose_Exception()
         {
             using (var test = Create())
             {
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.Start();
@@ -73,13 +74,13 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Stop_Called_After_Dispose_Exception()
         {
             using (var test = Create())
             {
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.Stop();

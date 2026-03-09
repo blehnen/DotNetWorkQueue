@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerErrorTable
     {
-        [Theory]
-        [InlineData(10, 120, 5, false, false),
-         InlineData(2, 120, 5, false, false)]
+        [TestMethod]
+        [DataRow(10, 120, 5, false, false),
+         DataRow(2, 120, 5, false, false)]
         public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

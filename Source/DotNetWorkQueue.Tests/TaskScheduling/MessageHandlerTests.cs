@@ -1,24 +1,25 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.TaskScheduling;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
+    [TestClass]
     public class MessageHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public async Task Handle_Null_Params_Fails()
         {
             var test = Create();
-            await Assert.ThrowsAsync<ArgumentNullException>(() => test.HandleAsync<FakeMessage>(Substitute.For<IWorkGroup>(),
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => test.HandleAsync<FakeMessage>(Substitute.For<IWorkGroup>(),
                 null, null, null, null));
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Message()
         {
             void Action(IReceivedMessage<FakeMessage> message, IWorkerNotification notification)

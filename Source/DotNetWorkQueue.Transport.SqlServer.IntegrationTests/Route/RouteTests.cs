@@ -1,19 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
 {
-    [Collection("Route")]
+    [TestClass]
     public class RouteTests
     {
-        [Theory]
-        [InlineData(10, 0, 180, 1, false, 4, true),
-         InlineData(10, 0, 180, 1, true, 10, false)]
+        [TestMethod]
+        [DataRow(10, 0, 180, 1, false, 4, true),
+         DataRow(10, 0, 180, 1, true, 10, false)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
            bool useTransactions, int routeCount, bool enableChaos)
         {

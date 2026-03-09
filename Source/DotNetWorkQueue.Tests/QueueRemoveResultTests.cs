@@ -1,27 +1,28 @@
-﻿using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests
 {
+    [TestClass]
     public class QueueRemoveResultTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_SetStatus()
         {
             var test = new QueueRemoveResult(QueueRemoveStatus.DoesNotExist);
-            Assert.Equal(QueueRemoveStatus.DoesNotExist, test.Status);
+            Assert.AreEqual(QueueRemoveStatus.DoesNotExist, test.Status);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Success()
         {
             var test = new QueueRemoveResult(QueueRemoveStatus.DoesNotExist);
-            Assert.False(test.Success);
+            Assert.IsFalse(test.Success);
 
             test = new QueueRemoveResult(QueueRemoveStatus.Success);
-            Assert.True(test.Success);
+            Assert.IsTrue(test.Success);
 
             test = new QueueRemoveResult(QueueRemoveStatus.None);
-            Assert.False(test.Success);
+            Assert.IsFalse(test.Success);
         }
     }
 }

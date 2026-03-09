@@ -1,18 +1,18 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class MultiConsumerAsync
     {
-        [Theory]
-        [InlineData(250, 1, 400, 10, 5, 5, true, false),
-         InlineData(100, 0, 180, 10, 5, 0, false, false),
-         InlineData(10, 0, 180, 10, 5, 0, false, true)]
+        [TestMethod]
+        [DataRow(250, 1, 400, 10, 5, 5, true, false),
+         DataRow(100, 0, 180, 10, 5, 0, false, false),
+         DataRow(10, 0, 180, 10, 5, 0, false, true)]
         public async Task Run(int messageCount, int runtime, int timeOut, int workerCount,
             int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {

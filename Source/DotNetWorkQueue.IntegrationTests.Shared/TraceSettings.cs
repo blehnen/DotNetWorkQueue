@@ -9,6 +9,6 @@
 
         public static string Host => "192.168.0.2";
         public static int Port => 6831;
-        public static bool Enabled => true;
+        public static bool Enabled => false;
     }
 }

@@ -1,16 +1,17 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Queue;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class HeartBeatMonitorNoOpTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Start_Stop()
         {
             using (var test = Create())
@@ -19,27 +20,27 @@ namespace DotNetWorkQueue.Tests.Queue
                 test.Stop();
             }
         }
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             using (var test = Create())
             {
-                Assert.False(test.IsDisposed);
+                Assert.IsFalse(test.IsDisposed);
             }
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             using (var test = Create())
             {
                 test.Dispose();
-                Assert.True(test.IsDisposed);
+                Assert.IsTrue(test.IsDisposed);
             }
         }
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Dispose_Can_Be_Called_Multiple_Times()
         {
             using (var test = Create())

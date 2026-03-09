@@ -1,16 +1,15 @@
-﻿using System;
+using System;
 using System.IO;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests
 {
-    [Collection("IoC")]
+    [TestClass]
     public class QueueCreatorTests
     {
         private readonly string _goodConnection;
@@ -20,12 +19,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
             _goodConnection = $@"Data Source={Path.GetTempPath()}\test.db;Version=3;";
         }
 
-        [Theory, AutoData]
-        public void Create_Null_Services_Fails(string queue)
+        [TestMethod]
+        public void Create_Null_Services_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<SqLiteMessageQueueInit>(null))
             {
-                Assert.Throws<NullReferenceException>(
+                Assert.ThrowsExactly<NullReferenceException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
@@ -34,37 +35,44 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateProducer(string queue)
+        [TestMethod]
+        public void Create_CreateProducer()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
                 test.CreateProducer<FakeMessage>(new QueueConnection(queue, _goodConnection));
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumer(string queue)
+        [TestMethod]
+        public void Create_CreateConsumer()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
                 test.CreateConsumer(new QueueConnection(queue, _goodConnection));
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumerQueueScheduler(string queue)
+        [TestMethod]
+        public void Create_CreateConsumerQueueScheduler()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
                 test.CreateConsumerQueueScheduler(new QueueConnection(queue, _goodConnection));
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumerQueueSchedulerWithFactory(string queue)
+        [TestMethod]
+        public void Create_CreateConsumerQueueSchedulerWithFactory()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             var factory = fixture.Create<ITaskFactory>();
             factory.Scheduler.Returns(fixture.Create<ATaskScheduler>());
 
@@ -75,18 +83,22 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumerAsync(string queue)
+        [TestMethod]
+        public void Create_CreateConsumerAsync()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
                 test.CreateConsumerAsync(new QueueConnection(queue, _goodConnection));
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateAdminContainerAsync(string queue)
+        [TestMethod]
+        public void Create_CreateAdminContainerAsync()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
                 test.CreateAdminContainer(new QueueConnection(queue, _goodConnection));

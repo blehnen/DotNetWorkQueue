@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
@@ -6,20 +6,20 @@ using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerMethodErrorTable
     {
-        [Theory]
-        [InlineData(100, 60, 20, true, LinqMethodTypes.Compiled, false),
+        [TestMethod]
+        [DataRow(100, 60, 20, true, LinqMethodTypes.Compiled, false),
 #if NETFULL
-        InlineData(1, 10, 1, false, LinqMethodTypes.Dynamic, false),
-        InlineData(100, 60, 20, true, LinqMethodTypes.Dynamic, false),
+        DataRow(1, 10, 1, false, LinqMethodTypes.Dynamic, false),
+        DataRow(100, 60, 20, true, LinqMethodTypes.Dynamic, false),
 #endif
-         InlineData(3, 40, 5, false, LinqMethodTypes.Compiled, true)]
+         DataRow(3, 40, 5, false, LinqMethodTypes.Compiled, true)]
         public void Run(int messageCount, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

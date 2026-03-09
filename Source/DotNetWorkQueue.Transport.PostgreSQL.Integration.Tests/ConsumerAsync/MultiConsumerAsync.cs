@@ -1,21 +1,21 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 {
-    [Collection("consumerasyncmulti")]
+    [TestClass]
     public class MultiConsumerAsync
     {
-        [Theory]
-        [InlineData(100, 1, 180, 10, 5, 5, false, false),
-         InlineData(100, 1, 180, 10, 5, 5, true, false),
-         InlineData(50, 0, 180, 10, 5, 0, false, false),
-         InlineData(50, 0, 180, 10, 5, 0, true, false),
-         InlineData(25, 1, 180, 10, 5, 5, true, true),
-         InlineData(10, 0, 180, 10, 5, 0, false, true)]
+        [TestMethod]
+        [DataRow(100, 1, 180, 10, 5, 5, false, false),
+         DataRow(100, 1, 180, 10, 5, 5, true, false),
+         DataRow(50, 0, 180, 10, 5, 0, false, false),
+         DataRow(50, 0, 180, 10, 5, 0, true, false),
+         DataRow(25, 1, 180, 10, 5, 5, true, true),
+         DataRow(10, 0, 180, 10, 5, 0, false, true)]
         public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, bool enableChaos)
         {
@@ -27,7 +27,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
                     true, !useTransactions, useTransactions, false,
                     false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
-
         }
 
         private List<QueueConnection> GetConnections(string connectionString)

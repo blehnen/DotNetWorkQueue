@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
@@ -6,31 +6,32 @@ using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class MessageMethodHandlingTests
     {
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             using (var test = Create())
             {
-                Assert.False(test.IsDisposed);
+                Assert.IsFalse(test.IsDisposed);
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             var test = Create();
             test.Dispose();
-            Assert.True(test.IsDisposed);
+            Assert.IsTrue(test.IsDisposed);
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Call_Dispose_Multiple_Times_Ok()
         {
             using (var test = Create())
@@ -39,7 +40,7 @@ namespace DotNetWorkQueue.Tests.Messages
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_HandleExecution_Exception()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -47,7 +48,7 @@ namespace DotNetWorkQueue.Tests.Messages
             message.Body.Returns(new MessageExpression());
             var test = Create();
             test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
+            Assert.ThrowsExactly<ObjectDisposedException>(
                 delegate
                 {
                     test.HandleExecution(new ReceivedMessage<MessageExpression>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null")), new WorkerNotificationNoOp());
@@ -55,12 +56,12 @@ namespace DotNetWorkQueue.Tests.Messages
         }
 
 
-        [Fact]
+        [TestMethod]
         public void Calling_HandleExecution_Null_Exception()
         {
             using (var test = Create())
             {
-                Assert.Throws<ArgumentNullException>(
+                Assert.ThrowsExactly<ArgumentNullException>(
                     delegate
                     {
                         test.HandleExecution(null, null);
@@ -68,7 +69,7 @@ namespace DotNetWorkQueue.Tests.Messages
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Calling_HandleExecution_Null_Exception2()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -77,7 +78,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
             using (var test = Create())
             {
-                Assert.Throws<ArgumentNullException>(
+                Assert.ThrowsExactly<ArgumentNullException>(
                     delegate
                     {
                         test.HandleExecution(
@@ -86,12 +87,12 @@ namespace DotNetWorkQueue.Tests.Messages
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Calling_HandleExecution_Null_Exception3()
         {
             using (var test = Create())
             {
-                Assert.Throws<ArgumentNullException>(
+                Assert.ThrowsExactly<ArgumentNullException>(
                     delegate
                     {
                         test.HandleExecution(

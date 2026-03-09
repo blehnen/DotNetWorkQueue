@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerRollBack
     {
-        [Theory]
-        [InlineData(500, 0, 240, 5, true, false),
-        InlineData(10, 20, 220, 7, false, false),
-        InlineData(5, 5, 220, 7, false, true)]
+        [TestMethod]
+        [DataRow(500, 0, 240, 5, true, false),
+        DataRow(10, 20, 220, 7, false, false),
+        DataRow(5, 5, 220, 7, false, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

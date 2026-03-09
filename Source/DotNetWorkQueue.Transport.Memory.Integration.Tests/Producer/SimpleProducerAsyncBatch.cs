@@ -1,22 +1,21 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
 {
-    [Collection("producer")]
+    [TestClass]
     public class SimpleProducerAsyncBatch
     {
-        [Theory]
-        [InlineData(1000, true),
-        InlineData(1000, false)]
+        [TestMethod]
+        [DataRow(1000, true),
+        DataRow(1000, false)]
         public async Task Run(
             int messageCount,
             bool interceptors)
         {
-
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();

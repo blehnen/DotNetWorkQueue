@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using AutoFixture;
@@ -8,39 +8,40 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Tests.IoC;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
+    [TestClass]
     public class SchedulerMethodTests
     {
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             using (var test = Create(1))
             {
-                Assert.False(test.IsDisposed);
+                Assert.IsFalse(test.IsDisposed);
             }
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             using (var test = Create(1))
             {
                 test.Dispose();
-                Assert.True(test.IsDisposed);
+                Assert.IsTrue(test.IsDisposed);
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Configuration_Exception()
         {
             using (var test = Create(1))
             {
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.Configuration.SetReadOnly();
@@ -48,13 +49,13 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Start_Exception()
         {
             using (var test = Create(1))
             {
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.Start();
@@ -62,13 +63,13 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Call_Start_Only_Once_Exception()
         {
             using (var test = Create(1))
             {
                 test.Start();
-                Assert.Throws<DotNetWorkQueueException>(
+                Assert.ThrowsExactly<DotNetWorkQueueException>(
             delegate
             {
                 test.Start();

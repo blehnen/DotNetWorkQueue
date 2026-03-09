@@ -1,35 +1,36 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Exceptions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Exceptions
 {
+    [TestClass]
     public class InterceptorExceptionTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Empty()
         {
             var e = new InterceptorException();
-            Assert.Equal("Exception of type 'DotNetWorkQueue.Exceptions.InterceptorException' was thrown.", e.Message);
+            Assert.AreEqual("Exception of type 'DotNetWorkQueue.Exceptions.InterceptorException' was thrown.", e.Message);
         }
-        [Fact]
+        [TestMethod]
         public void Create()
         {
             var e = new InterceptorException("error");
-            Assert.Equal("error", e.Message);
+            Assert.AreEqual("error", e.Message);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Format()
         {
             var e = new InterceptorException("error {0}", 1);
-            Assert.Equal("error 1", e.Message);
+            Assert.AreEqual("error 1", e.Message);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Inner()
         {
             var e = new InterceptorException("error", new Exception());
-            Assert.Equal("error", e.Message);
-            Assert.NotNull(e.InnerException);
+            Assert.AreEqual("error", e.Message);
+            Assert.IsNotNull(e.InnerException);
         }
     }
 }

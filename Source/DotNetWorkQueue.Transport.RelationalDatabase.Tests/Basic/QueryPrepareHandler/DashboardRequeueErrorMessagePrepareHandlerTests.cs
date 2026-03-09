@@ -22,13 +22,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareHandler
 {
+    [TestClass]
     public class DashboardRequeueErrorMessagePrepareHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle_Sets_CommandText()
         {
             var handler = CreateHandler();
@@ -37,10 +38,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             handler.Handle(new DashboardRequeueErrorMessageCommand("42"), command,
                 CommandStringTypes.DashboardRequeueErrorMessage);
 
-            Assert.NotNull(command.CommandText);
+            Assert.IsNotNull(command.CommandText);
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Adds_QueueId_Parameter()
         {
             var handler = CreateHandler();
@@ -51,8 +52,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             var parameters = (DataParameterCollection)command.Parameters;
             var param = parameters.First();
-            Assert.Equal("@QueueID", param.ParameterName);
-            Assert.Equal(42L, param.Value);
+            Assert.AreEqual("@QueueID", param.ParameterName);
+            Assert.AreEqual(42L, param.Value);
         }
 
         private static DashboardRequeueErrorMessagePrepareHandler CreateHandler()

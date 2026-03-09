@@ -1,63 +1,71 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AutoFixture;
+using AutoFixture.AutoNSubstitute;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class MessageErrorConfigurationTests
     {
-        [Theory, AutoData]
-        public void MessageAge_Test(TimeSpan messageAge)
+        [TestMethod]
+        public void MessageAge_Test()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var messageAge = fixture.Create<TimeSpan>();
             var test = new MessageErrorConfiguration
             {
                 MessageAge = messageAge
             };
-            Assert.Equal(messageAge, test.MessageAge);
+            Assert.AreEqual(messageAge, test.MessageAge);
         }
-        [Theory, AutoData]
-        public void MonitorTime_Test(TimeSpan monitorTime)
+        [TestMethod]
+        public void MonitorTime_Test()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var monitorTime = fixture.Create<TimeSpan>();
             var test = new MessageErrorConfiguration
             {
                 MonitorTime = monitorTime
             };
-            Assert.Equal(monitorTime, test.MonitorTime);
+            Assert.AreEqual(monitorTime, test.MonitorTime);
         }
-        [Fact]
+        [TestMethod]
         public void Enabled_Test()
         {
             var test = new MessageErrorConfiguration();
-            Assert.True(test.Enabled);
+            Assert.IsTrue(test.Enabled);
             test.Enabled = false;
-            Assert.False(test.Enabled);
+            Assert.IsFalse(test.Enabled);
         }
 
-        [Fact]
+        [TestMethod]
         public void Defaults_Test()
         {
             var test = new MessageErrorConfiguration();
-            Assert.Equal(TimeSpan.FromDays(30), test.MessageAge);
-            Assert.Equal(TimeSpan.FromDays(1), test.MonitorTime);
+            Assert.AreEqual(TimeSpan.FromDays(30), test.MessageAge);
+            Assert.AreEqual(TimeSpan.FromDays(1), test.MonitorTime);
         }
 
-        [Theory, AutoData]
-        public void ReadOnly_Test(TimeSpan monitorTime)
+        [TestMethod]
+        public void ReadOnly_Test()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var monitorTime = fixture.Create<TimeSpan>();
             var test = new MessageErrorConfiguration
             {
                 MonitorTime = monitorTime
             };
-            Assert.False(test.IsReadOnly);
+            Assert.IsFalse(test.IsReadOnly);
             test.SetReadOnly();
-            Assert.True(test.IsReadOnly);
+            Assert.IsTrue(test.IsReadOnly);
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
                 delegate
                 {
                     test.MonitorTime = TimeSpan.FromSeconds(1);

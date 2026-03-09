@@ -1,18 +1,18 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Admin
 {
-    [Collection("consumeradmin")]
+    [TestClass]
     public class SimpleConsumer
     {
-        [Theory]
-        [InlineData(10, 10, 120, 10, false),
-         InlineData(50, 10, 200, 10, true),
-         InlineData(20, 10, 240, 15, false),
-         InlineData(20, 10, 240, 15, true)]
+        [TestMethod]
+        [DataRow(10, 10, 120, 10, false),
+         DataRow(50, 10, 200, 10, true),
+         DataRow(20, 10, 240, 15, false),
+         DataRow(20, 10, 240, 15, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions)
         {
             var queueName = GenerateQueueName.Create();

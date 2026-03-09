@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("consumer")]
+    [TestClass]
     public class ConsumerMethodCancelWork
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(7, 60, 180, 3, LinqMethodTypes.Compiled, false),
-            InlineData(7, 60, 180, 3, LinqMethodTypes.Dynamic, false)]
+        [DataRow(7, 60, 180, 3, LinqMethodTypes.Compiled, false),
+            DataRow(7, 60, 180, 3, LinqMethodTypes.Dynamic, false)]
 #else
-        [InlineData(7, 60, 90, 3, LinqMethodTypes.Compiled, false)]
+        [DataRow(7, 60, 90, 3, LinqMethodTypes.Compiled, false)]
 #endif
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos)

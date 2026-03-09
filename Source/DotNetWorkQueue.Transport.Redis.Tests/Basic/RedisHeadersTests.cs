@@ -1,18 +1,19 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
 {
+    [TestClass]
     public class RedisHeadersTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = Create();
-            Assert.NotNull(test.CorrelationId);
-            Assert.NotNull(test.IncreaseQueueDelay);
+            Assert.IsNotNull(test.CorrelationId);
+            Assert.IsNotNull(test.IncreaseQueueDelay);
         }
 
         private RedisHeaders Create()

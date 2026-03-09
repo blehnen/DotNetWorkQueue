@@ -1,16 +1,17 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Queue;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class MessageProcessingTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle()
         {
             var wrapper = new MessageProcessingWrapper();
@@ -19,7 +20,7 @@ namespace DotNetWorkQueue.Tests.Queue
             wrapper.MessageContextFactory.Received(1).Create();
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Receive_Message()
         {
             var wrapper = new MessageProcessingWrapper();
@@ -27,6 +28,8 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Handle();
             wrapper.ReceiveMessages.ReceivedWithAnyArgs(1).ReceiveMessage(null);
         }
+
+        [TestClass]
 
         public class MessageProcessingWrapper
         {

@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.Command
 {
+    [TestClass]
     public class CreateQueueTablesAndSaveConfigurationCommandTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var tables = new List<Table>();
             var test = new CreateQueueTablesAndSaveConfigurationCommand<Table>(tables);
-            Assert.Equal(tables, test.Tables);
+            Assert.AreEqual(tables, test.Tables);
         }
     }
 }

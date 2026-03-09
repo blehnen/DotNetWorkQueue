@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation
 {
-    [Collection("Route")]
     public class RouteMultiTests
     {
         public void Run<TTransportInit, TTransportCreate>(
@@ -32,7 +31,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation
                 {
                     setOptions(oCreation);
                     var result = oCreation.CreateQueue();
-                    Assert.True(result.Success, result.ErrorMessage);
+                    Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
                     var routeTest = new RouteMultiTestsShared();

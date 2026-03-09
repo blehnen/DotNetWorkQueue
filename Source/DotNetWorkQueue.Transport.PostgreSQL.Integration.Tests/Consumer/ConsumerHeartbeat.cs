@@ -1,19 +1,19 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
 {
-    [Collection("consumer")]
+    [TestClass]
     public class ConsumerHeartbeat
     {
-        [Theory]
-        [InlineData(7, 15, 90, 3, false),
-         InlineData(2, 15, 90, 3, true)]
+        [TestMethod]
+        [DataRow(7, 15, 90, 3, false),
+         DataRow(2, 15, 90, 3, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

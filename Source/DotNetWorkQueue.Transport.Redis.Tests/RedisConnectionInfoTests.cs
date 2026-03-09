@@ -1,20 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests
 {
+    [TestClass]
     public class RedisConnectionInfoTests
     {
-        [Fact]
+        [TestMethod]
         public void CreateNullInputTest()
         {
-            Assert.Throws<NullReferenceException>(
+            Assert.ThrowsExactly<NullReferenceException>(
                 delegate
                 {
                     // ReSharper disable once AccessToDisposedClosure
@@ -22,24 +23,24 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
                 });
         }
 
-        [Fact]
+        [TestMethod]
         public void CreateTest()
         {
             var test = new RedisConnectionInfo(new QueueConnection("test", "test"));
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
 
-        [Fact]
+        [TestMethod]
         public void CloneTest()
         {
             var test = new RedisConnectionInfo(new QueueConnection("test", "test"));
             var cloned = test.Clone();
-            Assert.NotNull(cloned);
-            Assert.Equal(test.Server, cloned.Server);
-            Assert.Equal(test.AdditionalConnectionSettings, cloned.AdditionalConnectionSettings);
-            Assert.Equal(test.ConnectionString, cloned.ConnectionString);
-            Assert.Equal(test.Container, cloned.Container);
-            Assert.Equal(test.QueueName, cloned.QueueName);
+            Assert.IsNotNull(cloned);
+            Assert.AreEqual(test.Server, cloned.Server);
+            CollectionAssert.AreEquivalent((System.Collections.ICollection)test.AdditionalConnectionSettings, (System.Collections.ICollection)cloned.AdditionalConnectionSettings);
+            Assert.AreEqual(test.ConnectionString, cloned.ConnectionString);
+            Assert.AreEqual(test.Container, cloned.Container);
+            Assert.AreEqual(test.QueueName, cloned.QueueName);
         }
     }
 }

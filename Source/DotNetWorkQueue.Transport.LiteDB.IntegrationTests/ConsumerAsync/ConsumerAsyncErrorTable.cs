@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class ConsumerAsyncErrorTable
     {
-        [Theory]
-        [InlineData(2, 60, 1, 1, 0, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(25, 200, 20, 1, 5, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(5, 60, 20, 1, 5, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        [TestMethod]
+        [DataRow(2, 60, 1, 1, 0, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(25, 200, 20, 1, 5, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         DataRow(5, 60, 20, 1, 5, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

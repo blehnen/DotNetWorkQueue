@@ -1,23 +1,27 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
 {
-    [CollectionDefinition("JobScheduler", DisableParallelization = true)]
+    [TestClass]
     public class JobSchedulerTests
     {
-        [SkippableTheory]
-        [InlineData(false, false),
-        InlineData(false, true)]
+        [TestMethod]
+        [DataRow(false, false),
+        DataRow(false, true)]
         public void Run(
             bool dynamic,
             bool inMemoryDb)
         {
-            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
+            if (OsDetectionHelper.IsRunningOnServer(null))
+            {
+                Assert.Inconclusive("Test skipped on server");
+                return;
+            }
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
                 var queueName = GenerateQueueName.Create();

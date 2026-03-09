@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,18 +8,18 @@ using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("Producer")]
+    [TestClass]
     public class MultiMethodProducer
     {
-        [Theory]
-        [InlineData(100, true, LinqMethodTypes.Dynamic, false),
-        InlineData(10, false, LinqMethodTypes.Dynamic, true),
-        InlineData(10, true, LinqMethodTypes.Compiled, true),
-        InlineData(100, false, LinqMethodTypes.Compiled, false)]
+        [TestMethod]
+        [DataRow(100, true, LinqMethodTypes.Dynamic, false),
+        DataRow(10, false, LinqMethodTypes.Dynamic, true),
+        DataRow(10, true, LinqMethodTypes.Compiled, true),
+        DataRow(100, false, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

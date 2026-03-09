@@ -1,30 +1,31 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.TaskScheduling;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
+    [TestClass]
     public class SchedulerTaskFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void GetSet_Scheduler()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var scheduler = fixture.Create<ATaskScheduler>();
             var test = Create(scheduler);
-            Assert.Equal(scheduler, test.Scheduler);
+            Assert.AreEqual(scheduler, test.Scheduler);
         }
 
-        [Fact]
+        [TestMethod]
         public void TryStartNew_Null_Action_Exception()
         {
             var test = Create();
 
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 delegate
                 {
                     test.TryStartNew(null, new StateInformation(Substitute.For<IWorkGroup>()), x => { },
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
                 });
         }
 
-        [Fact]
+        [TestMethod]
         public void TryStartNew()
         {
             var test = Create();

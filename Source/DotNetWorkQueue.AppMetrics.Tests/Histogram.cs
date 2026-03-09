@@ -1,26 +1,30 @@
-﻿using App.Metrics.Histogram;
+using App.Metrics.Histogram;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.AppMetrics.Tests
 {
+    [TestClass]
     public class Histogram
     {
-        [Theory, AutoData]
-        public void Update(string name, long value, long value2)
+        [TestMethod]
+        public void Update()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var value = fixture.Create<long>();
+            var value2 = fixture.Create<long>();
             var metrics = Creator.Create();
             var metric = metrics.Provider.Histogram.Instance(new HistogramOptions() { Name = name });
             var test = Create(metric);
             dynamic dyn = metric;
             test.Update(value);
-            Assert.Equal(1, dyn.Value.Count);
-            Assert.Equal(value, dyn.Value.LastValue);
+            Assert.AreEqual(1, dyn.Value.Count);
+            Assert.AreEqual(value, dyn.Value.LastValue);
             test.Update(value2);
-            Assert.Equal(2, dyn.Value.Count);
-            Assert.Equal(value2, dyn.Value.LastValue);
+            Assert.AreEqual(2, dyn.Value.Count);
+            Assert.AreEqual(value2, dyn.Value.LastValue);
         }
 
         private IHistogram Create(App.Metrics.Histogram.IHistogram histogram)

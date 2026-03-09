@@ -1,31 +1,37 @@
-﻿using System;
-using AutoFixture.Xunit2;
+using System;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AutoFixture;
+using AutoFixture.AutoNSubstitute;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
 {
+    [TestClass]
     public class RollbackMessageCommandTests
     {
-        [Theory, AutoData]
-        public void Create_Null_Constructor_Time_Ok(string number)
+        [TestMethod]
+        public void Create_Null_Constructor_Time_Ok()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var number = fixture.Create<string>();
             var test = new RollbackMessageCommand<string>(null, number, null);
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
-        [Theory, AutoData]
-        public void Create_Default(string number)
+        [TestMethod]
+        public void Create_Default()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var number = fixture.Create<string>();
             var test = new RollbackMessageCommand<string>(null, number, null);
-            Assert.Equal(number, test.QueueId);
-            Assert.Null(test.IncreaseQueueDelay);
+            Assert.AreEqual(number, test.QueueId);
+            Assert.IsNull(test.IncreaseQueueDelay);
 
             TimeSpan? time = TimeSpan.MinValue;
             test = new RollbackMessageCommand<string>(null, number, time);
-            Assert.Equal(number, test.QueueId);
-            Assert.Equal(time, test.IncreaseQueueDelay);
+            Assert.AreEqual(number, test.QueueId);
+            Assert.AreEqual(time, test.IncreaseQueueDelay);
         }
     }
 }

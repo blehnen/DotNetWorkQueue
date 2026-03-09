@@ -1,15 +1,16 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Queue;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class WorkerTests
     {
-        [Fact]
+        [TestMethod]
         public void Start_Stop()
         {
             using (var worker = Create())
@@ -19,7 +20,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Start_Stop_Start()
         {
             using (var worker = Create())
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Stop_without_Start_Ok()
         {
             using (var worker = Create())
@@ -39,7 +40,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Stop_Multiple_Ok()
         {
             using (var worker = Create())
@@ -49,7 +50,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Start_Multiple_Ok()
         {
             using (var worker = Create())

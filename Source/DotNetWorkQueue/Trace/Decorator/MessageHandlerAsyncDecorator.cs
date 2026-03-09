@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             using (var scope = _tracer.StartActivity("MessageHandlerAsync", ActivityKind.Internal, activityContext))
             {
                 scope?.AddMessageIdTag(message);
-                await _handler.HandleAsync(message, workerNotification);
+                await _handler.HandleAsync(message, workerNotification).ConfigureAwait(false);
             }
         }
     }

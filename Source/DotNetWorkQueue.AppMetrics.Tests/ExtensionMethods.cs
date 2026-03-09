@@ -1,20 +1,21 @@
-﻿using App.Metrics;
-using Xunit;
+using App.Metrics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.AppMetrics.Tests
 {
+    [TestClass]
     public class ExtensionMethods
     {
-        [Fact]
+        [TestMethod]
         public void GetMetrics()
         {
             var metrics = new DotNetWorkQueue.AppMetrics.Metrics("test");
             var data = metrics.GetCurrentMetrics();
-            Assert.NotNull(data);
+            Assert.IsNotNull(data);
 
             var metrics2 = new DotNetWorkQueue.AppMetrics.Metrics("test2");
             var data2 = metrics2.GetCurrentMetrics();
-            Assert.NotNull(data2);
+            Assert.IsNotNull(data2);
         }
     }
     public static class Creator

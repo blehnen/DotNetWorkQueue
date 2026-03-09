@@ -1,18 +1,19 @@
-﻿using System.Threading;
+using System.Threading;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
 {
+    [TestClass]
     public class MoveDelayedRecordsCommandTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             using (var cancel = new CancellationTokenSource())
             {
                 var test = new MoveDelayedRecordsCommand(cancel.Token);
-                Assert.NotNull(test);
+                Assert.IsNotNull(test);
             }
         }
     }

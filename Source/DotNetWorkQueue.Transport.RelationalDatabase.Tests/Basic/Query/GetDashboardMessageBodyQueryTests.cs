@@ -1,15 +1,16 @@
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
 {
+    [TestClass]
     public class GetDashboardMessageBodyQueryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = new GetDashboardMessageBodyQuery("42");
-            Assert.Equal("42", test.MessageId);
+            Assert.AreEqual("42", test.MessageId);
         }
     }
 }

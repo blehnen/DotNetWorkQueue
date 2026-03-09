@@ -1,27 +1,28 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
 {
-    [Collection("IoC")]
+    [TestClass]
     public class QueueCreatorTests
     {
         private const string GoodConnection =
             "Server=localhost;Application Name=Consumer;Database=db;User ID=sa;Password=password";
 
-        [Theory, AutoData]
-        public void Create_Null_Services_Fails(string queue)
+        [TestMethod]
+        public void Create_Null_Services_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>(null))
             {
-                Assert.Throws<NullReferenceException>(
+                Assert.ThrowsExactly<NullReferenceException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
@@ -30,12 +31,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateProducer(string queue)
+        [TestMethod]
+        public void Create_CreateProducer()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
-                Assert.Throws<Npgsql.NpgsqlException>(
+                Assert.ThrowsExactly<Npgsql.NpgsqlException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
@@ -44,12 +47,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumer(string queue)
+        [TestMethod]
+        public void Create_CreateConsumer()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
-                Assert.Throws<Npgsql.NpgsqlException>(
+                Assert.ThrowsExactly<Npgsql.NpgsqlException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
@@ -58,12 +63,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumerQueueScheduler(string queue)
+        [TestMethod]
+        public void Create_CreateConsumerQueueScheduler()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
-                Assert.Throws<Npgsql.NpgsqlException>(
+                Assert.ThrowsExactly<Npgsql.NpgsqlException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
@@ -72,17 +79,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumerQueueSchedulerWithFactory(string queue)
+        [TestMethod]
+        public void Create_CreateConsumerQueueSchedulerWithFactory()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             var factory = fixture.Create<ITaskFactory>();
             factory.Scheduler.Returns(fixture.Create<ATaskScheduler>());
 
             var workGroup = fixture.Create<IWorkGroup>();
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
-                Assert.Throws<Npgsql.NpgsqlException>(
+                Assert.ThrowsExactly<Npgsql.NpgsqlException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
@@ -91,12 +99,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateConsumerAsync(string queue)
+        [TestMethod]
+        public void Create_CreateConsumerAsync()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
-                Assert.Throws<Npgsql.NpgsqlException>(
+                Assert.ThrowsExactly<Npgsql.NpgsqlException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure
@@ -105,12 +115,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             }
         }
 
-        [Theory, AutoData]
-        public void Create_CreateAdminContainerAsync(string queue)
+        [TestMethod]
+        public void Create_CreateAdminContainerAsync()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var queue = fixture.Create<string>();
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
-                Assert.Throws<Npgsql.NpgsqlException>(
+                Assert.ThrowsExactly<Npgsql.NpgsqlException>(
                     delegate
                     {
                         // ReSharper disable once AccessToDisposedClosure

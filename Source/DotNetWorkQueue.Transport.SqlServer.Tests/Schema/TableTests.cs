@@ -1,64 +1,66 @@
-﻿#region Using
+#region Using
 
+using System.Linq;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
 {
+    [TestClass]
     public class TableTests
     {
-        [Fact]
+        [TestMethod]
         public void Default()
         {
             var test = new Table("dbo", "test");
-            Assert.Equal("dbo", test.Owner);
-            Assert.Equal("test", test.Name);
+            Assert.AreEqual("dbo", test.Owner);
+            Assert.AreEqual("test", test.Name);
         }
-        [Fact]
+        [TestMethod]
         public void Set_PrimaryKey()
         {
             var c = new Constraint("ix_testing", ConstraintType.PrimaryKey, "testing");
             var test = new Table("dbo", "test");
             test.Constraints.Add(c);
-            Assert.Equal(c, test.PrimaryKey);
+            Assert.AreEqual(c, test.PrimaryKey);
         }
-        [Fact]
+        [TestMethod]
         public void No_PrimaryKey()
         {
             var c = new Constraint("ix_testing", ConstraintType.Index, "testing");
             var test = new Table("dbo", "test");
             test.Constraints.Add(c);
-            Assert.Null(test.PrimaryKey);
+            Assert.IsNull(test.PrimaryKey);
         }
-        [Fact]
+        [TestMethod]
         public void No_PrimaryKey2()
         {
             var test = new Table("dbo", "test");
-            Assert.Null(test.PrimaryKey);
+            Assert.IsNull(test.PrimaryKey);
         }
-        [Fact]
+        [TestMethod]
         public void GetSet_Name()
         {
             var test = new Table("dbo", "test") { Name = "test1" };
-            Assert.Equal("test1", test.Name);
+            Assert.AreEqual("test1", test.Name);
         }
-        [Fact]
+        [TestMethod]
         public void GetSet_Owner()
         {
             var test = new Table("dbo", "test") { Owner = "test1" };
-            Assert.Equal("test1", test.Owner);
+            Assert.AreEqual("test1", test.Owner);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Column()
         {
             var c = new Column("testing", ColumnTypes.Bigint, true, null);
             var test = new Table("dbo", "test");
             test.Columns.Add(c);
-            Assert.Contains(test.Columns.Items, item => item.Name == "testing");
+            Assert.IsTrue(test.Columns.Items.Any(item => item.Name == "testing"));
         }
-        [Fact]
+        [TestMethod]
         public void Create_Script()
         {
             var c = new Column("testing", ColumnTypes.Bigint, true, null);
@@ -71,8 +73,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
             {
                 ccc.Table = test.Info;
             }
-            Assert.Contains("dbo", test.Script());
-            Assert.Contains("test", test.Script());
+            StringAssert.Contains(test.Script(), "dbo");
+            StringAssert.Contains(test.Script(), "test");
         }
     }
 }

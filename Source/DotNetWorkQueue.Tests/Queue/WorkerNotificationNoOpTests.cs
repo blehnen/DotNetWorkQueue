@@ -1,61 +1,62 @@
-﻿using DotNetWorkQueue.Queue;
-using Xunit;
+using DotNetWorkQueue.Queue;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class WorkerNotificationNoOpTests
     {
-        [Fact]
+        [TestMethod]
         public void HeaderNames_Test()
         {
             var ob = new WorkerNotificationNoOp();
-            Assert.Null(ob.HeaderNames);
+            Assert.IsNull(ob.HeaderNames);
         }
 
-        [Fact]
+        [TestMethod]
         public void HeartBeat_Test()
         {
             var ob = new WorkerNotificationNoOp();
-            Assert.Null(ob.HeartBeat);
+            Assert.IsNull(ob.HeartBeat);
             ob.HeartBeat = new WorkerHeartBeatNotificationNoOp();
-            Assert.Null(ob.HeartBeat);
+            Assert.IsNull(ob.HeartBeat);
         }
 
-        [Fact]
+        [TestMethod]
         public void Log_Test()
         {
             var ob = new WorkerNotificationNoOp();
-            Assert.Null(ob.Log);
+            Assert.IsNull(ob.Log);
         }
 
-        [Fact]
+        [TestMethod]
         public void Metrics_Test()
         {
             var ob = new WorkerNotificationNoOp();
-            Assert.Null(ob.Metrics);
+            Assert.IsNull(ob.Metrics);
         }
 
-        [Fact]
+        [TestMethod]
         public void Tracer_Test()
         {
             var ob = new WorkerNotificationNoOp();
-            Assert.Null(ob.Tracer);
+            Assert.IsNull(ob.Tracer);
         }
 
-        [Fact]
+        [TestMethod]
         public void TransportSupportsRollback_Test()
         {
             var ob = new WorkerNotificationNoOp();
-            Assert.False(ob.TransportSupportsRollback);
+            Assert.IsFalse(ob.TransportSupportsRollback);
         }
 
-        [Fact]
+        [TestMethod]
         public void WorkerStopping_Test()
         {
             var ob = new WorkerNotificationNoOp();
-            Assert.Null(ob.WorkerStopping);
+            Assert.IsNull(ob.WorkerStopping);
             ob.WorkerStopping = new QueueCancelWork();
-            Assert.Null(ob.WorkerStopping);
+            Assert.IsNull(ob.WorkerStopping);
         }
     }
 }

@@ -1,28 +1,29 @@
-﻿using DotNetWorkQueue.Transport.Memory;
-using Xunit;
+using DotNetWorkQueue.Transport.Memory;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Transport.Memory
 {
+    [TestClass]
     public class TransportOptionsTests
     {
-        [Fact()]
+        [TestMethod]
         public void ValidConfiguration_Test()
         {
             var options = new TransportOptions();
             var valid = options.ValidConfiguration();
-            Assert.True(valid.Valid);
+            Assert.IsTrue(valid.Valid);
             options.SetReadOnly();
             valid = options.ValidConfiguration();
-            Assert.True(valid.Valid);
+            Assert.IsTrue(valid.Valid);
         }
 
-        [Fact()]
+        [TestMethod]
         public void SetReadOnly_Test()
         {
             var options = new TransportOptions();
-            Assert.False(options.IsReadOnly);
+            Assert.IsFalse(options.IsReadOnly);
             options.SetReadOnly();
-            Assert.True(options.IsReadOnly);
+            Assert.IsTrue(options.IsReadOnly);
         }
     }
 }

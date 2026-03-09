@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +6,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Microsoft.Extensions.Logging;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
 {
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                 var messages = new List<QueueMessage<TMessage, IAdditionalMessageData>>(numberOfJobs);
                 messages.AddRange(from job in jobs let data = generateData(queue.Configuration) select data != null ? new QueueMessage<TMessage, IAdditionalMessageData>(job, data) : new QueueMessage<TMessage, IAdditionalMessageData>(job, null));
                 var results = await queue.SendAsync(messages).ConfigureAwait(false);
-                Assert.False(results.HasErrors);
+                Assert.IsFalse(results.HasErrors);
             }
             else
             {
@@ -94,12 +94,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                     if (data != null)
                     {
                         var result = await queue.SendAsync(job, data).ConfigureAwait(false);
-                        Assert.False(result.HasError);
+                        Assert.IsFalse(result.HasError);
                     }
                     else
                     {
                         var result = await queue.SendAsync(job).ConfigureAwait(false);
-                        Assert.False(result.HasError);
+                        Assert.IsFalse(result.HasError);
                     }
                 }
             }

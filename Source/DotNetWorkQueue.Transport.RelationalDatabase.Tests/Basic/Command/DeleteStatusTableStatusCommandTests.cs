@@ -1,17 +1,18 @@
-﻿using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
 {
+    [TestClass]
     public class DeleteStatusTableStatusCommandTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             const int id = 19334;
             var test = new DeleteStatusTableStatusCommand<long>(id);
-            Assert.Equal(id, test.QueueId);
+            Assert.AreEqual(id, test.QueueId);
         }
     }
 }

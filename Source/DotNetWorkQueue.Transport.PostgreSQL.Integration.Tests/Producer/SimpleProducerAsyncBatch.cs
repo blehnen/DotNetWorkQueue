@@ -1,34 +1,34 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
 {
-    [Collection("producer")]
+    [TestClass]
     public class SimpleProducerAsyncBatch
     {
-        [Theory]
-        [InlineData(500, true, true, true, false, false, false, true, false, false, false),
-         InlineData(500, false, true, true, false, false, false, true, false, false, false),
-         InlineData(500, false, false, false, false, false, false, false, false, false, false),
-         InlineData(500, true, false, false, false, false, false, false, false, false, false),
-         InlineData(500, false, false, false, false, false, false, false, true, false, false),
-         InlineData(500, false, false, false, false, false, false, true, true, false, false),
-         InlineData(500, false, true, false, true, true, true, false, true, false, false),
-         InlineData(500, false, true, true, false, true, true, true, true, false, false),
-         InlineData(1000, true, true, true, false, false, false, true, false, true, false),
+        [TestMethod]
+        [DataRow(500, true, true, true, false, false, false, true, false, false, false),
+         DataRow(500, false, true, true, false, false, false, true, false, false, false),
+         DataRow(500, false, false, false, false, false, false, false, false, false, false),
+         DataRow(500, true, false, false, false, false, false, false, false, false, false),
+         DataRow(500, false, false, false, false, false, false, false, true, false, false),
+         DataRow(500, false, false, false, false, false, false, true, true, false, false),
+         DataRow(500, false, true, false, true, true, true, false, true, false, false),
+         DataRow(500, false, true, true, false, true, true, true, true, false, false),
+         DataRow(1000, true, true, true, false, false, false, true, false, true, false),
 
-         InlineData(50, true, true, true, false, false, false, true, false, false, true),
-         InlineData(50, false, true, true, false, false, false, true, false, false, true),
-         InlineData(50, false, false, false, false, false, false, false, false, false, true),
-         InlineData(50, true, false, false, false, false, false, false, false, false, true),
-         InlineData(50, false, false, false, false, false, false, false, true, false, true),
-         InlineData(50, false, false, false, false, false, false, true, true, false, true),
-         InlineData(50, false, true, false, true, true, true, false, true, false, true),
-         InlineData(50, false, true, true, false, true, true, true, true, false, true),
-         InlineData(100, true, true, true, false, false, false, true, false, true, true)]
+         DataRow(50, true, true, true, false, false, false, true, false, false, true),
+         DataRow(50, false, true, true, false, false, false, true, false, false, true),
+         DataRow(50, false, false, false, false, false, false, false, false, false, true),
+         DataRow(50, true, false, false, false, false, false, false, false, false, true),
+         DataRow(50, false, false, false, false, false, false, false, true, false, true),
+         DataRow(50, false, false, false, false, false, false, true, true, false, true),
+         DataRow(50, false, true, false, true, true, true, false, true, false, true),
+         DataRow(50, false, true, true, false, true, true, true, true, false, true),
+         DataRow(100, true, true, true, false, false, false, true, false, true, true)]
         public async Task Run(
             int messageCount,
             bool interceptors,
@@ -42,7 +42,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
             bool additionalColumn,
             bool enableChaos)
         {
-
             var queueName = GenerateQueueName.Create();
             var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducerAsync();
             await producer.Run<PostgreSqlMessageQueueInit, FakeMessage, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,

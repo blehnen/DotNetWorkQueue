@@ -25,13 +25,14 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardStatusCountsQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Counts_From_Reader()
         {
             var (handler, readColumn, reader) = CreateHandler(true);
@@ -42,23 +43,23 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = await handler.HandleAsync(new GetDashboardStatusCountsQuery());
 
-            Assert.Equal(10L, result.Waiting);
-            Assert.Equal(5L, result.Processing);
-            Assert.Equal(2L, result.Error);
-            Assert.Equal(17L, result.Total);
+            Assert.AreEqual(10L, result.Waiting);
+            Assert.AreEqual(5L, result.Processing);
+            Assert.AreEqual(2L, result.Error);
+            Assert.AreEqual(17L, result.Total);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Default_When_No_Rows()
         {
             var (handler, _, _) = CreateHandler(false);
 
             var result = await handler.HandleAsync(new GetDashboardStatusCountsQuery());
 
-            Assert.Equal(0L, result.Waiting);
-            Assert.Equal(0L, result.Processing);
-            Assert.Equal(0L, result.Error);
-            Assert.Equal(0L, result.Total);
+            Assert.AreEqual(0L, result.Waiting);
+            Assert.AreEqual(0L, result.Processing);
+            Assert.AreEqual(0L, result.Error);
+            Assert.AreEqual(0L, result.Total);
         }
 
         private static (GetDashboardStatusCountsQueryHandlerAsync handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(bool hasRows)

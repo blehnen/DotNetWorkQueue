@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
+    [TestClass]
     public class CreationScopeTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_CreationScope()
         {
             var disposable = new CanBeDisposed();
@@ -15,11 +16,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             {
                 test.AddScopedObject(disposable);
             }
-            Assert.True(disposable.WasDisposed);
+            Assert.IsTrue(disposable.WasDisposed);
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Create_DisposeTwiceIsOk()
         {
             var disposable = new CanBeDisposed();
@@ -28,7 +29,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
                 test.AddScopedObject(disposable);
                 test.Dispose();
             }
-            Assert.True(disposable.WasDisposed);
+            Assert.IsTrue(disposable.WasDisposed);
         }
     }
     internal class CanBeDisposed : IDisposable

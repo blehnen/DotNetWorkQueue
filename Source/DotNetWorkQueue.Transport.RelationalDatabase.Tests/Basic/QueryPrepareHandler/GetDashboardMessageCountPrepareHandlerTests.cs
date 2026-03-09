@@ -4,13 +4,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareHandler
 {
+    [TestClass]
     public class GetDashboardMessageCountPrepareHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle_Sets_CommandText_Without_Filter()
         {
             var cache = new FakeCommandStringCache();
@@ -19,10 +20,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             handler.Handle(new GetDashboardMessageCountQuery(null), command, CommandStringTypes.GetDashboardMessageCount);
 
-            Assert.Equal("SELECT COUNT(*) FROM meta", command.CommandText);
+            Assert.AreEqual("SELECT COUNT(*) FROM meta", command.CommandText);
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_No_Parameters_Without_Filter()
         {
             var cache = new FakeCommandStringCache();
@@ -31,10 +32,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             handler.Handle(new GetDashboardMessageCountQuery(null), command, CommandStringTypes.GetDashboardMessageCount);
 
-            Assert.Empty(((DataParameterCollection)command.Parameters));
+            Assert.IsEmpty(((DataParameterCollection)command.Parameters));
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Adds_Status_Parameter_When_Filter_Set()
         {
             var cache = new FakeCommandStringCache();
@@ -44,8 +45,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             handler.Handle(new GetDashboardMessageCountQuery(1), command, CommandStringTypes.GetDashboardMessageCount);
 
             var parameters = (DataParameterCollection)command.Parameters;
-            Assert.True(parameters.Any(p => p.ParameterName == "@Status"));
-            Assert.Contains("WHERE Status = @Status", command.CommandText);
+            Assert.IsTrue(parameters.Any(p => p.ParameterName == "@Status"));
+            StringAssert.Contains(command.CommandText, "WHERE Status = @Status");
         }
 
         private static IDbCommand CreateDbCommand()

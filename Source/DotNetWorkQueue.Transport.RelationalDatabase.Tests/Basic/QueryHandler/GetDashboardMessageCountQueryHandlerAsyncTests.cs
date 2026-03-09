@@ -24,13 +24,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardMessageCountQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Count_From_Reader()
         {
             var (handler, readColumn, reader) = CreateHandler(true);
@@ -38,17 +39,17 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = await handler.HandleAsync(new GetDashboardMessageCountQuery(null));
 
-            Assert.Equal(42L, result);
+            Assert.AreEqual(42L, result);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Default_When_No_Rows()
         {
             var (handler, _, _) = CreateHandler(false);
 
             var result = await handler.HandleAsync(new GetDashboardMessageCountQuery(null));
 
-            Assert.Equal(0L, result);
+            Assert.AreEqual(0L, result);
         }
 
         private static (GetDashboardMessageCountQueryHandlerAsync handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(bool hasRows)

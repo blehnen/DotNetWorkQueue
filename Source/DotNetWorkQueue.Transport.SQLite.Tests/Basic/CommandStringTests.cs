@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
+    [TestClass]
     public class CommandStringTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Command()
         {
             var commands = new List<string>();
             var test = new CommandString("testing", commands);
-            Assert.Equal("testing", test.CommandText);
-            Assert.Equal(commands, test.AdditionalCommands);
+            Assert.AreEqual("testing", test.CommandText);
+            Assert.AreEqual(commands, test.AdditionalCommands);
         }
     }
 }

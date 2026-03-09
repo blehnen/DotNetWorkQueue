@@ -1,12 +1,13 @@
-﻿using System.IO;
+using System.IO;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
+    [TestClass]
     public class DatabaseExistsTests
     {
         private const string BadConnection =
@@ -14,14 +15,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 
         private const string GoodConnectionInMemory = "FullUri=file:test.db3?mode=memory&cache=shared;Version=3;";
 
-        [Fact]
+        [TestMethod]
         public void DatabaseDoesNotExist()
         {
             var db = Create(BadConnection, false, "badfile.db3");
-            Assert.False(db.Exists(BadConnection));
+            Assert.IsFalse(db.Exists(BadConnection));
         }
 
-        [Fact]
+        [TestMethod]
         public void DatabaseDoesExist()
         {
             var fileName = Path.GetTempFileName();
@@ -29,18 +30,18 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var db = Create(connectionString, false, fileName);
             try
             {
-                Assert.True(db.Exists(connectionString));
+                Assert.IsTrue(db.Exists(connectionString));
             }
             finally
             {
                 File.Delete(fileName);
             }
         }
-        [Fact]
+        [TestMethod]
         public void DatabaseInMemory()
         {
             var db = Create(GoodConnectionInMemory, true, "");
-            Assert.True(db.Exists(GoodConnectionInMemory));
+            Assert.IsTrue(db.Exists(GoodConnectionInMemory));
         }
 
         private DatabaseExists Create(string connectionString, bool inMemory, string fileName)

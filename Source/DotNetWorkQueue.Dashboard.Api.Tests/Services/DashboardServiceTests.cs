@@ -16,13 +16,14 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 {
+    [TestClass]
     public class DashboardServiceTests
     {
-        [Fact]
+        [TestMethod]
         public void GetConnections_Returns_All_Registered_Connections()
         {
             var api = CreateApi(out _, out _);
@@ -35,7 +36,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result[0].QueueCount.Should().Be(1);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetQueues_Returns_Queues_For_Connection()
         {
             var api = CreateApi(out var connectionId, out _);
@@ -47,7 +48,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result[0].QueueName.Should().Be("TestQueue");
         }
 
-        [Fact]
+        [TestMethod]
         public void GetQueues_Throws_For_Unknown_ConnectionId()
         {
             var api = CreateApi(out _, out _);
@@ -58,7 +59,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             act.Should().Throw<InvalidOperationException>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetStatus_Returns_StatusCounts()
         {
             var api = CreateApi(out _, out var queueId);
@@ -81,7 +82,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Total.Should().Be(17);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetFeatures_Returns_TransportOptions()
         {
             var api = CreateApi(out _, out var queueId);
@@ -109,7 +110,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.EnableStatusTable.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageCount_Calls_Handler()
         {
             var api = CreateApi(out _, out var queueId);
@@ -126,7 +127,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().Be(42L);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageDetail_Returns_Null_When_Not_Found()
         {
             var api = CreateApi(out _, out var queueId);
@@ -143,7 +144,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetConfiguration_Returns_Utf8_Json()
         {
             var api = CreateApi(out _, out var queueId);
@@ -161,7 +162,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.ConfigurationJson.Should().Be("{\"test\":true}");
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetJobsByConnection_Returns_Jobs_From_First_Queue()
         {
             var api = CreateApi(out var connectionId, out var queueId, isRelational: true);
@@ -184,7 +185,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result[0].JobName.Should().Be("ConnectionJob");
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetJobsByConnection_Returns_Empty_When_No_Queues()
         {
             var connectionId = Guid.NewGuid();
@@ -208,7 +209,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeEmpty();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetJobsByConnection_Throws_For_Unknown_ConnectionId()
         {
             var api = CreateApi(out _, out _);
@@ -252,7 +253,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             return api;
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageBody_Returns_Decoded_Body()
         {
             var api = CreateApi(out _, out var queueId);
@@ -304,7 +305,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.DecodingError.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageBody_Returns_Null_When_Not_Found()
         {
             var api = CreateApi(out _, out var queueId);
@@ -321,7 +322,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageBody_Returns_Error_When_Decoding_Fails()
         {
             var api = CreateApi(out _, out var queueId);
@@ -352,7 +353,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.DecodingError.Should().Be("Bad headers");
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageHeaders_Returns_Decoded_Headers()
         {
             var api = CreateApi(out _, out var queueId);
@@ -383,7 +384,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.DecodingError.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageHeaders_Returns_Null_When_Not_Found()
         {
             var api = CreateApi(out _, out var queueId);
@@ -400,7 +401,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageHeaders_Returns_Error_When_Decoding_Fails()
         {
             var api = CreateApi(out _, out var queueId);
@@ -430,7 +431,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.DecodingError.Should().Be("Corrupt data");
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageBody_Uses_TypeHeader_When_Type_Is_Resolvable()
         {
             // Use System.String — always loaded in the AppDomain, so ResolveMessageBodyType Stage 1 succeeds.
@@ -453,7 +454,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.TypeName.Should().Be("System.String");
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageBody_Falls_Back_To_JObject_When_TypeHeader_Not_Resolvable()
         {
             var api = CreateApi(out _, out var queueId);
@@ -475,7 +476,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.TypeName.Should().Be("NotReal.Type, NotReal");
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetMessageBody_Falls_Back_To_JObject_When_TypeHeader_Absent()
         {
             var api = CreateApi(out _, out var queueId);
@@ -537,7 +538,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             return container;
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteMessageAsync_Returns_True_When_Handler_Returns_Positive()
         {
             var api = CreateApi(out _, out var queueId);
@@ -554,7 +555,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteMessageAsync_Returns_False_When_Handler_Returns_Zero()
         {
             var api = CreateApi(out _, out var queueId);
@@ -571,7 +572,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeFalse();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteAllErrorMessagesAsync_Returns_Handler_Count()
         {
             var api = CreateApi(out _, out var queueId);
@@ -588,7 +589,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().Be(7L);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task RequeueErrorMessageAsync_Returns_True_When_Found()
         {
             var api = CreateApi(out _, out var queueId);
@@ -605,7 +606,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task RequeueErrorMessageAsync_Returns_False_When_Not_Found()
         {
             var api = CreateApi(out _, out var queueId);
@@ -622,7 +623,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeFalse();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task ResetStaleMessageAsync_Returns_True_When_Reset()
         {
             var api = CreateApi(out _, out var queueId);
@@ -639,7 +640,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task ResetStaleMessageAsync_Returns_False_When_Not_In_Processing()
         {
             var api = CreateApi(out _, out var queueId);
@@ -656,7 +657,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().BeFalse();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBodyAsync_Returns_NotFound_When_Body_Query_Returns_Null()
         {
             var api = CreateApi(out _, out var queueId);
@@ -673,7 +674,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().Be(EditMessageBodyResult.NotFound);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBodyAsync_Returns_TypeUnresolvable_When_No_Type_Header()
         {
             var api = CreateApi(out _, out var queueId);
@@ -691,7 +692,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().Be(EditMessageBodyResult.TypeUnresolvable);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBodyAsync_Returns_MessageBeingProcessed_When_Status_Is_1()
         {
             var portableName = $"{typeof(string).FullName}, {typeof(string).Assembly.GetName().Name}";
@@ -710,7 +711,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().Be(EditMessageBodyResult.MessageBeingProcessed);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBodyAsync_Returns_InvalidJson_When_Json_Is_Malformed()
         {
             var portableName = $"{typeof(string).FullName}, {typeof(string).Assembly.GetName().Name}";
@@ -729,7 +730,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             result.Should().Be(EditMessageBodyResult.InvalidJson);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task EditMessageBodyAsync_Returns_Success_When_All_Valid()
         {
             var portableName = $"{typeof(string).FullName}, {typeof(string).Assembly.GetName().Name}";

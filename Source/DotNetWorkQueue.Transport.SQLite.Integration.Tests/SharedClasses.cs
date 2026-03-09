@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Schema;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 {
@@ -39,9 +39,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
                     command.CommandText = $"select count(*) from {helper.MetaDataName}";
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(messageCount, records);
+                        Assert.AreEqual(messageCount, records);
                     }
                 }
             }

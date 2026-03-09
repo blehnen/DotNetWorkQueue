@@ -1,16 +1,17 @@
-﻿using DotNetWorkQueue.Messages;
-using Xunit;
+using DotNetWorkQueue.Messages;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class SettingTests
     {
-        [Fact]
+        [TestMethod]
         public void Get_Value_Equals()
         {
             var setting = new FakeSetting();
             var test = new Setting<FakeSetting>(setting);
-            Assert.Equal(test.Value, setting);
+            Assert.AreEqual(test.Value, setting);
         }
 
         private class FakeSetting

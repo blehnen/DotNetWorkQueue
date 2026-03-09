@@ -1,31 +1,32 @@
-﻿#region Using
+#region Using
 
 using DotNetWorkQueue.Transport.SqlServer.Schema;
 using KellermanSoftware.CompareNetObjects;
 using Tynamix.ObjectFiller;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
 {
+    [TestClass]
     public class IdentityTests
     {
-        [Fact]
+        [TestMethod]
         public void Default()
         {
             var test = new Identity(1, 2);
-            Assert.Equal(1, test.Seed);
-            Assert.Equal(2, test.Increment);
+            Assert.AreEqual(1, test.Seed);
+            Assert.AreEqual(2, test.Increment);
         }
-        [Fact]
+        [TestMethod]
         public void Script()
         {
             var test = new Identity(1, 2);
-            Assert.Contains("1", test.Script());
-            Assert.Contains("2", test.Script());
+            StringAssert.Contains(test.Script(), "1");
+            StringAssert.Contains(test.Script(), "2");
         }
-        [Fact]
+        [TestMethod]
         public void Clone()
         {
             var pFiller = new Filler<Identity>();
@@ -33,7 +34,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
             var clone = test.Clone();
             var compareLogic = new CompareLogic();
             var result = compareLogic.Compare(test, clone);
-            Assert.True(result.AreEqual, result.DifferencesString);
+            Assert.IsTrue(result.AreEqual, result.DifferencesString);
         }
     }
 }

@@ -26,13 +26,14 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardErrorRetriesQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Retries()
         {
             var (handler, readColumn, reader) = CreateHandler(1);
@@ -44,21 +45,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery("42"));
 
-            Assert.Single(result);
-            Assert.Equal(10L, result[0].ErrorTrackingId);
-            Assert.Equal("42", result[0].QueueId);
-            Assert.Equal("TimeoutException", result[0].ExceptionType);
-            Assert.Equal(3, result[0].RetryCount);
+            Assert.ContainsSingle(result);
+            Assert.AreEqual(10L, result[0].ErrorTrackingId);
+            Assert.AreEqual("42", result[0].QueueId);
+            Assert.AreEqual("TimeoutException", result[0].ExceptionType);
+            Assert.AreEqual(3, result[0].RetryCount);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Empty_When_No_Rows()
         {
             var (handler, _, _) = CreateHandler(0);
 
             var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery("42"));
 
-            Assert.Empty(result);
+            Assert.IsEmpty(result);
         }
 
         private static (GetDashboardErrorRetriesQueryHandlerAsync handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(int rowCount)

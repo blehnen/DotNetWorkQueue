@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Messages;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation
 {
-    [Collection("ConsumerAsync")]
     public class SimpleMethodConsumerAsync
     {
         private ITaskFactory Factory { get; set; }
@@ -40,7 +39,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                 {
                     setOptions(oCreation);
                     var result = oCreation.CreateQueue();
-                    Assert.True(result.Success, result.ErrorMessage);
+                    Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
                     if (messageType == 1)

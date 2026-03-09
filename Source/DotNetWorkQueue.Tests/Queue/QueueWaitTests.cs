@@ -1,18 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Queue;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable MethodSupportsCancellation
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class QueueWaitTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var times = new List<TimeSpan> { TimeSpan.FromMilliseconds(100) };
@@ -20,7 +21,7 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Wait();
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Default_1000_Wait()
         {
             var times = new List<TimeSpan> { TimeSpan.FromMilliseconds(1000) };
@@ -30,10 +31,10 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 950, 1500);
+            Assert.IsInRange(950L, 1500L, watch.ElapsedMilliseconds);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Default_1000_1000_Wait()
         {
             var times = new List<TimeSpan> { TimeSpan.FromMilliseconds(1000) };
@@ -43,16 +44,16 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 950, 2000);
+            Assert.IsInRange(950L, 2000L, watch.ElapsedMilliseconds);
 
             watch.Restart();
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 950, 2000);
+            Assert.IsInRange(950L, 2000L, watch.ElapsedMilliseconds);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Default_1000_2000_Reset_1000_Wait()
         {
             var times = new List<TimeSpan> { TimeSpan.FromMilliseconds(1000), TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(3000) };
@@ -62,13 +63,13 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 950, 2000);
+            Assert.IsInRange(950L, 2000L, watch.ElapsedMilliseconds);
 
             watch.Restart();
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 1950, 2900);
+            Assert.IsInRange(1950L, 2900L, watch.ElapsedMilliseconds);
 
             test.Reset();
 
@@ -76,10 +77,10 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 950, 2900);
+            Assert.IsInRange(950L, 2900L, watch.ElapsedMilliseconds);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Default_1000_2000_3000_Wait()
         {
             var times = new List<TimeSpan> { TimeSpan.FromMilliseconds(1000), TimeSpan.FromMilliseconds(2000), TimeSpan.FromMilliseconds(3000) };
@@ -89,22 +90,22 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 950, 2000);
+            Assert.IsInRange(950L, 2000L, watch.ElapsedMilliseconds);
 
             watch.Restart();
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 1950, 2900);
+            Assert.IsInRange(1950L, 2900L, watch.ElapsedMilliseconds);
 
             watch.Restart();
             test.Wait();
             watch.Stop();
 
-            Assert.InRange(watch.ElapsedMilliseconds, 2950, 3900);
+            Assert.IsInRange(2950L, 3900L, watch.ElapsedMilliseconds);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Default_Cancel()
         {
             var cancelSource = new CancellationTokenSource();
@@ -114,9 +115,9 @@ namespace DotNetWorkQueue.Tests.Queue
 
             var watch = new Stopwatch();
             watch.Start();
-            Task.Factory.StartNew(() => test.Wait()).ContinueWith(task => watch.Stop());
+            Task.Factory.StartNew(() => test.Wait(), TaskCreationOptions.LongRunning).ContinueWith(task => watch.Stop());
             cancelSource.Cancel();
-            Assert.InRange(watch.ElapsedMilliseconds, 0, 5000);
+            Assert.IsInRange(0L, 5000L, watch.ElapsedMilliseconds);
         }
 
         private ICancelWork GetCancel()

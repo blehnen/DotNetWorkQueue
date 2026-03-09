@@ -1,14 +1,15 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class SentMessageFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_SentMessage()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -18,16 +19,16 @@ namespace DotNetWorkQueue.Tests.Factory
             var factory = Create(fixture);
             var id = factory.Create(messageId, correlationId);
 
-            Assert.Equal(id.MessageId, messageId);
-            Assert.Equal(id.CorrelationId, correlationId);
+            Assert.AreEqual(id.MessageId, messageId);
+            Assert.AreEqual(id.CorrelationId, correlationId);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_With_Null_Fails()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var factory = Create(fixture);
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 delegate
                 {
                     factory.Create(null, null);

@@ -1,16 +1,16 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
 {
-    [Collection("Producer")]
+    [TestClass]
     public class MultiProducer
     {
-        [Theory]
-        [InlineData(100, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-        InlineData(10, true, IntegrationConnectionInfo.ConnectionTypes.Direct)]
+        [TestMethod]
+        [DataRow(100, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+        DataRow(10, true, IntegrationConnectionInfo.ConnectionTypes.Direct)]
         public void Run(int messageCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))

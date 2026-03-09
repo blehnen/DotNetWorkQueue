@@ -26,16 +26,18 @@ using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
-    public class EdgeCaseTests : IAsyncLifetime
+    [TestClass]
+    public class EdgeCaseTests
     {
         private DashboardTestServer _server;
         private TransportFixture<MemoryDashboardInit, MessageQueueCreation> _fixture;
         private Guid _queueId;
 
+        [TestInitialize]
         public async Task InitializeAsync()
         {
             var queueName = QueueNameGenerator.Create();
@@ -61,13 +63,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             _queueId = queues[0].Id;
         }
 
-        public async Task DisposeAsync()
+        [TestCleanup]
+        public async Task CleanupAsync()
         {
             if (_server != null) await _server.DisposeAsync();
             _fixture?.Dispose();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Pagination_PageSizeExceedsTotal()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -76,7 +79,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.TotalCount.Should().Be(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Pagination_EmptyPage()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
@@ -85,7 +88,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             paged.TotalCount.Should().Be(5);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task DeleteMessage_AlreadyDeleted()
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(

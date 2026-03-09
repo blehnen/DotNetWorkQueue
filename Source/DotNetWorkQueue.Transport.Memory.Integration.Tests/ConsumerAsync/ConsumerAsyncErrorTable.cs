@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
 {
-    [Collection("consumerasync")]
+    [TestClass]
     public class ConsumerAsyncErrorTable
     {
-        [Theory]
-        [InlineData(1, 20, 1, 1, 0),
-        InlineData(25, 30, 20, 1, 5)]
+        [TestMethod]
+        [DataRow(1, 20, 1, 1, 0),
+        DataRow(25, 30, 20, 1, 5)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize)
         {
             using (var connectionInfo = new IntegrationConnectionInfo())

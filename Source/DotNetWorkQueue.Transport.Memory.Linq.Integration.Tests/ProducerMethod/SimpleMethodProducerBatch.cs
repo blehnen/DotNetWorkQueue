@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("producer")]
+    [TestClass]
     public class SimpleMethodProducerBatch
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(1000, LinqMethodTypes.Dynamic),
-         InlineData(1000, LinqMethodTypes.Compiled)]
+        [DataRow(1000, LinqMethodTypes.Dynamic),
+         DataRow(1000, LinqMethodTypes.Compiled)]
 #else
-        [InlineData(1000, LinqMethodTypes.Compiled)]
+        [DataRow(1000, LinqMethodTypes.Compiled)]
 #endif
         public void Run(
             int messageCount,

@@ -1,39 +1,40 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
 {
+    [TestClass]
     public class CreationScopeTests
     {
-        [Fact()]
+        [TestMethod]
         public void AddScopedObject_Test()
         {
             using (var scope = Create())
             {
                 scope.AddScopedObject(CreateClear());
-                Assert.True(scope.ContainedClears.Count == 1);
+                Assert.IsTrue(scope.ContainedClears.Count == 1);
                 scope.AddScopedObject(CreateClear());
-                Assert.True(scope.ContainedClears.Count == 2);
+                Assert.IsTrue(scope.ContainedClears.Count == 2);
             }
         }
 
-        [Fact()]
+        [TestMethod]
         public void AddScopedObject_Test1()
         {
             using (var scope = Create())
             {
                 scope.AddScopedObject(createDisposable());
-                Assert.True(scope.ContainedDisposables.Count == 1);
+                Assert.IsTrue(scope.ContainedDisposables.Count == 1);
                 scope.AddScopedObject(createDisposable());
-                Assert.True(scope.ContainedDisposables.Count == 2);
+                Assert.IsTrue(scope.ContainedDisposables.Count == 2);
             }
         }
 
-        [Fact()]
+        [TestMethod]
         public void Dispose_Test()
         {
             var scope = Create();
@@ -50,8 +51,8 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             scope.AddScopedObject(dispose3);
             scope.Dispose();
 
-            Assert.Empty(scope.ContainedClears);
-            Assert.Empty(scope.ContainedDisposables);
+            Assert.IsEmpty(scope.ContainedClears);
+            Assert.IsEmpty(scope.ContainedDisposables);
 
             clear.Received().Clear();
             clear2.Received().Clear();

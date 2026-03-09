@@ -1,39 +1,47 @@
-﻿using AutoFixture.Xunit2;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AutoFixture;
+using AutoFixture.AutoNSubstitute;
 
 namespace DotNetWorkQueue.Tests
 {
+    [TestClass]
     public class QueueCreationResultTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Ok()
         {
             var test = new QueueCreationResult(QueueCreationStatus.None, null);
-            Assert.Equal(QueueCreationStatus.None, test.Status);
+            Assert.AreEqual(QueueCreationStatus.None, test.Status);
         }
-        [Fact]
+        [TestMethod]
         public void GetSet_Status()
         {
             var test = new QueueCreationResult(QueueCreationStatus.AlreadyExists, null);
-            Assert.Equal(QueueCreationStatus.AlreadyExists, test.Status);
+            Assert.AreEqual(QueueCreationStatus.AlreadyExists, test.Status);
         }
-        [Theory, AutoData]
-        public void GetSet_ErrorMessage(string message)
+        [TestMethod]
+        public void GetSet_ErrorMessage()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var message = fixture.Create<string>();
             var test = new QueueCreationResult(QueueCreationStatus.AlreadyExists, message);
-            Assert.Equal(message, test.ErrorMessage);
+            Assert.AreEqual(message, test.ErrorMessage);
         }
-        [Theory, AutoData]
-        public void GetSet_ErrorMessage_True(string message)
+        [TestMethod]
+        public void GetSet_ErrorMessage_True()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var message = fixture.Create<string>();
             var test = new QueueCreationResult(QueueCreationStatus.Success, message);
-            Assert.True(test.Success);
+            Assert.IsTrue(test.Success);
         }
-        [Theory, AutoData]
-        public void GetSet_ErrorMessage_False(string message)
+        [TestMethod]
+        public void GetSet_ErrorMessage_False()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var message = fixture.Create<string>();
             var test = new QueueCreationResult(QueueCreationStatus.ConfigurationError, message);
-            Assert.False(test.Success);
+            Assert.IsFalse(test.Success);
         }
     }
 }

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using LiteDB;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
 {
@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                 using (var conn = new LiteDatabase(connection.ConnectionString))
                 {
                     var col = conn.GetCollection<Schema.MetaDataTable>(helper.MetaDataName);
-                    Assert.Equal(messageCount, col.Count());
+                    Assert.AreEqual(messageCount, col.Count());
                 }
             }
             else
@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                 using (var conn = connScope.GetDatabase())
                 {
                     var col = conn.Database.GetCollection<Schema.MetaDataTable>(helper.MetaDataName);
-                    Assert.Equal(messageCount, col.Count());
+                    Assert.AreEqual(messageCount, col.Count());
                 }
             }
         }

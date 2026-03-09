@@ -27,13 +27,14 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardErrorMessagesQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_ErrorMessages()
         {
             var (handler, readColumn, reader) = CreateHandler(1);
@@ -46,20 +47,20 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = await handler.HandleAsync(new GetDashboardErrorMessagesQuery(0, 25));
 
-            Assert.Single(result);
-            Assert.Equal(1L, result[0].Id);
-            Assert.Equal("100", result[0].QueueId);
-            Assert.Equal("NullReferenceException", result[0].LastException);
+            Assert.ContainsSingle(result);
+            Assert.AreEqual(1L, result[0].Id);
+            Assert.AreEqual("100", result[0].QueueId);
+            Assert.AreEqual("NullReferenceException", result[0].LastException);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Empty_When_No_Rows()
         {
             var (handler, _, _) = CreateHandler(0);
 
             var result = await handler.HandleAsync(new GetDashboardErrorMessagesQuery(0, 25));
 
-            Assert.Empty(result);
+            Assert.IsEmpty(result);
         }
 
         private static (GetDashboardErrorMessagesQueryHandlerAsync handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(int rowCount)

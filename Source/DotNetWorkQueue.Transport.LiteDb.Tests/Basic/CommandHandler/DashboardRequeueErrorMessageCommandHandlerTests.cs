@@ -20,45 +20,46 @@ using System;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
 {
+    [TestClass]
     public class DashboardRequeueErrorMessageCommandHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var optionsFactory = Substitute.For<ILiteDbMessageQueueTransportOptionsFactory>();
             var connectionManager = CreateConnectionManager();
             var tableNameHelper = CreateTableNameHelper();
-            Assert.NotNull(new DashboardRequeueErrorMessageCommandHandler(optionsFactory, connectionManager, tableNameHelper));
+            Assert.IsNotNull(new DashboardRequeueErrorMessageCommandHandler(optionsFactory, connectionManager, tableNameHelper));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullOptionsFactory_Throws()
         {
             var connectionManager = CreateConnectionManager();
             var tableNameHelper = CreateTableNameHelper();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new DashboardRequeueErrorMessageCommandHandler(null, connectionManager, tableNameHelper));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullConnectionManager_Throws()
         {
             var optionsFactory = Substitute.For<ILiteDbMessageQueueTransportOptionsFactory>();
             var tableNameHelper = CreateTableNameHelper();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new DashboardRequeueErrorMessageCommandHandler(optionsFactory, null, tableNameHelper));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullTableNameHelper_Throws()
         {
             var optionsFactory = Substitute.For<ILiteDbMessageQueueTransportOptionsFactory>();
             var connectionManager = CreateConnectionManager();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new DashboardRequeueErrorMessageCommandHandler(optionsFactory, connectionManager, null));
         }
 

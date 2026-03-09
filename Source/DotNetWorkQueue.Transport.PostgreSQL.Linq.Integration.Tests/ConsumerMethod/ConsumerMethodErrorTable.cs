@@ -1,25 +1,25 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("consumer")]
+    [TestClass]
     public class ConsumerMethodErrorTable
     {
-        [Theory]
-        [InlineData(10, 60, 20, true, LinqMethodTypes.Compiled, true),
+        [TestMethod]
+        [DataRow(10, 60, 20, true, LinqMethodTypes.Compiled, true),
 #if NETFULL
-        InlineData(100, 60, 20, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, 60, 20, true, LinqMethodTypes.Dynamic, false),
-         InlineData(1, 60, 5, true, LinqMethodTypes.Dynamic, true),
+        DataRow(100, 60, 20, false, LinqMethodTypes.Dynamic, false),
+         DataRow(100, 60, 20, true, LinqMethodTypes.Dynamic, false),
+         DataRow(1, 60, 5, true, LinqMethodTypes.Dynamic, true),
 #endif
-         InlineData(10, 60, 5, true, LinqMethodTypes.Compiled, false)]
+         DataRow(10, 60, 5, true, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

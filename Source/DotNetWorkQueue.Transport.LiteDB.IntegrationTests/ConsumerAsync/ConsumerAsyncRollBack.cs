@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class ConsumerAsyncRollBack
     {
-        [Theory]
-        [InlineData(50, 1, 400, 5, 1, 5, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         InlineData(5, 45, 260, 5, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         InlineData(10, 0, 400, 5, 1, 5, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        [TestMethod]
+        [DataRow(50, 1, 400, 5, 1, 5, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+         DataRow(5, 45, 260, 5, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+         DataRow(10, 0, 400, 5, 1, 5, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             int readerCount, int queueSize, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

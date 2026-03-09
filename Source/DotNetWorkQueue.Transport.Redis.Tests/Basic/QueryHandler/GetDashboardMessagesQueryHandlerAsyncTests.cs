@@ -20,45 +20,46 @@ using System;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.QueryHandler;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardMessagesQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var connection = Substitute.For<IRedisConnection>();
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
             var serializer = Substitute.For<IInternalSerializer>();
-            Assert.NotNull(new GetDashboardMessagesQueryHandlerAsync(connection, redisNames, serializer));
+            Assert.IsNotNull(new GetDashboardMessagesQueryHandlerAsync(connection, redisNames, serializer));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullConnection_Throws()
         {
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
             var serializer = Substitute.For<IInternalSerializer>();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new GetDashboardMessagesQueryHandlerAsync(null, redisNames, serializer));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullRedisNames_Throws()
         {
             var connection = Substitute.For<IRedisConnection>();
             var serializer = Substitute.For<IInternalSerializer>();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new GetDashboardMessagesQueryHandlerAsync(connection, null, serializer));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullSerializer_Throws()
         {
             var connection = Substitute.For<IRedisConnection>();
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new GetDashboardMessagesQueryHandlerAsync(connection, redisNames, null));
         }
     }

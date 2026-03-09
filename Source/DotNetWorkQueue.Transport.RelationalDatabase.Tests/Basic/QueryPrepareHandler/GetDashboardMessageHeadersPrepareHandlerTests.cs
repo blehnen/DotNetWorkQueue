@@ -4,13 +4,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareHandler
 {
+    [TestClass]
     public class GetDashboardMessageHeadersPrepareHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle_Sets_CommandText()
         {
             var handler = CreateHandler();
@@ -18,10 +19,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             handler.Handle(new GetDashboardMessageHeadersQuery("42"), command, CommandStringTypes.GetDashboardMessageHeaders);
 
-            Assert.NotNull(command.CommandText);
+            Assert.IsNotNull(command.CommandText);
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Adds_QueueId_Parameter()
         {
             var handler = CreateHandler();
@@ -31,8 +32,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             var parameters = (DataParameterCollection)command.Parameters;
             var param = parameters.First();
-            Assert.Equal("@QueueId", param.ParameterName);
-            Assert.Equal(42L, param.Value);
+            Assert.AreEqual("@QueueId", param.ParameterName);
+            Assert.AreEqual(42L, param.Value);
         }
 
         private static GetDashboardMessageHeadersPrepareHandler CreateHandler()

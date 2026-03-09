@@ -1,11 +1,12 @@
-﻿using DotNetWorkQueue.Transport.Memory.Basic.Message;
-using Xunit;
+using DotNetWorkQueue.Transport.Memory.Basic.Message;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Transport.Memory.Basic.Message
 {
+    [TestClass]
     public class RollbackMessageTests
     {
-        [Fact()]
+        [TestMethod]
         public void Rollback_Test()
         {
             var message = new RollbackMessage();

@@ -1,23 +1,24 @@
-﻿#region Using
+#region Using
 
 using DotNetWorkQueue.Transport.SQLite.Schema;
 using KellermanSoftware.CompareNetObjects;
 using Tynamix.ObjectFiller;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
 {
+    [TestClass]
     public class IdentityTests
     {
-        [Fact]
+        [TestMethod]
         public void Script()
         {
             var test = new Identity();
-            Assert.Contains("PRIMARY KEY AUTOINCREMENT", test.Script());
+            StringAssert.Contains(test.Script(), "PRIMARY KEY AUTOINCREMENT");
         }
-        [Fact]
+        [TestMethod]
         public void Clone()
         {
             var pFiller = new Filler<Identity>();
@@ -25,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
             var clone = test.Clone();
             var compareLogic = new CompareLogic();
             var result = compareLogic.Compare(test, clone);
-            Assert.True(result.AreEqual, result.DifferencesString);
+            Assert.IsTrue(result.AreEqual, result.DifferencesString);
         }
     }
 }

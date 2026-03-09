@@ -1,17 +1,18 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.Factory;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Factory
 {
+    [TestClass]
     public class UnixTimeFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Factory
             test.Create();
 
             options.TimeServer = (TimeLocations)99;
-            Assert.Throws<DotNetWorkQueueException>(
+            Assert.ThrowsExactly<DotNetWorkQueueException>(
            delegate
            {
                test.Create();

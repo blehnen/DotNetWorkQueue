@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("consumer")]
+    [TestClass]
     public class ConsumerMethodHeartbeat
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(7, 60, 190, 3, LinqMethodTypes.Compiled, true),
-            InlineData(7, 60, 190, 3, LinqMethodTypes.Dynamic, true)]
+        [DataRow(7, 60, 190, 3, LinqMethodTypes.Compiled, true),
+            DataRow(7, 60, 190, 3, LinqMethodTypes.Dynamic, true)]
 #else
-        [InlineData(7, 15, 90, 3, LinqMethodTypes.Compiled, false)]
+        [DataRow(7, 15, 90, 3, LinqMethodTypes.Compiled, false)]
 #endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

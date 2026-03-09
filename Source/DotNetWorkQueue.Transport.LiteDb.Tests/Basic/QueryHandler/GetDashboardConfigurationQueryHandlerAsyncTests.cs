@@ -20,33 +20,34 @@ using System;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardConfigurationQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var connectionManager = CreateConnectionManager();
             var tableNameHelper = CreateTableNameHelper();
-            Assert.NotNull(new GetDashboardConfigurationQueryHandlerAsync(connectionManager, tableNameHelper));
+            Assert.IsNotNull(new GetDashboardConfigurationQueryHandlerAsync(connectionManager, tableNameHelper));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullConnectionManager_Throws()
         {
             var tableNameHelper = CreateTableNameHelper();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new GetDashboardConfigurationQueryHandlerAsync(null, tableNameHelper));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullTableNameHelper_Throws()
         {
             var connectionManager = CreateConnectionManager();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new GetDashboardConfigurationQueryHandlerAsync(connectionManager, null));
         }
 

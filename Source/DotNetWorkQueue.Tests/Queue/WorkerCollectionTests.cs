@@ -1,24 +1,25 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Queue;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class WorkerCollectionTests
     {
-        [Fact]
+        [TestMethod]
         public void Start_Multiple_Times_Fails()
         {
             using (var test = Create(2))
             {
                 test.Start();
-                Assert.Throws<DotNetWorkQueueException>(
+                Assert.ThrowsExactly<DotNetWorkQueueException>(
                delegate
                {
                    test.Start();
@@ -26,7 +27,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Stop_Multiple_Times_Ok()
         {
             using (var test = Create(2))
@@ -37,7 +38,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Stop_Without_Start_ok()
         {
             using (var test = Create(2))

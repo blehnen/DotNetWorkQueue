@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests
 {
@@ -12,23 +12,24 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
     /// 
     /// <remarks>Options are only set via the IoC container</remarks>
     /// </summary>
+    [TestClass]
     public class ConfigurationExtensionsTests
     {
-        [Fact]
+        [TestMethod]
         public void AdditionalMessageData()
         {
             IAdditionalMessageData test = new AdditionalMessageData();
             test.SetDelay(TimeSpan.FromSeconds(1));
-            Assert.Equal(TimeSpan.FromSeconds(1), test.GetDelay());
+            Assert.AreEqual(TimeSpan.FromSeconds(1), test.GetDelay());
 
             test.SetExpiration(TimeSpan.FromSeconds(5));
-            Assert.Equal(TimeSpan.FromSeconds(5), test.GetExpiration());
+            Assert.AreEqual(TimeSpan.FromSeconds(5), test.GetExpiration());
 
             test.SetExpiration(null);
-            Assert.Null(test.GetExpiration());
+            Assert.IsNull(test.GetExpiration());
         }
 
-        [Fact]
+        [TestMethod]
         public void ConfigurationReceive()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -38,10 +39,10 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
             var options = fixture.Create<RedisQueueTransportOptions>();
             configuration.AdditionalConfiguration.SetSetting("RedisQueueTransportOptions", options);
 
-            Assert.NotNull(configuration.Options());
+            Assert.IsNotNull(configuration.Options());
         }
 
-        [Fact]
+        [TestMethod]
         public void ConfigurationSend()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -51,7 +52,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
             var options = fixture.Create<RedisQueueTransportOptions>();
             configuration.AdditionalConfiguration.SetSetting("RedisQueueTransportOptions", options);
 
-            Assert.NotNull(configuration.Options());
+            Assert.IsNotNull(configuration.Options());
         }
     }
 }

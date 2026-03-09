@@ -1,11 +1,11 @@
-﻿#region Using
+#region Using
 
 using Microsoft.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
 
@@ -135,9 +135,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                     }
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(messageCount, records);
+                        Assert.AreEqual(messageCount, records);
                     }
                 }
             }
@@ -157,7 +157,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                         while (reader.Read())
                         {
                             var priority = (byte)reader[0];
-                            Assert.Equal((byte)5, priority);
+                            Assert.AreEqual((byte)5, priority);
                         }
                     }
                 }
@@ -178,7 +178,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                     {
                         while (reader.Read())
                         {
-                            Assert.NotEqual(reader.GetDateTime(1), reader.GetDateTime(0));
+                            Assert.AreNotEqual(reader.GetDateTime(1), reader.GetDateTime(0));
                         }
                     }
                 }
@@ -198,7 +198,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                     {
                         while (reader.Read())
                         {
-                            Assert.NotEqual(reader.GetDateTime(1), reader.GetDateTime(0));
+                            Assert.AreNotEqual(reader.GetDateTime(1), reader.GetDateTime(0));
                         }
                     }
                 }
@@ -218,7 +218,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                     {
                         while (reader.Read())
                         {
-                            Assert.Equal(0, reader.GetInt32(0));
+                            Assert.AreEqual(0, reader.GetInt32(0));
                         }
                     }
                 }
@@ -238,7 +238,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                     {
                         while (reader.Read())
                         {
-                            Assert.Equal(0, reader.GetInt32(0));
+                            Assert.AreEqual(0, reader.GetInt32(0));
                         }
                     }
                 }
@@ -278,9 +278,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                         command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataName}";
                         using (var reader = command.ExecuteReader())
                         {
-                            Assert.True(reader.Read());
+                            Assert.IsTrue(reader.Read());
                             var records = reader.GetInt32(0);
-                            Assert.Equal(recordCount, records);
+                            Assert.AreEqual(recordCount, records);
                         }
                     }
 
@@ -289,26 +289,26 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                         command.CommandText = $"select count(*) from {_tableNameHelper.ErrorTrackingName}";
                         using (var reader = command.ExecuteReader())
                         {
-                            Assert.True(reader.Read());
+                            Assert.IsTrue(reader.Read());
                             var records = reader.GetInt32(0);
-                            Assert.Equal(recordCount, records);
+                            Assert.AreEqual(recordCount, records);
                         }
                     }
 
                     command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataErrorsName}";
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(recordCount, records);
+                        Assert.AreEqual(recordCount, records);
                     }
 
                     command.CommandText = $"select count(*) from {_tableNameHelper.QueueName}";
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(recordCount, records);
+                        Assert.AreEqual(recordCount, records);
                     }
 
                     if (_options.EnableStatusTable)
@@ -316,9 +316,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                         command.CommandText = $"select count(*) from {_tableNameHelper.StatusName}";
                         using (var reader = command.ExecuteReader())
                         {
-                            Assert.True(reader.Read());
+                            Assert.IsTrue(reader.Read());
                             var records = reader.GetInt32(0);
-                            Assert.Equal(recordCount, records);
+                            Assert.AreEqual(recordCount, records);
                         }
                     }
                 }
@@ -347,9 +347,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                     command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataErrorsName}";
                     using (var reader = command.ExecuteReader())
                     {
-                        Assert.True(reader.Read());
+                        Assert.IsTrue(reader.Read());
                         var records = reader.GetInt32(0);
-                        Assert.Equal(messageCount, records);
+                        Assert.AreEqual(messageCount, records);
                     }
                 }
 
@@ -363,9 +363,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                         command.CommandText = $"select count(*) from {_tableNameHelper.ErrorTrackingName}";
                         using (var reader = command.ExecuteReader())
                         {
-                            Assert.True(reader.Read());
+                            Assert.IsTrue(reader.Read());
                             var records = reader.GetInt32(0);
-                            Assert.Equal(messageCount, records);
+                            Assert.AreEqual(messageCount, records);
                         }
                     }
 
@@ -376,7 +376,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                         {
                             while (reader.Read())
                             {
-                                Assert.Equal(errorCount, reader.GetInt32(0));
+                                Assert.AreEqual(errorCount, reader.GetInt32(0));
                             }
                         }
                     }

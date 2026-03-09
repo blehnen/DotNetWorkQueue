@@ -4,13 +4,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareHandler
 {
+    [TestClass]
     public class GetDashboardMessagesPrepareHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle_Sets_CommandText()
         {
             var handler = CreateHandler();
@@ -18,11 +19,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             handler.Handle(new GetDashboardMessagesQuery(0, 25, null), command, CommandStringTypes.GetDashboardMessages);
 
-            Assert.NotNull(command.CommandText);
-            Assert.Contains("ORDER BY", command.CommandText);
+            Assert.IsNotNull(command.CommandText);
+            StringAssert.Contains(command.CommandText, "ORDER BY");
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Adds_Offset_And_PageSize_Parameters()
         {
             var handler = CreateHandler();
@@ -31,12 +32,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             handler.Handle(new GetDashboardMessagesQuery(2, 50, null), command, CommandStringTypes.GetDashboardMessages);
 
             var parameters = (DataParameterCollection)command.Parameters;
-            Assert.Equal(2, parameters.Count);
-            Assert.True(parameters.Any(p => p.ParameterName == "@Offset"));
-            Assert.True(parameters.Any(p => p.ParameterName == "@PageSize"));
+            Assert.AreEqual(2, parameters.Count);
+            Assert.IsTrue(parameters.Any(p => p.ParameterName == "@Offset"));
+            Assert.IsTrue(parameters.Any(p => p.ParameterName == "@PageSize"));
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Adds_Status_Parameter_When_Filter_Set()
         {
             var handler = CreateHandler();
@@ -45,12 +46,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             handler.Handle(new GetDashboardMessagesQuery(0, 25, 1), command, CommandStringTypes.GetDashboardMessages);
 
             var parameters = (DataParameterCollection)command.Parameters;
-            Assert.Equal(3, parameters.Count);
-            Assert.True(parameters.Any(p => p.ParameterName == "@Status"));
-            Assert.Contains("WHERE Status = @Status", command.CommandText);
+            Assert.AreEqual(3, parameters.Count);
+            Assert.IsTrue(parameters.Any(p => p.ParameterName == "@Status"));
+            StringAssert.Contains(command.CommandText, "WHERE Status = @Status");
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Computes_Offset_From_PageIndex()
         {
             var handler = CreateHandler();
@@ -60,7 +61,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             var parameters = (DataParameterCollection)command.Parameters;
             var offset = parameters.First(p => p.ParameterName == "@Offset");
-            Assert.Equal(30, offset.Value); // 3 * 10
+            Assert.AreEqual(30, offset.Value); // 3 * 10
         }
 
         private static GetDashboardMessagesPrepareHandler CreateHandler()

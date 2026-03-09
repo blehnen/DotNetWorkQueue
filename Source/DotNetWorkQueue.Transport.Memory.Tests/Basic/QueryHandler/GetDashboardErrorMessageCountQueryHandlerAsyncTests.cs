@@ -2,22 +2,23 @@ using System;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic.QueryHandler;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardErrorMessageCountQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
-            Assert.NotNull(new GetDashboardErrorMessageCountQueryHandlerAsync(Substitute.For<IDataStorage>()));
+            Assert.IsNotNull(new GetDashboardErrorMessageCountQueryHandlerAsync(Substitute.For<IDataStorage>()));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullDataStorage_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() => new GetDashboardErrorMessageCountQueryHandlerAsync(null));
+            Assert.ThrowsExactly<ArgumentNullException>(() => new GetDashboardErrorMessageCountQueryHandlerAsync(null));
         }
     }
 }

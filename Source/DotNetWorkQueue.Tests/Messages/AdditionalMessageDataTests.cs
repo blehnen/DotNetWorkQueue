@@ -1,46 +1,47 @@
-﻿using System.Linq;
+using System.Linq;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Messages;
 using NSubstitute;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class AdditionalMessageDataTests
     {
-        [Fact]
+        [TestMethod]
         public void SetAndGet_CorrelationId()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var message = fixture.Create<AdditionalMessageData>();
             var correlationId = fixture.Create<ICorrelationId>();
             message.CorrelationId = correlationId;
-            Assert.Equal(message.CorrelationId, correlationId);
+            Assert.AreEqual(message.CorrelationId, correlationId);
         }
 
-        [Fact]
+        [TestMethod]
         public void SetAndGet_Route()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var message = fixture.Create<AdditionalMessageData>();
             var route = fixture.Create<string>();
             message.Route = route;
-            Assert.Equal(message.Route, route);
+            Assert.AreEqual(message.Route, route);
         }
 
-        [Fact]
+        [TestMethod]
         public void SetAndGet_AdditionalMetaData()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var message = fixture.Create<AdditionalMessageData>();
             var messageData = fixture.Create<IAdditionalMetaData>();
             message.AdditionalMetaData.Add(messageData);
-            Assert.Equal(message.AdditionalMetaData[0], messageData);
+            Assert.AreEqual(message.AdditionalMetaData[0], messageData);
         }
-        [Fact]
+        [TestMethod]
         public void SetAndGet_Headers()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -57,10 +58,10 @@ namespace DotNetWorkQueue.Tests.Messages
             var property = messageContextDataFactory.Create("Test", headerData);
             message.SetHeader(property, headerData);
 
-            Assert.Equal(message.GetHeader(property), headerData);
+            Assert.AreEqual(message.GetHeader(property), headerData);
         }
 
-        [Fact]
+        [TestMethod]
         public void SetAndGet_Headers_RawAccess()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -77,10 +78,10 @@ namespace DotNetWorkQueue.Tests.Messages
             var property = messageContextDataFactory.Create("Test", headerData);
             message.SetHeader(property, headerData);
 
-            Assert.Equal(message.Headers.Values.First(), headerData);
+            Assert.AreEqual(message.Headers.Values.First(), headerData);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_Headers_Default_Value()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -94,11 +95,13 @@ namespace DotNetWorkQueue.Tests.Messages
 
             var property = messageContextDataFactory.Create("Test", headerData);
             var headerData2 = test.GetHeader(property);
-            Assert.Equal(headerData2, headerData);
+            Assert.AreEqual(headerData2, headerData);
 
             var headerData3 = test.GetHeader(property);
-            Assert.Equal(headerData2, headerData3);
+            Assert.AreEqual(headerData2, headerData3);
         }
+
+        [TestClass]
 
         public class HeaderData
         {

@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
 {
-    [Collection("consumer")]
+    [TestClass]
     public class SimpleMethodConsumer
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(100, 0, 30, 5, LinqMethodTypes.Dynamic),
-        InlineData(10, 15, 60, 7, LinqMethodTypes.Compiled)]
+        [DataRow(100, 0, 30, 5, LinqMethodTypes.Dynamic),
+        DataRow(10, 15, 60, 7, LinqMethodTypes.Compiled)]
 #else
-        [InlineData(10, 15, 60, 7, LinqMethodTypes.Compiled)]
+        [DataRow(10, 15, 60, 7, LinqMethodTypes.Compiled)]
 #endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)

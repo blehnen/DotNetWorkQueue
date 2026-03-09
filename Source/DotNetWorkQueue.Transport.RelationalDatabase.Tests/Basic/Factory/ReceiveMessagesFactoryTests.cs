@@ -1,13 +1,14 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.Shared.Basic.Factory;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Factory
 {
+    [TestClass]
     public class ReceiveMessagesFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());

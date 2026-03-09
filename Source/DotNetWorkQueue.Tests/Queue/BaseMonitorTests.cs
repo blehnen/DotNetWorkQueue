@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -8,29 +8,30 @@ using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Queue;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class BaseMonitorTests
     {
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             var test = CreateMonitor();
-            Assert.False(test.IsDisposed);
+            Assert.IsFalse(test.IsDisposed);
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             var test = CreateMonitor();
             test.Dispose();
-            Assert.True(test.IsDisposed);
+            Assert.IsTrue(test.IsDisposed);
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Dispose_Can_Be_Called_Multiple_Times()
         {
             var test = CreateMonitor();
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Dispose();
         }
 
-        [Fact]
+        [TestMethod]
         public void Start_Runs_Action()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -50,10 +51,10 @@ namespace DotNetWorkQueue.Tests.Queue
                 test.Start();
                 Thread.Sleep(3000);
             }
-            Assert.Single(action.ReceivedCalls());
+            Assert.ContainsSingle(action.ReceivedCalls());
         }
 
-        [Fact]
+        [TestMethod]
         public void Start_Stop_Start_Works()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -68,10 +69,10 @@ namespace DotNetWorkQueue.Tests.Queue
                 test.Start();
                 Thread.Sleep(2000);
             }
-            Assert.Equal(2, action.ReceivedCalls().Count());
+            Assert.AreEqual(2, action.ReceivedCalls().Count());
         }
 
-        [Fact]
+        [TestMethod]
         public void Start_Stop_Works()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -92,7 +93,7 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Dispose_Running_Instance_Works()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -112,20 +113,20 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Get_Running_NoException()
         {
             var test = CreateMonitor();
             test.Dispose();
-            Assert.False(test.RunningPublic);
+            Assert.IsFalse(test.RunningPublic);
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Set_Running_Exception()
         {
             var test = CreateMonitor();
             test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
+            Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.RunningPublic = true;

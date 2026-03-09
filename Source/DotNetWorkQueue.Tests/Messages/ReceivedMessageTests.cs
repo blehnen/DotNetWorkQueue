@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,52 +10,56 @@ using NSubstitute;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class ReceivedMessageTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_MessageId_Equals()
         {
             var message = CreateMessage();
             var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
-            Assert.Equal(test.MessageId, message.MessageId);
+            Assert.AreEqual(test.MessageId, message.MessageId);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Body_Equals()
         {
             var message = CreateMessage();
             var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
-            Assert.Equal(test.Body, message.Body);
+            Assert.AreEqual(test.Body, message.Body);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_CorrelationId_Equals()
         {
             var message = CreateMessage();
             var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
-            Assert.Equal(test.CorrelationId, message.CorrelationId);
+            Assert.AreEqual(test.CorrelationId, message.CorrelationId);
         }
 
-        [Theory, AutoData]
-        public void Create_Headers_Equals(string value)
+        [TestMethod]
+        public void Create_Headers_Equals()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             var message = CreateMessage();
 
             var headers = new Dictionary<string, object> { { value, new UriBuilder() } };
 
             message.Headers.Returns(new ReadOnlyDictionary<string, object>(headers));
             var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
-            Assert.Equal(test.Headers, message.Headers);
+            CollectionAssert.AreEquivalent((System.Collections.ICollection)test.Headers, (System.Collections.ICollection)message.Headers);
         }
 
-        [Theory, AutoData]
-        public void GetHeader(string value)
+        [TestMethod]
+        public void GetHeader()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             var message = CreateMessage();
             var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
 
@@ -68,7 +71,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
             var property = messageContextDataFactory.Create(value, headerData);
 
-            Assert.Equal(test.GetHeader(property), headerData);
+            Assert.AreEqual(test.GetHeader(property), headerData);
         }
 
         private IReceivedMessageInternal CreateMessage()

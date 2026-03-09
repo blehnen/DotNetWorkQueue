@@ -1,27 +1,31 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobScheduler
 {
-    [CollectionDefinition("JobScheduler", DisableParallelization = true)]
+    [TestClass]
     public class JobSchedulerTests
     {
-        [SkippableTheory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(true, false),
-         InlineData(true, true)]
+        [DataRow(true, false),
+         DataRow(true, true)]
 #else
-        [InlineData(true, false)]
+        [DataRow(true, false)]
 #endif
         public void Run(
             bool interceptors,
             bool dynamic)
         {
-            Skip.If(OsDetectionHelper.IsRunningOnServer(null));
+            if (OsDetectionHelper.IsRunningOnServer(null))
+            {
+                Assert.Inconclusive("Test skipped on server");
+                return;
+            }
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();

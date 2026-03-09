@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             using (var scope = _tracer.StartActivity("SendJobAsync"))
             {
                 scope?.SetTag("JobName", job.Name);
-                return await _handler.SendAsync(job, scheduledTime, method, rawExpression);
+                return await _handler.SendAsync(job, scheduledTime, method, rawExpression).ConfigureAwait(false);
             }
         }
 
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             using (var scope = _tracer.StartActivity("SendJobAsync"))
             {
                 scope?.SetTag("JobName", job.Name);
-                return await _handler.SendAsync(job, scheduledTime, linqExpression);
+                return await _handler.SendAsync(job, scheduledTime, linqExpression).ConfigureAwait(false);
             }
         }
 #endif

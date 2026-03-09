@@ -1,72 +1,73 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Queue;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class BaseQueueTests
     {
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             var test = CreateQueue();
-            Assert.False(test.IsDisposed);
+            Assert.IsFalse(test.IsDisposed);
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             var test = CreateQueue();
             test.Dispose();
-            Assert.True(test.IsDisposed);
+            Assert.IsTrue(test.IsDisposed);
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Set_ShouldWork_Exception()
         {
             var test = CreateQueue();
             test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
+            Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.ShouldWorkPublic = true;
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Get_ShouldWork_NoException()
         {
             var test = CreateQueue();
             test.Dispose();
-            Assert.False(test.ShouldWorkPublic);
+            Assert.IsFalse(test.ShouldWorkPublic);
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Set_Started_Exception()
         {
             var test = CreateQueue();
             test.Dispose();
-            Assert.Throws<ObjectDisposedException>(
+            Assert.ThrowsExactly<ObjectDisposedException>(
             delegate
             {
                 test.StartedPublic = true;
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Get_Started_NoException()
         {
             var test = CreateQueue();
             test.Dispose();
-            Assert.False(test.StartedPublic);
+            Assert.IsFalse(test.StartedPublic);
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Dispose_Can_Be_Called_Multiple_Times()
         {
             var test = CreateQueue();
@@ -74,22 +75,22 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Dispose();
         }
 
-        [Fact]
+        [TestMethod]
         public void SetGet_Started()
         {
             var test = CreateQueue();
-            Assert.False(test.StartedPublic);
+            Assert.IsFalse(test.StartedPublic);
             test.StartedPublic = true;
-            Assert.True(test.StartedPublic);
+            Assert.IsTrue(test.StartedPublic);
         }
 
-        [Fact]
+        [TestMethod]
         public void SetGet_ShouldWork()
         {
             var test = CreateQueue();
-            Assert.False(test.ShouldWorkPublic);
+            Assert.IsFalse(test.ShouldWorkPublic);
             test.ShouldWorkPublic = true;
-            Assert.True(test.ShouldWorkPublic);
+            Assert.IsTrue(test.ShouldWorkPublic);
         }
 
         private BaseQueueTest CreateQueue()

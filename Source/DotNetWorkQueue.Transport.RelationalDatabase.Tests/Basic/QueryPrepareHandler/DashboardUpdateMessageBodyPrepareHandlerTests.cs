@@ -22,13 +22,14 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareHandler
 {
+    [TestClass]
     public class DashboardUpdateMessageBodyPrepareHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle_Sets_CommandText()
         {
             var handler = CreateHandler();
@@ -37,10 +38,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             handler.Handle(new DashboardUpdateMessageBodyCommand("7", new byte[] { 1 }, new byte[] { 2 }), command,
                 CommandStringTypes.DashboardUpdateMessageBody);
 
-            Assert.NotNull(command.CommandText);
+            Assert.IsNotNull(command.CommandText);
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Adds_QueueId_Body_Headers_Parameters()
         {
             var body = new byte[] { 1, 2, 3 };
@@ -52,16 +53,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
                 CommandStringTypes.DashboardUpdateMessageBody);
 
             var parameters = (DataParameterCollection)command.Parameters;
-            Assert.Equal(3, parameters.Count);
+            Assert.AreEqual(3, parameters.Count);
 
             var queueIdParam = parameters.First(p => p.ParameterName == "@QueueID");
-            Assert.Equal(7L, queueIdParam.Value);
+            Assert.AreEqual(7L, queueIdParam.Value);
 
             var bodyParam = parameters.First(p => p.ParameterName == "@Body");
-            Assert.Equal(body, bodyParam.Value);
+            Assert.AreEqual(body, bodyParam.Value);
 
             var headersParam = parameters.First(p => p.ParameterName == "@Headers");
-            Assert.Equal(headerBytes, headersParam.Value);
+            Assert.AreEqual(headerBytes, headersParam.Value);
         }
 
         private static DashboardUpdateMessageBodyPrepareHandler CreateHandler()

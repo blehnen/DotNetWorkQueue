@@ -1,18 +1,18 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class SimpleConsumerAsync
     {
-        [Theory]
-        [InlineData(500, 1, 400, 10, 5, 5, false, 1, false, "dbo", null),
-         InlineData(500, 0, 180, 10, 5, 0, true, 1, false, "dbo", null),
-         InlineData(10, 0, 180, 10, 5, 0, true, 1, true, "dbo", null)]
+        [TestMethod]
+        [DataRow(500, 1, 400, 10, 5, 5, false, 1, false, "dbo", null),
+         DataRow(500, 0, 180, 10, 5, 0, true, 1, false, "dbo", null),
+         DataRow(10, 0, 180, 10, 5, 0, true, 1, true, "dbo", null)]
         public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType, bool enableChaos, string schema, string queueName)
         {

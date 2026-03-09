@@ -1,37 +1,38 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Time;
 using Microsoft.Extensions.Logging;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Time
 {
+    [TestClass]
     public class LocalMachineTimeTests
     {
-        [Fact]
+        [TestMethod]
         public void Name()
         {
             var test = Create();
-            Assert.Equal("Local", test.Name);
+            Assert.AreEqual("Local", test.Name);
         }
 
-        [Fact]
+        [TestMethod]
         public void DateTime_Is_Utc()
         {
             var test = Create();
             var date = test.GetCurrentUtcDate();
-            Assert.Equal(DateTimeKind.Utc, date.Kind);
+            Assert.AreEqual(DateTimeKind.Utc, date.Kind);
         }
 
-        [Fact]
+        [TestMethod]
         public void Offset_Is_Zero()
         {
             var test = Create();
             test.GetCurrentUtcDate();
             var offSet = test.GetCurrentOffset;
-            Assert.Equal(TimeSpan.Zero, offSet);
+            Assert.AreEqual(TimeSpan.Zero, offSet);
         }
 
         private static LocalMachineTime Create()

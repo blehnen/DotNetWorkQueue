@@ -1,16 +1,16 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
-    [Collection("ConsumerAsync")]
+    [TestClass]
     public class SimpleConsumerAsync
     {
-        [Theory]
-        [InlineData(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Linux),
-         InlineData(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Linux)]
+        [TestMethod]
+        [DataRow(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Linux),
+         DataRow(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Linux)]
         public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ConnectionInfoTypes type)
         {

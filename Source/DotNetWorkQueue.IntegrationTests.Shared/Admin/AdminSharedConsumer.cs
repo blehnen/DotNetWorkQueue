@@ -1,8 +1,8 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
 {
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
 
                             var admin = creator.CreateAdminFunctions(queueConnection);
                             var count = admin.Count(null);
-                            Assert.Equal(messageCount, count);
+                            Assert.AreEqual(messageCount, count);
 
                             //start looking for work
                             queue.Start<TMessage>((message, notifications) =>
@@ -62,21 +62,21 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
                                 Thread.Sleep(runTime / 2);
                                 var working = admin.Count(QueueStatusAdmin.Processing);
                                 var waiting = admin.Count(QueueStatusAdmin.Waiting);
-                                Assert.Equal(0, waiting);
-                                Assert.Equal(messageCount, working);
+                                Assert.AreEqual(0, waiting);
+                                Assert.AreEqual(messageCount, working);
                             }
                             else if (runTime > 10)
                             {
                                 Thread.Sleep(runTime / 2);
                                 var working = admin.Count(QueueStatusAdmin.Processing);
-                                Assert.Equal(workerCount, working);
+                                Assert.AreEqual(workerCount, working);
                             }
 
                             waitForFinish.Wait(timeOut * 1000);
                         }
 
-                        Assert.Null(processedCount.IdError);
-                        Assert.Equal(messageCount, processedCount.ProcessedCount);
+                        Assert.IsNull(processedCount.IdError);
+                        Assert.AreEqual(messageCount, processedCount.ProcessedCount);
                         VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
                             messageCount);
                         LoggerShared.CheckForErrors(queueConnection.Queue);

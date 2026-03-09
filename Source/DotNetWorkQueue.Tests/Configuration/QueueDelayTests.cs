@@ -1,77 +1,87 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class QueueDelayTests
     {
-        [Fact]
+        [TestMethod]
         public void Test_Enumerator2()
         {
             var test = GetConfiguration();
             test.Add(TimeSpan.MaxValue);
-            Assert.True(test.Count() == 1);
+            Assert.IsTrue(test.Count() == 1);
         }
-        [Fact]
+        [TestMethod]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.False(configuration.IsReadOnly);
+            Assert.IsFalse(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.True(configuration.IsReadOnly);
+            Assert.IsTrue(configuration.IsReadOnly);
         }
-        [Theory, AutoData]
-        public void Set_Add_WhenReadOnly_Fails(TimeSpan value)
+        [TestMethod]
+        public void Set_Add_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.Add(value);
               });
         }
-        [Theory, AutoData]
-        public void Set_AddRange_WhenReadOnly_Fails(List<TimeSpan> value)
+        [TestMethod]
+        public void Set_AddRange_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<List<TimeSpan>>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.Add(value);
               });
         }
-        [Theory, AutoData]
-        public void Set_AndReadOne(TimeSpan value)
+        [TestMethod]
+        public void Set_AndReadOne()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             var temp = value;
             configuration.Add(temp);
             foreach (var t in configuration)
             {
-                Assert.Equal(temp, t);
+                Assert.AreEqual(temp, t);
             }
         }
-        [Theory, AutoData]
-        public void Set_AndReadMultiple(TimeSpan value1, TimeSpan value2, TimeSpan value3)
+        [TestMethod]
+        public void Set_AndReadMultiple()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value1 = fixture.Create<TimeSpan>();
+            var value2 = fixture.Create<TimeSpan>();
+            var value3 = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.Add(value1);
             configuration.Add(value2);
@@ -83,21 +93,25 @@ namespace DotNetWorkQueue.Tests.Configuration
                 switch (i)
                 {
                     case 0:
-                        Assert.Equal(value1, t);
+                        Assert.AreEqual(value1, t);
                         break;
                     case 1:
-                        Assert.Equal(value2, t);
+                        Assert.AreEqual(value2, t);
                         break;
                     case 2:
-                        Assert.Equal(value3, t);
+                        Assert.AreEqual(value3, t);
                         break;
                 }
                 i++;
             }
         }
-        [Theory, AutoData]
-        public void Set_AndReadList(TimeSpan value1, TimeSpan value2, TimeSpan value3)
+        [TestMethod]
+        public void Set_AndReadList()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value1 = fixture.Create<TimeSpan>();
+            var value2 = fixture.Create<TimeSpan>();
+            var value3 = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             var list = new List<TimeSpan>(3) { value1, value2, value3 };
             configuration.Add(list);
@@ -107,21 +121,26 @@ namespace DotNetWorkQueue.Tests.Configuration
                 switch (i)
                 {
                     case 0:
-                        Assert.Equal(value1, t);
+                        Assert.AreEqual(value1, t);
                         break;
                     case 1:
-                        Assert.Equal(value2, t);
+                        Assert.AreEqual(value2, t);
                         break;
                     case 2:
-                        Assert.Equal(value3, t);
+                        Assert.AreEqual(value3, t);
                         break;
                 }
                 i++;
             }
         }
-        [Theory, AutoData]
-        public void Set_AndReadListCombo(TimeSpan value1, TimeSpan value2, TimeSpan value3, TimeSpan value4)
+        [TestMethod]
+        public void Set_AndReadListCombo()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value1 = fixture.Create<TimeSpan>();
+            var value2 = fixture.Create<TimeSpan>();
+            var value3 = fixture.Create<TimeSpan>();
+            var value4 = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             var list = new List<TimeSpan>(3) { value1, value2, value3 };
             configuration.Add(list);
@@ -133,16 +152,16 @@ namespace DotNetWorkQueue.Tests.Configuration
                 switch (i)
                 {
                     case 0:
-                        Assert.Equal(value1, t);
+                        Assert.AreEqual(value1, t);
                         break;
                     case 1:
-                        Assert.Equal(value2, t);
+                        Assert.AreEqual(value2, t);
                         break;
                     case 2:
-                        Assert.Equal(value3, t);
+                        Assert.AreEqual(value3, t);
                         break;
                     case 3:
-                        Assert.Equal(value4, t);
+                        Assert.AreEqual(value4, t);
                         break;
                 }
                 i++;

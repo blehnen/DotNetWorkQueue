@@ -1,62 +1,76 @@
-﻿using App.Metrics.Counter;
+using App.Metrics.Counter;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.AppMetrics.Tests
 {
+    [TestClass]
     public class CounterTests
     {
-        [Theory, AutoData]
-        public void Increment(string name)
+        [TestMethod]
+        public void Increment()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
             var metrics = Creator.Create();
             var counter = metrics.Provider.Counter.Instance(new CounterOptions() { Name = name });
             var test = Create(counter);
             test.Increment();
             dynamic count = counter;
-            Assert.Equal(1, count.Value.Count);
+            Assert.AreEqual(1, count.Value.Count);
         }
 
-        [Theory, AutoData]
-        public void Increment_child(string name, string name2)
+        [TestMethod]
+        public void Increment_child()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var name2 = fixture.Create<string>();
             var metrics = Creator.Create();
             var counter = metrics.Provider.Counter.Instance(new CounterOptions() { Name = name });
             var test = Create(counter);
             test.Increment(name2);
             dynamic count = counter;
-            Assert.Equal(1, count.Value.Count);
-            Assert.Equal(1, count.Value.Items[0].Count);
+            Assert.AreEqual(1, count.Value.Count);
+            Assert.AreEqual(1, count.Value.Items[0].Count);
         }
 
-        [Theory, AutoData]
-        public void Increment_Amount(string name, long amount)
+        [TestMethod]
+        public void Increment_Amount()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var amount = fixture.Create<long>();
             var metrics = Creator.Create();
             var counter = metrics.Provider.Counter.Instance(new CounterOptions() { Name = name });
             var test = Create(counter);
             test.Increment(amount);
             dynamic count = counter;
-            Assert.Equal(amount, count.Value.Count);
+            Assert.AreEqual(amount, count.Value.Count);
         }
 
-        [Theory, AutoData]
-        public void Increment_Amount_child(string name, string name2, long amount)
+        [TestMethod]
+        public void Increment_Amount_child()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var name2 = fixture.Create<string>();
+            var amount = fixture.Create<long>();
             var metrics = Creator.Create();
             var counter = metrics.Provider.Counter.Instance(new CounterOptions() { Name = name });
             var test = Create(counter);
             test.Increment(name2, amount);
             dynamic count = counter;
-            Assert.Equal(amount, count.Value.Count);
-            Assert.Equal(amount, count.Value.Items[0].Count);
+            Assert.AreEqual(amount, count.Value.Count);
+            Assert.AreEqual(amount, count.Value.Items[0].Count);
         }
 
-        [Theory, AutoData]
-        public void Decrement(string name)
+        [TestMethod]
+        public void Decrement()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
             var metrics = Creator.Create();
             var counter = metrics.Provider.Counter.Instance(new CounterOptions() { Name = name });
             dynamic count = counter;
@@ -64,18 +78,21 @@ namespace DotNetWorkQueue.AppMetrics.Tests
             test.Increment();
             test.Increment();
             test.Increment();
-            Assert.Equal(3, count.Value.Count);
+            Assert.AreEqual(3, count.Value.Count);
             test.Decrement();
-            Assert.Equal(2, count.Value.Count);
+            Assert.AreEqual(2, count.Value.Count);
             test.Decrement();
-            Assert.Equal(1, count.Value.Count);
+            Assert.AreEqual(1, count.Value.Count);
             test.Decrement();
-            Assert.Equal(0, count.Value.Count);
+            Assert.AreEqual(0, count.Value.Count);
         }
 
-        [Theory, AutoData]
-        public void Decrement_child(string name, string name2)
+        [TestMethod]
+        public void Decrement_child()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var name2 = fixture.Create<string>();
             var metrics = Creator.Create();
             var counter = metrics.Provider.Counter.Instance(new CounterOptions() { Name = name });
             dynamic count = counter;
@@ -83,45 +100,52 @@ namespace DotNetWorkQueue.AppMetrics.Tests
             test.Increment(name2);
             test.Increment(name2);
             test.Increment(name2);
-            Assert.Equal(3, count.Value.Count);
-            Assert.Equal(3, count.Value.Items[0].Count);
+            Assert.AreEqual(3, count.Value.Count);
+            Assert.AreEqual(3, count.Value.Items[0].Count);
             test.Decrement(name2);
-            Assert.Equal(2, count.Value.Count);
-            Assert.Equal(2, count.Value.Items[0].Count);
+            Assert.AreEqual(2, count.Value.Count);
+            Assert.AreEqual(2, count.Value.Items[0].Count);
             test.Decrement(name2);
-            Assert.Equal(1, count.Value.Count);
-            Assert.Equal(1, count.Value.Items[0].Count);
+            Assert.AreEqual(1, count.Value.Count);
+            Assert.AreEqual(1, count.Value.Items[0].Count);
             test.Decrement(name2);
-            Assert.Equal(0, count.Value.Count);
-            Assert.Equal(0, count.Value.Items[0].Count);
+            Assert.AreEqual(0, count.Value.Count);
+            Assert.AreEqual(0, count.Value.Items[0].Count);
         }
 
-        [Theory, AutoData]
-        public void Decrement_Amount(string name, long amount)
+        [TestMethod]
+        public void Decrement_Amount()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var amount = fixture.Create<long>();
             var metrics = Creator.Create();
             var counter = metrics.Provider.Counter.Instance(new CounterOptions() { Name = name });
             dynamic count = counter;
             var test = Create(counter);
             test.Increment(amount);
-            Assert.Equal(amount, count.Value.Count);
+            Assert.AreEqual(amount, count.Value.Count);
             test.Decrement(amount);
-            Assert.Equal(0, count.Value.Count);
+            Assert.AreEqual(0, count.Value.Count);
         }
 
-        [Theory, AutoData]
-        public void Decrement_Amount_child(string name, string name2, long amount)
+        [TestMethod]
+        public void Decrement_Amount_child()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var name2 = fixture.Create<string>();
+            var amount = fixture.Create<long>();
             var metrics = Creator.Create();
             var counter = metrics.Provider.Counter.Instance(new CounterOptions() { Name = name });
             dynamic count = counter;
             var test = Create(counter);
             test.Increment(name2, amount);
-            Assert.Equal(amount, count.Value.Count);
-            Assert.Equal(amount, count.Value.Items[0].Count);
+            Assert.AreEqual(amount, count.Value.Count);
+            Assert.AreEqual(amount, count.Value.Items[0].Count);
             test.Decrement(name2, amount);
-            Assert.Equal(0, count.Value.Count);
-            Assert.Equal(0, count.Value.Items[0].Count);
+            Assert.AreEqual(0, count.Value.Count);
+            Assert.AreEqual(0, count.Value.Items[0].Count);
         }
 
         private ICounter Create(App.Metrics.Counter.ICounter counter)

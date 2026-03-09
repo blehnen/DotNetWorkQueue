@@ -1,22 +1,23 @@
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
 {
+    [TestClass]
     public class GetDashboardMessageCountQueryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = new GetDashboardMessageCountQuery(null);
-            Assert.Null(test.StatusFilter);
+            Assert.IsNull(test.StatusFilter);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_With_StatusFilter()
         {
             var test = new GetDashboardMessageCountQuery(1);
-            Assert.Equal(1, test.StatusFilter);
+            Assert.AreEqual(1, test.StatusFilter);
         }
     }
 }

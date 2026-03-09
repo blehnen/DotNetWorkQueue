@@ -1,38 +1,47 @@
-﻿using System;
-using AutoFixture.Xunit2;
+using System;
 using DotNetWorkQueue.Messages;
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AutoFixture;
+using AutoFixture.AutoNSubstitute;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class MessageContextDataTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Null_Name_Fails()
         {
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
             delegate
             {
                 var test = new MessageContextData<Data>(null, null);
-                Assert.Null(test);
+                Assert.IsNull(test);
             });
         }
 
-        [Theory, AutoData]
-        public void Create_Null_Data_Ok(string name)
+        [TestMethod]
+        public void Create_Null_Data_Ok()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
             var test = new MessageContextData<Data>(name, null);
-            Assert.NotNull(test);
+            Assert.IsNotNull(test);
         }
 
-        [Theory, AutoData]
-        public void Create_Default(string name, Data d)
+        [TestMethod]
+        public void Create_Default()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var name = fixture.Create<string>();
+            var d = fixture.Create<Data>();
             var test = new MessageContextData<Data>(name, d);
-            Assert.Equal(name, test.Name);
-            Assert.Equal(d, test.Default);
+            Assert.AreEqual(name, test.Name);
+            Assert.AreEqual(d, test.Default);
         }
+
+        [TestClass]
 
         public class Data
         {

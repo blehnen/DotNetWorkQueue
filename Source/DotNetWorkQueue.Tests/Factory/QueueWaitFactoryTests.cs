@@ -1,25 +1,26 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class QueueWaitFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Disabled()
         {
             var factory = Create(false);
             var test1 = factory.CreateQueueDelay();
             var test2 = factory.CreateFatalErrorDelay();
 
-            Assert.IsAssignableFrom<INoOperation>(test1);
-            Assert.IsAssignableFrom<INoOperation>(test2);
+            Assert.IsInstanceOfType<INoOperation>(test1);
+            Assert.IsInstanceOfType<INoOperation>(test2);
         }
 
         private IQueueWaitFactory Create(bool enable)

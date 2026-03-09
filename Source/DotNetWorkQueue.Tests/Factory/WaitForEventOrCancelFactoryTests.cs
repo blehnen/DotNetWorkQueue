@@ -1,19 +1,20 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class WaitForEventOrCancelFactoryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = Create();
-            Assert.NotNull(test.Create());
+            Assert.IsNotNull(test.Create());
         }
 
         private IWaitForEventOrCancelFactory Create()

@@ -1,17 +1,18 @@
-﻿using DotNetWorkQueue.Transport.Redis.Basic.Query;
+using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Query
 {
+    [TestClass]
     public class ReceiveMessageQueryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var context = Substitute.For<IMessageContext>();
             var test = new ReceiveMessageQuery(context);
-            Assert.Equal(context, test.MessageContext);
+            Assert.AreEqual(context, test.MessageContext);
         }
     }
 }

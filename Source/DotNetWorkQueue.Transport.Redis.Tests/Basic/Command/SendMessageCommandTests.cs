@@ -1,20 +1,21 @@
-﻿using DotNetWorkQueue.Transport.Redis.Basic.Command;
+using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
 {
+    [TestClass]
     public class SendMessageCommandTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var message = Substitute.For<IMessage>();
             var data = Substitute.For<IAdditionalMessageData>();
             var test = new SendMessageCommand(message, data);
-            Assert.Equal(message, test.MessageToSend);
-            Assert.Equal(data, test.MessageData);
+            Assert.AreEqual(message, test.MessageToSend);
+            Assert.AreEqual(data, test.MessageData);
         }
     }
 }

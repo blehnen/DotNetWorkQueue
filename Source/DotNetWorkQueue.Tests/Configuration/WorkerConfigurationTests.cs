@@ -1,125 +1,137 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class WorkerConfigurationTests
     {
-        [Fact]
+        [TestMethod]
         public void SetAndGet_AbortWorkerThreadsWhenStopping()
         {
             var configuration = GetConfiguration();
             configuration.AbortWorkerThreadsWhenStopping = true;
 
-            Assert.True(configuration.AbortWorkerThreadsWhenStopping);
+            Assert.IsTrue(configuration.AbortWorkerThreadsWhenStopping);
         }
-        [Fact]
+        [TestMethod]
         public void SetAndGet_SingleWorkerWhenNoWorkFound()
         {
             var configuration = GetConfiguration();
             configuration.SingleWorkerWhenNoWorkFound = true;
 
-            Assert.True(configuration.SingleWorkerWhenNoWorkFound);
+            Assert.IsTrue(configuration.SingleWorkerWhenNoWorkFound);
         }
-        [Theory, AutoData]
-        public void SetAndGet_TimeToWaitForWorkersToCancel(TimeSpan value)
+        [TestMethod]
+        public void SetAndGet_TimeToWaitForWorkersToCancel()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.TimeToWaitForWorkersToCancel = value;
 
-            Assert.Equal(value, configuration.TimeToWaitForWorkersToCancel);
+            Assert.AreEqual(value, configuration.TimeToWaitForWorkersToCancel);
         }
-        [Theory, AutoData]
-        public void SetAndGet_TimeToWaitForWorkersToStop(TimeSpan value)
+        [TestMethod]
+        public void SetAndGet_TimeToWaitForWorkersToStop()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.TimeToWaitForWorkersToStop = value;
 
-            Assert.Equal(value, configuration.TimeToWaitForWorkersToStop);
+            Assert.AreEqual(value, configuration.TimeToWaitForWorkersToStop);
         }
-        [Theory, AutoData]
-        public void SetAndGet_WorkerCount(int value)
+        [TestMethod]
+        public void SetAndGet_WorkerCount()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.WorkerCount = value;
 
-            Assert.Equal(value, configuration.WorkerCount);
+            Assert.AreEqual(value, configuration.WorkerCount);
         }
-        [Fact]
+        [TestMethod]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.False(configuration.IsReadOnly);
+            Assert.IsFalse(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.True(configuration.IsReadOnly);
+            Assert.IsTrue(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Set_AbortWorkerThreadsWhenStopping_WhenReadOnly_Fails()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.AbortWorkerThreadsWhenStopping = true;
               });
         }
-        [Fact]
+        [TestMethod]
         public void Set_SingleWorkerWhenNoWorkFound_WhenReadOnly_Fails()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.SingleWorkerWhenNoWorkFound = true;
               });
         }
-        [Theory, AutoData]
-        public void Set_TimeToWaitForWorkersToCancel_WhenReadOnly_Fails(TimeSpan value)
+        [TestMethod]
+        public void Set_TimeToWaitForWorkersToCancel_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.TimeToWaitForWorkersToCancel = value;
               });
         }
-        [Theory, AutoData]
-        public void Set_TimeToWaitForWorkersToStop_WhenReadOnly_Fails(TimeSpan value)
+        [TestMethod]
+        public void Set_TimeToWaitForWorkersToStop_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.TimeToWaitForWorkersToStop = value;
               });
         }
-        [Theory, AutoData]
-        public void Set_WorkerCount_WhenReadOnly_Fails(int value)
+        [TestMethod]
+        public void Set_WorkerCount_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<int>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.WorkerCount = value;

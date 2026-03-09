@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Consumer;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerErrorTable
     {
-        [Theory]
-        [InlineData(1, 60, 1, false, false),
-         InlineData(10, 60, 5, true, false),
-         InlineData(3, 60, 5, true, true)]
+        [TestMethod]
+        [DataRow(1, 60, 1, false, false),
+         DataRow(10, 60, 5, true, false),
+         DataRow(3, 60, 5, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();

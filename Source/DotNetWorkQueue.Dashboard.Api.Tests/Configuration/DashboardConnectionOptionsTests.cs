@@ -1,13 +1,14 @@
 using System;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using FluentAssertions;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
 {
+    [TestClass]
     public class DashboardConnectionOptionsTests
     {
-        [Fact]
+        [TestMethod]
         public void AddQueue_Adds_To_List()
         {
             var opts = new DashboardConnectionOptions();
@@ -16,7 +17,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             opts.Queues[0].QueueName.Should().Be("TestQueue");
         }
 
-        [Fact]
+        [TestMethod]
         public void AddQueue_Without_Interceptors_Has_Null_Config()
         {
             var opts = new DashboardConnectionOptions();
@@ -24,7 +25,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             opts.Queues[0].InterceptorConfiguration.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void AddQueue_With_Interceptors_Stores_Config()
         {
             var opts = new DashboardConnectionOptions();
@@ -34,7 +35,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             opts.Queues[0].InterceptorConfiguration.Should().BeSameAs(config);
         }
 
-        [Fact]
+        [TestMethod]
         public void AddQueue_Multiple_Queues()
         {
             var opts = new DashboardConnectionOptions();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,19 +7,19 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("producer")]
+    [TestClass]
     public class MultiMethodProducer
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(LinqMethodTypes.Dynamic),
-        InlineData(LinqMethodTypes.Compiled)]
+        [DataRow(LinqMethodTypes.Dynamic),
+        DataRow(LinqMethodTypes.Compiled)]
 #else
-        [InlineData(LinqMethodTypes.Compiled)]
+        [DataRow(LinqMethodTypes.Compiled)]
 #endif
         public void Run(LinqMethodTypes linqMethodTypes)
         {

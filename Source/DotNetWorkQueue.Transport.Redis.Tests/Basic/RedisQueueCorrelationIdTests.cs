@@ -1,50 +1,51 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
 {
+    [TestClass]
     public class RedisQueueCorrelationIdTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var id = Guid.NewGuid();
             var test = new RedisQueueCorrelationId(id);
-            Assert.Equal(id, test.Id.Value);
-            Assert.True(test.HasValue);
+            Assert.AreEqual(id, test.Id.Value);
+            Assert.IsTrue(test.HasValue);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Default_ToString()
         {
             var id = Guid.NewGuid();
             var test = new RedisQueueCorrelationId(id);
-            Assert.Equal(id.ToString(), test.ToString());
+            Assert.AreEqual(id.ToString(), test.ToString());
         }
-        [Fact]
+        [TestMethod]
         public void Create_Default_Empty_Guid()
         {
             var id = Guid.Empty;
             var test = new RedisQueueCorrelationId(id);
-            Assert.Equal(id, test.Id.Value);
-            Assert.False(test.HasValue);
+            Assert.AreEqual(id, test.Id.Value);
+            Assert.IsFalse(test.HasValue);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Default_Null_Serialized()
         {
             var test = new RedisQueueCorrelationId(null);
-            Assert.Equal(Guid.Empty.ToString(), test.Id.Value.ToString());
-            Assert.False(test.HasValue);
+            Assert.AreEqual(Guid.Empty.ToString(), test.Id.Value.ToString());
+            Assert.IsFalse(test.HasValue);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Default_Serialized()
         {
             var id = Guid.NewGuid();
             var input = new RedisQueueCorrelationIdSerialized(id);
             var test = new RedisQueueCorrelationId(input);
-            Assert.Equal(id.ToString(), test.Id.Value.ToString());
-            Assert.True(test.HasValue);
+            Assert.AreEqual(id.ToString(), test.Id.Value.ToString());
+            Assert.IsTrue(test.HasValue);
         }
     }
 }

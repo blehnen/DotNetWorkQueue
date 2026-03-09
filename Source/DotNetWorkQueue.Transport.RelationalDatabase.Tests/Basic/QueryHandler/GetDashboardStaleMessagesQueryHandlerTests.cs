@@ -8,13 +8,14 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardStaleMessagesQueryHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Handle_Returns_Messages_From_Reader()
         {
             var (handler, readColumn, reader) = CreateHandler(1);
@@ -25,18 +26,18 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = handler.Handle(new GetDashboardStaleMessagesQuery(60, 0, 25));
 
-            Assert.Single(result);
-            Assert.Equal("1", result[0].QueueId);
+            Assert.ContainsSingle(result);
+            Assert.AreEqual("1", result[0].QueueId);
         }
 
-        [Fact]
+        [TestMethod]
         public void Handle_Returns_Empty_List_When_No_Rows()
         {
             var (handler, _, _) = CreateHandler(0);
 
             var result = handler.Handle(new GetDashboardStaleMessagesQuery(60, 0, 25));
 
-            Assert.Empty(result);
+            Assert.IsEmpty(result);
         }
 
         private static (IQueryHandler<GetDashboardStaleMessagesQuery, IReadOnlyList<DashboardMessage>> handler, IReadColumn readColumn, IDataReader reader) CreateHandler(int rowCount)

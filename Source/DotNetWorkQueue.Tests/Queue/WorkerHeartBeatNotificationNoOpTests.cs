@@ -1,36 +1,38 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Queue;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class WorkerHeartBeatNotificationNoOpTests
     {
-        [Fact]
+        [TestMethod]
         public void Error_Is_Null()
         {
             var test = Create();
-            Assert.Null(test.Error);
+            Assert.IsNull(test.Error);
         }
-        [Fact]
+        [TestMethod]
         public void ErrorCount_Zero()
         {
             var test = Create();
-            Assert.Equal(0, test.ErrorCount);
+            Assert.AreEqual(0, test.ErrorCount);
         }
-        [Theory, AutoData]
-        public void SetError_NoOp(string value)
+        [TestMethod]
+        public void SetError_NoOp()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             var test = Create();
             test.SetError(new AccessViolationException(value));
-            Assert.Null(test.Error);
-            Assert.Equal(0, test.ErrorCount);
+            Assert.IsNull(test.Error);
+            Assert.AreEqual(0, test.ErrorCount);
         }
 
         private IWorkerHeartBeatNotification Create()

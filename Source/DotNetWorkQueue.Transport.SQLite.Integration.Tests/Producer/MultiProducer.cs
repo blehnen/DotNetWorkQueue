@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -6,18 +6,18 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
 {
-    [Collection("Producer")]
+    [TestClass]
     public class MultiProducer
     {
-        [Theory]
-        [InlineData(100, true, false),
-        InlineData(100, false, false),
-        InlineData(10, true, true),
-        InlineData(10, false, true)]
+        [TestMethod]
+        [DataRow(100, true, false),
+        DataRow(100, false, false),
+        DataRow(10, true, true),
+        DataRow(10, false, true)]
         public void Run(int messageCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

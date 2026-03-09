@@ -1,24 +1,24 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMethodAsync
 {
-    [Collection("consumerasync")]
+    [TestClass]
     public class ConsumerMethodAsyncRollBack
     {
-        [Theory]
-        [InlineData(5, 5, 200, 5, 1, 3, false, LinqMethodTypes.Compiled, true),
+        [TestMethod]
+        [DataRow(5, 5, 200, 5, 1, 3, false, LinqMethodTypes.Compiled, true),
 #if NETFULL
-        InlineData(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Dynamic, false),
-         InlineData(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Dynamic, true),
+        DataRow(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Dynamic, false),
+         DataRow(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Dynamic, true),
 #endif
-         InlineData(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Compiled, false)]
+         DataRow(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Compiled, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

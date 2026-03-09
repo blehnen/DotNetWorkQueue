@@ -1,18 +1,19 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
+    [TestClass]
     public class SqlHeadersTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = Create();
-            Assert.NotNull(test.QueueDelay);
+            Assert.IsNotNull(test.QueueDelay);
         }
 
         private IIncreaseQueueDelay Create()

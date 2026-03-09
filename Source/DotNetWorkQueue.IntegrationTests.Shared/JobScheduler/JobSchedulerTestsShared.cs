@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -8,7 +8,7 @@ using DotNetWorkQueue.Messages;
 #endif
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -290,8 +290,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             {
                 throw new Exception("Fatal error!", error);
             }
-            Assert.Equal(expectedEnqueue, enqueued);
-            Assert.Equal(0, nonFatal);
+            Assert.AreEqual(expectedEnqueue, enqueued);
+            Assert.AreEqual(0, nonFatal);
             verify(queueConnection, expectedEnqueue, scope);
         }
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
@@ -303,7 +303,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             {
                 throw new Exception("Fatal error!", error);
             }
-            Assert.Equal(expectedEnqueue, enqueued);
+            Assert.AreEqual(expectedEnqueue, enqueued);
         }
         private void ValidateNonFatalError(QueueConnection queueConnection, Action<QueueConnection, long, ICreationScope> verify,
             // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
@@ -311,9 +311,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
             long nonFatal, long inQueueCount, ICreationScope scope)
         {
-            Assert.Equal(0, enqueued);
+            Assert.AreEqual(0, enqueued);
             error.Should().BeNull("no errors should occur");
-            Assert.Equal(1, nonFatal);
+            Assert.AreEqual(1, nonFatal);
             verify(queueConnection, inQueueCount, scope);
         }
         private void RunConsumer<TTransportInit>(QueueConnection queueConnection, ICreationScope scope)

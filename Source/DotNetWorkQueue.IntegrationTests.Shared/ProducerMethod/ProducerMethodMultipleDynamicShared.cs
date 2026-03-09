@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.Extensions.Logging;
 #if NETFULL
 using System;
@@ -9,7 +9,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Metrics;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 #endif
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
@@ -117,11 +117,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     .ToList();
                 if (result.HasErrors)
                 {
-                    Assert.False(result.HasErrors, errorList[0].SendingException.ToString());
+                    Assert.IsFalse(result.HasErrors, errorList[0].SendingException.ToString());
                 }
                 else
                 {
-                    Assert.False(result.HasErrors);
+                    Assert.IsFalse(result.HasErrors);
                 }
             }
             else
@@ -137,7 +137,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                         {
                             message = result.SendingException.ToString();
                         }
-                        Assert.False(result.HasError, message);
+                        Assert.IsFalse(result.HasError, message);
                     }
                     else
                     {
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                         {
                             message = result.SendingException.ToString();
                         }
-                        Assert.False(result.HasError, message);
+                        Assert.IsFalse(result.HasError, message);
                     }
                 });
             }

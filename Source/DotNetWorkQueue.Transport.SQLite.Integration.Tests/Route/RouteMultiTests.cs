@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class RouteMultiTests
     {
-        [Theory]
-        [InlineData(50, 0, 180, 1, false, 2, false),
-         InlineData(50, 0, 180, 1, true, 2, false),
-         InlineData(10, 0, 400, 1, false, 2, true)]
+        [TestMethod]
+        [DataRow(50, 0, 180, 1, false, 2, false),
+         DataRow(50, 0, 180, 1, true, 2, false),
+         DataRow(10, 0, 400, 1, false, 2, true)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
             bool inMemoryDb, int routeCount, bool enableChaos)
         {

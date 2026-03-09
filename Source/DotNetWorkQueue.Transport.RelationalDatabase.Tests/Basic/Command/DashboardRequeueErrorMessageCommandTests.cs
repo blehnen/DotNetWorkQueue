@@ -17,18 +17,19 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
 {
+    [TestClass]
     public class DashboardRequeueErrorMessageCommandTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             const string id = "42";
             var test = new DashboardRequeueErrorMessageCommand(id);
-            Assert.Equal(id, test.MessageId);
+            Assert.AreEqual(id, test.MessageId);
         }
     }
 }

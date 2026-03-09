@@ -1,15 +1,16 @@
-﻿using DotNetWorkQueue.Factory;
-using Xunit;
+using DotNetWorkQueue.Factory;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class GetTimeFactoryNoOpTests
     {
-        [Fact]
+        [TestMethod]
         public void Create()
         {
             var test = new GetTimeFactoryNoOp();
-            Assert.Null(test.Create());
+            Assert.IsNull(test.Create());
         }
     }
 }

@@ -27,13 +27,14 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardJobsQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Jobs()
         {
             var (handler, readColumn, reader) = CreateHandler(1);
@@ -45,19 +46,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = await handler.HandleAsync(new GetDashboardJobsQuery());
 
-            Assert.Single(result);
-            Assert.Equal("TestJob", result[0].JobName);
-            Assert.Equal(now, result[0].JobEventTime);
+            Assert.ContainsSingle(result);
+            Assert.AreEqual("TestJob", result[0].JobName);
+            Assert.AreEqual(now, result[0].JobEventTime);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Empty_When_No_Rows()
         {
             var (handler, _, _) = CreateHandler(0);
 
             var result = await handler.HandleAsync(new GetDashboardJobsQuery());
 
-            Assert.Empty(result);
+            Assert.IsEmpty(result);
         }
 
         private static (GetDashboardJobsQueryHandlerAsync handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(int rowCount)

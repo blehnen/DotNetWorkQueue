@@ -1,16 +1,17 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Transport.Redis.Basic.MessageID;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.MessageID
 {
+    [TestClass]
     public class GetUuidMessageIdTests
     {
-        [Fact]
+        [TestMethod]
         public void Create()
         {
             var test = new GetUuidMessageId();
-            Assert.IsAssignableFrom<Guid>(new Guid(test.Create().Id.Value.ToString()));
+            Assert.IsInstanceOfType<Guid>(new Guid(test.Create().Id.Value.ToString()));
         }
     }
 }

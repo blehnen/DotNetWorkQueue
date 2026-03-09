@@ -21,25 +21,26 @@ using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.CommandHandler
 {
+    [TestClass]
     public class DashboardRequeueErrorMessageCommandHandlerTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var connection = Substitute.For<IRedisConnection>();
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
             var requeueLua = new DashboardRequeueErrorMessageLua(connection, redisNames);
-            Assert.NotNull(new DashboardRequeueErrorMessageCommandHandler(requeueLua));
+            Assert.IsNotNull(new DashboardRequeueErrorMessageCommandHandler(requeueLua));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullRequeueLua_Throws()
         {
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new DashboardRequeueErrorMessageCommandHandler(null));
         }
     }

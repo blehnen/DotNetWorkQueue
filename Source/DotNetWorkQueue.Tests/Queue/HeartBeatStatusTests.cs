@@ -1,39 +1,40 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Queue;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
 {
+    [TestClass]
     public class HeartBeatStatusTests
     {
-        [Fact]
+        [TestMethod]
         public void Get_MessageId()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var messageId = fixture.Create<IMessageId>();
             var test = new HeartBeatStatus(messageId, null);
-            Assert.Equal(messageId, test.MessageId);
+            Assert.AreEqual(messageId, test.MessageId);
         }
-        [Fact]
+        [TestMethod]
         public void Get_LastHeartBeatTime()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var messageId = fixture.Create<IMessageId>();
             var time = DateTime.Now;
             var test = new HeartBeatStatus(messageId, time);
-            Assert.Equal(time, test.LastHeartBeatTime);
+            Assert.AreEqual(time, test.LastHeartBeatTime);
         }
-        [Fact]
+        [TestMethod]
         public void Get_LastHeartBeatTime_Null()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var messageId = fixture.Create<IMessageId>();
             var test = new HeartBeatStatus(messageId, null);
-            Assert.Null(test.LastHeartBeatTime);
+            Assert.IsNull(test.LastHeartBeatTime);
         }
     }
 }

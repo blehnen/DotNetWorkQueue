@@ -1,17 +1,17 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Transport.SqlServer.IntegrationTests;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Integration.Tests.Admin
 {
-    [Collection("Consumeradmin")]
+    [TestClass]
     public class SimpleConsumer
     {
-        [Theory]
-        [InlineData(10, 10, 60, 5, false),
-        InlineData(10, 10, 30, 10, true)]
+        [TestMethod]
+        [DataRow(10, 10, 60, 5, false),
+        DataRow(10, 10, 30, 10, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool useTransactions)
         {
             var queueName = GenerateQueueName.Create();

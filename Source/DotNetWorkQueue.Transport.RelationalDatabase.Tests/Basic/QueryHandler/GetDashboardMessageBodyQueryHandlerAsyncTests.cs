@@ -25,13 +25,14 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardMessageBodyQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Body_When_Found()
         {
             var (handler, readColumn, reader) = CreateHandler(true);
@@ -43,19 +44,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = await handler.HandleAsync(new GetDashboardMessageBodyQuery("42"));
 
-            Assert.NotNull(result);
-            Assert.Equal(bodyBytes, result.Body);
-            Assert.Equal(headerBytes, result.Headers);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(bodyBytes, result.Body);
+            Assert.AreEqual(headerBytes, result.Headers);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task HandleAsync_Returns_Null_When_Not_Found()
         {
             var (handler, _, _) = CreateHandler(false);
 
             var result = await handler.HandleAsync(new GetDashboardMessageBodyQuery("999"));
 
-            Assert.Null(result);
+            Assert.IsNull(result);
         }
 
         private static (GetDashboardMessageBodyQueryHandlerAsync handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(bool hasRows)

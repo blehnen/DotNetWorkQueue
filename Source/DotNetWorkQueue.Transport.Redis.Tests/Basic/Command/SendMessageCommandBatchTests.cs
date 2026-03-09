@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
 {
+    [TestClass]
     public class SendMessageCommandBatchTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var messages = new List<QueueMessage<IMessage, IAdditionalMessageData>>();
             var test = new SendMessageCommandBatch(messages);
-            Assert.Equal(messages, test.Messages);
+            Assert.AreEqual(messages, test.Messages);
         }
     }
 }

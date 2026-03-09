@@ -20,33 +20,34 @@ using System;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.QueryHandler;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.QueryHandler
 {
+    [TestClass]
     public class GetDashboardErrorMessageCountQueryHandlerAsyncTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var connection = Substitute.For<IRedisConnection>();
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
-            Assert.NotNull(new GetDashboardErrorMessageCountQueryHandlerAsync(connection, redisNames));
+            Assert.IsNotNull(new GetDashboardErrorMessageCountQueryHandlerAsync(connection, redisNames));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullConnection_Throws()
         {
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new GetDashboardErrorMessageCountQueryHandlerAsync(null, redisNames));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_NullRedisNames_Throws()
         {
             var connection = Substitute.For<IRedisConnection>();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
                 () => new GetDashboardErrorMessageCountQueryHandlerAsync(connection, null));
         }
     }

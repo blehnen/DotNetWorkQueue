@@ -7,13 +7,14 @@ using DotNetWorkQueue.Dashboard.Api.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 {
+    [TestClass]
     public class ConnectionsControllerTests
     {
-        [Fact]
+        [TestMethod]
         public void GetConnections_Returns_Ok_With_List()
         {
             var service = Substitute.For<IDashboardService>();
@@ -25,7 +26,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public void GetConnections_Returns_Populated_List()
         {
             var service = Substitute.For<IDashboardService>();
@@ -43,7 +44,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             items.Should().HaveCount(1);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetQueues_Returns_Ok_With_List()
         {
             var service = Substitute.For<IDashboardService>();
@@ -56,7 +57,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public void GetQueues_Calls_Service_With_ConnectionId()
         {
             var service = Substitute.For<IDashboardService>();
@@ -69,7 +70,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             service.Received(1).GetQueues(connectionId);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetJobs_Returns_Ok()
         {
             var service = Substitute.For<IDashboardService>();
@@ -82,7 +83,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task GetJobs_Calls_Service_With_ConnectionId()
         {
             var service = Substitute.For<IDashboardService>();

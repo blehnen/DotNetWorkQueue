@@ -1,15 +1,16 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Messages;
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Messages
 {
+    [TestClass]
     public class SentMessageTests
     {
-        [Fact]
+        [TestMethod]
         public void Get_MessageId()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -18,10 +19,10 @@ namespace DotNetWorkQueue.Tests.Messages
             fixture.Inject(messageId);
             fixture.Inject(id);
             var test = fixture.Create<SentMessage>();
-            Assert.Equal(test.MessageId, messageId);
+            Assert.AreEqual(test.MessageId, messageId);
         }
 
-        [Fact]
+        [TestMethod]
         public void Get_CorrelationId()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Tests.Messages
             fixture.Inject(messageId);
             fixture.Inject(id);
             var test = fixture.Create<SentMessage>();
-            Assert.Equal(test.CorrelationId, id);
+            Assert.AreEqual(test.CorrelationId, id);
         }
     }
 }

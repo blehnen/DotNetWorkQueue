@@ -1,4 +1,4 @@
-﻿
+
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Queue;
 #if NETFULL
@@ -7,17 +7,17 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 #endif
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
 {
 #if NETFULL
-    [Collection("consumer")]
+    [TestClass]
     public class ConsumerMethodMultipleDynamic
     {
-        [Theory]
-        [InlineData(1000, 0, 120, 5)]
+        [TestMethod]
+        [DataRow(1000, 0, 120, 5)]
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount)
         {

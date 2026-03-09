@@ -1,57 +1,75 @@
-﻿using System;
-using AutoFixture.Xunit2;
+using System;
 using DotNetWorkQueue.Configuration;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AutoFixture;
+using AutoFixture.AutoNSubstitute;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class HeartBeatThreadPoolConfigurationTests
     {
-        [Theory, AutoData]
-        public void Test_DefaultNotReadOnly(HeartBeatThreadPoolConfiguration configuration)
+        [TestMethod]
+        public void Test_DefaultNotReadOnly()
         {
-            Assert.False(configuration.IsReadOnly);
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var configuration = fixture.Create<HeartBeatThreadPoolConfiguration>();
+            Assert.IsFalse(configuration.IsReadOnly);
         }
-        [Theory, AutoData]
-        public void Set_Readonly(HeartBeatThreadPoolConfiguration configuration)
+        [TestMethod]
+        public void Set_Readonly()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var configuration = fixture.Create<HeartBeatThreadPoolConfiguration>();
             configuration.SetReadOnly();
-            Assert.True(configuration.IsReadOnly);
+            Assert.IsTrue(configuration.IsReadOnly);
         }
-        [Theory, AutoData]
-        public void SetAndGet_HeartBeatThreadsMax(HeartBeatThreadPoolConfiguration configuration, int value)
+        [TestMethod]
+        public void SetAndGet_HeartBeatThreadsMax()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var configuration = fixture.Create<HeartBeatThreadPoolConfiguration>();
+            var value = fixture.Create<int>();
             configuration.ThreadsMax = value;
-            Assert.Equal(value, configuration.ThreadsMax);
+            Assert.AreEqual(value, configuration.ThreadsMax);
         }
-        [Theory, AutoData]
-        public void Set_HeartBeatThreadsMax_WhenReadOnly_Fails(HeartBeatThreadPoolConfiguration configuration, int value)
+        [TestMethod]
+        public void Set_HeartBeatThreadsMax_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var configuration = fixture.Create<HeartBeatThreadPoolConfiguration>();
+            var value = fixture.Create<int>();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.ThreadsMax = value;
               });
         }
-        [Theory, AutoData]
-        public void Set_HeartBeatQueueMax_WhenReadOnly_Fails(HeartBeatThreadPoolConfiguration configuration, int value)
+        [TestMethod]
+        public void Set_HeartBeatQueueMax_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var configuration = fixture.Create<HeartBeatThreadPoolConfiguration>();
+            var value = fixture.Create<int>();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.ThreadsMax = value;
               });
         }
-        [Theory, AutoData]
-        public void Set_WaitForThreadPoolToFinish_WhenReadOnly_Fails(HeartBeatThreadPoolConfiguration configuration, int value)
+        [TestMethod]
+        public void Set_WaitForThreadPoolToFinish_WhenReadOnly_Fails()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var configuration = fixture.Create<HeartBeatThreadPoolConfiguration>();
+            var value = fixture.Create<int>();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(value);

@@ -1,129 +1,140 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Factory;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Configuration
 {
+    [TestClass]
     public class RetryDelayTests
     {
-        [Fact]
+        [TestMethod]
         public void DefaultCreation_IsEmpty()
         {
             var test = GetConfiguration();
-            Assert.Empty(test.RetryTypes);
+            Assert.IsEmpty(test.RetryTypes);
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_DefaultNotReadOnly()
         {
             var configuration = GetConfiguration();
-            Assert.False(configuration.IsReadOnly);
+            Assert.IsFalse(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Set_Readonly()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
-            Assert.True(configuration.IsReadOnly);
+            Assert.IsTrue(configuration.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Add_Null_Fails()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
               delegate
               {
                   configuration.Add(null, null);
               });
         }
-        [Fact]
+        [TestMethod]
         public void Add_WhenReadOnly_Fails()
         {
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
               delegate
               {
                   configuration.Add(typeof(Exception), new List<TimeSpan>());
               });
         }
 
-        [Theory, AutoData]
-        public void Add_OneException_OneTime(TimeSpan value)
+        [TestMethod]
+        public void Add_OneException_OneTime()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var test = GetConfiguration();
 
             test.Add(typeof(NullReferenceException), new List<TimeSpan> { value });
-            Assert.Equal(value, test.GetRetryAmount(new NullReferenceException()).Times[0]);
+            Assert.AreEqual(value, test.GetRetryAmount(new NullReferenceException()).Times[0]);
         }
 
-        [Theory, AutoData]
-        public void Add_TwoException_TwoTimes(TimeSpan value)
+        [TestMethod]
+        public void Add_TwoException_TwoTimes()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var test = GetConfiguration();
 
             test.Add(typeof(NullReferenceException), new List<TimeSpan> { value });
             test.Add(typeof(ArgumentException), new List<TimeSpan> { value, TimeSpan.MaxValue });
 
-            Assert.Equal(TimeSpan.MaxValue, test.GetRetryAmount(new ArgumentException()).Times[1]);
+            Assert.AreEqual(TimeSpan.MaxValue, test.GetRetryAmount(new ArgumentException()).Times[1]);
         }
 
-        [Fact]
+        [TestMethod]
         public void Get_MissingException_TimeList_Empty()
         {
             var test = GetConfiguration();
-            Assert.Empty(test.GetRetryAmount(new ArgumentException()).Times);
+            Assert.IsEmpty(test.GetRetryAmount(new ArgumentException()).Times);
         }
 
-        [Theory, AutoData]
-        public void Get_BaseExceptionReturned_IfExplicitException_Missing(TimeSpan value)
+        [TestMethod]
+        public void Get_BaseExceptionReturned_IfExplicitException_Missing()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var test = GetConfiguration();
             test.Add(typeof(Exception), new List<TimeSpan> { value });
 
-            Assert.Equal(value, test.GetRetryAmount(new ArgumentException()).Times[0]);
+            Assert.AreEqual(value, test.GetRetryAmount(new ArgumentException()).Times[0]);
         }
 
-        [Theory, AutoData]
-        public void Get_BaseExceptionReturned_IfExplicitException_Missing_Multiple(TimeSpan value1, TimeSpan value2)
+        [TestMethod]
+        public void Get_BaseExceptionReturned_IfExplicitException_Missing_Multiple()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value1 = fixture.Create<TimeSpan>();
+            var value2 = fixture.Create<TimeSpan>();
             var test = GetConfiguration();
             test.Add(typeof(DotNetWorkQueueException), new List<TimeSpan> { value1 });
             test.Add(typeof(Exception), new List<TimeSpan> { value2 });
 
-            Assert.Equal(value1, test.GetRetryAmount(new CommitException()).Times[0]);
+            Assert.AreEqual(value1, test.GetRetryAmount(new CommitException()).Times[0]);
         }
 
-        [Theory, AutoData]
-        public void Get_BaseExceptionReturned_IfExplicitException_Missing_Multiple_Reverse(TimeSpan value)
+        [TestMethod]
+        public void Get_BaseExceptionReturned_IfExplicitException_Missing_Multiple_Reverse()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<TimeSpan>();
             var test = GetConfiguration();
             test.Add(typeof(Exception), new List<TimeSpan> { value });
             test.Add(typeof(DotNetWorkQueueException), new List<TimeSpan> { value });
 
-            Assert.Equal(value, test.GetRetryAmount(new CommitException()).Times[0]);
+            Assert.AreEqual(value, test.GetRetryAmount(new CommitException()).Times[0]);
         }
 
-        [Fact]
+        [TestMethod]
         public void Add_DuplicateType_Fails()
         {
             var configuration = GetConfiguration();
 
             configuration.Add(typeof(Exception), new List<TimeSpan>());
 
-            Assert.Throws<ArgumentException>(
+            Assert.ThrowsExactly<ArgumentException>(
               delegate
               {
                   configuration.Add(typeof(Exception), new List<TimeSpan>());

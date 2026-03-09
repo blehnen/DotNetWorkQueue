@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Trace.Decorator
                     command.MessageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
                 {
-                    var id = await _handler.HandleAsync(command);
+                    var id = await _handler.HandleAsync(command).ConfigureAwait(false);
                     if (id == 0)
                         scope?.SetStatus(ActivityStatusCode.Error);
                     scope?.AddMessageIdTag(id);

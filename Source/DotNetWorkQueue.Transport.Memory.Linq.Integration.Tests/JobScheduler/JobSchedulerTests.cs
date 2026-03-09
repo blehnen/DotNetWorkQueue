@@ -1,19 +1,19 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.JobScheduler;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
 {
-    [CollectionDefinition("JobScheduler", DisableParallelization = true)]
+    [TestClass]
     public class JobSchedulerTests
     {
-        [Theory]
+        [TestMethod]
 #if NETFULL
-        [InlineData(true)]
+        [DataRow(true)]
 #else
-        [InlineData(false)]
+        [DataRow(false)]
 #endif
         public void Run(
             bool dynamic)

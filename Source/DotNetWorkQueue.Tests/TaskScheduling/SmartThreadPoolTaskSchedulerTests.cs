@@ -1,6 +1,5 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.TaskScheduling;
 using NSubstitute;
@@ -8,48 +7,49 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable AccessToDisposedClosure
 namespace DotNetWorkQueue.Tests.TaskScheduling
 {
+    [TestClass]
     public class SmartThreadPoolTaskSchedulerTests
     {
-        [Fact]
+        [TestMethod]
         public void IsDisposed_False_By_Default()
         {
             using (var test = Create())
             {
-                Assert.False(test.IsDisposed);
+                Assert.IsFalse(test.IsDisposed);
             }
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void Disposed_Instance_Sets_IsDisposed()
         {
             using (var test = Create())
             {
                 test.Dispose();
-                Assert.True(test.IsDisposed);
+                Assert.IsTrue(test.IsDisposed);
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Configuration_Not_Null()
         {
             using (var test = Create())
             {
-                Assert.NotNull(test.Configuration);
+                Assert.IsNotNull(test.Configuration);
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Calling_Start_With_Max_Zero_Exception()
         {
             using (var test = Create(0, TimeSpan.MaxValue, false))
             {
-                Assert.Throws<ArgumentException>(
+                Assert.ThrowsExactly<ArgumentException>(
                     delegate
                     {
                         test.Start();
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Configuration_ReadOnly_After_Start()
         {
             using (var test = Create())
@@ -67,13 +67,13 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Calling_Start_Disposed_Exception()
         {
             using (var test = Create())
             {
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
                     delegate
                     {
                         test.Start();
@@ -82,24 +82,24 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void RoomForNew_Task_Disposed_Returns_False()
         {
             using (var test = Create())
             {
                 test.Start();
                 test.Dispose();
-                Assert.Equal(RoomForNewTaskResult.No, test.RoomForNewTask);
+                Assert.AreEqual(RoomForNewTaskResult.No, test.RoomForNewTask);
             }
         }
 
 
-        [Fact]
+        [TestMethod]
         public void RoomForNew_Task_NotStarted_Exception()
         {
             using (var test = Create())
             {
-                Assert.Throws<DotNetWorkQueueException>(
+                Assert.ThrowsExactly<DotNetWorkQueueException>(
                     delegate
                     {
                         Console.WriteLine(test.RoomForNewTask);
@@ -107,47 +107,49 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void RoomForNew_True()
         {
             using (var test = Create(true))
             {
                 test.Start();
-                Assert.Equal(RoomForNewTaskResult.RoomForTask, test.RoomForNewTask);
+                Assert.AreEqual(RoomForNewTaskResult.RoomForTask, test.RoomForNewTask);
             }
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "part of test")]
-        [Fact]
+        [TestMethod]
         public void RoomForNewWorkGroup_Task_Disposed_Returns_False()
         {
             using (var test = Create())
             {
                 test.Start();
                 test.Dispose();
-                Assert.Equal(RoomForNewTaskResult.No, test.RoomForNewWorkGroupTask(Substitute.For<IWorkGroup>()));
+                Assert.AreEqual(RoomForNewTaskResult.No, test.RoomForNewWorkGroupTask(Substitute.For<IWorkGroup>()));
             }
         }
 
-        [Theory, AutoData]
-        public void RoomForNewWorkGroup_True(string value)
+        [TestMethod]
+        public void RoomForNewWorkGroup_True()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             using (var test = Create())
             {
                 test.Start();
                 var group = test.AddWorkGroup(value, 1);
-                Assert.Equal(RoomForNewTaskResult.RoomForTask, test.RoomForNewWorkGroupTask(group));
+                Assert.AreEqual(RoomForNewTaskResult.RoomForTask, test.RoomForNewWorkGroupTask(group));
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void AddTask_Disposed_Exception()
         {
             using (var test = Create())
             {
                 test.Start();
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
                     delegate
                     {
                         test.AddTask(new Task(() => { }));
@@ -155,7 +157,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void AddTask()
         {
             using (var test = Create())
@@ -165,9 +167,11 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Theory, AutoData]
-        public void AddTask_WorkGroup(string value)
+        [TestMethod]
+        public void AddTask_WorkGroup()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             using (var test = Create())
             {
                 test.Start();
@@ -178,24 +182,26 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void MaximumCurrencyLevel_1()
         {
             using (var test = Create())
             {
                 test.Start();
-                Assert.Equal(1, test.MaximumConcurrencyLevel);
+                Assert.AreEqual(1, test.MaximumConcurrencyLevel);
             }
         }
 
-        [Theory, AutoData]
-        public void AddWorkGroup_Disposed_Exception(string value)
+        [TestMethod]
+        public void AddWorkGroup_Disposed_Exception()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             using (var test = Create())
             {
                 test.Start();
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
                     delegate
                     {
                         test.AddWorkGroup(value, 1);
@@ -203,14 +209,16 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Theory, AutoData]
-        public void AddWorkGroup_Disposed_Exception2(string value)
+        [TestMethod]
+        public void AddWorkGroup_Disposed_Exception2()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             using (var test = Create())
             {
                 test.Start();
                 test.Dispose();
-                Assert.Throws<ObjectDisposedException>(
+                Assert.ThrowsExactly<ObjectDisposedException>(
                     delegate
                     {
                         test.AddWorkGroup(value, 1);
@@ -218,9 +226,11 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
-        [Theory, AutoData]
-        public void AddWorkGroup(string value)
+        [TestMethod]
+        public void AddWorkGroup()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var value = fixture.Create<string>();
             using (var test = Create())
             {
                 test.Start();

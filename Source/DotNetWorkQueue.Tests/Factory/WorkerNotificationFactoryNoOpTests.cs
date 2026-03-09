@@ -1,18 +1,19 @@
-﻿using DotNetWorkQueue.Factory;
+using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Queue;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class WorkerNotificationFactoryNoOpTests
     {
-        [Fact()]
+        [TestMethod]
         public void Create_Test()
         {
             var factory = new WorkerNotificationFactoryNoOp();
             var worker = factory.Create();
-            Assert.NotNull(worker);
-            Assert.IsType<WorkerNotificationNoOp>(worker);
+            Assert.IsNotNull(worker);
+            Assert.IsExactInstanceOfType<WorkerNotificationNoOp>(worker);
         }
     }
 }

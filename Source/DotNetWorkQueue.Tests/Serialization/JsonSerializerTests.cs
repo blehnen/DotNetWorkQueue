@@ -1,35 +1,36 @@
-﻿using System;
+using System;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Serialization;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Serialization
 {
+    [TestClass]
     public class JsonSerializerTests
     {
-        [Fact]
+        [TestMethod]
         public void ConvertMessageToBytes_Null_Exception()
         {
             var test = Create();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
            delegate
            {
                test.ConvertMessageToBytes<Uri>(null, null);
            });
         }
-        [Fact]
+        [TestMethod]
         public void BytesToMessage_Null_Exception()
         {
             var test = Create();
-            Assert.Throws<ArgumentNullException>(
+            Assert.ThrowsExactly<ArgumentNullException>(
            delegate
            {
                test.ConvertBytesToMessage<Uri>(null, null);
            });
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_Serialization()
         {
             var test = Create();
@@ -41,10 +42,10 @@ namespace DotNetWorkQueue.Tests.Serialization
             var serializedBytes = test.ConvertMessageToBytes(testData, null);
             var testData2 = test.ConvertBytesToMessage<TestData>(serializedBytes, null);
 
-            Assert.Equal(testData.Data, testData2.Data);
+            CollectionAssert.AreEqual(testData.Data, testData2.Data);
         }
 
-        [Fact]
+        [TestMethod]
         public void Test_Serialization_With_Interface()
         {
             var test = Create();
@@ -56,7 +57,7 @@ namespace DotNetWorkQueue.Tests.Serialization
             var serializedBytes = test.ConvertMessageToBytes(testData, null);
             var testData2 = test.ConvertBytesToMessage<ITestData>(serializedBytes, null);
 
-            Assert.IsAssignableFrom<TestData>(testData2);
+            Assert.IsInstanceOfType<TestData>(testData2);
         }
 
         private ISerializer Create()

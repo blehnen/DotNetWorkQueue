@@ -1,29 +1,36 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using AutoFixture.Xunit2;
 using DotNetWorkQueue.Factory;
 
 
 
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Factory
 {
+    [TestClass]
     public class MessageFactoryTests
     {
-        [Theory, AutoData]
-        public void Create_Message(Data data, Dictionary<string, object> headers)
+        [TestMethod]
+        public void Create_Message()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var data = fixture.Create<Data>();
+            var headers = fixture.Create<Dictionary<string, object>>();
             var factory = Create();
             var test = factory.Create(data, headers);
-            Assert.Equal(test.Body, data);
-            Assert.Equal(test.Headers, headers);
+            Assert.AreEqual(test.Body, data);
+            CollectionAssert.AreEquivalent((System.Collections.ICollection)test.Headers, (System.Collections.ICollection)headers);
         }
 
-        [Theory, AutoData]
-        public void GetSet_Header(Data data, Dictionary<string, object> headers, HeaderData headerData)
+        [TestMethod]
+        public void GetSet_Header()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var data = fixture.Create<Data>();
+            var headers = fixture.Create<Dictionary<string, object>>();
+            var headerData = fixture.Create<HeaderData>();
             var factory = Create();
             var test = factory.Create(data, headers);
 
@@ -33,11 +40,15 @@ namespace DotNetWorkQueue.Tests.Factory
             test.SetHeader(property, headerData);
 
             var headerData2 = test.GetHeader(property);
-            Assert.Equal(headerData2, headerData);
+            Assert.AreEqual(headerData2, headerData);
         }
-        [Theory, AutoData]
-        public void GetSet_InternalHeader(Data data, Dictionary<string, object> headers, HeaderData headerData)
+        [TestMethod]
+        public void GetSet_InternalHeader()
         {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var data = fixture.Create<Data>();
+            var headers = fixture.Create<Dictionary<string, object>>();
+            var headerData = fixture.Create<HeaderData>();
             var factory = Create();
             var test = factory.Create(data, headers);
 
@@ -47,7 +58,7 @@ namespace DotNetWorkQueue.Tests.Factory
             test.SetInternalHeader(property, headerData);
 
             var headerData2 = test.GetInternalHeader(property);
-            Assert.Equal(headerData2, headerData);
+            Assert.AreEqual(headerData2, headerData);
         }
 
         private IMessageFactory Create()

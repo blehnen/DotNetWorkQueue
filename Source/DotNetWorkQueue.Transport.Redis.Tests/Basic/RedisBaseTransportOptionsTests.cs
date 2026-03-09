@@ -1,62 +1,63 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Redis.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
 {
+    [TestClass]
     public class RedisBaseTransportOptionsTests
     {
-        [Fact]
+        [TestMethod]
         public void EnablePriority_Test()
         {
             var o = new RedisBaseTransportOptions();
-            Assert.True(o.EnablePriority);
+            Assert.IsTrue(o.EnablePriority);
         }
 
-        [Fact]
+        [TestMethod]
         public void EnableStatus_Test()
         {
             var o = new RedisBaseTransportOptions();
-            Assert.True(o.EnableStatus);
+            Assert.IsTrue(o.EnableStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void EnableHeartBeat_Test()
         {
             var o = new RedisBaseTransportOptions();
-            Assert.True(o.EnableHeartBeat);
+            Assert.IsTrue(o.EnableHeartBeat);
         }
 
-        [Fact]
+        [TestMethod]
         public void EnableDelayedProcessing_Test()
         {
             var o = new RedisBaseTransportOptions();
-            Assert.True(o.EnableDelayedProcessing);
+            Assert.IsTrue(o.EnableDelayedProcessing);
         }
 
-        [Fact]
+        [TestMethod]
         public void EnableStatusTable_Test()
         {
             var o = new RedisBaseTransportOptions();
-            Assert.True(o.EnableStatusTable);
+            Assert.IsTrue(o.EnableStatusTable);
         }
 
-        [Fact]
+        [TestMethod]
         public void EnableRoute_Test()
         {
             var o = new RedisBaseTransportOptions();
-            Assert.True(o.EnableRoute);
+            Assert.IsTrue(o.EnableRoute);
         }
 
-        [Fact]
+        [TestMethod]
         public void EnableMessageExpiration_Test()
         {
             var o = new RedisBaseTransportOptions();
-            Assert.True(o.EnableMessageExpiration);
+            Assert.IsTrue(o.EnableMessageExpiration);
         }
     }
 }

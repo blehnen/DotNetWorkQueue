@@ -1,33 +1,34 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Transport.Shared.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 {
+    [TestClass]
     public class CorrelationIdTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var id = Guid.NewGuid();
             var test = new MessageCorrelationId<Guid>(id);
-            Assert.Equal(id, test.Id.Value);
-            Assert.True(test.HasValue);
+            Assert.AreEqual(id, test.Id.Value);
+            Assert.IsTrue(test.HasValue);
         }
-        [Fact]
+        [TestMethod]
         public void Create_Default_ToString()
         {
             var id = Guid.NewGuid();
             var test = new MessageCorrelationId<Guid>(id);
-            Assert.Equal(id.ToString(), test.ToString());
+            Assert.AreEqual(id.ToString(), test.ToString());
         }
-        [Fact]
+        [TestMethod]
         public void Create_Default_Empty_Guid()
         {
             var id = Guid.Empty;
             var test = new MessageCorrelationId<Guid>(id);
-            Assert.Equal(id, test.Id.Value);
-            Assert.False(test.HasValue);
+            Assert.AreEqual(id, test.Id.Value);
+            Assert.IsFalse(test.HasValue);
         }
     }
 }

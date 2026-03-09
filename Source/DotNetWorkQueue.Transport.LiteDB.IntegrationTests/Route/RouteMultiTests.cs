@@ -1,20 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.Route;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
 {
-    [Collection("Route")]
+    [TestClass]
     public class RouteMultiTests
     {
-        [Theory]
-        [InlineData(100, 0, 400, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-        InlineData(100, 0, 180, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-        InlineData(10, 0, 400, 1, 2, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        [TestMethod]
+        [DataRow(100, 0, 400, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
+        DataRow(100, 0, 180, 1, 2, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
+        DataRow(10, 0, 400, 1, 2, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
          int routeCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
                         oCreation.Options.EnableRoute = true;
 
                         var result = oCreation.CreateQueue();
-                        Assert.True(result.Success, result.ErrorMessage);
+                        Assert.IsTrue(result.Success, result.ErrorMessage);
                         scope = oCreation.Scope;
 
                         var routeTest = new RouteMultiTestsShared();

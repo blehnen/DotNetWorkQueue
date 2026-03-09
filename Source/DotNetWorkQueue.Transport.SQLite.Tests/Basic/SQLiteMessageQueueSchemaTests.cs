@@ -1,22 +1,24 @@
-﻿using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using System.Linq;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Schema;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
+    [TestClass]
     public class SqLiteMessageQueueSchemaTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = Create();
             var tables = test.GetSchema();
-            Assert.NotNull(tables);
+            Assert.IsNotNull(tables);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Status()
         {
             var tableName = GetTableNameHelper();
@@ -25,10 +27,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
-            Assert.Contains(tables, item => item.Name == tableName.StatusName);
+            Assert.IsTrue(tables.Any(item => item.Name == tableName.StatusName));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Status_Extra_Columns()
         {
             var tableName = GetTableNameHelper();
@@ -39,10 +41,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.StatusName);
-            Assert.Contains(statusTable.Columns.Items, item => item.Name == "testing");
+            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "testing"));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Status_Extra_Constraint()
         {
             var tableName = GetTableNameHelper();
@@ -54,10 +56,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.StatusName);
-            Assert.Contains(statusTable.Constraints, item => item.Name == "ix_testing");
+            Assert.IsTrue(statusTable.Constraints.Any(item => item.Name == "ix_testing"));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Meta_Priority()
         {
             var tableName = GetTableNameHelper();
@@ -67,10 +69,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.Contains(statusTable.Columns.Items, item => item.Name == "Priority");
+            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "Priority"));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Meta_Status()
         {
             var tableName = GetTableNameHelper();
@@ -80,10 +82,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.Contains(statusTable.Columns.Items, item => item.Name == "Status");
+            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "Status"));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Meta_DelayedProcessing()
         {
             var tableName = GetTableNameHelper();
@@ -93,10 +95,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.Contains(statusTable.Columns.Items, item => item.Name == "QueueProcessTime");
+            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "QueueProcessTime"));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Meta_HeartBeat()
         {
             var tableName = GetTableNameHelper();
@@ -106,10 +108,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.Contains(statusTable.Columns.Items, item => item.Name == "HeartBeat");
+            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "HeartBeat"));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_Meta_MessageExpiration()
         {
             var tableName = GetTableNameHelper();
@@ -119,10 +121,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.Contains(statusTable.Columns.Items, item => item.Name == "ExpirationTime");
+            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "ExpirationTime"));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_FIFO()
         {
             var tableName = GetTableNameHelper();
@@ -136,7 +138,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
             var tables = test.GetSchema();
-            Assert.NotNull(tables);
+            Assert.IsNotNull(tables);
         }
 
         private SqLiteMessageQueueSchema Create()

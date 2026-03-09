@@ -1,42 +1,42 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("producer")]
+    [TestClass]
     public class SimpleProducerMethodAsyncBatch
     {
-        [Theory]
-        [InlineData(100, true, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+        [TestMethod]
+        [DataRow(100, true, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
-         InlineData(100, true, true, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, true, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, true, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, false, false, false, false, true, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, true, true, true, true, true, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, false, true, false, true, true, true, false, LinqMethodTypes.Dynamic, false),
-         InlineData(100, true, true, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
+         DataRow(100, true, true, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
+         DataRow(100, false, true, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
+         DataRow(100, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
+         DataRow(100, true, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
+         DataRow(100, false, false, false, false, false, true, false, LinqMethodTypes.Dynamic, false),
+         DataRow(100, false, true, true, true, true, true, false, LinqMethodTypes.Dynamic, false),
+         DataRow(100, false, true, false, true, true, true, false, LinqMethodTypes.Dynamic, false),
+         DataRow(100, true, true, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
 #endif    
-         InlineData(100, false, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
-         InlineData(100, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
-         InlineData(100, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
-         InlineData(100, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, false),
-         InlineData(100, false, true, true, true, true, true, false, LinqMethodTypes.Compiled, false),
-         InlineData(100, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, false),
-         InlineData(100, true, true, false, false, false, false, true, LinqMethodTypes.Compiled, false),
+         DataRow(100, false, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         DataRow(100, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         DataRow(100, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         DataRow(100, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, false),
+         DataRow(100, false, true, true, true, true, true, false, LinqMethodTypes.Compiled, false),
+         DataRow(100, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, false),
+         DataRow(100, true, true, false, false, false, false, true, LinqMethodTypes.Compiled, false),
 
-         InlineData(10, false, true, false, false, false, false, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, false, true, true, true, true, true, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, true),
-         InlineData(10, true, true, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
+         DataRow(10, false, true, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+         DataRow(10, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+         DataRow(10, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+         DataRow(10, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, true),
+         DataRow(10, false, true, true, true, true, true, false, LinqMethodTypes.Compiled, true),
+         DataRow(10, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, true),
+         DataRow(10, true, true, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
         public async Task Run(
             int messageCount,
             bool interceptors,
@@ -49,7 +49,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
             LinqMethodTypes linqMethodTypes,
             bool enableChaos)
         {
-
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducerAsync();

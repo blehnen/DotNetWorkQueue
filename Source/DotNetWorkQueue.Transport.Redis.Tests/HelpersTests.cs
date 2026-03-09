@@ -1,19 +1,20 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests
 {
+    [TestClass]
     public class HelpersTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var jobs = Enumerable.Range(0, 100)
                   .Select(x => "test");
             var enumerable = jobs as IList<string> ?? jobs.ToList();
-            Assert.Equal(2, enumerable.Partition(50).Count());
-            Assert.Equal(10, enumerable.Partition(10).Count());
+            Assert.AreEqual(2, enumerable.Partition(50).Count());
+            Assert.AreEqual(10, enumerable.Partition(10).Count());
 
             jobs = Enumerable.Range(0, 87)
                  .Select(x => "test");
@@ -23,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
             var i = 0;
             foreach (var p in part)
             {
-                Assert.Equal(i == 4 ? 7 : 20, p.Count());
+                Assert.AreEqual(i == 4 ? 7 : 20, p.Count());
                 i++;
             }
         }

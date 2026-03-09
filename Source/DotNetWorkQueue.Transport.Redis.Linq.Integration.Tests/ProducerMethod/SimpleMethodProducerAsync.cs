@@ -1,25 +1,25 @@
-﻿using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.IntegrationTests;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
 {
-    [Collection("Producer")]
+    [TestClass]
     public class SimpleMethodProducerAsync
     {
-        [Theory]
-        [InlineData(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+        [TestMethod]
+        [DataRow(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
 #if NETFULL
-        InlineData(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-        InlineData(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+        DataRow(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+        DataRow(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+        DataRow(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
 #endif
-        InlineData(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-        InlineData(100, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-        InlineData(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+        DataRow(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+        DataRow(100, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+        DataRow(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
         public async Task Run(
            int messageCount,
            bool interceptors,

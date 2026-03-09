@@ -1,25 +1,26 @@
-﻿using DotNetWorkQueue.Transport.Redis.Basic;
+using DotNetWorkQueue.Transport.Redis.Basic;
 using NSubstitute;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
 {
+    [TestClass]
     public class RedisNamesTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = new RedisNames(CreateConnection());
-            Assert.Contains("testQueue", test.Values);
-            Assert.Contains("testQueue", test.Delayed);
-            Assert.Contains("testQueue", test.Error);
-            Assert.Contains("testQueue", test.Expiration);
-            Assert.Contains("testQueue", test.Id);
-            Assert.Contains("testQueue", test.MetaData);
-            Assert.Contains("testQueue", test.Notification);
-            Assert.Contains("testQueue", test.Pending);
-            Assert.Contains("testQueue", test.Working);
-            Assert.Contains("testQueue", test.Headers);
+            StringAssert.Contains(test.Values, "testQueue");
+            StringAssert.Contains(test.Delayed, "testQueue");
+            StringAssert.Contains(test.Error, "testQueue");
+            StringAssert.Contains(test.Expiration, "testQueue");
+            StringAssert.Contains(test.Id, "testQueue");
+            StringAssert.Contains(test.MetaData, "testQueue");
+            StringAssert.Contains(test.Notification, "testQueue");
+            StringAssert.Contains(test.Pending, "testQueue");
+            StringAssert.Contains(test.Working, "testQueue");
+            StringAssert.Contains(test.Headers, "testQueue");
         }
 
         public IConnectionInformation CreateConnection()

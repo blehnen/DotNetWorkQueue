@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,7 +7,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Microsoft.Extensions.Logging;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
 {
@@ -201,11 +201,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     .ToList();
                 if (result.HasErrors)
                 {
-                    Assert.False(result.HasErrors, errorList[0].SendingException.ToString());
+                    Assert.IsFalse(result.HasErrors, errorList[0].SendingException.ToString());
                 }
                 else
                 {
-                    Assert.False(result.HasErrors);
+                    Assert.IsFalse(result.HasErrors);
                 }
             }
             else
@@ -221,7 +221,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                         {
                             message = result.SendingException.ToString();
                         }
-                        Assert.False(result.HasError, message);
+                        Assert.IsFalse(result.HasError, message);
                     }
                     else
                     {
@@ -231,7 +231,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                         {
                             message = result.SendingException.ToString();
                         }
-                        Assert.False(result.HasError, message);
+                        Assert.IsFalse(result.HasError, message);
                     }
                 });
             }
@@ -263,11 +263,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                     .ToList();
                 if (result.HasErrors)
                 {
-                    Assert.False(result.HasErrors, errorList[0].SendingException.ToString());
+                    Assert.IsFalse(result.HasErrors, errorList[0].SendingException.ToString());
                 }
                 else
                 {
-                    Assert.False(result.HasErrors);
+                    Assert.IsFalse(result.HasErrors);
                 }
             }
             else
@@ -283,7 +283,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                         {
                             message = result.SendingException.ToString();
                         }
-                        Assert.False(result.HasError, message);
+                        Assert.IsFalse(result.HasError, message);
                     }
                     else
                     {
@@ -293,7 +293,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                         {
                             message = result.SendingException.ToString();
                         }
-                        Assert.False(result.HasError, message);
+                        Assert.IsFalse(result.HasError, message);
                     }
                 });
             }

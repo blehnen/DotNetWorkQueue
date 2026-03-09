@@ -1,26 +1,27 @@
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Query
 {
+    [TestClass]
     public class GetDashboardMessagesQueryTests
     {
-        [Fact]
+        [TestMethod]
         public void Create_Default()
         {
             var test = new GetDashboardMessagesQuery(0, 25, null);
-            Assert.Equal(0, test.PageIndex);
-            Assert.Equal(25, test.PageSize);
-            Assert.Null(test.StatusFilter);
+            Assert.AreEqual(0, test.PageIndex);
+            Assert.AreEqual(25, test.PageSize);
+            Assert.IsNull(test.StatusFilter);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_With_StatusFilter()
         {
             var test = new GetDashboardMessagesQuery(2, 50, 1);
-            Assert.Equal(2, test.PageIndex);
-            Assert.Equal(50, test.PageSize);
-            Assert.Equal(1, test.StatusFilter);
+            Assert.AreEqual(2, test.PageIndex);
+            Assert.AreEqual(50, test.PageSize);
+            Assert.AreEqual(1, test.StatusFilter);
         }
     }
 }

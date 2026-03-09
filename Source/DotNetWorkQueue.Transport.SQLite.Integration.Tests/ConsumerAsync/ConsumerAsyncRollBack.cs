@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync;
 using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.ConsumerAsync
 {
-    [Collection("Consumer")]
+    [TestClass]
     public class ConsumerAsyncRollBack
     {
-        [Theory]
-        [InlineData(100, 1, 400, 5, 5, 5, true, false),
-         InlineData(10, 45, 260, 5, 1, 2, false, false),
-         InlineData(10, 0, 400, 5, 5, 5, true, true)]
+        [TestMethod]
+        [DataRow(100, 1, 400, 5, 5, 5, true, false),
+         DataRow(10, 45, 260, 5, 1, 2, false, false),
+         DataRow(10, 0, 400, 5, 5, 5, true, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {

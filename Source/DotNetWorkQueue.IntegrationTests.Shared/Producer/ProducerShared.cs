@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +6,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Messages;
 using Microsoft.Extensions.Logging;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
 {
@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                                 messageCount);
 
                             var admin = creator.CreateAdminFunctions(queueConnection);
-                            Assert.Equal(messageCount, admin.Count(null));
+                            Assert.AreEqual(messageCount, admin.Count(null));
                         }
                     }
                 }
@@ -110,11 +110,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                            .ToList();
                 if (result.HasErrors)
                 {
-                    Assert.False(result.HasErrors, errorList[0].SendingException.ToString());
+                    Assert.IsFalse(result.HasErrors, errorList[0].SendingException.ToString());
                 }
                 else
                 {
-                    Assert.False(result.HasErrors);
+                    Assert.IsFalse(result.HasErrors);
                 }
             }
             else
@@ -130,7 +130,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                         {
                             message = result.SendingException.ToString();
                         }
-                        Assert.False(result.HasError, message);
+                        Assert.IsFalse(result.HasError, message);
                     }
                     else
                     {
@@ -140,7 +140,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
                         {
                             message = result.SendingException.ToString();
                         }
-                        Assert.False(result.HasError, message);
+                        Assert.IsFalse(result.HasError, message);
                     }
                 });
             }

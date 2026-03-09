@@ -235,7 +235,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                 }
 
                 return id;
-            });
+            }).ConfigureAwait(false);
         }
     }
 }

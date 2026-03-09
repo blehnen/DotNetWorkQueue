@@ -1,89 +1,90 @@
-﻿using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 {
+    [TestClass]
     public class PostgreSqlMessageQueueTransportOptionsTests
     {
-        [Fact]
+        [TestMethod]
         public void Readonly()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
             test.SetReadOnly();
-            Assert.True(test.IsReadOnly);
+            Assert.IsTrue(test.IsReadOnly);
         }
-        [Fact]
+        [TestMethod]
         public void Test_DefaultNotReadOnly()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
-            Assert.False(test.IsReadOnly);
+            Assert.IsFalse(test.IsReadOnly);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_Priority()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
             var c = test.EnablePriority;
             test.EnablePriority = !c;
-            Assert.Equal(!c, test.EnablePriority);
+            Assert.AreEqual(!c, test.EnablePriority);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableHoldTransactionUntilMessageCommitted()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
             var c = test.EnableHoldTransactionUntilMessageCommitted;
             test.EnableHoldTransactionUntilMessageCommitted = !c;
-            Assert.Equal(!c, test.EnableHoldTransactionUntilMessageCommitted);
+            Assert.AreEqual(!c, test.EnableHoldTransactionUntilMessageCommitted);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableStatus()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
             var c = test.EnableStatus;
             test.EnableStatus = !c;
-            Assert.Equal(!c, test.EnableStatus);
+            Assert.AreEqual(!c, test.EnableStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableHeartBeat()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
             var c = test.EnableHeartBeat;
             test.EnableHeartBeat = !c;
-            Assert.Equal(!c, test.EnableHeartBeat);
+            Assert.AreEqual(!c, test.EnableHeartBeat);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableDelayedProcessing()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
             var c = test.EnableDelayedProcessing;
             test.EnableDelayedProcessing = !c;
-            Assert.Equal(!c, test.EnableDelayedProcessing);
+            Assert.AreEqual(!c, test.EnableDelayedProcessing);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableStatusTable()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
             var c = test.EnableStatusTable;
             test.EnableStatusTable = !c;
-            Assert.Equal(!c, test.EnableStatusTable);
+            Assert.AreEqual(!c, test.EnableStatusTable);
         }
 
-        [Fact]
+        [TestMethod]
         public void GetSet_EnableMessageExpiration()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();
             var c = test.EnableMessageExpiration;
             test.EnableMessageExpiration = !c;
-            Assert.Equal(!c, test.EnableMessageExpiration);
+            Assert.AreEqual(!c, test.EnableMessageExpiration);
         }
 
-        [Fact]
+        [TestMethod]
         public void Validation()
         {
             var test = new PostgreSqlMessageQueueTransportOptions();

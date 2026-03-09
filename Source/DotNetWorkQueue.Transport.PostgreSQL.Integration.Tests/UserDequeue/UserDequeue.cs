@@ -1,17 +1,17 @@
-﻿using System.Data;
+using System.Data;
 using System.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.UserDequeue
 {
-    [Collection("ConsumerUserDequeue")]
+    [TestClass]
     public class UserDequeue
     {
-        [Theory]
-        [InlineData(100, 0, 240, 1, false, 4, false),
-         InlineData(25, 3, 240, 2, false, 4, false)]
+        [TestMethod]
+        [DataRow(100, 0, 240, 1, false, 4, false),
+         DataRow(25, 3, 240, 2, false, 4, false)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
             bool useTransactions, int count, bool enableChaos)
         {
