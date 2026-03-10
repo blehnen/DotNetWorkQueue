@@ -26,9 +26,15 @@ namespace DotNetWorkQueue.Time
     /// <summary>
     /// Returns the current UTC time by querying an NTP server and caching the offset.
     /// </summary>
+    /// <remarks>
+    /// This time provider is opt-in. Register <see cref="SntpTime"/> and
+    /// <see cref="SntpTimeConfiguration"/> in your transport's IoC container
+    /// to use NTP-synchronized time instead of the local machine clock.
+    /// A single <see cref="NtpClient"/> instance is reused for all queries.
+    /// </remarks>
     public class SntpTime : BaseTime
     {
-        private readonly SntpTimeConfiguration _configuration;
+        private readonly NtpClient _ntpClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SntpTime"/> class.
@@ -38,7 +44,7 @@ namespace DotNetWorkQueue.Time
         public SntpTime(ILogger log, SntpTimeConfiguration configuration)
             : base(log, configuration)
         {
-            _configuration = configuration;
+            _ntpClient = new NtpClient(configuration.Server);
         }
 
         /// <inheritdoc />
@@ -47,8 +53,7 @@ namespace DotNetWorkQueue.Time
         /// <inheritdoc />
         protected override DateTime GetTime()
         {
-            var client = new NtpClient(_configuration.Server);
-            var clock = client.Query();
+            var clock = _ntpClient.Query();
             return DateTime.UtcNow.Add(clock.CorrectionOffset);
         }
     }

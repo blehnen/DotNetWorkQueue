@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
     /// <summary>
     /// Configuration class for the SNTP client used by the Redis transport.
     /// </summary>
-    /// <remarks>Extends the core <see cref="Configuration.SntpTimeConfiguration"/> with Redis-specific defaults.</remarks>
+    /// <remarks>Extends the core <see cref="DotNetWorkQueue.Configuration.SntpTimeConfiguration"/> with Redis-specific defaults (port and timeout).</remarks>
     public class SntpTimeConfiguration : DotNetWorkQueue.Configuration.SntpTimeConfiguration
     {
         /// <summary>

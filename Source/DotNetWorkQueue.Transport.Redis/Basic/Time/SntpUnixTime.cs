@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
     {
         private readonly object _getTime = new object();
         private long _millisecondsDifference;
-        private readonly SntpTimeConfiguration _configuration;
+        private readonly NtpClient _ntpClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SntpUnixTime" /> class.
@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         public SntpUnixTime(ILogger log, SntpTimeConfiguration configuration)
             : base(log, configuration)
         {
-            _configuration = configuration;
+            _ntpClient = new NtpClient(configuration.Server, configuration.TimeOut, configuration.Port);
         }
 
         /// <summary>
@@ -64,8 +64,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
                 if (!TimeExpired())
                     return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
 
-                var client = new NtpClient(_configuration.Server, _configuration.TimeOut, _configuration.Port);
-                var clock = client.Query();
+                var clock = _ntpClient.Query();
                 _millisecondsDifference = (long)clock.CorrectionOffset.TotalMilliseconds;
 
                 ServerOffsetObtained = DateTime.UtcNow;
