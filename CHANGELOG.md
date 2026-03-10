@@ -1,3 +1,8 @@
+### 0.9.4 — ???
+- Switch from forked GuerrillaNtp DLLs to official [GuerrillaNtp 3.1.0](https://www.nuget.org/packages/GuerrillaNtp/) NuGet package
+- Move SNTP time provider (`SntpTime`) into the core library — any transport can now use NTP-synchronized time, not just Redis
+- Delete `Lib/GuerrillaNtp/` (no longer needed)
+
 ### 0.9.3 — 2026‑03‑10
 - Add consumer tracking to Dashboard API — consumers register via HTTP, send heartbeats, and are automatically pruned when stale
 - Add `DotNetWorkQueue.Dashboard.Client` — new standalone client library (no core dependency) with:

@@ -17,36 +17,39 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Configuration;
+using GuerrillaNtp;
+using Microsoft.Extensions.Logging;
 
-namespace DotNetWorkQueue.Transport.Redis.Basic.Time
+namespace DotNetWorkQueue.Time
 {
     /// <summary>
-    /// Configuration class for the SNTP client used by the Redis transport.
+    /// Returns the current UTC time by querying an NTP server and caching the offset.
     /// </summary>
-    /// <remarks>Extends the core <see cref="Configuration.SntpTimeConfiguration"/> with Redis-specific defaults.</remarks>
-    public class SntpTimeConfiguration : DotNetWorkQueue.Configuration.SntpTimeConfiguration
+    public class SntpTime : BaseTime
     {
+        private readonly SntpTimeConfiguration _configuration;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="SntpTimeConfiguration"/> class.
+        /// Initializes a new instance of the <see cref="SntpTime"/> class.
         /// </summary>
-        public SntpTimeConfiguration()
+        /// <param name="log">The log.</param>
+        /// <param name="configuration">The SNTP configuration.</param>
+        public SntpTime(ILogger log, SntpTimeConfiguration configuration)
+            : base(log, configuration)
         {
-            Port = 123;
-            TimeOut = TimeSpan.FromSeconds(8);
+            _configuration = configuration;
         }
 
-        /// <summary>
-        /// Gets or sets the NTP port.
-        /// </summary>
-        /// <value>The port.</value>
-        /// <remarks>Default is 123</remarks>
-        public int Port { get; set; }
+        /// <inheritdoc />
+        public override string Name => "SNTP";
 
-        /// <summary>
-        /// Gets or sets the timeout for querying the NTP server.
-        /// </summary>
-        /// <value>The timeout.</value>
-        /// <remarks>The default is 8 seconds</remarks>
-        public TimeSpan TimeOut { get; set; }
+        /// <inheritdoc />
+        protected override DateTime GetTime()
+        {
+            var client = new NtpClient(_configuration.Server);
+            var clock = client.Query();
+            return DateTime.UtcNow.Add(clock.CorrectionOffset);
+        }
     }
 }
