@@ -254,9 +254,6 @@ namespace DotNetWorkQueue.Dashboard.Client.Models
         /// <summary>Gets or sets the queue name.</summary>
         public string QueueName { get; set; }
 
-        /// <summary>Gets or sets the connection string.</summary>
-        public string ConnectionString { get; set; }
-
         /// <summary>Gets or sets the machine name.</summary>
         public string MachineName { get; set; }
 

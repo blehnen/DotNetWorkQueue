@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public Guid Register(string queueName, string connectionString, string machineName, int processId, string friendlyName)
+        public Guid Register(string queueName, string machineName, int processId, string friendlyName)
         {
             var id = Guid.NewGuid();
             var now = DateTimeOffset.UtcNow;
@@ -45,13 +45,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             {
                 ConsumerId = id,
                 QueueName = queueName,
-                ConnectionString = connectionString,
                 MachineName = machineName,
                 ProcessId = processId,
                 FriendlyName = friendlyName,
                 RegisteredAt = now,
                 LastHeartbeat = now,
-                MatchedQueueId = FindMatchingQueue(queueName, connectionString)
+                MatchedQueueId = FindMatchingQueue(queueName)
             };
 
             _consumers.TryAdd(id, entry);
@@ -115,13 +114,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             return pruned;
         }
 
-        private Guid? FindMatchingQueue(string queueName, string connectionString)
+        private Guid? FindMatchingQueue(string queueName)
         {
             foreach (var connection in _dashboardApi.Connections.Values)
             {
-                if (!string.Equals(connection.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
                 foreach (var queue in connection.Queues)
                 {
                     if (string.Equals(queue.QueueName, queueName, StringComparison.OrdinalIgnoreCase))

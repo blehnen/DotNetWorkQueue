@@ -40,11 +40,6 @@ namespace DotNetWorkQueue.Dashboard.Client
         public string QueueName { get; set; }
 
         /// <summary>
-        /// Gets or sets the connection string for consumer registration.
-        /// </summary>
-        public string ConnectionString { get; set; }
-
-        /// <summary>
         /// Gets or sets an optional friendly name for this consumer instance.
         /// </summary>
         public string FriendlyName { get; set; }

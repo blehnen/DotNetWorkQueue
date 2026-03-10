@@ -59,7 +59,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
 
             var consumerId = _registry.Register(
                 request.QueueName,
-                request.ConnectionString,
                 request.MachineName,
                 request.ProcessId,
                 request.FriendlyName);
@@ -144,7 +143,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             {
                 ConsumerId = entry.ConsumerId,
                 QueueName = entry.QueueName,
-                ConnectionString = entry.ConnectionString,
                 MachineName = entry.MachineName,
                 ProcessId = entry.ProcessId,
                 FriendlyName = entry.FriendlyName,

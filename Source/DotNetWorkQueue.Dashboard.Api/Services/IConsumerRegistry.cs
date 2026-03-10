@@ -30,12 +30,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// Registers a new consumer and returns its unique identifier.
         /// </summary>
         /// <param name="queueName">The queue name.</param>
-        /// <param name="connectionString">The connection string.</param>
         /// <param name="machineName">The machine name.</param>
         /// <param name="processId">The process ID.</param>
         /// <param name="friendlyName">An optional friendly name.</param>
         /// <returns>The unique consumer identifier.</returns>
-        Guid Register(string queueName, string connectionString, string machineName, int processId, string friendlyName);
+        Guid Register(string queueName, string machineName, int processId, string friendlyName);
 
         /// <summary>
         /// Updates the heartbeat timestamp for a consumer.
@@ -88,9 +87,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
 
         /// <summary>Gets or sets the queue name.</summary>
         public string QueueName { get; set; }
-
-        /// <summary>Gets or sets the connection string.</summary>
-        public string ConnectionString { get; set; }
 
         /// <summary>Gets or sets the machine name.</summary>
         public string MachineName { get; set; }

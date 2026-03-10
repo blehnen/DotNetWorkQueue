@@ -29,10 +29,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Models
         [Required]
         public string QueueName { get; set; }
 
-        /// <summary>Gets or sets the connection string for the queue.</summary>
-        [Required]
-        public string ConnectionString { get; set; }
-
         /// <summary>Gets or sets the machine name where the consumer is running.</summary>
         [Required]
         public string MachineName { get; set; }

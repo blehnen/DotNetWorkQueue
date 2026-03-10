@@ -241,7 +241,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var body = new
             {
                 QueueName = "testQueue",
-                ConnectionString = "memory-consumers-test",
                 MachineName = machine,
                 ProcessId = pid,
                 FriendlyName = friendlyName

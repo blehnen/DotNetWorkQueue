@@ -66,22 +66,44 @@ namespace DotNetWorkQueue.Dashboard.Client
             _ownsHttpClient = false;
         }
 
+        /// <summary>
+        /// Initializes a new instance using an <see cref="IHttpClientFactory"/>.
+        /// </summary>
+        /// <param name="httpClientFactory">The HTTP client factory.</param>
+        /// <param name="options">The client options.</param>
+        public DashboardApiClient(IHttpClientFactory httpClientFactory, DashboardClientOptions options)
+        {
+            if (httpClientFactory == null) throw new ArgumentNullException(nameof(httpClientFactory));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (string.IsNullOrEmpty(options.DashboardApiUrl)) throw new ArgumentException("DashboardApiUrl is required.", nameof(options));
+
+            _httpClient = httpClientFactory.CreateClient("DashboardApi");
+            if (_httpClient.BaseAddress == null)
+            {
+                _httpClient.BaseAddress = new Uri(options.DashboardApiUrl.TrimEnd('/') + "/");
+                if (!string.IsNullOrEmpty(options.ApiKey))
+                    _httpClient.DefaultRequestHeaders.Add("X-Api-Key", options.ApiKey);
+            }
+
+            _ownsHttpClient = false;
+        }
+
         // ── Connections ──
 
         /// <summary>Gets all registered connections.</summary>
-        public async Task<List<ConnectionResponse>> GetConnectionsAsync(CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<List<ConnectionResponse>>> GetConnectionsAsync(CancellationToken cancellationToken = default)
         {
             return await GetAsync<List<ConnectionResponse>>("api/v1/dashboard/connections", cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Gets all queues for a connection.</summary>
-        public async Task<List<QueueInfoResponse>> GetQueuesAsync(Guid connectionId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<List<QueueInfoResponse>>> GetQueuesAsync(Guid connectionId, CancellationToken cancellationToken = default)
         {
             return await GetAsync<List<QueueInfoResponse>>($"api/v1/dashboard/connections/{connectionId}/queues", cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Gets all scheduled jobs for a connection.</summary>
-        public async Task<List<JobResponse>> GetJobsAsync(Guid connectionId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<List<JobResponse>>> GetJobsAsync(Guid connectionId, CancellationToken cancellationToken = default)
         {
             return await GetAsync<List<JobResponse>>($"api/v1/dashboard/connections/{connectionId}/jobs", cancellationToken).ConfigureAwait(false);
         }
@@ -89,19 +111,19 @@ namespace DotNetWorkQueue.Dashboard.Client
         // ── Queue Status & Features ──
 
         /// <summary>Gets queue status (message counts by status).</summary>
-        public async Task<QueueStatusResponse> GetQueueStatusAsync(Guid queueId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<QueueStatusResponse>> GetQueueStatusAsync(Guid queueId, CancellationToken cancellationToken = default)
         {
             return await GetAsync<QueueStatusResponse>($"api/v1/dashboard/queues/{queueId}/status", cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Gets queue feature flags.</summary>
-        public async Task<QueueFeaturesResponse> GetQueueFeaturesAsync(Guid queueId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<QueueFeaturesResponse>> GetQueueFeaturesAsync(Guid queueId, CancellationToken cancellationToken = default)
         {
             return await GetAsync<QueueFeaturesResponse>($"api/v1/dashboard/queues/{queueId}/features", cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Gets queue configuration.</summary>
-        public async Task<ConfigurationResponse> GetQueueConfigurationAsync(Guid queueId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<ConfigurationResponse>> GetQueueConfigurationAsync(Guid queueId, CancellationToken cancellationToken = default)
         {
             return await GetAsync<ConfigurationResponse>($"api/v1/dashboard/queues/{queueId}/configuration", cancellationToken).ConfigureAwait(false);
         }
@@ -109,7 +131,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         // ── Messages ──
 
         /// <summary>Gets paged messages for a queue.</summary>
-        public async Task<PagedResponse<MessageResponse>> GetMessagesAsync(Guid queueId, int pageIndex = 0, int pageSize = 25, int? status = null, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<PagedResponse<MessageResponse>>> GetMessagesAsync(Guid queueId, int pageIndex = 0, int pageSize = 25, int? status = null, CancellationToken cancellationToken = default)
         {
             var url = $"api/v1/dashboard/queues/{queueId}/messages?pageIndex={pageIndex}&pageSize={pageSize}";
             if (status.HasValue) url += $"&status={status.Value}";
@@ -117,7 +139,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         }
 
         /// <summary>Gets the message count for a queue.</summary>
-        public async Task<long> GetMessageCountAsync(Guid queueId, int? status = null, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<long>> GetMessageCountAsync(Guid queueId, int? status = null, CancellationToken cancellationToken = default)
         {
             var url = $"api/v1/dashboard/queues/{queueId}/messages/count";
             if (status.HasValue) url += $"?status={status.Value}";
@@ -125,13 +147,13 @@ namespace DotNetWorkQueue.Dashboard.Client
         }
 
         /// <summary>Gets a specific message by ID.</summary>
-        public async Task<MessageResponse> GetMessageAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<MessageResponse>> GetMessageAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
         {
             return await GetAsync<MessageResponse>($"api/v1/dashboard/queues/{queueId}/messages/{messageId}", cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Gets stale messages for a queue.</summary>
-        public async Task<PagedResponse<MessageResponse>> GetStaleMessagesAsync(Guid queueId, int thresholdSeconds = 60, int pageIndex = 0, int pageSize = 25, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<PagedResponse<MessageResponse>>> GetStaleMessagesAsync(Guid queueId, int thresholdSeconds = 60, int pageIndex = 0, int pageSize = 25, CancellationToken cancellationToken = default)
         {
             return await GetAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages/stale?thresholdSeconds={thresholdSeconds}&pageIndex={pageIndex}&pageSize={pageSize}",
@@ -139,38 +161,38 @@ namespace DotNetWorkQueue.Dashboard.Client
         }
 
         /// <summary>Gets the body of a message.</summary>
-        public async Task<MessageBodyResponse> GetMessageBodyAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<MessageBodyResponse>> GetMessageBodyAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
         {
             return await GetAsync<MessageBodyResponse>($"api/v1/dashboard/queues/{queueId}/messages/{messageId}/body", cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Gets the headers of a message.</summary>
-        public async Task<MessageHeadersResponse> GetMessageHeadersAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<MessageHeadersResponse>> GetMessageHeadersAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
         {
             return await GetAsync<MessageHeadersResponse>($"api/v1/dashboard/queues/{queueId}/messages/{messageId}/headers", cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Deletes a specific message.</summary>
-        public async Task DeleteMessageAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<bool>> DeleteMessageAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
         {
-            await SendAsync(HttpMethod.Delete, $"api/v1/dashboard/queues/{queueId}/messages/{messageId}", null, cancellationToken).ConfigureAwait(false);
+            return await SendAsync(HttpMethod.Delete, $"api/v1/dashboard/queues/{queueId}/messages/{messageId}", null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Edits the body of a message.</summary>
-        public async Task EditMessageBodyAsync(Guid queueId, string messageId, string body, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<bool>> EditMessageBodyAsync(Guid queueId, string messageId, string body, CancellationToken cancellationToken = default)
         {
             var request = new EditMessageBodyRequest { Body = body };
-            await SendAsync(HttpMethod.Put, $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/body", request, cancellationToken).ConfigureAwait(false);
+            return await SendAsync(HttpMethod.Put, $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/body", request, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Resets a stale message for reprocessing.</summary>
-        public async Task ResetMessageAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<bool>> ResetMessageAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
         {
-            await SendAsync(HttpMethod.Post, $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/reset", null, cancellationToken).ConfigureAwait(false);
+            return await SendAsync(HttpMethod.Post, $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/reset", null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Resets all stale messages for a queue.</summary>
-        public async Task<BulkActionResponse> ResetAllStaleMessagesAsync(Guid queueId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<BulkActionResponse>> ResetAllStaleMessagesAsync(Guid queueId, CancellationToken cancellationToken = default)
         {
             return await SendWithResponseAsync<BulkActionResponse>(HttpMethod.Post, $"api/v1/dashboard/queues/{queueId}/messages/reset-all", null, cancellationToken).ConfigureAwait(false);
         }
@@ -178,7 +200,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         // ── Errors ──
 
         /// <summary>Gets paged errors for a queue.</summary>
-        public async Task<PagedResponse<ErrorMessageResponse>> GetErrorsAsync(Guid queueId, int pageIndex = 0, int pageSize = 25, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<PagedResponse<ErrorMessageResponse>>> GetErrorsAsync(Guid queueId, int pageIndex = 0, int pageSize = 25, CancellationToken cancellationToken = default)
         {
             return await GetAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors?pageIndex={pageIndex}&pageSize={pageSize}",
@@ -186,25 +208,25 @@ namespace DotNetWorkQueue.Dashboard.Client
         }
 
         /// <summary>Gets error retries for a specific message.</summary>
-        public async Task<List<ErrorRetryResponse>> GetErrorRetriesAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<List<ErrorRetryResponse>>> GetErrorRetriesAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
         {
             return await GetAsync<List<ErrorRetryResponse>>($"api/v1/dashboard/queues/{queueId}/messages/{messageId}/retries", cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Requeues an error message for reprocessing.</summary>
-        public async Task RequeueErrorMessageAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<bool>> RequeueErrorMessageAsync(Guid queueId, string messageId, CancellationToken cancellationToken = default)
         {
-            await SendAsync(HttpMethod.Post, $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/requeue", null, cancellationToken).ConfigureAwait(false);
+            return await SendAsync(HttpMethod.Post, $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/requeue", null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Requeues all error messages for a queue.</summary>
-        public async Task<BulkActionResponse> RequeueAllErrorsAsync(Guid queueId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<BulkActionResponse>> RequeueAllErrorsAsync(Guid queueId, CancellationToken cancellationToken = default)
         {
             return await SendWithResponseAsync<BulkActionResponse>(HttpMethod.Post, $"api/v1/dashboard/queues/{queueId}/errors/requeue-all", null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Deletes all errors for a queue.</summary>
-        public async Task<DeleteAllResponse> DeleteAllErrorsAsync(Guid queueId, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<DeleteAllResponse>> DeleteAllErrorsAsync(Guid queueId, CancellationToken cancellationToken = default)
         {
             return await SendWithResponseAsync<DeleteAllResponse>(HttpMethod.Delete, $"api/v1/dashboard/queues/{queueId}/errors", null, cancellationToken).ConfigureAwait(false);
         }
@@ -212,7 +234,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         // ── Consumers ──
 
         /// <summary>Gets active consumers, optionally filtered by queue.</summary>
-        public async Task<List<ConsumerInfoResponse>> GetConsumersAsync(Guid? queueId = null, CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<List<ConsumerInfoResponse>>> GetConsumersAsync(Guid? queueId = null, CancellationToken cancellationToken = default)
         {
             var url = "api/v1/dashboard/consumers";
             if (queueId.HasValue) url += $"?queueId={queueId.Value}";
@@ -220,24 +242,30 @@ namespace DotNetWorkQueue.Dashboard.Client
         }
 
         /// <summary>Gets consumer counts per dashboard queue.</summary>
-        public async Task<Dictionary<Guid, int>> GetConsumerCountsAsync(CancellationToken cancellationToken = default)
+        public async Task<ApiReturnValue<Dictionary<Guid, int>>> GetConsumerCountsAsync(CancellationToken cancellationToken = default)
         {
             return await GetAsync<Dictionary<Guid, int>>("api/v1/dashboard/consumers/count", cancellationToken).ConfigureAwait(false);
         }
 
         // ── HTTP helpers ──
 
-        private async Task<T> GetAsync<T>(string url, CancellationToken cancellationToken)
+        private async Task<ApiReturnValue<T>> GetAsync<T>(string url, CancellationToken cancellationToken)
         {
             using (var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false))
             {
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    return ApiReturnValue<T>.Fail(response.StatusCode, errorBody);
+                }
+
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return JsonSerializer.Deserialize<T>(json, JsonOptions);
+                var value = JsonSerializer.Deserialize<T>(json, JsonOptions);
+                return ApiReturnValue<T>.Ok(response.StatusCode, value);
             }
         }
 
-        private async Task SendAsync(HttpMethod method, string url, object body, CancellationToken cancellationToken)
+        private async Task<ApiReturnValue<bool>> SendAsync(HttpMethod method, string url, object body, CancellationToken cancellationToken)
         {
             using (var request = new HttpRequestMessage(method, url))
             {
@@ -246,12 +274,18 @@ namespace DotNetWorkQueue.Dashboard.Client
 
                 using (var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
-                    response.EnsureSuccessStatusCode();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        return ApiReturnValue<bool>.Fail(response.StatusCode, errorBody);
+                    }
+
+                    return ApiReturnValue<bool>.Ok(response.StatusCode, true);
                 }
             }
         }
 
-        private async Task<T> SendWithResponseAsync<T>(HttpMethod method, string url, object body, CancellationToken cancellationToken)
+        private async Task<ApiReturnValue<T>> SendWithResponseAsync<T>(HttpMethod method, string url, object body, CancellationToken cancellationToken)
         {
             using (var request = new HttpRequestMessage(method, url))
             {
@@ -260,9 +294,15 @@ namespace DotNetWorkQueue.Dashboard.Client
 
                 using (var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
-                    response.EnsureSuccessStatusCode();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        return ApiReturnValue<T>.Fail(response.StatusCode, errorBody);
+                    }
+
                     var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    return JsonSerializer.Deserialize<T>(json, JsonOptions);
+                    var value = JsonSerializer.Deserialize<T>(json, JsonOptions);
+                    return ApiReturnValue<T>.Ok(response.StatusCode, value);
                 }
             }
         }

@@ -57,13 +57,12 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// <summary>
         /// Initializes a new instance using the specified options.
         /// </summary>
-        /// <param name="options">The client options including queue name and connection string.</param>
+        /// <param name="options">The client options including queue name.</param>
         public DashboardConsumerClient(DashboardClientOptions options)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             if (string.IsNullOrEmpty(options.DashboardApiUrl)) throw new ArgumentException("DashboardApiUrl is required.", nameof(options));
             if (string.IsNullOrEmpty(options.QueueName)) throw new ArgumentException("QueueName is required for consumer registration.", nameof(options));
-            if (string.IsNullOrEmpty(options.ConnectionString)) throw new ArgumentException("ConnectionString is required for consumer registration.", nameof(options));
 
             _httpClient = new HttpClient
             {
@@ -81,13 +80,37 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// Initializes a new instance using an externally managed <see cref="HttpClient"/>.
         /// </summary>
         /// <param name="httpClient">The HTTP client (caller manages lifetime and must configure BaseAddress).</param>
-        /// <param name="options">The client options including queue name and connection string.</param>
+        /// <param name="options">The client options including queue name.</param>
         public DashboardConsumerClient(HttpClient httpClient, DashboardClientOptions options)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             if (string.IsNullOrEmpty(options.QueueName)) throw new ArgumentException("QueueName is required for consumer registration.", nameof(options));
-            if (string.IsNullOrEmpty(options.ConnectionString)) throw new ArgumentException("ConnectionString is required for consumer registration.", nameof(options));
+
+            _ownsHttpClient = false;
+            _heartbeatTimer = new Timer(HeartbeatCallback, null, Timeout.Infinite, Timeout.Infinite);
+        }
+
+        /// <summary>
+        /// Initializes a new instance using an <see cref="IHttpClientFactory"/>.
+        /// </summary>
+        /// <param name="httpClientFactory">The HTTP client factory.</param>
+        /// <param name="options">The client options including queue name.</param>
+        public DashboardConsumerClient(IHttpClientFactory httpClientFactory, DashboardClientOptions options)
+        {
+            if (httpClientFactory == null) throw new ArgumentNullException(nameof(httpClientFactory));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            if (string.IsNullOrEmpty(options.DashboardApiUrl)) throw new ArgumentException("DashboardApiUrl is required.", nameof(options));
+            if (string.IsNullOrEmpty(options.QueueName)) throw new ArgumentException("QueueName is required for consumer registration.", nameof(options));
+
+            _httpClient = httpClientFactory.CreateClient("DashboardConsumer");
+            if (_httpClient.BaseAddress == null)
+            {
+                _httpClient.BaseAddress = new Uri(options.DashboardApiUrl.TrimEnd('/') + "/");
+                _httpClient.Timeout = TimeSpan.FromSeconds(5);
+                if (!string.IsNullOrEmpty(options.ApiKey))
+                    _httpClient.DefaultRequestHeaders.Add("X-Api-Key", options.ApiKey);
+            }
 
             _ownsHttpClient = false;
             _heartbeatTimer = new Timer(HeartbeatCallback, null, Timeout.Infinite, Timeout.Infinite);
@@ -106,13 +129,8 @@ namespace DotNetWorkQueue.Dashboard.Client
             var request = new
             {
                 QueueName = _options.QueueName,
-                ConnectionString = _options.ConnectionString,
                 MachineName = Environment.MachineName,
-#if NETFULL || NETSTANDARD2_0
-                ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
-#else
                 ProcessId = Environment.ProcessId,
-#endif
                 FriendlyName = _options.FriendlyName
             };
 

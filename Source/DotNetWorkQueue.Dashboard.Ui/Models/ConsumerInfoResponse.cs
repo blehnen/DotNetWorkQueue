@@ -24,7 +24,6 @@ namespace DotNetWorkQueue.Dashboard.Ui.Models
     {
         public Guid ConsumerId { get; set; }
         public string? QueueName { get; set; }
-        public string? ConnectionString { get; set; }
         public string? MachineName { get; set; }
         public int ProcessId { get; set; }
         public string? FriendlyName { get; set; }

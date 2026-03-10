@@ -36,10 +36,17 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             act.Should().Throw<ArgumentNullException>();
         }
 
+        [TestMethod]
+        public void Constructor_HttpClientFactory_Throws_When_Null()
+        {
+            Action act = () => new DashboardApiClient((IHttpClientFactory)null, new DashboardClientOptions { DashboardApiUrl = "http://localhost" });
+            act.Should().Throw<ArgumentNullException>();
+        }
+
         // === GetConnectionsAsync ===
 
         [TestMethod]
-        public async Task GetConnectionsAsync_Deserializes_Response()
+        public async Task GetConnectionsAsync_Returns_Success()
         {
             var json = JsonSerializer.Serialize(new[]
             {
@@ -49,29 +56,44 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetConnectionsAsync();
 
-            result.Should().HaveCount(1);
-            result[0].DisplayName.Should().Be("Test");
-            result[0].QueueCount.Should().Be(3);
+            result.Success.Should().BeTrue();
+            result.Value.Should().HaveCount(1);
+            result.Value[0].DisplayName.Should().Be("Test");
+            result.Value[0].QueueCount.Should().Be(3);
+        }
+
+        [TestMethod]
+        public async Task GetConnectionsAsync_Returns_Failure_On_Error()
+        {
+            using var client = CreateClient("Not Found", HttpStatusCode.NotFound);
+
+            var result = await client.GetConnectionsAsync();
+
+            result.Success.Should().BeFalse();
+            result.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            result.ErrorMessage.Should().Be("Not Found");
+            result.Value.Should().BeNull();
         }
 
         // === GetQueueStatusAsync ===
 
         [TestMethod]
-        public async Task GetQueueStatusAsync_Deserializes_Response()
+        public async Task GetQueueStatusAsync_Returns_Success()
         {
             var json = JsonSerializer.Serialize(new { Waiting = 10L, Processing = 5L, Error = 2L, Total = 17L });
             using var client = CreateClient(json);
 
             var result = await client.GetQueueStatusAsync(Guid.NewGuid());
 
-            result.Waiting.Should().Be(10);
-            result.Total.Should().Be(17);
+            result.Success.Should().BeTrue();
+            result.Value.Waiting.Should().Be(10);
+            result.Value.Total.Should().Be(17);
         }
 
         // === GetConsumersAsync ===
 
         [TestMethod]
-        public async Task GetConsumersAsync_Deserializes_Response()
+        public async Task GetConsumersAsync_Returns_Success()
         {
             var consumerId = Guid.NewGuid();
             var json = JsonSerializer.Serialize(new[]
@@ -82,9 +104,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetConsumersAsync();
 
-            result.Should().HaveCount(1);
-            result[0].ConsumerId.Should().Be(consumerId);
-            result[0].MachineName.Should().Be("M1");
+            result.Success.Should().BeTrue();
+            result.Value.Should().HaveCount(1);
+            result.Value[0].ConsumerId.Should().Be(consumerId);
+            result.Value[0].MachineName.Should().Be("M1");
         }
 
         [TestMethod]
@@ -111,18 +134,41 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
         // === GetConsumerCountsAsync ===
 
         [TestMethod]
-        public async Task GetConsumerCountsAsync_Deserializes_Response()
+        public async Task GetConsumerCountsAsync_Returns_Success()
         {
             var queueId = Guid.NewGuid();
-            var json = JsonSerializer.Serialize(new { });
-            // Manually create JSON with guid key
-            json = $"{{\"{queueId}\":3}}";
+            var json = $"{{\"{queueId}\":3}}";
             using var client = CreateClient(json);
 
             var result = await client.GetConsumerCountsAsync();
 
-            result.Should().ContainKey(queueId);
-            result[queueId].Should().Be(3);
+            result.Success.Should().BeTrue();
+            result.Value.Should().ContainKey(queueId);
+            result.Value[queueId].Should().Be(3);
+        }
+
+        // === DeleteMessageAsync returns ApiReturnValue ===
+
+        [TestMethod]
+        public async Task DeleteMessageAsync_Returns_Success()
+        {
+            using var client = CreateClient("", HttpStatusCode.NoContent);
+
+            var result = await client.DeleteMessageAsync(Guid.NewGuid(), "msg-1");
+
+            result.Success.Should().BeTrue();
+            result.Value.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task DeleteMessageAsync_Returns_Failure_On_Error()
+        {
+            using var client = CreateClient("Not Found", HttpStatusCode.NotFound);
+
+            var result = await client.DeleteMessageAsync(Guid.NewGuid(), "msg-1");
+
+            result.Success.Should().BeFalse();
+            result.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         // === Dispose ===
@@ -145,15 +191,14 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             client.Dispose();
 
             // External client should still be usable (not disposed)
-            // If it were disposed, this would throw
             httpClient.BaseAddress.Should().NotBeNull();
         }
 
         // === Helpers ===
 
-        private static DashboardApiClient CreateClient(string responseJson)
+        private static DashboardApiClient CreateClient(string responseJson, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
-            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+            var handler = new MockHandler(_ => new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(responseJson, System.Text.Encoding.UTF8, "application/json")
             });

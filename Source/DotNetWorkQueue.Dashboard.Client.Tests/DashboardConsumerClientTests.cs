@@ -18,7 +18,6 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             {
                 DashboardApiUrl = url,
                 QueueName = "testQueue",
-                ConnectionString = "memory",
                 FriendlyName = "TestWorker"
             };
         }
@@ -28,7 +27,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
         [TestMethod]
         public void Constructor_Throws_When_Options_Null()
         {
-            Action act = () => new DashboardConsumerClient(null);
+            Action act = () => new DashboardConsumerClient((DashboardClientOptions)null);
             act.Should().Throw<ArgumentNullException>();
         }
 
@@ -51,12 +50,17 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
         }
 
         [TestMethod]
-        public void Constructor_Throws_When_ConnectionString_Missing()
+        public void Constructor_HttpClient_Throws_When_Null()
         {
-            var opts = CreateOptions();
-            opts.ConnectionString = null;
-            Action act = () => new DashboardConsumerClient(opts);
-            act.Should().Throw<ArgumentException>();
+            Action act = () => new DashboardConsumerClient((HttpClient)null, CreateOptions());
+            act.Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void Constructor_HttpClientFactory_Throws_When_Null()
+        {
+            Action act = () => new DashboardConsumerClient((IHttpClientFactory)null, CreateOptions());
+            act.Should().Throw<ArgumentNullException>();
         }
 
         // === StartAsync ===

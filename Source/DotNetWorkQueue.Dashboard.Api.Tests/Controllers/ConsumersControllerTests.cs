@@ -29,13 +29,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var (controller, registry, _) = Create();
             var consumerId = Guid.NewGuid();
-            registry.Register("q", "conn", "MACHINE", 1234, "test")
+            registry.Register("q", "MACHINE", 1234, "test")
                 .Returns(consumerId);
 
             var result = controller.Register(new ConsumerRegistrationRequest
             {
                 QueueName = "q",
-                ConnectionString = "conn",
                 MachineName = "MACHINE",
                 ProcessId = 1234,
                 FriendlyName = "test"
@@ -54,7 +53,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.Register(new ConsumerRegistrationRequest
             {
-                QueueName = "q", ConnectionString = "conn", MachineName = "M", ProcessId = 1
+                QueueName = "q", MachineName = "M", ProcessId = 1
             });
 
             result.Should().BeOfType<NotFoundResult>();
@@ -65,11 +64,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var (controller, registry, options) = Create();
             options.ConsumerHeartbeatIntervalSeconds = 45;
-            registry.Register(default, default, default, default, default).ReturnsForAnyArgs(Guid.NewGuid());
+            registry.Register(default, default, default, default).ReturnsForAnyArgs(Guid.NewGuid());
 
             var result = controller.Register(new ConsumerRegistrationRequest
             {
-                QueueName = "q", ConnectionString = "c", MachineName = "M", ProcessId = 1
+                QueueName = "q", MachineName = "M", ProcessId = 1
             }) as ObjectResult;
 
             var response = result!.Value as ConsumerRegistrationResponse;
