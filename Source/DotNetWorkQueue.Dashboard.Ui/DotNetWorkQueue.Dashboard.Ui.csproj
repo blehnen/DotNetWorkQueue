@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	  <IsPackable>true</IsPackable>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-    <Version>0.9.2</Version>
+    <Version>0.9.3</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <Description>Blazor Server dashboard UI for DotNetWorkQueue - provides a web interface for monitoring and managing queues</Description>

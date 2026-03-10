@@ -37,7 +37,8 @@ See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth doc
 
 | Package | Description | NuGet |
 |---------|-------------|-------|
-| DotNetWorkQueue.Dashboard.Api | REST API for monitoring and managing queues across all transports. Includes queue status, message counts, error tracking, and admin actions. Built on ASP.NET Core with Swagger/OpenAPI. | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Dashboard.Api)](https://www.nuget.org/packages/DotNetWorkQueue.Dashboard.Api/) |
+| DotNetWorkQueue.Dashboard.Api | REST API for monitoring and managing queues across all transports. Includes queue status, message counts, error tracking, consumer tracking, and admin actions. Built on ASP.NET Core with Swagger/OpenAPI. | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Dashboard.Api)](https://www.nuget.org/packages/DotNetWorkQueue.Dashboard.Api/) |
+| DotNetWorkQueue.Dashboard.Client | Strongly-typed API client and consumer registration client. No dependency on the core library — uses HttpClient and System.Text.Json only. | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Dashboard.Client)](https://www.nuget.org/packages/DotNetWorkQueue.Dashboard.Client/) |
 
 > **Metrics:** Built-in metrics are provided via `System.Diagnostics.Metrics` in the core library. No additional package is needed. To collect and export metrics, configure [OpenTelemetry.Metrics](https://github.com/open-telemetry/opentelemetry-dotnet) in your host application.
 

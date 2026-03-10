@@ -173,5 +173,21 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
             return await response.Content.ReadFromJsonAsync<BulkActionResponse>()
                    ?? new BulkActionResponse();
         }
+
+        // Consumers
+        public async Task<List<ConsumerInfoResponse>> GetConsumersAsync(Guid? queueId = null)
+        {
+            var url = $"{Base}/consumers";
+            if (queueId.HasValue)
+                url += $"?queueId={queueId.Value}";
+            return await _http.GetFromJsonAsync<List<ConsumerInfoResponse>>(url)
+                   ?? new List<ConsumerInfoResponse>();
+        }
+
+        public async Task<Dictionary<Guid, int>> GetConsumerCountsAsync()
+        {
+            return await _http.GetFromJsonAsync<Dictionary<Guid, int>>($"{Base}/consumers/count")
+                   ?? new Dictionary<Guid, int>();
+        }
     }
 }

@@ -57,5 +57,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
         Task<bool> UpdateMessageBodyAsync(Guid queueId, string messageId, EditMessageBodyRequest request);
         Task<BulkActionResponse> RequeueAllErrorsAsync(Guid queueId);
         Task<BulkActionResponse> ResetAllStaleAsync(Guid queueId);
+
+        // Consumers
+        Task<List<ConsumerInfoResponse>> GetConsumersAsync(Guid? queueId = null);
+        Task<Dictionary<Guid, int>> GetConsumerCountsAsync();
     }
 }
