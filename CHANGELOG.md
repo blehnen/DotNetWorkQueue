@@ -1,3 +1,12 @@
+### Unreleased
+- Add consumer tracking to Dashboard API — consumers register via HTTP, send heartbeats, and are automatically pruned when stale
+- Add `DotNetWorkQueue.Dashboard.Client` — new standalone client library (no core dependency) with:
+  - `DashboardApiClient` — strongly-typed C# wrapper for all Dashboard API endpoints
+  - `DashboardConsumerClient` — auto-register, heartbeat timer, best-effort unregister on dispose
+- Add Consumers tab to Dashboard UI showing connected consumers per queue (name, machine, PID, uptime)
+- Add consumer count badges on queue cards in Dashboard UI
+- Add `DashboardOptions.EnableConsumerTracking`, `ConsumerHeartbeatIntervalSeconds`, `ConsumerStaleThresholdSeconds`
+
 ### 0.9.1 — 2026‑03‑09
 - **Breaking Change** — Replace `App.Metrics` with built-in `System.Diagnostics.Metrics`; `DotNetWorkQueue.AppMetrics` package is no longer needed. Users should configure OpenTelemetry.Metrics exporters in their host to collect metrics.
 - **Breaking Change** — Remove `SamplingTypes` enum from `IMetrics.Histogram()` and `IMetrics.Timer()` methods

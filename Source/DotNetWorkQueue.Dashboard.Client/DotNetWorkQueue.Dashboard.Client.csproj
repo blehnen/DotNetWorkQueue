@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net10.0;net8.0;netstandard2.0;net48</TargetFrameworks>
-    <Version>0.9.1</Version>
+    <Version>0.9.3</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <Description>Dashboard client for DotNetWorkQueue - provides strongly-typed API wrapper and consumer registration</Description>
