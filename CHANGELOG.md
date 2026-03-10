@@ -1,4 +1,4 @@
-### Unreleased
+### 0.9.3 — 2026‑03‑10
 - Add consumer tracking to Dashboard API — consumers register via HTTP, send heartbeats, and are automatically pruned when stale
 - Add `DotNetWorkQueue.Dashboard.Client` — new standalone client library (no core dependency) with:
   - `DashboardApiClient` — strongly-typed C# wrapper for all Dashboard API endpoints
