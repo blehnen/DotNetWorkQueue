@@ -1,0 +1,88 @@
+@using DotNetWorkQueue.Dashboard.Ui.Models
+@using DotNetWorkQueue.Dashboard.Ui.Services
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_error != null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadConsumers">Retry</MudButton>
+}
+else if (_consumers == null || _consumers.Count == 0)
+{
+    <MudAlert Severity="Severity.Info" Class="pa-4">No consumers currently connected to this queue.</MudAlert>
+}
+else
+{
+    <MudTable T="ConsumerInfoResponse" Items="_consumers" Dense="true" Hover="true" Elevation="0" Breakpoint="Breakpoint.Sm">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Machine</MudTh>
+            <MudTh>PID</MudTh>
+            <MudTh>Registered</MudTh>
+            <MudTh>Last Heartbeat</MudTh>
+            <MudTh>Uptime</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@(context.FriendlyName ?? context.ConsumerId.ToString("N")[..8])</MudTd>
+            <MudTd DataLabel="Machine">@context.MachineName</MudTd>
+            <MudTd DataLabel="PID">@context.ProcessId</MudTd>
+            <MudTd DataLabel="Registered">@context.RegisteredAt.LocalDateTime.ToString("G")</MudTd>
+            <MudTd DataLabel="Last Heartbeat">@context.LastHeartbeat.LocalDateTime.ToString("G")</MudTd>
+            <MudTd DataLabel="Uptime">@FormatUptime(context.RegisteredAt)</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No consumers found.</MudText>
+        </NoRecordsContent>
+    </MudTable>
+}
+
+@code {
+    [Parameter] public Guid QueueId { get; set; }
+    [Parameter] public IDashboardApiClient Api { get; set; } = default!;
+    [Parameter] public int RefreshVersion { get; set; }
+
+    private List<ConsumerInfoResponse>? _consumers;
+    private bool _loading = true;
+    private string? _error;
+    private int _lastRefreshVersion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _lastRefreshVersion = RefreshVersion;
+        await LoadConsumers();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (RefreshVersion != _lastRefreshVersion)
+        {
+            _lastRefreshVersion = RefreshVersion;
+            await LoadConsumers();
+        }
+    }
+
+    private async Task LoadConsumers()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _consumers = await Api.GetConsumersAsync(QueueId);
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private static string FormatUptime(DateTimeOffset registeredAt)
+    {
+        var uptime = DateTimeOffset.Now - registeredAt;
+        if (uptime.TotalDays >= 1)
+            return $"{(int)uptime.TotalDays}d {uptime.Hours}h";
+        if (uptime.TotalHours >= 1)
+            return $"{(int)uptime.TotalHours}h {uptime.Minutes}m";
+        return $"{(int)uptime.TotalMinutes}m";
+    }
+}

@@ -90,6 +90,9 @@ else
         <MudTabPanel Text="Stale" Icon="@Icons.Material.Filled.Timer" BadgeData="@StaleBadge" BadgeColor="Color.Warning">
             <StaleTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" />
         </MudTabPanel>
+        <MudTabPanel Text="Consumers" Icon="@Icons.Material.Filled.People" BadgeData="@ConsumerBadge" BadgeColor="Color.Success">
+            <ConsumersTab QueueId="QueueId" Api="Api" RefreshVersion="_refreshVersion" />
+        </MudTabPanel>
         <MudTabPanel Text="Configuration" Icon="@Icons.Material.Filled.Settings">
             <ConfigTab QueueId="QueueId" Api="Api" />
         </MudTabPanel>
@@ -116,12 +119,14 @@ else
     private string? _selectedMessageId;
 
     private long _staleCount;
+    private int _consumerCount;
     private string? _queueName;
     private string? _connectionDisplayName;
     private string? _connectionId;
 
     private object? ErrorBadge => _status?.Error > 0 ? _status.Error : null;
     private object? StaleBadge => _staleCount > 0 ? _staleCount : null;
+    private object? ConsumerBadge => _consumerCount > 0 ? _consumerCount : null;
 
     private List<BreadcrumbItem> _breadcrumbs = new()
     {
@@ -181,9 +186,11 @@ else
             var statusTask = Api.GetQueueStatusAsync(QueueId);
             var featuresTask = Api.GetQueueFeaturesAsync(QueueId);
             var staleTask = Api.GetStaleMessagesAsync(QueueId, 60, 0, 1);
+            var consumersTask = Api.GetConsumersAsync(QueueId);
             _status = await statusTask;
             _features = await featuresTask;
             _staleCount = (await staleTask).TotalCount;
+            _consumerCount = (await consumersTask).Count;
         }
         catch (Exception ex)
         {
@@ -203,6 +210,8 @@ else
             _status = await Api.GetQueueStatusAsync(QueueId);
             var stale = await Api.GetStaleMessagesAsync(QueueId, 60, 0, 1);
             _staleCount = stale.TotalCount;
+            var consumers = await Api.GetConsumersAsync(QueueId);
+            _consumerCount = consumers.Count;
         }
         catch { }
     }
@@ -218,8 +227,10 @@ else
         {
             var statusTask = Api.GetQueueStatusAsync(QueueId);
             var staleTask = Api.GetStaleMessagesAsync(QueueId, 60, 0, 1);
+            var consumersTask = Api.GetConsumersAsync(QueueId);
             _status = await statusTask;
             _staleCount = (await staleTask).TotalCount;
+            _consumerCount = (await consumersTask).Count;
         }
         catch { }
     }

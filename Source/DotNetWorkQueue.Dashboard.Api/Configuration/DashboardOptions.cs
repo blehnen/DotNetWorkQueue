@@ -47,6 +47,23 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         public string ApiKey { get; set; }
 
         /// <summary>
+        /// Gets or sets whether consumer tracking is enabled.
+        /// When enabled, consumers can register with the dashboard and send heartbeats.
+        /// </summary>
+        public bool EnableConsumerTracking { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the recommended heartbeat interval in seconds.
+        /// This value is returned to consumers during registration and also controls the pruning interval.
+        /// </summary>
+        public int ConsumerHeartbeatIntervalSeconds { get; set; } = 30;
+
+        /// <summary>
+        /// Gets or sets the number of seconds after which a consumer without a heartbeat is considered stale and pruned.
+        /// </summary>
+        public int ConsumerStaleThresholdSeconds { get; set; } = 90;
+
+        /// <summary>
         /// Internal list of connection registrations.
         /// </summary>
         internal List<DashboardConnectionRegistration> ConnectionRegistrations { get; } = new List<DashboardConnectionRegistration>();

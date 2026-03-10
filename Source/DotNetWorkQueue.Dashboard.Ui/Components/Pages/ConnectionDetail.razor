@@ -38,6 +38,15 @@ else
                                 <MudIcon Icon="@Icons.Material.Filled.Queue" Color="Color.Primary" />
                             </CardHeaderActions>
                         </MudCardHeader>
+                        @if (GetConsumerCount(queue.Id) > 0)
+                        {
+                            <MudCardContent>
+                                <MudChip T="string" Color="Color.Success" Variant="Variant.Outlined" Size="Size.Small"
+                                         Icon="@Icons.Material.Filled.People">
+                                    @GetConsumerCount(queue.Id) consumer@(GetConsumerCount(queue.Id) != 1 ? "s" : "")
+                                </MudChip>
+                            </MudCardContent>
+                        }
                     </MudCard>
                 </MudItem>
             }
@@ -79,6 +88,7 @@ else
 
     private List<QueueInfoResponse>? _queues;
     private List<JobResponse>? _jobs;
+    private Dictionary<Guid, int> _consumerCounts = new();
     private string? _connectionName;
     private bool _loading = true;
     private string? _error;
@@ -103,6 +113,7 @@ else
             var connectionsTask = Api.GetConnectionsAsync();
             var queuesTask = Api.GetQueuesAsync(ConnectionId);
             var jobsTask = Api.GetJobsAsync(ConnectionId);
+            var consumersTask = Api.GetConsumerCountsAsync();
             var connections = await connectionsTask;
             _connectionName = connections.FirstOrDefault(c => c.Id == ConnectionId)?.DisplayName;
             _breadcrumbs = new List<BreadcrumbItem>
@@ -112,6 +123,7 @@ else
             };
             _queues = await queuesTask;
             _jobs = await jobsTask;
+            _consumerCounts = await consumersTask;
         }
         catch (Exception ex)
         {
@@ -121,6 +133,11 @@ else
         {
             _loading = false;
         }
+    }
+
+    private int GetConsumerCount(Guid queueId)
+    {
+        return _consumerCounts.TryGetValue(queueId, out var count) ? count : 0;
     }
 
     private void NavigateToQueue(QueueInfoResponse queue)

@@ -56,6 +56,12 @@ namespace DotNetWorkQueue.Dashboard.Api
                 return new DashboardApi(opts);
             });
             services.AddSingleton<IDashboardService, DashboardService>();
+            services.AddSingleton<IConsumerRegistry, ConsumerRegistry>();
+
+            if (options.EnableConsumerTracking)
+            {
+                services.AddHostedService<ConsumerPruningService>();
+            }
             services.AddControllers(mvcOptions =>
                 {
                     mvcOptions.Filters.Add<DashboardExceptionFilter>();
