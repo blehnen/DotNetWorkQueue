@@ -94,6 +94,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         [TestMethod]
         public async Task ResetStale_Success()
         {
+            // Re-poll for stale messages; on slow CI the state from TestInitialize may shift
+            await DashboardPollingHelper.WaitForStaleAsync(_server.Client, _queueId);
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages/stale?thresholdSeconds=1");
             paged.Items.Should().NotBeEmpty();
