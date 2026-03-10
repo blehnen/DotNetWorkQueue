@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -64,12 +64,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
                 if (!TimeExpired())
                     return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
 
-                using (var ntp = new NtpClient(_configuration.Server, _configuration.Port))
-                {
-                    ntp.Timeout = _configuration.TimeOut;
-                    var ntpResponse = ntp.Query();
-                    _millisecondsDifference = (long)ntpResponse.CorrectionOffset.TotalMilliseconds;
-                }
+                var client = new NtpClient(_configuration.Server, _configuration.TimeOut, _configuration.Port);
+                var clock = client.Query();
+                _millisecondsDifference = (long)clock.CorrectionOffset.TotalMilliseconds;
+
                 ServerOffsetObtained = DateTime.UtcNow;
             }
             return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;

@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<RedisServerUnixTime>(LifeStyles.Singleton);
             container.Register<SntpUnixTime>(LifeStyles.Singleton);
 
-            container.Register<SntpTimeConfiguration>(LifeStyles.Singleton);
+            container.Register<Time.SntpTimeConfiguration>(LifeStyles.Singleton);
             container.Register<RedisHeaders>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, RedisQueueClearExpiredMessages>(LifeStyles.Singleton);
             container.Register<IClearErrorMessages, RedisQueueClearErrorMessages>(LifeStyles.Singleton);

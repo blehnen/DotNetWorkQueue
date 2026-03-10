@@ -169,9 +169,9 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 ## Third-Party Libraries
 
-**Core (DotNetWorkQueue):** [SimpleInjector](https://simpleinjector.org/index.html), [Polly](https://github.com/App-vNext/Polly), [Newtonsoft.Json](http://www.newtonsoft.com/json), [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-dotnet), [Microsoft.Extensions.Caching.Memory](https://github.com/dotnet/runtime), [Microsoft.IO.RecyclableMemoryStream](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream)
+**Core (DotNetWorkQueue):** [SimpleInjector](https://simpleinjector.org/index.html), [Polly](https://github.com/App-vNext/Polly), [Newtonsoft.Json](http://www.newtonsoft.com/json), [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-dotnet), [Microsoft.Extensions.Caching.Memory](https://github.com/dotnet/runtime), [Microsoft.IO.RecyclableMemoryStream](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream), [GuerrillaNtp](https://guerrillantp.machinezoo.com/)
 
-Custom libraries in `/Lib`: [Schyntax](https://github.com/blehnen/cs-schyntax), [Aq.ExpressionJsonSerializer](https://github.com/blehnen/expression-json-serializer), [JpLabs.DynamicCode](http://jp-labs.blogspot.com/2008/11/dynamic-lambda-expressions-using.html), [GuerrillaNTP](https://github.com/blehnen/GuerrillaNtp)
+Custom libraries in `/Lib`: [Schyntax](https://github.com/blehnen/cs-schyntax), [Aq.ExpressionJsonSerializer](https://github.com/blehnen/expression-json-serializer), [JpLabs.DynamicCode](http://jp-labs.blogspot.com/2008/11/dynamic-lambda-expressions-using.html)
 
 | Package | Dependencies |
 |---------|-------------|

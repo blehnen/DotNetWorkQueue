@@ -16,37 +16,27 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 
-namespace DotNetWorkQueue.Transport.Redis.Basic.Time
+namespace DotNetWorkQueue.Configuration
 {
     /// <summary>
-    /// Configuration class for the SNTP client used by the Redis transport.
+    /// Configuration for the SNTP time provider.
     /// </summary>
-    /// <remarks>Extends the core <see cref="Configuration.SntpTimeConfiguration"/> with Redis-specific defaults.</remarks>
-    public class SntpTimeConfiguration : DotNetWorkQueue.Configuration.SntpTimeConfiguration
+    public class SntpTimeConfiguration : BaseTimeConfiguration
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SntpTimeConfiguration"/> class.
         /// </summary>
         public SntpTimeConfiguration()
         {
-            Port = 123;
-            TimeOut = TimeSpan.FromSeconds(8);
+            Server = "pool.ntp.org";
         }
 
         /// <summary>
-        /// Gets or sets the NTP port.
+        /// Gets or sets the NTP server to query.
         /// </summary>
-        /// <value>The port.</value>
-        /// <remarks>Default is 123</remarks>
-        public int Port { get; set; }
-
-        /// <summary>
-        /// Gets or sets the timeout for querying the NTP server.
-        /// </summary>
-        /// <value>The timeout.</value>
-        /// <remarks>The default is 8 seconds</remarks>
-        public TimeSpan TimeOut { get; set; }
+        /// <value>The NTP server hostname.</value>
+        /// <remarks>Default is pool.ntp.org</remarks>
+        public string Server { get; set; }
     }
 }
