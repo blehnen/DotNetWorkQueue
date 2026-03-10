@@ -1,4 +1,4 @@
-### 0.9.1 — ????
+### 0.9.1 — 2026‑03‑09
 - **Breaking Change** — Replace `App.Metrics` with built-in `System.Diagnostics.Metrics`; `DotNetWorkQueue.AppMetrics` package is no longer needed. Users should configure OpenTelemetry.Metrics exporters in their host to collect metrics.
 - **Breaking Change** — Remove `SamplingTypes` enum from `IMetrics.Histogram()` and `IMetrics.Timer()` methods
 - **Breaking Change** — Replace `dynamic CollectedMetrics` property with typed `MetricsSnapshot GetCollectedMetrics()` on `IMetrics`
