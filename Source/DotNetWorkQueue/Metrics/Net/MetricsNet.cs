@@ -23,6 +23,7 @@ using System.Diagnostics.Metrics;
 
 namespace DotNetWorkQueue.Metrics.Net
 {
+    /// <inheritdoc />
     public class MetricsNet : IMetrics, IDisposable
     {
         private readonly Meter _meter;
@@ -30,17 +31,22 @@ namespace DotNetWorkQueue.Metrics.Net
         private readonly ConcurrentDictionary<string, MeterNet> _meters = new ConcurrentDictionary<string, MeterNet>();
         private readonly ConcurrentDictionary<string, IMetricsContext> _childContexts = new ConcurrentDictionary<string, IMetricsContext>();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MetricsNet"/> class.
+        /// </summary>
         public MetricsNet()
         {
             _meter = new Meter("DotNetWorkQueue");
         }
 
+        /// <inheritdoc />
         public IMetricsContext Context(string contextName)
         {
             return _childContexts.GetOrAdd(contextName,
                 name => new MetricsContextNet(new Meter($"{_meter.Name}.{name}")));
         }
 
+        /// <inheritdoc />
         public void ShutdownContext(string contextName)
         {
             if (_childContexts.TryRemove(contextName, out var context))
@@ -49,11 +55,13 @@ namespace DotNetWorkQueue.Metrics.Net
             }
         }
 
+        /// <inheritdoc />
         public void Gauge(string name, Func<double> valueProvider, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             _meter.CreateObservableGauge(name, valueProvider, unit.ToString());
         }
 
+        /// <inheritdoc />
         public ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             return _counters.GetOrAdd(name, n =>
@@ -64,6 +72,7 @@ namespace DotNetWorkQueue.Metrics.Net
             });
         }
 
+        /// <inheritdoc />
         public ICounter Counter(string name, string unitName, List<KeyValuePair<string, string>> tags = null)
         {
             return _counters.GetOrAdd(name, n =>
@@ -74,6 +83,7 @@ namespace DotNetWorkQueue.Metrics.Net
             });
         }
 
+        /// <inheritdoc />
         public IMeter Meter(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, List<KeyValuePair<string, string>> tags = null)
         {
             return _meters.GetOrAdd(name, n =>
@@ -84,6 +94,7 @@ namespace DotNetWorkQueue.Metrics.Net
             });
         }
 
+        /// <inheritdoc />
         public IMeter Meter(string name, string unitName, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
             return _meters.GetOrAdd(name, n =>
@@ -94,6 +105,7 @@ namespace DotNetWorkQueue.Metrics.Net
             });
         }
 
+        /// <inheritdoc />
         public IHistogram Histogram(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
             var sdmTags = TagsHelper.Convert(tags);
@@ -101,6 +113,7 @@ namespace DotNetWorkQueue.Metrics.Net
             return new HistogramNet(histogram, sdmTags);
         }
 
+        /// <inheritdoc />
         public ITimer Timer(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, List<KeyValuePair<string, string>> tags = null)
         {
             var sdmTags = TagsHelper.Convert(tags);
@@ -108,6 +121,7 @@ namespace DotNetWorkQueue.Metrics.Net
             return new TimerNet(histogram, sdmTags);
         }
 
+        /// <inheritdoc />
         public MetricsSnapshot GetCollectedMetrics()
         {
             var counters = new Dictionary<string, long>();
@@ -121,6 +135,7 @@ namespace DotNetWorkQueue.Metrics.Net
             return new MetricsSnapshot(counters, meters);
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             foreach (var child in _childContexts.Values)
