@@ -4,6 +4,7 @@
     <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	  <IsPackable>true</IsPackable>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <Version>0.9.1</Version>
     <Authors>Brian Lehnen</Authors>
