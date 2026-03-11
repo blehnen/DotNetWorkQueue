@@ -45,5 +45,12 @@ namespace DotNetWorkQueue.Dashboard.Api
         /// <param name="queueId">The queue identifier.</param>
         /// <returns>The internal container for the specified queue.</returns>
         IContainer GetQueueContainer(Guid queueId);
+
+        /// <summary>
+        /// Gets the maintenance service for a queue, if the dashboard is hosting maintenance for it.
+        /// </summary>
+        /// <param name="queueId">The queue identifier.</param>
+        /// <returns>The maintenance service, or null if not hosting maintenance for this queue.</returns>
+        IQueueMaintenanceService GetMaintenanceService(Guid queueId);
     }
 }

@@ -1,3 +1,8 @@
+### 0.9.5 — ???
+- Add `MaintenanceMode` configuration (`Consumer` / `External`) to `QueueConsumerConfiguration` — when set to `External`, consumers skip starting maintenance monitors (heartbeat reset, expiration cleanup, error cleanup) so they can run in a dedicated service instead
+- Add `IQueueMaintenanceService` / `QueueMaintenanceService` — standalone wrapper around the transport's `IQueueMonitor` for running maintenance tasks outside the consumer
+- Dashboard API: Add `HostMaintenance` per-queue option — when enabled, the dashboard eagerly starts maintenance monitors for the queue and exposes status via `GET /api/dashboard/queues/{id}/maintenance`
+  
 ### 0.9.4 — 2026‑03‑11
 - Switch from forked GuerrillaNtp DLLs to official [GuerrillaNtp 3.1.0](https://www.nuget.org/packages/GuerrillaNtp/) NuGet package
 - Move SNTP time provider (`SntpTime`) into the core library — any transport can now use NTP-synchronized time, not just Redis

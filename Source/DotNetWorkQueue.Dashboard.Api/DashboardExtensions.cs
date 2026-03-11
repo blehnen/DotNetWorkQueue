@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 
@@ -53,7 +54,9 @@ namespace DotNetWorkQueue.Dashboard.Api
             services.AddSingleton<IDashboardApi>(sp =>
             {
                 var opts = sp.GetRequiredService<DashboardOptions>();
-                return new DashboardApi(opts);
+                var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>()
+                    .CreateLogger<DashboardApi>();
+                return new DashboardApi(opts, logger);
             });
             services.AddSingleton<IDashboardService, DashboardService>();
             services.AddSingleton<IConsumerRegistry, ConsumerRegistry>();

@@ -18,46 +18,37 @@
 // ---------------------------------------------------------------------
 using System;
 
-namespace DotNetWorkQueue.Dashboard.Api
+namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Represents a single queue registered in the dashboard.
+    /// Runs queue maintenance tasks (heartbeat reset, expiration cleanup, error cleanup)
+    /// independently of consumer message processing.
     /// </summary>
-    public class DashboardQueueInfo
+    /// <remarks>
+    /// This service wraps the transport's <see cref="IQueueMonitor"/> and can be hosted
+    /// by the dashboard, a standalone service, or the consumer itself.
+    /// </remarks>
+    public interface IQueueMaintenanceService : IDisposable, IIsDisposed
     {
         /// <summary>
-        /// Gets the unique identifier for this queue.
+        /// Start maintenance monitors for the queue.
         /// </summary>
-        public Guid Id { get; internal set; }
+        void Start();
 
         /// <summary>
-        /// Gets the connection identifier this queue belongs to.
+        /// Stop maintenance monitors.
         /// </summary>
-        public Guid ConnectionId { get; internal set; }
+        void Stop();
 
         /// <summary>
-        /// Gets the queue name.
+        /// Gets a value indicating whether the maintenance service is currently running.
         /// </summary>
-        public string QueueName { get; internal set; }
+        bool IsRunning { get; }
 
         /// <summary>
-        /// Gets the connection string.
+        /// Gets the UTC timestamp of the last time any maintenance monitor completed a run.
+        /// Null if no run has completed yet.
         /// </summary>
-        public string ConnectionString { get; internal set; }
-
-        /// <summary>
-        /// Gets a value indicating whether this queue's transport is relational.
-        /// </summary>
-        public bool IsRelationalTransport { get; internal set; }
-
-        /// <summary>
-        /// Gets the optional interceptor configuration delegate.
-        /// </summary>
-        public Action<IContainer> InterceptorConfiguration { get; internal set; }
-
-        /// <summary>
-        /// Gets a value indicating whether the dashboard hosts maintenance monitors for this queue.
-        /// </summary>
-        public bool HostMaintenance { get; internal set; }
+        DateTime? LastRun { get; }
     }
 }

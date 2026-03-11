@@ -646,6 +646,21 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             return EditMessageBodyResult.Success;
         }
 
+        /// <inheritdoc />
+        public MaintenanceStatusResponse GetMaintenanceStatus(Guid queueId)
+        {
+            var queueInfo = _dashboardApi.FindQueue(queueId);
+            if (queueInfo == null)
+                throw new InvalidOperationException($"Queue id {queueId} was not found");
+
+            var service = _dashboardApi.GetMaintenanceService(queueId);
+            return new MaintenanceStatusResponse
+            {
+                HostMaintenance = queueInfo.HostMaintenance,
+                IsRunning = service?.IsRunning ?? false
+            };
+        }
+
         private IContainer GetContainer(Guid queueId)
         {
             return _dashboardApi.GetQueueContainer(queueId);

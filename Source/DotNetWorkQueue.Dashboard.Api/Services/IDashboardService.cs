@@ -105,5 +105,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// the original message type. Returns a <see cref="EditMessageBodyResult"/> indicating outcome.
         /// </summary>
         Task<EditMessageBodyResult> EditMessageBodyAsync(Guid queueId, string messageId, string bodyJson);
+
+        /// <summary>
+        /// Gets the maintenance service status for a queue.
+        /// </summary>
+        MaintenanceStatusResponse GetMaintenanceStatus(Guid queueId);
     }
 }

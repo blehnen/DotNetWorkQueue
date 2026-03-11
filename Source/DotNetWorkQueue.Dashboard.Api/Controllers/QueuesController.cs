@@ -66,6 +66,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         }
 
         /// <summary>
+        /// Gets maintenance service status for a queue.
+        /// </summary>
+        [HttpGet("{queueId:guid}/maintenance")]
+        [ProducesResponseType(typeof(MaintenanceStatusResponse), 200)]
+        [ProducesResponseType(404)]
+        public IActionResult GetMaintenanceStatus(Guid queueId)
+        {
+            return Ok(_service.GetMaintenanceStatus(queueId));
+        }
+
+        /// <summary>
         /// Gets a paged list of messages, optionally filtered by status.
         /// </summary>
         [HttpGet("{queueId:guid}/messages")]
