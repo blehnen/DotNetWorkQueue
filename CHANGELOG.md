@@ -1,4 +1,4 @@
-### 0.9.4 — ???
+### 0.9.4 — 2026‑03‑11
 - Switch from forked GuerrillaNtp DLLs to official [GuerrillaNtp 3.1.0](https://www.nuget.org/packages/GuerrillaNtp/) NuGet package
 - Move SNTP time provider (`SntpTime`) into the core library — any transport can now use NTP-synchronized time, not just Redis
 - Reuse a single `NtpClient` instance per provider for better performance (per official docs)
@@ -215,5 +215,6 @@
 
 ### 0.1.0 — 2015‑11‑03
 - Initial release to GitHub
+
 
 ---
