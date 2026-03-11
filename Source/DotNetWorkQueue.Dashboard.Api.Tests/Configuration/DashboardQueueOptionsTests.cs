@@ -20,5 +20,37 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             var opts = new DashboardQueueOptions();
             opts.InterceptorConfiguration.Should().BeNull();
         }
+
+        [TestMethod]
+        public void InterceptorProfile_Defaults_To_Null()
+        {
+            var opts = new DashboardQueueOptions();
+            opts.InterceptorProfile.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void InterceptorProfile_Can_Be_Set()
+        {
+            var opts = new DashboardQueueOptions { InterceptorProfile = "encrypted" };
+            opts.InterceptorProfile.Should().Be("encrypted");
+        }
+
+        [TestMethod]
+        public void Interceptors_Defaults_To_Null()
+        {
+            var opts = new DashboardQueueOptions();
+            opts.Interceptors.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Interceptors_Can_Be_Set()
+        {
+            var interceptors = new DashboardInterceptorOptions
+            {
+                GZip = new GZipInterceptorOptions()
+            };
+            var opts = new DashboardQueueOptions { Interceptors = interceptors };
+            opts.Interceptors.Should().BeSameAs(interceptors);
+        }
     }
 }

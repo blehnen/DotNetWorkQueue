@@ -33,7 +33,21 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         /// <summary>
         /// Optional per-queue container configuration delegate.
         /// Used to register interceptors using the same pattern as QueueContainer.
+        /// Takes highest priority when resolving interceptor configuration.
         /// </summary>
         public Action<IContainer> InterceptorConfiguration { get; set; }
+
+        /// <summary>
+        /// Optional name of a registered interceptor profile.
+        /// Profiles are registered via <see cref="DashboardOptions.AddInterceptorProfile"/>.
+        /// Used when <see cref="InterceptorConfiguration"/> is null.
+        /// </summary>
+        public string InterceptorProfile { get; set; }
+
+        /// <summary>
+        /// Optional JSON-bindable interceptor options for built-in interceptors (GZip, TripleDES).
+        /// Used when both <see cref="InterceptorConfiguration"/> and <see cref="InterceptorProfile"/> are null.
+        /// </summary>
+        public DashboardInterceptorOptions Interceptors { get; set; }
     }
 }

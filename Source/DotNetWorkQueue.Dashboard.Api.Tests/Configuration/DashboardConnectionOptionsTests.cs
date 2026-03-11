@@ -44,5 +44,31 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             opts.AddQueue("Queue3");
             opts.Queues.Should().HaveCount(3);
         }
+
+        [TestMethod]
+        public void AddQueueWithProfile_Stores_Profile_Name()
+        {
+            var opts = new DashboardConnectionOptions();
+            opts.AddQueueWithProfile("TestQueue", "encrypted");
+            opts.Queues.Should().HaveCount(1);
+            opts.Queues[0].QueueName.Should().Be("TestQueue");
+            opts.Queues[0].InterceptorProfile.Should().Be("encrypted");
+            opts.Queues[0].InterceptorConfiguration.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void AddQueue_With_InterceptorOptions_Stores_Options()
+        {
+            var opts = new DashboardConnectionOptions();
+            var interceptors = new DashboardInterceptorOptions
+            {
+                GZip = new GZipInterceptorOptions { MinimumSize = 200 }
+            };
+            opts.AddQueue("TestQueue", interceptors);
+            opts.Queues.Should().HaveCount(1);
+            opts.Queues[0].QueueName.Should().Be("TestQueue");
+            opts.Queues[0].Interceptors.Should().BeSameAs(interceptors);
+            opts.Queues[0].InterceptorConfiguration.Should().BeNull();
+        }
     }
 }

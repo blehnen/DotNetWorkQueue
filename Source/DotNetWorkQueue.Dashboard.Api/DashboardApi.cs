@@ -100,6 +100,9 @@ namespace DotNetWorkQueue.Dashboard.Api
                         queueOption.QueueName,
                         registration.ConnectionString);
 
+                    var resolvedInterceptorConfig = InterceptorConfigurationBuilder.Resolve(
+                        queueOption, options.InterceptorProfiles);
+
                     var queueInfo = new DashboardQueueInfo
                     {
                         Id = queueId,
@@ -107,11 +110,11 @@ namespace DotNetWorkQueue.Dashboard.Api
                         QueueName = queueOption.QueueName,
                         ConnectionString = registration.ConnectionString,
                         IsRelationalTransport = isRelational,
-                        InterceptorConfiguration = queueOption.InterceptorConfiguration
+                        InterceptorConfiguration = resolvedInterceptorConfig
                     };
 
                     _queues[queueId] = queueInfo;
-                    _queueContainerMap[queueId] = new Tuple<IQueueContainer, QueueConnection, Action<IContainer>>(queueContainer, queueConnection, queueOption.InterceptorConfiguration);
+                    _queueContainerMap[queueId] = new Tuple<IQueueContainer, QueueConnection, Action<IContainer>>(queueContainer, queueConnection, resolvedInterceptorConfig);
                     queueInfos.Add(queueInfo);
                 }
 
