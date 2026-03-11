@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
-    <Version>0.9.3</Version>
+    <Version>0.9.4</Version>
     <Authors>Brian Lehnen</Authors>
     <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <Description>Dashboard API for DotNetWorkQueue - provides REST endpoints for monitoring and managing queues</Description>

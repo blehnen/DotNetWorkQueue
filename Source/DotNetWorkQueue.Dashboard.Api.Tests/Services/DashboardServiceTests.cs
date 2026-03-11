@@ -4,7 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Factory;
+using DotNetWorkQueue.Interceptors;
+using Newtonsoft.Json;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -350,7 +353,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             result.Should().NotBeNull();
             result.Body.Should().BeNull();
-            result.DecodingError.Should().Be("Bad headers");
+            result.DecodingError.Should().Contain("Bad headers");
+            result.DecodingError.Should().Contain("Failed to decode message headers");
         }
 
         [TestMethod]
@@ -536,6 +540,223 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<IMessageFactory>().Returns(new MessageFactory());
 
             return container;
+        }
+
+        [TestMethod]
+        public async Task GetMessageBody_InterceptorException_Returns_Friendly_Error_With_Interceptor_Names()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var bodyBytes = new byte[] { 1, 2, 3 };
+            var headerBytes = new byte[] { 4, 5, 6 };
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult(new DashboardMessageBody
+            {
+                Body = bodyBytes,
+                Headers = headerBytes
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
+
+            // Build a graph that includes TripleDES and GZip interceptor types
+            var graph = new MessageInterceptorsGraph();
+            graph.Add(typeof(TripleDesMessageInterceptor));
+            graph.Add(typeof(GZipMessageInterceptor));
+            var headers = new Dictionary<string, object> { { "Queue-MessageInterceptorGraph", graph } };
+
+            var internalSerializer = Substitute.For<IInternalSerializer>();
+            internalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerBytes).Returns(headers);
+
+            var innerEx = new System.Security.Cryptography.CryptographicException("Padding is invalid and cannot be removed.");
+            var serializer = Substitute.For<ASerializer>(Substitute.For<IMessageInterceptorRegistrar>());
+            serializer.BytesToMessage<MessageBody>(bodyBytes, graph, Arg.Any<IDictionary<string, object>>())
+                .Throws(new InterceptorException("An error has occurred while intercepting message de-serialization", innerEx));
+
+            var compositeSerialization = Substitute.For<ICompositeSerialization>();
+            compositeSerialization.InternalSerializer.Returns(internalSerializer);
+            compositeSerialization.Serializer.Returns(serializer);
+            container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
+
+            var standardHeaders = Substitute.For<IHeaders>();
+            var messageInterceptorGraphData = Substitute.For<IMessageContextData<MessageInterceptorsGraph>>();
+            messageInterceptorGraphData.Name.Returns("Queue-MessageInterceptorGraph");
+            standardHeaders.StandardHeaders.MessageInterceptorGraph.Returns(messageInterceptorGraphData);
+            container.GetInstance<IHeaders>().Returns(standardHeaders);
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, "42");
+
+            result.Should().NotBeNull();
+            result.Body.Should().BeNull();
+            result.DecodingError.Should().Contain("TripleDesMessageInterceptor");
+            result.DecodingError.Should().Contain("GZipMessageInterceptor");
+            result.DecodingError.Should().Contain("Padding is invalid and cannot be removed");
+            result.DecodingError.Should().Contain("Verify that the dashboard has the same interceptors configured");
+            result.WasIntercepted.Should().BeTrue();
+            result.InterceptorChain.Should().HaveCount(2);
+            result.InterceptorChain.Should().Contain("TripleDesMessageInterceptor");
+            result.InterceptorChain.Should().Contain("GZipMessageInterceptor");
+        }
+
+        [TestMethod]
+        public async Task GetMessageBody_SerializationException_Returns_Friendly_Error_About_Missing_Type()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var bodyBytes = new byte[] { 1, 2, 3 };
+            var headerBytes = new byte[] { 4, 5, 6 };
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult(new DashboardMessageBody
+            {
+                Body = bodyBytes,
+                Headers = headerBytes
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
+
+            var graph = new MessageInterceptorsGraph();
+            var headers = new Dictionary<string, object> { { "Queue-MessageInterceptorGraph", graph } };
+
+            var internalSerializer = Substitute.For<IInternalSerializer>();
+            internalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerBytes).Returns(headers);
+
+            var innerEx = new JsonSerializationException("Could not load assembly 'MyApp.Messages'.");
+            var serializer = Substitute.For<ASerializer>(Substitute.For<IMessageInterceptorRegistrar>());
+            serializer.BytesToMessage<MessageBody>(bodyBytes, graph, Arg.Any<IDictionary<string, object>>())
+                .Throws(new SerializationException("An error has occurred when de-serializing a message", innerEx));
+
+            var compositeSerialization = Substitute.For<ICompositeSerialization>();
+            compositeSerialization.InternalSerializer.Returns(internalSerializer);
+            compositeSerialization.Serializer.Returns(serializer);
+            container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
+
+            var standardHeaders = Substitute.For<IHeaders>();
+            var messageInterceptorGraphData = Substitute.For<IMessageContextData<MessageInterceptorsGraph>>();
+            messageInterceptorGraphData.Name.Returns("Queue-MessageInterceptorGraph");
+            standardHeaders.StandardHeaders.MessageInterceptorGraph.Returns(messageInterceptorGraphData);
+            container.GetInstance<IHeaders>().Returns(standardHeaders);
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, "42");
+
+            result.Should().NotBeNull();
+            result.Body.Should().BeNull();
+            result.DecodingError.Should().Contain("assembly");
+            result.DecodingError.Should().Contain("Could not load assembly");
+            result.DecodingError.Should().Contain("ensure the assembly containing the message type is available");
+            result.WasIntercepted.Should().BeFalse();
+            result.InterceptorChain.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task GetMessageBody_GenericException_During_Body_Decode_Includes_Interceptor_Info()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var bodyBytes = new byte[] { 1, 2, 3 };
+            var headerBytes = new byte[] { 4, 5, 6 };
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult(new DashboardMessageBody
+            {
+                Body = bodyBytes,
+                Headers = headerBytes
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
+
+            var graph = new MessageInterceptorsGraph();
+            graph.Add(typeof(GZipMessageInterceptor));
+            var headers = new Dictionary<string, object> { { "Queue-MessageInterceptorGraph", graph } };
+
+            var internalSerializer = Substitute.For<IInternalSerializer>();
+            internalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerBytes).Returns(headers);
+
+            var serializer = Substitute.For<ASerializer>(Substitute.For<IMessageInterceptorRegistrar>());
+            serializer.BytesToMessage<MessageBody>(bodyBytes, graph, Arg.Any<IDictionary<string, object>>())
+                .Throws(new Exception("Unexpected deserialization failure"));
+
+            var compositeSerialization = Substitute.For<ICompositeSerialization>();
+            compositeSerialization.InternalSerializer.Returns(internalSerializer);
+            compositeSerialization.Serializer.Returns(serializer);
+            container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
+
+            var standardHeaders = Substitute.For<IHeaders>();
+            var messageInterceptorGraphData = Substitute.For<IMessageContextData<MessageInterceptorsGraph>>();
+            messageInterceptorGraphData.Name.Returns("Queue-MessageInterceptorGraph");
+            standardHeaders.StandardHeaders.MessageInterceptorGraph.Returns(messageInterceptorGraphData);
+            container.GetInstance<IHeaders>().Returns(standardHeaders);
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, "42");
+
+            result.Should().NotBeNull();
+            result.Body.Should().BeNull();
+            result.DecodingError.Should().Be("Unexpected deserialization failure");
+            // Even for generic exceptions, interceptor info should be populated since headers parsed OK
+            result.WasIntercepted.Should().BeTrue();
+            result.InterceptorChain.Should().HaveCount(1);
+            result.InterceptorChain.Should().Contain("GZipMessageInterceptor");
+        }
+
+        [TestMethod]
+        public async Task GetMessageBody_With_Interceptors_Happy_Path()
+        {
+            var api = CreateApi(out _, out var queueId);
+            var container = Substitute.For<IContainer>();
+            api.GetQueueContainer(queueId).Returns(container);
+
+            var bodyBytes = new byte[] { 1, 2, 3 };
+            var headerBytes = new byte[] { 4, 5, 6 };
+
+            var handler = Substitute.For<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
+            handler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult(new DashboardMessageBody
+            {
+                Body = bodyBytes,
+                Headers = headerBytes
+            }));
+            container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
+
+            var graph = new MessageInterceptorsGraph();
+            graph.Add(typeof(TripleDesMessageInterceptor));
+            graph.Add(typeof(GZipMessageInterceptor));
+            var headers = new Dictionary<string, object> { { "Queue-MessageInterceptorGraph", graph } };
+
+            var internalSerializer = Substitute.For<IInternalSerializer>();
+            internalSerializer.ConvertBytesTo<IDictionary<string, object>>(headerBytes).Returns(headers);
+
+            var serializer = Substitute.For<ASerializer>(Substitute.For<IMessageInterceptorRegistrar>());
+            serializer.BytesToMessage<MessageBody>(bodyBytes, graph, Arg.Any<IDictionary<string, object>>())
+                .Returns(new MessageBody { Body = "decrypted and decompressed" });
+
+            var compositeSerialization = Substitute.For<ICompositeSerialization>();
+            compositeSerialization.InternalSerializer.Returns(internalSerializer);
+            compositeSerialization.Serializer.Returns(serializer);
+            container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
+
+            var standardHeaders = Substitute.For<IHeaders>();
+            var messageInterceptorGraphData = Substitute.For<IMessageContextData<MessageInterceptorsGraph>>();
+            messageInterceptorGraphData.Name.Returns("Queue-MessageInterceptorGraph");
+            standardHeaders.StandardHeaders.MessageInterceptorGraph.Returns(messageInterceptorGraphData);
+            container.GetInstance<IHeaders>().Returns(standardHeaders);
+
+            container.GetInstance<IMessageFactory>().Returns(new MessageFactory());
+
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var result = await service.GetMessageBodyAsync(queueId, "42");
+
+            result.Should().NotBeNull();
+            result.Body.Should().NotBeNullOrEmpty();
+            result.DecodingError.Should().BeNull();
+            result.WasIntercepted.Should().BeTrue();
+            result.InterceptorChain.Should().HaveCount(2);
+            result.InterceptorChain.Should().Contain("TripleDesMessageInterceptor");
+            result.InterceptorChain.Should().Contain("GZipMessageInterceptor");
         }
 
         [TestMethod]

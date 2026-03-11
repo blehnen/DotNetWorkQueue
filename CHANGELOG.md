@@ -3,6 +3,9 @@
 - Move SNTP time provider (`SntpTime`) into the core library — any transport can now use NTP-synchronized time, not just Redis
 - Reuse a single `NtpClient` instance per provider for better performance (per official docs)
 - Delete `Lib/GuerrillaNtp/` (no longer needed)
+- Dashboard API: Add JSON-bindable interceptor configuration — built-in GZip and TripleDES interceptors can now be configured entirely from `appsettings.json`
+- Dashboard API: Add named interceptor profiles (`AddInterceptorProfile`) — register reusable interceptor configs by name, reference per-queue
+- Dashboard API: Improve error messages when viewing message bodies fails — interceptor misconfiguration (wrong key, missing interceptor) and missing message type assemblies now return actionable guidance instead of a generic 500
 
 ### 0.9.3 — 2026‑03‑10
 - Add consumer tracking to Dashboard API — consumers register via HTTP, send heartbeats, and are automatically pruned when stale

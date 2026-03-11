@@ -59,5 +59,34 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
                 InterceptorConfiguration = configureInterceptors
             });
         }
+
+        /// <summary>
+        /// Add a queue to monitor using a named interceptor profile.
+        /// Profiles are registered via <see cref="DashboardOptions.AddInterceptorProfile"/>.
+        /// </summary>
+        /// <param name="queueName">The name of the queue.</param>
+        /// <param name="interceptorProfile">The name of a registered interceptor profile.</param>
+        public void AddQueueWithProfile(string queueName, string interceptorProfile)
+        {
+            Queues.Add(new DashboardQueueOptions
+            {
+                QueueName = queueName,
+                InterceptorProfile = interceptorProfile
+            });
+        }
+
+        /// <summary>
+        /// Add a queue to monitor with JSON-bindable interceptor options for built-in interceptors.
+        /// </summary>
+        /// <param name="queueName">The name of the queue.</param>
+        /// <param name="interceptors">The interceptor options.</param>
+        public void AddQueue(string queueName, DashboardInterceptorOptions interceptors)
+        {
+            Queues.Add(new DashboardQueueOptions
+            {
+                QueueName = queueName,
+                Interceptors = interceptors
+            });
+        }
     }
 }

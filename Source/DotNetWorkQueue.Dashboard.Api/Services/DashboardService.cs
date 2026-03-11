@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Dashboard.Api.Models;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -255,16 +256,59 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             if (result == null)
                 return null;
 
+            // Parse headers first — this succeeds even when interceptors are misconfigured,
+            // and lets us report which interceptors the message requires.
+            ICompositeSerialization serialization = null;
+            IDictionary<string, object> headers = null;
+            MessageInterceptorsGraph graph;
+            List<string> interceptorTypes;
+            bool wasIntercepted;
+
             try
             {
-                var serialization = container.GetInstance<ICompositeSerialization>();
-                var headers = serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(result.Headers);
+                serialization = container.GetInstance<ICompositeSerialization>();
+                headers = serialization.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(result.Headers);
 
                 var standardHeaders = container.GetInstance<IHeaders>();
-                var graph = (MessageInterceptorsGraph)headers[standardHeaders.StandardHeaders.MessageInterceptorGraph.Name];
-                var interceptorTypes = graph.Types.Select(t => t.Name).ToList();
-                var wasIntercepted = interceptorTypes.Count > 0;
+                graph = (MessageInterceptorsGraph)headers[standardHeaders.StandardHeaders.MessageInterceptorGraph.Name];
+                interceptorTypes = graph.Types.Select(t => t.Name).ToList();
+                wasIntercepted = interceptorTypes.Count > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to decode headers for message {MessageId} in queue {QueueId}", messageId, queueId);
 
+                // Try to extract interceptor info from partially-parsed headers
+                var partialInterceptors = new List<string>();
+                try
+                {
+                    if (headers != null)
+                    {
+                        var standardHeaders = container.GetInstance<IHeaders>();
+                        var partialGraph = (MessageInterceptorsGraph)headers[standardHeaders.StandardHeaders.MessageInterceptorGraph.Name];
+                        partialInterceptors = partialGraph.Types.Select(t => t.Name).ToList();
+                    }
+                }
+                catch
+                {
+                    // Best effort — if we can't get interceptor info, return empty list
+                }
+
+                var hasInterceptors = partialInterceptors.Count > 0;
+                var errorMessage = hasInterceptors
+                    ? $"Failed to decode message headers. The message uses interceptors [{string.Join(", ", partialInterceptors)}]. Details: {ex.Message}"
+                    : $"Failed to decode message headers. Details: {ex.Message}";
+
+                return new MessageBodyResponse
+                {
+                    DecodingError = errorMessage,
+                    WasIntercepted = hasInterceptors,
+                    InterceptorChain = partialInterceptors
+                };
+            }
+
+            try
+            {
                 var decodedBody = serialization.Serializer.BytesToMessage<MessageBody>(result.Body, graph, headers).Body;
                 var messageFactory = container.GetInstance<IMessageFactory>();
                 var newMessage = messageFactory.Create(decodedBody, headers);
@@ -314,14 +358,46 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                     InterceptorChain = interceptorTypes
                 };
             }
+            catch (InterceptorException ex)
+            {
+                _logger.LogError(ex, "Interceptor failed to decode body for message {MessageId} in queue {QueueId}", messageId, queueId);
+
+                var innerMessage = ex.InnerException?.Message;
+                var errorMessage = $"Failed to decode message body — the message was encoded with interceptors [{string.Join(", ", interceptorTypes)}] " +
+                    $"but decoding failed. Verify that the dashboard has the same interceptors configured with the correct keys/settings. " +
+                    $"Details: {innerMessage ?? ex.Message}";
+
+                return new MessageBodyResponse
+                {
+                    DecodingError = errorMessage,
+                    WasIntercepted = wasIntercepted,
+                    InterceptorChain = interceptorTypes
+                };
+            }
+            catch (SerializationException ex)
+            {
+                _logger.LogError(ex, "Deserialization failed for message {MessageId} in queue {QueueId}", messageId, queueId);
+
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+                var errorMessage = $"Failed to deserialize message body. " +
+                    $"The message type may not be loadable — ensure the assembly containing the message type is available in the dashboard's bin folder. " +
+                    $"Details: {innerMessage}";
+
+                return new MessageBodyResponse
+                {
+                    DecodingError = errorMessage,
+                    WasIntercepted = wasIntercepted,
+                    InterceptorChain = interceptorTypes
+                };
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to decode body for message {MessageId} in queue {QueueId}", messageId, queueId);
                 return new MessageBodyResponse
                 {
                     DecodingError = ex.Message,
-                    WasIntercepted = false,
-                    InterceptorChain = new List<string>()
+                    WasIntercepted = wasIntercepted,
+                    InterceptorChain = interceptorTypes
                 };
             }
         }
@@ -513,6 +589,16 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                     var graph = (MessageInterceptorsGraph)headers[standardHeaders.StandardHeaders.MessageInterceptorGraph.Name];
                     var decodedBody = serialization.Serializer.BytesToMessage<MessageBody>(rawData.Body, graph, headers).Body;
                     resolvedType = ((object)decodedBody)?.GetType();
+                }
+                catch (InterceptorException ex)
+                {
+                    var interceptorNames = string.Join(", ",
+                        ((MessageInterceptorsGraph)headers[standardHeaders.StandardHeaders.MessageInterceptorGraph.Name])
+                        .Types.Select(t => t.Name));
+                    _logger.LogWarning(ex,
+                        "Interceptor failed to decode body for message {MessageId} — message uses interceptors [{Interceptors}]. " +
+                        "Verify that the dashboard has the same interceptors configured with the correct keys/settings",
+                        messageId, interceptorNames);
                 }
                 catch (Exception ex)
                 {

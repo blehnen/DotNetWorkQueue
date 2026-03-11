@@ -69,6 +69,27 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         internal List<DashboardConnectionRegistration> ConnectionRegistrations { get; } = new List<DashboardConnectionRegistration>();
 
         /// <summary>
+        /// Internal dictionary of named interceptor profiles.
+        /// </summary>
+        internal Dictionary<string, Action<IContainer>> InterceptorProfiles { get; } = new Dictionary<string, Action<IContainer>>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Register a named interceptor profile that can be referenced by queue options via
+        /// <see cref="DashboardQueueOptions.InterceptorProfile"/> or from JSON configuration.
+        /// </summary>
+        /// <param name="name">The profile name (case-insensitive).</param>
+        /// <param name="configure">Container configuration delegate that registers interceptors.</param>
+        public void AddInterceptorProfile(string name, Action<IContainer> configure)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Profile name cannot be null or empty.", nameof(name));
+            if (configure == null)
+                throw new ArgumentNullException(nameof(configure));
+
+            InterceptorProfiles[name] = configure;
+        }
+
+        /// <summary>
         /// Register a transport connection with its queues.
         /// </summary>
         /// <typeparam name="TTransportInit">The transport initialization type.</typeparam>
