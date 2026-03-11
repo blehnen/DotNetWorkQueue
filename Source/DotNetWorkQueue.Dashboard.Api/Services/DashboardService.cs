@@ -258,8 +258,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
 
             // Parse headers first — this succeeds even when interceptors are misconfigured,
             // and lets us report which interceptors the message requires.
-            ICompositeSerialization serialization;
-            IDictionary<string, object> headers;
+            ICompositeSerialization serialization = null;
+            IDictionary<string, object> headers = null;
             MessageInterceptorsGraph graph;
             List<string> interceptorTypes;
             bool wasIntercepted;
@@ -277,11 +277,33 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to decode headers for message {MessageId} in queue {QueueId}", messageId, queueId);
+
+                // Try to extract interceptor info from partially-parsed headers
+                var partialInterceptors = new List<string>();
+                try
+                {
+                    if (headers != null)
+                    {
+                        var standardHeaders = container.GetInstance<IHeaders>();
+                        var partialGraph = (MessageInterceptorsGraph)headers[standardHeaders.StandardHeaders.MessageInterceptorGraph.Name];
+                        partialInterceptors = partialGraph.Types.Select(t => t.Name).ToList();
+                    }
+                }
+                catch
+                {
+                    // Best effort — if we can't get interceptor info, return empty list
+                }
+
+                var hasInterceptors = partialInterceptors.Count > 0;
+                var errorMessage = hasInterceptors
+                    ? $"Failed to decode message headers. The message uses interceptors [{string.Join(", ", partialInterceptors)}]. Details: {ex.Message}"
+                    : $"Failed to decode message headers. Details: {ex.Message}";
+
                 return new MessageBodyResponse
                 {
-                    DecodingError = ex.Message,
-                    WasIntercepted = false,
-                    InterceptorChain = new List<string>()
+                    DecodingError = errorMessage,
+                    WasIntercepted = hasInterceptors,
+                    InterceptorChain = partialInterceptors
                 };
             }
 

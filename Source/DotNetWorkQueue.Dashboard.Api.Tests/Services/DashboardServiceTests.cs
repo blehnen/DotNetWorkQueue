@@ -353,7 +353,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             result.Should().NotBeNull();
             result.Body.Should().BeNull();
-            result.DecodingError.Should().Be("Bad headers");
+            result.DecodingError.Should().Contain("Bad headers");
+            result.DecodingError.Should().Contain("Failed to decode message headers");
         }
 
         [TestMethod]
