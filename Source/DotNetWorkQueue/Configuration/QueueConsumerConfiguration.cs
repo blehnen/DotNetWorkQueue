@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Configuration
@@ -106,6 +108,24 @@ namespace DotNetWorkQueue.Configuration
         /// </summary>
         public Dictionary<string, object> AdditionalSettings { get; }
 
+        private MaintenanceMode _maintenanceMode = MaintenanceMode.Consumer;
+        /// <summary>
+        /// Gets or sets where maintenance tasks run. Default is <see cref="MaintenanceMode.Consumer"/> (backward compatible).
+        /// </summary>
+        /// <remarks>
+        /// When set to <see cref="MaintenanceMode.External"/>, the consumer does NOT run maintenance monitors
+        /// (heartbeat reset, expiration cleanup, error cleanup). Per-message heartbeat updates are unaffected.
+        /// </remarks>
+        public MaintenanceMode MaintenanceMode
+        {
+            get => _maintenanceMode;
+            set
+            {
+                FailIfReadOnly();
+                _maintenanceMode = value;
+            }
+        }
+
         /// <summary>
         /// Gets a value indicating whether this instance is read only.
         /// </summary>
@@ -132,6 +152,18 @@ namespace DotNetWorkQueue.Configuration
         public void SetReadOnly()
         {
             IsReadOnly = true;
+        }
+
+        /// <summary>
+        /// Throws if the read only flag has been set
+        /// </summary>
+        /// <exception cref="DotNetWorkQueueException"></exception>
+        protected void FailIfReadOnly()
+        {
+            if (IsReadOnly)
+            {
+                throw new InvalidOperationException("The configuration is read-only and cannot be modified.");
+            }
         }
         #endregion
     }

@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -16,29 +16,23 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
 
-namespace DotNetWorkQueue
+namespace DotNetWorkQueue.Configuration
 {
     /// <summary>
-    /// A process that performs actions on a queue
+    /// Controls where queue maintenance tasks (heartbeat reset, expiration cleanup, error cleanup) execute.
     /// </summary>
-    public interface IMonitor : IDisposable, IIsDisposed
+    public enum MaintenanceMode
     {
         /// <summary>
-        /// Starts the monitor process.
+        /// Each consumer runs its own maintenance monitors. This is the default and preserves backward-compatible behavior.
         /// </summary>
-        void Start();
+        Consumer,
 
         /// <summary>
-        /// Stops the monitor process.
+        /// Maintenance is hosted externally (dashboard, standalone service, etc.).
+        /// The consumer does NOT run maintenance monitors. Per-message heartbeat updates are unaffected.
         /// </summary>
-        void Stop();
-
-        /// <summary>
-        /// Gets the UTC timestamp of the last time this monitor completed a run.
-        /// Null if no run has completed yet.
-        /// </summary>
-        DateTime? LastRunUtc { get; }
+        External
     }
 }

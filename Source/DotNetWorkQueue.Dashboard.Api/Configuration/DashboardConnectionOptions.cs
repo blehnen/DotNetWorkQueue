@@ -41,9 +41,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         /// Add a queue to monitor with no interceptor overrides.
         /// </summary>
         /// <param name="queueName">The name of the queue.</param>
-        public void AddQueue(string queueName)
+        /// <param name="hostMaintenance">When true, the dashboard runs maintenance monitors for this queue.</param>
+        public void AddQueue(string queueName, bool hostMaintenance = false)
         {
-            Queues.Add(new DashboardQueueOptions { QueueName = queueName });
+            Queues.Add(new DashboardQueueOptions { QueueName = queueName, HostMaintenance = hostMaintenance });
         }
 
         /// <summary>

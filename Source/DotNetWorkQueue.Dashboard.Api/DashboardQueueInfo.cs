@@ -54,5 +54,10 @@ namespace DotNetWorkQueue.Dashboard.Api
         /// Gets the optional interceptor configuration delegate.
         /// </summary>
         public Action<IContainer> InterceptorConfiguration { get; internal set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the dashboard hosts maintenance monitors for this queue.
+        /// </summary>
+        public bool HostMaintenance { get; internal set; }
     }
 }

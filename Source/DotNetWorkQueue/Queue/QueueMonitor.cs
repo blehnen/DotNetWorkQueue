@@ -101,6 +101,22 @@ namespace DotNetWorkQueue.Queue
             }
         }
 
+        /// <inheritdoc />
+        public DateTime? LastRunUtc
+        {
+            get
+            {
+                DateTime? latest = null;
+                foreach (var monitor in _monitors)
+                {
+                    var ts = monitor.LastRunUtc;
+                    if (ts.HasValue && (!latest.HasValue || ts.Value > latest.Value))
+                        latest = ts;
+                }
+                return latest;
+            }
+        }
+
         /// <summary>
         /// Stops the monitor process.
         /// </summary>

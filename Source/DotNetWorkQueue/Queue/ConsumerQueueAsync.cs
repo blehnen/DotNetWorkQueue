@@ -120,7 +120,10 @@ namespace DotNetWorkQueue.Queue
 
             ShouldWork = true;
             _registerMessagesAsync.Register(workerAction);
-            _queueMonitor.Start();
+            if (_configuration.MaintenanceMode == DotNetWorkQueue.Configuration.MaintenanceMode.Consumer)
+            {
+                _queueMonitor.Start();
+            }
             _primaryWorker.Value.Start();
             _configuration.SetReadOnly();
             base.SetupNotifications(notifications);
@@ -136,7 +139,11 @@ namespace DotNetWorkQueue.Queue
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
             //stop monitor process(es)
-            _queueMonitor.Stop();
+            if (_configuration.MaintenanceMode == DotNetWorkQueue.Configuration.MaintenanceMode.Consumer
+                && !_queueMonitor.IsDisposed)
+            {
+                _queueMonitor.Stop();
+            }
 
             //tell the worker to stop
             if (_primaryWorker.IsValueCreated)

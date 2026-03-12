@@ -23,6 +23,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Dashboard.Api
 {
@@ -36,21 +37,27 @@ namespace DotNetWorkQueue.Dashboard.Api
         private readonly List<IQueueContainer> _queueContainers;
         private readonly ConcurrentDictionary<Guid, IContainer> _adminContainers;
         private readonly ConcurrentDictionary<Guid, Tuple<IQueueContainer, QueueConnection, Action<IContainer>>> _queueContainerMap;
+        private readonly ConcurrentDictionary<Guid, IQueueMaintenanceService> _maintenanceServices;
+        private readonly ILogger<DashboardApi> _logger;
         private int _disposeCount;
 
         /// <summary>
         /// Creates a new DashboardApi from the provided options.
         /// </summary>
         /// <param name="options">The dashboard configuration options.</param>
-        public DashboardApi(DashboardOptions options)
+        /// <param name="logger">The logger.</param>
+        public DashboardApi(DashboardOptions options, ILogger<DashboardApi> logger)
         {
             _connections = new Dictionary<Guid, DashboardConnectionInfo>();
             _queues = new Dictionary<Guid, DashboardQueueInfo>();
             _queueContainers = new List<IQueueContainer>();
             _adminContainers = new ConcurrentDictionary<Guid, IContainer>();
             _queueContainerMap = new ConcurrentDictionary<Guid, Tuple<IQueueContainer, QueueConnection, Action<IContainer>>>();
+            _maintenanceServices = new ConcurrentDictionary<Guid, IQueueMaintenanceService>();
+            _logger = logger;
 
             InitializeFromOptions(options);
+            StartMaintenanceServices();
         }
 
         /// <inheritdoc />
@@ -78,6 +85,14 @@ namespace DotNetWorkQueue.Dashboard.Api
             var container = data.Item1.CreateAdminContainer(data.Item2, data.Item3);
             _adminContainers.TryAdd(queueId, container);
             return container;
+        }
+
+        /// <inheritdoc />
+        public IQueueMaintenanceService GetMaintenanceService(Guid queueId)
+        {
+            ThrowIfDisposed();
+            _maintenanceServices.TryGetValue(queueId, out var service);
+            return service;
         }
 
         private void InitializeFromOptions(DashboardOptions options)
@@ -110,7 +125,8 @@ namespace DotNetWorkQueue.Dashboard.Api
                         QueueName = queueOption.QueueName,
                         ConnectionString = registration.ConnectionString,
                         IsRelationalTransport = isRelational,
-                        InterceptorConfiguration = resolvedInterceptorConfig
+                        InterceptorConfiguration = resolvedInterceptorConfig,
+                        HostMaintenance = queueOption.HostMaintenance
                     };
 
                     _queues[queueId] = queueInfo;
@@ -126,6 +142,32 @@ namespace DotNetWorkQueue.Dashboard.Api
                     IsRelationalTransport = isRelational,
                     Queues = queueInfos
                 };
+            }
+        }
+
+        private void StartMaintenanceServices()
+        {
+            foreach (var kvp in _queues)
+            {
+                if (!kvp.Value.HostMaintenance) continue;
+
+                try
+                {
+                    // Eagerly create the admin container so maintenance starts immediately
+                    var container = GetQueueContainer(kvp.Key);
+                    var service = container.GetInstance<IQueueMaintenanceService>();
+                    service.Start();
+                    _maintenanceServices[kvp.Key] = service;
+                    _logger.LogInformation(
+                        "Started maintenance service for queue {QueueName} ({QueueId})",
+                        kvp.Value.QueueName, kvp.Key);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Failed to start maintenance service for queue {QueueName} ({QueueId})",
+                        kvp.Value.QueueName, kvp.Key);
+                }
             }
         }
 
@@ -179,6 +221,21 @@ namespace DotNetWorkQueue.Dashboard.Api
         {
             if (!disposing) return;
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            // Stop maintenance services before disposing containers
+            foreach (var kvp in _maintenanceServices)
+            {
+                try
+                {
+                    if (!kvp.Value.IsDisposed)
+                        kvp.Value.Stop();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error stopping maintenance service for queue {QueueId}", kvp.Key);
+                }
+            }
+            _maintenanceServices.Clear();
 
             _adminContainers.Clear();
             _queueContainerMap.Clear();

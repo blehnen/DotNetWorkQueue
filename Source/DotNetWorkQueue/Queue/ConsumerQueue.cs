@@ -114,7 +114,10 @@ namespace DotNetWorkQueue.Queue
             Started = true;
 
             _registerMessages.Register(workerAction);
-            _queueMonitor.Start();
+            if (_configuration.MaintenanceMode == DotNetWorkQueue.Configuration.MaintenanceMode.Consumer)
+            {
+                _queueMonitor.Start();
+            }
             ShouldWork = true;
             _primaryWorker.Value.Start();
             _configuration.SetReadOnly();
@@ -134,7 +137,11 @@ namespace DotNetWorkQueue.Queue
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
             ShouldWork = false;
-            _queueMonitor.Stop();
+            if (_configuration.MaintenanceMode == DotNetWorkQueue.Configuration.MaintenanceMode.Consumer
+                && !_queueMonitor.IsDisposed)
+            {
+                _queueMonitor.Stop();
+            }
 
             if (_primaryWorker.IsValueCreated)
             {

@@ -84,6 +84,9 @@ namespace DotNetWorkQueue.Queue
             _monitorTimeSpan = monitorTimeSpan;
             _log = log;
         }
+        /// <inheritdoc />
+        public DateTime? LastRunUtc { get; private set; }
+
         /// <summary>
         /// Starts the monitor process.
         /// </summary>
@@ -129,6 +132,7 @@ namespace DotNetWorkQueue.Queue
                 finally
                 {
                     CancelTokenDestroy();
+                    LastRunUtc = DateTime.UtcNow;
                     Running = false;
                 }
 

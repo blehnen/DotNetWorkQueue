@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -18,27 +18,26 @@
 // ---------------------------------------------------------------------
 using System;
 
-namespace DotNetWorkQueue
+namespace DotNetWorkQueue.Dashboard.Api.Models
 {
     /// <summary>
-    /// A process that performs actions on a queue
+    /// Response model for queue maintenance service status.
     /// </summary>
-    public interface IMonitor : IDisposable, IIsDisposed
+    public class MaintenanceStatusResponse
     {
         /// <summary>
-        /// Starts the monitor process.
+        /// Whether the dashboard is configured to host maintenance for this queue.
         /// </summary>
-        void Start();
+        public bool HostMaintenance { get; set; }
 
         /// <summary>
-        /// Stops the monitor process.
+        /// Whether the maintenance service is currently running.
         /// </summary>
-        void Stop();
+        public bool IsRunning { get; set; }
 
         /// <summary>
-        /// Gets the UTC timestamp of the last time this monitor completed a run.
-        /// Null if no run has completed yet.
+        /// UTC timestamp of the last completed maintenance run, or null if no run has completed yet.
         /// </summary>
-        DateTime? LastRunUtc { get; }
+        public DateTime? LastRunUtc { get; set; }
     }
 }

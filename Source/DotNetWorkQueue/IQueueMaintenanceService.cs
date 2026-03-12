@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -21,24 +21,34 @@ using System;
 namespace DotNetWorkQueue
 {
     /// <summary>
-    /// A process that performs actions on a queue
+    /// Runs queue maintenance tasks (heartbeat reset, expiration cleanup, error cleanup)
+    /// independently of consumer message processing.
     /// </summary>
-    public interface IMonitor : IDisposable, IIsDisposed
+    /// <remarks>
+    /// This service wraps the transport's <see cref="IQueueMonitor"/> and can be hosted
+    /// by the dashboard, a standalone service, or the consumer itself.
+    /// </remarks>
+    public interface IQueueMaintenanceService : IDisposable, IIsDisposed
     {
         /// <summary>
-        /// Starts the monitor process.
+        /// Start maintenance monitors for the queue.
         /// </summary>
         void Start();
 
         /// <summary>
-        /// Stops the monitor process.
+        /// Stop maintenance monitors.
         /// </summary>
         void Stop();
 
         /// <summary>
-        /// Gets the UTC timestamp of the last time this monitor completed a run.
+        /// Gets a value indicating whether the maintenance service is currently running.
+        /// </summary>
+        bool IsRunning { get; }
+
+        /// <summary>
+        /// Gets the UTC timestamp of the last time any maintenance monitor completed a run.
         /// Null if no run has completed yet.
         /// </summary>
-        DateTime? LastRunUtc { get; }
+        DateTime? LastRun { get; }
     }
 }

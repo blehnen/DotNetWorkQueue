@@ -49,5 +49,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         /// Used when both <see cref="InterceptorConfiguration"/> and <see cref="InterceptorProfile"/> are null.
         /// </summary>
         public DashboardInterceptorOptions Interceptors { get; set; }
+
+        /// <summary>
+        /// When true, the dashboard will run maintenance monitors (heartbeat reset, expiration cleanup,
+        /// error cleanup) for this queue. The corresponding consumer should set
+        /// <c>MaintenanceMode = External</c> to avoid duplicate work.
+        /// </summary>
+        public bool HostMaintenance { get; set; }
     }
 }
