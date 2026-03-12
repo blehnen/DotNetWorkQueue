@@ -58,5 +58,8 @@ namespace DotNetWorkQueue.Queue
 
         /// <inheritdoc />
         public bool IsDisposed { get; private set; }
+
+        /// <inheritdoc />
+        public DateTime? LastRunUtc => null;
     }
 }

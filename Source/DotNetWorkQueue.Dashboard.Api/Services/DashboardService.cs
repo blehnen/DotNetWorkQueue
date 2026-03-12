@@ -657,7 +657,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             return new MaintenanceStatusResponse
             {
                 HostMaintenance = queueInfo.HostMaintenance,
-                IsRunning = service?.IsRunning ?? false
+                IsRunning = service?.IsRunning ?? false,
+                LastRunUtc = service?.LastRun
             };
         }
 

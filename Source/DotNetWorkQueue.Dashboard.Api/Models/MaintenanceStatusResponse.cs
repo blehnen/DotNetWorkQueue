@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
+
 namespace DotNetWorkQueue.Dashboard.Api.Models
 {
     /// <summary>
@@ -32,5 +34,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Models
         /// Whether the maintenance service is currently running.
         /// </summary>
         public bool IsRunning { get; set; }
+
+        /// <summary>
+        /// UTC timestamp of the last completed maintenance run, or null if no run has completed yet.
+        /// </summary>
+        public DateTime? LastRunUtc { get; set; }
     }
 }

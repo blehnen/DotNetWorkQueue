@@ -70,6 +70,9 @@ namespace DotNetWorkQueue.Queue
         /// </value>
         public bool IsDisposed { get; private set; }
 
+        /// <inheritdoc />
+        public DateTime? LastRunUtc => null;
+
         #endregion
     }
 }

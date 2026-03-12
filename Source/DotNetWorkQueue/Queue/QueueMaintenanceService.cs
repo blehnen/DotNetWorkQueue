@@ -79,7 +79,7 @@ namespace DotNetWorkQueue.Queue
         public bool IsRunning => _started && !IsDisposed;
 
         /// <inheritdoc />
-        public DateTime? LastRun => null; // TODO: wire up when BaseMonitor exposes last-run timestamps
+        public DateTime? LastRun => _queueMonitor.LastRunUtc;
 
         #region IDisposable, IIsDisposed
 

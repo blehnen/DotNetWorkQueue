@@ -34,5 +34,11 @@ namespace DotNetWorkQueue
         /// Stops the monitor process.
         /// </summary>
         void Stop();
+
+        /// <summary>
+        /// Gets the UTC timestamp of the last time this monitor completed a run.
+        /// Null if no run has completed yet.
+        /// </summary>
+        DateTime? LastRunUtc { get; }
     }
 }
