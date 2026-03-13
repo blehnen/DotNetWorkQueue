@@ -34,21 +34,25 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         private readonly ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> _decorated;
         private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
         private readonly DatabaseExists _databaseExists;
+        private readonly ISqLiteMessageQueueTransportOptionsFactory _options;
 
         public CreateQueueTablesAndSaveConfigurationDecorator(IConnectionInformation connectionInformation,
             ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> decorated,
             IGetFileNameFromConnectionString getFileNameFromConnection,
-            DatabaseExists databaseExists)
+            DatabaseExists databaseExists,
+            ISqLiteMessageQueueTransportOptionsFactory options)
         {
             Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => decorated, decorated);
             Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
             Guard.NotNull(() => databaseExists, databaseExists);
+            Guard.NotNull(() => options, options);
 
             _connectionInformation = connectionInformation;
             _decorated = decorated;
             _getFileNameFromConnection = getFileNameFromConnection;
             _databaseExists = databaseExists;
+            _options = options;
         }
         public QueueCreationResult Handle(CreateQueueTablesAndSaveConfigurationCommand<ITable> command)
         {
@@ -62,7 +66,31 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
 
             try
             {
-                return _decorated.Handle(command);
+                var result = _decorated.Handle(command);
+
+                // Enable WAL mode for file-based databases when configured
+                if (result.Status == QueueCreationStatus.Success)
+                {
+                    var transportOptions = _options.Create();
+                    if (transportOptions.EnableWalMode)
+                    {
+                        var fileName = _getFileNameFromConnection.GetFileName(_connectionInformation.ConnectionString);
+                        if (!fileName.IsInMemory)
+                        {
+                            using (var connection = new SQLiteConnection(_connectionInformation.ConnectionString))
+                            {
+                                connection.Open();
+                                using (var cmd = connection.CreateCommand())
+                                {
+                                    cmd.CommandText = "PRAGMA journal_mode=WAL;";
+                                    cmd.ExecuteNonQuery();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return result;
             }
             //if the queue already exists, return that status; otherwise, bubble the error
             catch (SQLiteException error)
