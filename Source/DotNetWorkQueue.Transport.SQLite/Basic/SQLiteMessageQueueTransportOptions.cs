@@ -38,6 +38,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private bool _enableMessageExpiration;
         private bool _enableRoute;
         private bool _additionalColumnsOnMetaData;
+        private bool _enableWalMode;
 
         #region Constructor
         /// <summary>
@@ -54,6 +55,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             EnableStatusTable = false;
             EnableRoute = false;
             AdditionalColumnsOnMetaData = false;
+            EnableWalMode = true;
 
             AdditionalColumns = new ColumnList();
             AdditionalConstraints = new ConstraintList();
@@ -218,6 +220,24 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 FailIfReadOnly();
                 _enableMessageExpiration = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the SQLite database should use WAL (Write-Ahead Logging) journal mode.
+        /// WAL mode generally provides better concurrent read/write performance.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if WAL mode should be enabled; otherwise, <c>false</c>. Default is <c>true</c>.
+        /// </value>
+        /// <remarks>This setting only applies to file-based databases. In-memory databases ignore this setting.</remarks>
+        public bool EnableWalMode
+        {
+            get => _enableWalMode;
+            set
+            {
+                FailIfReadOnly();
+                _enableWalMode = value;
             }
         }
 
