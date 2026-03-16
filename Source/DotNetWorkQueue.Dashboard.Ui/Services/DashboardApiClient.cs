@@ -38,36 +38,36 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
         // Connections
         public async Task<List<ConnectionResponse>> GetConnectionsAsync()
         {
-            return await _http.GetFromJsonAsync<List<ConnectionResponse>>($"{Base}/connections")
+            return await _http.GetFromJsonAsync<List<ConnectionResponse>>($"{Base}/connections").ConfigureAwait(false)
                    ?? new List<ConnectionResponse>();
         }
 
         public async Task<List<QueueInfoResponse>> GetQueuesAsync(Guid connectionId)
         {
-            return await _http.GetFromJsonAsync<List<QueueInfoResponse>>($"{Base}/connections/{connectionId}/queues")
+            return await _http.GetFromJsonAsync<List<QueueInfoResponse>>($"{Base}/connections/{connectionId}/queues").ConfigureAwait(false)
                    ?? new List<QueueInfoResponse>();
         }
 
         public async Task<List<JobResponse>> GetJobsAsync(Guid connectionId)
         {
-            return await _http.GetFromJsonAsync<List<JobResponse>>($"{Base}/connections/{connectionId}/jobs")
+            return await _http.GetFromJsonAsync<List<JobResponse>>($"{Base}/connections/{connectionId}/jobs").ConfigureAwait(false)
                    ?? new List<JobResponse>();
         }
 
         // Queue info
         public async Task<QueueStatusResponse?> GetQueueStatusAsync(Guid queueId)
         {
-            return await _http.GetFromJsonAsync<QueueStatusResponse>($"{Base}/queues/{queueId}/status");
+            return await _http.GetFromJsonAsync<QueueStatusResponse>($"{Base}/queues/{queueId}/status").ConfigureAwait(false);
         }
 
         public async Task<QueueFeaturesResponse?> GetQueueFeaturesAsync(Guid queueId)
         {
-            return await _http.GetFromJsonAsync<QueueFeaturesResponse>($"{Base}/queues/{queueId}/features");
+            return await _http.GetFromJsonAsync<QueueFeaturesResponse>($"{Base}/queues/{queueId}/features").ConfigureAwait(false);
         }
 
         public async Task<ConfigurationResponse?> GetQueueConfigurationAsync(Guid queueId)
         {
-            return await _http.GetFromJsonAsync<ConfigurationResponse>($"{Base}/queues/{queueId}/configuration");
+            return await _http.GetFromJsonAsync<ConfigurationResponse>($"{Base}/queues/{queueId}/configuration").ConfigureAwait(false);
         }
 
         // Messages
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
             var url = $"{Base}/queues/{queueId}/messages?pageIndex={pageIndex}&pageSize={pageSize}";
             if (status.HasValue)
                 url += $"&status={status.Value}";
-            return await _http.GetFromJsonAsync<PagedResponse<MessageResponse>>(url)
+            return await _http.GetFromJsonAsync<PagedResponse<MessageResponse>>(url).ConfigureAwait(false)
                    ?? new PagedResponse<MessageResponse>();
         }
 
@@ -85,27 +85,27 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
             var url = $"{Base}/queues/{queueId}/messages/count";
             if (status.HasValue)
                 url += $"?status={status.Value}";
-            return await _http.GetFromJsonAsync<long>(url);
+            return await _http.GetFromJsonAsync<long>(url).ConfigureAwait(false);
         }
 
         public async Task<MessageResponse?> GetMessageDetailAsync(Guid queueId, string messageId)
         {
-            return await _http.GetFromJsonAsync<MessageResponse>($"{Base}/queues/{queueId}/messages/{messageId}");
+            return await _http.GetFromJsonAsync<MessageResponse>($"{Base}/queues/{queueId}/messages/{messageId}").ConfigureAwait(false);
         }
 
         public async Task<MessageBodyResponse?> GetMessageBodyAsync(Guid queueId, string messageId)
         {
-            return await _http.GetFromJsonAsync<MessageBodyResponse>($"{Base}/queues/{queueId}/messages/{messageId}/body");
+            return await _http.GetFromJsonAsync<MessageBodyResponse>($"{Base}/queues/{queueId}/messages/{messageId}/body").ConfigureAwait(false);
         }
 
         public async Task<MessageHeadersResponse?> GetMessageHeadersAsync(Guid queueId, string messageId)
         {
-            return await _http.GetFromJsonAsync<MessageHeadersResponse>($"{Base}/queues/{queueId}/messages/{messageId}/headers");
+            return await _http.GetFromJsonAsync<MessageHeadersResponse>($"{Base}/queues/{queueId}/messages/{messageId}/headers").ConfigureAwait(false);
         }
 
         public async Task<List<ErrorRetryResponse>> GetMessageRetriesAsync(Guid queueId, string messageId)
         {
-            return await _http.GetFromJsonAsync<List<ErrorRetryResponse>>($"{Base}/queues/{queueId}/messages/{messageId}/retries")
+            return await _http.GetFromJsonAsync<List<ErrorRetryResponse>>($"{Base}/queues/{queueId}/messages/{messageId}/retries").ConfigureAwait(false)
                    ?? new List<ErrorRetryResponse>();
         }
 
@@ -113,7 +113,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
         public async Task<PagedResponse<MessageResponse>> GetStaleMessagesAsync(Guid queueId, int thresholdSeconds = 60, int pageIndex = 0, int pageSize = 25)
         {
             return await _http.GetFromJsonAsync<PagedResponse<MessageResponse>>(
-                       $"{Base}/queues/{queueId}/messages/stale?thresholdSeconds={thresholdSeconds}&pageIndex={pageIndex}&pageSize={pageSize}")
+                       $"{Base}/queues/{queueId}/messages/stale?thresholdSeconds={thresholdSeconds}&pageIndex={pageIndex}&pageSize={pageSize}").ConfigureAwait(false)
                    ?? new PagedResponse<MessageResponse>();
         }
 
@@ -121,56 +121,56 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
         public async Task<PagedResponse<ErrorMessageResponse>> GetErrorsAsync(Guid queueId, int pageIndex = 0, int pageSize = 25)
         {
             return await _http.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
-                       $"{Base}/queues/{queueId}/errors?pageIndex={pageIndex}&pageSize={pageSize}")
+                       $"{Base}/queues/{queueId}/errors?pageIndex={pageIndex}&pageSize={pageSize}").ConfigureAwait(false)
                    ?? new PagedResponse<ErrorMessageResponse>();
         }
 
         // Write operations
         public async Task<bool> DeleteMessageAsync(Guid queueId, string messageId)
         {
-            var response = await _http.DeleteAsync($"{Base}/queues/{queueId}/messages/{messageId}");
+            var response = await _http.DeleteAsync($"{Base}/queues/{queueId}/messages/{messageId}").ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<DeleteAllResponse> DeleteAllErrorsAsync(Guid queueId)
         {
-            var response = await _http.DeleteAsync($"{Base}/queues/{queueId}/errors");
+            var response = await _http.DeleteAsync($"{Base}/queues/{queueId}/errors").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<DeleteAllResponse>()
+            return await response.Content.ReadFromJsonAsync<DeleteAllResponse>().ConfigureAwait(false)
                    ?? new DeleteAllResponse();
         }
 
         public async Task<bool> RequeueMessageAsync(Guid queueId, string messageId)
         {
-            var response = await _http.PostAsync($"{Base}/queues/{queueId}/messages/{messageId}/requeue", null);
+            var response = await _http.PostAsync($"{Base}/queues/{queueId}/messages/{messageId}/requeue", null).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> ResetMessageAsync(Guid queueId, string messageId)
         {
-            var response = await _http.PostAsync($"{Base}/queues/{queueId}/messages/{messageId}/reset", null);
+            var response = await _http.PostAsync($"{Base}/queues/{queueId}/messages/{messageId}/reset", null).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> UpdateMessageBodyAsync(Guid queueId, string messageId, EditMessageBodyRequest request)
         {
-            var response = await _http.PutAsJsonAsync($"{Base}/queues/{queueId}/messages/{messageId}/body", request);
+            var response = await _http.PutAsJsonAsync($"{Base}/queues/{queueId}/messages/{messageId}/body", request).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<BulkActionResponse> RequeueAllErrorsAsync(Guid queueId)
         {
-            var response = await _http.PostAsync($"{Base}/queues/{queueId}/errors/requeue-all", null);
+            var response = await _http.PostAsync($"{Base}/queues/{queueId}/errors/requeue-all", null).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<BulkActionResponse>()
+            return await response.Content.ReadFromJsonAsync<BulkActionResponse>().ConfigureAwait(false)
                    ?? new BulkActionResponse();
         }
 
         public async Task<BulkActionResponse> ResetAllStaleAsync(Guid queueId)
         {
-            var response = await _http.PostAsync($"{Base}/queues/{queueId}/messages/reset-all", null);
+            var response = await _http.PostAsync($"{Base}/queues/{queueId}/messages/reset-all", null).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<BulkActionResponse>()
+            return await response.Content.ReadFromJsonAsync<BulkActionResponse>().ConfigureAwait(false)
                    ?? new BulkActionResponse();
         }
 
@@ -180,13 +180,13 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
             var url = $"{Base}/consumers";
             if (queueId.HasValue)
                 url += $"?queueId={queueId.Value}";
-            return await _http.GetFromJsonAsync<List<ConsumerInfoResponse>>(url)
+            return await _http.GetFromJsonAsync<List<ConsumerInfoResponse>>(url).ConfigureAwait(false)
                    ?? new List<ConsumerInfoResponse>();
         }
 
         public async Task<Dictionary<Guid, int>> GetConsumerCountsAsync()
         {
-            return await _http.GetFromJsonAsync<Dictionary<Guid, int>>($"{Base}/consumers/count")
+            return await _http.GetFromJsonAsync<Dictionary<Guid, int>>($"{Base}/consumers/count").ConfigureAwait(false)
                    ?? new Dictionary<Guid, int>();
         }
     }

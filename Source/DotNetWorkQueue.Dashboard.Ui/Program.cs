@@ -89,7 +89,7 @@ app.UseStaticFiles();
 // --- Login / Logout endpoints ---
 app.MapPost("/auth/login", async (HttpContext ctx) =>
 {
-    var form = await ctx.Request.ReadFormAsync();
+    var form = await ctx.Request.ReadFormAsync().ConfigureAwait(false);
     var username = form["username"].ToString();
     var password = form["password"].ToString();
 
@@ -100,7 +100,7 @@ app.MapPost("/auth/login", async (HttpContext ctx) =>
     {
         var claims = new List<Claim> { new(ClaimTypes.Name, username) };
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+        await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity)).ConfigureAwait(false);
         ctx.Response.Redirect("/");
     }
     else
@@ -111,7 +111,7 @@ app.MapPost("/auth/login", async (HttpContext ctx) =>
 
 app.MapGet("/auth/logout", async (HttpContext ctx) =>
 {
-    await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).ConfigureAwait(false);
     ctx.Response.Redirect("/login");
 });
 

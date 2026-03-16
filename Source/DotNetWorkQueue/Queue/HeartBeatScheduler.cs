@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Metrics.NoOp;
 using DotNetWorkQueue.Notifications;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Validation;
@@ -121,7 +122,11 @@ namespace DotNetWorkQueue.Queue
                 _taskFactory.Scheduler.Configuration.WaitForThreadPoolToFinish =
                     _configuration.WaitForThreadPoolToFinish;
                 _taskFactory.Scheduler.Start();
-                _queueContainer = new QueueContainer<MemoryMessageQueueInit>(container => container.Register(() => _log, LifeStyles.Singleton));
+                _queueContainer = new QueueContainer<MemoryMessageQueueInit>(container =>
+                {
+                    container.Register(() => _log, LifeStyles.Singleton);
+                    container.Register<IMetrics, MetricsNoOp>(LifeStyles.Singleton);
+                });
                 _consumer = _queueContainer.CreateConsumerMethodQueueScheduler(new QueueConnection(_queueName, Connection),
                     _taskFactory);
                 var notifications = new ConsumerQueueNotifications(OnError, OnReceiveMessageError,

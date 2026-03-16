@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetJobs(Guid connectionId)
         {
-            return Ok(await _service.GetJobsByConnectionAsync(connectionId));
+            return Ok(await _service.GetJobsByConnectionAsync(connectionId).ConfigureAwait(false));
         }
     }
 }
