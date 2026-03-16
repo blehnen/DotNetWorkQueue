@@ -1,5 +1,5 @@
-### 0.9.6 — ???
-- Suppress metrics from internal heartbeat scheduler queue — no more GUID-prefixed metric names in metrics backends
+### 0.9.6 — 2026-03-16
+- Suppress metrics from internal heartbeat scheduler queue; no more GUID-prefixed metric names in metrics backends
 
 ### 0.9.5 — 2026-03-16
 - `MaintenanceMode` on `QueueConsumerConfiguration` (`Consumer` / `External`) — set to `External` to skip maintenance monitors in the consumer
