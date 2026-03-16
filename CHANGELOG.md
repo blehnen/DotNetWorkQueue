@@ -1,4 +1,4 @@
-### 0.9.5 — ???
+### 0.9.5 — 2026-03-16
 - `MaintenanceMode` on `QueueConsumerConfiguration` (`Consumer` / `External`) — set to `External` to skip maintenance monitors in the consumer
 - `IQueueMaintenanceService` / `QueueMaintenanceService` — runs the transport's `IQueueMonitor` outside the consumer
 - Dashboard API: `HostMaintenance` per-queue option starts maintenance monitors at dashboard startup; status at `GET /api/dashboard/queues/{id}/maintenance`
