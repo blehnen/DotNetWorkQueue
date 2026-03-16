@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "MessageHandler";
-            _runCodeTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.HandleTimer", Units.Calls);
+            _runCodeTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.HandleTimer", Units.Calls);
             _handler = handler;
         }
 

@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "SendHeartBeat";
-            _timer = metrics.Timer($"{connectionInformation.QueueName}.{name}.SendTimer", Units.Calls);
+            _timer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.SendTimer", Units.Calls);
             _handler = handler;
         }
 

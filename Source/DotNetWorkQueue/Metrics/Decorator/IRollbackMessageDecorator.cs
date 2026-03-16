@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "RollbackMessage";
-            _rollbackCounter = metrics.Counter($"{connectionInformation.QueueName}.{name}.RollbackCounter", Units.Items);
+            _rollbackCounter = metrics.Counter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.RollbackCounter", Units.Items);
             _handler = handler;
         }
 

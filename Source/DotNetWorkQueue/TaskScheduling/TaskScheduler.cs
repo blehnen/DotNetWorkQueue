@@ -72,8 +72,8 @@ namespace DotNetWorkQueue.TaskScheduling
             _clients = new ConcurrentDictionary<int, int>();
 
             var name = GetType().Name;
-            _taskCounter = metrics.Counter($"{name}.TaskCounter", Units.Items);
-            _clientCounter = metrics.Counter($"{name}.ClientCounter", Units.Items);
+            _taskCounter = metrics.Counter($"dotnetworkqueue.{name}.TaskCounter", Units.Items);
+            _clientCounter = metrics.Counter($"dotnetworkqueue.{name}.ClientCounter", Units.Items);
         }
 
         /// <inheritdoc />
@@ -312,7 +312,7 @@ namespace DotNetWorkQueue.TaskScheduling
 
             var group = new WorkGroup(name, concurrencyLevel);
             var groupWithItem = _groups.GetOrAdd(group, _ => new WorkGroupWithItem(group, _metrics.Counter(
-                $"work group {name}", Units.Items)));
+                $"dotnetworkqueue.work group {name}", Units.Items)));
             return groupWithItem.GroupInfo;
         }
 

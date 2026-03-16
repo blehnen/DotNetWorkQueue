@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "CommitMessage";
-            _commitCounter = metrics.Counter($"{connectionInformation.QueueName}.{name}.CommitCounter", Units.Items);
+            _commitCounter = metrics.Counter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.CommitCounter", Units.Items);
             _handler = handler;
         }
 

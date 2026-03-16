@@ -38,8 +38,8 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "QueueCreation";
-            _createQueueTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.CreateQueueTimer", Units.Calls);
-            _removeQueueTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.RemoveQueueTimer", Units.Calls);
+            _createQueueTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.CreateQueueTimer", Units.Calls);
+            _removeQueueTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.RemoveQueueTimer", Units.Calls);
             _handler = handler;
         }
 
