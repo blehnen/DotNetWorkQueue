@@ -1,8 +1,9 @@
-### 0.9.5 — ???
+### 0.9.5 — 2026-03-16
 - `MaintenanceMode` on `QueueConsumerConfiguration` (`Consumer` / `External`) — set to `External` to skip maintenance monitors in the consumer
 - `IQueueMaintenanceService` / `QueueMaintenanceService` — runs the transport's `IQueueMonitor` outside the consumer
 - Dashboard API: `HostMaintenance` per-queue option starts maintenance monitors at dashboard startup; status at `GET /api/dashboard/queues/{id}/maintenance`
 - SQLite transport: `EnableWalMode` option (default `true`) — sets WAL journal mode on new file-based queues
+- Metrics now prefixed with `dotnetworkqueue.` — in Prometheus, search for `dotnetworkqueue_` to find all queue metrics
 
 ### 0.9.4 — 2026‑03‑11
 - Switch from forked GuerrillaNtp DLLs to official [GuerrillaNtp 3.1.0](https://www.nuget.org/packages/GuerrillaNtp/) NuGet package

@@ -40,9 +40,9 @@ namespace DotNetWorkQueue.Metrics.Decorator
         {
             var name = "Serializer";
             DisplayName = handler.DisplayName;
-            _bytesToMessageTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToMessageTimer", Units.Calls);
-            _messageToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertMessageToBytesTimer", Units.Calls);
-            _resultSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertMessageToBytesHistogram", Units.Bytes);
+            _bytesToMessageTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertBytesToMessageTimer", Units.Calls);
+            _messageToBytesTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertMessageToBytesTimer", Units.Calls);
+            _resultSizeHistogram = metrics.Histogram($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertMessageToBytesHistogram", Units.Bytes);
             _handler = handler;
         }
 

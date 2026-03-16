@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.TaskScheduling
             _log = log;
 
             var name = GetType().Name;
-            _waitingOnFreeThreadCounter = metrics.Counter($"{name}.WaitingOnTaskCounter", Units.Items);
+            _waitingOnFreeThreadCounter = metrics.Counter($"dotnetworkqueue.{name}.WaitingOnTaskCounter", Units.Items);
         }
 
         /// <summary>

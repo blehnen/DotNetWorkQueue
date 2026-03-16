@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "ReceiveMessagesError";
-            _meterError = metrics.Meter($"{connectionInformation.QueueName}.{name}.MessageFailedProcessingErrorMeter", Units.Items);
-            _meterRetry = metrics.Meter($"{connectionInformation.QueueName}.{name}.MessageFailedProcessingRetryMeter", Units.Items);
+            _meterError = metrics.Meter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.MessageFailedProcessingErrorMeter", Units.Items);
+            _meterRetry = metrics.Meter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.MessageFailedProcessingRetryMeter", Units.Items);
             _handler = handler;
         }
 

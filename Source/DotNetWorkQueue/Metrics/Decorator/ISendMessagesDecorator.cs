@@ -45,13 +45,13 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "SendMessages";
-            _sendTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.SendTimer", Units.Calls);
-            _sendBatchTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.SendBatchTimer", Units.Calls);
-            _sendAsyncTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.SendAsyncTimer", Units.Calls);
-            _sendBatchAsyncTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.SendBatchAsyncTimer", Units.Calls);
+            _sendTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.SendTimer", Units.Calls);
+            _sendBatchTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.SendBatchTimer", Units.Calls);
+            _sendAsyncTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.SendAsyncTimer", Units.Calls);
+            _sendBatchAsyncTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.SendBatchAsyncTimer", Units.Calls);
 
-            _sendMeter = metrics.Meter($"{connectionInformation.QueueName}.{name}.SendMessagesMeter", Units.Items, TimeUnits.Minutes);
-            _sendErrorMeter = metrics.Meter($"{connectionInformation.QueueName}.{name}.SendMessagesErrorMeter", Units.Items, TimeUnits.Minutes);
+            _sendMeter = metrics.Meter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.SendMessagesMeter", Units.Items, TimeUnits.Minutes);
+            _sendErrorMeter = metrics.Meter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.SendMessagesErrorMeter", Units.Items, TimeUnits.Minutes);
             _handler = handler;
         }
 

@@ -47,16 +47,16 @@ namespace DotNetWorkQueue.Metrics.Decorator
             var name = "MessageInterceptor";
 
             _metricTimerBytes =
-                metrics.Timer($"{connectionInformation.QueueName}.{name}.BytesToMessageTimer", Units.Calls);
+                metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.BytesToMessageTimer", Units.Calls);
 
             _metricTimerMessage =
-                metrics.Timer($"{connectionInformation.QueueName}.{name}.MessageToBytesTimer", Units.Calls);
+                metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.MessageToBytesTimer", Units.Calls);
 
-            _metricHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.MessageToBytesHistogram", Units.Bytes);
+            _metricHistogram = metrics.Histogram($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.MessageToBytesHistogram", Units.Bytes);
 
-            _metricHistogramDelta = metrics.Histogram($"{connectionInformation.QueueName}.{name}.MessageToBytesDeltaHistogram", Units.Bytes);
+            _metricHistogramDelta = metrics.Histogram($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.MessageToBytesDeltaHistogram", Units.Bytes);
 
-            _metricHistogramOptOut = metrics.Histogram($"{connectionInformation.QueueName}.{name}.OptOutOfGraphHistogram",
+            _metricHistogramOptOut = metrics.Histogram($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.OptOutOfGraphHistogram",
                 Units.Bytes);
         }
 

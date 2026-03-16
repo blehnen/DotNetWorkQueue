@@ -40,11 +40,11 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "InternalSerializer";
-            _bytesToMessageTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToTimer", Units.Calls);
-            _messageToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertToBytesTimer", Units.Calls);
-            _messageToStringTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertToStringTimer", Units.Calls);
-            _resultSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertToBytesHistogram", Units.Bytes);
-            _resultSizeStringHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertToStringHistogram", Units.Bytes);
+            _bytesToMessageTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertBytesToTimer", Units.Calls);
+            _messageToBytesTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertToBytesTimer", Units.Calls);
+            _messageToStringTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertToStringTimer", Units.Calls);
+            _resultSizeHistogram = metrics.Histogram($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertToBytesHistogram", Units.Bytes);
+            _resultSizeStringHistogram = metrics.Histogram($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertToStringHistogram", Units.Bytes);
             _handler = handler;
         }
 

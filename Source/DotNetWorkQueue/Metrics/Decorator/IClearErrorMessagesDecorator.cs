@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "ClearErrorMessages";
-            _timer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ResetTimer", Units.Calls);
-            _counter = metrics.Counter($"{connectionInformation.QueueName}.{name}.ResetCounter", Units.Items);
+            _timer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ResetTimer", Units.Calls);
+            _counter = metrics.Counter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ResetCounter", Units.Items);
             _handler = handler;
         }
 

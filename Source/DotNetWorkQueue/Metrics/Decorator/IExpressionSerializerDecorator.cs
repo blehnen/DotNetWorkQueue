@@ -48,9 +48,9 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "ExpressionSerializer";
-            _methodToBytesTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertMethodToBytesTimer", Units.Calls);
-            _bytesToMethodTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.ConvertBytesToMethodTimer", Units.Calls);
-            _resultMethodSizeHistogram = metrics.Histogram($"{connectionInformation.QueueName}.{name}.ConvertMethodToBytesHistogram", Units.Bytes);
+            _methodToBytesTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertMethodToBytesTimer", Units.Calls);
+            _bytesToMethodTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertBytesToMethodTimer", Units.Calls);
+            _resultMethodSizeHistogram = metrics.Histogram($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertMethodToBytesHistogram", Units.Bytes);
 
             _handler = handler;
         }

@@ -57,9 +57,9 @@ namespace DotNetWorkQueue.LinqCompile.Decorator
 
             var name = handler.GetType().Name;
 
-            _counterActionCacheHit = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheHitCounter", Units.Items);
-            _counterActionCacheMiss = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionCacheMissCounter", Units.Items);
-            _counterActionCacheUnique = metrics.Counter($"{connectionInformation.QueueName}.{name}.LinqActionUniqueFlaggedCounter", Units.Items);
+            _counterActionCacheHit = metrics.Counter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.LinqActionCacheHitCounter", Units.Items);
+            _counterActionCacheMiss = metrics.Counter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.LinqActionCacheMissCounter", Units.Items);
+            _counterActionCacheUnique = metrics.Counter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.LinqActionUniqueFlaggedCounter", Units.Items);
         }
 
         /// <summary>

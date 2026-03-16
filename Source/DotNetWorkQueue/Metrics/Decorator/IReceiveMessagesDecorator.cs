@@ -44,8 +44,8 @@ namespace DotNetWorkQueue.Metrics.Decorator
             IConnectionInformation connectionInformation)
         {
             var name = "ReceiveMessages";
-            _meter = metrics.Meter($"{connectionInformation.QueueName}.{name}.ReceiveMessageMeter", Units.Items);
-            _waitTimer = metrics.Timer($"{connectionInformation.QueueName}.{name}.WaitForDeQueueMeter", Units.None);
+            _meter = metrics.Meter($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ReceiveMessageMeter", Units.Items);
+            _waitTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.WaitForDeQueueMeter", Units.None);
             _handler = handler;
             _getTime = getTime;
             _headers = headers;
