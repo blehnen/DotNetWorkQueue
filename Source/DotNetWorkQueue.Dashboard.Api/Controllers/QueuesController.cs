@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetStatus(Guid queueId)
         {
-            return Ok(await _service.GetStatusAsync(queueId));
+            return Ok(await _service.GetStatusAsync(queueId).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             if (status.HasValue && !IsValidStatus(status.Value))
                 return BadRequest($"Invalid status value '{status.Value}'. Valid values are: 0 (Waiting), 1 (Processing), 2 (Error), 3 (Processed).");
 
-            return Ok(await _service.GetMessagesAsync(queueId, pageIndex, pageSize, status));
+            return Ok(await _service.GetMessagesAsync(queueId, pageIndex, pageSize, status).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             if (status.HasValue && !IsValidStatus(status.Value))
                 return BadRequest($"Invalid status value '{status.Value}'. Valid values are: 0 (Waiting), 1 (Processing), 2 (Error), 3 (Processed).");
 
-            return Ok(await _service.GetMessageCountAsync(queueId, status));
+            return Ok(await _service.GetMessageCountAsync(queueId, status).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetMessageDetail(Guid queueId, string messageId)
         {
-            var result = await _service.GetMessageDetailAsync(queueId, messageId);
+            var result = await _service.GetMessageDetailAsync(queueId, messageId).ConfigureAwait(false);
             if (result == null)
                 return NotFound();
             return Ok(result);
@@ -134,7 +134,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             [FromQuery] int pageIndex = 0,
             [FromQuery] int pageSize = 25)
         {
-            return Ok(await _service.GetStaleMessagesAsync(queueId, thresholdSeconds, pageIndex, pageSize));
+            return Ok(await _service.GetStaleMessagesAsync(queueId, thresholdSeconds, pageIndex, pageSize).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             [FromQuery] int pageIndex = 0,
             [FromQuery] int pageSize = 25)
         {
-            return Ok(await _service.GetErrorsAsync(queueId, pageIndex, pageSize));
+            return Ok(await _service.GetErrorsAsync(queueId, pageIndex, pageSize).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetErrorRetries(Guid queueId, string messageId)
         {
-            return Ok(await _service.GetErrorRetriesAsync(queueId, messageId));
+            return Ok(await _service.GetErrorRetriesAsync(queueId, messageId).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetConfiguration(Guid queueId)
         {
-            return Ok(await _service.GetConfigurationAsync(queueId));
+            return Ok(await _service.GetConfigurationAsync(queueId).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetMessageBody(Guid queueId, string messageId)
         {
-            var result = await _service.GetMessageBodyAsync(queueId, messageId);
+            var result = await _service.GetMessageBodyAsync(queueId, messageId).ConfigureAwait(false);
             if (result == null)
                 return NotFound();
             return Ok(result);
@@ -194,7 +194,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetMessageHeaders(Guid queueId, string messageId)
         {
-            var result = await _service.GetMessageHeadersAsync(queueId, messageId);
+            var result = await _service.GetMessageHeadersAsync(queueId, messageId).ConfigureAwait(false);
             if (result == null)
                 return NotFound();
             return Ok(result);
@@ -208,7 +208,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteMessage(Guid queueId, string messageId)
         {
-            var deleted = await _service.DeleteMessageAsync(queueId, messageId);
+            var deleted = await _service.DeleteMessageAsync(queueId, messageId).ConfigureAwait(false);
             return deleted ? NoContent() : NotFound();
         }
 
@@ -220,7 +220,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteAllErrors(Guid queueId)
         {
-            var count = await _service.DeleteAllErrorMessagesAsync(queueId);
+            var count = await _service.DeleteAllErrorMessagesAsync(queueId).ConfigureAwait(false);
             return Ok(new DeleteAllResponse { Deleted = count });
         }
 
@@ -232,7 +232,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> RequeueErrorMessage(Guid queueId, string messageId)
         {
-            var result = await _service.RequeueErrorMessageAsync(queueId, messageId);
+            var result = await _service.RequeueErrorMessageAsync(queueId, messageId).ConfigureAwait(false);
             return result ? NoContent() : NotFound();
         }
 
@@ -245,7 +245,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> ResetStaleMessage(Guid queueId, string messageId)
         {
-            var result = await _service.ResetStaleMessageAsync(queueId, messageId);
+            var result = await _service.ResetStaleMessageAsync(queueId, messageId).ConfigureAwait(false);
             return result ? NoContent() : NotFound();
         }
 
@@ -256,7 +256,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(typeof(BulkActionResponse), 200)]
         public async Task<IActionResult> RequeueAllErrors(Guid queueId)
         {
-            var count = await _service.RequeueAllErrorMessagesAsync(queueId);
+            var count = await _service.RequeueAllErrorMessagesAsync(queueId).ConfigureAwait(false);
             return Ok(new BulkActionResponse { Count = count });
         }
 
@@ -267,7 +267,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         [ProducesResponseType(typeof(BulkActionResponse), 200)]
         public async Task<IActionResult> ResetAllStaleMessages(Guid queueId)
         {
-            var count = await _service.ResetAllStaleMessagesAsync(queueId);
+            var count = await _service.ResetAllStaleMessagesAsync(queueId).ConfigureAwait(false);
             return Ok(new BulkActionResponse { Count = count });
         }
 
@@ -285,7 +285,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             if (request?.Body == null)
                 return BadRequest("Body is required.");
 
-            var result = await _service.EditMessageBodyAsync(queueId, messageId, request.Body);
+            var result = await _service.EditMessageBodyAsync(queueId, messageId, request.Body).ConfigureAwait(false);
             return result switch
             {
                 EditMessageBodyResult.Success => NoContent(),
