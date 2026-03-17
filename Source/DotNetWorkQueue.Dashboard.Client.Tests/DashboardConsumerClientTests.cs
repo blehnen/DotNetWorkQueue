@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -154,6 +155,121 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             await client.StopAsync();
             client.IsRegistered.Should().BeFalse();
             client.ConsumerId.Should().BeNull();
+        }
+
+        // === Metrics ===
+
+        [TestMethod]
+        public void Metrics_Start_At_Zero()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            client.MessagesProcessed.Should().Be(0);
+            client.MessagesErrored.Should().Be(0);
+            client.MessagesRolledBack.Should().Be(0);
+            client.PoisonMessages.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void IncrementProcessed_Increments_Counter()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            client.IncrementProcessed();
+            client.IncrementProcessed();
+            client.IncrementProcessed();
+
+            client.MessagesProcessed.Should().Be(3);
+        }
+
+        [TestMethod]
+        public void IncrementErrored_Increments_Counter()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            client.IncrementErrored();
+            client.IncrementErrored();
+
+            client.MessagesErrored.Should().Be(2);
+        }
+
+        [TestMethod]
+        public void IncrementRolledBack_Increments_Counter()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            client.IncrementRolledBack();
+
+            client.MessagesRolledBack.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void IncrementPoisonMessage_Increments_Counter()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            client.IncrementPoisonMessage();
+
+            client.PoisonMessages.Should().Be(1);
+        }
+
+        [TestMethod]
+        public async Task Heartbeat_Includes_Metrics_In_Payload()
+        {
+            string capturedJson = null;
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/register"))
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        ConsumerId = Guid.NewGuid(),
+                        HeartbeatIntervalSeconds = 9999 // very long so timer doesn't auto-fire
+                    });
+                    return new HttpResponseMessage(HttpStatusCode.Created)
+                    {
+                        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                if (req.RequestUri.PathAndQuery.Contains("/heartbeat"))
+                {
+                    capturedJson = req.Content.ReadAsStringAsync().Result;
+                }
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+            await client.StartAsync();
+
+            client.IncrementProcessed();
+            client.IncrementProcessed();
+            client.IncrementErrored();
+
+            // Trigger heartbeat manually via reflection to avoid timer dependency
+            var method = typeof(DashboardConsumerClient).GetMethod("HeartbeatCallback",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            method.Invoke(client, new object[] { null });
+
+            // Give async void time to complete
+            await Task.Delay(200);
+
+            capturedJson.Should().NotBeNull();
+            using var doc = JsonDocument.Parse(capturedJson);
+            doc.RootElement.GetProperty("MessagesProcessed").GetInt64().Should().Be(2);
+            doc.RootElement.GetProperty("MessagesErrored").GetInt64().Should().Be(1);
+            doc.RootElement.GetProperty("MessagesRolledBack").GetInt64().Should().Be(0);
+            doc.RootElement.GetProperty("PoisonMessages").GetInt64().Should().Be(0);
         }
 
         // === Dispose ===

@@ -86,6 +86,66 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        [TestMethod]
+        public async Task Heartbeat_With_Metrics_Returns_NoContent()
+        {
+            var registration = await RegisterAndDeserialize("M1", 1000);
+
+            var response = await SendHeartbeat(registration.ConsumerId, 100, 5, 3, 1);
+
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }
+
+        [TestMethod]
+        public async Task Heartbeat_Metrics_Appear_In_Consumer_List()
+        {
+            var registration = await RegisterAndDeserialize("M1", 1000);
+            await SendHeartbeat(registration.ConsumerId, 250, 10, 7, 2);
+
+            var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
+                "api/v1/dashboard/consumers");
+
+            consumers.Should().HaveCount(1);
+            var c = consumers![0];
+            c.MessagesProcessed.Should().Be(250);
+            c.MessagesErrored.Should().Be(10);
+            c.MessagesRolledBack.Should().Be(7);
+            c.PoisonMessages.Should().Be(2);
+        }
+
+        [TestMethod]
+        public async Task Heartbeat_Metrics_Update_On_Subsequent_Heartbeats()
+        {
+            var registration = await RegisterAndDeserialize("M1", 1000);
+            await SendHeartbeat(registration.ConsumerId, 100, 2, 1, 0);
+            await SendHeartbeat(registration.ConsumerId, 500, 8, 4, 1);
+
+            var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
+                "api/v1/dashboard/consumers");
+
+            var c = consumers![0];
+            c.MessagesProcessed.Should().Be(500);
+            c.MessagesErrored.Should().Be(8);
+            c.MessagesRolledBack.Should().Be(4);
+            c.PoisonMessages.Should().Be(1);
+        }
+
+        [TestMethod]
+        public async Task Heartbeat_Without_Metrics_Defaults_To_Zero()
+        {
+            var registration = await RegisterAndDeserialize("M1", 1000);
+            await SendHeartbeat(registration.ConsumerId);
+
+            var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
+                "api/v1/dashboard/consumers");
+
+            var c = consumers![0];
+            c.MessagesProcessed.Should().Be(0);
+            c.MessagesErrored.Should().Be(0);
+            c.MessagesRolledBack.Should().Be(0);
+            c.PoisonMessages.Should().Be(0);
+        }
+
         // === Unregister ===
 
         [TestMethod]
@@ -209,14 +269,18 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var registration = await RegisterAndDeserialize("M1", 1000, "Worker1");
             registration.ConsumerId.Should().NotBeEmpty();
 
-            // Heartbeat
-            var hbResponse = await SendHeartbeat(registration.ConsumerId);
+            // Heartbeat with metrics
+            var hbResponse = await SendHeartbeat(registration.ConsumerId, 42, 3, 2, 1);
             hbResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-            // List
+            // List — verify metrics are present
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
             consumers.Should().HaveCount(1);
+            consumers![0].MessagesProcessed.Should().Be(42);
+            consumers[0].MessagesErrored.Should().Be(3);
+            consumers[0].MessagesRolledBack.Should().Be(2);
+            consumers[0].PoisonMessages.Should().Be(1);
 
             // Count
             var counts = await _server.Client.GetFromJsonAsync<Dictionary<Guid, int>>(
@@ -255,9 +319,16 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             return await response.Content.ReadFromJsonAsync<ConsumerRegistrationResponse>();
         }
 
-        private async Task<HttpResponseMessage> SendHeartbeat(Guid consumerId)
+        private async Task<HttpResponseMessage> SendHeartbeat(Guid consumerId, long messagesProcessed = 0, long messagesErrored = 0, long messagesRolledBack = 0, long poisonMessages = 0)
         {
-            var body = new { ConsumerId = consumerId };
+            var body = new
+            {
+                ConsumerId = consumerId,
+                MessagesProcessed = messagesProcessed,
+                MessagesErrored = messagesErrored,
+                MessagesRolledBack = messagesRolledBack,
+                PoisonMessages = poisonMessages
+            };
             return await _server.Client.PostAsJsonAsync("api/v1/dashboard/consumers/heartbeat", body);
         }
     }

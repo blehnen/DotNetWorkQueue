@@ -121,6 +121,50 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         }
 
         [TestMethod]
+        public void Heartbeat_Updates_Metrics()
+        {
+            var registry = CreateRegistry(out _);
+            var id = registry.Register("testQueue", "MACHINE1", 1234, null);
+
+            registry.Heartbeat(id, messagesProcessed: 100, messagesErrored: 5, messagesRolledBack: 3, poisonMessages: 1);
+
+            var entry = registry.GetAll()[0];
+            entry.MessagesProcessed.Should().Be(100);
+            entry.MessagesErrored.Should().Be(5);
+            entry.MessagesRolledBack.Should().Be(3);
+            entry.PoisonMessages.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void Heartbeat_Overwrites_Previous_Metrics()
+        {
+            var registry = CreateRegistry(out _);
+            var id = registry.Register("testQueue", "MACHINE1", 1234, null);
+
+            registry.Heartbeat(id, messagesProcessed: 50, messagesErrored: 2, messagesRolledBack: 1, poisonMessages: 0);
+            registry.Heartbeat(id, messagesProcessed: 200, messagesErrored: 8, messagesRolledBack: 4, poisonMessages: 1);
+
+            var entry = registry.GetAll()[0];
+            entry.MessagesProcessed.Should().Be(200);
+            entry.MessagesErrored.Should().Be(8);
+            entry.MessagesRolledBack.Should().Be(4);
+            entry.PoisonMessages.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void Register_Initializes_Metrics_To_Zero()
+        {
+            var registry = CreateRegistry(out _);
+            registry.Register("testQueue", "MACHINE1", 1234, null);
+
+            var entry = registry.GetAll()[0];
+            entry.MessagesProcessed.Should().Be(0);
+            entry.MessagesErrored.Should().Be(0);
+            entry.MessagesRolledBack.Should().Be(0);
+            entry.PoisonMessages.Should().Be(0);
+        }
+
+        [TestMethod]
         public void Unregister_Removes_Consumer()
         {
             var registry = CreateRegistry(out _);

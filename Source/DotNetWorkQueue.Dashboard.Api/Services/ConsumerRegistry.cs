@@ -58,12 +58,16 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         }
 
         /// <inheritdoc />
-        public bool Heartbeat(Guid consumerId)
+        public bool Heartbeat(Guid consumerId, long messagesProcessed = 0, long messagesErrored = 0, long messagesRolledBack = 0, long poisonMessages = 0)
         {
             if (!_consumers.TryGetValue(consumerId, out var entry))
                 return false;
 
             entry.LastHeartbeat = DateTimeOffset.UtcNow;
+            entry.MessagesProcessed = messagesProcessed;
+            entry.MessagesErrored = messagesErrored;
+            entry.MessagesRolledBack = messagesRolledBack;
+            entry.PoisonMessages = poisonMessages;
             return true;
         }
 
