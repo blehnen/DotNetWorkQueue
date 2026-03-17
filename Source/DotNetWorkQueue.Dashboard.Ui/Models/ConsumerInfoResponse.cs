@@ -30,5 +30,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Models
         public DateTimeOffset RegisteredAt { get; set; }
         public DateTimeOffset LastHeartbeat { get; set; }
         public Guid? MatchedQueueId { get; set; }
+        public long MessagesProcessed { get; set; }
+        public long MessagesErrored { get; set; }
+        public long MessagesRolledBack { get; set; }
+        public long PoisonMessages { get; set; }
     }
 }

@@ -21,6 +21,10 @@ else
             <MudTh>Name</MudTh>
             <MudTh>Machine</MudTh>
             <MudTh>PID</MudTh>
+            <MudTh Style="text-align:right">Processed</MudTh>
+            <MudTh Style="text-align:right">Errors</MudTh>
+            <MudTh Style="text-align:right">Rollbacks</MudTh>
+            <MudTh Style="text-align:right">Poison</MudTh>
             <MudTh>Registered</MudTh>
             <MudTh>Last Heartbeat</MudTh>
             <MudTh>Uptime</MudTh>
@@ -29,6 +33,10 @@ else
             <MudTd DataLabel="Name">@(context.FriendlyName ?? context.ConsumerId.ToString("N")[..8])</MudTd>
             <MudTd DataLabel="Machine">@context.MachineName</MudTd>
             <MudTd DataLabel="PID">@context.ProcessId</MudTd>
+            <MudTd DataLabel="Processed" Style="text-align:right">@context.MessagesProcessed.ToString("N0")</MudTd>
+            <MudTd DataLabel="Errors" Style="text-align:right">@context.MessagesErrored.ToString("N0")</MudTd>
+            <MudTd DataLabel="Rollbacks" Style="text-align:right">@context.MessagesRolledBack.ToString("N0")</MudTd>
+            <MudTd DataLabel="Poison" Style="text-align:right">@context.PoisonMessages.ToString("N0")</MudTd>
             <MudTd DataLabel="Registered">@context.RegisteredAt.LocalDateTime.ToString("G")</MudTd>
             <MudTd DataLabel="Last Heartbeat">@context.LastHeartbeat.LocalDateTime.ToString("G")</MudTd>
             <MudTd DataLabel="Uptime">@FormatUptime(context.RegisteredAt)</MudTd>
