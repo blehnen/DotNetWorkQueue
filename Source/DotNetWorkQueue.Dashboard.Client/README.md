@@ -30,9 +30,18 @@ var options = new DashboardClientOptions
 using var client = new DashboardConsumerClient(options);
 await client.StartAsync();
 
-// Register IConsumerMetricsNotification in your DI container to
-// auto-increment counters as messages are processed, errored, or rolled back.
-// Counters are sent automatically with each heartbeat.
+// Wire the client into the consumer pipeline for automatic metric counting.
+// Register before creating the consumer queue:
+container.Register<IConsumerMetricsNotification>(
+    () => new ConsumerMetricsNotification(
+        client.IncrementProcessed,
+        client.IncrementErrored,
+        client.IncrementRolledBack,
+        client.IncrementPoisonMessage),
+    LifeStyles.Singleton);
+
+// Counters are now automatically incremented by the consumer pipeline
+// and sent to the dashboard with each heartbeat.
 
 // Stop and unregister when done
 await client.StopAsync();
