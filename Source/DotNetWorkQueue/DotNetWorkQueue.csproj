@@ -124,4 +124,20 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
       <HintPath>..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <!-- Pack vendored DLLs into the correct lib/ TFM folders in the nupkg -->
+  <!-- Pack vendored DLLs into the correct lib/ TFM folders in the nupkg -->
+  <Target Name="IncludeVendoredDllsInPack" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_PackageFiles Include="..\..\Lib\Schyntax\net8.0\Schyntax.dll" PackagePath="lib\net8.0" />
+      <_PackageFiles Include="..\..\Lib\Aq.ExpressionJsonSerializer\net8.0\Aq.ExpressionJsonSerializer.dll" PackagePath="lib\net8.0" />
+      <_PackageFiles Include="..\..\Lib\Schyntax\net10.0\Schyntax.dll" PackagePath="lib\net10.0" />
+      <_PackageFiles Include="..\..\Lib\Aq.ExpressionJsonSerializer\net10.0\Aq.ExpressionJsonSerializer.dll" PackagePath="lib\net10.0" />
+      <_PackageFiles Include="..\..\Lib\Schyntax\net48\Schyntax.dll" PackagePath="lib\net48" />
+      <_PackageFiles Include="..\..\Lib\Aq.ExpressionJsonSerializer\net48\Aq.ExpressionJsonSerializer.dll" PackagePath="lib\net48" />
+      <_PackageFiles Include="..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll" PackagePath="lib\net48" />
+      <_PackageFiles Include="..\..\Lib\Schyntax\netstandard2.0\Schyntax.dll" PackagePath="lib\netstandard2.0" />
+      <_PackageFiles Include="..\..\Lib\Aq.ExpressionJsonSerializer\netstandard2.0\Aq.ExpressionJsonSerializer.dll" PackagePath="lib\netstandard2.0" />
+    </ItemGroup>
+  </Target>
 </Project>
