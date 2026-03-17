@@ -1,4 +1,10 @@
-### 0.9.7 — ????
+### 0.9.8 — 2026-03-17
+- Fix: `InvokeMovedToErrorQueue` now increments the error counter — messages moved to the error queue were not being counted
+- Dashboard UI: consumer metrics columns (Processed, Errors, Rollbacks, Poison) added to the Consumers tab
+- Dashboard.Client: added README.md to NuGet package
+- Core library: fixed broken samples link in NuGet README
+
+### 0.9.7 — 2026-03-17
 - Dashboard API: consumer heartbeat now carries running totals for messages processed, errors, rollbacks, and poison messages
 - `DashboardConsumerClient`: thread-safe `IncrementProcessed()`, `IncrementErrored()`, `IncrementRolledBack()`, `IncrementPoisonMessage()` methods; counters sent automatically with each heartbeat
 - `ConsumerInfoResponse` and `ConsumerEntry`: new `MessagesProcessed`, `MessagesErrored`, `MessagesRolledBack`, `PoisonMessages` fields

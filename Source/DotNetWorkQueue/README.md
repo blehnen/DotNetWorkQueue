@@ -34,7 +34,7 @@ using var consumer = queueContainer.CreateConsumer(
 consumer.Start<MyMessage>(HandleMessage);
 ```
 
-Complete examples are available in the [samples](https://github.com/blehnen/DotNetWorkQueue/tree/master/Source/Samples) directory.
+Complete examples are available in the [samples repository](https://github.com/blehnen/DotNetWorkQueue.Samples).
 
 ## Documentation
 

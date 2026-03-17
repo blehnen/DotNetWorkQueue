@@ -25,6 +25,7 @@ namespace DotNetWorkQueue.Queue
 
         public void InvokeMovedToErrorQueue(ErrorNotification error)
         {
+            _metrics.IncrementErrored();
             _notifications?.Error?.Invoke(error);
         }
 
