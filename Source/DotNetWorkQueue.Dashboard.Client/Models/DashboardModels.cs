@@ -271,5 +271,17 @@ namespace DotNetWorkQueue.Dashboard.Client.Models
 
         /// <summary>Gets or sets the matched queue identifier.</summary>
         public Guid? MatchedQueueId { get; set; }
+
+        /// <summary>Gets or sets the running total of successfully processed messages since consumer start.</summary>
+        public long MessagesProcessed { get; set; }
+
+        /// <summary>Gets or sets the running total of messages that threw exceptions since consumer start.</summary>
+        public long MessagesErrored { get; set; }
+
+        /// <summary>Gets or sets the running total of messages rolled back since consumer start.</summary>
+        public long MessagesRolledBack { get; set; }
+
+        /// <summary>Gets or sets the running total of poison messages since consumer start.</summary>
+        public long PoisonMessages { get; set; }
     }
 }

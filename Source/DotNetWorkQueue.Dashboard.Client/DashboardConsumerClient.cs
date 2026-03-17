@@ -38,6 +38,11 @@ namespace DotNetWorkQueue.Dashboard.Client
         private Guid? _consumerId;
         private int _disposed;
 
+        private long _messagesProcessed;
+        private long _messagesErrored;
+        private long _messagesRolledBack;
+        private long _poisonMessages;
+
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -53,6 +58,30 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// Gets whether the client is currently registered with the dashboard.
         /// </summary>
         public bool IsRegistered => _consumerId.HasValue;
+
+        /// <summary>Gets the running total of successfully processed messages.</summary>
+        public long MessagesProcessed => Interlocked.Read(ref _messagesProcessed);
+
+        /// <summary>Gets the running total of messages that threw exceptions.</summary>
+        public long MessagesErrored => Interlocked.Read(ref _messagesErrored);
+
+        /// <summary>Gets the running total of messages rolled back.</summary>
+        public long MessagesRolledBack => Interlocked.Read(ref _messagesRolledBack);
+
+        /// <summary>Gets the running total of poison messages.</summary>
+        public long PoisonMessages => Interlocked.Read(ref _poisonMessages);
+
+        /// <summary>Increments the processed message counter by one.</summary>
+        public void IncrementProcessed() => Interlocked.Increment(ref _messagesProcessed);
+
+        /// <summary>Increments the errored message counter by one.</summary>
+        public void IncrementErrored() => Interlocked.Increment(ref _messagesErrored);
+
+        /// <summary>Increments the rolled back message counter by one.</summary>
+        public void IncrementRolledBack() => Interlocked.Increment(ref _messagesRolledBack);
+
+        /// <summary>Increments the poison message counter by one.</summary>
+        public void IncrementPoisonMessage() => Interlocked.Increment(ref _poisonMessages);
 
         /// <summary>
         /// Initializes a new instance using the specified options.
@@ -183,7 +212,14 @@ namespace DotNetWorkQueue.Dashboard.Client
 
             try
             {
-                var request = new { ConsumerId = _consumerId.Value };
+                var request = new
+                {
+                    ConsumerId = _consumerId.Value,
+                    MessagesProcessed = Interlocked.Read(ref _messagesProcessed),
+                    MessagesErrored = Interlocked.Read(ref _messagesErrored),
+                    MessagesRolledBack = Interlocked.Read(ref _messagesRolledBack),
+                    PoisonMessages = Interlocked.Read(ref _poisonMessages)
+                };
                 var json = JsonSerializer.Serialize(request, JsonOptions);
                 using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
                 using (var response = await _httpClient.PostAsync("api/v1/dashboard/consumers/heartbeat", content).ConfigureAwait(false))

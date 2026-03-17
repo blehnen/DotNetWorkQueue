@@ -37,11 +37,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         Guid Register(string queueName, string machineName, int processId, string friendlyName);
 
         /// <summary>
-        /// Updates the heartbeat timestamp for a consumer.
+        /// Updates the heartbeat timestamp and metrics for a consumer.
         /// </summary>
         /// <param name="consumerId">The consumer identifier.</param>
+        /// <param name="messagesProcessed">Running total of successfully processed messages.</param>
+        /// <param name="messagesErrored">Running total of messages that threw exceptions.</param>
+        /// <param name="messagesRolledBack">Running total of messages rolled back.</param>
+        /// <param name="poisonMessages">Running total of poison messages.</param>
         /// <returns>True if the consumer was found and updated; false otherwise.</returns>
-        bool Heartbeat(Guid consumerId);
+        bool Heartbeat(Guid consumerId, long messagesProcessed = 0, long messagesErrored = 0, long messagesRolledBack = 0, long poisonMessages = 0);
 
         /// <summary>
         /// Removes a consumer from the registry.
@@ -105,5 +109,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
 
         /// <summary>Gets or sets the matched dashboard queue identifier, if any.</summary>
         public Guid? MatchedQueueId { get; set; }
+
+        /// <summary>Gets or sets the running total of successfully processed messages since consumer start.</summary>
+        public long MessagesProcessed { get; set; }
+
+        /// <summary>Gets or sets the running total of messages that threw exceptions since consumer start.</summary>
+        public long MessagesErrored { get; set; }
+
+        /// <summary>Gets or sets the running total of messages rolled back since consumer start.</summary>
+        public long MessagesRolledBack { get; set; }
+
+        /// <summary>Gets or sets the running total of poison messages since consumer start.</summary>
+        public long PoisonMessages { get; set; }
     }
 }

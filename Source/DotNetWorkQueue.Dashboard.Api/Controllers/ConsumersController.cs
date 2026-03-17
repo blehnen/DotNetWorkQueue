@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             if (!_options.EnableConsumerTracking)
                 return NotFound();
 
-            if (_registry.Heartbeat(request.ConsumerId))
+            if (_registry.Heartbeat(request.ConsumerId, request.MessagesProcessed, request.MessagesErrored, request.MessagesRolledBack, request.PoisonMessages))
                 return NoContent();
 
             return NotFound();
@@ -148,7 +148,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
                 FriendlyName = entry.FriendlyName,
                 RegisteredAt = entry.RegisteredAt,
                 LastHeartbeat = entry.LastHeartbeat,
-                MatchedQueueId = entry.MatchedQueueId
+                MatchedQueueId = entry.MatchedQueueId,
+                MessagesProcessed = entry.MessagesProcessed,
+                MessagesErrored = entry.MessagesErrored,
+                MessagesRolledBack = entry.MessagesRolledBack,
+                PoisonMessages = entry.PoisonMessages
             };
         }
     }

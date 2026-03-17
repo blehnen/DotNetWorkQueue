@@ -1,3 +1,10 @@
+### 0.9.7 — ????
+- Dashboard API: consumer heartbeat now carries running totals for messages processed, errors, rollbacks, and poison messages
+- `DashboardConsumerClient`: thread-safe `IncrementProcessed()`, `IncrementErrored()`, `IncrementRolledBack()`, `IncrementPoisonMessage()` methods; counters sent automatically with each heartbeat
+- `ConsumerInfoResponse` and `ConsumerEntry`: new `MessagesProcessed`, `MessagesErrored`, `MessagesRolledBack`, `PoisonMessages` fields
+- Dashboard API: `GET /api/v1/dashboard/consumers` now returns per-consumer metric counters
+- Backwards compatible — heartbeat requests without metrics default to zero
+
 ### 0.9.6 — 2026-03-16
 - Suppress metrics from internal heartbeat scheduler queue; no more GUID-prefixed metric names in metrics backends
 

@@ -205,6 +205,8 @@ namespace DotNetWorkQueue.IoC
                     .Register
                     <IWorkerHeartBeatNotificationFactory, WorkerHeartBeatNotificationFactory>(LifeStyles.Singleton);
 
+                container.Register<IConsumerMetricsNotification, ConsumerMetricsNotificationNoOp>(
+                    LifeStyles.Singleton);
                 container.Register<IConsumerQueueErrorNotification, ConsumerQueueErrorNotification>(
                     LifeStyles.Singleton);
                 container.Register<IConsumerQueueNotification, ConsumerQueueNotification>(

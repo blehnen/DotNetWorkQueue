@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var (controller, registry, _) = Create();
             var id = Guid.NewGuid();
-            registry.Heartbeat(id).Returns(true);
+            registry.Heartbeat(id, Arg.Any<long>(), Arg.Any<long>(), Arg.Any<long>(), Arg.Any<long>()).Returns(true);
 
             var result = controller.Heartbeat(new ConsumerHeartbeatRequest { ConsumerId = id });
 
@@ -93,11 +93,31 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         public void Heartbeat_Returns_NotFound_When_Unknown()
         {
             var (controller, registry, _) = Create();
-            registry.Heartbeat(Arg.Any<Guid>()).Returns(false);
+            registry.Heartbeat(Arg.Any<Guid>(), Arg.Any<long>(), Arg.Any<long>(), Arg.Any<long>(), Arg.Any<long>()).Returns(false);
 
             var result = controller.Heartbeat(new ConsumerHeartbeatRequest { ConsumerId = Guid.NewGuid() });
 
             result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public void Heartbeat_Passes_Metrics_To_Registry()
+        {
+            var (controller, registry, _) = Create();
+            var id = Guid.NewGuid();
+            registry.Heartbeat(id, 100, 5, 3, 1).Returns(true);
+
+            var result = controller.Heartbeat(new ConsumerHeartbeatRequest
+            {
+                ConsumerId = id,
+                MessagesProcessed = 100,
+                MessagesErrored = 5,
+                MessagesRolledBack = 3,
+                PoisonMessages = 1
+            });
+
+            result.Should().BeOfType<NoContentResult>();
+            registry.Received(1).Heartbeat(id, 100, 5, 3, 1);
         }
 
         [TestMethod]
@@ -161,6 +181,32 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             result.Should().NotBeNull();
             var items = result!.Value as List<ConsumerInfoResponse>;
             items.Should().HaveCount(1);
+        }
+
+        [TestMethod]
+        public void GetConsumers_Returns_Metrics_In_Response()
+        {
+            var (controller, registry, _) = Create();
+            registry.GetAll().Returns(new List<ConsumerEntry>
+            {
+                new ConsumerEntry
+                {
+                    ConsumerId = Guid.NewGuid(),
+                    MachineName = "M1",
+                    MessagesProcessed = 500,
+                    MessagesErrored = 10,
+                    MessagesRolledBack = 7,
+                    PoisonMessages = 2
+                }
+            });
+
+            var result = controller.GetConsumers() as OkObjectResult;
+            var items = result!.Value as List<ConsumerInfoResponse>;
+            items.Should().HaveCount(1);
+            items![0].MessagesProcessed.Should().Be(500);
+            items[0].MessagesErrored.Should().Be(10);
+            items[0].MessagesRolledBack.Should().Be(7);
+            items[0].PoisonMessages.Should().Be(2);
         }
 
         [TestMethod]
