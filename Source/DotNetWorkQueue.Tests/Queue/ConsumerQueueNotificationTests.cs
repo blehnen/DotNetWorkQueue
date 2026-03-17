@@ -133,5 +133,16 @@ namespace DotNetWorkQueue.Tests.Queue
 
             metrics.DidNotReceive().IncrementErrored();
         }
+
+        [TestMethod]
+        public void InvokeMovedToErrorQueue_Calls_IncrementErrored()
+        {
+            var metrics = Substitute.For<IConsumerMetricsNotification>();
+            var sut = new ConsumerQueueErrorNotification(metrics);
+
+            sut.InvokeMovedToErrorQueue(new ErrorNotification(null, null, null, null));
+
+            metrics.Received(1).IncrementErrored();
+        }
     }
 }
