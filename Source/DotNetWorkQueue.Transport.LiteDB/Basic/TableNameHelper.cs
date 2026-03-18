@@ -123,6 +123,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// </value>
         public string JobTableName => JobsTableName;
 
+        /// <summary>
+        /// Gets the name of the message history collection.
+        /// </summary>
+        public string HistoryName => !string.IsNullOrEmpty(QueueName) ? string.Concat(QueueName, "History") : NameNotSet;
+
         #endregion
     }
 }

@@ -90,6 +90,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
             container.Register<SqlServerCommandStringCache>(LifeStyles.Singleton);
 
+            container.Register<IWriteMessageHistory, WriteMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
+
             container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queueConnection), LifeStyles.Singleton);
 
             container.Register<SqlServerMessageQueueTransportOptions>(LifeStyles.Singleton);

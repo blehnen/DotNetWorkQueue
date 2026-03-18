@@ -110,5 +110,25 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// Gets the maintenance service status for a queue.
         /// </summary>
         MaintenanceStatusResponse GetMaintenanceStatus(Guid queueId);
+
+        /// <summary>
+        /// Gets a paged list of message history records.
+        /// </summary>
+        PagedResponse<HistoryResponse> GetHistory(Guid queueId, int pageIndex, int pageSize, int? statusFilter);
+
+        /// <summary>
+        /// Gets the history record for a specific message.
+        /// </summary>
+        HistoryResponse GetHistoryByMessageId(Guid queueId, string messageId);
+
+        /// <summary>
+        /// Gets the total count of history records.
+        /// </summary>
+        long GetHistoryCount(Guid queueId, int? statusFilter);
+
+        /// <summary>
+        /// Purges history records older than the configured retention period.
+        /// </summary>
+        long PurgeHistory(Guid queueId, int? olderThanDays);
     }
 }

@@ -167,7 +167,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
 
         private SqlServerMessageQueueSchema Create(ISqlServerMessageQueueTransportOptionsFactory options, TableNameHelper tableNameHelper, IConnectionInformation connectionInformation)
         {
-            return new SqlServerMessageQueueSchema(tableNameHelper, options, new SqlSchema(connectionInformation));
+            return new SqlServerMessageQueueSchema(tableNameHelper, options, new SqlSchema(connectionInformation), Substitute.For<IHistoryConfiguration>());
         }
 
         private TableNameHelper GetTableNameHelper()

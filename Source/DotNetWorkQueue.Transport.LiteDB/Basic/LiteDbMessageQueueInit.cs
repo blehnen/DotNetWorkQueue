@@ -77,6 +77,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
 
             container.Register<IClearExpiredMessages, ClearExpiredMessages<int>>(LifeStyles.Singleton);
             container.Register<IClearErrorMessages, ClearErrorMessages<int>>(LifeStyles.Singleton);
+
+            container.Register<IWriteMessageHistory, WriteMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<ICorrelationIdFactory, LiteDbCorrelationIdFactory>(LifeStyles.Singleton);
             container.Register<IGetFileNameFromConnectionString, LiteDbGetFileNameFromConnectionString>(LifeStyles.Singleton);
             container.Register<ILiteDbMessageQueueTransportOptionsFactory, LiteDbMessageQueueTransportOptionsFactory>(LifeStyles.Singleton);

@@ -21,6 +21,7 @@ using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
@@ -45,6 +46,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<IDbFactory, DbFactory>(LifeStyles.Singleton);
             container.Register<IReaderAsync, ReaderAsync>(LifeStyles.Singleton);
             container.Register<DatabaseExists>(LifeStyles.Singleton);
+
+            container.Register<IWriteMessageHistory, WriteMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
 
             //command and query retry on transient errors
             container.RegisterDecorator(typeof(ICommandHandlerWithOutput<,>),

@@ -33,20 +33,25 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private readonly ITableNameHelper _tableNameHelper;
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
         private readonly ISqlSchema _schema;
+        private readonly IHistoryConfiguration _historyConfiguration;
 
         /// <summary>Initializes a new instance of the <see cref="SqlServerMessageQueueSchema"/> class.</summary>
         /// <param name="tableNameHelper">The table name helper. Note this is the base module</param>
         /// <param name="options">The options.</param>
         /// <param name="schema">The schema that the queue is using</param>
+        /// <param name="historyConfiguration">The history configuration.</param>
         public SqlServerMessageQueueSchema(TableNameHelper tableNameHelper,
-            ISqlServerMessageQueueTransportOptionsFactory options, ISqlSchema schema)
+            ISqlServerMessageQueueTransportOptionsFactory options, ISqlSchema schema,
+            IHistoryConfiguration historyConfiguration)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => options, options);
+            Guard.NotNull(() => historyConfiguration, historyConfiguration);
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(options.Create);
             _schema = schema;
+            _historyConfiguration = historyConfiguration;
         }
 
         /// <summary>
@@ -67,6 +72,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             if (_options.Value.EnableStatusTable)
             {
                 rc.Add(CreateStatusTable());
+            }
+
+            if (_historyConfiguration.Enabled)
+            {
+                rc.Add(CreateHistoryTable());
             }
 
             return rc;
@@ -324,6 +334,49 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             return metaErrors;
         }
+        /// <summary>
+        /// Creates the message history table schema.
+        /// </summary>
+        /// <returns></returns>
+        private Table CreateHistoryTable()
+        {
+            var history = new Table(GetOwner(), _tableNameHelper.HistoryName);
+            var primaryKey = new Column("HistoryID", ColumnTypes.Bigint, false, null) { Identity = new Identity(1, 1) };
+            history.Columns.Add(primaryKey);
+
+            history.Columns.Add(new Column("QueueID", ColumnTypes.Nvarchar, 100, false, null));
+            history.Columns.Add(new Column("CorrelationID", ColumnTypes.Nvarchar, 38, true, null));
+            history.Columns.Add(new Column("Status", ColumnTypes.Int, false, null));
+            history.Columns.Add(new Column("EnqueuedUtc", ColumnTypes.Datetime, false, null));
+            history.Columns.Add(new Column("StartedUtc", ColumnTypes.Datetime, true, null));
+            history.Columns.Add(new Column("CompletedUtc", ColumnTypes.Datetime, true, null));
+            history.Columns.Add(new Column("DurationMs", ColumnTypes.Bigint, true, null));
+            history.Columns.Add(new Column("ExceptionText", ColumnTypes.Nvarchar, -1, true, null));
+            history.Columns.Add(new Column("RetryCount", ColumnTypes.Int, false, new Default("DF_History_RetryCount", "0")));
+            history.Columns.Add(new Column("Route", ColumnTypes.Nvarchar, 255, true, null));
+            history.Columns.Add(new Column("MessageType", ColumnTypes.Nvarchar, 500, true, null));
+            history.Columns.Add(new Column("Body", ColumnTypes.Varbinary, -1, true, null));
+            history.Columns.Add(new Column("Headers", ColumnTypes.Varbinary, -1, true, null));
+
+            //add primary key constraint
+            history.Constraints.Add(new Constraint("PK_" + _tableNameHelper.HistoryName, ConstraintType.PrimaryKey, "HistoryID"));
+            history.PrimaryKey.Clustered = true;
+            history.PrimaryKey.Unique = true;
+
+            // Index on QueueID for lookups by message
+            history.Constraints.Add(new Constraint("IX_History_QueueID", ConstraintType.Index, "QueueID"));
+            // Index on Status + CompletedUtc for purge queries and status filtering
+            history.Constraints.Add(new Constraint("IX_History_Status_Completed", ConstraintType.Index,
+                new List<string> { "Status", "CompletedUtc" }));
+
+            foreach (var c in history.Constraints)
+            {
+                c.Table = history.Info;
+            }
+
+            return history;
+        }
+
         /// <summary>
         /// Gets the schema owner
         /// </summary>

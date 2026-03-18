@@ -123,6 +123,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// </value>
         public string JobTableName => JobsTableName;
 
+        /// <inheritdoc />
+        public string HistoryName => !string.IsNullOrEmpty(QueueName) ? string.Concat(QueueName, "History") : NameNotSet;
+
         #endregion
     }
 }
