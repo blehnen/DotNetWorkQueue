@@ -88,5 +88,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// The name of the job table.
         /// </value>
         string JobTableName { get; }
+
+        /// <summary>
+        /// Gets the name of the message history table.
+        /// </summary>
+        /// <value>
+        /// The name of the history table.
+        /// </value>
+        string HistoryName { get; }
     }
 }

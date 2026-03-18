@@ -61,7 +61,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     StatusName,
                     ConfigurationName,
                     ErrorTrackingName,
-                    MetaDataErrorsName
+                    MetaDataErrorsName,
+                    HistoryName
                 };
                 return tables;
             }
@@ -122,6 +123,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// The name of the job table.
         /// </value>
         public string JobTableName => JobsTableName;
+
+        /// <inheritdoc />
+        public string HistoryName => !string.IsNullOrEmpty(QueueName) ? string.Concat(QueueName, "History") : NameNotSet;
 
         #endregion
     }

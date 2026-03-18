@@ -297,6 +297,56 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             };
         }
 
+        // === History ===
+
+        /// <summary>
+        /// Gets a paged list of message history records, optionally filtered by status.
+        /// </summary>
+        [HttpGet("{queueId:guid}/history")]
+        [ProducesResponseType(typeof(PagedResponse<HistoryResponse>), 200)]
+        public IActionResult GetHistory(Guid queueId,
+            [FromQuery] int pageIndex = 0,
+            [FromQuery] int pageSize = 25,
+            [FromQuery] int? status = null)
+        {
+            return Ok(_service.GetHistory(queueId, pageIndex, pageSize, status));
+        }
+
+        /// <summary>
+        /// Gets the history record for a specific message.
+        /// </summary>
+        [HttpGet("{queueId:guid}/history/{messageId}")]
+        [ProducesResponseType(typeof(HistoryResponse), 200)]
+        [ProducesResponseType(404)]
+        public IActionResult GetHistoryByMessageId(Guid queueId, string messageId)
+        {
+            var result = _service.GetHistoryByMessageId(queueId, messageId);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Gets the total count of history records, optionally filtered by status.
+        /// </summary>
+        [HttpGet("{queueId:guid}/history/count")]
+        [ProducesResponseType(typeof(long), 200)]
+        public IActionResult GetHistoryCount(Guid queueId, [FromQuery] int? status = null)
+        {
+            return Ok(_service.GetHistoryCount(queueId, status));
+        }
+
+        /// <summary>
+        /// Purges history records older than the specified number of days (default 30).
+        /// </summary>
+        [HttpDelete("{queueId:guid}/history")]
+        [ProducesResponseType(typeof(DeleteAllResponse), 200)]
+        public IActionResult PurgeHistory(Guid queueId, [FromQuery] int? olderThanDays = null)
+        {
+            var count = _service.PurgeHistory(queueId, olderThanDays);
+            return Ok(new DeleteAllResponse { Deleted = count });
+        }
+
         private static bool IsValidStatus(int status)
         {
             return Enum.IsDefined(typeof(QueueStatuses), (short)status);

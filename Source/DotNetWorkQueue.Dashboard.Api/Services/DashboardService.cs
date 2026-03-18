@@ -662,6 +662,68 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             };
         }
 
+        /// <inheritdoc />
+        public PagedResponse<HistoryResponse> GetHistory(Guid queueId, int pageIndex, int pageSize, int? statusFilter)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<IQueryMessageHistory>();
+            var status = statusFilter.HasValue ? (DotNetWorkQueue.Configuration.MessageHistoryStatus?)statusFilter.Value : null;
+            var results = handler.Get(pageIndex, pageSize, status);
+            var totalCount = handler.GetCount(status);
+            return new PagedResponse<HistoryResponse>
+            {
+                Items = results.Select(MapHistory).ToList(),
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = pageSize
+            };
+        }
+
+        /// <inheritdoc />
+        public HistoryResponse GetHistoryByMessageId(Guid queueId, string messageId)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<IQueryMessageHistory>();
+            var record = handler.GetByQueueId(messageId);
+            return record != null ? MapHistory(record) : null;
+        }
+
+        /// <inheritdoc />
+        public long GetHistoryCount(Guid queueId, int? statusFilter)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<IQueryMessageHistory>();
+            var status = statusFilter.HasValue ? (DotNetWorkQueue.Configuration.MessageHistoryStatus?)statusFilter.Value : null;
+            return handler.GetCount(status);
+        }
+
+        /// <inheritdoc />
+        public long PurgeHistory(Guid queueId, int? olderThanDays)
+        {
+            var container = GetContainer(queueId);
+            var handler = container.GetInstance<IPurgeMessageHistory>();
+            var days = olderThanDays ?? 30;
+            return handler.Purge(DateTime.UtcNow.AddDays(-days));
+        }
+
+        private static HistoryResponse MapHistory(MessageHistoryRecord r)
+        {
+            return new HistoryResponse
+            {
+                QueueId = r.QueueId,
+                CorrelationId = r.CorrelationId,
+                Status = (int)r.Status,
+                EnqueuedUtc = r.EnqueuedUtc,
+                StartedUtc = r.StartedUtc,
+                CompletedUtc = r.CompletedUtc,
+                DurationMs = r.DurationMs,
+                ExceptionText = r.ExceptionText,
+                RetryCount = r.RetryCount,
+                Route = r.Route,
+                MessageType = r.MessageType
+            };
+        }
+
         private IContainer GetContainer(Guid queueId)
         {
             return _dashboardApi.GetQueueContainer(queueId);

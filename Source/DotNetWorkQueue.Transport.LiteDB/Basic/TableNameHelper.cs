@@ -61,7 +61,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                     StatusName,
                     ConfigurationName,
                     ErrorTrackingName,
-                    MetaDataErrorsName
+                    MetaDataErrorsName,
+                    HistoryName
                 };
                 return tables;
             }
@@ -122,6 +123,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// The name of the job table.
         /// </value>
         public string JobTableName => JobsTableName;
+
+        /// <summary>
+        /// Gets the name of the message history collection.
+        /// </summary>
+        public string HistoryName => !string.IsNullOrEmpty(QueueName) ? string.Concat(QueueName, "History") : NameNotSet;
 
         #endregion
     }

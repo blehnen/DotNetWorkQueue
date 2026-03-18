@@ -97,6 +97,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<RedisHeaders>(LifeStyles.Singleton);
             container.Register<IClearExpiredMessages, RedisQueueClearExpiredMessages>(LifeStyles.Singleton);
             container.Register<IClearErrorMessages, RedisQueueClearErrorMessages>(LifeStyles.Singleton);
+
+            container.Register<IWriteMessageHistory, WriteMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
             //**all
 
             //**send

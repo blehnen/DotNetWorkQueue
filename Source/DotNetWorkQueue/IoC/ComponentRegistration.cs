@@ -318,6 +318,17 @@ namespace DotNetWorkQueue.IoC
             container.Register<IStandardHeaders, StandardHeaders>(LifeStyles.Singleton);
             container.Register<ICustomHeaders, CustomHeaders>(LifeStyles.Singleton);
 
+            container.Register<IHistoryConfiguration, HistoryConfiguration>(LifeStyles.Singleton);
+            container.Register<IWriteMessageHistory, WriteMessageHistoryNoOp>(LifeStyles.Singleton);
+            container.Register<IQueryMessageHistory, QueryMessageHistoryNoOp>(LifeStyles.Singleton);
+            container.Register<IPurgeMessageHistory, PurgeMessageHistoryNoOp>(LifeStyles.Singleton);
+            container.Register<IClearHistoryMonitor, ClearHistoryMonitorNoOp>(LifeStyles.Singleton);
+
+            // Message ID scope decorators — innermost, so the scope covers all other decorators and user code
+            container.RegisterDecorator<IMessageHandler, Logging.Decorator.MessageHandlerScopeDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageHandlerAsync, Logging.Decorator.MessageHandlerAsyncScopeDecorator>(LifeStyles.Singleton);
+
+            RegisterHistoryDecorators(container);
             RegisterMetricDecorators(container);
             RegisterPolicyDecorators(container);
             RegisterLoggerDecorators(container);
@@ -430,6 +441,19 @@ namespace DotNetWorkQueue.IoC
 
             container.RegisterDecorator<ISchedulerMessageHandler, Trace.Decorator.SchedulerMessageHandlerDecorator>(
                 LifeStyles.Singleton);
+        }
+
+        /// <summary>
+        /// Registers the history decorators for message lifecycle tracking.
+        /// </summary>
+        /// <param name="container">The container.</param>
+        private static void RegisterHistoryDecorators(IContainer container)
+        {
+            container.RegisterDecorator<ISendMessages, History.Decorator.SendMessagesHistoryDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IReceiveMessages, History.Decorator.ReceiveMessagesHistoryDecorator>(LifeStyles.Transient);
+            container.RegisterDecorator<ICommitMessage, History.Decorator.CommitMessageHistoryDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IRollbackMessage, History.Decorator.RollbackMessageHistoryDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IReceiveMessagesError, History.Decorator.ReceiveMessagesErrorHistoryDecorator>(LifeStyles.Singleton);
         }
 
         /// <summary>

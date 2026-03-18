@@ -32,20 +32,25 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     {
         private readonly ITableNameHelper _tableNameHelper;
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
+        private readonly IHistoryConfiguration _historyConfiguration;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgreSqlMessageQueueSchema"/> class.
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="options">The options.</param>
+        /// <param name="historyConfiguration">The history configuration.</param>
         public PostgreSqlMessageQueueSchema(ITableNameHelper tableNameHelper,
-            IPostgreSqlMessageQueueTransportOptionsFactory options)
+            IPostgreSqlMessageQueueTransportOptionsFactory options,
+            IHistoryConfiguration historyConfiguration)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => options, options);
+            Guard.NotNull(() => historyConfiguration, historyConfiguration);
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);
+            _historyConfiguration = historyConfiguration;
         }
 
         /// <summary>
@@ -66,6 +71,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             if (_options.Value.EnableStatusTable)
             {
                 rc.Add(CreateStatusTable());
+            }
+
+            if (_historyConfiguration.Enabled)
+            {
+                rc.Add(CreateHistoryTable());
             }
 
             return rc;
@@ -315,6 +325,47 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
 
             return metaErrors;
+        }
+        /// <summary>
+        /// Creates the message history table schema.
+        /// </summary>
+        /// <returns></returns>
+        private Table CreateHistoryTable()
+        {
+            var history = new Table(_tableNameHelper.HistoryName);
+            var primaryKey = new Column("HistoryID", ColumnTypes.Bigint, false) { Identity = true };
+            history.Columns.Add(primaryKey);
+
+            history.Columns.Add(new Column("QueueID", ColumnTypes.Varchar, 100, false));
+            history.Columns.Add(new Column("CorrelationID", ColumnTypes.Varchar, 38, true));
+            history.Columns.Add(new Column("Status", ColumnTypes.Integer, false));
+            history.Columns.Add(new Column("EnqueuedUtc", ColumnTypes.Timestamp, false));
+            history.Columns.Add(new Column("StartedUtc", ColumnTypes.Timestamp, true));
+            history.Columns.Add(new Column("CompletedUtc", ColumnTypes.Timestamp, true));
+            history.Columns.Add(new Column("DurationMs", ColumnTypes.Bigint, true));
+            history.Columns.Add(new Column("ExceptionText", ColumnTypes.Text, -1, true));
+            history.Columns.Add(new Column("RetryCount", ColumnTypes.Integer, false));
+            history.Columns.Add(new Column("Route", ColumnTypes.Varchar, 255, true));
+            history.Columns.Add(new Column("MessageType", ColumnTypes.Varchar, 500, true));
+            history.Columns.Add(new Column("Body", ColumnTypes.Bytea, -1, true));
+            history.Columns.Add(new Column("Headers", ColumnTypes.Bytea, -1, true));
+
+            //add primary key constraint
+            history.Constraints.Add(new Constraint("PK_" + _tableNameHelper.HistoryName, ConstraintType.PrimaryKey, "HistoryID"));
+            history.PrimaryKey.Unique = true;
+
+            // Index on QueueID for lookups by message
+            history.Constraints.Add(new Constraint("IX_History_QueueID", ConstraintType.Index, "QueueID"));
+            // Index on Status + CompletedUtc for purge queries and status filtering
+            history.Constraints.Add(new Constraint("IX_History_Status_Completed", ConstraintType.Index,
+                new List<string> { "Status", "CompletedUtc" }));
+
+            foreach (var c in history.Constraints)
+            {
+                c.Table = history.Info;
+            }
+
+            return history;
         }
     }
 }

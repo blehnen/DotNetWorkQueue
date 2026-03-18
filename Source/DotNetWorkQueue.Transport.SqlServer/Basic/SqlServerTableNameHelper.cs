@@ -66,7 +66,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     StatusName,
                     ConfigurationName,
                     ErrorTrackingName,
-                    MetaDataErrorsName
+                    MetaDataErrorsName,
+                    HistoryName
                 };
                 return tables;
             }
@@ -119,6 +120,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// The name of the meta data errors.
         /// </value>
         public string MetaDataErrorsName => !string.IsNullOrEmpty(QueueName) ? string.Concat(QueueName, "MetaDataErrors") : NameNotSet;
+
+        /// <summary>
+        /// Gets the name of the history table.
+        /// </summary>
+        /// <value>
+        /// The name of the history table.
+        /// </value>
+        public string HistoryName => !string.IsNullOrEmpty(QueueName) ? string.Concat(QueueName, "History") : NameNotSet;
 
         /// <summary>
         /// Gets the name of the job table.

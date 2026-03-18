@@ -38,6 +38,8 @@ namespace DotNetWorkQueue.Queue
         private readonly IHeartBeatMonitor _heartBeatFactory;
         private readonly IHeartBeatConfiguration _heartBeatConfiguration;
         private readonly IMessageExpirationConfiguration _expirationConfiguration;
+        private readonly IClearHistoryMonitor _clearHistoryMonitor;
+        private readonly IHistoryConfiguration _historyConfiguration;
         private int _disposeCount;
 
         /// <summary>Initializes a new instance of the <see cref="QueueMonitor"/> class.</summary>
@@ -47,12 +49,16 @@ namespace DotNetWorkQueue.Queue
         /// <param name="expirationConfiguration">The expiration configuration.</param>
         /// <param name="clearErrorMessagesMonitor">clears error messages from the queue</param>
         /// <param name="clearMessageErrorConfiguration">Configuration for clearing error messages</param>
+        /// <param name="clearHistoryMonitor">clears old history records from the queue</param>
+        /// <param name="historyConfiguration">Configuration for message history</param>
         public QueueMonitor(IClearExpiredMessagesMonitor clearMessagesFactory,
             IHeartBeatMonitor heartBeatFactory,
             IHeartBeatConfiguration heartBeatConfiguration,
             IMessageExpirationConfiguration expirationConfiguration,
             IClearErrorMessagesMonitor clearErrorMessagesMonitor,
-            IMessageErrorConfiguration clearMessageErrorConfiguration)
+            IMessageErrorConfiguration clearMessageErrorConfiguration,
+            IClearHistoryMonitor clearHistoryMonitor,
+            IHistoryConfiguration historyConfiguration)
         {
             Guard.NotNull(() => clearMessagesFactory, clearMessagesFactory);
             Guard.NotNull(() => heartBeatFactory, heartBeatFactory);
@@ -60,6 +66,8 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(() => expirationConfiguration, expirationConfiguration);
             Guard.NotNull(() => clearErrorMessagesMonitor, clearErrorMessagesMonitor);
             Guard.NotNull(() => clearMessageErrorConfiguration, clearMessageErrorConfiguration);
+            Guard.NotNull(() => clearHistoryMonitor, clearHistoryMonitor);
+            Guard.NotNull(() => historyConfiguration, historyConfiguration);
 
             _heartBeatConfiguration = heartBeatConfiguration;
             _heartBeatFactory = heartBeatFactory;
@@ -67,7 +75,9 @@ namespace DotNetWorkQueue.Queue
             _expirationConfiguration = expirationConfiguration;
             _clearErrorMessages = clearErrorMessagesMonitor;
             _clearMessageErrorConfiguration = clearMessageErrorConfiguration;
-            _monitors = new List<IMonitor>(3);
+            _clearHistoryMonitor = clearHistoryMonitor;
+            _historyConfiguration = historyConfiguration;
+            _monitors = new List<IMonitor>(4);
         }
         /// <summary>
         /// Starts the monitor process.
@@ -93,6 +103,11 @@ namespace DotNetWorkQueue.Queue
             if (_clearMessageErrorConfiguration.Enabled)
             {
                 _monitors.Add(_clearErrorMessages);
+            }
+
+            if (_historyConfiguration.Enabled)
+            {
+                _monitors.Add(_clearHistoryMonitor);
             }
 
             if (_monitors.Count > 0)

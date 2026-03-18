@@ -32,20 +32,25 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     {
         private readonly ITableNameHelper _tableNameHelper;
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
+        private readonly IHistoryConfiguration _historyConfiguration;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqLiteMessageQueueSchema"/> class.
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="options">The options.</param>
+        /// <param name="historyConfiguration">The history configuration.</param>
         public SqLiteMessageQueueSchema(ITableNameHelper tableNameHelper,
-            ISqLiteMessageQueueTransportOptionsFactory options)
+            ISqLiteMessageQueueTransportOptionsFactory options,
+            IHistoryConfiguration historyConfiguration)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => options, options);
+            Guard.NotNull(() => historyConfiguration, historyConfiguration);
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<SqLiteMessageQueueTransportOptions>(options.Create);
+            _historyConfiguration = historyConfiguration;
         }
 
         /// <summary>
@@ -66,6 +71,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             if (_options.Value.EnableStatusTable)
             {
                 rc.Add(CreateStatusTable());
+            }
+
+            if (_historyConfiguration.Enabled)
+            {
+                rc.Add(CreateHistoryTable());
             }
 
             return rc;
@@ -310,6 +320,44 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             }
 
             return metaErrors;
+        }
+
+        /// <summary>
+        /// Creates the message history table schema.
+        /// </summary>
+        /// <returns></returns>
+        private Table CreateHistoryTable()
+        {
+            var history = new Table(_tableNameHelper.HistoryName);
+            var primaryKey = new Column("HistoryID", ColumnTypes.Integer, false, null) { Identity = new Identity() };
+            history.Columns.Add(primaryKey);
+
+            history.Columns.Add(new Column("QueueID", ColumnTypes.Text, 100, false, null));
+            history.Columns.Add(new Column("CorrelationID", ColumnTypes.Text, 38, true, null));
+            history.Columns.Add(new Column("Status", ColumnTypes.Integer, false, null));
+            history.Columns.Add(new Column("EnqueuedUtc", ColumnTypes.Integer, false, null));
+            history.Columns.Add(new Column("StartedUtc", ColumnTypes.Integer, true, null));
+            history.Columns.Add(new Column("CompletedUtc", ColumnTypes.Integer, true, null));
+            history.Columns.Add(new Column("DurationMs", ColumnTypes.Integer, true, null));
+            history.Columns.Add(new Column("ExceptionText", ColumnTypes.Text, -1, true, null));
+            history.Columns.Add(new Column("RetryCount", ColumnTypes.Integer, false, null));
+            history.Columns.Add(new Column("Route", ColumnTypes.Text, 255, true, null));
+            history.Columns.Add(new Column("MessageType", ColumnTypes.Text, 500, true, null));
+            history.Columns.Add(new Column("Body", ColumnTypes.Blob, -1, true, null));
+            history.Columns.Add(new Column("Headers", ColumnTypes.Blob, -1, true, null));
+
+            // Index on QueueID for lookups by message
+            history.Constraints.Add(new Constraint("IX_History_QueueID", ConstraintType.Index, "QueueID"));
+            // Index on Status + CompletedUtc for purge queries and status filtering
+            history.Constraints.Add(new Constraint("IX_History_Status_Completed", ConstraintType.Index,
+                new List<string> { "Status", "CompletedUtc" }));
+
+            foreach (var c in history.Constraints)
+            {
+                c.Table = history.Info;
+            }
+
+            return history;
         }
     }
 }

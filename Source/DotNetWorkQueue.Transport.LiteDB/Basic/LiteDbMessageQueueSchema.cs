@@ -29,17 +29,22 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     public class LiteDbMessageQueueSchema
     {
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
+        private readonly IHistoryConfiguration _historyConfiguration;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LiteDbMessageQueueSchema"/> class.
         /// </summary>
         /// <param name="options">The options.</param>
+        /// <param name="historyConfiguration">The history configuration.</param>
         public LiteDbMessageQueueSchema(
-            ILiteDbMessageQueueTransportOptionsFactory options)
+            ILiteDbMessageQueueTransportOptionsFactory options,
+            IHistoryConfiguration historyConfiguration)
         {
             Guard.NotNull(() => options, options);
+            Guard.NotNull(() => historyConfiguration, historyConfiguration);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(options.Create);
+            _historyConfiguration = historyConfiguration;
         }
 
         /// <summary>
@@ -59,6 +64,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             if (_options.Value.EnableStatusTable)
             {
                 rc.Add(CreateStatusTable());
+            }
+
+            if (_historyConfiguration.Enabled)
+            {
+                rc.Add(new Schema.HistoryTable());
             }
 
             return rc;
