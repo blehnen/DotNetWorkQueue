@@ -61,7 +61,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     StatusName,
                     ConfigurationName,
                     ErrorTrackingName,
-                    MetaDataErrorsName
+                    MetaDataErrorsName,
+                    HistoryName
                 };
                 return tables;
             }

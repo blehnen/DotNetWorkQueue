@@ -66,7 +66,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                     StatusName,
                     ConfigurationName,
                     ErrorTrackingName,
-                    MetaDataErrorsName
+                    MetaDataErrorsName,
+                    HistoryName
                 };
                 return tables;
             }
