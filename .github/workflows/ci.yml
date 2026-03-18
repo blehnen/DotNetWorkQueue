@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, '*.*.x' ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore "Source\DotNetWorkQueue.sln"
+
+      - name: Build
+        run: dotnet build "Source\DotNetWorkQueue.sln" -c Debug --no-restore
+
+      - name: Unit Tests - Core
+        run: dotnet test "Source\DotNetWorkQueue.Tests\DotNetWorkQueue.Tests.csproj" --no-build -c Debug
+
+      - name: Unit Tests - RelationalDatabase
+        run: dotnet test "Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" --no-build -c Debug
+
+      - name: Unit Tests - PostgreSQL
+        run: dotnet test "Source\DotNetWorkQueue.Transport.PostgreSQL.Tests\DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj" --no-build -c Debug
+
+      - name: Unit Tests - Redis
+        run: dotnet test "Source\DotNetWorkQueue.Transport.Redis.Tests\DotNetWorkQueue.Transport.Redis.Tests.csproj" --no-build -c Debug
+
+      - name: Unit Tests - SQLite
+        run: dotnet test "Source\DotNetWorkQueue.Transport.SQLite.Tests\DotNetWorkQueue.Transport.SQLite.Tests.csproj" --no-build -c Debug
+
+      - name: Unit Tests - LiteDb
+        run: dotnet test "Source\DotNetWorkQueue.Transport.LiteDb.Tests\DotNetWorkQueue.Transport.LiteDb.Tests.csproj" --no-build -c Debug
+
+      - name: Unit Tests - SqlServer
+        run: dotnet test "Source\DotNetWorkQueue.Transport.SqlServer.Tests\DotNetWorkQueue.Transport.SqlServer.Tests.csproj" --no-build -c Debug
+
+      - name: Unit Tests - Dashboard.Api
+        run: dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Tests\DotNetWorkQueue.Dashboard.Api.Tests.csproj" --no-build -c Debug
+
+      - name: Unit Tests - Dashboard.Client
+        run: dotnet test "Source\DotNetWorkQueue.Dashboard.Client.Tests\DotNetWorkQueue.Dashboard.Client.Tests.csproj" --no-build -c Debug
+
+      - name: Unit Tests - Memory
+        run: dotnet test "Source\DotNetWorkQueue.Transport.Memory.Tests\DotNetWorkQueue.Transport.Memory.Tests.csproj" --no-build -c Debug
+
+      - name: Integration Tests - Memory
+        run: dotnet test "Source\DotNetWorkQueue.Transport.Memory.Integration.Tests\DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" --no-build -c Debug
+
+      - name: Integration Tests - Memory Linq
+        run: dotnet test "Source\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" --no-build -c Debug
+
+      - name: Integration Tests - Dashboard API (Memory, SQLite, LiteDb)
+        run: dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --no-build -c Debug --filter "FullyQualifiedName~Memory|FullyQualifiedName~Sqlite|FullyQualifiedName~LiteDb"

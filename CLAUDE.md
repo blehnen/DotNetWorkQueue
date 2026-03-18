@@ -104,4 +104,4 @@ Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (thre
 - Interface prefix: `I` (e.g., `IQueue`); Factory suffix: `Factory`; Config suffix: `Configuration`
 - Abstract base classes use prefix `A` or suffix `Base`
 - Thread-safe disposal via `Interlocked` operations throughout
-- **CI**: TeamCity is the local CI server and runs all tests (unit + integration across all transports). AppVeyor (`appveyor.yml`) provides lightweight cloud builds on all branches — runs unit tests and in-memory integration tests only (no external services like SQL Server, PostgreSQL, or Redis).
+- **CI**: TeamCity is the local CI server and runs all tests (unit + integration across all transports). GitHub Actions (`.github/workflows/ci.yml`) provides cloud builds on all branches — runs unit tests and in-memory integration tests only (no external services like SQL Server, PostgreSQL, or Redis).
