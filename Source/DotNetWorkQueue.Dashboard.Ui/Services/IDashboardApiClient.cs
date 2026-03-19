@@ -61,5 +61,11 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
         // Consumers
         Task<List<ConsumerInfoResponse>> GetConsumersAsync(Guid? queueId = null);
         Task<Dictionary<Guid, int>> GetConsumerCountsAsync();
+
+        // History
+        Task<PagedResponse<HistoryResponse>> GetHistoryAsync(Guid queueId, int pageIndex = 0, int pageSize = 25, int? status = null);
+        Task<long> GetHistoryCountAsync(Guid queueId, int? status = null);
+        Task<HistoryResponse?> GetHistoryByMessageIdAsync(Guid queueId, string messageId);
+        Task<DeleteAllResponse> PurgeHistoryAsync(Guid queueId, int? olderThanDays = null);
     }
 }

@@ -1,0 +1,159 @@
+@using DotNetWorkQueue.Dashboard.Ui.Services
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-4">
+    <MudText Typo="Typo.body2" Color="Color.Secondary">Total: @_totalCount</MudText>
+    <MudSpacer />
+    <MudSelect T="int?" Label="Status" Value="_statusFilter" ValueChanged="OnStatusFilterChanged"
+               Dense="true" Margin="Margin.Dense" Style="max-width: 180px;">
+        <MudSelectItem T="int?" Value="@((int?)null)">All</MudSelectItem>
+        <MudSelectItem T="int?" Value="0">Enqueued</MudSelectItem>
+        <MudSelectItem T="int?" Value="1">Processing</MudSelectItem>
+        <MudSelectItem T="int?" Value="2">Complete</MudSelectItem>
+        <MudSelectItem T="int?" Value="3">Error</MudSelectItem>
+        <MudSelectItem T="int?" Value="4">Deleted</MudSelectItem>
+        <MudSelectItem T="int?" Value="5">Expired</MudSelectItem>
+    </MudSelect>
+    @if (_totalCount > 0)
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.DeleteSweep"
+                   OnClick="PurgeHistory">
+            @(_confirmPurge ? "Click Again to Confirm" : "Purge History")
+        </MudButton>
+    }
+</MudStack>
+
+@if (_error != null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+}
+
+<MudTable T="HistoryResponse" Items="_records" Loading="_loading" Dense="true" Hover="true" Elevation="0"
+          Breakpoint="Breakpoint.Sm">
+    <HeaderContent>
+        <MudTh>Queue ID</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Enqueued</MudTh>
+        <MudTh>Duration</MudTh>
+        <MudTh>Retries</MudTh>
+        <MudTh>Type</MudTh>
+        <MudTh>Route</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Queue ID">
+            <MudText Typo="Typo.body2" Style="font-family: monospace;">
+                @TruncateId(context.QueueId)
+            </MudText>
+        </MudTd>
+        <MudTd DataLabel="Status">
+            <MudChip T="string" Color="@StatusColor(context.Status)" Size="Size.Small" Variant="Variant.Filled">
+                @context.StatusName
+            </MudChip>
+        </MudTd>
+        <MudTd DataLabel="Enqueued">@context.EnqueuedUtc.ToLocalTime().ToString("G")</MudTd>
+        <MudTd DataLabel="Duration">@FormatDuration(context.DurationMs)</MudTd>
+        <MudTd DataLabel="Retries">@(context.RetryCount > 0 ? context.RetryCount.ToString() : "-")</MudTd>
+        <MudTd DataLabel="Type">
+            <MudText Typo="Typo.body2" Style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                @(context.MessageType ?? "-")
+            </MudText>
+        </MudTd>
+        <MudTd DataLabel="Route">@(context.Route ?? "-")</MudTd>
+    </RowTemplate>
+    <ChildRowContent>
+        @if (!string.IsNullOrEmpty(context.ExceptionText))
+        {
+            <MudTr>
+                <td colspan="7" style="padding: 8px 16px;">
+                    <MudAlert Severity="Severity.Error" Dense="true" Class="my-1">
+                        <MudText Typo="Typo.body2" Style="white-space: pre-wrap; font-family: monospace; font-size: 0.8rem;">@context.ExceptionText</MudText>
+                    </MudAlert>
+                </td>
+            </MudTr>
+        }
+    </ChildRowContent>
+    <NoRecordsContent><MudText>No history records found.</MudText></NoRecordsContent>
+</MudTable>
+
+@if (_totalCount > _pageSize)
+{
+    <div class="d-flex justify-center mt-4">
+        <MudPagination Count="@TotalPages" Selected="@(_pageIndex + 1)" SelectedChanged="OnPageChanged" Color="Color.Primary" />
+    </div>
+}
+
+@code {
+    [Parameter] public Guid QueueId { get; set; }
+    [Parameter] public IDashboardApiClient Api { get; set; } = default!;
+    [Parameter] public ISnackbar Snackbar { get; set; } = default!;
+    [Parameter] public int RefreshVersion { get; set; }
+
+    private List<HistoryResponse>? _records;
+    private long _totalCount;
+    private int _pageIndex;
+    private int _pageSize = 25;
+    private int? _statusFilter;
+    private int _lastRefreshVersion;
+    private bool _loading = true;
+    private bool _confirmPurge;
+    private string? _error;
+    private int TotalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+
+    protected override async Task OnInitializedAsync() { _lastRefreshVersion = RefreshVersion; await LoadHistory(); }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (RefreshVersion != _lastRefreshVersion) { _lastRefreshVersion = RefreshVersion; await LoadHistory(); }
+    }
+
+    private async Task LoadHistory()
+    {
+        _loading = true; _error = null;
+        try
+        {
+            var result = await Api.GetHistoryAsync(QueueId, _pageIndex, _pageSize, _statusFilter);
+            _records = result.Items?.ToList();
+            _totalCount = result.TotalCount;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private async Task OnPageChanged(int page) { _pageIndex = page - 1; await LoadHistory(); }
+
+    private async Task OnStatusFilterChanged(int? status) { _statusFilter = status; _pageIndex = 0; await LoadHistory(); }
+
+    private async Task PurgeHistory()
+    {
+        if (!_confirmPurge) { _confirmPurge = true; return; }
+        _confirmPurge = false;
+        try
+        {
+            var result = await Api.PurgeHistoryAsync(QueueId, 30);
+            Snackbar.Add($"Purged {result.Deleted} record(s).", Severity.Success);
+            await LoadHistory();
+        }
+        catch (Exception ex) { Snackbar.Add($"Failed: {ex.Message}", Severity.Error); }
+    }
+
+    private static Color StatusColor(int status) => status switch
+    {
+        0 => Color.Info,      // Enqueued
+        1 => Color.Warning,   // Processing
+        2 => Color.Success,   // Complete
+        3 => Color.Error,     // Error
+        4 => Color.Default,   // Deleted
+        5 => Color.Secondary, // Expired
+        _ => Color.Default
+    };
+
+    private static string FormatDuration(long? ms)
+    {
+        if (!ms.HasValue) return "-";
+        if (ms < 1000) return $"{ms}ms";
+        if (ms < 60000) return $"{ms / 1000.0:F1}s";
+        return $"{ms / 60000.0:F1}m";
+    }
+
+    private static string TruncateId(string? id) => string.IsNullOrEmpty(id) ? "-" : (id.Length > 12 ? id[..12] + "..." : id);
+}
