@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             decorator.Handle(message, notification);
 
-            notification.MessageCancellation.Should().BeNull();
+            notification.MessageCancellation.Should().BeOfType<MessageCancellationNoOp>();
         }
 
         [TestMethod]
