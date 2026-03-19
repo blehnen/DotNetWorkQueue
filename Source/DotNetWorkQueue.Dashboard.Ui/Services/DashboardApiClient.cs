@@ -189,5 +189,37 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
             return await _http.GetFromJsonAsync<Dictionary<Guid, int>>($"{Base}/consumers/count").ConfigureAwait(false)
                    ?? new Dictionary<Guid, int>();
         }
+
+        // History
+        public async Task<PagedResponse<HistoryResponse>> GetHistoryAsync(Guid queueId, int pageIndex = 0, int pageSize = 25, int? status = null)
+        {
+            var url = $"{Base}/queues/{queueId}/history?pageIndex={pageIndex}&pageSize={pageSize}";
+            if (status.HasValue) url += $"&status={status.Value}";
+            return await _http.GetFromJsonAsync<PagedResponse<HistoryResponse>>(url).ConfigureAwait(false)
+                   ?? new PagedResponse<HistoryResponse>();
+        }
+
+        public async Task<long> GetHistoryCountAsync(Guid queueId, int? status = null)
+        {
+            var url = $"{Base}/queues/{queueId}/history/count";
+            if (status.HasValue) url += $"?status={status.Value}";
+            return await _http.GetFromJsonAsync<long>(url).ConfigureAwait(false);
+        }
+
+        public async Task<HistoryResponse?> GetHistoryByMessageIdAsync(Guid queueId, string messageId)
+        {
+            return await _http.GetFromJsonAsync<HistoryResponse>(
+                       $"{Base}/queues/{queueId}/history/{messageId}").ConfigureAwait(false);
+        }
+
+        public async Task<DeleteAllResponse> PurgeHistoryAsync(Guid queueId, int? olderThanDays = null)
+        {
+            var url = $"{Base}/queues/{queueId}/history";
+            if (olderThanDays.HasValue) url += $"?olderThanDays={olderThanDays.Value}";
+            var response = await _http.DeleteAsync(url).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<DeleteAllResponse>().ConfigureAwait(false)
+                   ?? new DeleteAllResponse();
+        }
     }
 }

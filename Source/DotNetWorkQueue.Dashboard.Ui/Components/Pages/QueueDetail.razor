@@ -93,6 +93,9 @@ else
         <MudTabPanel Text="Consumers" Icon="@Icons.Material.Filled.People" BadgeData="@ConsumerBadge" BadgeColor="Color.Success">
             <ConsumersTab QueueId="QueueId" Api="Api" RefreshVersion="_refreshVersion" />
         </MudTabPanel>
+        <MudTabPanel Text="History" Icon="@Icons.Material.Filled.History">
+            <HistoryTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" RefreshVersion="_refreshVersion" />
+        </MudTabPanel>
         <MudTabPanel Text="Configuration" Icon="@Icons.Material.Filled.Settings">
             <ConfigTab QueueId="QueueId" Api="Api" />
         </MudTabPanel>
