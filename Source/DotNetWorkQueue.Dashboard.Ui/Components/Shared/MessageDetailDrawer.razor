@@ -180,6 +180,8 @@
                 {
                     <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"
                                StartIcon="@Icons.Material.Filled.RestartAlt" OnClick="ResetMessage">Reset</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelMessage">@(_cancelRequested ? "Requested" : "Cancel")</MudButton>
                 }
             </MudStack>
         }
@@ -206,6 +208,7 @@
     private bool _editMode;
     private bool _saving;
     private bool _confirmDelete;
+    private bool _cancelRequested;
     private string? _editBodyJson;
 
     private string? _lastLoadedMessageId;
@@ -225,6 +228,7 @@
             _editMode = false;
             _editBodyJson = null;
             _confirmDelete = false;
+            _cancelRequested = false;
             await LoadMessage();
         }
     }
@@ -290,6 +294,14 @@
         if (await Api.ResetMessageAsync(QueueId, MessageId!))
         { Snackbar.Add("Message reset.", Severity.Success); await OnDataChanged.InvokeAsync(); await LoadMessage(); }
         else Snackbar.Add("Failed to reset.", Severity.Error);
+    }
+
+    private async Task CancelMessage()
+    {
+        if (_cancelRequested) return;
+        if (await Api.CancelMessageAsync(QueueId, MessageId!))
+        { Snackbar.Add("Cancellation requested. The handler must check the token to stop.", Severity.Info); _cancelRequested = true; }
+        else Snackbar.Add("Could not cancel — message may not be processing or no consumer is in-process.", Severity.Warning);
     }
 
     private void StartEdit() { _editBodyJson = FormatJson(_body?.Body); _editMode = true; }

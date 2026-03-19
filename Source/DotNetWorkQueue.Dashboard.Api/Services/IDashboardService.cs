@@ -130,5 +130,16 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// Purges history records older than the configured retention period.
         /// </summary>
         long PurgeHistory(Guid queueId, int? olderThanDays);
+
+        /// <summary>
+        /// Requests cancellation of a running message. Only works when the consumer is in-process.
+        /// </summary>
+        /// <returns>True if cancellation was requested; false if the message is not being processed or cancellation is not available.</returns>
+        bool CancelMessage(Guid queueId, string messageId);
+
+        /// <summary>
+        /// Returns true if per-message cancellation is available (consumer running in-process).
+        /// </summary>
+        bool IsCancellationAvailable { get; }
     }
 }

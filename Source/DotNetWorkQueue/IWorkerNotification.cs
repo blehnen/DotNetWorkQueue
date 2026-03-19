@@ -77,5 +77,16 @@ namespace DotNetWorkQueue
         /// Allows trace logging
         /// </summary>
         ActivitySource Tracer { get; }
+
+        /// <summary>
+        /// Per-message cancellation support. The token fires when a cancel request
+        /// is received for this specific message, or when the worker is stopping.
+        /// User code should check this token to support cooperative cancellation.
+        /// </summary>
+        /// <remarks>
+        /// Never null. When per-message cancellation is not active, returns a no-op
+        /// implementation whose token is <see cref="System.Threading.CancellationToken.None"/>.
+        /// </remarks>
+        IMessageCancellation MessageCancellation { get; set; }
     }
 }
