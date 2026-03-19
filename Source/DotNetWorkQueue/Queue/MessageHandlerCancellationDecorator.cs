@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Queue
                 finally
                 {
                     _tracker.Unregister(queueId);
-                    workerNotification.MessageCancellation = null;
+                    workerNotification.MessageCancellation = MessageCancellationNoOp.Instance;
                 }
             }
             else
@@ -114,7 +114,7 @@ namespace DotNetWorkQueue.Queue
                 finally
                 {
                     _tracker.Unregister(queueId);
-                    workerNotification.MessageCancellation = null;
+                    workerNotification.MessageCancellation = MessageCancellationNoOp.Instance;
                 }
             }
             else

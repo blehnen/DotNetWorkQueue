@@ -116,6 +116,6 @@ namespace DotNetWorkQueue.Queue
         public ActivitySource Tracer { get; }
 
         /// <inheritdoc/>
-        public IMessageCancellation MessageCancellation { get; set; }
+        public IMessageCancellation MessageCancellation { get; set; } = MessageCancellationNoOp.Instance;
     }
 }

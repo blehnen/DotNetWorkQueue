@@ -84,8 +84,8 @@ namespace DotNetWorkQueue
         /// User code should check this token to support cooperative cancellation.
         /// </summary>
         /// <remarks>
-        /// May be null if per-message cancellation is not wired up.
-        /// Always check for null before accessing the token.
+        /// Never null. When per-message cancellation is not active, returns a no-op
+        /// implementation whose token is <see cref="System.Threading.CancellationToken.None"/>.
         /// </remarks>
         IMessageCancellation MessageCancellation { get; set; }
     }
