@@ -724,6 +724,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             };
         }
 
+        /// <inheritdoc />
+        public bool CancelMessage(Guid queueId, string messageId)
+        {
+            var container = GetContainer(queueId);
+            var cancelHandler = container.GetInstance<ICancelRunningMessage>();
+            return cancelHandler.Cancel(messageId);
+        }
+
+        /// <inheritdoc />
+        public bool IsCancellationAvailable => DotNetWorkQueue.Queue.MessageCancellationTracker.HasActiveConsumers;
+
         private IContainer GetContainer(Guid queueId)
         {
             return _dashboardApi.GetQueueContainer(queueId);

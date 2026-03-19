@@ -324,7 +324,13 @@ namespace DotNetWorkQueue.IoC
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryNoOp>(LifeStyles.Singleton);
             container.Register<IClearHistoryMonitor, ClearHistoryMonitorNoOp>(LifeStyles.Singleton);
 
-            // Message ID scope decorators — innermost, so the scope covers all other decorators and user code
+            // Per-message cancellation — innermost decorator, wraps the handler with register/unregister
+            container.Register<MessageCancellationTracker>(LifeStyles.Singleton);
+            container.Register<ICancelRunningMessage>(() => container.GetInstance<MessageCancellationTracker>(), LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageHandler, MessageHandlerCancellationDecorator>(LifeStyles.Singleton);
+            container.RegisterDecorator<IMessageHandlerAsync, MessageHandlerAsyncCancellationDecorator>(LifeStyles.Singleton);
+
+            // Message ID scope decorators
             container.RegisterDecorator<IMessageHandler, Logging.Decorator.MessageHandlerScopeDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IMessageHandlerAsync, Logging.Decorator.MessageHandlerAsyncScopeDecorator>(LifeStyles.Singleton);
 

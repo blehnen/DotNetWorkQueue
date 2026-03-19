@@ -347,6 +347,26 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             return Ok(new DeleteAllResponse { Deleted = count });
         }
 
+        // === Cancellation ===
+
+        /// <summary>
+        /// Requests cancellation of a running message. Only works when the consumer is in-process.
+        /// </summary>
+        [HttpPost("{queueId:guid}/messages/{messageId}/cancel")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(409)]
+        public IActionResult CancelMessage(Guid queueId, string messageId)
+        {
+            if (!_service.IsCancellationAvailable)
+                return StatusCode(409, "Cancellation is not available — no consumer is running in-process.");
+
+            var result = _service.CancelMessage(queueId, messageId);
+            if (!result)
+                return NotFound("Message is not currently being processed.");
+            return Ok();
+        }
+
         private static bool IsValidStatus(int status)
         {
             return Enum.IsDefined(typeof(QueueStatuses), (short)status);

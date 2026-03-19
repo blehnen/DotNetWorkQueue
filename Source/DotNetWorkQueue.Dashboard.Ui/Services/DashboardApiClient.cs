@@ -190,6 +190,13 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
                    ?? new Dictionary<Guid, int>();
         }
 
+        // Cancellation
+        public async Task<bool> CancelMessageAsync(Guid queueId, string messageId)
+        {
+            var response = await _http.PostAsync($"{Base}/queues/{queueId}/messages/{messageId}/cancel", null).ConfigureAwait(false);
+            return response.IsSuccessStatusCode;
+        }
+
         // History
         public async Task<PagedResponse<HistoryResponse>> GetHistoryAsync(Guid queueId, int pageIndex = 0, int pageSize = 25, int? status = null)
         {

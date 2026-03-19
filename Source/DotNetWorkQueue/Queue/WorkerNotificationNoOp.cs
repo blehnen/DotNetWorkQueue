@@ -63,5 +63,12 @@ namespace DotNetWorkQueue.Queue
             {
             }
         }
+
+        /// <inheritdoc/>
+        public IMessageCancellation MessageCancellation
+        {
+            get => null;
+            set { }
+        }
     }
 }
