@@ -1,14 +1,20 @@
+### 0.9.10 — 2026-03-20
+- `EnableHistory` on transport options (SQLite, SQL Server, PostgreSQL, LiteDB) — set during queue creation like other options. Redis and Memory don't need this; they create history storage at runtime when `IHistoryConfiguration.Enabled` is true.
+- Dashboard API: read-only mode (`DashboardOptions.ReadOnly`) — blocks all write operations with 403
+- Dashboard UI: write buttons hidden in read-only mode
+- Dashboard API: `GET /api/v1/dashboard/settings` endpoint
+
 ### 0.9.9 — 2026-03-19
-- Per-message cancellation: `IMessageCancellation` on `IWorkerNotification` (never null — NoOp when not active), `ICancelRunningMessage` / `MessageCancellationTracker` for programmatic cancel
-- Dashboard API: `POST /api/v1/dashboard/queues/{queueId}/messages/{messageId}/cancel` — cooperative cancellation of running messages (in-process only)
-- Dashboard UI: Cancel button on Processing status messages in the detail drawer
-- Message history tracking (opt-in via `IHistoryConfiguration.Enabled`): records enqueue, processing, complete, error, rollback, delete, expire events per message
-- History table created per queue when enabled, with configurable body storage (`StoreBody`) and 30-day retention purge
-- History implementations for all 6 transports: SQL Server, PostgreSQL, SQLite, LiteDB, Redis, Memory
-- `ClearHistoryMonitor` for automatic retention-based purge, wired into `QueueMonitor`
-- Dashboard API: history endpoints — list (paged, filterable), detail by message ID, count, purge
-- Dashboard UI: History tab with status filter, color-coded chips, duration formatting, expandable exception text, pagination, purge button
-- Message ID logging scope: `MessageId` and `CorrelationId` pushed into `ILogger` scope during handler execution (always-on, zero config)
+- Per-message cancellation: `IMessageCancellation` on `IWorkerNotification` (never null, NoOp when inactive), `ICancelRunningMessage` / `MessageCancellationTracker`
+- Dashboard API: `POST .../messages/{messageId}/cancel` — cooperative cancel, in-process only
+- Dashboard UI: Cancel button on Processing messages
+- Message history tracking (opt-in via `IHistoryConfiguration.Enabled`): records enqueue, processing, complete, error, rollback, delete, expire per message
+- History table per queue with configurable body storage (`StoreBody`) and 30-day retention purge
+- History for all 6 transports
+- `ClearHistoryMonitor` for retention purge, wired into `QueueMonitor`
+- Dashboard API: history endpoints (list, detail, count, purge)
+- Dashboard UI: History tab with status filter, pagination, expandable exceptions, purge
+- `MessageId` and `CorrelationId` pushed into `ILogger` scope during handler execution (always on, zero config)
 
 ### 0.9.8 — 2026-03-17
 - Fix: `InvokeMovedToErrorQueue` now increments the error counter — messages moved to the error queue were not being counted
