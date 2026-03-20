@@ -156,7 +156,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 
         private SqLiteMessageQueueSchema Create(ISqLiteMessageQueueTransportOptionsFactory options, TableNameHelper tableNameHelper)
         {
-            return new SqLiteMessageQueueSchema(tableNameHelper, options, Substitute.For<IHistoryConfiguration>());
+            return new SqLiteMessageQueueSchema(tableNameHelper, options);
         }
 
         private TableNameHelper GetTableNameHelper()

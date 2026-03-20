@@ -30,6 +30,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         private bool _enableRoute;
         private bool _enableDelayedProcessing;
         private bool _enableMessageExpiration;
+        private bool _enableHistory;
 
         #region Constructor
         /// <summary>
@@ -41,6 +42,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             EnableRoute = false;
             EnableMessageExpiration = false;
             EnableDelayedProcessing = false;
+            EnableHistory = false;
         }
         #endregion
 
@@ -130,6 +132,22 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             {
                 FailIfReadOnly();
                 _enableMessageExpiration = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [enable history].
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [enable history]; otherwise, <c>false</c>.
+        /// </value>
+        public bool EnableHistory
+        {
+            get => _enableHistory;
+            set
+            {
+                FailIfReadOnly();
+                _enableHistory = value;
             }
         }
         #endregion

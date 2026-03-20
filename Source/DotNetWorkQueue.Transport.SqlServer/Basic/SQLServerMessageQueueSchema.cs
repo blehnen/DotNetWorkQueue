@@ -33,25 +33,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         private readonly ITableNameHelper _tableNameHelper;
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
         private readonly ISqlSchema _schema;
-        private readonly IHistoryConfiguration _historyConfiguration;
 
         /// <summary>Initializes a new instance of the <see cref="SqlServerMessageQueueSchema"/> class.</summary>
         /// <param name="tableNameHelper">The table name helper. Note this is the base module</param>
         /// <param name="options">The options.</param>
         /// <param name="schema">The schema that the queue is using</param>
-        /// <param name="historyConfiguration">The history configuration.</param>
         public SqlServerMessageQueueSchema(TableNameHelper tableNameHelper,
-            ISqlServerMessageQueueTransportOptionsFactory options, ISqlSchema schema,
-            IHistoryConfiguration historyConfiguration)
+            ISqlServerMessageQueueTransportOptionsFactory options, ISqlSchema schema)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => options, options);
-            Guard.NotNull(() => historyConfiguration, historyConfiguration);
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(options.Create);
             _schema = schema;
-            _historyConfiguration = historyConfiguration;
         }
 
         /// <summary>
@@ -74,7 +69,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 rc.Add(CreateStatusTable());
             }
 
-            if (_historyConfiguration.Enabled)
+            if (_options.Value.EnableHistory)
             {
                 rc.Add(CreateHistoryTable());
             }

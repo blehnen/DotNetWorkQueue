@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
         {
             var service = Substitute.For<IDashboardService>();
             service.GetConnections().Returns(new List<ConnectionResponse>());
-            var controller = new ConnectionsController(service);
+            var controller = new ConnectionsController(service, new DotNetWorkQueue.Dashboard.Api.Configuration.DashboardOptions());
 
             var result = controller.GetConnections();
 
@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
                 new ConnectionResponse { Id = Guid.NewGuid(), DisplayName = "Test Connection", QueueCount = 2 }
             };
             service.GetConnections().Returns(connections);
-            var controller = new ConnectionsController(service);
+            var controller = new ConnectionsController(service, new DotNetWorkQueue.Dashboard.Api.Configuration.DashboardOptions());
 
             var result = controller.GetConnections() as OkObjectResult;
 
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             var service = Substitute.For<IDashboardService>();
             var connectionId = Guid.NewGuid();
             service.GetQueues(connectionId).Returns(new List<QueueInfoResponse>());
-            var controller = new ConnectionsController(service);
+            var controller = new ConnectionsController(service, new DotNetWorkQueue.Dashboard.Api.Configuration.DashboardOptions());
 
             var result = controller.GetQueues(connectionId);
 
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             var service = Substitute.For<IDashboardService>();
             var connectionId = Guid.NewGuid();
             service.GetQueues(connectionId).Returns(new List<QueueInfoResponse>());
-            var controller = new ConnectionsController(service);
+            var controller = new ConnectionsController(service, new DotNetWorkQueue.Dashboard.Api.Configuration.DashboardOptions());
 
             controller.GetQueues(connectionId);
 
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             var service = Substitute.For<IDashboardService>();
             var connectionId = Guid.NewGuid();
             service.GetJobsByConnectionAsync(connectionId).Returns(Task.FromResult<IReadOnlyList<JobResponse>>(new List<JobResponse>()));
-            var controller = new ConnectionsController(service);
+            var controller = new ConnectionsController(service, new DotNetWorkQueue.Dashboard.Api.Configuration.DashboardOptions());
 
             var result = await controller.GetJobs(connectionId);
 
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             var service = Substitute.For<IDashboardService>();
             var connectionId = Guid.NewGuid();
             service.GetJobsByConnectionAsync(connectionId).Returns(Task.FromResult<IReadOnlyList<JobResponse>>(new List<JobResponse>()));
-            var controller = new ConnectionsController(service);
+            var controller = new ConnectionsController(service, new DotNetWorkQueue.Dashboard.Api.Configuration.DashboardOptions());
 
             await controller.GetJobs(connectionId);
 

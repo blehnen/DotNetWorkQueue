@@ -158,7 +158,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 
         private PostgreSqlMessageQueueSchema Create(IPostgreSqlMessageQueueTransportOptionsFactory options, ITableNameHelper tableNameHelper)
         {
-            return new PostgreSqlMessageQueueSchema(tableNameHelper, options, Substitute.For<IHistoryConfiguration>());
+            return new PostgreSqlMessageQueueSchema(tableNameHelper, options);
         }
 
         private ITableNameHelper GetTableNameHelper()
