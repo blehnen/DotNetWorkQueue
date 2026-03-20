@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Dashboard.Api.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -34,13 +35,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
     public class ConnectionsController : ControllerBase
     {
         private readonly IDashboardService _service;
+        private readonly DashboardOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionsController"/> class.
         /// </summary>
-        public ConnectionsController(IDashboardService service)
+        public ConnectionsController(IDashboardService service, DashboardOptions options)
         {
             _service = service;
+            _options = options;
         }
 
         /// <summary>
@@ -73,6 +76,16 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
         public async Task<IActionResult> GetJobs(Guid connectionId)
         {
             return Ok(await _service.GetJobsByConnectionAsync(connectionId).ConfigureAwait(false));
+        }
+
+        /// <summary>
+        /// Gets dashboard settings (read-only mode, etc.)
+        /// </summary>
+        [HttpGet("/api/v1/dashboard/settings")]
+        [ProducesResponseType(typeof(DashboardSettingsResponse), 200)]
+        public IActionResult GetSettings()
+        {
+            return Ok(new DashboardSettingsResponse { ReadOnly = _options.ReadOnly });
         }
     }
 }

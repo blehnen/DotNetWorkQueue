@@ -13,7 +13,7 @@
         <MudSelectItem T="int?" Value="4">Deleted</MudSelectItem>
         <MudSelectItem T="int?" Value="5">Expired</MudSelectItem>
     </MudSelect>
-    @if (_totalCount > 0)
+    @if (!ReadOnly && _totalCount > 0)
     {
         <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
                    StartIcon="@Icons.Material.Filled.DeleteSweep"
@@ -87,6 +87,7 @@
     [Parameter] public IDashboardApiClient Api { get; set; } = default!;
     [Parameter] public ISnackbar Snackbar { get; set; } = default!;
     [Parameter] public int RefreshVersion { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
 
     private List<HistoryResponse>? _records;
     private long _totalCount;

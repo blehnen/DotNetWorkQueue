@@ -50,6 +50,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         /// Gets or sets whether consumer tracking is enabled.
         /// When enabled, consumers can register with the dashboard and send heartbeats.
         /// </summary>
+        /// <summary>
+        /// When true, all write operations (delete, requeue, reset, cancel, purge, edit body) are disabled.
+        /// The dashboard becomes view-only — useful for monitoring-only deployments.
+        /// </summary>
+        public bool ReadOnly { get; set; }
+
         public bool EnableConsumerTracking { get; set; } = true;
 
         /// <summary>

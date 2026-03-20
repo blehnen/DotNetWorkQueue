@@ -35,6 +35,12 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
             _http = http;
         }
 
+        // Settings
+        public async Task<DashboardSettingsResponse?> GetSettingsAsync()
+        {
+            return await _http.GetFromJsonAsync<DashboardSettingsResponse>($"{Base}/settings").ConfigureAwait(false);
+        }
+
         // Connections
         public async Task<List<ConnectionResponse>> GetConnectionsAsync()
         {

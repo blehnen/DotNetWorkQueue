@@ -5,7 +5,7 @@
                      Variant="Variant.Outlined" Margin="Margin.Dense" Min="1" Style="max-width: 200px;" />
     <MudText Typo="Typo.body2" Color="Color.Secondary">Total: @_totalCount</MudText>
     <MudSpacer />
-    @if (_totalCount > 0)
+    @if (!ReadOnly && _totalCount > 0)
     {
         <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"
                    StartIcon="@Icons.Material.Filled.RestartAlt"
@@ -43,11 +43,14 @@
         </MudTd>
         <MudTd DataLabel="Queued">@FormatDate(context.QueuedDateTime)</MudTd>
         <MudTd DataLabel="HeartBeat">@FormatDate(context.HeartBeat)</MudTd>
-        <MudTd DataLabel="Actions">
-            <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info"
-                       StartIcon="@Icons.Material.Filled.RestartAlt"
-                       OnClick="@(() => ResetMessage(context.QueueId))">Reset</MudButton>
-        </MudTd>
+        @if (!ReadOnly)
+        {
+            <MudTd DataLabel="Actions">
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info"
+                           StartIcon="@Icons.Material.Filled.RestartAlt"
+                           OnClick="@(() => ResetMessage(context.QueueId))">Reset</MudButton>
+            </MudTd>
+        }
     </RowTemplate>
     <NoRecordsContent><MudText>No stale messages found.</MudText></NoRecordsContent>
 </MudTable>
@@ -66,6 +69,7 @@
     [Parameter] public EventCallback<string> OnMessageSelected { get; set; }
     [Parameter] public EventCallback OnDataChanged { get; set; }
     [Parameter] public int RefreshVersion { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
 
     private List<MessageResponse>? _messages;
     private long _totalCount;

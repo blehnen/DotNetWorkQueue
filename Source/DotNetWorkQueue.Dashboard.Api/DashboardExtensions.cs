@@ -69,6 +69,7 @@ namespace DotNetWorkQueue.Dashboard.Api
                 {
                     mvcOptions.Filters.Add<DashboardExceptionFilter>();
                     mvcOptions.Filters.Add(new ApiKeyAuthorizationFilter(options));
+                    mvcOptions.Filters.Add(new ReadOnlyFilter(options));
 
                     if (!string.IsNullOrEmpty(options.AuthorizationPolicy))
                     {

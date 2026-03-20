@@ -39,6 +39,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private bool _enableRoute;
         private bool _additionalColumnsOnMetaData;
         private bool _enableWalMode;
+        private bool _enableHistory;
 
         #region Constructor
         /// <summary>
@@ -56,6 +57,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             EnableRoute = false;
             AdditionalColumnsOnMetaData = false;
             EnableWalMode = true;
+            EnableHistory = false;
 
             AdditionalColumns = new ColumnList();
             AdditionalConstraints = new ConstraintList();
@@ -238,6 +240,23 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 FailIfReadOnly();
                 _enableWalMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether a message history table should be created.
+        /// When enabled, message lifecycle events (enqueue, processing, complete, error, etc.) are tracked.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> to create the history table; otherwise, <c>false</c>. Default is <c>false</c>.
+        /// </value>
+        public bool EnableHistory
+        {
+            get => _enableHistory;
+            set
+            {
+                FailIfReadOnly();
+                _enableHistory = value;
             }
         }
 

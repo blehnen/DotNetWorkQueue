@@ -85,16 +85,16 @@ else
             <MessagesTab QueueId="QueueId" Api="Api" Features="_features" OnMessageSelected="OpenMessageDrawer" StatusFilter="_messagesStatusFilter" StatusFilterVersion="_filterVersion" RefreshVersion="_refreshVersion" />
         </MudTabPanel>
         <MudTabPanel Text="Errors" Icon="@Icons.Material.Filled.Error" BadgeData="@ErrorBadge" BadgeColor="Color.Error">
-            <ErrorsTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" />
+            <ErrorsTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" ReadOnly="_readOnly" />
         </MudTabPanel>
         <MudTabPanel Text="Stale" Icon="@Icons.Material.Filled.Timer" BadgeData="@StaleBadge" BadgeColor="Color.Warning">
-            <StaleTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" />
+            <StaleTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" ReadOnly="_readOnly" />
         </MudTabPanel>
         <MudTabPanel Text="Consumers" Icon="@Icons.Material.Filled.People" BadgeData="@ConsumerBadge" BadgeColor="Color.Success">
             <ConsumersTab QueueId="QueueId" Api="Api" RefreshVersion="_refreshVersion" />
         </MudTabPanel>
         <MudTabPanel Text="History" Icon="@Icons.Material.Filled.History">
-            <HistoryTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" RefreshVersion="_refreshVersion" />
+            <HistoryTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" RefreshVersion="_refreshVersion" ReadOnly="_readOnly" />
         </MudTabPanel>
         <MudTabPanel Text="Configuration" Icon="@Icons.Material.Filled.Settings">
             <ConfigTab QueueId="QueueId" Api="Api" />
@@ -104,7 +104,7 @@ else
 
 @* Message detail drawer *@
 <MessageDetailDrawer QueueId="QueueId" MessageId="@_selectedMessageId" Open="@_drawerOpen"
-                     OpenChanged="OnDrawerClosed" Api="Api" Snackbar="Snackbar" OnDataChanged="RefreshCounts" />
+                     OpenChanged="OnDrawerClosed" Api="Api" Snackbar="Snackbar" OnDataChanged="RefreshCounts" ReadOnly="_readOnly" />
 
 @code {
     [Parameter] public Guid QueueId { get; set; }
@@ -123,6 +123,7 @@ else
 
     private long _staleCount;
     private int _consumerCount;
+    private bool _readOnly;
     private string? _queueName;
     private string? _connectionDisplayName;
     private string? _connectionId;
@@ -190,10 +191,12 @@ else
             var featuresTask = Api.GetQueueFeaturesAsync(QueueId);
             var staleTask = Api.GetStaleMessagesAsync(QueueId, 60, 0, 1);
             var consumersTask = Api.GetConsumersAsync(QueueId);
+            var settingsTask = Api.GetSettingsAsync();
             _status = await statusTask;
             _features = await featuresTask;
             _staleCount = (await staleTask).TotalCount;
             _consumerCount = (await consumersTask).Count;
+            _readOnly = (await settingsTask)?.ReadOnly ?? false;
         }
         catch (Exception ex)
         {

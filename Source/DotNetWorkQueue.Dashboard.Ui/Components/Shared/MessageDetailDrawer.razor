@@ -96,7 +96,7 @@
                     <pre style="margin: 0; white-space: pre-wrap; font-size: 0.8rem;">@FormatJson(_body.Body)</pre>
                 </MudPaper>
 
-                @if (_message.Status is 0 or 2 && !_editMode)
+                @if (!ReadOnly && _message.Status is 0 or 2 && !_editMode)
                 {
                     <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
                                StartIcon="@Icons.Material.Filled.Edit" OnClick="StartEdit" Class="mb-3">Edit Body</MudButton>
@@ -168,22 +168,25 @@
             <MudDivider Class="my-3" />
 
             @* Actions *@
-            <MudStack Row="true" Spacing="2">
-                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
-                           StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteMessage">@(_confirmDelete ? "Click to Confirm" : "Delete")</MudButton>
-                @if (_message.Status == 2)
-                {
-                    <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
-                               StartIcon="@Icons.Material.Filled.Replay" OnClick="RequeueMessage">Requeue</MudButton>
-                }
-                @if (_message.Status == 1)
-                {
-                    <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"
-                               StartIcon="@Icons.Material.Filled.RestartAlt" OnClick="ResetMessage">Reset</MudButton>
-                    <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
-                               StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelMessage">@(_cancelRequested ? "Requested" : "Cancel")</MudButton>
-                }
-            </MudStack>
+            @if (!ReadOnly)
+            {
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteMessage">@(_confirmDelete ? "Click to Confirm" : "Delete")</MudButton>
+                    @if (_message.Status == 2)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Replay" OnClick="RequeueMessage">Requeue</MudButton>
+                    }
+                    @if (_message.Status == 1)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.RestartAlt" OnClick="ResetMessage">Reset</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelMessage">@(_cancelRequested ? "Requested" : "Cancel")</MudButton>
+                    }
+                </MudStack>
+            }
         }
     </div>
 </MudDrawer>
@@ -196,6 +199,7 @@
     [Parameter] public IDashboardApiClient Api { get; set; } = default!;
     [Parameter] public ISnackbar Snackbar { get; set; } = default!;
     [Parameter] public EventCallback OnDataChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
 
     private MessageResponse? _message;
     private MessageBodyResponse? _body;

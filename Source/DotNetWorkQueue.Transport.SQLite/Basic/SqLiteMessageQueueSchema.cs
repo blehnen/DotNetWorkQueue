@@ -32,25 +32,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     {
         private readonly ITableNameHelper _tableNameHelper;
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
-        private readonly IHistoryConfiguration _historyConfiguration;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqLiteMessageQueueSchema"/> class.
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="options">The options.</param>
-        /// <param name="historyConfiguration">The history configuration.</param>
         public SqLiteMessageQueueSchema(ITableNameHelper tableNameHelper,
-            ISqLiteMessageQueueTransportOptionsFactory options,
-            IHistoryConfiguration historyConfiguration)
+            ISqLiteMessageQueueTransportOptionsFactory options)
         {
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => options, options);
-            Guard.NotNull(() => historyConfiguration, historyConfiguration);
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<SqLiteMessageQueueTransportOptions>(options.Create);
-            _historyConfiguration = historyConfiguration;
         }
 
         /// <summary>
@@ -73,7 +68,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 rc.Add(CreateStatusTable());
             }
 
-            if (_historyConfiguration.Enabled)
+            if (_options.Value.EnableHistory)
             {
                 rc.Add(CreateHistoryTable());
             }

@@ -25,6 +25,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
 {
     public interface IDashboardApiClient
     {
+        // Settings
+        Task<DashboardSettingsResponse?> GetSettingsAsync();
+
         // Connections
         Task<List<ConnectionResponse>> GetConnectionsAsync();
         Task<List<QueueInfoResponse>> GetQueuesAsync(Guid connectionId);

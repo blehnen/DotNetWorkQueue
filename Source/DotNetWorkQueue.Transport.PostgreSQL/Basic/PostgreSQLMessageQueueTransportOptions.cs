@@ -38,6 +38,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private bool _enableMessageExpiration;
         private bool _enableRoute;
         private bool _additionalColumnsOnMetaData;
+        private bool _enableHistory;
 
         #region Constructor
         /// <summary>
@@ -55,6 +56,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             EnableStatusTable = false;
             EnableRoute = false;
             AdditionalColumnsOnMetaData = false;
+            EnableHistory = false;
 
             AdditionalColumns = new ColumnList();
             AdditionalConstraints = new ConstraintList();
@@ -189,6 +191,22 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             {
                 FailIfReadOnly();
                 _enableMessageExpiration = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether message history tracking is enabled.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [enable history]; otherwise, <c>false</c>.
+        /// </value>
+        public bool EnableHistory
+        {
+            get => _enableHistory;
+            set
+            {
+                FailIfReadOnly();
+                _enableHistory = value;
             }
         }
 

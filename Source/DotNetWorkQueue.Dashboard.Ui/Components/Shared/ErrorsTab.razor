@@ -3,7 +3,7 @@
 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-4">
     <MudText Typo="Typo.body2" Color="Color.Secondary">Total: @_totalCount</MudText>
     <MudSpacer />
-    @if (_totalCount > 0)
+    @if (!ReadOnly && _totalCount > 0)
     {
         <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
                    StartIcon="@Icons.Material.Filled.Replay"
@@ -44,16 +44,19 @@
                 @(context.LastException ?? "-")
             </MudText>
         </MudTd>
-        <MudTd DataLabel="Actions">
-            <MudStack Row="true" Spacing="1">
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning"
-                           StartIcon="@Icons.Material.Filled.Replay"
-                           OnClick="@(() => RequeueMessage(context.QueueId))">Requeue</MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error"
-                           StartIcon="@Icons.Material.Filled.Delete"
-                           OnClick="@(() => DeleteMessage(context.QueueId))">@(_confirmDeleteId == context.QueueId ? "Confirm?" : "Delete")</MudButton>
-            </MudStack>
-        </MudTd>
+        @if (!ReadOnly)
+        {
+            <MudTd DataLabel="Actions">
+                <MudStack Row="true" Spacing="1">
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning"
+                               StartIcon="@Icons.Material.Filled.Replay"
+                               OnClick="@(() => RequeueMessage(context.QueueId))">Requeue</MudButton>
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error"
+                               StartIcon="@Icons.Material.Filled.Delete"
+                               OnClick="@(() => DeleteMessage(context.QueueId))">@(_confirmDeleteId == context.QueueId ? "Confirm?" : "Delete")</MudButton>
+                </MudStack>
+            </MudTd>
+        }
     </RowTemplate>
     <NoRecordsContent><MudText>No error messages.</MudText></NoRecordsContent>
 </MudTable>
@@ -72,6 +75,7 @@
     [Parameter] public EventCallback<string> OnMessageSelected { get; set; }
     [Parameter] public EventCallback OnDataChanged { get; set; }
     [Parameter] public int RefreshVersion { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
 
     private List<ErrorMessageResponse>? _errors;
     private long _totalCount;
