@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.History
                     messageCount,
                     x => { },
                     Helpers.GenerateData, Helpers.Verify,
-                    scope => { });
+                    scope => { /* Memory doesn't need scope registration for history */ });
             }
         }
     }

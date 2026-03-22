@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.History
                 test.Run<LiteDbMessageQueueInit, FakeMessage, LiteDbMessageQueueCreation>(
                     new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount,
-                    x => { },
+                    x => { x.Options.EnableHistory = true; },
                     Helpers.GenerateData, Helpers.Verify,
                     scope => { });
             }
