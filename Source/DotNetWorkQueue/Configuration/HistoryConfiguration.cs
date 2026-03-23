@@ -192,5 +192,22 @@ namespace DotNetWorkQueue.Configuration
         {
             IsReadOnly = true;
         }
+
+        /// <inheritdoc />
+        public void ApplyTransportOptions(bool enabled, IHistoryTransportOptions options)
+        {
+            Enabled = enabled;
+            if (options == null) return;
+            RetentionDays = options.RetentionDays;
+            MaxExceptionLength = options.MaxExceptionLength;
+            StoreBody = options.StoreBody;
+            TrackEnqueue = options.TrackEnqueue;
+            TrackProcessing = options.TrackProcessing;
+            TrackComplete = options.TrackComplete;
+            TrackError = options.TrackError;
+            TrackDelete = options.TrackDelete;
+            TrackExpire = options.TrackExpire;
+            MonitorTime = options.MonitorTime;
+        }
     }
 }
