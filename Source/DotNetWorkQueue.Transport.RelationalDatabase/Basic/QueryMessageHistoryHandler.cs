@@ -59,20 +59,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     command.CommandText = $@"SELECT QueueID, CorrelationID, Status, EnqueuedUtc, StartedUtc, CompletedUtc,
                         DurationMs, ExceptionText, RetryCount, Route, MessageType
                         FROM {_tableNameHelper.HistoryName} {where}
-                        ORDER BY EnqueuedUtc DESC
-                        LIMIT @PageSize OFFSET @Offset";
+                        ORDER BY EnqueuedUtc DESC";
 
                     if (statusFilter.HasValue)
                         AddParameter(command, "@Status", DbType.Int32, (int)statusFilter.Value);
 
-                    AddParameter(command, "@PageSize", DbType.Int32, pageSize);
-                    AddParameter(command, "@Offset", DbType.Int32, pageIndex * pageSize);
-
+                    var skip = pageIndex * pageSize;
+                    var count = 0;
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            results.Add(MapRecord(reader));
+                            if (count >= skip && results.Count < pageSize)
+                                results.Add(MapRecord(reader));
+                            count++;
+                            if (results.Count >= pageSize)
+                                break;
                         }
                     }
                 }
