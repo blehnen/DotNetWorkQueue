@@ -28,8 +28,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.History
     public class SimpleHistoryTests
     {
         [TestMethod]
-        [DataRow(5, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-        [DataRow(5, IntegrationConnectionInfo.ConnectionTypes.Shared)]
+        [DataRow(5, IntegrationConnectionInfo.ConnectionTypes.Direct)]
         public void Run(int messageCount, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
