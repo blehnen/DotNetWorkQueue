@@ -38,7 +38,6 @@ namespace DotNetWorkQueue.Configuration
             IPolicies sendPolicies)
             : base(transportConfiguration, headers, additionalConfiguration, timeConfiguration, sendPolicies)
         {
-
         }
         #endregion
 

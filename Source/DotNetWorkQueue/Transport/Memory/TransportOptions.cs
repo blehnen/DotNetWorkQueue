@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Text;
+using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.Memory
 {
@@ -106,5 +107,9 @@ namespace DotNetWorkQueue.Transport.Memory
         public bool EnableRoute => false;
         /// <inheritdoc/>
         public bool EnableMessageExpiration => false;
+        /// <inheritdoc />
+        public bool EnableHistory => false;
+        /// <inheritdoc />
+        public IHistoryTransportOptions HistoryOptions { get; } = new HistoryTransportOptions();
     }
 }

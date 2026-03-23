@@ -19,6 +19,7 @@
 using System;
 using System.Data;
 using System.Text;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SQLite.Schema;
 
@@ -259,6 +260,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 _enableHistory = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the history tracking options (retention, body storage, tracking flags).
+        /// </summary>
+        public HistoryTransportOptions HistoryOptions { get; set; } = new HistoryTransportOptions();
+
+        /// <inheritdoc />
+        IHistoryTransportOptions IBaseTransportOptions.HistoryOptions => HistoryOptions;
 
         /// <summary>
         /// If true, a transaction will be held until the message is finished processing.

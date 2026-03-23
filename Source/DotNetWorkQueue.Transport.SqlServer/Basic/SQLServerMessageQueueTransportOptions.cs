@@ -21,6 +21,7 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Globalization;
 using System.Text;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
 
@@ -225,6 +226,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 _enableHistory = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the history tracking options (retention, body storage, tracking flags).
+        /// </summary>
+        public HistoryTransportOptions HistoryOptions { get; set; } = new HistoryTransportOptions();
+
+        /// <inheritdoc />
+        IHistoryTransportOptions IBaseTransportOptions.HistoryOptions => HistoryOptions;
+
         /// <summary>
         /// Gets or sets the type of the queue.
         /// </summary>

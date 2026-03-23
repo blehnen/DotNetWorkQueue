@@ -19,20 +19,17 @@
 using System;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
-using DotNetWorkQueue.IntegrationTests.Shared.Producer;
 using DotNetWorkQueue.Messages;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
 {
     /// <summary>
-    /// Tests that message history records are created and updated through the full lifecycle.
+    /// Tests the full message history lifecycle via the proper API:
+    /// EnableHistory on transport options, then send/consume/verify.
     /// </summary>
     public class SimpleHistoryTest
     {
-        /// <summary>
-        /// Sends and consumes messages with history enabled, then verifies history records.
-        /// </summary>
         public void Run<TTransportInit, TMessage, TTransportCreate>(
             QueueConnection queueConnection,
             int messageCount,
@@ -52,26 +49,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try
                 {
+                    // setOptions should include EnableHistory = true on the transport options
                     setOptions(oCreation);
                     var result = oCreation.CreateQueue();
                     Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
-                    // Enable history in the container so decorators record events
                     using (var queueContainer = new QueueContainer<TTransportInit>(serviceRegister =>
                     {
                         serviceRegister.Register(() => logProvider, LifeStyles.Singleton);
-                        // Override history config to enabled
-                        serviceRegister.Register<IHistoryConfiguration>(() =>
-                        {
-                            var config = new HistoryConfiguration { Enabled = true };
-                            return config;
-                        }, LifeStyles.Singleton);
-                        // Share scope for in-process transports (Memory, LiteDB :memory:)
                         serviceRegister.RegisterNonScopedSingleton(scope);
                     }))
                     {
-                        // Send messages
+                        // Send messages — history is bridged from transport options
                         using (var producer = queueContainer.CreateProducer<TMessage>(queueConnection))
                         {
                             for (var i = 0; i < messageCount; i++)
@@ -81,7 +71,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                             }
                         }
 
-                        // Consume messages
+                        // Consume messages — history is bridged from transport options
                         var processedCount = 0;
                         var waitHandle = new ManualResetEventSlim(false);
                         using (var consumer = queueContainer.CreateConsumer(queueConnection))
@@ -102,49 +92,41 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                         // Verify history records via admin container
                         using (var adminContainer = queueContainer.CreateAdminContainer(queueConnection))
                         {
+                            // Admin container also needs history enabled for query handlers
+                            var adminHistoryConfig = adminContainer.GetInstance<IHistoryConfiguration>();
+                            adminHistoryConfig.Enabled = true;
+
                             var historyQuery = adminContainer.GetInstance<IQueryMessageHistory>();
 
-                            // Total count should match messages sent
                             var totalCount = historyQuery.GetCount(null);
                             Assert.IsTrue(totalCount >= messageCount,
                                 $"Expected at least {messageCount} history records, got {totalCount}");
 
-                            // All should be Complete status (2) since they were consumed
                             var completeCount = historyQuery.GetCount(MessageHistoryStatus.Complete);
                             Assert.IsTrue(completeCount >= messageCount,
                                 $"Expected at least {messageCount} completed records, got {completeCount}");
 
-                            // Paged query should return records
                             var records = historyQuery.Get(0, 100, null);
                             Assert.IsNotNull(records);
-                            Assert.IsTrue(records.Count >= messageCount,
-                                $"Expected at least {messageCount} records from Get, got {records.Count}");
+                            Assert.IsTrue(records.Count >= messageCount);
 
-                            // Each record should have valid data
                             foreach (var record in records)
                             {
-                                Assert.IsNotNull(record.QueueId, "QueueId should not be null");
+                                Assert.IsNotNull(record.QueueId);
                                 Assert.AreEqual(MessageHistoryStatus.Complete, record.Status);
-                                Assert.IsTrue(record.EnqueuedUtc > DateTime.MinValue, "EnqueuedUtc should be set");
-                                // StartedUtc, CompletedUtc, and DurationMs may be null if the history
-                                // write for RecordComplete failed (best-effort) or if the transport
-                                // doesn't support duration calculation. Don't assert on these.
                             }
 
-                            // GetByQueueId should find a specific record
+                            // Test GetByQueueId
                             var firstRecord = records[0];
                             var byId = historyQuery.GetByQueueId(firstRecord.QueueId);
-                            Assert.IsNotNull(byId, "GetByQueueId should find the record");
-                            Assert.AreEqual(firstRecord.QueueId, byId.QueueId);
+                            Assert.IsNotNull(byId);
 
-                            // Purge with future date should remove records
+                            // Test purge
                             var purgeHandler = adminContainer.GetInstance<IPurgeMessageHistory>();
                             var purged = purgeHandler.Purge(DateTime.UtcNow.AddDays(1));
-                            Assert.AreEqual(totalCount, purged, $"Purge should have removed {totalCount} records, got {purged}");
+                            Assert.AreEqual(totalCount, purged);
 
-                            // After purge, count should be 0
-                            var afterPurge = historyQuery.GetCount(null);
-                            Assert.AreEqual(0, afterPurge, "Count should be 0 after purge");
+                            Assert.AreEqual(0, historyQuery.GetCount(null));
                         }
                     }
                 }

@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Configuration;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
@@ -38,5 +40,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public bool EnableRoute => true;
         /// <inheritdoc/>
         public bool EnableMessageExpiration => true;
+        /// <inheritdoc />
+        public bool EnableHistory => false;
+        /// <inheritdoc />
+        public IHistoryTransportOptions HistoryOptions { get; } = new HistoryTransportOptions();
     }
 }
