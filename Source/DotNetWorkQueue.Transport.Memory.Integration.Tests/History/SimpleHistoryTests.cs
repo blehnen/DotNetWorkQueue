@@ -39,8 +39,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.History
                     new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount,
                     x => { },
-                    Helpers.GenerateData, Helpers.Verify,
-                    scope => { /* Memory doesn't need scope registration for history */ });
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

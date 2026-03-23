@@ -246,8 +246,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 AddParameter(command, "@QueueID", DbType.String, queueId);
 
                 var result = command.ExecuteScalar();
-                if (result != null && result != DBNull.Value)
-                    return (DateTime)result;
+                if (result == null || result == DBNull.Value)
+                    return null;
+
+                // SQLite stores DateTime as INTEGER (ticks) or TEXT; other transports return DateTime directly
+                if (result is DateTime dt)
+                    return dt;
+                if (result is long ticks && ticks > 0)
+                    return new DateTime(ticks, DateTimeKind.Utc);
+
                 return null;
             }
         }

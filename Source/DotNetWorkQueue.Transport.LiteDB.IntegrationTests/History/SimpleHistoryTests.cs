@@ -40,8 +40,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.History
                     new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount,
                     x => { x.Options.EnableHistory = true; },
-                    Helpers.GenerateData, Helpers.Verify,
-                    scope => { });
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

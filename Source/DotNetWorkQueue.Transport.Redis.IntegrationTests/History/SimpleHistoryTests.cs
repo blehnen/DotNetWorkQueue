@@ -38,8 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.History
                 new QueueConnection(queueName, connectionString),
                 messageCount,
                 x => { },
-                Helpers.GenerateData, Helpers.Verify,
-                scope => { });
+                Helpers.GenerateData, Helpers.Verify);
         }
     }
 }

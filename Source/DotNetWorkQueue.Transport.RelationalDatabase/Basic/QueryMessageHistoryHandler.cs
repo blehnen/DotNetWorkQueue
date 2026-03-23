@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     if (statusFilter.HasValue)
                         AddParameter(command, "@Status", DbType.Int32, (int)statusFilter.Value);
 
-                    return (long)command.ExecuteScalar();
+                    return Convert.ToInt64(command.ExecuteScalar());
                 }
             }
         }

@@ -43,8 +43,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.History
                         false, false, false, true, false);
                     x.Options.EnableHistory = true;
                 },
-                Helpers.GenerateData, Helpers.Verify,
-                scope => { });
+                Helpers.GenerateData, Helpers.Verify);
         }
     }
 }

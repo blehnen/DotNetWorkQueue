@@ -44,8 +44,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.History
                         Helpers.SetOptions(x, true, false, false, false, false, false, false);
                         x.Options.EnableHistory = true;
                     },
-                    Helpers.GenerateData, Helpers.Verify,
-                    scope => { });
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }
