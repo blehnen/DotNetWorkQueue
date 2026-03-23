@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -21,9 +21,9 @@ using DotNetWorkQueue.Configuration;
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
-    /// For redis, this class just indicates what is supported; Redis does not use a schema, so any option can be used at any time, even after queue creation.
+    /// Redis transport options. Most features are always enabled since Redis doesn't use a schema.
+    /// History-related options are persisted to a Redis key.
     /// </summary>
-    /// <seealso cref="DotNetWorkQueue.IBaseTransportOptions" />
     public class RedisBaseTransportOptions : IBaseTransportOptions
     {
         /// <inheritdoc/>
@@ -40,9 +40,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public bool EnableRoute => true;
         /// <inheritdoc/>
         public bool EnableMessageExpiration => true;
-        /// <inheritdoc />
-        public bool EnableHistory => false;
-        /// <inheritdoc />
-        public IHistoryTransportOptions HistoryOptions { get; } = new HistoryTransportOptions();
+
+        /// <summary>
+        /// Gets or sets whether message history tracking is enabled.
+        /// </summary>
+        public bool EnableHistory { get; set; }
+
+        /// <summary>
+        /// History tracking settings.
+        /// </summary>
+        public HistoryTransportOptions HistoryOptions { get; set; } = new HistoryTransportOptions();
+
+        IHistoryTransportOptions IBaseTransportOptions.HistoryOptions => HistoryOptions;
     }
 }

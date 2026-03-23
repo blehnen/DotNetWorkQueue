@@ -27,6 +27,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Factory
     /// </summary>
     internal class LiteDbMessageQueueTransportOptionsFactory : ILiteDbMessageQueueTransportOptionsFactory
     {
+        // Static fallback for in-memory mode where creation and consumer containers
+        // have different LiteDB database instances
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, LiteDbMessageQueueTransportOptions>
+            InMemoryOptionsCache = new System.Collections.Concurrent.ConcurrentDictionary<string, LiteDbMessageQueueTransportOptions>();
+
         private readonly IQueryHandler<GetQueueOptionsQuery<LiteDbMessageQueueTransportOptions>, LiteDbMessageQueueTransportOptions> _queryOptions;
         private readonly IConnectionInformation _connectionInformation;
         private readonly object _creator = new object();
@@ -65,12 +70,27 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Factory
                 {
                     _options = _queryOptions.Handle(new GetQueueOptionsQuery<LiteDbMessageQueueTransportOptions>());
                 }
-                if (_options == null) //does not exist in DB; return a new copy. This will be saved to the database when the queue is created.
+                if (_options == null)
+                {
+                    // Fallback: check static cache for in-memory mode
+                    var key = $"{_connectionInformation.QueueName}|{_connectionInformation.ConnectionString}";
+                    InMemoryOptionsCache.TryGetValue(key, out _options);
+                }
+                if (_options == null)
                 {
                     _options = new LiteDbMessageQueueTransportOptions();
                 }
             }
             return _options;
+        }
+
+        /// <summary>
+        /// Saves options to the static cache for in-memory mode fallback.
+        /// </summary>
+        internal static void SaveToCache(IConnectionInformation connectionInfo, LiteDbMessageQueueTransportOptions options)
+        {
+            var key = $"{connectionInfo.QueueName}|{connectionInfo.ConnectionString}";
+            InMemoryOptionsCache[key] = options;
         }
     }
 }

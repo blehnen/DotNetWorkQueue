@@ -4,6 +4,7 @@ using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using DotNetWorkQueue.Transport.Memory.Basic.Factory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
 {
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
         private MessageQueueCreation Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            fixture.Inject<ITransportOptionsFactory>(new TransportOptionsFactory());
+            fixture.Inject<ITransportOptionsFactory>(new TransportOptionsFactory(Substitute.For<IConnectionInformation>()));
             return fixture.Create<MessageQueueCreation>();
         }
     }

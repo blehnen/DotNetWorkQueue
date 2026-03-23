@@ -107,9 +107,26 @@ namespace DotNetWorkQueue.Transport.Memory
         public bool EnableRoute => false;
         /// <inheritdoc/>
         public bool EnableMessageExpiration => false;
-        /// <inheritdoc />
-        public bool EnableHistory => false;
-        /// <inheritdoc />
-        public IHistoryTransportOptions HistoryOptions { get; } = new HistoryTransportOptions();
+
+        private bool _enableHistory;
+        /// <summary>
+        /// Gets or sets a value indicating whether message history tracking is enabled.
+        /// </summary>
+        public bool EnableHistory
+        {
+            get => _enableHistory;
+            set
+            {
+                FailIfReadOnly();
+                _enableHistory = value;
+            }
+        }
+
+        /// <summary>
+        /// History tracking settings.
+        /// </summary>
+        public HistoryTransportOptions HistoryOptions { get; set; } = new HistoryTransportOptions();
+
+        IHistoryTransportOptions IBaseTransportOptions.HistoryOptions => HistoryOptions;
     }
 }

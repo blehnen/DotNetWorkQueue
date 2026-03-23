@@ -121,21 +121,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             if (options is IBaseTransportOptions baseOptions)
             {
                 var historyConfig = container.GetInstance<IHistoryConfiguration>();
-                historyConfig.Enabled = baseOptions.EnableHistory;
-                var ho = baseOptions.HistoryOptions;
-                if (ho != null)
-                {
-                    historyConfig.RetentionDays = ho.RetentionDays;
-                    historyConfig.MaxExceptionLength = ho.MaxExceptionLength;
-                    historyConfig.StoreBody = ho.StoreBody;
-                    historyConfig.TrackEnqueue = ho.TrackEnqueue;
-                    historyConfig.TrackProcessing = ho.TrackProcessing;
-                    historyConfig.TrackComplete = ho.TrackComplete;
-                    historyConfig.TrackError = ho.TrackError;
-                    historyConfig.TrackDelete = ho.TrackDelete;
-                    historyConfig.TrackExpire = ho.TrackExpire;
-                    historyConfig.MonitorTime = ho.MonitorTime;
-                }
+                historyConfig.ApplyTransportOptions(baseOptions.EnableHistory, baseOptions.HistoryOptions);
             }
 
             transportReceive.MessageRollbackSupported = options.EnableStatus ||
