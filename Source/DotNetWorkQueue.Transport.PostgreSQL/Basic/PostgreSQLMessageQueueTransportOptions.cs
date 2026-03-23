@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Text;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using Npgsql;
@@ -209,6 +210,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 _enableHistory = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the history tracking options (retention, body storage, tracking flags).
+        /// </summary>
+        public HistoryTransportOptions HistoryOptions { get; set; } = new HistoryTransportOptions();
+
+        /// <inheritdoc />
+        IHistoryTransportOptions IBaseTransportOptions.HistoryOptions => HistoryOptions;
 
         #endregion
 

@@ -40,7 +40,6 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="additionalConfiguration">The additional configuration.</param>
         /// <param name="messageErrorConfiguration">Configuration for if/when to delete messages in an error status</param>
         /// <param name="timeConfiguration">The time configuration.</param>
-        /// <param name="historyConfiguration">Configuration for message history tracking.</param>
         public QueueConsumerConfiguration(TransportConfigurationReceive transportConfiguration,
             IWorkerConfiguration workerConfiguration,
             IHeartBeatConfiguration heartBeatConfiguration,
@@ -48,21 +47,18 @@ namespace DotNetWorkQueue.Configuration
             IHeaders headers,
             IConfiguration additionalConfiguration,
             IMessageErrorConfiguration messageErrorConfiguration,
-            BaseTimeConfiguration timeConfiguration,
-            IHistoryConfiguration historyConfiguration)
+            BaseTimeConfiguration timeConfiguration)
             : base(transportConfiguration, headers, additionalConfiguration, timeConfiguration)
         {
             Guard.NotNull(() => workerConfiguration, workerConfiguration);
             Guard.NotNull(() => heartBeatConfiguration, heartBeatConfiguration);
             Guard.NotNull(() => messageExpirationConfiguration, messageExpirationConfiguration);
             Guard.NotNull(() => messageErrorConfiguration, messageErrorConfiguration);
-            Guard.NotNull(() => historyConfiguration, historyConfiguration);
 
             Worker = workerConfiguration;
             HeartBeat = heartBeatConfiguration;
             MessageExpiration = messageExpirationConfiguration;
             MessageError = messageErrorConfiguration;
-            History = historyConfiguration;
             Routes = new List<string>();
             AdditionalSettings = new Dictionary<string, object>();
         }
@@ -98,12 +94,6 @@ namespace DotNetWorkQueue.Configuration
         /// </summary>
         /// <remarks>Messages with an error status can be automatically removed from the queue</remarks>
         public IMessageErrorConfiguration MessageError { get; }
-
-        /// <summary>
-        /// Message history configuration
-        /// </summary>
-        /// <remarks>When enabled, message lifecycle events are recorded in a history table</remarks>
-        public IHistoryConfiguration History { get; }
 
         /// <summary>
         /// Gets or sets the routes.

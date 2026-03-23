@@ -36,11 +36,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.History
             test.Run<SqlServerMessageQueueInit, FakeMessage, SqlServerMessageQueueCreation>(
                 new QueueConnection(queueName, ConnectionInfo.ConnectionString),
                 messageCount,
-                x => Helpers.SetOptions(x,
-                    false, false, false,
-                    false, false, false, true, false),
-                Helpers.GenerateData, Helpers.Verify,
-                scope => { });
+                x =>
+                {
+                    Helpers.SetOptions(x,
+                        false, false, false,
+                        false, false, false, true, false);
+                    x.Options.EnableHistory = true;
+                },
+                Helpers.GenerateData, Helpers.Verify);
         }
     }
 }

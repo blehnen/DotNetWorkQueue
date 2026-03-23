@@ -77,6 +77,15 @@ namespace DotNetWorkQueue
         /// <c>true</c> if [enable message expiration]; otherwise, <c>false</c>.
         /// </value>
         bool EnableMessageExpiration { get; }
+        /// <summary>
+        /// Gets a value indicating whether message history tracking is enabled.
+        /// </summary>
+        bool EnableHistory { get; }
+
+        /// <summary>
+        /// History tracking settings (retention, body storage, tracking flags).
+        /// </summary>
+        IHistoryTransportOptions HistoryOptions { get; }
 
         #endregion
     }

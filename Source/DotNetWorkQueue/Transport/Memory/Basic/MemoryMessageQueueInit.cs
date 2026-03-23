@@ -52,9 +52,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             container.Register<IClearExpiredMessages, ClearExpiredMessages>(LifeStyles.Singleton);
             container.Register<IClearErrorMessages, ClearErrorMessages>(LifeStyles.Singleton);
 
-            container.Register<IWriteMessageHistory, WriteMessageHistoryHandler>(LifeStyles.Singleton);
-            container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
-            container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IDataStorage, DataStorage>(LifeStyles.Singleton);
             container.Register<IDataStorageSendMessage, DataStorage>(LifeStyles.Singleton);
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);

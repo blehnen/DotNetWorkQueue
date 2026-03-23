@@ -39,11 +39,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.History
                 test.Run<SqLiteMessageQueueInit, FakeMessage, SqLiteMessageQueueCreation>(
                     new QueueConnection(queueName, connectionInfo.ConnectionString),
                     messageCount,
-                    x => Helpers.SetOptions(x,
-                        true, false, false,
-                        false, false, false, false),
-                    Helpers.GenerateData, Helpers.Verify,
-                    scope => { });
+                    x =>
+                    {
+                        Helpers.SetOptions(x, true, false, false, false, false, false, false);
+                        x.Options.EnableHistory = true;
+                    },
+                    Helpers.GenerateData, Helpers.Verify);
             }
         }
     }

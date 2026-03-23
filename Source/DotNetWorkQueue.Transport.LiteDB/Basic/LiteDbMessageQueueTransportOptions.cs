@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Text;
+using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Basic
 {
@@ -150,6 +151,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 _enableHistory = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the history tracking options (retention, body storage, tracking flags).
+        /// </summary>
+        public HistoryTransportOptions HistoryOptions { get; set; } = new HistoryTransportOptions();
+
+        /// <inheritdoc />
+        IHistoryTransportOptions IBaseTransportOptions.HistoryOptions => HistoryOptions;
+
         #endregion
 
         #region Validation

@@ -75,5 +75,12 @@ namespace DotNetWorkQueue
         /// Track when messages expire. Default is true.
         /// </summary>
         bool TrackExpire { get; set; }
+
+        /// <summary>
+        /// Populates this configuration from transport options.
+        /// </summary>
+        /// <param name="enabled">Whether history is enabled.</param>
+        /// <param name="options">The transport history options to copy from.</param>
+        void ApplyTransportOptions(bool enabled, IHistoryTransportOptions options);
     }
 }
