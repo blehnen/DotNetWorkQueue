@@ -28,17 +28,17 @@ namespace DotNetWorkQueue.History.Decorator
     {
         private readonly ISendMessages _handler;
         private readonly IWriteMessageHistory _history;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
         private readonly ILogger _log;
 
         public SendMessagesHistoryDecorator(ISendMessages handler,
             IWriteMessageHistory history,
-            IHistoryConfiguration config,
+            IBaseTransportOptions options,
             ILogger log)
         {
             _handler = handler;
             _history = history;
-            _config = config;
+            _options = options;
             _log = log;
         }
 
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.History.Decorator
         public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
             var result = _handler.Send(messages);
-            if (_config.Enabled && _config.TrackEnqueue)
+            if (_options.EnableHistory && _options.HistoryOptions.TrackEnqueue)
             {
                 foreach (var msg in result)
                 {
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.History.Decorator
         public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
             var result = await _handler.SendAsync(messages).ConfigureAwait(false);
-            if (_config.Enabled && _config.TrackEnqueue)
+            if (_options.EnableHistory && _options.HistoryOptions.TrackEnqueue)
             {
                 foreach (var msg in result)
                 {
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.History.Decorator
 
         private void RecordEnqueue(IQueueOutputMessage result, IAdditionalMessageData data)
         {
-            if (!_config.Enabled || !_config.TrackEnqueue) return;
+            if (!_options.EnableHistory || !_options.HistoryOptions.TrackEnqueue) return;
             if (result.HasError || result.SentMessage?.MessageId == null || !result.SentMessage.MessageId.HasValue) return;
 
             try

@@ -29,18 +29,18 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     {
         private readonly LiteDbConnectionManager _connectionManager;
         private readonly TableNameHelper _tableNameHelper;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WriteMessageHistoryHandler"/> class.
         /// </summary>
         public WriteMessageHistoryHandler(LiteDbConnectionManager connectionManager,
             TableNameHelper tableNameHelper,
-            IHistoryConfiguration config)
+            IBaseTransportOptions options)
         {
             _connectionManager = connectionManager;
             _tableNameHelper = tableNameHelper;
-            _config = config;
+            _options = options;
         }
 
         /// <inheritdoc />
@@ -59,8 +59,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                     RetryCount = 0,
                     Route = route,
                     MessageType = messageType,
-                    Body = _config.StoreBody ? body : null,
-                    Headers = _config.StoreBody ? headers : null
+                    Body = _options.HistoryOptions.StoreBody ? body : null,
+                    Headers = _options.HistoryOptions.StoreBody ? headers : null
                 });
             }
         }
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <inheritdoc />
         public void RecordComplete(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var now = DateTime.UtcNow;
             using (var db = _connectionManager.GetDatabase())
             {

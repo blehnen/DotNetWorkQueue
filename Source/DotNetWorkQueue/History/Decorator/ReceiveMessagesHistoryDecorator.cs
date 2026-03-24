@@ -25,24 +25,24 @@ namespace DotNetWorkQueue.History.Decorator
     {
         private readonly IReceiveMessages _handler;
         private readonly IWriteMessageHistory _history;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
         private readonly ILogger _log;
 
         public ReceiveMessagesHistoryDecorator(IReceiveMessages handler,
             IWriteMessageHistory history,
-            IHistoryConfiguration config,
+            IBaseTransportOptions options,
             ILogger log)
         {
             _handler = handler;
             _history = history;
-            _config = config;
+            _options = options;
             _log = log;
         }
 
         public IReceivedMessageInternal ReceiveMessage(IMessageContext context)
         {
             var result = _handler.ReceiveMessage(context);
-            if (result != null && _config.Enabled && _config.TrackProcessing && context.MessageId != null && context.MessageId.HasValue)
+            if (result != null && _options.EnableHistory && _options.HistoryOptions.TrackProcessing && context.MessageId != null && context.MessageId.HasValue)
             {
                 try
                 {

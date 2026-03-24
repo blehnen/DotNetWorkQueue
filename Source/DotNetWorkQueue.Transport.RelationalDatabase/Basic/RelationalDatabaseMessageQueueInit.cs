@@ -117,13 +117,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
             transportReceive.MessageExpirationSupported = options.EnableMessageExpiration;
 
-            // Bridge transport option to history configuration so decorators pick it up
-            if (options is IBaseTransportOptions baseOptions)
-            {
-                var historyConfig = container.GetInstance<IHistoryConfiguration>();
-                historyConfig.ApplyTransportOptions(baseOptions.EnableHistory, baseOptions.HistoryOptions);
-            }
-
             transportReceive.MessageRollbackSupported = options.EnableStatus ||
                                                         options.EnableHoldTransactionUntilMessageCommitted;
 

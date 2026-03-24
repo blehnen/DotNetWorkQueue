@@ -318,7 +318,6 @@ namespace DotNetWorkQueue.IoC
             container.Register<IStandardHeaders, StandardHeaders>(LifeStyles.Singleton);
             container.Register<ICustomHeaders, CustomHeaders>(LifeStyles.Singleton);
 
-            container.Register<IHistoryConfiguration, HistoryConfiguration>(LifeStyles.Singleton);
             container.Register<IWriteMessageHistory, WriteMessageHistoryNoOp>(LifeStyles.Singleton);
             container.Register<IQueryMessageHistory, QueryMessageHistoryNoOp>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryNoOp>(LifeStyles.Singleton);

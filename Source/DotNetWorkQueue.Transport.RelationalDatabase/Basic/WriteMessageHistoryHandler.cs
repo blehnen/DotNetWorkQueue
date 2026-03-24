@@ -29,25 +29,25 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WriteMessageHistoryHandler"/> class.
         /// </summary>
         public WriteMessageHistoryHandler(IDbConnectionFactory connectionFactory,
             ITableNameHelper tableNameHelper,
-            IHistoryConfiguration config)
+            IBaseTransportOptions options)
         {
             _connectionFactory = connectionFactory;
             _tableNameHelper = tableNameHelper;
-            _config = config;
+            _options = options;
         }
 
         /// <inheritdoc />
         public void RecordEnqueue(string queueId, string correlationId, string route, string messageType,
             byte[] body, byte[] headers)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             using (var connection = _connectionFactory.Create())
             {
                 connection.Open();
@@ -63,8 +63,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, "@EnqueuedUtc", DbType.DateTime, DateTime.UtcNow);
                     AddParameter(command, "@Route", DbType.String, (object)route ?? DBNull.Value);
                     AddParameter(command, "@MessageType", DbType.String, (object)messageType ?? DBNull.Value);
-                    AddParameter(command, "@Body", DbType.Binary, _config.StoreBody ? (object)body ?? DBNull.Value : DBNull.Value);
-                    AddParameter(command, "@Headers", DbType.Binary, _config.StoreBody ? (object)headers ?? DBNull.Value : DBNull.Value);
+                    AddParameter(command, "@Body", DbType.Binary, _options.HistoryOptions.StoreBody ? (object)body ?? DBNull.Value : DBNull.Value);
+                    AddParameter(command, "@Headers", DbType.Binary, _options.HistoryOptions.StoreBody ? (object)headers ?? DBNull.Value : DBNull.Value);
 
                     command.ExecuteNonQuery();
                 }
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public void RecordProcessingStart(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             using (var connection = _connectionFactory.Create())
             {
                 connection.Open();
@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public void RecordComplete(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var now = DateTime.UtcNow;
             using (var connection = _connectionFactory.Create())
             {
@@ -145,7 +145,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public void RecordError(string queueId, string exception)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var now = DateTime.UtcNow;
             using (var connection = _connectionFactory.Create())
             {
@@ -176,7 +176,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public void RecordRollback(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             using (var connection = _connectionFactory.Create())
             {
                 connection.Open();
@@ -197,7 +197,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public void RecordDelete(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             using (var connection = _connectionFactory.Create())
             {
                 connection.Open();
@@ -219,7 +219,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public void RecordExpire(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             using (var connection = _connectionFactory.Create())
             {
                 connection.Open();

@@ -89,18 +89,20 @@ namespace DotNetWorkQueue.Tests.History.Decorator
         }
 
         private static (ICommitMessage decorator, ICommitMessage inner, IWriteMessageHistory history,
-            IHistoryConfiguration config, ILogger log) CreateDecorator(
+            IBaseTransportOptions options, ILogger log) CreateDecorator(
             bool enabled = false, bool trackComplete = true)
         {
             var inner = Substitute.For<ICommitMessage>();
             var history = Substitute.For<IWriteMessageHistory>();
-            var config = Substitute.For<IHistoryConfiguration>();
-            config.Enabled.Returns(enabled);
-            config.TrackComplete.Returns(trackComplete);
+            var historyOptions = Substitute.For<IHistoryTransportOptions>();
+            historyOptions.TrackComplete.Returns(trackComplete);
+            var options = Substitute.For<IBaseTransportOptions>();
+            options.EnableHistory.Returns(enabled);
+            options.HistoryOptions.Returns(historyOptions);
             ILogger log = NullLogger.Instance;
 
-            var decorator = new CommitMessageHistoryDecorator(inner, history, config, log);
-            return (decorator, inner, history, config, log);
+            var decorator = new CommitMessageHistoryDecorator(inner, history, options, log);
+            return (decorator, inner, history, options, log);
         }
     }
 }

@@ -24,21 +24,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
 
         private string HistoryHashKey(string queueId) => $"{_redisNames.Values}:history:{queueId}";
         private string HistoryIndexKey => $"{_redisNames.Values}:history:index";
 
-        public PurgeMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IHistoryConfiguration config)
+        public PurgeMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options)
         {
             _connection = connection;
             _redisNames = redisNames;
-            _config = config;
+            _options = options;
         }
 
         public long Purge(DateTime olderThan)
         {
-            if (!_config.Enabled) return 0;
+            if (!_options.EnableHistory) return 0;
             var db = _connection.Connection.GetDatabase();
             var cutoffTicks = olderThan.Ticks;
             var members = db.SortedSetRangeByScore(HistoryIndexKey, double.NegativeInfinity, cutoffTicks);

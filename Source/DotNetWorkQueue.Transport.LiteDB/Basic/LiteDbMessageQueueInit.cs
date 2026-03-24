@@ -81,6 +81,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             container.Register<IWriteMessageHistory, WriteMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
+
+            container.Register<IBaseTransportOptions>(() => (IBaseTransportOptions)container.GetInstance<ILiteDbMessageQueueTransportOptionsFactory>().Create(), LifeStyles.Singleton);
+
             container.Register<ICorrelationIdFactory, LiteDbCorrelationIdFactory>(LifeStyles.Singleton);
             container.Register<IGetFileNameFromConnectionString, LiteDbGetFileNameFromConnectionString>(LifeStyles.Singleton);
             container.Register<ILiteDbMessageQueueTransportOptionsFactory, LiteDbMessageQueueTransportOptionsFactory>(LifeStyles.Singleton);
@@ -246,9 +249,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
 
             transportReceive.HeartBeatSupported = options.EnableHeartBeat && options.EnableStatus;
             transportReceive.MessageExpirationSupported = options.EnableMessageExpiration;
-
-            var historyConfig = container.GetInstance<IHistoryConfiguration>();
-            historyConfig.ApplyTransportOptions(options.EnableHistory, ((IBaseTransportOptions)options).HistoryOptions);
 
             transportReceive.MessageRollbackSupported = options.EnableStatus;
 
