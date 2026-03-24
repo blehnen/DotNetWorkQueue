@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
         private readonly TableNameHelper _tableNameHelper;
         private readonly LiteDbConnectionManager _connectionInformation;
+        private readonly IConnectionInformation _connectionInfo;
         private readonly IInternalSerializer _serializer;
 
         /// <summary>
@@ -45,15 +46,18 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         public CreateQueueTablesAndSaveConfigurationCommandHandler(LiteDbConnectionManager connectionInformation,
             ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
             TableNameHelper tableNameHelper,
-            IInternalSerializer serializer)
+            IInternalSerializer serializer,
+            IConnectionInformation connectionInfo)
         {
             Guard.NotNull(() => optionsFactory, optionsFactory);
             Guard.NotNull(() => connectionInformation, connectionInformation);
             Guard.NotNull(() => tableNameHelper, tableNameHelper);
             Guard.NotNull(() => serializer, serializer);
+            Guard.NotNull(() => connectionInfo, connectionInfo);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(optionsFactory.Create);
             _connectionInformation = connectionInformation;
+            _connectionInfo = connectionInfo;
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;
         }
@@ -81,6 +85,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         var col = db.Database.GetCollection<ConfigurationTable>(_tableNameHelper.ConfigurationName);
                         configTable.Configuration = _serializer.ConvertToBytes(_options.Value);
                         col.Insert(configTable);
+                        // Also save to static cache for in-memory mode fallback
+                        Factory.LiteDbMessageQueueTransportOptionsFactory.SaveToCache(_connectionInfo, _options.Value);
                         break;
                     }
                 }

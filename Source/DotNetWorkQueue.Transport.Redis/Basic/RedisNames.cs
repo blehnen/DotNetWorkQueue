@@ -314,15 +314,28 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 yield return Status;
                 yield return ErrorTime;
                 yield return Route;
+                yield return Configuration;
             }
         }
 
         /// <summary>
         /// Builds the queue names based on the root queue
         /// </summary>
+        /// <summary>
+        /// Gets the configuration key name for persisting transport options.
+        /// </summary>
+        public string Configuration
+        {
+            get
+            {
+                BuildListIfNeeded();
+                return _names["Configuration"];
+            }
+        }
+
         private void BuildListIfNeeded()
         {
-            if (_names.Count == 16) return; //don't return unless all names are loaded
+            if (_names.Count == 17) return; //don't return unless all names are loaded
             lock (_names)
             {
                 if (_names.Count != 0) return;
@@ -341,6 +354,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 _names.Add("JobIDNames", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}JobIDNames"));
                 _names.Add("Status", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Status"));
                 _names.Add("Route", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Routes"));
+                _names.Add("Configuration", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Configuration"));
                 _names.Add("JobEvent", string.Concat(QueuePrefix, "}JobEvent"));  //NOTE - not part of a queue
             }
         }

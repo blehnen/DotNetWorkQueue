@@ -248,21 +248,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             transportReceive.MessageExpirationSupported = options.EnableMessageExpiration;
 
             var historyConfig = container.GetInstance<IHistoryConfiguration>();
-            historyConfig.Enabled = options.EnableHistory;
-            var ho = ((IBaseTransportOptions)options).HistoryOptions;
-            if (ho != null)
-            {
-                historyConfig.RetentionDays = ho.RetentionDays;
-                historyConfig.MaxExceptionLength = ho.MaxExceptionLength;
-                historyConfig.StoreBody = ho.StoreBody;
-                historyConfig.TrackEnqueue = ho.TrackEnqueue;
-                historyConfig.TrackProcessing = ho.TrackProcessing;
-                historyConfig.TrackComplete = ho.TrackComplete;
-                historyConfig.TrackError = ho.TrackError;
-                historyConfig.TrackDelete = ho.TrackDelete;
-                historyConfig.TrackExpire = ho.TrackExpire;
-                historyConfig.MonitorTime = ho.MonitorTime;
-            }
+            historyConfig.ApplyTransportOptions(options.EnableHistory, ((IBaseTransportOptions)options).HistoryOptions);
 
             transportReceive.MessageRollbackSupported = options.EnableStatus;
 

@@ -54,6 +54,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         //dequeue count
         private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> DequeueCounts;
 
+        //saved transport options per queue
+        private static readonly ConcurrentDictionary<IConnectionInformation, TransportOptions> SavedOptions;
+
         private static readonly IMemoryCache JobLastEventCache;
 
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
@@ -105,6 +108,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             DequeueCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
             Jobs = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>>();
             QueueWorking = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
+            SavedOptions = new ConcurrentDictionary<IConnectionInformation, TransportOptions>();
 
             JobLastEventCache = new MemoryCache(new MemoryCacheOptions());
         }
@@ -876,12 +880,30 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 QueueWorking.TryRemove(_connectionInformation, out _);
                 ErrorCounts.TryRemove(_connectionInformation, out _);
                 DequeueCounts.TryRemove(_connectionInformation, out _);
+                SavedOptions.TryRemove(_connectionInformation, out _);
             }
             finally
             {
                 _lock.ExitWriteLock();
                 Cleared = true;
             }
+        }
+
+        /// <summary>
+        /// Saves transport options for this queue.
+        /// </summary>
+        public static void SaveTransportOptions(IConnectionInformation connectionInfo, TransportOptions options)
+        {
+            SavedOptions[connectionInfo] = options;
+        }
+
+        /// <summary>
+        /// Loads saved transport options for this queue, or null if not saved.
+        /// </summary>
+        public static TransportOptions LoadTransportOptions(IConnectionInformation connectionInfo)
+        {
+            SavedOptions.TryGetValue(connectionInfo, out var options);
+            return options;
         }
 
         private string GenerateKey(string jobName)

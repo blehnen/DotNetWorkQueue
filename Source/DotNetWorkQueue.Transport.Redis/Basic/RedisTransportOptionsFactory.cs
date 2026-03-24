@@ -16,37 +16,48 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-namespace DotNetWorkQueue.Transport.Memory.Basic.Factory
+using Newtonsoft.Json;
+
+namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
-    /// Returns saved transport options or a new default instance.
+    /// Loads saved transport options from Redis, or returns defaults.
     /// </summary>
-    public class TransportOptionsFactory : ITransportOptionsFactory
+    public class RedisTransportOptionsFactory
     {
-        private readonly IConnectionInformation _connectionInformation;
-        private TransportOptions _options;
+        private readonly IRedisConnection _connection;
+        private readonly RedisNames _redisNames;
+        private RedisBaseTransportOptions _options;
         private readonly object _lock = new object();
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TransportOptionsFactory"/> class.
-        /// </summary>
-        public TransportOptionsFactory(IConnectionInformation connectionInformation)
+        public RedisTransportOptionsFactory(IRedisConnection connection, RedisNames redisNames)
         {
-            _connectionInformation = connectionInformation;
+            _connection = connection;
+            _redisNames = redisNames;
         }
 
-        /// <summary>
-        /// Returns the options class — loads from saved options if available.
-        /// </summary>
-        public TransportOptions Create()
+        public RedisBaseTransportOptions Create()
         {
             if (_options != null) return _options;
             lock (_lock)
             {
                 if (_options == null)
                 {
-                    _options = DataStorage.LoadTransportOptions(_connectionInformation)
-                               ?? new TransportOptions();
+                    try
+                    {
+                        var db = _connection.Connection.GetDatabase();
+                        var json = db.StringGet(_redisNames.Configuration);
+                        if (json.HasValue)
+                        {
+                            _options = JsonConvert.DeserializeObject<RedisBaseTransportOptions>(json);
+                        }
+                    }
+                    catch
+                    {
+                        // If load fails, use defaults
+                    }
+
+                    _options = _options ?? new RedisBaseTransportOptions();
                 }
             }
             return _options;

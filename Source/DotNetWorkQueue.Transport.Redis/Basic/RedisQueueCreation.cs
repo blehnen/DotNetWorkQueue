@@ -91,7 +91,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <remarks>This does nothing for the Redis transport, as pre-creating the queue is not necessary.</remarks>
         public QueueCreationResult CreateQueue()
         {
-            return new QueueCreationResult(QueueCreationStatus.NoOp);
+            var db = _redisConnection.Connection.GetDatabase();
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(_options);
+            db.StringSet(_redisNames.Configuration, json);
+            return new QueueCreationResult(QueueCreationStatus.Success);
         }
 
         /// <inheritdoc />
@@ -145,6 +148,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 }
                 db.KeyDelete(key);
             }
+
+            // Clean up history keys
+            var historyIndexKey = $"{_redisNames.Values}:history:index";
+            var historyMembers = db.SortedSetRangeByRank(historyIndexKey, 0, -1);
+            foreach (var member in historyMembers)
+            {
+                db.KeyDelete($"{_redisNames.Values}:history:{member}");
+            }
+            db.KeyDelete(historyIndexKey);
+
             return new QueueRemoveResult(QueueRemoveStatus.Success);
         }
     }

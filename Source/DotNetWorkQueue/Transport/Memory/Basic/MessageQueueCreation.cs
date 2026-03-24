@@ -97,6 +97,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <returns></returns>
         public QueueCreationResult CreateQueue()
         {
+            DataStorage.SaveTransportOptions(ConnectionInfo, _options.Value);
             return new QueueCreationResult(QueueCreationStatus.Success);
         }
 
