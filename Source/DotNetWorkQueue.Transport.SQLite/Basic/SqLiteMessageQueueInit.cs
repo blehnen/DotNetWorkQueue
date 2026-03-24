@@ -51,7 +51,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
 
-            container.Register<IBaseTransportOptions>(() => (IBaseTransportOptions)container.GetInstance<ITransportOptionsFactory>().Create(), LifeStyles.Singleton);
+            container.Register<IBaseTransportOptions>(() =>
+            {
+                try { return (IBaseTransportOptions)container.GetInstance<ITransportOptionsFactory>().Create(); }
+                catch { return new SqLiteMessageQueueTransportOptions(); }
+            }, LifeStyles.Singleton);
 
             //command and query retry on transient errors
             container.RegisterDecorator(typeof(ICommandHandlerWithOutput<,>),
