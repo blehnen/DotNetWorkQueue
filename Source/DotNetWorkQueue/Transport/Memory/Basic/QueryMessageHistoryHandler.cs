@@ -28,18 +28,18 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     public class QueryMessageHistoryHandler : IQueryMessageHistory
     {
         private readonly IConnectionInformation _connectionInformation;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
 
-        public QueryMessageHistoryHandler(IConnectionInformation connectionInformation, IHistoryConfiguration config)
+        public QueryMessageHistoryHandler(IConnectionInformation connectionInformation, IBaseTransportOptions options)
         {
             _connectionInformation = connectionInformation;
-            _config = config;
+            _options = options;
         }
 
         /// <inheritdoc />
         public IReadOnlyList<MessageHistoryRecord> Get(int pageIndex, int pageSize, MessageHistoryStatus? statusFilter)
         {
-            if (!_config.Enabled) return new List<MessageHistoryRecord>();
+            if (!_options.EnableHistory) return new List<MessageHistoryRecord>();
             var records = GetRecords();
             if (records == null) return new List<MessageHistoryRecord>();
             var query = records.Values.AsEnumerable();
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public MessageHistoryRecord GetByQueueId(string queueId)
         {
-            if (!_config.Enabled) return null;
+            if (!_options.EnableHistory) return null;
             var records = GetRecords();
             if (records == null) return null;
             records.TryGetValue(queueId, out var record);
@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public long GetCount(MessageHistoryStatus? statusFilter)
         {
-            if (!_config.Enabled) return 0;
+            if (!_options.EnableHistory) return 0;
             var records = GetRecords();
             if (records == null) return 0;
             return statusFilter.HasValue ? records.Values.Count(r => r.Status == statusFilter.Value) : records.Count;

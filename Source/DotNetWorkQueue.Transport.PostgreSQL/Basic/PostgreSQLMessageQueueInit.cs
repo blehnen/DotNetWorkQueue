@@ -81,6 +81,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
 
+            container.Register<IBaseTransportOptions>(() => (IBaseTransportOptions)container.GetInstance<ITransportOptionsFactory>().Create(), LifeStyles.Singleton);
+
             container.Register<IGetTime, PostgreSqlTime>(LifeStyles.Singleton);
             container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTime>(LifeStyles.Singleton);
             container

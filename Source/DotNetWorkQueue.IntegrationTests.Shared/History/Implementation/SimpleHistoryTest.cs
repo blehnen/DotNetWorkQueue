@@ -98,9 +98,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                     {
                         using (var adminContainer = verifyContainer.CreateAdminContainer(queueConnection))
                         {
-                            var adminHistoryConfig = adminContainer.GetInstance<IHistoryConfiguration>();
-                            adminHistoryConfig.Enabled = true;
-
                             var historyQuery = adminContainer.GetInstance<IQueryMessageHistory>();
 
                             var totalCount = historyQuery.GetCount(null);

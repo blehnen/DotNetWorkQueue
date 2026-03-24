@@ -30,24 +30,24 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryMessageHistoryHandler"/> class.
         /// </summary>
         public QueryMessageHistoryHandler(IDbConnectionFactory connectionFactory,
             ITableNameHelper tableNameHelper,
-            IHistoryConfiguration config)
+            IBaseTransportOptions options)
         {
             _connectionFactory = connectionFactory;
             _tableNameHelper = tableNameHelper;
-            _config = config;
+            _options = options;
         }
 
         /// <inheritdoc />
         public IReadOnlyList<MessageHistoryRecord> Get(int pageIndex, int pageSize, MessageHistoryStatus? statusFilter)
         {
-            if (!_config.Enabled) return new List<MessageHistoryRecord>();
+            if (!_options.EnableHistory) return new List<MessageHistoryRecord>();
 
             var results = new List<MessageHistoryRecord>();
             using (var connection = _connectionFactory.Create())
@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public MessageHistoryRecord GetByQueueId(string queueId)
         {
-            if (!_config.Enabled) return null;
+            if (!_options.EnableHistory) return null;
 
             using (var connection = _connectionFactory.Create())
             {
@@ -112,7 +112,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public long GetCount(MessageHistoryStatus? statusFilter)
         {
-            if (!_config.Enabled) return 0;
+            if (!_options.EnableHistory) return 0;
 
             using (var connection = _connectionFactory.Create())
             {

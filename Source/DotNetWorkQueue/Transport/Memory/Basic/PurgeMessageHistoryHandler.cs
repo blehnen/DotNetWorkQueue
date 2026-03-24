@@ -27,18 +27,18 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     public class PurgeMessageHistoryHandler : IPurgeMessageHistory
     {
         private readonly IConnectionInformation _connectionInformation;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
 
-        public PurgeMessageHistoryHandler(IConnectionInformation connectionInformation, IHistoryConfiguration config)
+        public PurgeMessageHistoryHandler(IConnectionInformation connectionInformation, IBaseTransportOptions options)
         {
             _connectionInformation = connectionInformation;
-            _config = config;
+            _options = options;
         }
 
         /// <inheritdoc />
         public long Purge(DateTime olderThan)
         {
-            if (!_config.Enabled) return 0;
+            if (!_options.EnableHistory) return 0;
             var key = $"{_connectionInformation.QueueName}|{_connectionInformation.ConnectionString}";
             var records = WriteMessageHistoryHandler.GetRecordsForQueue(key);
             if (records == null) return 0;

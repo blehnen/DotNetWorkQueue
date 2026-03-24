@@ -56,6 +56,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
 
+            container.Register<IBaseTransportOptions>(() => (IBaseTransportOptions)container.GetInstance<ITransportOptionsFactory>().Create(), LifeStyles.Singleton);
+
             container.Register<IDataStorage, DataStorage>(LifeStyles.Singleton);
             container.Register<IDataStorageSendMessage, DataStorage>(LifeStyles.Singleton);
             container.Register<IRemoveMessage, RemoveMessage>(LifeStyles.Singleton);
@@ -129,10 +131,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             transportReceive.HeartBeatSupported = false;
             transportReceive.MessageExpirationSupported = false;
             transportReceive.MessageRollbackSupported = false;
-
-            // Bridge transport options to history configuration
-            var historyConfig = container.GetInstance<IHistoryConfiguration>();
-            historyConfig.ApplyTransportOptions(options.EnableHistory, ((IBaseTransportOptions)options).HistoryOptions);
 
             transportReceive.QueueDelayBehavior.Clear();
             transportReceive.QueueDelayBehavior.Add(GetQueueDelay());

@@ -103,6 +103,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
 
+            container.Register<IBaseTransportOptions>(() => (IBaseTransportOptions)container.GetInstance<RedisTransportOptionsFactory>().Create(), LifeStyles.Singleton);
+
             //**all
 
             //**send
@@ -255,11 +257,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             transportReceive.HeartBeatSupported = true;
             transportReceive.MessageExpirationSupported = true;
             transportReceive.MessageRollbackSupported = true;
-
-            // Bridge saved transport options to history configuration
-            var savedOptions = container.GetInstance<RedisTransportOptionsFactory>().Create();
-            var historyConfig = container.GetInstance<IHistoryConfiguration>();
-            historyConfig.ApplyTransportOptions(savedOptions.EnableHistory, ((IBaseTransportOptions)savedOptions).HistoryOptions);
 
             transportReceive.QueueDelayBehavior.Clear();
             transportReceive.QueueDelayBehavior.Add(DefaultQueueDelay());

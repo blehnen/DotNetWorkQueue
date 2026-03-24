@@ -25,24 +25,24 @@ namespace DotNetWorkQueue.History.Decorator
     {
         private readonly ICommitMessage _handler;
         private readonly IWriteMessageHistory _history;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
         private readonly ILogger _log;
 
         public CommitMessageHistoryDecorator(ICommitMessage handler,
             IWriteMessageHistory history,
-            IHistoryConfiguration config,
+            IBaseTransportOptions options,
             ILogger log)
         {
             _handler = handler;
             _history = history;
-            _config = config;
+            _options = options;
             _log = log;
         }
 
         public bool Commit(IMessageContext context)
         {
             var result = _handler.Commit(context);
-            if (result && _config.Enabled && _config.TrackComplete && context.MessageId != null && context.MessageId.HasValue)
+            if (result && _options.EnableHistory && _options.HistoryOptions.TrackComplete && context.MessageId != null && context.MessageId.HasValue)
             {
                 try
                 {

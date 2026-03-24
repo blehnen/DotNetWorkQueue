@@ -26,21 +26,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
 
         private string HistoryHashKey(string queueId) => $"{_redisNames.Values}:history:{queueId}";
         private string HistoryIndexKey => $"{_redisNames.Values}:history:index";
 
-        public WriteMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IHistoryConfiguration config)
+        public WriteMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options)
         {
             _connection = connection;
             _redisNames = redisNames;
-            _config = config;
+            _options = options;
         }
 
         public void RecordEnqueue(string queueId, string correlationId, string route, string messageType, byte[] body, byte[] headers)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var db = _connection.Connection.GetDatabase();
             var now = DateTime.UtcNow;
             db.HashSet(HistoryHashKey(queueId), new[]
@@ -56,14 +56,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         public void RecordProcessingStart(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var db = _connection.Connection.GetDatabase();
             db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Processing), new HashEntry("StartedUtc", DateTime.UtcNow.Ticks) });
         }
 
         public void RecordComplete(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var db = _connection.Connection.GetDatabase();
             var now = DateTime.UtcNow;
             var startedTicks = (long)db.HashGet(HistoryHashKey(queueId), "StartedUtc");
@@ -73,7 +73,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         public void RecordError(string queueId, string exception)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var db = _connection.Connection.GetDatabase();
             var now = DateTime.UtcNow;
             var startedTicks = (long)db.HashGet(HistoryHashKey(queueId), "StartedUtc");
@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         public void RecordRollback(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var db = _connection.Connection.GetDatabase();
             db.HashIncrement(HistoryHashKey(queueId), "RetryCount", 1);
             db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Enqueued), new HashEntry("StartedUtc", 0L), new HashEntry("CompletedUtc", 0L), new HashEntry("DurationMs", 0L) });
@@ -91,14 +91,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         public void RecordDelete(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var db = _connection.Connection.GetDatabase();
             db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Deleted), new HashEntry("CompletedUtc", DateTime.UtcNow.Ticks) });
         }
 
         public void RecordExpire(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var db = _connection.Connection.GetDatabase();
             db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Expired), new HashEntry("CompletedUtc", DateTime.UtcNow.Ticks) });
         }

@@ -28,21 +28,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
 
         private string HistoryHashKey(string queueId) => $"{_redisNames.Values}:history:{queueId}";
         private string HistoryIndexKey => $"{_redisNames.Values}:history:index";
 
-        public QueryMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IHistoryConfiguration config)
+        public QueryMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options)
         {
             _connection = connection;
             _redisNames = redisNames;
-            _config = config;
+            _options = options;
         }
 
         public IReadOnlyList<MessageHistoryRecord> Get(int pageIndex, int pageSize, MessageHistoryStatus? statusFilter)
         {
-            if (!_config.Enabled) return new List<MessageHistoryRecord>();
+            if (!_options.EnableHistory) return new List<MessageHistoryRecord>();
             var db = _connection.Connection.GetDatabase();
             var members = db.SortedSetRangeByRank(HistoryIndexKey, 0, -1, Order.Descending);
             var results = new List<MessageHistoryRecord>();
@@ -62,14 +62,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         public MessageHistoryRecord GetByQueueId(string queueId)
         {
-            if (!_config.Enabled) return null;
+            if (!_options.EnableHistory) return null;
             var db = _connection.Connection.GetDatabase();
             return LoadRecord(db, queueId);
         }
 
         public long GetCount(MessageHistoryStatus? statusFilter)
         {
-            if (!_config.Enabled) return 0;
+            if (!_options.EnableHistory) return 0;
             var db = _connection.Connection.GetDatabase();
             if (!statusFilter.HasValue) return db.SortedSetLength(HistoryIndexKey);
             var members = db.SortedSetRangeByRank(HistoryIndexKey, 0, -1);

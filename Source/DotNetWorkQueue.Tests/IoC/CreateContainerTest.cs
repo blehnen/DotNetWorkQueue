@@ -70,6 +70,7 @@ namespace DotNetWorkQueue.Tests.IoC
                     LifeStyles.Singleton);
                 container.Register<IGetFirstMessageDeliveryTime, GetFirstMessageDeliveryTimeNoOp>(LifeStyles.Singleton);
                 container.Register<IInternalSerializer, InternalSerializerNoOp>(LifeStyles.Singleton);
+                container.Register<IBaseTransportOptions, DotNetWorkQueue.Transport.Memory.TransportOptions>(LifeStyles.Singleton);
             }
         }
 
@@ -91,6 +92,7 @@ namespace DotNetWorkQueue.Tests.IoC
                 container.Register<IInternalSerializer, InternalSerializerNoOp>(LifeStyles.Singleton);
 
                 container.Register<IWorkerNotificationFactory, WorkerNotificationFactoryNoOp>(LifeStyles.Singleton);
+                container.Register<IBaseTransportOptions, DotNetWorkQueue.Transport.Memory.TransportOptions>(LifeStyles.Singleton);
             }
         }
 
@@ -123,6 +125,7 @@ namespace DotNetWorkQueue.Tests.IoC
                 container.Register<IReceiveMessagesError, ReceiveMessagesErrorNoOp>(LifeStyles.Singleton);
                 container.Register<IReceivePoisonMessage, ReceivePoisonMessageNoOp>(LifeStyles.Singleton);
                 container.Register<IResetHeartBeat, ResetHeartBeatNoOp>(LifeStyles.Singleton);
+                container.Register<IBaseTransportOptions, DotNetWorkQueue.Transport.Memory.TransportOptions>(LifeStyles.Singleton);
             }
         }
 

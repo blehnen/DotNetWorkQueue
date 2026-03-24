@@ -30,26 +30,28 @@ namespace DotNetWorkQueue.Queue
     [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "not needed")]
     public class ClearHistoryMonitor : BaseMonitor, IClearHistoryMonitor
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ClearHistoryMonitor"/> class.
-        /// </summary>
-        /// <param name="configuration">The history configuration (provides monitor interval and retention days).</param>
-        /// <param name="purgeHistory">The purge implementation.</param>
-        /// <param name="log">The logger.</param>
-        public ClearHistoryMonitor(IHistoryConfiguration configuration,
+        public ClearHistoryMonitor(IBaseTransportOptions options,
             IPurgeMessageHistory purgeHistory, ILogger log)
-            : base(CreatePurgeAction(configuration, Guard.NotNull(() => purgeHistory, purgeHistory)), configuration, log)
+            : base(CreatePurgeAction(options, Guard.NotNull(() => purgeHistory, purgeHistory)),
+                  new MonitorTimespanWrapper(options.HistoryOptions?.MonitorTime ?? TimeSpan.FromDays(1)), log)
         {
         }
 
         private static Func<CancellationToken, long> CreatePurgeAction(
-            IHistoryConfiguration configuration, IPurgeMessageHistory purgeHistory)
+            IBaseTransportOptions options, IPurgeMessageHistory purgeHistory)
         {
             return token =>
             {
-                var cutoff = DateTime.UtcNow.AddDays(-configuration.RetentionDays);
+                var retentionDays = options.HistoryOptions?.RetentionDays ?? 30;
+                var cutoff = DateTime.UtcNow.AddDays(-retentionDays);
                 return purgeHistory.Purge(cutoff);
             };
+        }
+
+        private class MonitorTimespanWrapper : IMonitorTimespan
+        {
+            public MonitorTimespanWrapper(TimeSpan monitorTime) { MonitorTime = monitorTime; }
+            public TimeSpan MonitorTime { get; set; }
         }
     }
 }

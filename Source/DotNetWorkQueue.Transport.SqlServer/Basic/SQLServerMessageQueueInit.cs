@@ -94,6 +94,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
 
+            container.Register<IBaseTransportOptions>(() => (IBaseTransportOptions)container.GetInstance<ITransportOptionsFactory>().Create(), LifeStyles.Singleton);
+
             container.Register<IConnectionInformation>(() => new SqlConnectionInformation(queueConnection), LifeStyles.Singleton);
 
             container.Register<SqlServerMessageQueueTransportOptions>(LifeStyles.Singleton);

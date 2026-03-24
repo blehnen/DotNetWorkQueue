@@ -25,30 +25,30 @@ namespace DotNetWorkQueue.History.Decorator
     {
         private readonly IReceiveMessagesError _handler;
         private readonly IWriteMessageHistory _history;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
         private readonly ILogger _log;
 
         public ReceiveMessagesErrorHistoryDecorator(IReceiveMessagesError handler,
             IWriteMessageHistory history,
-            IHistoryConfiguration config,
+            IBaseTransportOptions options,
             ILogger log)
         {
             _handler = handler;
             _history = history;
-            _config = config;
+            _options = options;
             _log = log;
         }
 
         public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
             var result = _handler.MessageFailedProcessing(message, context, exception);
-            if (_config.Enabled && _config.TrackError && context.MessageId != null && context.MessageId.HasValue)
+            if (_options.EnableHistory && _options.HistoryOptions.TrackError && context.MessageId != null && context.MessageId.HasValue)
             {
                 try
                 {
                     var exceptionText = exception?.ToString();
-                    if (exceptionText != null && exceptionText.Length > _config.MaxExceptionLength)
-                        exceptionText = exceptionText.Substring(0, _config.MaxExceptionLength);
+                    if (exceptionText != null && exceptionText.Length > _options.HistoryOptions.MaxExceptionLength)
+                        exceptionText = exceptionText.Substring(0, _options.HistoryOptions.MaxExceptionLength);
 
                     _history.RecordError(context.MessageId.Id.Value.ToString(), exceptionText);
                 }

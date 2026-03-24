@@ -25,24 +25,24 @@ namespace DotNetWorkQueue.History.Decorator
     {
         private readonly IRollbackMessage _handler;
         private readonly IWriteMessageHistory _history;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
         private readonly ILogger _log;
 
         public RollbackMessageHistoryDecorator(IRollbackMessage handler,
             IWriteMessageHistory history,
-            IHistoryConfiguration config,
+            IBaseTransportOptions options,
             ILogger log)
         {
             _handler = handler;
             _history = history;
-            _config = config;
+            _options = options;
             _log = log;
         }
 
         public bool Rollback(IMessageContext context)
         {
             var result = _handler.Rollback(context);
-            if (_config.Enabled && context.MessageId != null && context.MessageId.HasValue)
+            if (_options.EnableHistory && context.MessageId != null && context.MessageId.HasValue)
             {
                 try
                 {

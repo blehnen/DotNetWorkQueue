@@ -31,38 +31,38 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             = new ConcurrentDictionary<string, ConcurrentDictionary<string, MessageHistoryRecord>>();
 
         private readonly IConnectionInformation _connectionInformation;
-        private readonly IHistoryConfiguration _config;
+        private readonly IBaseTransportOptions _options;
 
-        public WriteMessageHistoryHandler(IConnectionInformation connectionInformation, IHistoryConfiguration config)
+        public WriteMessageHistoryHandler(IConnectionInformation connectionInformation, IBaseTransportOptions options)
         {
             _connectionInformation = connectionInformation;
-            _config = config;
+            _options = options;
         }
 
         /// <inheritdoc />
         public void RecordEnqueue(string queueId, string correlationId, string route, string messageType, byte[] body, byte[] headers)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             var records = GetRecords();
             records[queueId] = new MessageHistoryRecord
             {
                 QueueId = queueId, CorrelationId = correlationId, Status = MessageHistoryStatus.Enqueued,
                 EnqueuedUtc = DateTime.UtcNow, RetryCount = 0, Route = route, MessageType = messageType,
-                Body = _config.StoreBody ? body : null, Headers = _config.StoreBody ? headers : null
+                Body = _options.HistoryOptions.StoreBody ? body : null, Headers = _options.HistoryOptions.StoreBody ? headers : null
             };
         }
 
         /// <inheritdoc />
         public void RecordProcessingStart(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             if (GetRecords().TryGetValue(queueId, out var r)) { r.Status = MessageHistoryStatus.Processing; r.StartedUtc = DateTime.UtcNow; }
         }
 
         /// <inheritdoc />
         public void RecordComplete(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             if (GetRecords().TryGetValue(queueId, out var r))
             {
                 var now = DateTime.UtcNow;
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public void RecordError(string queueId, string exception)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             if (GetRecords().TryGetValue(queueId, out var r))
             {
                 var now = DateTime.UtcNow;
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public void RecordRollback(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             if (GetRecords().TryGetValue(queueId, out var r))
             { r.Status = MessageHistoryStatus.Enqueued; r.RetryCount++; r.StartedUtc = null; r.CompletedUtc = null; r.DurationMs = null; }
         }
@@ -94,14 +94,14 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public void RecordDelete(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             if (GetRecords().TryGetValue(queueId, out var r)) { r.Status = MessageHistoryStatus.Deleted; r.CompletedUtc = DateTime.UtcNow; }
         }
 
         /// <inheritdoc />
         public void RecordExpire(string queueId)
         {
-            if (!_config.Enabled) return;
+            if (!_options.EnableHistory) return;
             if (GetRecords().TryGetValue(queueId, out var r)) { r.Status = MessageHistoryStatus.Expired; r.CompletedUtc = DateTime.UtcNow; }
         }
 
