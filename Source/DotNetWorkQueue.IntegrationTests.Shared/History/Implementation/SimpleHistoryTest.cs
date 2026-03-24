@@ -24,10 +24,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
 {
-    /// <summary>
-    /// Tests the full message history lifecycle via the proper API:
-    /// EnableHistory on transport options, then send/consume/verify.
-    /// </summary>
     public class SimpleHistoryTest
     {
         public void Run<TTransportInit, TMessage, TTransportCreate>(
@@ -49,19 +45,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                 var oCreation = queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
                 try
                 {
-                    // setOptions should include EnableHistory = true on the transport options
                     setOptions(oCreation);
                     var result = oCreation.CreateQueue();
                     Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
+                    // Send and consume in one container
+                    var processedCount = 0;
                     using (var queueContainer = new QueueContainer<TTransportInit>(serviceRegister =>
                     {
                         serviceRegister.Register(() => logProvider, LifeStyles.Singleton);
                         serviceRegister.RegisterNonScopedSingleton(scope);
                     }))
                     {
-                        // Send messages — history is bridged from transport options
                         using (var producer = queueContainer.CreateProducer<TMessage>(queueConnection))
                         {
                             for (var i = 0; i < messageCount; i++)
@@ -71,8 +67,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                             }
                         }
 
-                        // Consume messages — history is bridged from transport options
-                        var processedCount = 0;
                         var waitHandle = new ManualResetEventSlim(false);
                         using (var consumer = queueContainer.CreateConsumer(queueConnection))
                         {
@@ -86,13 +80,24 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
 
                             waitHandle.Wait(TimeSpan.FromSeconds(30));
                         }
+                    }
+                    // QueueContainer disposed — all LiteDB/DB connections flushed
 
-                        Assert.AreEqual(messageCount, processedCount, "Not all messages were processed");
+                    Assert.AreEqual(messageCount, processedCount, "Not all messages were processed");
 
-                        // Verify history records via admin container
-                        using (var adminContainer = queueContainer.CreateAdminContainer(queueConnection))
+                    // Dispose creation objects first to release DB connections
+                    oCreation?.Dispose();
+                    oCreation = null;
+
+                    // Verify history in a FRESH container
+                    using (var verifyContainer = new QueueContainer<TTransportInit>(serviceRegister =>
+                    {
+                        serviceRegister.Register(() => logProvider, LifeStyles.Singleton);
+                        serviceRegister.RegisterNonScopedSingleton(scope);
+                    }))
+                    {
+                        using (var adminContainer = verifyContainer.CreateAdminContainer(queueConnection))
                         {
-                            // Admin container also needs history enabled for query handlers
                             var adminHistoryConfig = adminContainer.GetInstance<IHistoryConfiguration>();
                             adminHistoryConfig.Enabled = true;
 
@@ -116,12 +121,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                                 Assert.AreEqual(MessageHistoryStatus.Complete, record.Status);
                             }
 
-                            // Test GetByQueueId
                             var firstRecord = records[0];
                             var byId = historyQuery.GetByQueueId(firstRecord.QueueId);
                             Assert.IsNotNull(byId);
 
-                            // Test purge
                             var purgeHandler = adminContainer.GetInstance<IPurgeMessageHistory>();
                             var purged = purgeHandler.Purge(DateTime.UtcNow.AddDays(1));
                             Assert.AreEqual(totalCount, purged);

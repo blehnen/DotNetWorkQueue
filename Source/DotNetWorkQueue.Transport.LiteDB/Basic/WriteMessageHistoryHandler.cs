@@ -84,6 +84,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <inheritdoc />
         public void RecordComplete(string queueId)
         {
+            if (!_config.Enabled) return;
             var now = DateTime.UtcNow;
             using (var db = _connectionManager.GetDatabase())
             {
