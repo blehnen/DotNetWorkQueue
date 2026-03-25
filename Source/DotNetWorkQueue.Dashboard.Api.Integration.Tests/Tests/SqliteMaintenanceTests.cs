@@ -120,5 +120,164 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             polled.LastRunUtc.Should().NotBeNull();
             polled.LastRunUtc.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(30));
         }
+
+        [TestMethod]
+        public async Task Maintenance_Stopped_Consumer_Not_Running()
+        {
+            var queueName = QueueNameGenerator.Create();
+            var connStr = ConnectionStrings.CreateSqliteInMemory(queueName);
+
+            using var fixture = new TransportFixture<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(
+                queueName, connStr,
+                options =>
+                {
+                    options.Options.EnableStatus = true;
+                    options.Options.EnableStatusTable = true;
+                    options.Options.EnableHeartBeat = true;
+                });
+
+            // No messages sent, no consumer started — maintenance not hosted
+            await using var server = await DashboardTestServer.CreateAsync(options =>
+            {
+                options.EnableSwagger = false;
+                options.AddConnection<SqLiteMessageQueueInit>(connStr,
+                    conn => conn.AddQueue(queueName));
+            });
+
+            var connections = await server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
+                "api/v1/dashboard/connections");
+            var queues = await server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
+                $"api/v1/dashboard/connections/{connections[0].Id}/queues");
+
+            var status = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
+                $"api/v1/dashboard/queues/{queues[0].Id}/maintenance");
+
+            status.HostMaintenance.Should().BeFalse();
+            status.IsRunning.Should().BeFalse();
+            status.LastRunUtc.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task Multiple_Queues_Different_Maintenance_Modes()
+        {
+            var queueName1 = QueueNameGenerator.Create();
+            var queueName2 = QueueNameGenerator.Create();
+            var connStr1 = ConnectionStrings.CreateSqliteInMemory(queueName1);
+            var connStr2 = ConnectionStrings.CreateSqliteInMemory(queueName2);
+
+            using var fixture1 = new TransportFixture<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(
+                queueName1, connStr1,
+                options =>
+                {
+                    options.Options.EnableStatus = true;
+                    options.Options.EnableStatusTable = true;
+                    options.Options.EnableHeartBeat = true;
+                    options.Options.EnableMessageExpiration = true;
+                });
+
+            using var fixture2 = new TransportFixture<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(
+                queueName2, connStr2,
+                options =>
+                {
+                    options.Options.EnableStatus = true;
+                    options.Options.EnableStatusTable = true;
+                    options.Options.EnableHeartBeat = true;
+                });
+
+            fixture1.SendMessages<FakeMessage>(1);
+
+            await using var server = await DashboardTestServer.CreateAsync(options =>
+            {
+                options.EnableSwagger = false;
+                // Queue 1 has maintenance enabled
+                options.AddConnection<SqLiteMessageQueueInit>(connStr1,
+                    conn => conn.AddQueue(queueName1, hostMaintenance: true));
+                // Queue 2 does NOT have maintenance enabled (different connection)
+                options.AddConnection<SqLiteMessageQueueInit>(connStr2,
+                    conn => conn.AddQueue(queueName2));
+            });
+
+            var connections = await server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
+                "api/v1/dashboard/connections");
+
+            // Find queue IDs across connections
+            Guid queueId1 = Guid.Empty, queueId2 = Guid.Empty;
+            foreach (var conn in connections)
+            {
+                var queues = await server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
+                    $"api/v1/dashboard/connections/{conn.Id}/queues");
+                foreach (var q in queues)
+                {
+                    if (q.QueueName == queueName1) queueId1 = q.Id;
+                    if (q.QueueName == queueName2) queueId2 = q.Id;
+                }
+            }
+
+            queueId1.Should().NotBeEmpty();
+            queueId2.Should().NotBeEmpty();
+
+            // Queue 1: maintenance hosted and running
+            var status1 = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
+                $"api/v1/dashboard/queues/{queueId1}/maintenance");
+            status1.HostMaintenance.Should().BeTrue();
+            status1.IsRunning.Should().BeTrue();
+
+            // Queue 2: maintenance NOT hosted
+            var status2 = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
+                $"api/v1/dashboard/queues/{queueId2}/maintenance");
+            status2.HostMaintenance.Should().BeFalse();
+            status2.IsRunning.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task Maintenance_Enabled_Without_Expiration_Still_Runs()
+        {
+            var queueName = QueueNameGenerator.Create();
+            var connStr = ConnectionStrings.CreateSqliteInMemory(queueName);
+
+            using var fixture = new TransportFixture<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(
+                queueName, connStr,
+                options =>
+                {
+                    options.Options.EnableStatus = true;
+                    options.Options.EnableStatusTable = true;
+                    options.Options.EnableHeartBeat = true;
+                    // Note: EnableMessageExpiration is false
+                });
+
+            fixture.SendMessages<FakeMessage>(1);
+
+            await using var server = await DashboardTestServer.CreateAsync(options =>
+            {
+                options.EnableSwagger = false;
+                options.AddConnection<SqLiteMessageQueueInit>(connStr,
+                    conn => conn.AddQueue(queueName, hostMaintenance: true));
+            });
+
+            var connections = await server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
+                "api/v1/dashboard/connections");
+            var queues = await server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
+                $"api/v1/dashboard/connections/{connections[0].Id}/queues");
+            var queueId = queues[0].Id;
+
+            var status = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
+                $"api/v1/dashboard/queues/{queueId}/maintenance");
+
+            status.HostMaintenance.Should().BeTrue();
+            status.IsRunning.Should().BeTrue();
+
+            // Wait for at least one monitor cycle
+            MaintenanceStatusResponse polled = null;
+            for (var i = 0; i < 30; i++)
+            {
+                polled = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
+                    $"api/v1/dashboard/queues/{queueId}/maintenance");
+                if (polled.LastRunUtc.HasValue)
+                    break;
+                Thread.Sleep(500);
+            }
+
+            polled.LastRunUtc.Should().NotBeNull();
+        }
     }
 }
