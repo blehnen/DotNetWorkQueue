@@ -439,3 +439,7 @@ Source/DotNetWorkQueue.Transport.Shared/DotNetWorkQueue.Transport.Shared.xml
 Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.xml
 .agents/
 .claude/
+Source/DotNetWorkQueue.Dashboard.Api/DotNetWorkQueue.Dashboard.Api.xml
+Source/DotNetWorkQueue.Dashboard.Client/DotNetWorkQueue.Dashboard.Client.xml
+Source/DotNetWorkQueue.Dashboard.Ui/Properties/launchSettings.json
+Source/DotNetWorkQueue.Transport.Memory/DotNetWorkQueue.Transport.Memory.xml

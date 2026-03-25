@@ -95,16 +95,18 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             command.Received(1).ExecuteReader();
         }
 
-        private static (QueryMessageHistoryHandler handler, IDbConnectionFactory factory, IHistoryConfiguration config)
+        private static (QueryMessageHistoryHandler handler, IDbConnectionFactory factory, IBaseTransportOptions options)
             Create(bool enabled = false)
         {
             var factory = Substitute.For<IDbConnectionFactory>();
             var tableNameHelper = Substitute.For<ITableNameHelper>();
             tableNameHelper.HistoryName.Returns("TestHistory");
-            var config = Substitute.For<IHistoryConfiguration>();
-            config.Enabled.Returns(enabled);
-            config.StoreBody.Returns(false);
-            return (new QueryMessageHistoryHandler(factory, tableNameHelper, config), factory, config);
+            var historyOptions = Substitute.For<IHistoryTransportOptions>();
+            historyOptions.StoreBody.Returns(false);
+            var options = Substitute.For<IBaseTransportOptions>();
+            options.EnableHistory.Returns(enabled);
+            options.HistoryOptions.Returns(historyOptions);
+            return (new QueryMessageHistoryHandler(factory, tableNameHelper, options), factory, options);
         }
 
         private static (IDbConnection connection, IDbCommand command) SetupConnection(IDbConnectionFactory factory)

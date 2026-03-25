@@ -12,9 +12,9 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
         {
             var connection = Substitute.For<IRedisConnection>();
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
-            var config = Substitute.For<IHistoryConfiguration>();
-            config.Enabled.Returns(enabled);
-            return new PurgeMessageHistoryHandler(connection, redisNames, config);
+            var options = Substitute.For<IBaseTransportOptions>();
+            options.EnableHistory.Returns(enabled);
+            return new PurgeMessageHistoryHandler(connection, redisNames, options);
         }
 
         [TestMethod]

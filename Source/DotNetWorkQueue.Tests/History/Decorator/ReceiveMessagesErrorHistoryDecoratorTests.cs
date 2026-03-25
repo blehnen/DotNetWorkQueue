@@ -99,19 +99,21 @@ namespace DotNetWorkQueue.Tests.History.Decorator
         }
 
         private static (IReceiveMessagesError decorator, IReceiveMessagesError inner, IWriteMessageHistory history,
-            IHistoryConfiguration config, ILogger log) CreateDecorator(
+            IBaseTransportOptions options, ILogger log) CreateDecorator(
             bool enabled = false, bool trackError = true, int maxExceptionLength = 4000)
         {
             var inner = Substitute.For<IReceiveMessagesError>();
             var history = Substitute.For<IWriteMessageHistory>();
-            var config = Substitute.For<IHistoryConfiguration>();
-            config.Enabled.Returns(enabled);
-            config.TrackError.Returns(trackError);
-            config.MaxExceptionLength.Returns(maxExceptionLength);
+            var historyOptions = Substitute.For<IHistoryTransportOptions>();
+            historyOptions.TrackError.Returns(trackError);
+            historyOptions.MaxExceptionLength.Returns(maxExceptionLength);
+            var options = Substitute.For<IBaseTransportOptions>();
+            options.EnableHistory.Returns(enabled);
+            options.HistoryOptions.Returns(historyOptions);
             ILogger log = NullLogger.Instance;
 
-            var decorator = new ReceiveMessagesErrorHistoryDecorator(inner, history, config, log);
-            return (decorator, inner, history, config, log);
+            var decorator = new ReceiveMessagesErrorHistoryDecorator(inner, history, options, log);
+            return (decorator, inner, history, options, log);
         }
     }
 }

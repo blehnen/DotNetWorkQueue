@@ -219,18 +219,20 @@ namespace DotNetWorkQueue.Tests.History.Decorator
         }
 
         private static (ISendMessages decorator, ISendMessages inner, IWriteMessageHistory history,
-            IHistoryConfiguration config, ILogger log) CreateDecorator(
+            IBaseTransportOptions options, ILogger log) CreateDecorator(
             bool enabled = false, bool trackEnqueue = true)
         {
             var inner = Substitute.For<ISendMessages>();
             var history = Substitute.For<IWriteMessageHistory>();
-            var config = Substitute.For<IHistoryConfiguration>();
-            config.Enabled.Returns(enabled);
-            config.TrackEnqueue.Returns(trackEnqueue);
+            var historyOptions = Substitute.For<IHistoryTransportOptions>();
+            historyOptions.TrackEnqueue.Returns(trackEnqueue);
+            var options = Substitute.For<IBaseTransportOptions>();
+            options.EnableHistory.Returns(enabled);
+            options.HistoryOptions.Returns(historyOptions);
             ILogger log = NullLogger.Instance;
 
-            var decorator = new SendMessagesHistoryDecorator(inner, history, config, log);
-            return (decorator, inner, history, config, log);
+            var decorator = new SendMessagesHistoryDecorator(inner, history, options, log);
+            return (decorator, inner, history, options, log);
         }
     }
 }

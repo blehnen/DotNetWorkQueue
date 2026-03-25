@@ -45,16 +45,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             connection.Received(1).Open();
         }
 
-        private static (PurgeMessageHistoryHandler handler, IDbConnectionFactory factory, IHistoryConfiguration config)
+        private static (PurgeMessageHistoryHandler handler, IDbConnectionFactory factory, IBaseTransportOptions options)
             Create(bool enabled = false)
         {
             var factory = Substitute.For<IDbConnectionFactory>();
             var tableNameHelper = Substitute.For<ITableNameHelper>();
             tableNameHelper.HistoryName.Returns("TestHistory");
-            var config = Substitute.For<IHistoryConfiguration>();
-            config.Enabled.Returns(enabled);
-            config.StoreBody.Returns(false);
-            return (new PurgeMessageHistoryHandler(factory, tableNameHelper, config), factory, config);
+            var options = Substitute.For<IBaseTransportOptions>();
+            options.EnableHistory.Returns(enabled);
+            return (new PurgeMessageHistoryHandler(factory, tableNameHelper, options), factory, options);
         }
 
         private static (IDbConnection connection, IDbCommand command) SetupConnection(IDbConnectionFactory factory)

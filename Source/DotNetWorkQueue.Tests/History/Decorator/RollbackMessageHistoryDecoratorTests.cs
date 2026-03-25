@@ -74,17 +74,17 @@ namespace DotNetWorkQueue.Tests.History.Decorator
         }
 
         private static (IRollbackMessage decorator, IRollbackMessage inner, IWriteMessageHistory history,
-            IHistoryConfiguration config, ILogger log) CreateDecorator(
+            IBaseTransportOptions options, ILogger log) CreateDecorator(
             bool enabled = false)
         {
             var inner = Substitute.For<IRollbackMessage>();
             var history = Substitute.For<IWriteMessageHistory>();
-            var config = Substitute.For<IHistoryConfiguration>();
-            config.Enabled.Returns(enabled);
+            var options = Substitute.For<IBaseTransportOptions>();
+            options.EnableHistory.Returns(enabled);
             ILogger log = NullLogger.Instance;
 
-            var decorator = new RollbackMessageHistoryDecorator(inner, history, config, log);
-            return (decorator, inner, history, config, log);
+            var decorator = new RollbackMessageHistoryDecorator(inner, history, options, log);
+            return (decorator, inner, history, options, log);
         }
     }
 }
