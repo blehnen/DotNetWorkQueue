@@ -297,6 +297,65 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             client.Dispose();
         }
 
+        [TestMethod]
+        public void Constructor_With_ApiKey_Does_Not_Throw()
+        {
+            var opts = CreateOptions();
+            opts.ApiKey = "my-secret-key";
+            using var client = new DashboardConsumerClient(opts);
+            client.IsRegistered.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Multiple_Counters_Accumulate_Independently()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            client.IncrementProcessed();
+            client.IncrementProcessed();
+            client.IncrementProcessed();
+            client.IncrementErrored();
+            client.IncrementErrored();
+            client.IncrementRolledBack();
+            client.IncrementPoisonMessage();
+            client.IncrementPoisonMessage();
+            client.IncrementPoisonMessage();
+            client.IncrementPoisonMessage();
+
+            client.MessagesProcessed.Should().Be(3);
+            client.MessagesErrored.Should().Be(2);
+            client.MessagesRolledBack.Should().Be(1);
+            client.PoisonMessages.Should().Be(4);
+        }
+
+        [TestMethod]
+        public void Constructor_HttpClient_QueueName_Required()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            var opts = new DashboardClientOptions
+            {
+                DashboardApiUrl = "http://localhost:5000",
+                QueueName = null
+            };
+            Action act = () => new DashboardConsumerClient(httpClient, opts);
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
+        public async Task StopAsync_When_Not_Started_Does_Not_Throw()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            // Should not throw even though not started
+            await client.StopAsync();
+            client.IsRegistered.Should().BeFalse();
+        }
+
         // === MockHandler ===
 
         private class MockHandler : HttpMessageHandler
