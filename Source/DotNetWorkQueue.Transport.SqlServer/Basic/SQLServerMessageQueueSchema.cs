@@ -347,7 +347,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             history.Columns.Add(new Column("CompletedUtc", ColumnTypes.Datetime, true, null));
             history.Columns.Add(new Column("DurationMs", ColumnTypes.Bigint, true, null));
             history.Columns.Add(new Column("ExceptionText", ColumnTypes.Nvarchar, -1, true, null));
-            history.Columns.Add(new Column("RetryCount", ColumnTypes.Int, false, new Default("DF_History_RetryCount", "0")));
+            history.Columns.Add(new Column("RetryCount", ColumnTypes.Int, false, new Default($"DF_{_tableNameHelper.HistoryName}_RetryCount", "0")));
             history.Columns.Add(new Column("Route", ColumnTypes.Nvarchar, 255, true, null));
             history.Columns.Add(new Column("MessageType", ColumnTypes.Nvarchar, 500, true, null));
             history.Columns.Add(new Column("Body", ColumnTypes.Varbinary, -1, true, null));
