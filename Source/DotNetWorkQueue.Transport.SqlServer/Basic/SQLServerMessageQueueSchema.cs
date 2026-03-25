@@ -358,10 +358,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             history.PrimaryKey.Clustered = true;
             history.PrimaryKey.Unique = true;
 
-            // Index on QueueID for lookups by message
-            history.Constraints.Add(new Constraint("IX_History_QueueID", ConstraintType.Index, "QueueID"));
+            // Index on QueueID for lookups by message — name must be unique per schema
+            history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_QueueID", ConstraintType.Index, "QueueID"));
             // Index on Status + CompletedUtc for purge queries and status filtering
-            history.Constraints.Add(new Constraint("IX_History_Status_Completed", ConstraintType.Index,
+            history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_Status_Completed", ConstraintType.Index,
                 new List<string> { "Status", "CompletedUtc" }));
 
             foreach (var c in history.Constraints)
