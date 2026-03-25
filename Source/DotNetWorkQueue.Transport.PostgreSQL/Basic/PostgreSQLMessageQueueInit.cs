@@ -80,6 +80,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<IWriteMessageHistory, WriteMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IDbPaginationSyntax, LimitOffsetPaginationSyntax>(LifeStyles.Singleton);
 
             container.Register<IBaseTransportOptions>(() =>
             {

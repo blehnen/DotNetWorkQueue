@@ -44,20 +44,45 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return new List<MessageHistoryRecord>();
             var db = _connection.Connection.GetDatabase();
-            var members = db.SortedSetRangeByRank(HistoryIndexKey, 0, -1, Order.Descending);
-            var results = new List<MessageHistoryRecord>();
-            var skip = pageIndex * pageSize;
-            var count = 0;
-            foreach (var member in members)
+
+            // Unfiltered: use Redis server-side pagination — exact range, single call
+            if (!statusFilter.HasValue)
             {
-                var record = LoadRecord(db, member.ToString());
-                if (record == null) continue;
-                if (statusFilter.HasValue && record.Status != statusFilter.Value) continue;
-                if (count >= skip && results.Count < pageSize) results.Add(record);
-                count++;
-                if (results.Count >= pageSize) break;
+                var start = pageIndex * pageSize;
+                var stop = start + pageSize - 1;
+                var members = db.SortedSetRangeByRank(HistoryIndexKey, start, stop, Order.Descending);
+                var results = new List<MessageHistoryRecord>(members.Length);
+                foreach (var member in members)
+                {
+                    var record = LoadRecord(db, member.ToString());
+                    if (record != null) results.Add(record);
+                }
+                return results;
             }
-            return results;
+
+            // Filtered: scan in batches since status is in the hash, not the sorted set score
+            {
+                const int batchSize = 100;
+                var results = new List<MessageHistoryRecord>();
+                var skip = pageIndex * pageSize;
+                var skipped = 0;
+                long batchStart = 0;
+                while (true)
+                {
+                    var members = db.SortedSetRangeByRank(HistoryIndexKey, batchStart, batchStart + batchSize - 1, Order.Descending);
+                    if (members.Length == 0) break;
+                    foreach (var member in members)
+                    {
+                        var record = LoadRecord(db, member.ToString());
+                        if (record == null || record.Status != statusFilter.Value) continue;
+                        if (skipped < skip) { skipped++; continue; }
+                        results.Add(record);
+                        if (results.Count >= pageSize) return results;
+                    }
+                    batchStart += batchSize;
+                }
+                return results;
+            }
         }
 
         public MessageHistoryRecord GetByQueueId(string queueId)

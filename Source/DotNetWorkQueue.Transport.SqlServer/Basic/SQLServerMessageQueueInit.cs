@@ -93,6 +93,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IWriteMessageHistory, WriteMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
+            container.Register<IDbPaginationSyntax, FetchNextPaginationSyntax>(LifeStyles.Singleton);
 
             container.Register<IBaseTransportOptions>(() =>
             {

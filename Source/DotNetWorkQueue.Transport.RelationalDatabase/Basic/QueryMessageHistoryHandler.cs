@@ -31,17 +31,20 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
         private readonly IBaseTransportOptions _options;
+        private readonly IDbPaginationSyntax _paginationSyntax;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryMessageHistoryHandler"/> class.
         /// </summary>
         public QueryMessageHistoryHandler(IDbConnectionFactory connectionFactory,
             ITableNameHelper tableNameHelper,
-            IBaseTransportOptions options)
+            IBaseTransportOptions options,
+            IDbPaginationSyntax paginationSyntax)
         {
             _connectionFactory = connectionFactory;
             _tableNameHelper = tableNameHelper;
             _options = options;
+            _paginationSyntax = paginationSyntax;
         }
 
         /// <inheritdoc />
@@ -56,26 +59,23 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 using (var command = connection.CreateCommand())
                 {
                     var where = statusFilter.HasValue ? "WHERE Status = @Status" : "";
+                    var pagination = _paginationSyntax.BuildPaginationClause("@Offset", "@PageSize");
                     command.CommandText = $@"SELECT QueueID, CorrelationID, Status, EnqueuedUtc, StartedUtc, CompletedUtc,
                         DurationMs, ExceptionText, RetryCount, Route, MessageType
                         FROM {_tableNameHelper.HistoryName} {where}
-                        ORDER BY EnqueuedUtc DESC";
+                        ORDER BY EnqueuedUtc DESC
+                        {pagination}";
 
                     if (statusFilter.HasValue)
                         AddParameter(command, "@Status", DbType.Int32, (int)statusFilter.Value);
 
-                    var skip = pageIndex * pageSize;
-                    var count = 0;
+                    AddParameter(command, "@Offset", DbType.Int32, pageIndex * pageSize);
+                    AddParameter(command, "@PageSize", DbType.Int32, pageSize);
+
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
-                        {
-                            if (count >= skip && results.Count < pageSize)
-                                results.Add(MapRecord(reader));
-                            count++;
-                            if (results.Count >= pageSize)
-                                break;
-                        }
+                            results.Add(MapRecord(reader));
                     }
                 }
             }
