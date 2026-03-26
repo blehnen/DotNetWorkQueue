@@ -356,6 +356,369 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             client.IsRegistered.Should().BeFalse();
         }
 
+        // === IHttpClientFactory constructor ===
+
+        [TestMethod]
+        public void Constructor_HttpClientFactory_QueueName_Required()
+        {
+            var factory = new FakeHttpClientFactory(new HttpClient(new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)))
+            {
+                BaseAddress = new Uri("http://localhost:5000/")
+            });
+            var opts = new DashboardClientOptions
+            {
+                DashboardApiUrl = "http://localhost:5000",
+                QueueName = null
+            };
+            Action act = () => new DashboardConsumerClient(factory, opts);
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
+        public void Constructor_HttpClientFactory_Url_Required()
+        {
+            var factory = new FakeHttpClientFactory(new HttpClient());
+            var opts = new DashboardClientOptions
+            {
+                DashboardApiUrl = null,
+                QueueName = "testQueue"
+            };
+            Action act = () => new DashboardConsumerClient(factory, opts);
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
+        public void Constructor_HttpClientFactory_Options_Null_Throws()
+        {
+            var factory = new FakeHttpClientFactory(new HttpClient());
+            Action act = () => new DashboardConsumerClient(factory, null);
+            act.Should().Throw<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void Constructor_HttpClientFactory_BaseAddress_Null_Configures_Client()
+        {
+            var innerHandler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(innerHandler); // BaseAddress is null
+            var factory = new FakeHttpClientFactory(httpClient);
+
+            var opts = CreateOptions();
+            using var client = new DashboardConsumerClient(factory, opts);
+
+            client.IsRegistered.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Constructor_HttpClientFactory_BaseAddress_Null_With_ApiKey()
+        {
+            var innerHandler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(innerHandler); // BaseAddress is null
+            var factory = new FakeHttpClientFactory(httpClient);
+
+            var opts = CreateOptions();
+            opts.ApiKey = "my-key";
+            using var client = new DashboardConsumerClient(factory, opts);
+
+            client.IsRegistered.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Constructor_HttpClientFactory_BaseAddress_Already_Set_Skips_Config()
+        {
+            var innerHandler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(innerHandler)
+            {
+                BaseAddress = new Uri("http://already-set:9999/")
+            };
+            var factory = new FakeHttpClientFactory(httpClient);
+
+            var opts = CreateOptions();
+            using var client = new DashboardConsumerClient(factory, opts);
+
+            client.IsRegistered.Should().BeFalse();
+        }
+
+        // === StartAsync with HeartbeatIntervalSeconds = 0 ===
+
+        [TestMethod]
+        public async Task StartAsync_HeartbeatInterval_Zero_Defaults_To_30()
+        {
+            var consumerId = Guid.NewGuid();
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/register"))
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        ConsumerId = consumerId,
+                        HeartbeatIntervalSeconds = 0 // should default to 30
+                    });
+                    return new HttpResponseMessage(HttpStatusCode.Created)
+                    {
+                        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            await client.StartAsync();
+
+            client.ConsumerId.Should().Be(consumerId);
+            client.IsRegistered.Should().BeTrue();
+        }
+
+        // === HeartbeatCallback with 404 response ===
+
+        [TestMethod]
+        public async Task Heartbeat_404_Clears_Registration()
+        {
+            var consumerId = Guid.NewGuid();
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/register"))
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        ConsumerId = consumerId,
+                        HeartbeatIntervalSeconds = 9999
+                    });
+                    return new HttpResponseMessage(HttpStatusCode.Created)
+                    {
+                        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                if (req.RequestUri.PathAndQuery.Contains("/heartbeat"))
+                {
+                    return new HttpResponseMessage(HttpStatusCode.NotFound);
+                }
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+            await client.StartAsync();
+            client.IsRegistered.Should().BeTrue();
+
+            // Trigger heartbeat manually via reflection
+            var method = typeof(DashboardConsumerClient).GetMethod("HeartbeatCallback",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            method.Invoke(client, new object[] { null });
+
+            // Give async void time to complete
+            await Task.Delay(300);
+
+            client.IsRegistered.Should().BeFalse();
+            client.ConsumerId.Should().BeNull();
+        }
+
+        // === HeartbeatCallback when not registered ===
+
+        [TestMethod]
+        public async Task Heartbeat_When_Not_Registered_Does_Nothing()
+        {
+            var heartbeatCalled = false;
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/heartbeat"))
+                    heartbeatCalled = true;
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            // Not registered, trigger heartbeat
+            var method = typeof(DashboardConsumerClient).GetMethod("HeartbeatCallback",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            method.Invoke(client, new object[] { null });
+            await Task.Delay(200);
+
+            heartbeatCalled.Should().BeFalse();
+        }
+
+        // === HeartbeatCallback exception swallowed ===
+
+        [TestMethod]
+        public async Task Heartbeat_Exception_Is_Swallowed()
+        {
+            var consumerId = Guid.NewGuid();
+            var callCount = 0;
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/register"))
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        ConsumerId = consumerId,
+                        HeartbeatIntervalSeconds = 9999
+                    });
+                    return new HttpResponseMessage(HttpStatusCode.Created)
+                    {
+                        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                if (req.RequestUri.PathAndQuery.Contains("/heartbeat"))
+                {
+                    Interlocked.Increment(ref callCount);
+                    throw new HttpRequestException("Network error");
+                }
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+            await client.StartAsync();
+
+            var method = typeof(DashboardConsumerClient).GetMethod("HeartbeatCallback",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            method.Invoke(client, new object[] { null });
+            await Task.Delay(200);
+
+            // Client should still be registered despite exception
+            client.IsRegistered.Should().BeTrue();
+            callCount.Should().Be(1);
+        }
+
+        // === Dispose with active registration ===
+
+        [TestMethod]
+        public async Task Dispose_With_Registration_Sends_Delete()
+        {
+            var deleteReceived = false;
+            var consumerId = Guid.NewGuid();
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/register"))
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        ConsumerId = consumerId,
+                        HeartbeatIntervalSeconds = 9999
+                    });
+                    return new HttpResponseMessage(HttpStatusCode.Created)
+                    {
+                        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                if (req.Method == HttpMethod.Delete)
+                {
+                    deleteReceived = true;
+                    return new HttpResponseMessage(HttpStatusCode.NoContent);
+                }
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            var client = new DashboardConsumerClient(httpClient, CreateOptions());
+            await client.StartAsync();
+            client.IsRegistered.Should().BeTrue();
+
+            client.Dispose();
+
+            deleteReceived.Should().BeTrue();
+        }
+
+        // === Dispose with owned HttpClient ===
+
+        [TestMethod]
+        public void Dispose_Owned_HttpClient_Is_Disposed()
+        {
+            var opts = CreateOptions();
+            var client = new DashboardConsumerClient(opts);
+
+            // Should not throw even though real HTTP client is created
+            client.Dispose();
+            client.Dispose(); // idempotent
+        }
+
+        // === Dispose unregister DELETE throws ===
+
+        [TestMethod]
+        public async Task Dispose_Delete_Throws_Is_Swallowed()
+        {
+            var consumerId = Guid.NewGuid();
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/register"))
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        ConsumerId = consumerId,
+                        HeartbeatIntervalSeconds = 9999
+                    });
+                    return new HttpResponseMessage(HttpStatusCode.Created)
+                    {
+                        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                if (req.Method == HttpMethod.Delete)
+                {
+                    throw new HttpRequestException("Network error during dispose");
+                }
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            var client = new DashboardConsumerClient(httpClient, CreateOptions());
+            await client.StartAsync();
+
+            // Should not throw
+            Action act = () => client.Dispose();
+            act.Should().NotThrow();
+        }
+
+        // === StopAsync DELETE throws ===
+
+        [TestMethod]
+        public async Task StopAsync_Delete_Throws_Is_Swallowed()
+        {
+            var consumerId = Guid.NewGuid();
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/register"))
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        ConsumerId = consumerId,
+                        HeartbeatIntervalSeconds = 9999
+                    });
+                    return new HttpResponseMessage(HttpStatusCode.Created)
+                    {
+                        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                if (req.Method == HttpMethod.Delete)
+                {
+                    throw new HttpRequestException("Network error");
+                }
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            using var client = new DashboardConsumerClient(httpClient, CreateOptions());
+            await client.StartAsync();
+            client.IsRegistered.Should().BeTrue();
+
+            // Should not throw
+            await client.StopAsync();
+
+            client.IsRegistered.Should().BeFalse();
+        }
+
+        // === Constructor HttpClient with options null ===
+
+        [TestMethod]
+        public void Constructor_HttpClient_Options_Null_Throws()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            Action act = () => new DashboardConsumerClient(httpClient, null);
+            act.Should().Throw<ArgumentNullException>();
+        }
+
         // === MockHandler ===
 
         private class MockHandler : HttpMessageHandler
@@ -371,6 +734,18 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             {
                 return Task.FromResult(_handler(request));
             }
+        }
+
+        private class FakeHttpClientFactory : IHttpClientFactory
+        {
+            private readonly HttpClient _client;
+
+            public FakeHttpClientFactory(HttpClient client)
+            {
+                _client = client;
+            }
+
+            public HttpClient CreateClient(string name) => _client;
         }
     }
 }
