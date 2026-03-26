@@ -20,6 +20,7 @@ using System;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
+    /// <inheritdoc />
     public class PurgeMessageHistoryHandler : IPurgeMessageHistory
     {
         private readonly IRedisConnection _connection;
@@ -29,6 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private string HistoryHashKey(string queueId) => $"{_redisNames.Values}:history:{queueId}";
         private string HistoryIndexKey => $"{_redisNames.Values}:history:index";
 
+        /// <inheritdoc />
         public PurgeMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options)
         {
             _connection = connection;
@@ -36,6 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _options = options;
         }
 
+        /// <inheritdoc />
         public long Purge(DateTime olderThan)
         {
             if (!_options.EnableHistory) return 0;

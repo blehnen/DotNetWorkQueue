@@ -30,6 +30,7 @@ namespace DotNetWorkQueue.Queue
     [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "not needed")]
     public class ClearHistoryMonitor : BaseMonitor, IClearHistoryMonitor
     {
+        /// <inheritdoc />
         public ClearHistoryMonitor(IBaseTransportOptions options,
             IPurgeMessageHistory purgeHistory, ILogger log)
             : base(CreatePurgeAction(options, Guard.NotNull(() => purgeHistory, purgeHistory)),

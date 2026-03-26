@@ -30,6 +30,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         private readonly IConnectionInformation _connectionInformation;
         private readonly IBaseTransportOptions _options;
 
+        /// <inheritdoc />
         public QueryMessageHistoryHandler(IConnectionInformation connectionInformation, IBaseTransportOptions options)
         {
             _connectionInformation = connectionInformation;

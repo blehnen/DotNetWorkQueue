@@ -30,12 +30,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private RedisBaseTransportOptions _options;
         private readonly object _lock = new object();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedisTransportOptionsFactory"/> class.
+        /// </summary>
+        /// <param name="connection">The Redis connection.</param>
+        /// <param name="redisNames">The Redis key names.</param>
         public RedisTransportOptionsFactory(IRedisConnection connection, RedisNames redisNames)
         {
             _connection = connection;
             _redisNames = redisNames;
         }
 
+        /// <summary>
+        /// Creates or returns the cached transport options.
+        /// </summary>
+        /// <returns>The Redis transport options.</returns>
         public RedisBaseTransportOptions Create()
         {
             if (_options != null) return _options;

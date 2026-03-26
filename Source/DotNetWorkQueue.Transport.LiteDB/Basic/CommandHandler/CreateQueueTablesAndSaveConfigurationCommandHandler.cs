@@ -43,6 +43,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="optionsFactory">The options factory.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="serializer">The serializer.</param>
+        /// <param name="connectionInfo">The connection information.</param>
         public CreateQueueTablesAndSaveConfigurationCommandHandler(LiteDbConnectionManager connectionInformation,
             ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
             TableNameHelper tableNameHelper,

@@ -24,6 +24,7 @@ using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
+    /// <inheritdoc />
     public class QueryMessageHistoryHandler : IQueryMessageHistory
     {
         private readonly IRedisConnection _connection;
@@ -33,6 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private string HistoryHashKey(string queueId) => $"{_redisNames.Values}:history:{queueId}";
         private string HistoryIndexKey => $"{_redisNames.Values}:history:index";
 
+        /// <inheritdoc />
         public QueryMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options)
         {
             _connection = connection;
@@ -40,6 +42,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _options = options;
         }
 
+        /// <inheritdoc />
         public IReadOnlyList<MessageHistoryRecord> Get(int pageIndex, int pageSize, MessageHistoryStatus? statusFilter)
         {
             if (!_options.EnableHistory) return new List<MessageHistoryRecord>();
@@ -85,6 +88,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             }
         }
 
+        /// <inheritdoc />
         public MessageHistoryRecord GetByQueueId(string queueId)
         {
             if (!_options.EnableHistory) return null;
@@ -92,6 +96,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             return LoadRecord(db, queueId);
         }
 
+        /// <inheritdoc />
         public long GetCount(MessageHistoryStatus? statusFilter)
         {
             if (!_options.EnableHistory) return 0;

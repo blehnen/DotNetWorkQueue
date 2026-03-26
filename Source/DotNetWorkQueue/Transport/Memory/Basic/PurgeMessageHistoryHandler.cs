@@ -29,6 +29,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         private readonly IConnectionInformation _connectionInformation;
         private readonly IBaseTransportOptions _options;
 
+        /// <inheritdoc />
         public PurgeMessageHistoryHandler(IConnectionInformation connectionInformation, IBaseTransportOptions options)
         {
             _connectionInformation = connectionInformation;

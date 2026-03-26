@@ -30,7 +30,7 @@
             Creates a queue and saves the configuration
             </summary>
         </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IInternalSerializer)">
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.ILiteDbMessageQueueTransportOptionsFactory,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IInternalSerializer,DotNetWorkQueue.IConnectionInformation)">
             <summary>
             Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler"/> class.
             </summary>
@@ -38,6 +38,7 @@
             <param name="optionsFactory">The options factory.</param>
             <param name="tableNameHelper">The table name helper.</param>
             <param name="serializer">The serializer.</param>
+            <param name="connectionInfo">The connection information.</param>
         </member>
         <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateQueueTablesAndSaveConfigurationCommandHandler.Handle(DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand{DotNetWorkQueue.Transport.LiteDb.Basic.ITable})">
             <inheritdoc />
@@ -431,6 +432,11 @@
             Creates new instance.
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbMessageQueueTransportOptionsFactory.SaveToCache(DotNetWorkQueue.IConnectionInformation,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions)">
+            <summary>
+            Saves options to the static cache for in-memory mode fallback.
+            </summary>
         </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Factory.LiteDbReceiveMessagesFactory">
             <summary>
@@ -926,6 +932,22 @@
             <c>true</c> if [enable message expiration]; otherwise, <c>false</c>.
             </value>
         </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.EnableHistory">
+            <summary>
+            Gets or sets a value indicating whether [enable history].
+            </summary>
+            <value>
+            <c>true</c> if [enable history]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.HistoryOptions">
+            <summary>
+            Gets or sets the history tracking options (retention, body storage, tracking flags).
+            </summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.DotNetWorkQueue#IBaseTransportOptions#HistoryOptions">
+            <inheritdoc />
+        </member>
         <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions.ValidConfiguration">
             <summary>
             Validates the configuration settings
@@ -1164,6 +1186,19 @@
             </summary>
             <param name="context">The context.</param>
         </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.PurgeMessageHistoryHandler">
+            <summary>
+            Purges old message history records for LiteDB transport.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.PurgeMessageHistoryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.PurgeMessageHistoryHandler"/> class.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.PurgeMessageHistoryHandler.Purge(System.DateTime)">
+            <inheritdoc />
+        </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.DoesJobExistQueryHandler">
             <summary>
              Returns if a job is currently pending execution. 'NotQueued' means no
@@ -1366,6 +1401,25 @@
             <param name="query">The query.</param>
             <returns></returns>
         </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryMessageHistoryHandler">
+            <summary>
+            Queries message history records for LiteDB transport.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryMessageHistoryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryMessageHistoryHandler"/> class.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryMessageHistoryHandler.Get(System.Int32,System.Int32,System.Nullable{DotNetWorkQueue.Configuration.MessageHistoryStatus})">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryMessageHistoryHandler.GetByQueueId(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryMessageHistoryHandler.GetCount(System.Nullable{DotNetWorkQueue.Configuration.MessageHistoryStatus})">
+            <inheritdoc />
+        </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery">
             <summary>
             Job exists params
@@ -1533,6 +1587,42 @@
             <value>
             The name of the job table.
             </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper.HistoryName">
+            <summary>
+            Gets the name of the message history collection.
+            </summary>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler">
+            <summary>
+            Writes message history records for LiteDB transport.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler.#ctor(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper,DotNetWorkQueue.IBaseTransportOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler"/> class.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler.RecordEnqueue(System.String,System.String,System.String,System.String,System.Byte[],System.Byte[])">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler.RecordProcessingStart(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler.RecordComplete(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler.RecordError(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler.RecordRollback(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler.RecordDelete(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.WriteMessageHistoryHandler.RecordExpire(System.String)">
+            <inheritdoc />
         </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.ConfigurationExtensionsForIAdditionalMessageData">
             <summary>
@@ -1707,6 +1797,56 @@
             <value>
             The type of the exception.
             </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable">
+            <summary>
+            Message history table for LiteDB
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.Create(DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbConnectionManager,DotNetWorkQueue.Transport.LiteDb.Basic.LiteDbMessageQueueTransportOptions,DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper)">
+            <inheritdoc />
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.Id">
+            <summary>Auto-generated LiteDB ID.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.QueueId">
+            <summary>The message's queue ID.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.CorrelationId">
+            <summary>Correlation ID for cross-system tracing.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.Status">
+            <summary>Current status (maps to MessageHistoryStatus enum).</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.EnqueuedUtc">
+            <summary>When the message was enqueued (UTC ticks).</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.StartedUtc">
+            <summary>When processing started (UTC ticks). 0 if not started.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.CompletedUtc">
+            <summary>When processing completed (UTC ticks). 0 if not completed.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.DurationMs">
+            <summary>Duration in milliseconds. 0 if not completed.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.ExceptionText">
+            <summary>Truncated exception text for error status.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.RetryCount">
+            <summary>Number of retries before final status.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.Route">
+            <summary>Message route, if routing is enabled.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.MessageType">
+            <summary>Body type name from header.</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.Body">
+            <summary>Serialized body bytes (only when StoreBody is enabled).</summary>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Schema.HistoryTable.Headers">
+            <summary>Serialized header bytes (only when StoreBody is enabled).</summary>
         </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Schema.JobsTable">
             <summary>

@@ -1,3 +1,13 @@
+### 0.9.11 — 2026-03-26
+- **Breaking:** `IHistoryConfiguration` removed — history decorators and monitors now use `IBaseTransportOptions.EnableHistory` and `IBaseTransportOptions.HistoryOptions` directly.
+- **Breaking:** `IHistoryTransportOptions` added to `IBaseTransportOptions` — all transport options classes now expose `HistoryOptions` (RetentionDays, MaxExceptionLength, StoreBody, Track* flags, MonitorTime)
+- History query pagination now uses database-level `OFFSET/LIMIT` (PostgreSQL, SQLite) or `OFFSET...FETCH NEXT` (SQL Server) instead of in-memory skip/take
+- Redis history queries: unfiltered pages use `SortedSetRangeByRank` server-side pagination; filtered pages use batched scanning
+- `IBaseTransportOptions` registered in DI for all 6 transports — decorators inject it directly
+- `IDbPaginationSyntax` interface for transport-specific SQL pagination (`LimitOffsetPaginationSyntax`, `FetchNextPaginationSyntax`)
+- Fix: history table index names now include queue name (e.g., `IX_{historyTable}_QueueID`) — prevents collision from leftover indexes in PostgreSQL (schema-wide unique) and SQL Server (`DF_` default constraint)
+- Redis and Memory transports: persistent history configuration via saved transport options (Redis Configuration key, Memory static DataStorage)
+
 ### 0.9.10 — 2026-03-20
 - `EnableHistory` on transport options (SQLite, SQL Server, PostgreSQL, LiteDB) — set during queue creation like other options. Redis and Memory don't need this; they create history storage at runtime when `IHistoryConfiguration.Enabled` is true.
 - Dashboard API: read-only mode (`DashboardOptions.ReadOnly`) — blocks all write operations with 403
