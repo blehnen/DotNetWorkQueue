@@ -1,0 +1,27 @@
+{
+  "version": "1.3",
+  "created_at": "2026-03-26T00:00:00Z",
+  "interaction_mode": "interactive",
+  "git_strategy": "manual",
+  "review_depth": "detailed",
+  "security_audit": true,
+  "simplification_review": true,
+  "iac_validation": "auto",
+  "documentation_generation": true,
+  "plan_critique": true,
+  "codebase_docs_path": ".shipyard/codebase",
+  "model_routing": {
+    "architect": "opus",
+    "builder": "opus",
+    "reviewer": "opus",
+    "verifier": "opus",
+    "auditor": "opus",
+    "simplifier": "opus",
+    "documenter": "opus",
+    "mapper": "opus",
+    "debugger": "opus",
+    "researcher": "opus",
+    "planner": "opus"
+  },
+  "context_tier": "auto"
+}
