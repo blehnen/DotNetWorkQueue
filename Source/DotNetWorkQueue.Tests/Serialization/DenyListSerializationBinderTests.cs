@@ -86,12 +86,10 @@ namespace DotNetWorkQueue.Tests.Serialization
         public void BindToName_Delegates_To_Default()
         {
             var binder = Create();
-            binder.BindToName(typeof(string), out var assemblyName, out var typeName);
-            // DefaultSerializationBinder delegates successfully; for typeof(string)
-            // the out parameters are set (typeName may be null if the binder
-            // chooses not to override, but the call must complete without throwing).
-            // Verify the binder actually ran by checking that we got past the call.
-            Assert.IsNotNull(binder, "BindToName completed without exception");
+            binder.BindToName(typeof(DenyListSerializationBinderTests), out var assemblyName, out var typeName);
+            // DefaultSerializationBinder populates assemblyName for non-system types,
+            // proving delegation actually occurred.
+            Assert.IsNotNull(assemblyName, "BindToName should delegate to DefaultSerializationBinder and populate assemblyName");
         }
 
         [TestMethod]

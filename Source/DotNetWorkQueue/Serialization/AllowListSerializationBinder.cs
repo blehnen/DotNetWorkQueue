@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Serialization
     /// </summary>
     public class AllowListSerializationBinder : ISerializationBinder
     {
-        private readonly HashSet<string> _allowedTypes = new HashSet<string>();
+        private readonly HashSet<string> _allowedTypes = new HashSet<string>(StringComparer.Ordinal);
         private readonly DefaultSerializationBinder _defaultBinder = new DefaultSerializationBinder();
 
         /// <summary>
