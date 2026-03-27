@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Queue
         private volatile IConsumerMethodQueueScheduler _consumer;
         private int _disposeCount;
 
-        private readonly string _queueName = $"HeartBeatWorkers-{Guid.NewGuid()}";
+        private readonly string _queueName = $"HeartBeatWorkers_{Guid.NewGuid():N}";
         private const string Connection = "Memory";
 
         private readonly object _startup = new object();
