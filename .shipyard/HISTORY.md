@@ -121,3 +121,15 @@
   - Phase 4: Stale Project Cleanup (IntegrationTests.Metrics removed)
   - Phase 5: Security Documentation (SECURITY.md)
 - **Status:** Ready for review and merge
+
+## 2026-03-27 — New Milestone: Thread Management Modernization
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** M-1 (Remove Thread.Abort) + M-2 (Replace Manual Threads)
+- **Decisions:**
+  - Remove Thread.Abort entirely (not deprecate) — existing cancellation tokens are sufficient
+  - Replace new Thread() with Task.Run(LongRunning) on all targets including net48
+  - Replace Thread.Sleep(20) spin-wait with ManualResetEventSlim
+- **Roadmap:** Phase 6 (abort removal, independent PR), Phase 7 (thread replacement, depends on 6)
+- **Constraint:** PR #82 must merge before code changes begin
+- **Status:** Roadmap approved, ready for Phase 6 planning
