@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Microsoft.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 
@@ -37,6 +39,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// <param name="queueConnection">Queue and connection information.</param>
         public SqlConnectionInformation(QueueConnection queueConnection) : base(queueConnection)
         {
+            ValidateQueueName(queueConnection.Queue);
             ValidateConnection(queueConnection.Connection);
         }
         #endregion
@@ -80,6 +83,16 @@ namespace DotNetWorkQueue.Transport.SqlServer
             return new SqlConnectionInformation(new QueueConnection(QueueName, ConnectionString, data));
         }
         #endregion
+
+        /// <summary>Validates that the queue name contains only safe characters for use as a SQL Server table name identifier.</summary>
+        private static void ValidateQueueName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
+            if (name.Length > 128)
+                throw new ArgumentException($"Queue name exceeds maximum length of 128 characters. Got {name.Length} characters.", nameof(name));
+            if (!Regex.IsMatch(name, @"^[a-zA-Z0-9_.]+$"))
+                throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.", nameof(name));
+        }
 
         /// <summary>
         /// Validates the connection string and determines the value of the server property
