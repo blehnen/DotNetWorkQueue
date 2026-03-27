@@ -103,3 +103,21 @@
 - **Plans:** 1 plan (PLAN-1.1), 1 task: create SECURITY.md
 - **Scope:** Documentation only — Dynamic LINQ risks, serialization binder protections, deployment recommendations
 - **Status:** Ready for build
+
+## 2026-03-27 — Phase 5 Complete
+
+- **Action:** `/shipyard:build 5`
+- **Plans executed:** 1/1 (PLAN-1.1)
+- **File created:** `Source/DotNetWorkQueue/SECURITY.md` (179 lines, 7 sections)
+- **Review:** Spec PASS, quality APPROVED — fixed deny-list count (29→30)
+- **Status:** Phase 5 complete
+
+## 2026-03-27 — All Phases Complete
+
+- **Milestone:** Security & Stability Fixes — 5/5 phases delivered
+  - Phase 1: Serialization Security (DenyList + AllowList binders)
+  - Phase 2: Queue Name Validation (all 6 transports)
+  - Phase 3: Async Dispose Fix (IAsyncDisposable on DashboardConsumerClient)
+  - Phase 4: Stale Project Cleanup (IntegrationTests.Metrics removed)
+  - Phase 5: Security Documentation (SECURITY.md)
+- **Status:** Ready for review and merge
