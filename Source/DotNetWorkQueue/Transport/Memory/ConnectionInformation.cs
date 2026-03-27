@@ -16,7 +16,9 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.Memory
@@ -26,6 +28,8 @@ namespace DotNetWorkQueue.Transport.Memory
     /// </summary>
     public class ConnectionInformation : BaseConnectionInformation
     {
+        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+
         #region Constructor
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionInformation"/> class.
@@ -33,7 +37,7 @@ namespace DotNetWorkQueue.Transport.Memory
         /// <param name="queueConnection">Queue and connection information.</param>
         public ConnectionInformation(QueueConnection queueConnection) : base(queueConnection)
         {
-
+            ValidateQueueName(queueConnection.Queue);
         }
         #endregion
 
@@ -59,6 +63,15 @@ namespace DotNetWorkQueue.Transport.Memory
         public override string Container => QueueName;
 
         #endregion
+
+        /// <summary>Validates that the queue name contains only safe characters for use as a memory queue identifier.</summary>
+        private static void ValidateQueueName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Queue name must not be null or empty.", nameof(name));
+            if (!ValidQueueNamePattern.IsMatch(name))
+                throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.", nameof(name));
+        }
 
         #region IClone
         /// <summary>
