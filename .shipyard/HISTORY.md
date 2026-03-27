@@ -88,3 +88,18 @@
 - **Key finding:** IntegrationTests.Metrics types accumulate values for test assertions — cannot replace with NoOp. Moving files into IntegrationTests.Shared instead.
 - **Critique Verdict:** READY — all file paths verified, move strategy sound
 - **Status:** Ready for build
+
+## 2026-03-27 — Phase 4 Complete
+
+- **Action:** `/shipyard:build 4`
+- **Plans executed:** 1/1 (PLAN-1.1)
+- **Changes:** Moved 7 metric files to IntegrationTests.Shared/Metrics/, removed ProjectReference, removed from .sln and InternalsVisibleForTests.cs, deleted project directory
+- **Tests:** Full solution builds (0 errors), 56 in-memory integration tests pass (metrics verification works)
+- **Status:** Phase 4 complete
+
+## 2026-03-27 — Phase 5 Planned
+
+- **Action:** `/shipyard:plan 5`
+- **Plans:** 1 plan (PLAN-1.1), 1 task: create SECURITY.md
+- **Scope:** Documentation only — Dynamic LINQ risks, serialization binder protections, deployment recommendations
+- **Status:** Ready for build
