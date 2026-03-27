@@ -1,6 +1,4 @@
 using System;
-using AutoFixture;
-using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Serialization;
 using Newtonsoft.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -64,10 +62,22 @@ namespace DotNetWorkQueue.Tests.Serialization
            });
         }
 
+        [TestMethod]
+        public void Deserialize_Denied_Type_Throws_JsonSerializationException()
+        {
+            var test = Create();
+            var maliciousJson = "{\"$type\":\"System.Diagnostics.Process, System\"}";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(maliciousJson);
+            Assert.ThrowsExactly<JsonSerializationException>(
+                delegate
+                {
+                    test.ConvertBytesTo<object>(bytes);
+                });
+        }
+
         private IInternalSerializer Create()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return fixture.Create<JsonSerializerInternal>();
+            return new JsonSerializerInternal(new DenyListSerializationBinder());
         }
 
         private interface ITestData
