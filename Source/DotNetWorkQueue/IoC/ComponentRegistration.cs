@@ -38,6 +38,7 @@ using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Newtonsoft.Json.Serialization;
 using Polly.Registry;
 using System;
 using System.Diagnostics;
@@ -278,6 +279,8 @@ namespace DotNetWorkQueue.IoC
 
             //register the generic configuration container
             container.Register<IConfiguration, AdditionalConfiguration>(LifeStyles.Singleton);
+
+            container.Register<ISerializationBinder, DenyListSerializationBinder>(LifeStyles.Singleton);
             #endregion
 
             #region Logging
