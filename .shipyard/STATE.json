@@ -1,7 +1,7 @@
 {
-  "phase": 3,
+  "phase": 4,
   "status": "planned",
-  "position": "Phase 3 planned, ready for build",
-  "message": "1 plan, 2 tasks: IAsyncDisposable implementation + test updates",
+  "position": "Phase 4 planned, ready for build",
+  "message": "1 plan, 3 tasks: move metric types, remove from sln, delete directory",
   "last_updated": "2026-03-27T00:00:00Z"
 }

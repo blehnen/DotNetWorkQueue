@@ -70,3 +70,21 @@
 - **Approach:** DisposeAsync delegates to StopAsync; sync Dispose skips HTTP DELETE (server prunes via heartbeat timeout)
 - **Critique Verdict:** READY — all line numbers and API surface verified against actual source
 - **Status:** Ready for build
+
+## 2026-03-27 — Phase 3 Complete
+
+- **Action:** `/shipyard:build 3`
+- **Plans executed:** 1/1 (PLAN-1.1)
+- **Files modified:** DashboardConsumerClient.cs (IAsyncDisposable + revised Dispose), DashboardConsumerClientTests.cs (7 new + 2 updated tests)
+- **Review results:** Spec compliance PASS, code quality APPROVED (0 Critical, 0 Important)
+- **Security audit:** PASS — no resource leaks, no race conditions, proper auth on HTTP DELETE
+- **Tests:** 92 passing on both net8.0 and net10.0
+- **Status:** Phase 3 complete
+
+## 2026-03-27 — Phase 4 Planned
+
+- **Action:** `/shipyard:plan 4`
+- **Plans:** 1 plan (PLAN-1.1), 3 tasks
+- **Key finding:** IntegrationTests.Metrics types accumulate values for test assertions — cannot replace with NoOp. Moving files into IntegrationTests.Shared instead.
+- **Critique Verdict:** READY — all file paths verified, move strategy sound
+- **Status:** Ready for build
