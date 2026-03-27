@@ -50,3 +50,23 @@
 - **Design Decisions:** Per-transport validation, per-transport max lengths, no base class changes, empty names allowed for backward compat
 - **Critique Verdict:** READY — all 15 file paths verified, zero file overlap
 - **Status:** Ready for build
+
+## 2026-03-26 — Phase 2 Complete
+
+- **Action:** `/shipyard:build 2`
+- **Plans executed:** 2/2 (PLAN-1.1, PLAN-1.2)
+- **Files modified:** 6 production + 9 test files across all transports
+- **Review results:** Both plans passed spec compliance + code quality review
+- **Fixes applied:** Removed unused fixture variables (Release build fix), compiled regex patterns
+- **Security audit:** PASS — regex anchored, no ReDoS risk, all entry points covered
+- **Simplification:** Ship as-is — per-transport duplication is manageable and intentional
+- **Tests:** 49 new validation tests, all passing
+- **Status:** Phase 2 complete
+
+## 2026-03-27 — Phase 3 Planned
+
+- **Action:** `/shipyard:plan 3`
+- **Plans:** 1 plan (PLAN-1.1), 2 tasks (TDD: tests first, then implementation)
+- **Approach:** DisposeAsync delegates to StopAsync; sync Dispose skips HTTP DELETE (server prunes via heartbeat timeout)
+- **Critique Verdict:** READY — all line numbers and API surface verified against actual source
+- **Status:** Ready for build
