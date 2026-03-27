@@ -17,7 +17,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_Null_Services_Fails()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>(null))
             {
@@ -33,7 +32,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateProducer()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {
@@ -49,7 +47,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateConsumer()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {
@@ -65,7 +62,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateConsumerQueueScheduler()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {
@@ -101,7 +97,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateConsumerAsync()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {
@@ -118,7 +113,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateAdminContainerAsync()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {

@@ -26,6 +26,8 @@ namespace DotNetWorkQueue.Transport.SQLite
     /// <inheritdoc />
     public class SqliteConnectionInformation : BaseConnectionInformation
     {
+        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+
         private readonly IDbDataSource _dataSource;
         private string _server;
 
@@ -65,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         private static void ValidateQueueName(string name)
         {
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
-            if (!Regex.IsMatch(name, @"^[a-zA-Z0-9_.]+$"))
+            if (!ValidQueueNamePattern.IsMatch(name))
                 throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.", nameof(name));
         }
 

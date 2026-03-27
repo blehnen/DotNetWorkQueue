@@ -22,7 +22,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         [TestMethod]
         public void Create_Null_Services_Fails()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>(null))
             {
@@ -38,7 +37,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         [TestMethod]
         public void Create_CreateProducer()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
@@ -49,7 +47,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         [TestMethod]
         public void Create_CreateConsumer()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
@@ -60,7 +57,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         [TestMethod]
         public void Create_CreateConsumerQueueScheduler()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
@@ -86,7 +82,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         [TestMethod]
         public void Create_CreateConsumerAsync()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
@@ -97,7 +92,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         [TestMethod]
         public void Create_CreateAdminContainerAsync()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {

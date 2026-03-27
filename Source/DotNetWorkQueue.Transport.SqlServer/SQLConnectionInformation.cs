@@ -29,6 +29,8 @@ namespace DotNetWorkQueue.Transport.SqlServer
     /// </summary>
     public class SqlConnectionInformation : BaseConnectionInformation
     {
+        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+
         private string _server;
         private string _catalog;
 
@@ -90,7 +92,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
             if (name.Length > 128)
                 throw new ArgumentException($"Queue name exceeds maximum length of 128 characters. Got {name.Length} characters.", nameof(name));
-            if (!Regex.IsMatch(name, @"^[a-zA-Z0-9_.]+$"))
+            if (!ValidQueueNamePattern.IsMatch(name))
                 throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.", nameof(name));
         }
 

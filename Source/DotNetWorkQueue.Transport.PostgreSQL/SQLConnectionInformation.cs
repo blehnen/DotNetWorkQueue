@@ -27,6 +27,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
     /// <inheritdoc />
     public class SqlConnectionInformation : BaseConnectionInformation
     {
+        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+
         private string _server;
 
         #region Constructor
@@ -69,7 +71,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
             if (name.Length > 63)
                 throw new ArgumentException($"Queue name exceeds maximum length of 63 characters. Got {name.Length} characters.", nameof(name));
-            if (!Regex.IsMatch(name, @"^[a-zA-Z0-9_.]+$"))
+            if (!ValidQueueNamePattern.IsMatch(name))
                 throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.", nameof(name));
         }
 
