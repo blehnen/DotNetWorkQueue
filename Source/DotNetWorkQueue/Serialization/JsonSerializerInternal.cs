@@ -20,6 +20,7 @@ using System.Text;
 using DotNetWorkQueue.Validation;
 using JsonNet.PrivateSettersContractResolvers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace DotNetWorkQueue.Serialization
 {
@@ -32,6 +33,18 @@ namespace DotNetWorkQueue.Serialization
     /// </summary>
     internal class JsonSerializerInternal : IInternalSerializer
     {
+        private readonly ISerializationBinder _serializationBinder;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonSerializerInternal"/> class.
+        /// </summary>
+        /// <param name="serializationBinder">The serialization binder used to control type resolution during deserialization.</param>
+        public JsonSerializerInternal(ISerializationBinder serializationBinder)
+        {
+            Guard.NotNull(() => serializationBinder, serializationBinder);
+            _serializationBinder = serializationBinder;
+        }
+
         /// <summary>
         /// Converts an input class to bytes.
         /// </summary>
@@ -43,7 +56,8 @@ namespace DotNetWorkQueue.Serialization
             Guard.NotNull(() => message, message);
             var serializerSettings = new JsonSerializerSettings
             {
-                TypeNameHandling = TypeNameHandling.Auto
+                TypeNameHandling = TypeNameHandling.Auto,
+                SerializationBinder = _serializationBinder
             };
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, serializerSettings));
         }
@@ -60,7 +74,8 @@ namespace DotNetWorkQueue.Serialization
             var serializerSettings = new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Auto,
-                ContractResolver = new PrivateSetterContractResolver()
+                ContractResolver = new PrivateSetterContractResolver(),
+                SerializationBinder = _serializationBinder
             };
             return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes), serializerSettings);
         }
