@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Dashboard.Client
     /// Client that automatically registers a consumer with the Dashboard API,
     /// sends periodic heartbeats, and unregisters on disposal.
     /// </summary>
-    public class DashboardConsumerClient : IDisposable
+    public class DashboardConsumerClient : IDisposable, IAsyncDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly bool _ownsHttpClient;
@@ -238,7 +238,38 @@ namespace DotNetWorkQueue.Dashboard.Client
             }
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Asynchronously disposes the client, gracefully unregistering from the dashboard.
+        /// Prefer this over <see cref="Dispose()"/> to ensure the HTTP DELETE unregistration completes.
+        /// </summary>
+        /// <returns>A <see cref="ValueTask"/> representing the asynchronous dispose operation.</returns>
+        public async ValueTask DisposeAsync()
+        {
+            if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
+                return;
+
+            try
+            {
+                await StopAsync().ConfigureAwait(false);
+            }
+            catch
+            {
+                // Best-effort unregistration
+            }
+
+            _heartbeatTimer.Dispose();
+
+            if (_ownsHttpClient)
+                _httpClient.Dispose();
+
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Synchronously disposes the client. Does NOT attempt HTTP unregistration to avoid sync-over-async deadlocks.
+        /// Callers should prefer <see cref="DisposeAsync()"/> or call <see cref="StopAsync(CancellationToken)"/> before Dispose()
+        /// for graceful unregistration. The dashboard server's heartbeat pruning will handle orphaned consumers.
+        /// </summary>
         public void Dispose()
         {
             if (Interlocked.CompareExchange(ref _disposed, 1, 0) != 0)
@@ -247,23 +278,14 @@ namespace DotNetWorkQueue.Dashboard.Client
             _heartbeatTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _heartbeatTimer.Dispose();
 
-            // Best-effort synchronous unregister
-            if (_consumerId.HasValue)
-            {
-                try
-                {
-                    _httpClient.DeleteAsync($"api/v1/dashboard/consumers/{_consumerId.Value}")
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-                }
-                catch
-                {
-                    // Best-effort
-                }
-                _consumerId = null;
-            }
+            // Do not attempt HTTP DELETE synchronously -- sync-over-async causes deadlocks
+            // in SynchronizationContext environments. The server prunes consumers that miss heartbeats.
+            _consumerId = null;
 
             if (_ownsHttpClient)
                 _httpClient.Dispose();
+
+            GC.SuppressFinalize(this);
         }
 
         private class RegistrationResult
