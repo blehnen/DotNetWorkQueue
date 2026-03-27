@@ -38,5 +38,85 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             Assert.AreEqual(test.ConnectionString, clone.ConnectionString);
             Assert.AreEqual(test.QueueName, clone.QueueName);
         }
+
+        [TestMethod]
+        public void QueueName_Valid_Alphanumeric()
+        {
+            var test = new SqlConnectionInformation(new QueueConnection("MyQueue123", GoodConnection));
+            Assert.IsNotNull(test);
+        }
+
+        [TestMethod]
+        public void QueueName_Valid_WithUnderscoreAndDot()
+        {
+            var test = new SqlConnectionInformation(new QueueConnection("my_queue.v2", GoodConnection));
+            Assert.IsNotNull(test);
+        }
+
+        [TestMethod]
+        public void QueueName_Invalid_SqlInjection()
+        {
+            Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqlConnectionInformation(new QueueConnection("queue; DROP TABLE users;--", GoodConnection));
+                });
+        }
+
+        [TestMethod]
+        public void QueueName_Invalid_SpecialChars()
+        {
+            Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqlConnectionInformation(new QueueConnection("queue@name!", GoodConnection));
+                });
+        }
+
+        [TestMethod]
+        public void QueueName_Invalid_Spaces()
+        {
+            Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqlConnectionInformation(new QueueConnection("my queue", GoodConnection));
+                });
+        }
+
+        [TestMethod]
+        public void QueueName_Invalid_Hyphen()
+        {
+            Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqlConnectionInformation(new QueueConnection("my-queue", GoodConnection));
+                });
+        }
+
+        [TestMethod]
+        public void QueueName_Empty_Allowed()
+        {
+            var test = new SqlConnectionInformation(new QueueConnection(string.Empty, GoodConnection));
+            Assert.IsNotNull(test);
+        }
+
+        [TestMethod]
+        public void QueueName_ExceedsMaxLength_63()
+        {
+            var longName = new string('a', 64);
+            Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqlConnectionInformation(new QueueConnection(longName, GoodConnection));
+                });
+        }
+
+        [TestMethod]
+        public void QueueName_AtMaxLength_63()
+        {
+            var maxName = new string('a', 63);
+            var test = new SqlConnectionInformation(new QueueConnection(maxName, GoodConnection));
+            Assert.IsNotNull(test);
+        }
     }
 }
