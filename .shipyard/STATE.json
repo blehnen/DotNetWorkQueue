@@ -1,7 +1,7 @@
 {
-  "phase": 1,
+  "phase": 2,
   "status": "planned",
-  "position": "Phase 1 planned, ready for build",
-  "message": "3 plans across 2 waves: Wave 1 (DenyList + AllowList binders in parallel), Wave 2 (wiring into serializers/DI)",
+  "position": "Phase 2 planned, ready for build",
+  "message": "2 plans in Wave 1 (parallel): relational transports + non-relational transports",
   "last_updated": "2026-03-26T00:00:00Z"
 }

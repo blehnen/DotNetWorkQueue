@@ -28,3 +28,25 @@
 - **Design Decisions:** Deserialization-only protection, method-based extensibility, leave test helper as-is
 - **Critique Verdict:** READY — all file paths verified, API surface confirmed, baseline tests green
 - **Status:** Ready for build
+
+## 2026-03-26 — Phase 1 Complete
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 3/3 (PLAN-1.1, PLAN-1.2, PLAN-2.1)
+- **Files created:** DenyListSerializationBinder.cs, AllowListSerializationBinder.cs + test files
+- **Files modified:** JsonSerializer.cs, JsonSerializerInternal.cs, ComponentRegistration.cs + test files
+- **Review results:** All 3 plans passed spec compliance + code quality review
+- **Security audit:** PASS — expanded deny-list to 29 gadget types per audit recommendation
+- **Simplification:** Fixed per-call settings allocation in JsonSerializerInternal, removed duplicate test
+- **Tests:** 873 passing, 0 failures
+- **Status:** Phase 1 complete
+
+## 2026-03-26 — Phase 2 Planned
+
+- **Action:** `/shipyard:plan 2`
+- **Plans:** 2 plans in Wave 1 (parallel)
+  - PLAN-1.1: Relational transports (SqlServer, PostgreSQL, SQLite) + fix QueueCreatorTests
+  - PLAN-1.2: Non-relational transports (Redis, LiteDB, Memory)
+- **Design Decisions:** Per-transport validation, per-transport max lengths, no base class changes, empty names allowed for backward compat
+- **Critique Verdict:** READY — all 15 file paths verified, zero file overlap
+- **Status:** Ready for build
