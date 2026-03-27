@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Validation;
 using Npgsql;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL
@@ -69,10 +70,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         private static void ValidateQueueName(string name)
         {
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
-            if (name.Length > 63)
-                throw new ArgumentException($"Queue name exceeds maximum length of 63 characters. Got {name.Length} characters.", nameof(name));
-            if (!ValidQueueNamePattern.IsMatch(name))
-                throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.", nameof(name));
+            Guard.IsValid(() => name, name, n => n.Length <= 63,
+                $"Queue name exceeds maximum length of 63 characters. Got {name.Length} characters.");
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+                "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 
         /// <summary>

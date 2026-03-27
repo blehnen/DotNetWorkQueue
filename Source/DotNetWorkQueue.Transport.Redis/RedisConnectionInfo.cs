@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Validation;
 using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis
@@ -75,12 +76,11 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <summary>Validates that the queue name contains only safe characters for use as a Redis key component.</summary>
         private static void ValidateQueueName(string name)
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentException("Queue name must not be null or empty.", nameof(name));
-            if (name.Length > 512)
-                throw new ArgumentException($"Queue name exceeds maximum length of 512 characters. Got {name.Length} characters.", nameof(name));
-            if (!ValidQueueNamePattern.IsMatch(name))
-                throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, dots, and hyphens are allowed.", nameof(name));
+            Guard.NotNullOrEmpty(() => name, name);
+            Guard.IsValid(() => name, name, n => n.Length <= 512,
+                $"Queue name exceeds maximum length of 512 characters. Got {name.Length} characters.");
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+                "Queue name contains invalid characters. Only alphanumeric characters, underscores, dots, and hyphens are allowed.");
         }
 
         /// <summary>

@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory
 {
@@ -67,10 +68,9 @@ namespace DotNetWorkQueue.Transport.Memory
         /// <summary>Validates that the queue name contains only safe characters for use as a memory queue identifier.</summary>
         private static void ValidateQueueName(string name)
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentException("Queue name must not be null or empty.", nameof(name));
-            if (!ValidQueueNamePattern.IsMatch(name))
-                throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.", nameof(name));
+            Guard.NotNullOrEmpty(() => name, name);
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+                "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 
         #region IClone

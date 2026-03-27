@@ -78,6 +78,8 @@ var container = new QueueContainer<MyTransportInit>(container =>
 });
 ```
 
+If neither the deny-list nor allow-list binder fits your needs, implement your own `ISerializationBinder` with whatever policy logic you require and register it the same way.
+
 ## Dynamic LINQ compilation
 
 ### How it works
@@ -128,6 +130,26 @@ The optional Dashboard API (`DotNetWorkQueue.Dashboard.Api`) exposes queue statu
 **API key authentication.** `ApiKeyAuthorizationFilter` validates the `X-Api-Key` header against `DashboardOptions.ApiKey`. When configured, requests without a valid key get `401 Unauthorized`. When not configured, the filter is inactive.
 
 **Read-only mode.** `ReadOnlyFilter` restricts the API to read-only operations when enabled.
+
+**Custom authorization policy.** Set `DashboardOptions.AuthorizationPolicy` to the name of an ASP.NET Core authorization policy. The dashboard will apply that policy to all its controllers via `AuthorizeFilter`:
+
+```csharp
+// Register your policy in Program.cs / Startup.cs
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("DashboardAdmins", policy =>
+        policy.RequireRole("Admin"));
+});
+
+// Reference it in dashboard options
+builder.Services.AddDotNetWorkQueueDashboard(options =>
+{
+    options.AuthorizationPolicy = "DashboardAdmins";
+    // ... other options
+});
+```
+
+Since the Dashboard API is standard ASP.NET Core, you can also add your own authentication middleware or custom filters beyond what's built in.
 
 Recommendations:
 

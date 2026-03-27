@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite
 {
@@ -67,8 +68,8 @@ namespace DotNetWorkQueue.Transport.SQLite
         private static void ValidateQueueName(string name)
         {
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
-            if (!ValidQueueNamePattern.IsMatch(name))
-                throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.", nameof(name));
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+                "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 
         /// <summary>
