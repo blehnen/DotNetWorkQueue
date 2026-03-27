@@ -16,8 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using DotNetWorkQueue.Configuration;
 using StackExchange.Redis;
 
@@ -25,6 +27,8 @@ namespace DotNetWorkQueue.Transport.Redis
 {
     internal class RedisConnectionInfo : BaseConnectionInformation
     {
+        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.\-]+$", RegexOptions.Compiled);
+
         private string _server;
 
         #region Constructor
@@ -34,6 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <param name="queueConnection">Queue and connection information.</param>
         public RedisConnectionInfo(QueueConnection queueConnection) : base(queueConnection)
         {
+            ValidateQueueName(queueConnection.Queue);
             if (!string.IsNullOrEmpty(queueConnection.Connection))
             {
                 ValidateConnection(queueConnection.Connection);
@@ -66,6 +71,17 @@ namespace DotNetWorkQueue.Transport.Redis
         /// The server.
         /// </value>
         public override string Server => _server;
+
+        /// <summary>Validates that the queue name contains only safe characters for use as a Redis key component.</summary>
+        private static void ValidateQueueName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Queue name must not be null or empty.", nameof(name));
+            if (name.Length > 512)
+                throw new ArgumentException($"Queue name exceeds maximum length of 512 characters. Got {name.Length} characters.", nameof(name));
+            if (!ValidQueueNamePattern.IsMatch(name))
+                throw new ArgumentException("Queue name contains invalid characters. Only alphanumeric characters, underscores, dots, and hyphens are allowed.", nameof(name));
+        }
 
         /// <summary>
         /// Validates the connection string and determines the value of the server property
