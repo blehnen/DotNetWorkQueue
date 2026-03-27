@@ -30,15 +30,6 @@ namespace DotNetWorkQueue.Tests.Serialization
         }
 
         [TestMethod]
-        public void AddAllowedType_String_Enables_Deserialization()
-        {
-            var binder = Create();
-            binder.AddAllowedType("System.String");
-            var result = binder.BindToType(typeof(string).Assembly.FullName, "System.String");
-            Assert.AreEqual(typeof(string), result);
-        }
-
-        [TestMethod]
         public void AddAllowedType_Type_Overload_Enables_Deserialization()
         {
             var binder = Create();

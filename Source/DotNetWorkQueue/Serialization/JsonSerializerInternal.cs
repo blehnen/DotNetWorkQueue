@@ -33,7 +33,8 @@ namespace DotNetWorkQueue.Serialization
     /// </summary>
     internal class JsonSerializerInternal : IInternalSerializer
     {
-        private readonly ISerializationBinder _serializationBinder;
+        private readonly JsonSerializerSettings _serializeSettings;
+        private readonly JsonSerializerSettings _deserializeSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonSerializerInternal"/> class.
@@ -42,7 +43,17 @@ namespace DotNetWorkQueue.Serialization
         public JsonSerializerInternal(ISerializationBinder serializationBinder)
         {
             Guard.NotNull(() => serializationBinder, serializationBinder);
-            _serializationBinder = serializationBinder;
+            _serializeSettings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                SerializationBinder = serializationBinder
+            };
+            _deserializeSettings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                ContractResolver = new PrivateSetterContractResolver(),
+                SerializationBinder = serializationBinder
+            };
         }
 
         /// <summary>
@@ -54,12 +65,7 @@ namespace DotNetWorkQueue.Serialization
         public byte[] ConvertToBytes<T>(T message) where T : class
         {
             Guard.NotNull(() => message, message);
-            var serializerSettings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.Auto,
-                SerializationBinder = _serializationBinder
-            };
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, serializerSettings));
+            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, _serializeSettings));
         }
 
         /// <summary>
@@ -71,13 +77,7 @@ namespace DotNetWorkQueue.Serialization
         public T ConvertBytesTo<T>(byte[] bytes) where T : class
         {
             Guard.NotNull(() => bytes, bytes);
-            var serializerSettings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.Auto,
-                ContractResolver = new PrivateSetterContractResolver(),
-                SerializationBinder = _serializationBinder
-            };
-            return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes), serializerSettings);
+            return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes), _deserializeSettings);
         }
     }
 }

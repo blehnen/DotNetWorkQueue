@@ -45,6 +45,8 @@ namespace DotNetWorkQueue.Serialization
 
         /// <summary>
         /// Adds a type name to the deny list. Subsequent attempts to deserialize this type will throw.
+        /// This method is not thread-safe with concurrent <see cref="BindToType"/> calls.
+        /// Call during application startup before any deserialization occurs.
         /// </summary>
         /// <param name="typeName">The fully qualified type name to deny.</param>
         /// <exception cref="ArgumentNullException"><paramref name="typeName"/> is null.</exception>
@@ -57,6 +59,8 @@ namespace DotNetWorkQueue.Serialization
 
         /// <summary>
         /// Adds multiple type names to the deny list. Subsequent attempts to deserialize these types will throw.
+        /// This method is not thread-safe with concurrent <see cref="BindToType"/> calls.
+        /// Call during application startup before any deserialization occurs.
         /// </summary>
         /// <param name="typeNames">The fully qualified type names to deny.</param>
         /// <exception cref="ArgumentNullException"><paramref name="typeNames"/> is null.</exception>
@@ -128,7 +132,17 @@ namespace DotNetWorkQueue.Serialization
                 "System.Xml.XmlDocument",
                 "System.Xml.XmlDataDocument",
                 "System.Management.Automation.PSObject",
-                "System.Runtime.Serialization.Formatters.Soap.SoapFormatter"
+                "System.Runtime.Serialization.Formatters.Soap.SoapFormatter",
+                "System.CodeDom.Compiler.TempFileCollection",
+                "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter",
+                "System.Windows.Markup.XamlReader",
+                "System.Activities.Presentation.Internal.DesignerPermission",
+                "System.Workflow.ComponentModel.Activity",
+                "System.Data.TypedTableBase",
+                "System.Resources.ResXResourceSet",
+                "System.Runtime.Remoting.Channels.Tcp.TcpServerChannel",
+                "System.Runtime.Remoting.Channels.Http.HttpServerChannel",
+                "System.Runtime.Remoting.Channels.Ipc.IpcServerChannel"
             };
         }
     }
