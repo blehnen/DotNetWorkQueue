@@ -133,3 +133,13 @@
 - **Roadmap:** Phase 6 (abort removal, independent PR), Phase 7 (thread replacement, depends on 6)
 - **Constraint:** PR #82 must merge before code changes begin
 - **Status:** Roadmap approved, ready for Phase 6 planning
+
+## 2026-03-28 — Phase 6 Planned
+
+- **Action:** `/shipyard:plan 6`
+- **Plans:** 3 plans across 2 waves
+  - Wave 1: PLAN-1.1 (delete abort files, remove DI, simplify StopThread) | PLAN-1.2 (remove 5 ThreadAbortException catches)
+  - Wave 2: PLAN-2.1 (remove config property, update comments, remove tests, verify)
+- **Key finding:** IAbortWorkerThread removed entirely (not gutted to no-op) — cleaner than keeping dead abstractions
+- **Critique Verdict:** READY — all 16 file paths verified, zero overlap between parallel plans
+- **Status:** Ready for build (after PR #82 merges)

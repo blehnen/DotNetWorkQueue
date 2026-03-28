@@ -1,7 +1,7 @@
 {
   "phase": 6,
-  "status": "ready",
-  "position": "Project definition and roadmap captured, ready for Phase 6 planning",
-  "message": "Thread Management Modernization: Phase 6 (Remove Thread.Abort), Phase 7 (Replace Manual Threads). Waiting for PR #82 merge before code changes.",
-  "last_updated": "2026-03-27T00:00:00Z"
+  "status": "planned",
+  "position": "Phase 6 planned, ready for build",
+  "message": "3 plans across 2 waves: Wave 1 (remove abort infra + remove catches in parallel), Wave 2 (remove config + update tests)",
+  "last_updated": "2026-03-28T00:00:00Z"
 }
