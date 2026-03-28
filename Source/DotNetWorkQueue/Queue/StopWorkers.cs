@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Queue
                 }
             }
 
-            //force kill workers that are still running by aborting the thread, or waiting until work has completed
+            //wait for workers that are still running to finish their current work
             var alForceTerminate = workers.Where(worker => worker.Running).ToList();
             if (alForceTerminate.Count > 0)
             {
@@ -153,7 +153,7 @@ namespace DotNetWorkQueue.Queue
                 }
             }
 
-            //force kill workers that are still running by aborting the thread, or waiting until work has completed
+            //wait for workers that are still running to finish their current work
             if (worker.Running)
             {
                 worker.TryForceTerminate();

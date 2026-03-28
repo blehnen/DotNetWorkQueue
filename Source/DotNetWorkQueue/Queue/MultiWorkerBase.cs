@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Queue
         {
             if (!Running) return;
 
-            AttemptToTerminate(); //one last request to terminate without an abort or a spin and wait
+            AttemptToTerminate(); //one last request to terminate before waiting for thread to finish
 
             if (WorkerThread == null || !WorkerThread.IsAlive) return;
 
