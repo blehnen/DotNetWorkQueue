@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
@@ -39,13 +40,13 @@ namespace DotNetWorkQueue.Queue
         }
 
         /// <summary>
-        /// Waits for the worker thread to finish its current work before returning.
+        /// Waits for the worker task to finish its current work before returning.
         /// </summary>
-        /// <param name="workerThread">The worker thread.</param>
-        /// <returns>Always returns true after waiting for the thread to finish.</returns>
-        public bool TryForceTerminate(Thread workerThread)
+        /// <param name="workerTask">The worker task.</param>
+        /// <returns>Always returns true after waiting for the task to finish.</returns>
+        public bool TryForceTerminate(Task workerTask)
         {
-            _waitForThreadToFinish.Wait(workerThread);
+            _waitForThreadToFinish.Wait(workerTask);
             return true;
         }
     }

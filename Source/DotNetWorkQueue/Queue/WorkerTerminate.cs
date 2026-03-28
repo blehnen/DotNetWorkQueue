@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -27,21 +28,21 @@ namespace DotNetWorkQueue.Queue
     public class WorkerTerminate
     {
         /// <summary>
-        /// Attempts to terminate the passed in thread
+        /// Attempts to terminate the passed in task
         /// </summary>
-        /// <param name="workerThread">The worker thread.</param>
+        /// <param name="workerTask">The worker task.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns></returns>
-        public bool AttemptToTerminate(Thread workerThread, TimeSpan? timeout)
+        public bool AttemptToTerminate(Task workerTask, TimeSpan? timeout)
         {
-            if (workerThread == null || !workerThread.IsAlive)
-                return true; //if the thread is null or not alive, its terminated
+            if (workerTask == null || workerTask.IsCompleted)
+                return true; //if the task is null or completed, its terminated
 
             if (timeout.HasValue)
             {
-                return workerThread.Join(timeout.Value);
+                return workerTask.Wait(timeout.Value);
             }
-            workerThread.Join();
+            workerTask.Wait();
             return true;
         }
     }
