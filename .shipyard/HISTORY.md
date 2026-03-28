@@ -143,3 +143,13 @@
 - **Key finding:** IAbortWorkerThread removed entirely (not gutted to no-op) — cleaner than keeping dead abstractions
 - **Critique Verdict:** READY — all 16 file paths verified, zero overlap between parallel plans
 - **Status:** Ready for build (after PR #82 merges)
+
+## 2026-03-28 — Phase 6 Complete
+
+- **Action:** `/shipyard:build 6`
+- **Plans executed:** 3/3 (PLAN-1.1, PLAN-1.2, PLAN-2.1)
+- **Deleted:** IAbortWorkerThread.cs, AbortWorkerThread.cs, IAbortWorkerThreadDecorator.cs, AbortWorkerThreadTests.cs
+- **Modified:** StopThread.cs (simplified), ComponentRegistration.cs (2 DI lines), 5 catch blocks removed, config property removed, 2 test methods removed, comments updated, README.md updated
+- **Review:** All 8 success criteria PASS
+- **Tests:** 873 unit + 56 integration passing
+- **Status:** Phase 6 complete

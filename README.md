@@ -49,7 +49,6 @@ See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth doc
 
 .NET Standard 2.0, 8.0, and 10.0 are missing the following features compared to the full framework version:
 
-- No support for aborting threads when stopping consumer queues
 - No support for dynamic LINQ statements
 
 ---
