@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Text;
 using DotNetWorkQueue.Validation;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace DotNetWorkQueue.Serialization
 {
@@ -28,16 +29,20 @@ namespace DotNetWorkQueue.Serialization
     /// </summary>
     public class JsonSerializer : ISerializer
     {
-        private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings
-        {
-            TypeNameHandling = TypeNameHandling.Auto
-        };
+        private readonly JsonSerializerSettings _serializerSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonSerializer"/> class.
         /// </summary>
-        public JsonSerializer()
+        /// <param name="serializationBinder">The serialization binder used to control type resolution during deserialization.</param>
+        public JsonSerializer(ISerializationBinder serializationBinder)
         {
+            Guard.NotNull(() => serializationBinder, serializationBinder);
+            _serializerSettings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                SerializationBinder = serializationBinder
+            };
             DisplayName = "JSON";
         }
         #region Protected Methods

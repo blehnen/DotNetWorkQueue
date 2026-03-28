@@ -1,3 +1,11 @@
+### 0.9.12 — ????
+- Default `DenyListSerializationBinder` blocks 30 known Newtonsoft.Json deserialization gadget types (ObjectDataProvider, WindowsIdentity, Process, DataSet, etc.). Registered as the default `ISerializationBinder` via DI.
+- Optional `AllowListSerializationBinder` for strict type control; only explicitly registered types can be deserialized. Register via DI to replace the default.
+- Queue name validation on all 6 transports; rejects SQL injection characters at construction time. Allowed: alphanumeric, underscores, dots (Redis also allows hyphens). Per-transport max lengths: SQL Server 128, PostgreSQL 63, Redis 512, LiteDB 256.
+- Fix: `DashboardConsumerClient` implements `IAsyncDisposable`; `DisposeAsync()` properly awaits HTTP DELETE unregistration. Sync `Dispose()` no longer blocks with `.GetAwaiter().GetResult()` (deadlock risk in SynchronizationContext environments).
+- Remove `DotNetWorkQueue.IntegrationTests.Metrics` project; metric tracking types moved into `IntegrationTests.Shared/Metrics/`
+- Add `SECURITY.md` covering Dynamic LINQ compilation risks, serialization binder usage, queue backend access control, and deployment recommendations
+
 ### 0.9.11 — 2026-03-26
 - **Breaking:** `IHistoryConfiguration` removed — history decorators and monitors now use `IBaseTransportOptions.EnableHistory` and `IBaseTransportOptions.HistoryOptions` directly.
 - **Breaking:** `IHistoryTransportOptions` added to `IBaseTransportOptions` — all transport options classes now expose `HistoryOptions` (RetentionDays, MaxExceptionLength, StoreBody, Track* flags, MonitorTime)

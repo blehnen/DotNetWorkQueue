@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using DotNetWorkQueue.Metrics.NoOp;
 
 namespace DotNetWorkQueue.IntegrationTests.Metrics
 {
@@ -59,13 +58,13 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         /// <inheritdoc />
         public IHistogram Histogram(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
-            return new HistogramNoOp();
+            return new Histogram();
         }
 
         /// <inheritdoc />
         public ITimer Timer(string name, Units unit, TimeUnits rateUnit = TimeUnits.Seconds, TimeUnits durationUnit = TimeUnits.Milliseconds, List<KeyValuePair<string, string>> tags = null)
         {
-            return new TimerNoOp();
+            return new Timer();
         }
 
         /// <inheritdoc />

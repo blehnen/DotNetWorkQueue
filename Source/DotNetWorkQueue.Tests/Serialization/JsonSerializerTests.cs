@@ -1,8 +1,7 @@
 using System;
-using AutoFixture;
-using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 
 namespace DotNetWorkQueue.Tests.Serialization
 {
@@ -60,10 +59,22 @@ namespace DotNetWorkQueue.Tests.Serialization
             Assert.IsInstanceOfType<TestData>(testData2);
         }
 
+        [TestMethod]
+        public void Deserialize_Denied_Type_Throws_JsonSerializationException()
+        {
+            var serializer = Create();
+            var maliciousJson = "{\"Message\":{\"$type\":\"System.Diagnostics.Process, System\"}}";
+            var bytes = System.Text.Encoding.UTF8.GetBytes(maliciousJson);
+            Assert.ThrowsExactly<JsonSerializationException>(
+                delegate
+                {
+                    serializer.ConvertBytesToMessage<object>(bytes, null);
+                });
+        }
+
         private ISerializer Create()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return fixture.Create<JsonSerializer>();
+            return new DotNetWorkQueue.Serialization.JsonSerializer(new DenyListSerializationBinder());
         }
 
         private interface ITestData

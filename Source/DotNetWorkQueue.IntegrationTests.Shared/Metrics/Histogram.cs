@@ -1,4 +1,4 @@
-﻿namespace DotNetWorkQueue.IntegrationTests.Metrics
+namespace DotNetWorkQueue.IntegrationTests.Metrics
 {
     /// <inheritdoc />
     internal class Histogram : IHistogram

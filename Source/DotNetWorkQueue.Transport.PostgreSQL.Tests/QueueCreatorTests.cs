@@ -3,7 +3,6 @@ using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -18,8 +17,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         [TestMethod]
         public void Create_Null_Services_Fails()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>(null))
             {
                 Assert.ThrowsExactly<NullReferenceException>(
@@ -34,8 +32,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         [TestMethod]
         public void Create_CreateProducer()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Npgsql.NpgsqlException>(
@@ -50,8 +47,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         [TestMethod]
         public void Create_CreateConsumer()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Npgsql.NpgsqlException>(
@@ -66,8 +62,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         [TestMethod]
         public void Create_CreateConsumerQueueScheduler()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Npgsql.NpgsqlException>(
@@ -83,7 +78,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         public void Create_CreateConsumerQueueSchedulerWithFactory()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             var factory = fixture.Create<ITaskFactory>();
             factory.Scheduler.Returns(fixture.Create<ATaskScheduler>());
 
@@ -102,8 +97,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         [TestMethod]
         public void Create_CreateConsumerAsync()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Npgsql.NpgsqlException>(
@@ -118,8 +112,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         [TestMethod]
         public void Create_CreateAdminContainerAsync()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<PostgreSqlMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Npgsql.NpgsqlException>(

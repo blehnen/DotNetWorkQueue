@@ -20,6 +20,7 @@ using System.Text;
 using DotNetWorkQueue.Validation;
 using JsonNet.PrivateSettersContractResolvers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace DotNetWorkQueue.Serialization
 {
@@ -32,6 +33,29 @@ namespace DotNetWorkQueue.Serialization
     /// </summary>
     internal class JsonSerializerInternal : IInternalSerializer
     {
+        private readonly JsonSerializerSettings _serializeSettings;
+        private readonly JsonSerializerSettings _deserializeSettings;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonSerializerInternal"/> class.
+        /// </summary>
+        /// <param name="serializationBinder">The serialization binder used to control type resolution during deserialization.</param>
+        public JsonSerializerInternal(ISerializationBinder serializationBinder)
+        {
+            Guard.NotNull(() => serializationBinder, serializationBinder);
+            _serializeSettings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                SerializationBinder = serializationBinder
+            };
+            _deserializeSettings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                ContractResolver = new PrivateSetterContractResolver(),
+                SerializationBinder = serializationBinder
+            };
+        }
+
         /// <summary>
         /// Converts an input class to bytes.
         /// </summary>
@@ -41,11 +65,7 @@ namespace DotNetWorkQueue.Serialization
         public byte[] ConvertToBytes<T>(T message) where T : class
         {
             Guard.NotNull(() => message, message);
-            var serializerSettings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.Auto
-            };
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, serializerSettings));
+            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, _serializeSettings));
         }
 
         /// <summary>
@@ -57,12 +77,7 @@ namespace DotNetWorkQueue.Serialization
         public T ConvertBytesTo<T>(byte[] bytes) where T : class
         {
             Guard.NotNull(() => bytes, bytes);
-            var serializerSettings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.Auto,
-                ContractResolver = new PrivateSetterContractResolver()
-            };
-            return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes), serializerSettings);
+            return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes), _deserializeSettings);
         }
     }
 }

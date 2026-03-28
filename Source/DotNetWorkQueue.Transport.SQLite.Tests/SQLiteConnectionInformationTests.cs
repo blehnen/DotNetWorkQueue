@@ -1,3 +1,4 @@
+using System;
 using DotNetWorkQueue.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -26,6 +27,67 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
 
             Assert.AreEqual(test.ConnectionString, clone.ConnectionString);
             Assert.AreEqual(test.QueueName, clone.QueueName);
+        }
+
+        [TestMethod]
+        public void QueueName_Valid_Alphanumeric()
+        {
+            var test = new SqliteConnectionInformation(new QueueConnection("MyQueue123", GoodConnection), null);
+            Assert.IsNotNull(test);
+        }
+
+        [TestMethod]
+        public void QueueName_Valid_WithUnderscoreAndDot()
+        {
+            var test = new SqliteConnectionInformation(new QueueConnection("my_queue.v2", GoodConnection), null);
+            Assert.IsNotNull(test);
+        }
+
+        [TestMethod]
+        public void QueueName_Invalid_SqlInjection()
+        {
+            Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqliteConnectionInformation(new QueueConnection("queue; DROP TABLE users;--", GoodConnection), null);
+                });
+        }
+
+        [TestMethod]
+        public void QueueName_Invalid_SpecialChars()
+        {
+            Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqliteConnectionInformation(new QueueConnection("queue@name!", GoodConnection), null);
+                });
+        }
+
+        [TestMethod]
+        public void QueueName_Invalid_Spaces()
+        {
+            Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqliteConnectionInformation(new QueueConnection("my queue", GoodConnection), null);
+                });
+        }
+
+        [TestMethod]
+        public void QueueName_Invalid_Hyphen()
+        {
+            Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqliteConnectionInformation(new QueueConnection("my-queue", GoodConnection), null);
+                });
+        }
+
+        [TestMethod]
+        public void QueueName_Empty_Allowed()
+        {
+            var test = new SqliteConnectionInformation(new QueueConnection(string.Empty, GoodConnection), null);
+            Assert.IsNotNull(test);
         }
     }
 }

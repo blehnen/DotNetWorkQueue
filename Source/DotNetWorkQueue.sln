@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SqlServer.Tests", "DotNetWorkQueue.Transport.SqlServer.Tests\DotNetWorkQueue.Transport.SqlServer.Tests.csproj", "{903AE230-3B77-481D-B454-77ECD5A61CF8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.IntegrationTests.Metrics", "DotNetWorkQueue.IntegrationTests.Metrics\DotNetWorkQueue.IntegrationTests.Metrics.csproj", "{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.IntegrationTests.Shared", "DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj", "{B8D08857-4084-4B18-BB0F-8944945CBE40}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Memory.Integration.Tests", "DotNetWorkQueue.Transport.Memory.Integration.Tests\DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj", "{F42D92E4-3CA3-4B9E-ACB2-CCAFE4648017}"
@@ -147,18 +145,6 @@ Global
 		{903AE230-3B77-481D-B454-77ECD5A61CF8}.Release|x64.Build.0 = Release|Any CPU
 		{903AE230-3B77-481D-B454-77ECD5A61CF8}.Release|x86.ActiveCfg = Release|Any CPU
 		{903AE230-3B77-481D-B454-77ECD5A61CF8}.Release|x86.Build.0 = Release|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Debug|x64.Build.0 = Debug|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Debug|x86.Build.0 = Debug|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Release|x64.ActiveCfg = Release|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Release|x64.Build.0 = Release|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Release|x86.ActiveCfg = Release|Any CPU
-		{B7974956-3764-4B0C-B6F2-0B8F8A25BEFE}.Release|x86.Build.0 = Release|Any CPU
 		{B8D08857-4084-4B18-BB0F-8944945CBE40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B8D08857-4084-4B18-BB0F-8944945CBE40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8D08857-4084-4B18-BB0F-8944945CBE40}.Debug|x64.ActiveCfg = Debug|Any CPU

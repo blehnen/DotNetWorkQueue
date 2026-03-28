@@ -585,7 +585,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
         // === Dispose with active registration ===
 
         [TestMethod]
-        public async Task Dispose_With_Registration_Sends_Delete()
+        public async Task Dispose_With_Registration_Does_Not_Send_Delete()
         {
             var deleteReceived = false;
             var consumerId = Guid.NewGuid();
@@ -618,7 +618,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             client.Dispose();
 
-            deleteReceived.Should().BeTrue();
+            // Sync Dispose no longer attempts HTTP DELETE to avoid sync-over-async deadlocks
+            deleteReceived.Should().BeFalse();
         }
 
         // === Dispose with owned HttpClient ===
@@ -637,8 +638,9 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
         // === Dispose unregister DELETE throws ===
 
         [TestMethod]
-        public async Task Dispose_Delete_Throws_Is_Swallowed()
+        public async Task Dispose_Does_Not_Attempt_Delete()
         {
+            var deleteAttempted = false;
             var consumerId = Guid.NewGuid();
             var handler = new MockHandler(req =>
             {
@@ -656,7 +658,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 }
                 if (req.Method == HttpMethod.Delete)
                 {
-                    throw new HttpRequestException("Network error during dispose");
+                    deleteAttempted = true;
+                    return new HttpResponseMessage(HttpStatusCode.NoContent);
                 }
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
             });
@@ -665,9 +668,9 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var client = new DashboardConsumerClient(httpClient, CreateOptions());
             await client.StartAsync();
 
-            // Should not throw
-            Action act = () => client.Dispose();
-            act.Should().NotThrow();
+            // Sync Dispose should not attempt any HTTP calls
+            client.Dispose();
+            deleteAttempted.Should().BeFalse();
         }
 
         // === StopAsync DELETE throws ===
@@ -717,6 +720,152 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
             Action act = () => new DashboardConsumerClient(httpClient, null);
             act.Should().Throw<ArgumentNullException>();
+        }
+
+        // === DisposeAsync ===
+
+        [TestMethod]
+        public async Task DisposeAsync_Is_Idempotent()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            // Should not throw on second call
+            await client.DisposeAsync();
+            await client.DisposeAsync();
+        }
+
+        [TestMethod]
+        public async Task DisposeAsync_With_Registration_Sends_Delete()
+        {
+            var deleteReceived = false;
+            var consumerId = Guid.NewGuid();
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/register"))
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        ConsumerId = consumerId,
+                        HeartbeatIntervalSeconds = 9999
+                    });
+                    return new HttpResponseMessage(HttpStatusCode.Created)
+                    {
+                        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                if (req.Method == HttpMethod.Delete)
+                {
+                    deleteReceived = true;
+                    return new HttpResponseMessage(HttpStatusCode.NoContent);
+                }
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            var client = new DashboardConsumerClient(httpClient, CreateOptions());
+            await client.StartAsync();
+            client.IsRegistered.Should().BeTrue();
+
+            await client.DisposeAsync();
+
+            deleteReceived.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task DisposeAsync_Without_Registration_Does_Not_Send_Delete()
+        {
+            var deleteReceived = false;
+            var handler = new MockHandler(req =>
+            {
+                if (req.Method == HttpMethod.Delete)
+                    deleteReceived = true;
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            // No StartAsync() call -- not registered
+            await client.DisposeAsync();
+
+            deleteReceived.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task DisposeAsync_Delete_Throws_Is_Swallowed()
+        {
+            var consumerId = Guid.NewGuid();
+            var handler = new MockHandler(req =>
+            {
+                if (req.RequestUri.PathAndQuery.Contains("/register"))
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        ConsumerId = consumerId,
+                        HeartbeatIntervalSeconds = 9999
+                    });
+                    return new HttpResponseMessage(HttpStatusCode.Created)
+                    {
+                        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                if (req.Method == HttpMethod.Delete)
+                {
+                    throw new HttpRequestException("Network error during async dispose");
+                }
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            var client = new DashboardConsumerClient(httpClient, CreateOptions());
+            await client.StartAsync();
+
+            // Should not throw -- exception is swallowed
+            Func<Task> act = async () => await client.DisposeAsync();
+            await act.Should().NotThrowAsync();
+        }
+
+        [TestMethod]
+        public async Task DisposeAsync_Owned_HttpClient_Is_Disposed()
+        {
+            var opts = CreateOptions();
+            var client = new DashboardConsumerClient(opts);
+
+            await client.DisposeAsync();
+
+            // The internally-created HttpClient should be disposed.
+            // Accessing it after disposal via reflection to verify.
+            var field = typeof(DashboardConsumerClient).GetField("_httpClient",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            var httpClient = (HttpClient)field.GetValue(client);
+
+            // A disposed HttpClient throws ObjectDisposedException on use
+            Action act = () => httpClient.GetAsync("http://localhost:5000/test").GetAwaiter().GetResult();
+            act.Should().Throw<ObjectDisposedException>();
+        }
+
+        [TestMethod]
+        public async Task DisposeAsync_Then_Dispose_Is_Safe()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            await client.DisposeAsync();
+            client.Dispose(); // Should not throw
+        }
+
+        [TestMethod]
+        public async Task Dispose_Then_DisposeAsync_Is_Safe()
+        {
+            var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
+            var client = new DashboardConsumerClient(httpClient, CreateOptions());
+
+            client.Dispose();
+            await client.DisposeAsync(); // Should not throw
         }
 
         // === MockHandler ===

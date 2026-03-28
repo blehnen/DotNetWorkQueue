@@ -17,8 +17,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_Null_Services_Fails()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>(null))
             {
                 Assert.ThrowsExactly<NullReferenceException>(
@@ -33,8 +32,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateProducer()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Microsoft.Data.SqlClient.SqlException>(
@@ -49,8 +47,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateConsumer()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Microsoft.Data.SqlClient.SqlException>(
@@ -65,8 +62,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateConsumerQueueScheduler()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Microsoft.Data.SqlClient.SqlException>(
@@ -82,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         public void Create_CreateConsumerQueueSchedulerWithFactory()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             var factory = fixture.Create<ITaskFactory>();
             factory.Scheduler.Returns(fixture.Create<ATaskScheduler>());
 
@@ -101,8 +97,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateConsumerAsync()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Microsoft.Data.SqlClient.SqlException>(
@@ -118,8 +113,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         [TestMethod]
         public void Create_CreateAdminContainerAsync()
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var queue = fixture.Create<string>();
+            var queue = "TestQueue";
             using (var test = new QueueContainer<SqlServerMessageQueueInit>())
             {
                 Assert.ThrowsExactly<Microsoft.Data.SqlClient.SqlException>(

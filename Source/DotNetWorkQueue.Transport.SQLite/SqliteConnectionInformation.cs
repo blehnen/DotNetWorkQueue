@@ -16,14 +16,19 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite
 {
     /// <inheritdoc />
     public class SqliteConnectionInformation : BaseConnectionInformation
     {
+        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+
         private readonly IDbDataSource _dataSource;
         private string _server;
 
@@ -31,6 +36,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// <inheritdoc />
         public SqliteConnectionInformation(QueueConnection queueConnection, IDbDataSource dataSource) : base(queueConnection)
         {
+            ValidateQueueName(queueConnection.Queue);
             _dataSource = dataSource;
             ValidateConnection(queueConnection.Connection);
         }
@@ -57,6 +63,14 @@ namespace DotNetWorkQueue.Transport.SQLite
             return new SqliteConnectionInformation(new QueueConnection(QueueName, ConnectionString, data), _dataSource);
         }
         #endregion
+
+        /// <summary>Validates that the queue name contains only safe characters for use as a SQLite table name identifier.</summary>
+        private static void ValidateQueueName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+                "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
+        }
 
         /// <summary>
         /// Validates the connection string and determines the value of the server property

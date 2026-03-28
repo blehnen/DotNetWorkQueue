@@ -34,7 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DotNetWorkQueue.IntegrationTests.Metrics\DotNetWorkQueue.IntegrationTests.Metrics.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>
 

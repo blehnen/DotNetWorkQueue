@@ -97,6 +97,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             return new QueueCreationResult(QueueCreationStatus.Success);
         }
 
+        /// <summary>
+        /// Gets the typed Redis transport options for queue configuration.
+        /// </summary>
+        public RedisBaseTransportOptions Options => _options;
+
         /// <inheritdoc />
         public IBaseTransportOptions BaseTransportOptions => _options;
 
