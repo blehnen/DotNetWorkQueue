@@ -158,13 +158,6 @@ namespace DotNetWorkQueue.Queue
                     _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId,
                         context.CorrelationId, context.Headers, ex));
                 }
-                // ReSharper disable once UncatchableException
-                catch (ThreadAbortException ex)
-                {
-                    _rollbackMessage.Rollback(context);
-                    _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId,
-                        context.CorrelationId, context.Headers, ex));
-                }
                 catch (PoisonMessageException exception)
                 {
                     _receivePoisonMessage.Handle(context, exception);

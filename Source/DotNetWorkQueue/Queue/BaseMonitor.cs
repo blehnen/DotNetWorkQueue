@@ -43,6 +43,7 @@ namespace DotNetWorkQueue.Queue
         private readonly object _runningLock = new object();
         private readonly ILogger _log;
         private readonly object _cancelSync = new object();
+        private readonly ManualResetEventSlim _monitorCompleted = new ManualResetEventSlim(true);
         private int _disposeCount;
 
         /// <summary>
@@ -119,6 +120,7 @@ namespace DotNetWorkQueue.Queue
                 try
                 {
                     Running = true;
+                    _monitorCompleted.Reset();
                     CancelToken = new CancellationTokenSource();
                     if (_monitorAction != null)
                         _monitorAction(CancelToken.Token);
@@ -134,6 +136,7 @@ namespace DotNetWorkQueue.Queue
                     CancelTokenDestroy();
                     LastRunUtc = DateTime.UtcNow;
                     Running = false;
+                    _monitorCompleted.Set();
                 }
 
                 if (!_stopping && _timer != null && _monitorTimeSpan != null)
@@ -166,11 +169,8 @@ namespace DotNetWorkQueue.Queue
             }
 
             //wait for the current process to finish. It should be respecting the cancel
-            //token, so it should not take long.
-            while (Running)
-            {
-                Thread.Sleep(20);
-            }
+            //token, so it should not take long. Timeout after 30 seconds as a safety net.
+            _monitorCompleted.Wait(TimeSpan.FromSeconds(30));
 
             CancelTokenDestroy();
         }
@@ -274,6 +274,7 @@ namespace DotNetWorkQueue.Queue
                 Stop();
             }
 
+            _monitorCompleted?.Dispose();
             _timer?.Dispose();
         }
 

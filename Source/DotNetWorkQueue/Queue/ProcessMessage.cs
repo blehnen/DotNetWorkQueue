@@ -77,12 +77,6 @@ namespace DotNetWorkQueue.Queue
                     _consumerQueueNotification.InvokeMessageComplete(new MessageCompleteNotification(transportMessage.MessageId, transportMessage.CorrelationId, transportMessage.Headers, transportMessage.Body));
                     return true;
                 }
-                // ReSharper disable once UncatchableException
-                catch (ThreadAbortException)
-                {
-                    heartBeat.Stop();
-                    throw;
-                }
                 catch (OperationCanceledException)
                 {
                     heartBeat.Stop();

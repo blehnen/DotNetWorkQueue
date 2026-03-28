@@ -13,14 +13,6 @@ namespace DotNetWorkQueue.Tests.Configuration
     public class WorkerConfigurationTests
     {
         [TestMethod]
-        public void SetAndGet_AbortWorkerThreadsWhenStopping()
-        {
-            var configuration = GetConfiguration();
-            configuration.AbortWorkerThreadsWhenStopping = true;
-
-            Assert.IsTrue(configuration.AbortWorkerThreadsWhenStopping);
-        }
-        [TestMethod]
         public void SetAndGet_SingleWorkerWhenNoWorkFound()
         {
             var configuration = GetConfiguration();
@@ -70,18 +62,6 @@ namespace DotNetWorkQueue.Tests.Configuration
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
             Assert.IsTrue(configuration.IsReadOnly);
-        }
-        [TestMethod]
-        public void Set_AbortWorkerThreadsWhenStopping_WhenReadOnly_Fails()
-        {
-            var configuration = GetConfiguration();
-            configuration.SetReadOnly();
-
-            Assert.ThrowsExactly<InvalidOperationException>(
-              delegate
-              {
-                  configuration.AbortWorkerThreadsWhenStopping = true;
-              });
         }
         [TestMethod]
         public void Set_SingleWorkerWhenNoWorkFound_WhenReadOnly_Fails()

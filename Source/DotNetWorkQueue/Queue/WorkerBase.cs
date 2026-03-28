@@ -20,6 +20,7 @@ using DotNetWorkQueue.Validation;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -32,7 +33,8 @@ namespace DotNetWorkQueue.Queue
         private readonly object _shouldExitLock = new object();
 
         private bool _shouldExit;
-        protected Thread WorkerThread;
+        protected Task WorkerTask;
+        protected string WorkerName;
 
         private int _disposeCount;
 
@@ -127,7 +129,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public virtual bool AttemptToTerminate()
         {
-            return _workerTerminate.AttemptToTerminate(WorkerThread, TimeSpan.Zero);
+            return _workerTerminate.AttemptToTerminate(WorkerTask, TimeSpan.Zero);
         }
 
         /// <summary>

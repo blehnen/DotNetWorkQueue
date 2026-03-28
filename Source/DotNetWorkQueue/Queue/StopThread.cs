@@ -17,45 +17,36 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>
-    /// Stops a thread by aborting it if configured to do; otherwise it will wait (forever if needed) until the thread dies.
+    /// Waits for a worker thread to finish its current work before returning.
     /// </summary>
     public class StopThread
     {
-        private readonly IAbortWorkerThread _abortWorkerThread;
         private readonly WaitForThreadToFinish _waitForThreadToFinish;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StopThread"/> class.
         /// </summary>
-        /// <param name="abortWorkerThread">The abort worker thread.</param>
         /// <param name="waitForThreadToFinish">The wait for thread to finish.</param>
-        public StopThread(IAbortWorkerThread abortWorkerThread,
-            WaitForThreadToFinish waitForThreadToFinish)
+        public StopThread(WaitForThreadToFinish waitForThreadToFinish)
         {
-            Guard.NotNull(() => abortWorkerThread, abortWorkerThread);
             Guard.NotNull(() => waitForThreadToFinish, waitForThreadToFinish);
-
-            _abortWorkerThread = abortWorkerThread;
             _waitForThreadToFinish = waitForThreadToFinish;
         }
 
         /// <summary>
-        /// Stops a thread by aborting it if configured to do; otherwise it will wait (forever if needed) until the thread dies.
+        /// Waits for the worker task to finish its current work before returning.
         /// </summary>
-        /// <param name="workerThread">The worker thread.</param>
-        /// <returns></returns>
-        public bool TryForceTerminate(Thread workerThread)
+        /// <param name="workerTask">The worker task.</param>
+        /// <returns>Always returns true after waiting for the task to finish.</returns>
+        public bool TryForceTerminate(Task workerTask)
         {
-            if (_abortWorkerThread.Abort(workerThread)) return true;
-
-            //wait for the thread to exit
-            _waitForThreadToFinish.Wait(workerThread);
-
+            _waitForThreadToFinish.Wait(workerTask);
             return true;
         }
     }

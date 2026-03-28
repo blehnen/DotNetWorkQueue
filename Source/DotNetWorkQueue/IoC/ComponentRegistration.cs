@@ -227,7 +227,6 @@ namespace DotNetWorkQueue.IoC
                 container.Register<IWorkerNotification, WorkerNotification>(LifeStyles.Transient);
                 container.Register<IWorkerNotificationFactory, WorkerNotificationFactory>(LifeStyles.Singleton);
 
-                container.Register<IAbortWorkerThread, AbortWorkerThread>(LifeStyles.Singleton);
                 container.Register<StopThread>(LifeStyles.Singleton);
                 container.Register<MessageExceptionHandler>(LifeStyles.Singleton);
                 container.Register<MessageProcessingAsync>(LifeStyles.Transient);
@@ -407,7 +406,6 @@ namespace DotNetWorkQueue.IoC
         /// <param name="container">The container.</param>
         private static void RegisterLoggerDecorators(IContainer container)
         {
-            container.RegisterDecorator<IAbortWorkerThread, Logging.Decorator.AbortWorkerThreadDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IRollbackMessage, Logging.Decorator.RollbackMessageDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IClearExpiredMessages, Logging.Decorator.ClearExpiredMessagesDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IClearErrorMessages, Logging.Decorator.ClearErrorMessagesDecorator>(LifeStyles.Singleton);

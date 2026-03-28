@@ -17,9 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Diagnostics;
 using System.Threading;
-using DotNetWorkQueue.Logging;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 
@@ -41,35 +40,28 @@ namespace DotNetWorkQueue.Queue
             _log = log;
         }
         /// <summary>
-        ///  Waits for specified worker thread to finish, or until the timeout period has been reached.
+        ///  Waits for specified worker task to finish, or until the timeout period has been reached.
         /// </summary>
-        /// <param name="workerThread">The worker thread.</param>
+        /// <param name="workerTask">The worker task.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns></returns>
-        public bool Wait(Thread workerThread, TimeSpan? timeout = null)
+        public bool Wait(Task workerTask, TimeSpan? timeout = null)
         {
-            var loggerCount = 0;
-            Stopwatch timer = null;
-            if (timeout.HasValue)
-            {
-                timer = new Stopwatch();
-                timer.Start();
-            }
-            while (workerThread != null && workerThread.IsAlive)
-            {
-                if (loggerCount == 0 || loggerCount % 5000 == 0)
-                {
-                    _log?.LogWarning($"Still waiting for thread {workerThread.Name} to stop or cancel");
-                }
-                Thread.Sleep(20);
-                loggerCount = loggerCount + 20;
+            if (workerTask == null || workerTask.IsCompleted)
+                return true;
 
-                if (timer != null && timer.Elapsed >= timeout.Value)
-                {
-                    return false;
-                }
+            try
+            {
+                if (timeout.HasValue)
+                    return workerTask.Wait(timeout.Value);
+
+                workerTask.Wait();
+                return true;
             }
-            return true;
+            catch (AggregateException)
+            {
+                return true; // Task faulted or canceled -- it has finished
+            }
         }
     }
 }

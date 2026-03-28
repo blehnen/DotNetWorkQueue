@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -68,16 +69,16 @@ namespace DotNetWorkQueue.Queue
         {
             if (ShouldExit) return;
 
-            if (WorkerThread != null) return;
+            if (WorkerTask != null) return;
 
             MessageProcessing = _messageProcessingFactory.Create();
             MessageProcessing.Idle += (sender, e) => IdleStatus = WorkerIdleStatus.Idle;
             MessageProcessing.NotIdle += (sender, e) => IdleStatus = WorkerIdleStatus.NotIdle;
 
-            WorkerThread = new Thread(MainLoop) { Name = _nameFactory.Create() };
-            WorkerThread.Start();
+            WorkerName = _nameFactory.Create();
+            WorkerTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
 
-            _log.LogDebug($"{WorkerThread.Name} created");
+            _log.LogDebug($"{WorkerName} created");
         }
 
         /// <summary>
@@ -89,10 +90,10 @@ namespace DotNetWorkQueue.Queue
 
             ShouldExit = true;
 
-            if (WorkerThread == null)
+            if (WorkerTask == null)
                 return;
 
-            _log.LogDebug($"Stopping worker thread {WorkerThread.Name}");
+            _log.LogDebug($"Stopping worker thread {WorkerName}");
         }
 
         /// <summary>

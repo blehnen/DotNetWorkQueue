@@ -121,3 +121,51 @@
   - Phase 4: Stale Project Cleanup (IntegrationTests.Metrics removed)
   - Phase 5: Security Documentation (SECURITY.md)
 - **Status:** Ready for review and merge
+
+## 2026-03-27 — New Milestone: Thread Management Modernization
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** M-1 (Remove Thread.Abort) + M-2 (Replace Manual Threads)
+- **Decisions:**
+  - Remove Thread.Abort entirely (not deprecate) — existing cancellation tokens are sufficient
+  - Replace new Thread() with Task.Run(LongRunning) on all targets including net48
+  - Replace Thread.Sleep(20) spin-wait with ManualResetEventSlim
+- **Roadmap:** Phase 6 (abort removal, independent PR), Phase 7 (thread replacement, depends on 6)
+- **Constraint:** PR #82 must merge before code changes begin
+- **Status:** Roadmap approved, ready for Phase 6 planning
+
+## 2026-03-28 — Phase 6 Planned
+
+- **Action:** `/shipyard:plan 6`
+- **Plans:** 3 plans across 2 waves
+  - Wave 1: PLAN-1.1 (delete abort files, remove DI, simplify StopThread) | PLAN-1.2 (remove 5 ThreadAbortException catches)
+  - Wave 2: PLAN-2.1 (remove config property, update comments, remove tests, verify)
+- **Key finding:** IAbortWorkerThread removed entirely (not gutted to no-op) — cleaner than keeping dead abstractions
+- **Critique Verdict:** READY — all 16 file paths verified, zero overlap between parallel plans
+- **Status:** Ready for build (after PR #82 merges)
+
+## 2026-03-28 — Phase 6 Complete
+
+- **Action:** `/shipyard:build 6`
+- **Plans executed:** 3/3 (PLAN-1.1, PLAN-1.2, PLAN-2.1)
+- **Deleted:** IAbortWorkerThread.cs, AbortWorkerThread.cs, IAbortWorkerThreadDecorator.cs, AbortWorkerThreadTests.cs
+- **Modified:** StopThread.cs (simplified), ComponentRegistration.cs (2 DI lines), 5 catch blocks removed, config property removed, 2 test methods removed, comments updated, README.md updated
+- **Review:** All 8 success criteria PASS
+- **Tests:** 873 unit + 56 integration passing
+- **Status:** Phase 6 complete
+
+## 2026-03-28 — Phase 7 Complete
+
+- **Action:** `/shipyard:build 7`
+- **Plans executed:** 2/2 (01-PLAN, 02-PLAN)
+- **Plan 01:** BaseMonitor.Cancel() now uses ManualResetEventSlim instead of Thread.Sleep(20)
+- **Plan 02:** Replaced new Thread() with Task.Factory.StartNew(LongRunning) in PrimaryWorker/Worker, adapted MultiWorkerBase/WorkerTerminate/StopThread/WaitForThreadToFinish, rewrote tests
+- **Review:** All 8 success criteria PASS
+- **Tests:** 875 unit + 56 integration passing
+- **Status:** Phase 7 complete — Thread Management Modernization milestone done
+
+## 2026-03-28 — Milestone Complete: Thread Management Modernization
+
+- **Phases:** 6 (Remove Thread.Abort) + 7 (Replace Manual Threads) both complete
+- **Summary:** Zero Thread.Abort, zero new Thread(), zero Thread.Sleep spin-waits. All workers use Task.Factory.StartNew(LongRunning). BaseMonitor uses ManualResetEventSlim. README updated.
+- **Status:** Ready for review and merge
