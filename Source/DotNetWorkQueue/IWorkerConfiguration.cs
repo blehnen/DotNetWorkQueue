@@ -41,10 +41,7 @@ namespace DotNetWorkQueue
         /// <summary>
         /// How long to wait for the workers to respond to a cancel request.
         /// </summary>
-        /// <remarks>
-        /// If thread aborting is disabled, this setting has no affect; we will wait forever for threads to finish working
-        /// Otherwise, the thread will be aborted once this time limit is reached.
-        /// </remarks>
+        /// <remarks>After this timeout expires, the queue will wait indefinitely for worker threads to finish their current work.</remarks>
         /// <value>
         /// The time to wait for workers to cancel.
         /// </value>
@@ -57,16 +54,6 @@ namespace DotNetWorkQueue
         /// The time to wait for workers to stop.
         /// </value>
         TimeSpan TimeToWaitForWorkersToStop { get; set; }
-
-        /// <summary>
-        /// If true, worker threads will be aborted if they don't respond to <see cref="TimeToWaitForWorkersToCancel"/>
-        /// </summary>
-        /// <remarks>Aborting a running thread is generally not a good idea. Don't enable this without understanding what happens when your code is killed. It's better to make sure that the code
-        /// executed by the queue will respond to cancel requests in a reasonable amount of time</remarks>
-        /// <value>
-        /// <c>true</c> if [abort worker threads when stopping]; otherwise, <c>false</c>.
-        /// </value>
-        bool AbortWorkerThreadsWhenStopping { get; set; }
 
         /// <summary>
         /// If true, a single worker will be used to look for work when the queue is empty or no valid records are found to process.
