@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         ///   <c>true</c> if running; otherwise, <c>false</c>.
         /// </value>
-        public override bool Running => WorkerThread != null && WorkerThread.IsAlive || MessageProcessing != null && MessageProcessing.AsyncTaskCount > 0;
+        public override bool Running => WorkerTask != null && !WorkerTask.IsCompleted || MessageProcessing != null && MessageProcessing.AsyncTaskCount > 0;
 
         /// <summary>
         /// Tries to force terminate the thread if needed
@@ -70,9 +70,9 @@ namespace DotNetWorkQueue.Queue
 
             AttemptToTerminate(); //one last request to terminate before waiting for thread to finish
 
-            if (WorkerThread == null || !WorkerThread.IsAlive) return;
+            if (WorkerTask == null || WorkerTask.IsCompleted) return;
 
-            StopThread.TryForceTerminate(WorkerThread);
+            StopThread.TryForceTerminate(WorkerTask);
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
