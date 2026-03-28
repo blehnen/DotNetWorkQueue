@@ -218,19 +218,6 @@ namespace DotNetWorkQueue.Queue
                     }
                 }
             }
-            // ReSharper disable once UncatchableException
-            catch (ThreadAbortException error)
-            {
-                _logger.LogWarning(
-                    "The worker thread has been aborted");
-
-                lock (_runningLocker)
-                {
-                    _context.WorkerNotification.HeartBeat.SetError(error);
-                }
-
-                SetCancel();
-            }
             catch (Exception error)
             {
                 _logger.LogError(
