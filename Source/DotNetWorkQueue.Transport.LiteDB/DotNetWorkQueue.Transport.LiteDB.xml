@@ -1729,6 +1729,9 @@
         <member name="P:DotNetWorkQueue.Transport.LiteDb.LiteDbConnectionInformation.Container">
             <inheritdoc />
         </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.LiteDbConnectionInformation.ValidateQueueName(System.String)">
+            <summary>Validates that the queue name contains only safe characters for use as a LiteDB collection name.</summary>
+        </member>
         <member name="M:DotNetWorkQueue.Transport.LiteDb.LiteDbConnectionInformation.Clone">
             <inheritdoc />
         </member>
