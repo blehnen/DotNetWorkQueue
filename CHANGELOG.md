@@ -1,3 +1,9 @@
+### 0.9.13 — 2026-03-29
+- Fix: `QueueContainer.CreateAdminApi()` crash due to missing `QueueConnection` parameter after queue name validation changes in 0.9.12
+- **Breaking:** Remove `Thread.Abort()` and `AbortWorkerThreadsWhenStopping` configuration. Worker shutdown now relies entirely on cooperative cancellation via `CancellationToken`.
+- Replace `new Thread(MainLoop)` with `Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning)` in PrimaryWorker and Worker
+- Replace `Thread.Sleep(20)` spin-wait in `BaseMonitor.Cancel()` with `ManualResetEventSlim` signaling
+
 ### 0.9.12 — 2026-03-29
 - Default `DenyListSerializationBinder` blocks 30 known Newtonsoft.Json deserialization gadget types (ObjectDataProvider, WindowsIdentity, Process, DataSet, etc.). Registered as the default `ISerializationBinder` via DI.
 - Optional `AllowListSerializationBinder` for strict type control; only explicitly registered types can be deserialized. Register via DI to replace the default.
