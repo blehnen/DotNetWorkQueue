@@ -50,6 +50,21 @@ namespace DotNetWorkQueue.Tests.IoC
         }
 
         [TestMethod]
+        public void CreateContainer_AdminContext_WithPlaceholderName()
+        {
+            var creator = new CreateContainer<NoOpDuplexTransport>();
+            var c = creator.Create(QueueContexts.Admin, x => { }, new QueueConnection("ADMIN", string.Empty), new NoOpDuplexTransport(), ConnectionTypes.NotSpecified, y => { });
+
+            // Assert - container should resolve without throwing
+            Container container = c.Container;
+            var results = Analyzer.Analyze(container);
+            Assert.IsFalse(results.Any(), Environment.NewLine +
+                                        string.Join(Environment.NewLine,
+                                            from result in results
+                                            select result.Description));
+        }
+
+        [TestMethod]
         public void CreateContainer_BadTransport_Exception()
         {
             Assert.ThrowsExactly<DotNetWorkQueueException>(

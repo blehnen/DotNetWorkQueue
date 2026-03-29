@@ -425,7 +425,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, _transportInit, x => { }, _setOptions);
+            var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, new QueueConnection("ADMIN", string.Empty), _transportInit, ConnectionTypes.NotSpecified, x => { }, _setOptions);
             Containers.Add(container);
             return container.GetInstance<IAdminApi>();
         }
