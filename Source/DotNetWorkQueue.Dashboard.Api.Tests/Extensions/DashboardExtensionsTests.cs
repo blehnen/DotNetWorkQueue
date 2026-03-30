@@ -145,11 +145,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                 options.EnableConsumerTracking = false;
             });
 
-            var hostedServiceRegistrations = services
-                .Where(sd => sd.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService))
+            var pruningServiceRegistrations = services
+                .Where(sd => sd.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService)
+                    && sd.ImplementationType == typeof(DotNetWorkQueue.Dashboard.Api.Services.ConsumerPruningService))
                 .ToList();
 
-            Assert.AreEqual(0, hostedServiceRegistrations.Count,
+            Assert.AreEqual(0, pruningServiceRegistrations.Count,
                 "ConsumerPruningService should not be registered when tracking is disabled");
         }
     }
