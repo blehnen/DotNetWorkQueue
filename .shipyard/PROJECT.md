@@ -1,72 +1,76 @@
-# Project: CONCERNS.md Quick Wins & Accepted Risk Closures
+# Project: CONCERNS.md Tier B — Moderate Effort Fixes
 
 ## Description
 
-Address all low-effort items from CONCERNS.md and ISSUES.md in a single PR. This includes marking 4 items as "Accepted Risk / Will Not Fix" with documented rationale, fixing 5 medium/low concerns that require small code changes, and resolving all 13 open issues from ISSUES.md (unused imports, test assertion improvements, log wording, minor code quality fixes).
+Address the moderate-effort items from CONCERNS.md in a single PR. This covers Dashboard API hardening (exception disclosure fix, CORS configuration, health check endpoint), centralized package version management via Directory.Packages.props, TODO/HACK comment audit, and fixing the integration test serialization binder gap.
 
-This is the first of two planned PRs. The second PR (tier B) will handle moderate-effort items like centralized package version management, API exception disclosure, and TODO/HACK comment audit.
+This is the second of two planned PRs. Tier A (quick wins) was completed and merged on 2026-03-30.
 
 ## Goals
 
-1. Close 4 concerns as "Accepted Risk / Will Not Fix" with documented rationale in CONCERNS.md
-2. Fix 5 small CONCERNS.md items (M-4, M-5, M-8, L-5, N-4)
-3. Fix all 13 ISSUES.md items (ISSUE-001 through ISSUE-013)
-4. Run unit tests to verify no regressions
-5. Update CONCERNS.md and ISSUES.md to reflect resolved status
+1. Stop leaking exception details in Dashboard API responses (H-4)
+2. Add configurable CORS policy to Dashboard API (H-3/M-9)
+3. Add health check endpoint to Dashboard API (H-3)
+4. Document internal-only deployment recommendation for Dashboard API (H-3)
+5. Centralize all NuGet package versions via Directory.Packages.props (H-6)
+6. Audit and resolve all TODO/HACK comments in production code (M-3)
+7. Fix integration test Helpers.cs to use DenyListSerializationBinder (N-3)
 
 ## Non-Goals
 
-- Tier B items (H-3, H-4, H-6, M-3, M-9, N-3, and design-decision items)
-- Architectural changes or new features
-- Changing the security model for serialization (C-1/C-2 accepted as-is)
-- Dropping .NET Framework 4.8 support (L-3 accepted as-is)
+- HTTPS enforcement or redirection (infrastructure concern)
+- Rate limiting middleware (infrastructure concern)
+- Dropping .NET Framework 4.8 support
+- Replacing FluentAssertions with MSTest assertions (future work)
+- Design-decision items from CONCERNS.md (M-6, M-7, M-10, M-11, L-2, L-4, L-7, L-8, N-2, N-5)
 
 ## Requirements
 
-### Accepted Risk Closures
-- C-1: Mark as "Accepted Risk" — DenyList binder provides defense-in-depth; transport security is user's responsibility; document AllowList binder option in README for untrusted messages
-- C-2: Mark as "Accepted Risk" — Dynamic LINQ execution is by-design; transport security is user's responsibility
-- H-1: Mark as "Accepted Risk (Partial)" — Source exists for Schyntax and ExpressionJsonSerializer; JpLabs.DynamicCode is net48-only and goes away when 4.8 is dropped
-- L-3: Mark as "Will Not Fix" — Employer requires net48 until .NET 10 migration completes
+### Dashboard API Hardening (H-3, H-4, M-9)
+- H-4: Change DashboardExceptionFilter to return generic error message in non-Development environments; log full exception server-side
+- H-3 CORS: Add configurable CORS policy to DashboardOptions; default to allowing the configured dashboard UI origin; wire up in DashboardExtensions/DashboardApi
+- H-3 Health: Add /health endpoint using ASP.NET Core built-in health check infrastructure; return 200 OK with basic status (queue connections reachable, service uptime)
+- H-3 Docs: Update Dashboard API README to state internal-only recommendation; document that HTTPS and rate limiting should be handled at infrastructure layer
+- M-9: Closed by CORS configuration in H-3
 
-### CONCERNS.md Fixes
-- M-4: Remove xUnit artifact references remaining after MSTest migration
-- M-5: Fix malformed `DocumentationFile` path in SQLite `.csproj`
-- M-8: Add stale file patterns to `.gitignore`; remove working artifacts from working tree
-- L-5: Replace `"TODO; not known"` with meaningful value in `LiteDbConnectionInformation.Server`
-- N-4: Rebuild in Release mode to regenerate `DotNetWorkQueue.xml` with current types
+### Central Package Management (H-6)
+- Create Directory.Packages.props at Source/ with all package versions consolidated
+- Add ManagePackageVersionsCentrally to Directory.Build.props
+- Remove Version attributes from all PackageReference elements across all .csproj files
+- Key packages: SimpleInjector 5.5.0, Polly 8.6.5, Newtonsoft.Json 13.0.4, Microsoft.Data.SqlClient 6.1.3, OpenTelemetry 1.14.0, MSTest 3.x, NSubstitute, AutoFixture, FluentAssertions 6.12.2, plus all transport-specific packages
 
-### ISSUES.md Fixes
-- ISSUE-001: Remove unused `fixture` variable in QueueCreatorTests
-- ISSUE-002: Add `RegexOptions.Compiled` to `ValidateQueueName` regex in relational transports
-- ISSUE-003: Add `Assert.AreEqual("MyQueue123", test.QueueName)` in relational transport tests
-- ISSUE-004: Same assertion fix for Redis, LiteDb, Memory transport tests
-- ISSUE-005: Fix stale XML doc comment on Memory `ConnectionInformation` class
-- ISSUE-006: Remove 5 unused `using` directives in `RedisConnectionInfoTests`
-- ISSUE-007: Use `Timer.DisposeAsync()` instead of `Timer.Dispose()` in `DisposeAsync`
-- ISSUE-008: Fix sync-over-async pattern in `DisposeAsync` test assertion
-- ISSUE-009: Change "Stopping worker thread" to "Stopping worker" in PrimaryWorker/Worker
-- ISSUE-010: Remove unused `using System.Threading` from `WorkerTerminate.cs`
-- ISSUE-011: Remove unused `using System.Threading` from `WaitForThreadToFinish.cs`
-- ISSUE-012: Create missing SUMMARY file for Phase 7 Plan 01
-- ISSUE-013: Add explicit parentheses in `MultiWorkerBase.Running` for operator precedence clarity
+### TODO/HACK Audit (M-3)
+- InterceptorFactory.cs line 52: Replace HACK comment with NOTE explaining SimpleInjector decorator pattern limitation
+- ReceiveMessage.cs (PostgreSQL) line 175: Replace TODO with NOTE referencing CONCERNS.md L-4
+- CreateDequeueStatement.cs (SqlServer) line 237: Same treatment as PostgreSQL TODO
+- ReceiveMessage.cs (SqlServer) line 100: Replace TODO with NOTE explaining synchronous design decision
+- LiteDbConnectionInformation.cs: Already fixed in tier A (L-5)
+
+### Integration Test Binder Fix (N-3)
+- Update Helpers.cs line 112 to use DenyListSerializationBinder with TypeNameHandling.All
+- Ensures integration tests exercise the production serialization security boundary
 
 ## Non-Functional Requirements
 
-- All existing unit tests must pass after changes
-- No behavioral changes — all fixes are cosmetic, documentation, or minor correctness improvements
-- Changes should be safe across all target frameworks (net10.0, net8.0, net48, netstandard2.0)
+- All existing unit tests must pass
+- No breaking changes to public API surface (CORS and health check are additive)
+- Central Package Management must resolve all packages correctly across all target frameworks
+- Dashboard API exception filter change must not affect Development environment debugging
 
 ## Success Criteria
 
-1. CONCERNS.md updated: C-1, C-2, H-1, L-3 marked with resolution status and rationale
-2. CONCERNS.md updated: M-4, M-5, M-8, L-5, N-4 marked as resolved
-3. ISSUES.md updated: all 13 issues marked as closed
-4. All unit tests pass (`dotnet test` on unit test projects)
-5. No new warnings introduced
+1. DashboardExceptionFilter returns generic error in non-Development; full exception logged
+2. CORS policy configurable via DashboardOptions; Blazor UI can connect cross-origin
+3. GET /health returns 200 OK with status info
+4. Dashboard API README documents internal-only recommendation
+5. Directory.Packages.props exists and all .csproj files have no Version= on PackageReference
+6. dotnet build Source/DotNetWorkQueue.sln succeeds with central package management
+7. No TODO or HACK comments remain in production code
+8. Integration test Helpers.cs uses DenyListSerializationBinder
+9. All unit tests pass
 
 ## Constraints
 
-- Single PR for all tier A changes
-- No changes to public API surface
-- Dashboard API security items (H-3, M-9) deferred to tier B — document that internal-only deployment is strongly recommended
+- Single PR for all tier B changes
+- Dashboard API: no HTTPS redirect, no rate limiting (infrastructure concerns)
+- Must work across all target frameworks (net10.0, net8.0, net48, netstandard2.0)
