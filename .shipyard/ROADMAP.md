@@ -1,10 +1,10 @@
-# Roadmap: Thread Management Modernization
+# Roadmap: CONCERNS.md Quick Wins & Accepted Risk Closures
 
 ## Overview
 
-Remove the unsafe `Thread.Abort()` pattern and modernize thread management in the core queue worker infrastructure. The codebase already uses `CancellationToken` for cooperative cancellation throughout -- `Thread.Abort()` was a legacy fallback. Manual `new Thread()` usage is replaced with `Task.Run` with `TaskCreationOptions.LongRunning`, and `Thread.Sleep` spin-waits are replaced with proper signaling.
+Close out all low-effort items from CONCERNS.md and ISSUES.md in a single PR. This covers 4 accepted-risk documentation closures, 5 small code/config fixes from CONCERNS.md, and all 13 open issues from ISSUES.md. Every change is cosmetic, documentation, or minor correctness -- no behavioral changes, no public API surface changes.
 
-**Prerequisite**: PR #82 (Security & Stability Fixes) must be merged before code changes begin.
+**Prerequisite**: None. All items are independent quick wins against the current `master` branch.
 
 ---
 
@@ -12,124 +12,107 @@ Remove the unsafe `Thread.Abort()` pattern and modernize thread management in th
 
 | Phase | Name | Complexity | Dependencies | Plans | Risk |
 |-------|------|-----------|-------------|-------|------|
-| 6 | Remove Thread.Abort | Medium | PR #82 merged | 2 | Low -- abort path already no-op on modern .NET |
-| 7 | Replace Manual Threads | Medium | Phase 6 | 2 | Medium -- thread lifecycle changes affect shutdown |
+| 1 | Quick Wins & Accepted Risk Closures | Low | None | 3 | Very Low -- all changes are cosmetic or documentation |
 
 ---
 
-## Phase 6: Remove Thread.Abort (M-1)
+## Phase 1: Quick Wins & Accepted Risk Closures
 
-**Complexity**: Medium
-**Dependencies**: PR #82 merged to `master`
-**Risk**: Low. The `Thread.Abort()` call is behind `#if NETFULL` and only fires when `AbortWorkerThreadsWhenStopping` is `true` (defaults to `false`). Removing it is a simplification, not a behavior change for most users. The only risk is to .NET Framework 4.8 users who explicitly enabled abort -- they get a log warning instead of a forced abort.
+**Complexity**: Low
+**Dependencies**: None
+**Risk**: Very Low. All changes are cosmetic, documentation, build-config, or minor code quality. No behavioral changes. No public API changes. Verification is straightforward: unit tests pass, no new warnings.
 
-### Items
+### Task Grouping
 
-1. **Gut `AbortWorkerThread` implementation**: Replace the `#if NETFULL` abort call with a no-op that logs a warning if the thread is still alive. The class stays (for DI compatibility) but `Abort()` always returns `false`.
-2. **Remove `AbortWorkerThreadsWhenStopping` from configuration**: Remove the property from `IWorkerConfiguration` and `WorkerConfiguration`. Update `TimeToWaitForWorkersToCancel` XML docs to remove references to abort behavior.
-3. **Remove `ThreadAbortException` catch blocks**: Remove the 5 `catch (ThreadAbortException)` blocks across `HeartBeatWorker.cs`, `MessageProcessing.cs`, `MessageProcessingAsync.cs`, `ProcessMessage.cs`, `ProcessMessageAsync.cs`. The general `catch (Exception)` blocks already handle any exception type adequately.
-4. **Remove `AbortWorkerThreadDecorator`**: Delete the decorator class file and remove its registration from `ComponentRegistration.cs` (line 410).
-5. **Simplify `StopThread.TryForceTerminate`**: Since `_abortWorkerThread.Abort()` now always returns `false`, simplify to call `_waitForThreadToFinish.Wait()` directly. Evaluate whether `IAbortWorkerThread` and its DI wiring can be collapsed into a no-op or removed entirely.
-6. **Update tests**: Update `AbortWorkerThreadTests.cs`, `StopWorkerTests.cs`, and `WorkerConfigurationTests.cs` to reflect the removed configuration and changed behavior.
+The 22 items naturally cluster into 3 groups based on the type of change:
 
-### Key Files
+1. **Documentation & Status Updates** -- Items that only modify `.shipyard/` markdown files: accepted-risk rationale (C-1, C-2, H-1, L-3), status updates in CONCERNS.md and ISSUES.md, and missing SUMMARY file (ISSUE-012).
+2. **Code Fixes** -- Items that modify `.cs` source files: unused variables/imports (ISSUE-001, ISSUE-006, ISSUE-010, ISSUE-011), test assertion improvements (ISSUE-003, ISSUE-004), log wording (ISSUE-009), operator precedence (ISSUE-013), Timer.DisposeAsync (ISSUE-007), sync-over-async test fix (ISSUE-008), stale XML doc comment (ISSUE-005), LiteDb Server property (L-5), and xUnit pragma removal (M-4 partial).
+3. **Build & Config Fixes** -- Items that modify `.csproj`, `.gitignore`, `.xml`, or delete files: malformed DocumentationFile path (M-5), stale gitignore patterns and artifact removal (M-8), xUnit runner.json deletion (M-4 partial), and XML doc regeneration (N-4).
 
-| File | Change |
-|------|--------|
-| `Source/DotNetWorkQueue/Queue/AbortWorkerThread.cs` | Gut implementation to no-op with log warning |
-| `Source/DotNetWorkQueue/IAbortWorkerThread.cs` | Keep interface (DI compatibility), update XML docs |
-| `Source/DotNetWorkQueue/IWorkerConfiguration.cs` | Remove `AbortWorkerThreadsWhenStopping` property |
-| `Source/DotNetWorkQueue/Configuration/WorkerConfiguration.cs` | Remove `_abortWorkerThreadsWhenStopping` field and property |
-| `Source/DotNetWorkQueue/Queue/StopThread.cs` | Simplify `TryForceTerminate` |
-| `Source/DotNetWorkQueue/Queue/HeartBeatWorker.cs` | Remove `ThreadAbortException` catch (lines 221-233) |
-| `Source/DotNetWorkQueue/Queue/MessageProcessing.cs` | Remove `ThreadAbortException` catch (line 162) |
-| `Source/DotNetWorkQueue/Queue/MessageProcessingAsync.cs` | Remove `ThreadAbortException` catch (line 170) |
-| `Source/DotNetWorkQueue/Queue/ProcessMessage.cs` | Remove `ThreadAbortException` catch (line 81) |
-| `Source/DotNetWorkQueue/Queue/ProcessMessageAsync.cs` | Remove `ThreadAbortException` catch (line 82) |
-| `Source/DotNetWorkQueue/Logging/Decorator/IAbortWorkerThreadDecorator.cs` | Delete file |
-| `Source/DotNetWorkQueue/IoC/ComponentRegistration.cs` | Remove decorator registration (line 410), keep base registration (line 230) |
-| `Source/DotNetWorkQueue.Tests/Queue/AbortWorkerThreadTests.cs` | Update tests for new no-op behavior |
-| `Source/DotNetWorkQueue.Tests/Queue/StopWorkerTests.cs` | Update tests |
-| `Source/DotNetWorkQueue.Tests/Configuration/WorkerConfigurationTests.cs` | Remove `AbortWorkerThreadsWhenStopping` tests |
+### Items by Task
 
-### Success Criteria
+| Task | Item IDs | Count |
+|------|----------|-------|
+| Task 1: Documentation & Status Updates | C-1, C-2, H-1, L-3, ISSUE-012 | 5 |
+| Task 2: Code Fixes | ISSUE-001, ISSUE-002, ISSUE-003, ISSUE-004, ISSUE-005, ISSUE-006, ISSUE-007, ISSUE-008, ISSUE-009, ISSUE-010, ISSUE-011, ISSUE-013, L-5, M-4 (pragma) | 14 |
+| Task 3: Build & Config Fixes | M-4 (xunit.runner.json), M-5, M-8, N-4 | 4 |
 
-1. Zero `Thread.Abort()` calls in the codebase: `grep -r "\.Abort()" Source/DotNetWorkQueue/Queue/ --include="*.cs"` returns no hits
-2. Zero `ThreadAbortException` catch blocks: `grep -r "ThreadAbortException" Source/DotNetWorkQueue/ --include="*.cs"` returns no hits
-3. No `AbortWorkerThreadsWhenStopping` property: `grep -r "AbortWorkerThreadsWhenStopping" Source/ --include="*.cs"` returns no hits
-4. No `#if NETFULL` blocks related to thread abort remain in Queue files
-5. `AbortWorkerThreadDecorator` file deleted
-6. All unit tests pass: `dotnet test Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj`
-7. Solution builds cleanly: `dotnet build Source/DotNetWorkQueue.sln -c Debug`
-8. In-memory integration tests pass: `dotnet test Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj`
+### Wave Assignment
 
----
-
-## Phase 7: Replace Manual Threads (M-2)
-
-**Complexity**: Medium
-**Dependencies**: Phase 6 complete (abort removal simplifies thread replacement -- no need to track `Thread` objects for abort)
-**Risk**: Medium. Changing the thread lifecycle model for workers affects shutdown behavior, diagnostics, and the `Running` property check in `MultiWorkerBase` (which currently checks `WorkerThread.IsAlive`). The `WaitForThreadToFinish` class also depends on `Thread.IsAlive`. These must be adapted to work with `Task` completion state.
-
-### Items
-
-1. **Replace `new Thread(MainLoop)` with `Task.Run` in `PrimaryWorker` and `Worker`**: Use `Task.Run(() => MainLoop(), TaskCreationOptions.LongRunning)`. Store the `Task` instead of `Thread`. Update `WorkerBase` to hold a `Task` field instead of `Thread`. Add worker-name-equivalent logging context (e.g., log the worker name at loop start since `Task` has no `.Name` property).
-2. **Adapt `MultiWorkerBase.Running` property**: Currently checks `WorkerThread.IsAlive`. Replace with `WorkerTask != null && !WorkerTask.IsCompleted` check. Also adapt `TryForceTerminate` to use `Task`-based waiting.
-3. **Adapt `WorkerTerminate` and `WaitForThreadToFinish`**: Replace `Thread.Join()` / `Thread.IsAlive` polling with `Task.Wait(timeout)`. The `WaitForThreadToFinish.Wait()` method's `Thread.Sleep(20)` busy-wait loop becomes a simple `Task.Wait(timeout)` call. Consider renaming `WaitForThreadToFinish` to `WaitForTaskToFinish` or making it generic.
-4. **Adapt `StopThread.TryForceTerminate`**: After Phase 6 gutted the abort path, this now just waits. Adapt to accept `Task` instead of `Thread`, use `Task.Wait(timeout)` with a configurable timeout, log a warning if the task does not complete within the timeout. Consider renaming class to `StopWorker`.
-5. **Replace `Thread.Sleep(20)` spin-wait in `BaseMonitor.Cancel()`**: Add a `ManualResetEventSlim` field. Signal it when `RunMonitor()` completes (in the `finally` block). In `Cancel()`, replace the `while(Running) { Thread.Sleep(20); }` loop with `_monitorCompleted.Wait(timeout)`. Dispose the event in `Dispose(bool)`.
-6. **Update tests**: Update `WorkerTests.cs`, `StopWorkerTests.cs`, and any tests that mock or reference `Thread` objects to use `Task`-based equivalents.
+- **Wave 1**: Task 1 (documentation only, no code dependencies) and Task 2 (code fixes, no build-config dependencies) -- these can execute in parallel.
+- **Wave 2**: Task 3 (build & config fixes) -- N-4 (XML doc regeneration) requires a Release build which benefits from Task 2's code fixes being applied first, so the regenerated XML reflects the final state.
 
 ### Key Files
 
+#### Task 1: Documentation & Status Updates
 | File | Change |
 |------|--------|
-| `Source/DotNetWorkQueue/Queue/WorkerBase.cs` | Replace `protected Thread WorkerThread` with `protected Task WorkerTask` |
-| `Source/DotNetWorkQueue/Queue/MultiWorkerBase.cs` | Update `Running` property to check `WorkerTask.IsCompleted`, update `TryForceTerminate` and `Dispose` |
-| `Source/DotNetWorkQueue/Queue/PrimaryWorker.cs` | Replace `new Thread(MainLoop)` with `Task.Run(() => MainLoop(), ...)`, remove `.Name` assignment |
-| `Source/DotNetWorkQueue/Queue/Worker.cs` | Same replacement as PrimaryWorker |
-| `Source/DotNetWorkQueue/Queue/BaseMonitor.cs` | Add `ManualResetEventSlim`, signal on `RunMonitor` completion, wait in `Cancel()` with timeout |
-| `Source/DotNetWorkQueue/Queue/WaitForThreadToFinish.cs` | Adapt to use `Task.Wait(timeout)` instead of `Thread.IsAlive` polling loop |
-| `Source/DotNetWorkQueue/Queue/WorkerTerminate.cs` | Adapt to use `Task.Wait(timeout)` instead of `Thread.Join()` |
-| `Source/DotNetWorkQueue/Queue/StopThread.cs` | Adapt to accept `Task` parameter instead of `Thread` |
-| `Source/DotNetWorkQueue.Tests/Queue/WorkerTests.cs` | Update for Task-based workers |
-| `Source/DotNetWorkQueue.Tests/Queue/StopWorkerTests.cs` | Update for Task-based termination |
+| `.shipyard/codebase/CONCERNS.md` | Mark C-1, C-2, H-1, L-3 with resolution status and rationale |
+| `.shipyard/codebase/CONCERNS.md` | Mark M-4, M-5, M-8, L-5, N-4 as resolved after fixes |
+| `.shipyard/ISSUES.md` | Mark all 13 issues as closed |
+| `.shipyard/phases/7/SUMMARY-plan01.md` | Create missing SUMMARY file for Phase 7 Plan 01 (ISSUE-012) |
+
+#### Task 2: Code Fixes
+| File | Change |
+|------|--------|
+| `Source/DotNetWorkQueue.Tests/QueueCreatorTests.cs` | Remove unused `fixture` variable (ISSUE-001) |
+| `Source/DotNetWorkQueue/Transport/Memory/ConnectionInformation.cs` | Add `RegexOptions.Compiled` to ValidateQueueName regex (ISSUE-002) |
+| `Source/DotNetWorkQueue.Transport.LiteDB/LiteDbConnectionInformation.cs` | Add `RegexOptions.Compiled` (ISSUE-002); replace "TODO; not known" Server value (L-5) |
+| `Source/DotNetWorkQueue.Transport.PostgreSQL/SQLConnectionInformation.cs` | Add `RegexOptions.Compiled` (ISSUE-002) |
+| `Source/DotNetWorkQueue.Transport.Redis/RedisConnectionInfo.cs` | Add `RegexOptions.Compiled` (ISSUE-002) |
+| `Source/DotNetWorkQueue.Transport.SQLite/SqliteConnectionInformation.cs` | Add `RegexOptions.Compiled` (ISSUE-002) |
+| `Source/DotNetWorkQueue.Transport.SqlServer/SQLConnectionInformation.cs` | Add `RegexOptions.Compiled` (ISSUE-002) |
+| `Source/DotNetWorkQueue.Transport.SqlServer.Tests/SqlConnectionInformationTests.cs` | Add `Assert.AreEqual("MyQueue123", ...)` (ISSUE-003) |
+| `Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/SqlConnectionInformationTests.cs` | Add `Assert.AreEqual("MyQueue123", ...)` (ISSUE-003) |
+| `Source/DotNetWorkQueue.Transport.SQLite.Tests/SQLiteConnectionInformationTests.cs` | Add `Assert.AreEqual("MyQueue123", ...)` (ISSUE-003) |
+| `Source/DotNetWorkQueue.Transport.Redis.Tests/RedisConnectionInfoTests.cs` | Add `Assert.AreEqual` (ISSUE-004); remove 5 unused `using` directives (ISSUE-006) |
+| `Source/DotNetWorkQueue.Transport.LiteDb.Tests/LiteDbConnectionInformationTests.cs` | Add `Assert.AreEqual` (ISSUE-004) |
+| `Source/DotNetWorkQueue.Tests/Transport/Memory/ConnectionInformationTests.cs` | Add `Assert.AreEqual` (ISSUE-004); fix stale XML doc comment (ISSUE-005) |
+| `Source/DotNetWorkQueue.Dashboard.Client/DashboardConsumerClient.cs` | Replace `_heartbeatTimer.Dispose()` with `await _heartbeatTimer.DisposeAsync()` in DisposeAsync (ISSUE-007) |
+| `Source/DotNetWorkQueue.Dashboard.Client.Tests/DashboardConsumerClientTests.cs` | Fix sync-over-async test assertion (ISSUE-008) |
+| `Source/DotNetWorkQueue/Queue/PrimaryWorker.cs` | Change log "Stopping worker thread" to "Stopping worker" (ISSUE-009) |
+| `Source/DotNetWorkQueue/Queue/Worker.cs` | Change log "Stopping worker thread" to "Stopping worker" (ISSUE-009) |
+| `Source/DotNetWorkQueue/Queue/WorkerTerminate.cs` | Remove unused `using System.Threading;` (ISSUE-010) |
+| `Source/DotNetWorkQueue/Queue/WaitForThreadToFinish.cs` | Remove unused `using System.Threading;` (ISSUE-011) |
+| `Source/DotNetWorkQueue/Queue/MultiWorkerBase.cs` | Add explicit parentheses in `Running` property (ISSUE-013) |
+| `Source/DotNetWorkQueue.IntegrationTests.Shared/ConsumerAsync/Implementation/SimpleConsumerAsync.cs` | Remove `#pragma warning disable xUnit1013` (M-4 partial) |
+
+#### Task 3: Build & Config Fixes
+| File | Change |
+|------|--------|
+| `Source/xunit.runner.json` | Delete file (M-4) |
+| `Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj` | Remove leading `>` from 3 DocumentationFile entries (M-5) |
+| `.gitignore` | Add patterns for `*.7z`, `TeamCity_*.zip`, `codcov*.txt`, `*.DotSettings.user`, working notes (M-8) |
+| `Source/DotNetWorkQueue/DotNetWorkQueue.xml` | Regenerate via Release build (N-4) |
 
 ### Success Criteria
 
-1. Zero `new Thread(` in worker classes: `grep -r "new Thread(" Source/DotNetWorkQueue/Queue/ --include="*.cs"` returns no hits
-2. Zero `Thread.Sleep` in `BaseMonitor.Cancel()`: the `Cancel()` method uses `ManualResetEventSlim.Wait()` instead
-3. `PrimaryWorker` and `Worker` use `Task.Run` with `TaskCreationOptions.LongRunning`
-4. `MultiWorkerBase.Running` checks task completion state instead of `Thread.IsAlive`
-5. `WaitForThreadToFinish` uses `Task.Wait()` instead of `Thread.IsAlive` polling with `Thread.Sleep(20)`
-6. All unit tests pass: `dotnet test Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj`
-7. Solution builds cleanly across all target frameworks: `dotnet build Source/DotNetWorkQueue.sln -c Debug`
-8. In-memory integration tests pass (verifies end-to-end worker lifecycle): `dotnet test Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj`
-9. Shutdown is clean -- no hung tasks after consumer queue disposal
+1. **CONCERNS.md updated**: C-1, C-2, H-1, L-3 marked with "Accepted Risk" or "Will Not Fix" status and documented rationale
+2. **CONCERNS.md updated**: M-4, M-5, M-8, L-5, N-4 marked as resolved with date
+3. **ISSUES.md updated**: All 13 issues (ISSUE-001 through ISSUE-013) marked as closed with date
+4. **All unit tests pass**: `dotnet test Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj` and all other unit test projects exit 0
+5. **No new warnings**: `dotnet build Source/DotNetWorkQueueNoTests.sln -c Release` produces no new warnings
+6. **Zero xUnit artifacts**: `Source/xunit.runner.json` deleted; no `xUnit1013` pragma in codebase
+7. **Zero malformed DocumentationFile**: `grep ">&gt;" Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj` returns no hits
+8. **Zero "TODO; not known"**: `grep -r "TODO; not known" Source/ --include="*.cs"` returns no hits
+9. **Stale patterns in .gitignore**: `*.7z`, `*.DotSettings.user`, `codcov*.txt` patterns present in `.gitignore`
+10. **XML doc is current**: `grep -c "AbortWorkerThread" Source/DotNetWorkQueue/DotNetWorkQueue.xml` returns 0
 
 ---
 
 ## Parallelism Notes
 
-- **Phase 6 and Phase 7 are strictly sequential.** Phase 7 depends on Phase 6 because:
-  - Removing `Thread.Abort()` first eliminates the need to preserve `Thread` object references for abort, simplifying the `Thread`-to-`Task` migration.
-  - `StopThread` is simplified in Phase 6, then further adapted in Phase 7.
-  - `ThreadAbortException` catch blocks removed in Phase 6 would otherwise need to be carried through the Phase 7 refactor.
-
-- **Within Phase 6**, plans are structured as two waves:
-  - Wave 1: Remove configuration property + gut `AbortWorkerThread` + delete decorator (no file dependencies between these)
-  - Wave 2: Remove `ThreadAbortException` catches + simplify `StopThread` + update tests (depends on Wave 1 interface/config changes)
-
-- **Within Phase 7**, plans are structured as two waves:
-  - Wave 1: `BaseMonitor` signaling change (independent of worker thread changes) + adapt `WorkerBase`/`MultiWorkerBase` to hold `Task`
-  - Wave 2: `PrimaryWorker` + `Worker` migration + `WaitForThreadToFinish`/`WorkerTerminate`/`StopThread` adaptation + tests (depends on Wave 1 base class changes)
+- **Task 1 and Task 2 are independent** (Wave 1). Task 1 modifies only `.shipyard/` markdown files. Task 2 modifies only `.cs` source and test files. No file overlap.
+- **Task 3 depends on Task 2** (Wave 2). The XML documentation regeneration (N-4) should happen after all code fixes are applied so the generated XML reflects the final codebase state.
+- Within Task 2, all code fixes are independent of each other (different files, no cross-dependencies).
 
 ## Breaking Changes
 
-- **Phase 6**: Removing `AbortWorkerThreadsWhenStopping` from `IWorkerConfiguration` is a **binary-breaking and source-breaking change**. Any code that reads or writes this property will fail to compile. Must be documented in CHANGELOG.
-- **Phase 7**: Changing `StopThread.TryForceTerminate` and `WaitForThreadToFinish.Wait` signatures from `Thread` to `Task` parameters is an **internal breaking change**. These are public classes but unlikely to be used directly by consumers (they are wired via DI). Lower risk than Phase 6 but still document.
+None. All changes are internal: unused import removal, test assertion improvements, log message wording, build configuration fixes, and documentation updates. No public API surface is affected.
 
 ## Risk Assessment
 
-- **Phase 6** is low implementation risk. The `Thread.Abort()` path is already inactive on all modern .NET targets (net8.0, net10.0, netstandard2.0). The `AbortWorkerThreadsWhenStopping` config property defaults to `false`, so removing it changes nothing for users who did not opt in. The only users affected are those running .NET Framework 4.8 who explicitly set the property to `true` -- they lose forced termination but gain stability.
-- **Phase 7** carries moderate implementation risk because it changes the fundamental threading model of the worker infrastructure. The `Running` property, `TryForceTerminate`, and `WaitForThreadToFinish` all need coordinated changes. Integration testing with the Memory transport is essential to verify that consumer startup, message processing, idle optimization, and clean shutdown all work correctly under the new model.
+- **Very Low overall risk**. Every change is either documentation-only, removes dead code, improves test assertions, or fixes build configuration. No behavioral changes.
+- **Highest-risk item**: ISSUE-007 (Timer.DisposeAsync) -- changes disposal semantics slightly, but only within the `DisposeAsync` path which is already async. The synchronous `Dispose()` path is unchanged.
+- **N-4 (XML regeneration)** requires a Release build, which may surface warnings from other unrelated issues. The build should succeed since the codebase already builds in Debug mode; Release adds `TreatWarningsAsErrors` so any pre-existing warnings could block. Mitigation: fix M-5 (malformed DocumentationFile) first.
