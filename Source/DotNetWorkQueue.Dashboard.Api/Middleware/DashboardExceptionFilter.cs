@@ -19,25 +19,31 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Dashboard.Api.Middleware
 {
     /// <summary>
     /// Exception filter for dashboard API controllers. Maps known exceptions to appropriate HTTP status codes.
+    /// In non-Development environments, internal exception details are hidden behind generic error messages.
     /// </summary>
     internal class DashboardExceptionFilter : IExceptionFilter
     {
         private readonly ILogger<DashboardExceptionFilter> _logger;
+        private readonly IHostEnvironment _environment;
 
-        public DashboardExceptionFilter(ILogger<DashboardExceptionFilter> logger)
+        public DashboardExceptionFilter(ILogger<DashboardExceptionFilter> logger, IHostEnvironment environment)
         {
             _logger = logger;
+            _environment = environment;
         }
 
         /// <inheritdoc />
         public void OnException(ExceptionContext context)
         {
+            var isDev = _environment.IsDevelopment();
+
             switch (context.Exception)
             {
                 case ObjectDisposedException:
@@ -52,7 +58,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Middleware
 
                 case InvalidOperationException:
                     _logger.LogWarning(context.Exception, "Resource not found: {Message}", context.Exception.Message);
-                    context.Result = new ObjectResult(new { error = context.Exception.Message })
+                    context.Result = new ObjectResult(new { error = isDev ? context.Exception.Message : "An internal error occurred" })
                     {
                         StatusCode = 404
                     };
@@ -61,9 +67,19 @@ namespace DotNetWorkQueue.Dashboard.Api.Middleware
 
                 case NotSupportedException:
                     _logger.LogWarning(context.Exception, "Unsupported operation: {Message}", context.Exception.Message);
-                    context.Result = new ObjectResult(new { error = context.Exception.Message })
+                    context.Result = new ObjectResult(new { error = isDev ? context.Exception.Message : "An internal error occurred" })
                     {
                         StatusCode = 501
+                    };
+                    context.ExceptionHandled = true;
+                    break;
+
+                default:
+                    _logger.LogError(context.Exception, "Unhandled exception in dashboard API: {Method} {Path}",
+                        context.HttpContext.Request.Method, context.HttpContext.Request.Path);
+                    context.Result = new ObjectResult(new { error = isDev ? context.Exception.Message : "An internal error occurred" })
+                    {
+                        StatusCode = 500
                     };
                     context.ExceptionHandled = true;
                     break;
