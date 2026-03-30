@@ -102,7 +102,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
             }
         }
 
-#pragma warning disable xUnit1013 // Public method should be marked as test
         public async Task RunWithFactory<TTransportInit, TTransportCreate>(
             QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,

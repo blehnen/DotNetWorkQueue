@@ -257,7 +257,7 @@ namespace DotNetWorkQueue.Dashboard.Client
                 // Best-effort unregistration
             }
 
-            _heartbeatTimer.Dispose();
+            await _heartbeatTimer.DisposeAsync().ConfigureAwait(false);
 
             if (_ownsHttpClient)
                 _httpClient.Dispose();

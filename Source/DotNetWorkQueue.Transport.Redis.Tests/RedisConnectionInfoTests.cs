@@ -1,9 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -48,6 +43,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
         {
             var test = new RedisConnectionInfo(new QueueConnection("MyQueue123", "localhost"));
             Assert.IsNotNull(test);
+            Assert.AreEqual("MyQueue123", test.QueueName);
         }
 
         [TestMethod]

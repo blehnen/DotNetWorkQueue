@@ -443,3 +443,10 @@ Source/DotNetWorkQueue.Dashboard.Api/DotNetWorkQueue.Dashboard.Api.xml
 Source/DotNetWorkQueue.Dashboard.Client/DotNetWorkQueue.Dashboard.Client.xml
 Source/DotNetWorkQueue.Dashboard.Ui/Properties/launchSettings.json
 Source/DotNetWorkQueue.Transport.Memory/DotNetWorkQueue.Transport.Memory.xml
+
+# Stale artifacts and working files (M-8)
+*.7z
+TeamCity_*.zip
+codcov*.txt
+codecov*.txt
+NuGetScratchbrian/

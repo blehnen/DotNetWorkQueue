@@ -42,21 +42,21 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
     <DefineConstants>NETSTANDARD2_0;</DefineConstants>
-    <DocumentationFile>&gt;DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
+    <DocumentationFile>DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
-		<DocumentationFile>&gt;DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
+		<DocumentationFile>DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
-		<DocumentationFile>&gt;DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
+		<DocumentationFile>DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 	</PropertyGroup>

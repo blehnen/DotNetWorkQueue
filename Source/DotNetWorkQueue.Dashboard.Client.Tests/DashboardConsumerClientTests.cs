@@ -842,8 +842,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var httpClient = (HttpClient)field.GetValue(client);
 
             // A disposed HttpClient throws ObjectDisposedException on use
-            Action act = () => httpClient.GetAsync("http://localhost:5000/test").GetAwaiter().GetResult();
-            act.Should().Throw<ObjectDisposedException>();
+            Func<Task> act = () => httpClient.GetAsync("http://localhost:5000/test");
+            await act.Should().ThrowAsync<ObjectDisposedException>();
         }
 
         [TestMethod]

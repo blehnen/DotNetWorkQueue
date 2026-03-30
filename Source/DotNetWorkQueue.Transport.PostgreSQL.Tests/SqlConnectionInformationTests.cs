@@ -44,6 +44,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         {
             var test = new SqlConnectionInformation(new QueueConnection("MyQueue123", GoodConnection));
             Assert.IsNotNull(test);
+            Assert.AreEqual("MyQueue123", test.QueueName);
         }
 
         [TestMethod]

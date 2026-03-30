@@ -36,6 +36,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
         {
             var test = new ConnectionInformation(new QueueConnection("MyQueue123", ""));
             Assert.IsNotNull(test);
+            Assert.AreEqual("MyQueue123", test.QueueName);
         }
 
         [TestMethod]

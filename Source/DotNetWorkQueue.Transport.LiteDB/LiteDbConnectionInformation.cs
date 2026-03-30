@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.LiteDb
         public LiteDbConnectionInformation(QueueConnection queueConnection) : base(queueConnection)
         {
             ValidateQueueName(queueConnection.Queue);
-            _server = "TODO; not known";
+            _server = queueConnection.Connection;
         }
         #endregion
 
