@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Queue
         /// <value>
         ///   <c>true</c> if running; otherwise, <c>false</c>.
         /// </value>
-        public override bool Running => WorkerTask != null && !WorkerTask.IsCompleted || MessageProcessing != null && MessageProcessing.AsyncTaskCount > 0;
+        public override bool Running => (WorkerTask != null && !WorkerTask.IsCompleted) || (MessageProcessing != null && MessageProcessing.AsyncTaskCount > 0);
 
         /// <summary>
         /// Tries to force terminate the thread if needed

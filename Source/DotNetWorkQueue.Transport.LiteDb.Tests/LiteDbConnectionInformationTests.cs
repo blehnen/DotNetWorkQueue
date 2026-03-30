@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests
         {
             var test = new LiteDbConnectionInformation(new QueueConnection("MyQueue123", GoodConnection));
             Assert.IsNotNull(test);
+            Assert.AreEqual("MyQueue123", test.QueueName);
         }
 
         [TestMethod]

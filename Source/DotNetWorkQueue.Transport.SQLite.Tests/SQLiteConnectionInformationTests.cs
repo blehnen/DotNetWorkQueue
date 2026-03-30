@@ -34,6 +34,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
         {
             var test = new SqliteConnectionInformation(new QueueConnection("MyQueue123", GoodConnection), null);
             Assert.IsNotNull(test);
+            Assert.AreEqual("MyQueue123", test.QueueName);
         }
 
         [TestMethod]

@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Queue
             if (WorkerTask == null)
                 return;
 
-            _log.LogDebug($"Stopping worker thread {WorkerName}");
+            _log.LogDebug($"Stopping worker {WorkerName}");
         }
 
         /// <summary>

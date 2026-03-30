@@ -25,7 +25,7 @@ using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.Memory
 {
     /// <summary>
-    /// Contains connection information for a SQL server queue
+    /// Contains connection information for a memory queue
     /// </summary>
     public class ConnectionInformation : BaseConnectionInformation
     {
