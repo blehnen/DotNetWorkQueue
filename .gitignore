@@ -449,3 +449,4 @@ Source/DotNetWorkQueue.Transport.Memory/DotNetWorkQueue.Transport.Memory.xml
 TeamCity_*.zip
 codcov*.txt
 codecov*.txt
+NuGetScratchbrian/
