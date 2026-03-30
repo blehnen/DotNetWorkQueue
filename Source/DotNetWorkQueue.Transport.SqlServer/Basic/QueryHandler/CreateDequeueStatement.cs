@@ -234,7 +234,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             }
 
             if ((routes != null && routes.Count > 0) || !string.IsNullOrEmpty(userQuery))
-            { //TODO - cache based on route
+            { //NOTE: Route-based caching deferred; see CONCERNS.md L-4
                 return sb.ToString();
             }
             return _commandCache.Add(DequeueKey, sb.ToString());

@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             //if we are holding open transactions, we need to update the status table in a separate call
             //When not using held transactions, this is part of the de-queue statement and so not needed here
 
-            //TODO - we could consider using a task to update the status table
+            //NOTE: Synchronous status update is intentional; async would add complexity without measurable benefit at current scale.
             //the status table drives nothing internally, however it may drive external processes
             //because of that, we are not returning the message until the status table is updated.
             //we could make this a configurable option in the future?
