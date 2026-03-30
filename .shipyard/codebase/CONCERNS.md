@@ -12,9 +12,9 @@ Last updated: 2026-03-30
 |----------|-------|----------|
 | Critical | 2 | 2 accepted risk |
 | High | 7 | 3 fully, 1 accepted risk (partial) |
-| Medium | 11 | 2 |
-| Low | 10 | 2 resolved, 1 will not fix |
-| **Total** | **30** | **11** |
+| Medium | 11 | 5 |
+| Low | 10 | 3 resolved, 1 will not fix |
+| **Total** | **30** | **16** |
 
 ---
 
@@ -170,23 +170,27 @@ Last updated: 2026-03-30
 - **Impact**: The `InterceptorFactory` HACK creates three separate container resolutions per interceptor creation. The missing route-based caching in dequeue queries means SQL strings are regenerated on every dequeue when routes are in use, adding allocation pressure under high throughput.
 - **Recommendation**: Address the route-based caching TODO for performance. Fix the LiteDb server string. Evaluate whether SimpleInjector's decorator registration can replace the `InterceptorFactory` HACK.
 
-### M-4: xUnit Artifacts Remain After MSTest Migration
+### M-4: xUnit Artifacts Remain After MSTest Migration [Resolved - 2026-03-30]
 
 - **Category**: Debt
+- **Status**: Resolved
 - **Location**:
   - `Source/xunit.runner.json` (file at solution root, dated Feb 2020)
   - `Source/DotNetWorkQueue.IntegrationTests.Shared/ConsumerAsync/Implementation/SimpleConsumerAsync.cs` (line 105) -- `#pragma warning disable xUnit1013`
 - **Description**: The project was migrated from xUnit to MSTest, but residual xUnit artifacts remain: the `xunit.runner.json` configuration file and a `#pragma warning disable xUnit1013` directive.
 - **Impact**: Minor confusion for new contributors. The `xUnit1013` pragma warning is meaningless under MSTest and suggests incomplete cleanup.
 - **Recommendation**: Delete `Source/xunit.runner.json`, remove the `#pragma warning disable xUnit1013` directive.
+- **Resolution**: Deleted `Source/xunit.runner.json` and removed `#pragma warning disable xUnit1013` from `SimpleConsumerAsync.cs`.
 
-### M-5: SQLite `.csproj` Has Malformed DocumentationFile Path
+### M-5: SQLite `.csproj` Has Malformed DocumentationFile Path [Resolved - 2026-03-30]
 
 - **Category**: Debt
+- **Status**: Resolved
 - **Location**: `Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj` (lines 45, 52, 59)
 - **Description**: The `DocumentationFile` element for netstandard2.0, net10.0, and net8.0 Release configurations contains an XML-encoded `>` character: `<DocumentationFile>&gt;DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>` (which decodes to `>DotNetWorkQueue.Transport.SQLite.xml`). The net48 configuration on line 40 and line 67 are correct.
 - **Impact**: XML documentation may not be generated correctly for Release builds of the SQLite transport on non-net48 targets.
 - **Recommendation**: Remove the leading `>` from the three affected `DocumentationFile` entries.
+- **Resolution**: Removed leading `>` from 3 malformed `DocumentationFile` entries in SQLite `.csproj` (lines 45, 52, 59).
 
 ### M-6: Silent Exception Swallowing in Transport Init Classes
 
@@ -208,9 +212,10 @@ Last updated: 2026-03-30
 - **Impact**: If hash codes are ever persisted or compared across processes (e.g., in distributed scenarios), they will not be consistent. Within a single process lifetime, this is functionally correct for dictionary keys.
 - **Recommendation**: [Inferred] Likely only used within a single process. Document this limitation. If cross-process consistency is ever needed, use a deterministic hash function.
 
-### M-8: Stale Archive and Data Files Checked into Repository
+### M-8: Stale Archive and Data Files Checked into Repository [Resolved - 2026-03-30]
 
 - **Category**: Debt
+- **Status**: Resolved
 - **Location**:
   - `Source/Source.7z` (58 KB, dated Mar 9)
   - `TeamCity_DotNetWorkQueueGitCore_20260324_130127.zip` (38 KB, dated Mar 24)
@@ -220,6 +225,7 @@ Last updated: 2026-03-30
 - **Description**: Multiple files that appear to be temporary working artifacts, CI exports, or personal notes are present as untracked files in the repository. The `Source.7z` and `TeamCity_*.zip` are binary archives. The `codcov*.txt` files appear to be code coverage dumps. The `.DotSettings.user` file contains user-specific IDE settings.
 - **Impact**: Repository bloat and confusion about which files are part of the project. Binary archives cannot be diffed by git.
 - **Recommendation**: Add these patterns to `.gitignore`. Remove the files from the working tree if they are not needed. If any are intentional, move them to a dedicated `docs/notes/` directory.
+- **Resolution**: Added `*.7z`, `TeamCity_*.zip`, `codcov*.txt`, `codecov*.txt` patterns to `.gitignore`. Deleted `Source/Source.7z`, `TeamCity_*.zip`, and `.DotSettings.user` files.
 
 ### M-9: Dashboard API Lacks CORS Configuration
 
@@ -290,13 +296,15 @@ Last updated: 2026-03-30
 - **Impact**: Under high-throughput scenarios with routing enabled, a new SQL string is constructed via `StringBuilder` on every dequeue operation. This adds GC pressure from string allocations.
 - **Recommendation**: Implement a cache keyed on the sorted route list hash to avoid regenerating identical SQL strings.
 
-### L-5: `LiteDbConnectionInformation.Server` Returns "TODO; not known"
+### L-5: `LiteDbConnectionInformation.Server` Returns "TODO; not known" [Resolved - 2026-03-30]
 
 - **Category**: Debt
+- **Status**: Resolved
 - **Location**: `Source/DotNetWorkQueue.Transport.LiteDB/LiteDbConnectionInformation.cs` (line 39)
 - **Description**: The `Server` property is hardcoded to the literal string `"TODO; not known"`. The `Container` property delegates to `Server`, so both return this placeholder.
 - **Impact**: Any monitoring or logging that relies on `Server` or `Container` for the LiteDB transport will display a misleading placeholder value. Dashboard UI or admin tools may display "TODO; not known" as the server name.
 - **Recommendation**: Parse the LiteDB connection string to extract the database file path and use it as the Server value. For in-memory databases, return a descriptive string like "LiteDB (In-Memory)".
+- **Resolution**: Replaced `_server = "TODO; not known"` with `_server = queueConnection.Connection` in `LiteDbConnectionInformation.cs`, returning the connection string as the server identifier.
 
 ### L-6: Dashboard UI Project Uses Blazor Server SDK (`Microsoft.NET.Sdk.Web`)
 
@@ -354,14 +362,16 @@ Last updated: 2026-03-30
 - **Impact**: Low direct risk (test-only code), but integration tests are not validating the production serialization security boundary.
 - **Recommendation**: Update the test helper to use the same binder configuration as production code, or at minimum add a comment explaining why the binder is omitted.
 
-### N-4: Stale XML Documentation File References Deleted Types (Low)
+### N-4: Stale XML Documentation File References Deleted Types [Resolved - 2026-03-30]
 
 - **Category**: Debt
+- **Status**: Resolved
 - **Location**:
   - `Source/DotNetWorkQueue/DotNetWorkQueue.xml` -- references `AbortWorkerThread`, `IAbortWorkerThread`, `AbortWorkerThreadDecorator`, `AbortWorkerThreadsWhenStopping`, and the old `StopThread` constructor that accepted `IAbortWorkerThread`
 - **Description**: The generated XML documentation file has not been regenerated since the Thread Management Modernization changes. It still contains documentation entries for deleted types and members. Grep confirms 12+ references to removed types in this file.
 - **Impact**: Minimal -- this file is auto-generated during builds. However, if the file is committed in this stale state, IntelliSense consumers of the NuGet package would see documentation for types that no longer exist.
 - **Recommendation**: Rebuild the project in Release mode to regenerate the XML file, then commit the updated version.
+- **Resolution**: Regenerated XML documentation via Release build. Stale references to `AbortWorkerThread` and related deleted types are gone. Note: XML file is gitignored so this is a local-only cleanup.
 
 ### N-5: Synchronous `Task.Wait()` in Worker Termination Helpers (Low)
 
@@ -391,11 +401,11 @@ Last updated: 2026-03-30
 | M-1 | `Thread.Abort()` in .NET Framework code path | Debt | Medium | [Resolved - 2026-03-29] | Observed |
 | M-2 | Manual thread management instead of Task-based | Debt | Medium | [Resolved - 2026-03-29] | Observed |
 | M-3 | 5 TODO/HACK comments in production code | Debt | Medium | Open | Observed |
-| M-4 | xUnit artifacts remain after MSTest migration | Debt | Medium | Open | Observed |
-| M-5 | Malformed `DocumentationFile` path in SQLite `.csproj` | Debt | Medium | Open | Observed |
+| M-4 | xUnit artifacts remain after MSTest migration | Debt | Medium | [Resolved - 2026-03-30] | Observed |
+| M-5 | Malformed `DocumentationFile` path in SQLite `.csproj` | Debt | Medium | [Resolved - 2026-03-30] | Observed |
 | M-6 | Silent exception swallowing in transport init | Maintenance | Medium | Open | Observed |
 | M-7 | `string.GetHashCode()` for connection identity | Correctness | Medium | Open | Observed |
-| M-8 | Stale archives and data files in repository | Debt | Medium | Open | Observed |
+| M-8 | Stale archives and data files in repository | Debt | Medium | [Resolved - 2026-03-30] | Observed |
 | M-9 | Dashboard API lacks CORS configuration | Security | Medium | Open | Inferred |
 | M-10 | Nullable reference types not enabled | Maintenance | Medium | Open | Observed |
 | M-11 | Broad `catch (Exception)` throughout codebase | Maintenance | Medium | Open | Observed |
@@ -403,14 +413,14 @@ Last updated: 2026-03-30
 | L-2 | Triple container resolution in `InterceptorFactory` | Performance | Low | Open | Observed |
 | L-3 | .NET Framework 4.8 multi-targeting burden | Maintenance | Low | Will Not Fix (2026-03-30) | Observed |
 | L-4 | Dequeue SQL not cached when routes are used | Performance | Low | Open | Observed |
-| L-5 | `LiteDbConnectionInformation.Server` returns "TODO" | Debt | Low | Open | Observed |
+| L-5 | `LiteDbConnectionInformation.Server` returns "TODO" | Debt | Low | [Resolved - 2026-03-30] | Observed |
 | L-6 | Dashboard UI uses Web SDK instead of Razor SDK | Maintenance | Low | Open | Inferred |
 | L-7 | `IsRelationalTransport` swallows activation errors | Maintenance | Low | Open | Observed |
 | L-8 | `GetHashCode()` non-determinism across TFMs | Correctness | Low | Open | Observed |
 | N-1 | Memory transport lacks queue name validation | Consistency | Low | New | Observed |
 | N-2 | DenyList binder may not cover generic type args | Security | Medium | New | Inferred |
 | N-3 | Integration test uses `TypeNameHandling.All` without binder | Security/Testing | Medium | New | Observed |
-| N-4 | Stale XML doc file references deleted types | Debt | Low | New | Observed |
+| N-4 | Stale XML doc file references deleted types | Debt | Low | [Resolved - 2026-03-30] | Observed |
 | N-5 | Synchronous `Task.Wait()` in termination helpers | Maintenance | Low | New | Observed |
 
 ## Open Questions
