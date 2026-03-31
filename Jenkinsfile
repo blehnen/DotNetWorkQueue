@@ -262,7 +262,7 @@ pipeline {
                     sh '''
                         curl -Os https://cli.codecov.io/latest/linux/codecov
                         chmod +x codecov
-                        ./codecov --file coverage/report/Cobertura.xml --token "$CODECOV_TOKEN" || echo "Codecov upload failed (non-fatal)"
+                        ./codecov upload-process --file coverage/report/Cobertura.xml --token "$CODECOV_TOKEN" || echo "Codecov upload failed (non-fatal)"
                     '''
                 }
 
