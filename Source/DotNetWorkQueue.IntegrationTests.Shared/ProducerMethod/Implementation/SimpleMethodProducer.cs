@@ -45,6 +45,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
                             verify, sendViaBatch, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope,
                             enableChaos);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<TTransportInit>(queueConnection, interceptors, messageCount,
@@ -53,6 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
                             verify, sendViaBatch, id, GenerateMethod.CreateDynamic, 0, oCreation.Scope,
                             enableChaos);
                     }
+#endif
 
                 }
                 finally

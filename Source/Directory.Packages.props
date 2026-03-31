@@ -33,6 +33,7 @@
     <PackageVersion Include="LiteDB" Version="5.0.21" />
 
     <!-- Test Infrastructure -->
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AutoFixture.AutoNSubstitute" Version="4.18.1" />
     <PackageVersion Include="CompareNETObjects" Version="4.84.0" />

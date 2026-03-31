@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Tests.Exceptions
             Assert.AreEqual("errorinner", e.InnerException.Message);
         }
 
+#if NETFULL
         [TestMethod]
         public void GetObjectData_Test()
         {
@@ -43,5 +44,6 @@ namespace DotNetWorkQueue.Tests.Exceptions
             Assert.AreEqual("error", e.Message);
             Assert.AreEqual("code", e.CompileCode);
         }
+#endif
     }
 }

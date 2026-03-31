@@ -1,31 +1,33 @@
-﻿namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
+﻿using System;
+using System.IO;
+
+namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
     public class ConnectionInfo
     {
-        /// <summary>
-        /// The connection string to the redis server for the integration tests. All tests in this project will use this connection string for linux tests
-        /// </summary>
-        private const string ConnectionStringLinux = "192.168.0.2,defaultDatabase=1,syncTimeout=15000";
-        /// <summary>
-        /// The connection string to the redis server for the integration tests. All tests in this project will use this connection string for windows tests
-        /// </summary>
-        private readonly ConnectionInfoTypes _type;
+        private static string _connectionString;
+
         public ConnectionInfo(ConnectionInfoTypes type)
         {
-            _type = type;
+            // type parameter kept for backward compatibility with existing test DataRow attributes
         }
 
         public string ConnectionString
         {
             get
             {
-                switch (_type)
+                if (!string.IsNullOrEmpty(_connectionString))
+                    return _connectionString;
+
+                var connectionString = File.ReadAllText("connectionstring.txt");
+                _connectionString = connectionString.Trim();
+
+                if (string.IsNullOrEmpty(_connectionString))
                 {
-                    case ConnectionInfoTypes.Linux:
-                        return ConnectionStringLinux;
-                    default:
-                        return string.Empty;
+                    throw new NullReferenceException("connectionstring.txt is missing or contains no data");
                 }
+
+                return _connectionString;
             }
         }
     }

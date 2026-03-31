@@ -45,6 +45,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                             verify, false, id, GenerateMethod.CreateCancelCompiled, runtime,
                             oCreation.Scope, false);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
@@ -52,6 +53,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                             verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, oCreation.Scope,
                             false);
                     }
+#endif
 
 
                     var consumer = new ConsumerMethodHeartBeatShared();

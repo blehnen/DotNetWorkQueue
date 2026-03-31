@@ -11,10 +11,10 @@ Last updated: 2026-03-30
 | Severity | Count | Resolved |
 |----------|-------|----------|
 | Critical | 2 | 2 accepted risk |
-| High | 7 | 3 fully, 1 accepted risk (partial) |
-| Medium | 11 | 5 |
+| High | 7 | 5 fully, 1 accepted risk (partial), 1 partially resolved |
+| Medium | 11 | 8 |
 | Low | 10 | 3 resolved, 1 will not fix |
-| **Total** | **30** | **16** |
+| **Total** | **30** | **22** |
 
 ---
 
@@ -80,30 +80,30 @@ Last updated: 2026-03-30
 - **Resolution**: All 5 transport-specific connection info classes now validate queue names with compiled `Regex` patterns in their constructors, restricting to alphanumeric characters, underscores, and dots (Redis also allows hyphens). Length limits are enforced per transport. SQL injection via queue names is no longer possible.
 - **Note**: The Memory transport uses `BaseConnectionInformation` directly (no custom connection info class), which does not perform queue name validation. This is acceptable since the Memory transport does not construct SQL or use queue names as identifiers in any external store, but it is an inconsistency. See new concern N-1.
 
-### H-3: Dashboard API Has No HTTPS Enforcement, CORS Policy, Rate Limiting, or Health Check
+### H-3: Dashboard API Has No HTTPS Enforcement, CORS Policy, Rate Limiting, or Health Check (Partially Resolved)
 
 - **Category**: Security / Operational
+- **Status**: Partially Resolved (2026-03-30)
 - **Location**:
   - `Source/DotNetWorkQueue.Dashboard.Api/` (entire project)
   - `Source/DotNetWorkQueue.Dashboard.Api/Middleware/ApiKeyAuthorizationFilter.cs`
-  - `Source/DotNetWorkQueue.Dashboard.Api/Middleware/DashboardExceptionFilter.cs`
-- **Description**: The Dashboard API exposes REST endpoints for monitoring and managing queues (including delete, reset, and requeue operations). While it has an optional API key filter and a read-only mode filter, it lacks several security and operational essentials:
-  - No HTTPS redirection or HSTS enforcement
-  - No CORS policy configuration (defaults to allowing all origins)
-  - No rate limiting on endpoints
-  - No health check endpoint for load balancers or orchestrators
+- **Description**: The Dashboard API exposes REST endpoints for monitoring and managing queues (including delete, reset, and requeue operations). While it has an optional API key filter and a read-only mode filter, several items were addressed and others remain:
+  - ~~No CORS policy configuration~~ — **Resolved**: Configurable CORS policy added (commit `df13d011`)
+  - ~~No health check endpoint~~ — **Resolved**: GET /health endpoint added (commit `f777b139`)
+  - ~~README lacks deployment guidance~~ — **Resolved**: Internal-only recommendation + infrastructure-layer note for HTTPS/rate-limiting added
+  - No HTTPS redirection or HSTS enforcement — documented as infrastructure concern (reverse proxy / load balancer responsibility)
+  - No rate limiting on endpoints — documented as infrastructure concern
   - The API key authentication uses `string.Equals(providedKey, _options.ApiKey, StringComparison.Ordinal)` (line 47 of `ApiKeyAuthorizationFilter.cs`) -- this is not timing-safe and transmits the key in a header without requiring TLS
-- **Impact**: The dashboard could be exposed to cross-origin attacks, brute-force API key guessing, and information disclosure. Lack of health checks makes it harder to operate in containerized environments.
-- **Recommendation**: Add `UseHttpsRedirection()`, configure a CORS policy, add rate limiting middleware, and implement a `/health` endpoint. Consider using `CryptographicOperations.FixedTimeEquals` for the API key comparison.
+- **Remaining impact**: API key comparison is not timing-safe. HTTPS and rate limiting are deferred to infrastructure.
+- **Recommendation**: Consider using `CryptographicOperations.FixedTimeEquals` for the API key comparison. HTTPS/rate-limiting are documented as infrastructure-layer responsibilities.
 
-### H-4: Exception Messages Returned Directly in API Responses (Information Disclosure)
+### H-4: Exception Messages Returned Directly in API Responses [Resolved - 2026-03-30]
 
 - **Category**: Security
+- **Status**: Resolved
 - **Location**:
-  - `Source/DotNetWorkQueue.Dashboard.Api/Middleware/DashboardExceptionFilter.cs` (lines ~40-60)
-- **Description**: The `DashboardExceptionFilter` returns `context.Exception.Message` directly in HTTP responses for `InvalidOperationException` (404) and `NotSupportedException` (501). The `ObjectDisposedException` case correctly returns a generic "Service unavailable" message, but the other two cases leak exception details. Exception messages may contain internal implementation details, stack paths, or connection information.
-- **Impact**: Information disclosure to API consumers. Exception messages from database drivers or internal libraries often include sensitive details like server names, file paths, or query fragments.
-- **Recommendation**: Return generic error messages in production and only include exception details when a development/debug flag is enabled.
+  - `Source/DotNetWorkQueue.Dashboard.Api/Middleware/DashboardExceptionFilter.cs`
+- **Resolution**: The `DashboardExceptionFilter` now checks `IHostEnvironment.IsDevelopment()`. In non-Development environments, `InvalidOperationException` and `NotSupportedException` return generic error messages (`"An internal error occurred"`). In Development, full exception messages are returned for debugging. Full exceptions are always logged server-side regardless of environment.
 
 ### H-5: DashboardConsumerClient Now Implements IAsyncDisposable [Resolved - 2026-03-27]
 
@@ -113,13 +113,14 @@ Last updated: 2026-03-30
   - `Source/DotNetWorkQueue.Dashboard.Client/DashboardConsumerClient.cs`
 - **Resolution**: The class now implements both `IDisposable` and `IAsyncDisposable`. The `DisposeAsync()` method properly awaits `StopAsync()` (which performs the HTTP DELETE unregistration) before disposing resources. The synchronous `Dispose()` method explicitly avoids the sync-over-async anti-pattern -- it does NOT attempt the HTTP DELETE call, instead relying on the dashboard server's heartbeat pruning to handle orphaned consumers. The code comments clearly document this design decision: "Do not attempt HTTP DELETE synchronously -- sync-over-async causes deadlocks in SynchronizationContext environments."
 
-### H-6: No Centralized Package Version Management
+### H-6: No Centralized Package Version Management [Resolved - 2026-03-30]
 
 - **Category**: Maintenance / Debt
-- **Location**: All `.csproj` files across the solution (36 projects)
-- **Description**: There is no `Directory.Build.props` or `Directory.Packages.props` file. Each project independently specifies its package versions, target frameworks, build properties, and conditional compilation symbols. Package versions must be updated in every `.csproj` file individually. Several packages appear across multiple projects (e.g., `Polly.Core 8.6.5` in both core and PostgreSQL).
-- **Impact**: Version drift risk when updating dependencies. Significant maintenance overhead for version bumps. Common properties like `Version`, `Authors`, `Copyright` are duplicated across all `.csproj` files.
-- **Recommendation**: Introduce `Directory.Build.props` for shared metadata (Version, Authors, Copyright, TargetFrameworks) and `Directory.Packages.props` for centralized NuGet version management.
+- **Status**: Resolved
+- **Location**:
+  - `Source/Directory.Packages.props` — all consolidated package versions
+  - `Source/Directory.Build.props` — `<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>`
+- **Resolution**: Introduced `Directory.Packages.props` for centralized NuGet version management and `Directory.Build.props` to enable the feature. All 36 `.csproj` files had `Version=` attributes stripped from `<PackageReference>` elements. Package versions are now managed in a single location (commit `858a4877`).
 
 ### H-7: `IntegrationTests.Metrics` Project Removed [Resolved - 2026-03-27]
 
@@ -157,18 +158,16 @@ Last updated: 2026-03-30
 - **Resolution**: All worker classes now use `Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning)` instead of `new Thread(MainLoop)`. `WorkerBase` stores a `Task WorkerTask` field instead of `Thread`. `MultiWorkerBase.Running` checks `WorkerTask.IsCompleted`. `WorkerTerminate.AttemptToTerminate` and `WaitForThreadToFinish.Wait` now operate on `Task` instead of `Thread`. `StopThread.TryForceTerminate` accepts `Task` and delegates to `WaitForThreadToFinish`. No `new Thread(` calls remain in the core library.
 - **Note**: The termination helpers use synchronous `Task.Wait()` (blocking) rather than `await`. This is acceptable for shutdown paths but see new concern N-5 for details.
 
-### M-3: TODO/HACK Comments Indicate Unfinished Work
+### M-3: TODO/HACK Comments Indicate Unfinished Work [Resolved - 2026-03-30]
 
 - **Category**: Debt
+- **Status**: Resolved
 - **Location**:
-  - `Source/DotNetWorkQueue/Factory/InterceptorFactory.cs` (line 52) -- `//HACK for now - it's not clear to me if simple injector supports this pattern`
-  - `Source/DotNetWorkQueue.Transport.LiteDB/LiteDbConnectionInformation.cs` (line 39) -- `_server = "TODO; not known"`
-  - `Source/DotNetWorkQueue.Transport.PostgreSQL/Basic/QueryHandler/ReceiveMessage.cs` (line 175) -- `//TODO - cache based on route`
-  - `Source/DotNetWorkQueue.Transport.SqlServer/Basic/QueryHandler/CreateDequeueStatement.cs` (line 237) -- `//TODO - cache based on route`
-  - `Source/DotNetWorkQueue.Transport.SqlServer/Basic/Message/ReceiveMessage.cs` (line 100) -- `//TODO - we could consider using a task to update the status table`
-- **Description**: Five TODO/HACK comments in production code indicate deferred decisions or incomplete implementations. The `InterceptorFactory` HACK manually creates decorator chains instead of using the IoC container's decorator support. The `LiteDbConnectionInformation` has a literal "TODO" as its server value. Two transports bypass dequeue SQL caching when routes are involved.
-- **Impact**: The `InterceptorFactory` HACK creates three separate container resolutions per interceptor creation. The missing route-based caching in dequeue queries means SQL strings are regenerated on every dequeue when routes are in use, adding allocation pressure under high throughput.
-- **Recommendation**: Address the route-based caching TODO for performance. Fix the LiteDb server string. Evaluate whether SimpleInjector's decorator registration can replace the `InterceptorFactory` HACK.
+  - `Source/DotNetWorkQueue/Factory/InterceptorFactory.cs` (line 52)
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL/Basic/QueryHandler/ReceiveMessage.cs` (line 175)
+  - `Source/DotNetWorkQueue.Transport.SqlServer/Basic/QueryHandler/CreateDequeueStatement.cs` (line 237)
+  - `Source/DotNetWorkQueue.Transport.SqlServer/Basic/Message/ReceiveMessage.cs` (line 100)
+- **Resolution**: All TODO/HACK comments in production code replaced with NOTE comments explaining the design rationale (commit `8e019c1f`). The LiteDb server string was fixed separately (see L-5). The underlying performance items (route-based SQL caching, InterceptorFactory triple resolution) remain as separate concerns L-4 and L-2.
 
 ### M-4: xUnit Artifacts Remain After MSTest Migration [Resolved - 2026-03-30]
 
@@ -227,13 +226,14 @@ Last updated: 2026-03-30
 - **Recommendation**: Add these patterns to `.gitignore`. Remove the files from the working tree if they are not needed. If any are intentional, move them to a dedicated `docs/notes/` directory.
 - **Resolution**: Added `*.7z`, `TeamCity_*.zip`, `codcov*.txt`, `codecov*.txt` patterns to `.gitignore`. Deleted `Source/Source.7z`, `TeamCity_*.zip`, and `.DotSettings.user` files.
 
-### M-9: Dashboard API Lacks CORS Configuration
+### M-9: Dashboard API Lacks CORS Configuration [Resolved - 2026-03-30]
 
 - **Category**: Security
-- **Location**: `Source/DotNetWorkQueue.Dashboard.Api/` (entire project -- no CORS middleware found)
-- **Description**: The Dashboard API project has no CORS configuration (`AddCors`/`UseCors`). When the Blazor UI (`DotNetWorkQueue.Dashboard.Ui`) is served from a different origin than the API, browser-enforced CORS restrictions will block API calls.
-- **Impact**: The Dashboard UI may not be able to communicate with the API if they are hosted on different origins. Without explicit CORS configuration, the ASP.NET default is to deny cross-origin requests.
-- **Recommendation**: [Inferred] The Dashboard UI appears to be Blazor Server (not Blazor WebAssembly), which makes API calls server-side, so CORS may not be needed. If the API is intended to be called from browser clients, add explicit CORS configuration.
+- **Status**: Resolved
+- **Location**:
+  - `Source/DotNetWorkQueue.Dashboard.Api/DashboardApi.cs`
+  - `Source/DotNetWorkQueue.Dashboard.Api/Configuration/DashboardQueueOptions.cs`
+- **Resolution**: Configurable CORS policy added via `DashboardQueueOptions.CorsOrigins` property. CORS middleware is wired in `DashboardApi` when origins are configured. Default is no origins (deny cross-origin), matching the Blazor Server deployment model where API calls are server-side (commit `df13d011`).
 
 ### M-10: `Nullable` Reference Types Not Enabled Across Most Projects
 
@@ -353,14 +353,13 @@ Last updated: 2026-03-30
 - **Impact**: [Inferred] An attacker who understands this gap could potentially bypass the deny list by wrapping a gadget type inside a generic container. The practical exploitability depends on whether Newtonsoft.Json calls `BindToType` for each type argument individually (it typically does for `TypeNameHandling.Auto`), which would make this less of an issue.
 - **Recommendation**: Verify experimentally whether Newtonsoft.Json calls `BindToType` for generic type arguments. If not, consider also scanning the `typeName` parameter for substring matches against denied types, or switch to the `AllowListSerializationBinder` as the default.
 
-### N-3: Integration Test `Helpers.cs` Still Uses `TypeNameHandling.All` Without Binder (Medium)
+### N-3: Integration Test `Helpers.cs` Still Uses `TypeNameHandling.All` Without Binder [Resolved - 2026-03-30]
 
 - **Category**: Security / Testing
+- **Status**: Resolved
 - **Location**:
   - `Source/DotNetWorkQueue.IntegrationTests.Shared/Helpers.cs` (line 112)
-- **Description**: The integration test helper uses `TypeNameHandling = TypeNameHandling.All` without specifying any `ISerializationBinder`. While this is test code and not shipped to consumers, it sets a bad example and could be copy-pasted into production code. It also means integration tests do not exercise the `DenyListSerializationBinder` code path.
-- **Impact**: Low direct risk (test-only code), but integration tests are not validating the production serialization security boundary.
-- **Recommendation**: Update the test helper to use the same binder configuration as production code, or at minimum add a comment explaining why the binder is omitted.
+- **Resolution**: Added `SerializationBinder = new DenyListSerializationBinder()` to the `JsonSerializerSettings` in the test helper alongside `TypeNameHandling.All`. Integration tests now exercise the production serialization security boundary (commit `8e019c1f`).
 
 ### N-4: Stale XML Documentation File References Deleted Types [Resolved - 2026-03-30]
 
@@ -393,20 +392,20 @@ Last updated: 2026-03-30
 | C-2 | Dynamic LINQ compilation executes arbitrary code | Security | Critical | Accepted Risk (2026-03-30) | Observed |
 | H-1 | Vendored binary DLLs with no source/provenance | Dependency/Security | High | Accepted Risk (Partial) (2026-03-30) | Observed |
 | H-2 | Queue names validated with regex in all transports | Security | High | [Resolved - 2026-03-27] | Observed |
-| H-3 | Dashboard API missing HTTPS/CORS/rate limiting/health | Security/Operational | High | Open | Observed |
-| H-4 | Exception messages exposed in API responses | Security | High | Open | Observed |
+| H-3 | Dashboard API missing HTTPS/CORS/rate limiting/health | Security/Operational | High | Partially Resolved (2026-03-30) | Observed |
+| H-4 | Exception messages exposed in API responses | Security | High | [Resolved - 2026-03-30] | Observed |
 | H-5 | `DashboardConsumerClient` implements `IAsyncDisposable` | Performance | High | [Resolved - 2026-03-27] | Observed |
-| H-6 | No centralized package version management | Maintenance | High | Open | Observed |
+| H-6 | No centralized package version management | Maintenance | High | [Resolved - 2026-03-30] | Observed |
 | H-7 | `IntegrationTests.Metrics` project removed | Debt | High | [Resolved - 2026-03-27] | Observed |
 | M-1 | `Thread.Abort()` in .NET Framework code path | Debt | Medium | [Resolved - 2026-03-29] | Observed |
 | M-2 | Manual thread management instead of Task-based | Debt | Medium | [Resolved - 2026-03-29] | Observed |
-| M-3 | 5 TODO/HACK comments in production code | Debt | Medium | Open | Observed |
+| M-3 | 5 TODO/HACK comments in production code | Debt | Medium | [Resolved - 2026-03-30] | Observed |
 | M-4 | xUnit artifacts remain after MSTest migration | Debt | Medium | [Resolved - 2026-03-30] | Observed |
 | M-5 | Malformed `DocumentationFile` path in SQLite `.csproj` | Debt | Medium | [Resolved - 2026-03-30] | Observed |
 | M-6 | Silent exception swallowing in transport init | Maintenance | Medium | Open | Observed |
 | M-7 | `string.GetHashCode()` for connection identity | Correctness | Medium | Open | Observed |
 | M-8 | Stale archives and data files in repository | Debt | Medium | [Resolved - 2026-03-30] | Observed |
-| M-9 | Dashboard API lacks CORS configuration | Security | Medium | Open | Inferred |
+| M-9 | Dashboard API lacks CORS configuration | Security | Medium | [Resolved - 2026-03-30] | Observed |
 | M-10 | Nullable reference types not enabled | Maintenance | Medium | Open | Observed |
 | M-11 | Broad `catch (Exception)` throughout codebase | Maintenance | Medium | Open | Observed |
 | L-1 | Spin-wait in `BaseMonitor.Cancel()` | Performance | Low | [Resolved - 2026-03-29] | Observed |
@@ -419,7 +418,7 @@ Last updated: 2026-03-30
 | L-8 | `GetHashCode()` non-determinism across TFMs | Correctness | Low | Open | Observed |
 | N-1 | Memory transport lacks queue name validation | Consistency | Low | New | Observed |
 | N-2 | DenyList binder may not cover generic type args | Security | Medium | New | Inferred |
-| N-3 | Integration test uses `TypeNameHandling.All` without binder | Security/Testing | Medium | New | Observed |
+| N-3 | Integration test uses `TypeNameHandling.All` without binder | Security/Testing | Medium | [Resolved - 2026-03-30] | Observed |
 | N-4 | Stale XML doc file references deleted types | Debt | Low | [Resolved - 2026-03-30] | Observed |
 | N-5 | Synchronous `Task.Wait()` in termination helpers | Maintenance | Low | New | Observed |
 

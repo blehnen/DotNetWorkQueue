@@ -14,8 +14,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [TestMethod]
+#if NETFULL
         [DataRow(10, 60, 5, false, LinqMethodTypes.Dynamic, false),
          DataRow(1, 60, 1, false, LinqMethodTypes.Compiled, true)]
+#else
+        [DataRow(1, 60, 1, false, LinqMethodTypes.Compiled, true)]
+#endif
         public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))

@@ -1,15 +1,18 @@
-using System;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Queue;
+#if NETFULL
+using System;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod;
 using DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod;
-using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Integration.Tests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+#endif
 
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
 {
+#if NETFULL
     [TestClass]
     public class ConsumerMethodMultipleDynamic
     {
@@ -35,4 +38,5 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
             }
         }
     }
+#endif
 }

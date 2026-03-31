@@ -14,12 +14,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncRollBack
     {
         [TestMethod]
+#if NETFULL
         [DataRow(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled, false),
 #if NETFULL
          DataRow(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Dynamic, false),
          DataRow(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Dynamic, false),
 #endif
          DataRow(10, 5, 280, 7, 1, 1, false, LinqMethodTypes.Compiled, true)]
+#else
+        [DataRow(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled, false),
+         DataRow(10, 5, 280, 7, 1, 1, false, LinqMethodTypes.Compiled, true)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

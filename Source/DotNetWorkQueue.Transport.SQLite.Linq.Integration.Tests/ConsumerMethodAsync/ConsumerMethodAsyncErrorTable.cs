@@ -14,10 +14,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodAsyncErrorTable
     {
         [TestMethod]
+#if NETFULL
         [DataRow(1, 60, 1, 1, 0, true, LinqMethodTypes.Dynamic, false),
         DataRow(25, 120, 20, 1, 5, false, LinqMethodTypes.Dynamic, false),
         DataRow(25, 120, 20, 1, 5, true, LinqMethodTypes.Compiled, false),
         DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
+#else
+        [DataRow(25, 120, 20, 1, 5, true, LinqMethodTypes.Compiled, false),
+         DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
+#endif
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

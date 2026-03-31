@@ -11,6 +11,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerAsync
     {
         [TestMethod]
+#if NETFULL
         [DataRow(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
 #if NETFULL
         DataRow(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
@@ -20,6 +21,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
         DataRow(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
         DataRow(100, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
         DataRow(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+#else
+        [DataRow(100, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+#endif
         public async Task Run(
            int messageCount,
            bool interceptors,

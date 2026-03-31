@@ -11,6 +11,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
     public class SimpleProducerMethodAsync
     {
         [TestMethod]
+#if NETFULL
         [DataRow(1000, true, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
         DataRow(1000, true, true, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
@@ -37,6 +38,23 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
         DataRow(100, false, true, true, true, true, true, false, LinqMethodTypes.Compiled, true),
          DataRow(100, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, true),
          DataRow(100, true, true, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
+#else
+        [DataRow(1000, true, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         DataRow(1000, false, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         DataRow(1000, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         DataRow(1000, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
+         DataRow(1000, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, false),
+         DataRow(1000, false, true, true, true, true, true, false, LinqMethodTypes.Compiled, false),
+         DataRow(1000, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, false),
+         DataRow(1000, true, true, false, false, false, false, true, LinqMethodTypes.Compiled, false),
+         DataRow(100, false, true, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+         DataRow(100, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+         DataRow(100, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
+         DataRow(100, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, true),
+         DataRow(100, false, true, true, true, true, true, false, LinqMethodTypes.Compiled, true),
+         DataRow(100, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, true),
+         DataRow(100, true, true, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
+#endif
         public async Task Run(
             int messageCount,
             bool interceptors,

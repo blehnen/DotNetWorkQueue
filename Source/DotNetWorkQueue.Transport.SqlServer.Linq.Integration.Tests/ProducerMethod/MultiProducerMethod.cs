@@ -17,8 +17,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
     {
         [TestMethod]
 #if NETFULL
+#if NETFULL
         [DataRow(1000, LinqMethodTypes.Dynamic, false),
          DataRow(1000, LinqMethodTypes.Compiled, false)]
+#else
+        [DataRow(1000, LinqMethodTypes.Compiled, false)]
+#endif
 #else
         [DataRow(10,LinqMethodTypes.Compiled, true)]
 #endif

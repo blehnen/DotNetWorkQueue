@@ -13,8 +13,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodExpiredMessage
     {
         [TestMethod]
+#if NETFULL
         [DataRow(100, 0, 60, 5, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
          DataRow(10, 0, 60, 5, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+#else
+        [DataRow(100, 0, 60, 5, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct)]
+#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

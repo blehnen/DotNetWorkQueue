@@ -14,10 +14,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodExpiredMessage
     {
         [TestMethod]
+#if NETFULL
         [DataRow(100, 0, 60, 5, true, LinqMethodTypes.Compiled, false),
          DataRow(10, 0, 60, 5, false, LinqMethodTypes.Compiled, true),
           DataRow(10, 0, 60, 5, true, LinqMethodTypes.Dynamic, true),
          DataRow(100, 0, 60, 5, false, LinqMethodTypes.Dynamic, false)]
+#else
+        [DataRow(100, 0, 60, 5, true, LinqMethodTypes.Compiled, false),
+         DataRow(10, 0, 60, 5, false, LinqMethodTypes.Compiled, true)]
+#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

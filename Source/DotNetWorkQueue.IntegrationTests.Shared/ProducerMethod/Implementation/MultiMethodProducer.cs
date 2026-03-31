@@ -66,11 +66,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
                     tasks.Add(new Task(() => producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
                         logProvider, generateData, Verify, true, false, id, GenerateMethod.CreateCompiled, 0, scope, enableChaos)));
                 }
+#if NETFULL
                 else
                 {
                     tasks.Add(new Task(() => producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
                         logProvider, generateData, Verify, true, false, id, GenerateMethod.CreateDynamic, 0, scope, enableChaos)));
                 }
+#endif
             }
             tasks.AsParallel().ForAll(x => x.Start());
             Task.WaitAll(tasks.ToArray());

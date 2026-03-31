@@ -16,10 +16,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
         private ITaskFactory Factory { get; set; }
 
         [TestMethod]
+#if NETFULL
         [DataRow(10, 45, 260, 7, 1, 1, 1, false, LinqMethodTypes.Dynamic, false),
          DataRow(10, 45, 260, 7, 1, 1, 1, true, LinqMethodTypes.Dynamic, true),
          DataRow(50, 1, 400, 10, 5, 5, 1, false, LinqMethodTypes.Compiled, true),
          DataRow(50, 5, 200, 10, 1, 2, 1, true, LinqMethodTypes.Compiled, false)]
+#else
+        [DataRow(50, 1, 400, 10, 5, 5, 1, false, LinqMethodTypes.Compiled, true),
+         DataRow(50, 5, 200, 10, 1, 2, 1, true, LinqMethodTypes.Compiled, false)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, int readerCount, int queueSize,
            int messageType, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)

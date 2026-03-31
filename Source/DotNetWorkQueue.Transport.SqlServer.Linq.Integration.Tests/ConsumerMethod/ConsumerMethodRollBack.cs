@@ -15,6 +15,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     {
 
         [TestMethod]
+#if NETFULL
         [DataRow(50, 5, 200, 10, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
          DataRow(50, 5, 200, 10, true, LinqMethodTypes.Dynamic, false),
@@ -22,6 +23,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
 #endif
          DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false),
          DataRow(3, 15, 180, 7, true, LinqMethodTypes.Compiled, true)]
+#else
+        [DataRow(50, 5, 200, 10, false, LinqMethodTypes.Compiled, false),
+         DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false),
+         DataRow(3, 15, 180, 7, true, LinqMethodTypes.Compiled, true)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
