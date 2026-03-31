@@ -14,7 +14,6 @@ pipeline {
                 sh 'dotnet restore "Source/DotNetWorkQueue.sln"'
                 sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug --no-restore'
 
-                // Run all unit tests with coverage
                 sh '''
                     dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
@@ -63,170 +62,207 @@ pipeline {
 
         stage('Integration Tests') {
             parallel {
-                // Agent 1: SqlServer Linq + Redis (~58 min)
-                stage('SqlServerLinq + Redis') {
+                stage('SqlServer') {
                     agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
-
                         withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
-                            sh '''
-                                echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
-                            '''
+                            sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"'
                         }
-
-                        sh '''
-                            dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" \
-                                -f net10.0 -c Debug \
-                                --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver-linq
-
-                            dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
-                                -f net10.0 -c Debug \
-                                --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-redis
-                        '''
-
-                        stash includes: 'coverage/**/*.xml', name: 'coverage-agent1'
-                    }
-                }
-
-                // Agent 2: SqlServer + Dashboard (~54 min)
-                stage('SqlServer + Dashboard') {
-                    agent { label 'docker' }
-                    steps {
-                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
-
-                        withCredentials([
-                            string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN'),
-                            string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')
-                        ]) {
-                            sh '''
-                                echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"
-                                echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
-                                echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-postgresql.txt"
-                                echo "192.168.0.2,defaultDatabase=1,syncTimeout=15000" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-redis.txt"
-                            '''
-                        }
-
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver
-
-                            dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" \
-                                -f net10.0 -c Debug \
-                                --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-dashboard
                         '''
-
-                        stash includes: 'coverage/**/*.xml', name: 'coverage-agent2'
+                        stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver'
                     }
                 }
 
-                // Agent 3: SQLite Linq + Memory (~51 min)
-                stage('SQLiteLinq + Memory') {
+                stage('SqlServer Linq') {
                     agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
-
-                        sh '''
-                            dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" \
-                                -f net10.0 -c Debug \
-                                --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite-linq
-
-                            dotnet test "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" \
-                                -f net10.0 -c Debug \
-                                --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-memory
-                        '''
-
-                        stash includes: 'coverage/**/*.xml', name: 'coverage-agent3'
-                    }
-                }
-
-                // Agent 4: PostgreSQL + Memory Linq (~54 min)
-                stage('PostgreSQL + MemoryLinq') {
-                    agent { label 'docker' }
-                    steps {
-                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
-
-                        withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
-                            sh '''
-                                echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
-                            '''
+                        withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
+                            sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
                         }
+                        sh '''
+                            dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" \
+                                -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver-linq
+                        '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver-linq'
+                    }
+                }
 
+                stage('PostgreSQL') {
+                    agent { label 'docker' }
+                    steps {
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
+                            sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
+                        }
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql
-
-                            dotnet test "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" \
-                                -f net10.0 -c Debug \
-                                --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-memory-linq
                         '''
-
-                        stash includes: 'coverage/**/*.xml', name: 'coverage-agent4'
+                        stash includes: 'coverage/**/*.xml', name: 'cov-postgresql'
                     }
                 }
 
-                // Agent 5: PostgreSQL Linq + LiteDB (~56 min)
-                stage('PostgreSQLLinq + LiteDB') {
+                stage('PostgreSQL Linq') {
                     agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
-
                         withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
-                            sh '''
-                                echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
-                            '''
+                            sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
                         }
-
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql-linq
-
-                            dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" \
-                                -f net10.0 -c Debug \
-                                --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb
                         '''
-
-                        stash includes: 'coverage/**/*.xml', name: 'coverage-agent5'
+                        stash includes: 'coverage/**/*.xml', name: 'cov-postgresql-linq'
                     }
                 }
 
-                // Agent 6: SQLite + LiteDB Linq + Redis Linq (~63 min)
-                stage('SQLite + LiteDBLinq + RedisLinq') {
+                stage('Redis') {
                     agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
-
                         sh '''
-                            dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" \
+                            dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-redis
+                        '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-redis'
+                    }
+                }
 
-                            dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" \
-                                -f net10.0 -c Debug \
-                                --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb-linq
-
+                stage('Redis Linq') {
+                    agent { label 'docker' }
+                    steps {
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-redis-linq
                         '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-redis-linq'
+                    }
+                }
 
-                        stash includes: 'coverage/**/*.xml', name: 'coverage-agent6'
+                stage('SQLite') {
+                    agent { label 'docker' }
+                    steps {
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        sh '''
+                            dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" \
+                                -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite
+                        '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-sqlite'
+                    }
+                }
+
+                stage('SQLite Linq') {
+                    agent { label 'docker' }
+                    steps {
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        sh '''
+                            dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" \
+                                -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite-linq
+                        '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-sqlite-linq'
+                    }
+                }
+
+                stage('LiteDB') {
+                    agent { label 'docker' }
+                    steps {
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        sh '''
+                            dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" \
+                                -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb
+                        '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-litedb'
+                    }
+                }
+
+                stage('LiteDB Linq') {
+                    agent { label 'docker' }
+                    steps {
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        sh '''
+                            dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" \
+                                -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb-linq
+                        '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-litedb-linq'
+                    }
+                }
+
+                stage('Memory') {
+                    agent { label 'docker' }
+                    steps {
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        sh '''
+                            dotnet test "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" \
+                                -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-memory
+                        '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-memory'
+                    }
+                }
+
+                stage('Memory Linq') {
+                    agent { label 'docker' }
+                    steps {
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        sh '''
+                            dotnet test "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" \
+                                -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-memory-linq
+                        '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-memory-linq'
+                    }
+                }
+
+                stage('Dashboard') {
+                    agent { label 'docker' }
+                    steps {
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        withCredentials([
+                            string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN'),
+                            string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')
+                        ]) {
+                            sh '''
+                                echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
+                                echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-postgresql.txt"
+                                echo "192.168.0.2,defaultDatabase=1,syncTimeout=15000" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-redis.txt"
+                            '''
+                        }
+                        sh '''
+                            dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" \
+                                -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-dashboard
+                        '''
+                        stash includes: 'coverage/**/*.xml', name: 'cov-dashboard'
                     }
                 }
             }
@@ -235,16 +271,21 @@ pipeline {
         stage('Coverage Report') {
             agent { label 'docker' }
             steps {
-                // Collect all coverage files
                 unstash 'unit-coverage'
-                unstash 'coverage-agent1'
-                unstash 'coverage-agent2'
-                unstash 'coverage-agent3'
-                unstash 'coverage-agent4'
-                unstash 'coverage-agent5'
-                unstash 'coverage-agent6'
+                unstash 'cov-sqlserver'
+                unstash 'cov-sqlserver-linq'
+                unstash 'cov-postgresql'
+                unstash 'cov-postgresql-linq'
+                unstash 'cov-redis'
+                unstash 'cov-redis-linq'
+                unstash 'cov-sqlite'
+                unstash 'cov-sqlite-linq'
+                unstash 'cov-litedb'
+                unstash 'cov-litedb-linq'
+                unstash 'cov-memory'
+                unstash 'cov-memory-linq'
+                unstash 'cov-dashboard'
 
-                // Install ReportGenerator and merge coverage
                 sh '''
                     dotnet tool install -g dotnet-reportgenerator-globaltool || true
                     export PATH="$PATH:$HOME/.dotnet/tools"
@@ -257,7 +298,6 @@ pipeline {
                     echo "Merged coverage report generated at coverage/report/"
                 '''
 
-                // Upload to Codecov
                 withCredentials([string(credentialsId: 'codecov-token', variable: 'CODECOV_TOKEN')]) {
                     sh '''
                         curl -Os https://cli.codecov.io/latest/linux/codecov
@@ -266,7 +306,6 @@ pipeline {
                     '''
                 }
 
-                // Archive HTML report
                 publishHTML(target: [
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
