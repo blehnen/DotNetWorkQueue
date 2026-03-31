@@ -16,7 +16,15 @@ RUN apt-get update \
        curl \
        openssh-client \
        procps \
+       libsqlite3-0 \
     && rm -rf /var/lib/apt/lists/*
+
+# System.Data.SQLite native loader expects libdl.so, but on glibc 2.34+
+# dlopen is in libc directly. Create the symlink it needs.
+RUN if [ ! -e /usr/lib/x86_64-linux-gnu/libdl.so ]; then \
+        ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so 2>/dev/null || \
+        ln -s /lib/x86_64-linux-gnu/libc.so.6 /usr/lib/x86_64-linux-gnu/libdl.so; \
+    fi
 
 # Verify both SDKs are available
 RUN dotnet --list-sdks
