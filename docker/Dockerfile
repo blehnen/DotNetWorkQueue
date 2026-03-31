@@ -8,9 +8,10 @@ RUN dotnet_version=8.0.408 \
     && tar -oxzf dotnet8.tar.gz -C /usr/share/dotnet ./sdk ./shared \
     && rm dotnet8.tar.gz
 
-# Install tools needed for Jenkins agent connectivity and general CI
+# Install Java (required for Jenkins agent) and CI tools
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+       openjdk-17-jre-headless \
        git \
        curl \
        openssh-client \
