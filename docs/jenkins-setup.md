@@ -38,7 +38,6 @@ Go to **Manage Jenkins > Plugins > Available plugins** and install:
 | **Docker Pipeline** | Provision Docker containers as build agents |
 | **Docker plugin** | Docker cloud configuration for agent provisioning |
 | **Pipeline** | Declarative pipeline support (usually pre-installed) |
-| **Cobertura** | Coverage report visualization in Jenkins UI |
 | **HTML Publisher** | Publish ReportGenerator HTML coverage reports |
 | **Credentials Binding** | Inject secrets into pipeline steps |
 
