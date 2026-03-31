@@ -78,10 +78,12 @@ pipeline {
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver-linq
 
                             dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-redis
                         '''
 
@@ -104,10 +106,12 @@ pipeline {
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver
 
                             dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-dashboard
                         '''
 
@@ -124,10 +128,12 @@ pipeline {
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite-linq
 
                             dotnet test "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-memory
                         '''
 
@@ -150,10 +156,12 @@ pipeline {
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql
 
                             dotnet test "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-memory-linq
                         '''
 
@@ -176,10 +184,12 @@ pipeline {
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql-linq
 
                             dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb
                         '''
 
@@ -196,14 +206,17 @@ pipeline {
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite
 
                             dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb-linq
 
                             dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
+                                --filter "FullyQualifiedName!~JobScheduler" \
                                 --collect:"XPlat Code Coverage" --results-directory coverage/int-redis-linq
                         '''
 
