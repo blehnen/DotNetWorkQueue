@@ -115,34 +115,46 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         private void RunMonitor()
         {
-            if (!_stopping)
+            if (_stopping || Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
+                return;
+
+            try
             {
+                Running = true;
+                _monitorCompleted.Reset();
+                CancelToken = new CancellationTokenSource();
+                if (_monitorAction != null)
+                    _monitorAction(CancelToken.Token);
+                else
+                    _monitorActionIds(CancelToken.Token);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Timer callback fired during or after disposal — safe to ignore
+                return;
+            }
+            catch (Exception error)
+            {
+                _log.LogError($"An exception has occurred in the monitor delegate {System.Environment.NewLine}{error}");
+            }
+            finally
+            {
+                CancelTokenDestroy();
+                LastRunUtc = DateTime.UtcNow;
                 try
                 {
-                    Running = true;
-                    _monitorCompleted.Reset();
-                    CancelToken = new CancellationTokenSource();
-                    if (_monitorAction != null)
-                        _monitorAction(CancelToken.Token);
-                    else
-                        _monitorActionIds(CancelToken.Token);
-                }
-                catch (Exception error)
-                {
-                    _log.LogError($"An exception has occurred in the monitor delegate {System.Environment.NewLine}{error}");
-                }
-                finally
-                {
-                    CancelTokenDestroy();
-                    LastRunUtc = DateTime.UtcNow;
                     Running = false;
-                    _monitorCompleted.Set();
                 }
-
-                if (!_stopping && _timer != null && _monitorTimeSpan != null)
+                catch (ObjectDisposedException)
                 {
-                    _timer.Change(_monitorTimeSpan.MonitorTime, Timeout.InfiniteTimeSpan);
+                    // Disposed between try and finally — safe to ignore
                 }
+                _monitorCompleted.Set();
+            }
+
+            if (!_stopping && _timer != null && _monitorTimeSpan != null)
+            {
+                _timer.Change(_monitorTimeSpan.MonitorTime, Timeout.InfiniteTimeSpan);
             }
         }
 
