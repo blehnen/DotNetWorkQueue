@@ -339,7 +339,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // The exception filter returns { "error": "..." }
             var doc = JsonDocument.Parse(body);
             doc.RootElement.TryGetProperty("error", out var errorProp).Should().BeTrue();
-            errorProp.GetString().Should().Contain("was not found");
+            errorProp.GetString().Should().Contain("An internal error occurred");
         }
     }
 }

@@ -1,0 +1,26 @@
+# Auto-detect text files and normalize to LF in the repo
+* text=auto
+
+# Force these to always use CRLF in working tree (Windows .NET project)
+*.cs text eol=crlf
+*.csproj text eol=crlf
+*.sln text eol=crlf
+*.config text eol=crlf
+*.json text eol=crlf
+*.xml text eol=crlf
+*.md text eol=crlf
+*.razor text eol=crlf
+*.css text eol=crlf
+*.js text eol=crlf
+*.txt text eol=crlf
+*.yml text eol=crlf
+*.yaml text eol=crlf
+
+# Binary files
+*.dll binary
+*.exe binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.nupkg binary

@@ -53,6 +53,19 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         public bool ReadOnly { get; set; }
 
         /// <summary>
+        /// Gets or sets whether CORS is enabled.
+        /// When true, the CORS middleware is added with origins from <see cref="CorsOrigins"/>.
+        /// </summary>
+        public bool EnableCors { get; set; }
+
+        /// <summary>
+        /// Gets or sets the allowed CORS origins.
+        /// Only used when <see cref="EnableCors"/> is true.
+        /// Example: <c>new[] { "http://localhost:5000", "https://dashboard.example.com" }</c>
+        /// </summary>
+        public string[] CorsOrigins { get; set; } = Array.Empty<string>();
+
+        /// <summary>
         /// Gets or sets whether consumer tracking is enabled.
         /// When enabled, consumers can register with the dashboard and send heartbeats.
         /// </summary>

@@ -30,6 +30,19 @@ app.MapDashboardApi();
 app.Run();
 ```
 
+## Deployment
+
+> **Important:** The Dashboard API is designed for internal use only. Deploy it behind a VPN, firewall, or reverse proxy that restricts access to authorized operators.
+
+**Infrastructure Concerns (not handled by the API):**
+- **HTTPS/TLS** -- Terminate TLS at your reverse proxy (nginx, HAProxy, AWS ALB)
+- **Rate limiting** -- Configure at the infrastructure layer
+- **Authentication** -- Use the built-in API key (`ApiKey` option) or configure an ASP.NET Core authorization policy (`AuthorizationPolicy` option)
+- **CORS** -- Configure allowed origins via `EnableCors` and `CorsOrigins` options when the Blazor UI runs on a different origin
+
+**Health Check:**
+The API exposes a health check endpoint at `/api/v1/dashboard/health` for use with load balancers and monitoring systems. Returns HTTP 200 when healthy with uptime and connection count data.
+
 ## Documentation
 
 - [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki)

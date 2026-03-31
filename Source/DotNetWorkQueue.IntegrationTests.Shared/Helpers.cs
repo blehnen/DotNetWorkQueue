@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using DotNetWorkQueue.Serialization;
 using Newtonsoft.Json;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
@@ -109,7 +110,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     {
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings
         {
-            TypeNameHandling = TypeNameHandling.All
+            TypeNameHandling = TypeNameHandling.All,
+            SerializationBinder = new DenyListSerializationBinder()
         };
 
         public byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers) where T : class

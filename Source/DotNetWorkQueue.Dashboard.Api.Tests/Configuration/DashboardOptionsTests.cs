@@ -83,5 +83,31 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             Action act = () => opts.AddInterceptorProfile("test", null);
             act.Should().Throw<ArgumentNullException>();
         }
+
+        [TestMethod]
+        public void EnableCors_Defaults_To_False()
+        {
+            var opts = new DashboardOptions();
+            opts.EnableCors.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void CorsOrigins_Defaults_To_Empty()
+        {
+            var opts = new DashboardOptions();
+            opts.CorsOrigins.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void CorsOrigins_Can_Be_Set()
+        {
+            var opts = new DashboardOptions
+            {
+                EnableCors = true,
+                CorsOrigins = new[] { "http://localhost:5000" }
+            };
+            opts.EnableCors.Should().BeTrue();
+            opts.CorsOrigins.Should().ContainSingle().Which.Should().Be("http://localhost:5000");
+        }
     }
 }

@@ -65,6 +65,22 @@ namespace DotNetWorkQueue.Dashboard.Api
             {
                 services.AddHostedService<ConsumerPruningService>();
             }
+
+            if (options.EnableCors && options.CorsOrigins.Length > 0)
+            {
+                services.AddCors(corsOptions =>
+                {
+                    corsOptions.AddPolicy("DashboardCors", policy =>
+                    {
+                        policy.WithOrigins(options.CorsOrigins)
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+                });
+            }
+
+            services.AddHealthChecks();
+
             services.AddControllers(mvcOptions =>
                 {
                     mvcOptions.Filters.Add<DashboardExceptionFilter>();
@@ -130,6 +146,11 @@ namespace DotNetWorkQueue.Dashboard.Api
         {
             var options = app.ApplicationServices.GetRequiredService<DashboardOptions>();
 
+            if (options.EnableCors && options.CorsOrigins.Length > 0)
+            {
+                app.UseCors("DashboardCors");
+            }
+
             if (options.EnableSwagger)
             {
                 app.UseSwagger();
@@ -138,6 +159,8 @@ namespace DotNetWorkQueue.Dashboard.Api
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "DotNetWorkQueue Dashboard v1");
                 });
             }
+
+            app.UseHealthChecks("/api/v1/dashboard/health");
 
             return app;
         }

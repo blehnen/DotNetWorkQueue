@@ -49,7 +49,8 @@ namespace DotNetWorkQueue.Factory
         {
             var interceptor = (IMessageInterceptor)_container.Create().GetInstance(type);
 
-            //HACK for now - it's not clear to me if simple injector supports this pattern
+            //NOTE: SimpleInjector decorator pattern limitation -- manual wrapping is required here because
+            //the container does not support decorating an open-generic service resolved by type at runtime.
             var decorator = new MessageInterceptorDecorator(_container.Create().GetInstance<IMetrics>(), interceptor, _container.Create().GetInstance<IConnectionInformation>());
             var decorator2 = new Trace.Decorator.MessageInterceptorDecorator(decorator, _container.Create().GetInstance<ActivitySource>(), _container.Create().GetInstance<IStandardHeaders>());
             return decorator2;

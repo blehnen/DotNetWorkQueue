@@ -1,10 +1,10 @@
-# Roadmap: CONCERNS.md Quick Wins & Accepted Risk Closures
+# Roadmap: CONCERNS.md Tier B — Moderate Effort Fixes
 
 ## Overview
 
-Close out all low-effort items from CONCERNS.md and ISSUES.md in a single PR. This covers 4 accepted-risk documentation closures, 5 small code/config fixes from CONCERNS.md, and all 13 open issues from ISSUES.md. Every change is cosmetic, documentation, or minor correctness -- no behavioral changes, no public API surface changes.
+Address all moderate-effort items from CONCERNS.md in a single PR: Dashboard API hardening (exception disclosure, CORS, health check), centralized NuGet package version management, TODO/HACK comment audit, and integration test serialization binder fix.
 
-**Prerequisite**: None. All items are independent quick wins against the current `master` branch.
+**Prerequisite**: Tier A (quick wins) merged on 2026-03-30.
 
 ---
 
@@ -12,107 +12,106 @@ Close out all low-effort items from CONCERNS.md and ISSUES.md in a single PR. Th
 
 | Phase | Name | Complexity | Dependencies | Plans | Risk |
 |-------|------|-----------|-------------|-------|------|
-| 1 | Quick Wins & Accepted Risk Closures | Low | None | 3 | Very Low -- all changes are cosmetic or documentation |
+| 1 | Tier B Moderate Fixes | Medium | Tier A merged | 4 | Medium -- CPM touches all 36 .csproj files; Dashboard API adds new middleware and endpoints |
 
 ---
 
-## Phase 1: Quick Wins & Accepted Risk Closures
+## Phase 1: Tier B Moderate Fixes
 
-**Complexity**: Low
-**Dependencies**: None
-**Risk**: Very Low. All changes are cosmetic, documentation, build-config, or minor code quality. No behavioral changes. No public API changes. Verification is straightforward: unit tests pass, no new warnings.
+**Complexity**: Medium
+**Dependencies**: Tier A PR merged to master
+**Risk**: Medium overall. Central Package Management is mechanically large (36 .csproj files) and will break the build if any version is missed. Dashboard API changes add new middleware (CORS) and a new endpoint (/health) but are additive -- no existing behavior changes. TODO audit and binder fix are trivial.
 
 ### Task Grouping
 
-The 22 items naturally cluster into 3 groups based on the type of change:
-
-1. **Documentation & Status Updates** -- Items that only modify `.shipyard/` markdown files: accepted-risk rationale (C-1, C-2, H-1, L-3), status updates in CONCERNS.md and ISSUES.md, and missing SUMMARY file (ISSUE-012).
-2. **Code Fixes** -- Items that modify `.cs` source files: unused variables/imports (ISSUE-001, ISSUE-006, ISSUE-010, ISSUE-011), test assertion improvements (ISSUE-003, ISSUE-004), log wording (ISSUE-009), operator precedence (ISSUE-013), Timer.DisposeAsync (ISSUE-007), sync-over-async test fix (ISSUE-008), stale XML doc comment (ISSUE-005), LiteDb Server property (L-5), and xUnit pragma removal (M-4 partial).
-3. **Build & Config Fixes** -- Items that modify `.csproj`, `.gitignore`, `.xml`, or delete files: malformed DocumentationFile path (M-5), stale gitignore patterns and artifact removal (M-8), xUnit runner.json deletion (M-4 partial), and XML doc regeneration (N-4).
-
-### Items by Task
-
-| Task | Item IDs | Count |
-|------|----------|-------|
-| Task 1: Documentation & Status Updates | C-1, C-2, H-1, L-3, ISSUE-012 | 5 |
-| Task 2: Code Fixes | ISSUE-001, ISSUE-002, ISSUE-003, ISSUE-004, ISSUE-005, ISSUE-006, ISSUE-007, ISSUE-008, ISSUE-009, ISSUE-010, ISSUE-011, ISSUE-013, L-5, M-4 (pragma) | 14 |
-| Task 3: Build & Config Fixes | M-4 (xunit.runner.json), M-5, M-8, N-4 | 4 |
+| Task | Item IDs | Description | Count |
+|------|----------|-------------|-------|
+| Task 1: Central Package Management | H-6 | Create Directory.Packages.props, update Directory.Build.props, strip Version= from all .csproj | 1 |
+| Task 2: Dashboard API Hardening — Exception Filter + CORS | H-4, H-3 (CORS), M-9 | Fix exception disclosure in non-Dev environments; add configurable CORS policy | 3 |
+| Task 3: Dashboard API Hardening — Health Check + Docs | H-3 (Health), H-3 (Docs) | Add /health endpoint; update README with internal-only recommendation | 2 |
+| Task 4: TODO/HACK Audit + Binder Fix | M-3, N-3 | Replace 4 TODO/HACK comments with NOTE; fix integration test serialization binder | 2 |
 
 ### Wave Assignment
 
-- **Wave 1**: Task 1 (documentation only, no code dependencies) and Task 2 (code fixes, no build-config dependencies) -- these can execute in parallel.
-- **Wave 2**: Task 3 (build & config fixes) -- N-4 (XML doc regeneration) requires a Release build which benefits from Task 2's code fixes being applied first, so the regenerated XML reflects the final state.
+```
+Wave 1:  [Task 1: Central Package Management]
+              |
+              v
+Wave 2:  [Task 2: Dashboard API Exception + CORS]  ||  [Task 3: Dashboard API Health + Docs]  ||  [Task 4: TODO Audit + Binder Fix]
+```
+
+**Reasoning**:
+- **Wave 1 -- Task 1 (CPM)** must go first. It changes how every .csproj references packages. All subsequent changes should be made against the post-CPM file structure so there are no merge conflicts from .csproj edits.
+- **Wave 2 -- Tasks 2, 3, 4** are independent of each other. Task 2 modifies the exception filter and DashboardExtensions/DashboardOptions. Task 3 adds a new health controller and edits the README. Task 4 touches only production source comments and one integration test file. No file overlap between the three.
+- Within Dashboard API, Task 2 (exception filter) and Task 3 (health endpoint) could theoretically be one task, but they are split because the exception filter modifies existing middleware while the health check is a new endpoint -- different verification strategies.
 
 ### Key Files
 
-#### Task 1: Documentation & Status Updates
-| File | Change |
-|------|--------|
-| `.shipyard/codebase/CONCERNS.md` | Mark C-1, C-2, H-1, L-3 with resolution status and rationale |
-| `.shipyard/codebase/CONCERNS.md` | Mark M-4, M-5, M-8, L-5, N-4 as resolved after fixes |
-| `.shipyard/ISSUES.md` | Mark all 13 issues as closed |
-| `.shipyard/phases/7/SUMMARY-plan01.md` | Create missing SUMMARY file for Phase 7 Plan 01 (ISSUE-012) |
+#### Task 1: Central Package Management (H-6)
 
-#### Task 2: Code Fixes
 | File | Change |
 |------|--------|
-| `Source/DotNetWorkQueue.Tests/QueueCreatorTests.cs` | Remove unused `fixture` variable (ISSUE-001) |
-| `Source/DotNetWorkQueue/Transport/Memory/ConnectionInformation.cs` | Add `RegexOptions.Compiled` to ValidateQueueName regex (ISSUE-002) |
-| `Source/DotNetWorkQueue.Transport.LiteDB/LiteDbConnectionInformation.cs` | Add `RegexOptions.Compiled` (ISSUE-002); replace "TODO; not known" Server value (L-5) |
-| `Source/DotNetWorkQueue.Transport.PostgreSQL/SQLConnectionInformation.cs` | Add `RegexOptions.Compiled` (ISSUE-002) |
-| `Source/DotNetWorkQueue.Transport.Redis/RedisConnectionInfo.cs` | Add `RegexOptions.Compiled` (ISSUE-002) |
-| `Source/DotNetWorkQueue.Transport.SQLite/SqliteConnectionInformation.cs` | Add `RegexOptions.Compiled` (ISSUE-002) |
-| `Source/DotNetWorkQueue.Transport.SqlServer/SQLConnectionInformation.cs` | Add `RegexOptions.Compiled` (ISSUE-002) |
-| `Source/DotNetWorkQueue.Transport.SqlServer.Tests/SqlConnectionInformationTests.cs` | Add `Assert.AreEqual("MyQueue123", ...)` (ISSUE-003) |
-| `Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/SqlConnectionInformationTests.cs` | Add `Assert.AreEqual("MyQueue123", ...)` (ISSUE-003) |
-| `Source/DotNetWorkQueue.Transport.SQLite.Tests/SQLiteConnectionInformationTests.cs` | Add `Assert.AreEqual("MyQueue123", ...)` (ISSUE-003) |
-| `Source/DotNetWorkQueue.Transport.Redis.Tests/RedisConnectionInfoTests.cs` | Add `Assert.AreEqual` (ISSUE-004); remove 5 unused `using` directives (ISSUE-006) |
-| `Source/DotNetWorkQueue.Transport.LiteDb.Tests/LiteDbConnectionInformationTests.cs` | Add `Assert.AreEqual` (ISSUE-004) |
-| `Source/DotNetWorkQueue.Tests/Transport/Memory/ConnectionInformationTests.cs` | Add `Assert.AreEqual` (ISSUE-004); fix stale XML doc comment (ISSUE-005) |
-| `Source/DotNetWorkQueue.Dashboard.Client/DashboardConsumerClient.cs` | Replace `_heartbeatTimer.Dispose()` with `await _heartbeatTimer.DisposeAsync()` in DisposeAsync (ISSUE-007) |
-| `Source/DotNetWorkQueue.Dashboard.Client.Tests/DashboardConsumerClientTests.cs` | Fix sync-over-async test assertion (ISSUE-008) |
-| `Source/DotNetWorkQueue/Queue/PrimaryWorker.cs` | Change log "Stopping worker thread" to "Stopping worker" (ISSUE-009) |
-| `Source/DotNetWorkQueue/Queue/Worker.cs` | Change log "Stopping worker thread" to "Stopping worker" (ISSUE-009) |
-| `Source/DotNetWorkQueue/Queue/WorkerTerminate.cs` | Remove unused `using System.Threading;` (ISSUE-010) |
-| `Source/DotNetWorkQueue/Queue/WaitForThreadToFinish.cs` | Remove unused `using System.Threading;` (ISSUE-011) |
-| `Source/DotNetWorkQueue/Queue/MultiWorkerBase.cs` | Add explicit parentheses in `Running` property (ISSUE-013) |
-| `Source/DotNetWorkQueue.IntegrationTests.Shared/ConsumerAsync/Implementation/SimpleConsumerAsync.cs` | Remove `#pragma warning disable xUnit1013` (M-4 partial) |
+| `Source/Directory.Packages.props` | **New file.** All consolidated package versions |
+| `Source/Directory.Build.props` | **New file.** Add `<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>` |
+| All 36 `*.csproj` files under `Source/` | Remove `Version=` attribute from every `<PackageReference>` |
 
-#### Task 3: Build & Config Fixes
+**Key packages to consolidate**: SimpleInjector 5.5.0, Polly 8.6.5, Newtonsoft.Json 13.0.4, Microsoft.Data.SqlClient 6.1.3, OpenTelemetry 1.14.0, MSTest 3.x, NSubstitute, AutoFixture, FluentAssertions 6.12.2, LiteDB, StackExchange.Redis, Npgsql, Microsoft.Data.Sqlite, plus all transitive test infrastructure packages.
+
+#### Task 2: Dashboard API Exception Filter + CORS (H-4, H-3/M-9)
+
 | File | Change |
 |------|--------|
-| `Source/xunit.runner.json` | Delete file (M-4) |
-| `Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj` | Remove leading `>` from 3 DocumentationFile entries (M-5) |
-| `.gitignore` | Add patterns for `*.7z`, `TeamCity_*.zip`, `codcov*.txt`, `*.DotSettings.user`, working notes (M-8) |
-| `Source/DotNetWorkQueue/DotNetWorkQueue.xml` | Regenerate via Release build (N-4) |
+| `Source/DotNetWorkQueue.Dashboard.Api/Middleware/DashboardExceptionFilter.cs` | Add IHostEnvironment check; return generic error messages for InvalidOperationException and NotSupportedException in non-Development; keep full messages in Development |
+| `Source/DotNetWorkQueue.Dashboard.Api/Configuration/DashboardOptions.cs` | Add `CorsOrigins` property (string array, default empty) and `EnableCors` bool |
+| `Source/DotNetWorkQueue.Dashboard.Api/DashboardExtensions.cs` | Wire up `services.AddCors()` with policy from options; call `app.UseCors()` in middleware pipeline |
+| `Source/DotNetWorkQueue.Dashboard.Api.Tests/Middleware/DashboardExceptionFilterTests.cs` | Add tests for generic vs detailed error based on environment |
+| `Source/DotNetWorkQueue.Dashboard.Api.Tests/Configuration/DashboardOptionsTests.cs` | Add tests for new CORS properties |
+
+#### Task 3: Dashboard API Health Check + Docs (H-3)
+
+| File | Change |
+|------|--------|
+| `Source/DotNetWorkQueue.Dashboard.Api/Controllers/HealthController.cs` | **New file.** GET /health returning 200 with uptime and connection status |
+| `Source/DotNetWorkQueue.Dashboard.Api/DashboardExtensions.cs` | Register health check services if needed |
+| `Source/DotNetWorkQueue.Dashboard.Api.Tests/Controllers/HealthControllerTests.cs` | **New file.** Unit tests for health endpoint |
+| `Source/DotNetWorkQueue.Dashboard.Api/README.md` | Add internal-only deployment recommendation; document HTTPS/rate-limiting as infrastructure concerns |
+
+#### Task 4: TODO/HACK Audit + Integration Test Binder Fix (M-3, N-3)
+
+| File | Change |
+|------|--------|
+| `Source/DotNetWorkQueue/Factory/InterceptorFactory.cs` (line 52) | Replace `//HACK for now...` with `//NOTE: SimpleInjector decorator pattern limitation...` |
+| `Source/DotNetWorkQueue.Transport.PostgreSQL/Basic/QueryHandler/ReceiveMessage.cs` (line 175) | Replace `//TODO - cache based on route` with `//NOTE: Route-based caching deferred; see CONCERNS.md L-4` |
+| `Source/DotNetWorkQueue.Transport.SqlServer/Basic/QueryHandler/CreateDequeueStatement.cs` (line 237) | Replace `//TODO - cache based on route` with `//NOTE: Route-based caching deferred; see CONCERNS.md L-4` |
+| `Source/DotNetWorkQueue.Transport.SqlServer/Basic/Message/ReceiveMessage.cs` (line 100) | Replace `//TODO - we could consider using a task...` with `//NOTE: Synchronous status update is intentional; async would add complexity without measurable benefit at current scale` |
+| `Source/DotNetWorkQueue.IntegrationTests.Shared/Helpers.cs` (line 112) | Add `SerializationBinder = new DenyListSerializationBinder()` to the JsonSerializerSettings alongside `TypeNameHandling.All` |
 
 ### Success Criteria
 
-1. **CONCERNS.md updated**: C-1, C-2, H-1, L-3 marked with "Accepted Risk" or "Will Not Fix" status and documented rationale
-2. **CONCERNS.md updated**: M-4, M-5, M-8, L-5, N-4 marked as resolved with date
-3. **ISSUES.md updated**: All 13 issues (ISSUE-001 through ISSUE-013) marked as closed with date
-4. **All unit tests pass**: `dotnet test Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj` and all other unit test projects exit 0
-5. **No new warnings**: `dotnet build Source/DotNetWorkQueueNoTests.sln -c Release` produces no new warnings
-6. **Zero xUnit artifacts**: `Source/xunit.runner.json` deleted; no `xUnit1013` pragma in codebase
-7. **Zero malformed DocumentationFile**: `grep ">&gt;" Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj` returns no hits
-8. **Zero "TODO; not known"**: `grep -r "TODO; not known" Source/ --include="*.cs"` returns no hits
-9. **Stale patterns in .gitignore**: `*.7z`, `*.DotSettings.user`, `codcov*.txt` patterns present in `.gitignore`
-10. **XML doc is current**: `grep -c "AbortWorkerThread" Source/DotNetWorkQueue/DotNetWorkQueue.xml` returns 0
+1. **CPM active**: `Source/Directory.Packages.props` exists; `Source/Directory.Build.props` contains `ManagePackageVersionsCentrally`; `grep -r "Version=" Source/**/*.csproj` returns zero hits on `<PackageReference>` elements
+2. **Solution builds**: `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with no errors
+3. **Exception filter hardened**: DashboardExceptionFilter returns `{"error": "An internal error occurred"}` for InvalidOperationException/NotSupportedException in non-Development; returns detailed message in Development; full exception always logged server-side
+4. **CORS configurable**: DashboardOptions has CorsOrigins property; CORS middleware wired in DashboardExtensions; Blazor UI can connect cross-origin when configured
+5. **Health endpoint live**: GET /health returns 200 OK with `{"status": "Healthy", "uptime": "..."}` (at minimum)
+6. **README updated**: Dashboard API README includes internal-only deployment recommendation and infrastructure-layer note for HTTPS/rate-limiting
+7. **Zero TODO/HACK in production code**: `grep -rn "TODO\|HACK" Source/ --include="*.cs" | grep -v "Tests" | grep -v "IntegrationTests"` returns zero hits
+8. **Binder fix applied**: `grep "DenyListSerializationBinder" Source/DotNetWorkQueue.IntegrationTests.Shared/Helpers.cs` returns a hit
+9. **All unit tests pass**: `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` and `dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj"` exit 0
 
 ---
 
 ## Parallelism Notes
 
-- **Task 1 and Task 2 are independent** (Wave 1). Task 1 modifies only `.shipyard/` markdown files. Task 2 modifies only `.cs` source and test files. No file overlap.
-- **Task 3 depends on Task 2** (Wave 2). The XML documentation regeneration (N-4) should happen after all code fixes are applied so the generated XML reflects the final codebase state.
-- Within Task 2, all code fixes are independent of each other (different files, no cross-dependencies).
+- **Task 1 is the critical path** (Wave 1). It modifies every .csproj in the repo. All other tasks must wait for it to complete to avoid merge conflicts in .csproj files and to ensure the build system is stable.
+- **Tasks 2, 3, and 4 are fully independent** (Wave 2). Task 2 modifies DashboardExceptionFilter.cs, DashboardOptions.cs, and DashboardExtensions.cs. Task 3 adds a new HealthController.cs and edits the README. Task 4 touches only source comments in 4 files and one integration test helper. No file overlap between any pair.
+- **Exception**: Task 2 and Task 3 both touch DashboardExtensions.cs (Task 2 for CORS wiring, Task 3 for health check registration). If executed by parallel agents, one should claim DashboardExtensions.cs and the other should note the needed additions for the claimer to integrate. Alternatively, assign DashboardExtensions.cs changes entirely to Task 2 and have Task 3 only create the HealthController and README -- the health check registration in DashboardExtensions.cs is minimal and Task 2 can include it.
 
 ## Breaking Changes
 
-None. All changes are internal: unused import removal, test assertion improvements, log message wording, build configuration fixes, and documentation updates. No public API surface is affected.
+None. All changes are additive (new CORS config, new health endpoint) or internal (exception message masking, comment rewording, package management restructuring). No public API surface is removed or altered.
 
 ## Risk Assessment
 
-- **Very Low overall risk**. Every change is either documentation-only, removes dead code, improves test assertions, or fixes build configuration. No behavioral changes.
-- **Highest-risk item**: ISSUE-007 (Timer.DisposeAsync) -- changes disposal semantics slightly, but only within the `DisposeAsync` path which is already async. The synchronous `Dispose()` path is unchanged.
-- **N-4 (XML regeneration)** requires a Release build, which may surface warnings from other unrelated issues. The build should succeed since the codebase already builds in Debug mode; Release adds `TreatWarningsAsErrors` so any pre-existing warnings could block. Mitigation: fix M-5 (malformed DocumentationFile) first.
+- **Highest risk: Task 1 (Central Package Management)**. Touches all 36 .csproj files. If any version is wrong or a package is missed from Directory.Packages.props, the entire solution will fail to build. Mitigation: extract versions programmatically from existing .csproj files before creating the props file; verify with full solution build immediately after.
+- **Medium risk: Task 2 (Exception Filter + CORS)**. CORS misconfiguration can silently block the Blazor UI. Mitigation: default CORS to permissive for localhost origins; integration tests verify cross-origin requests.
+- **Low risk: Tasks 3 and 4**. Health endpoint is a new additive controller. TODO audit and binder fix are single-line changes with clear verification.
