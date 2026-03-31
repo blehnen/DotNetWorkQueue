@@ -97,9 +97,15 @@ pipeline {
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
-                        withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
+                        withCredentials([
+                            string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN'),
+                            string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')
+                        ]) {
                             sh '''
                                 echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"
+                                echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
+                                echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-postgresql.txt"
+                                echo "192.168.0.2" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-redis.txt"
                             '''
                         }
 
