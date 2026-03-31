@@ -15,12 +15,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
         private ITaskFactory Factory { get; set; }
 
         [TestMethod]
+#if NETFULL
         [DataRow(5, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Compiled, true),
 #if NETFULL
         DataRow(5, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Dynamic, true),
          DataRow(10, 5, 180, 7, 1, 2, true, 1, LinqMethodTypes.Dynamic, false),
 #endif
          DataRow(10, 5, 180, 7, 1, 2, true, 1, LinqMethodTypes.Compiled, false)]
+#else
+        [DataRow(5, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Compiled, true),
+         DataRow(10, 5, 180, 7, 1, 2, true, 1, LinqMethodTypes.Compiled, false)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

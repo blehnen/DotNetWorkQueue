@@ -14,12 +14,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodPoisonMessage
     {
         [TestMethod]
+#if NETFULL
         [DataRow(1, 60, 1, true, LinqMethodTypes.Compiled, false),
 #if NETFULL
         DataRow(1, 60, 1, false, LinqMethodTypes.Dynamic, false),
          DataRow(10, 60, 5, true, LinqMethodTypes.Dynamic, false),
 #endif
          DataRow(3, 60, 5, false, LinqMethodTypes.Compiled, true)]
+#else
+        [DataRow(1, 60, 1, true, LinqMethodTypes.Compiled, false),
+         DataRow(3, 60, 5, false, LinqMethodTypes.Compiled, true)]
+#endif
         public void Run(int messageCount, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

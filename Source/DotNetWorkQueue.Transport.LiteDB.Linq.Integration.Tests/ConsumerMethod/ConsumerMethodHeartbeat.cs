@@ -13,8 +13,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodHeartbeat
     {
         [TestMethod]
+#if NETFULL
         [DataRow(7, 15, 190, 3, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Direct),
         DataRow(7, 15, 90, 3, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+#else
+        [DataRow(7, 15, 90, 3, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

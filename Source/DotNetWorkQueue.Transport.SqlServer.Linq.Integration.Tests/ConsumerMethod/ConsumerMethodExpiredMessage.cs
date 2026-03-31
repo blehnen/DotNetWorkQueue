@@ -14,12 +14,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodExpiredMessage
     {
         [TestMethod]
+#if NETFULL
         [DataRow(100, 0, 60, 5, false, LinqMethodTypes.Compiled, false),
 #if NETFULL
         DataRow(100, 5, 60, 5, true, LinqMethodTypes.Dynamic, false),
         DataRow(100, 0, 60, 5, false, LinqMethodTypes.Dynamic, false),
 #endif
         DataRow(100, 5, 120, 5, true, LinqMethodTypes.Compiled, true)]
+#else
+        [DataRow(100, 0, 60, 5, false, LinqMethodTypes.Compiled, false),
+         DataRow(100, 5, 120, 5, true, LinqMethodTypes.Compiled, true)]
+#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

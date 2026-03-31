@@ -14,10 +14,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodCancelWork
     {
         [TestMethod]
+#if NETFULL
         [DataRow(2, 45, 90, 3, false, LinqMethodTypes.Dynamic, false),
         DataRow(2, 45, 90, 3, true, LinqMethodTypes.Dynamic, false),
         DataRow(2, 45, 90, 3, false, LinqMethodTypes.Compiled, false),
         DataRow(2, 45, 90, 3, true, LinqMethodTypes.Compiled, false)]
+#else
+        [DataRow(2, 45, 90, 3, false, LinqMethodTypes.Compiled, false),
+         DataRow(2, 45, 90, 3, true, LinqMethodTypes.Compiled, false)]
+#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

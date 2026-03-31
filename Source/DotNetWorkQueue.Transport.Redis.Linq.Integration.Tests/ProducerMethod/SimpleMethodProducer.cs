@@ -14,6 +14,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducer
     {
         [TestMethod]
+#if NETFULL
         [DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
 #if NETFULL
          DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
@@ -38,6 +39,19 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
          DataRow(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
          DataRow(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
          DataRow(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+#else
+        [DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+         DataRow(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+#endif
         public void Run(
             int messageCount,
             bool interceptors,

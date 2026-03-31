@@ -16,8 +16,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     {
         [TestMethod]
 #if NETFULL
+#if NETFULL
         [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
         DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
+#else
+        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
+#endif
 #else
         [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
 #endif

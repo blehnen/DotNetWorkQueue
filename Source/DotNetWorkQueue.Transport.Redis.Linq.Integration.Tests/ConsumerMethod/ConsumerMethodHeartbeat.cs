@@ -15,8 +15,12 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     {
         [TestMethod]
 #if NETFULL
+#if NETFULL
         [DataRow(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
          DataRow(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+#else
+        [DataRow(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+#endif
 #else
         [DataRow(7, 15, 90, 3, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
 #endif

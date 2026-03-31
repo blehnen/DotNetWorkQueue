@@ -14,11 +14,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodRollBack
     {
         [TestMethod]
-        [
-        DataRow(10, 45, 200, 10, true, LinqMethodTypes.Dynamic, false),
-        DataRow(1, 45, 220, 7, false, LinqMethodTypes.Dynamic, true),
-        DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true),
-        DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false)]
+#if NETFULL
+        [DataRow(10, 45, 200, 10, true, LinqMethodTypes.Dynamic, false),
+         DataRow(1, 45, 220, 7, false, LinqMethodTypes.Dynamic, true),
+         DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true),
+         DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false)]
+#else
+        [DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true),
+         DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false)]
+#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

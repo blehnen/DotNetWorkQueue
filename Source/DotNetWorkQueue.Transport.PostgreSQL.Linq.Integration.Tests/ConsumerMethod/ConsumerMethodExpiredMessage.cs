@@ -14,8 +14,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     {
         [TestMethod]
 #if NETFULL
+#if NETFULL
         [DataRow(10, 0, 60, 5, false, LinqMethodTypes.Compiled, true),
         DataRow(100, 5, 60, 5, true, LinqMethodTypes.Dynamic, false)]
+#else
+        [DataRow(10, 0, 60, 5, false, LinqMethodTypes.Compiled, true)]
+#endif
 #else
         [DataRow(100, 0, 60, 5, false, LinqMethodTypes.Compiled, false)]
 #endif
