@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
 {
+#if NETFULL
     public class ConsumerMethodMultipleDynamic
     {
         public void Run<TTransportInit, TTransportCreate>(
@@ -63,4 +64,5 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
             }
         }
     }
+#endif
 }

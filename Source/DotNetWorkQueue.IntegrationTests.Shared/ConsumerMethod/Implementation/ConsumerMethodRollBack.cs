@@ -46,6 +46,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                             verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime,
                             oCreation.Scope, false);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
@@ -53,6 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                             verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime,
                             oCreation.Scope, false);
                     }
+#endif
 
                     //process data
                     var consumer = new ConsumerMethodRollBackShared();

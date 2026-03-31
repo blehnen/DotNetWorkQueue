@@ -45,12 +45,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime, scope,
                             false);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
                             logProvider, generateData,
                             verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime, scope, false);
                     }
+#endif
 
                     //process data
                     var consumer = new ConsumerMethodAsyncRollBackShared();

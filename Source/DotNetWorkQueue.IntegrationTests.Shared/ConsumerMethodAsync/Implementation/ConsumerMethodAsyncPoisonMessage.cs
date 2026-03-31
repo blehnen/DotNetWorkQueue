@@ -47,6 +47,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope,
                             false);
                     }
+#if NETFULL
                     else
                     {
                         producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
@@ -54,6 +55,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             generateData,
                             verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope, false);
                     }
+#endif
 
                     //process data
                     var consumer = new ConsumerMethodAsyncPoisonMessageShared();
