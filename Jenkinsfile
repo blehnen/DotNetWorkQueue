@@ -70,7 +70,9 @@ pipeline {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
                         withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
-                            sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/connectionstring.txt"'
+                            sh '''
+                                echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
+                            '''
                         }
 
                         sh '''
@@ -94,7 +96,9 @@ pipeline {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
                         withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
-                            sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/connectionstring.txt"'
+                            sh '''
+                                echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"
+                            '''
                         }
 
                         sh '''
@@ -138,7 +142,9 @@ pipeline {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
                         withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
-                            sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/connectionstring.txt"'
+                            sh '''
+                                echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
+                            '''
                         }
 
                         sh '''
@@ -162,7 +168,9 @@ pipeline {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
                         withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
-                            sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/connectionstring.txt"'
+                            sh '''
+                                echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
+                            '''
                         }
 
                         sh '''
