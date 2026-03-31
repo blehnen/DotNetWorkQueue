@@ -20,5 +20,7 @@ RUN apt-get update \
 # Verify both SDKs are available
 RUN dotnet --list-sdks
 
-# Pre-warm NuGet cache with a dummy restore (optional, speeds up first build)
-WORKDIR /app
+# Create Jenkins agent workspace directory
+RUN mkdir -p /home/jenkins && chmod 777 /home/jenkins
+
+WORKDIR /home/jenkins
