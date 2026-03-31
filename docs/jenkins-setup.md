@@ -101,20 +101,61 @@ Create three Secret Text credentials:
 - **ID**: `codecov-token`
 - **Secret**: Your Codecov.io upload token (get this from codecov.io after adding the repository)
 
-## 5. Create the Pipeline Job
+## 5. Install Additional Plugins for Multibranch
+
+Go to **Manage Jenkins > Plugins > Available plugins** and install:
+
+| Plugin | Purpose |
+|--------|---------|
+| **GitHub Branch Source** | Discover branches and PRs from GitHub repositories |
+| **GitHub** | GitHub API integration and webhook support |
+
+Restart Jenkins after installing.
+
+## 6. Create the Multibranch Pipeline Job
+
+A Multibranch Pipeline automatically builds `master` and every open PR.
 
 1. Go to **New Item**
 2. Enter name: `DotNetWorkQueue`
-3. Select **Pipeline**, click OK
-4. Under **Pipeline**:
-   - **Definition**: Pipeline script from SCM
-   - **SCM**: Git
-   - **Repository URL**: Your repository URL
-   - **Branches to build**: `*/master` (or `*/jenkins` for testing)
+3. Select **Multibranch Pipeline**, click OK
+4. Under **Branch Sources** > click **Add source** > **GitHub**:
+   - **Repository HTTPS URL**: `https://github.com/blehnen/DotNetWorkQueue`
+   - **Credentials**: Add GitHub credentials if the repo is private (not needed for public repos)
+   - **Behaviors** (click **Add**):
+     - **Discover branches**: Strategy = "All branches" (or "Only branches that are also filed as PRs" to limit builds)
+     - **Discover pull requests from origin**: Strategy = "Merging the pull request with the current target branch revision"
+   - **Property strategy**: Default
+5. Under **Build Configuration**:
+   - **Mode**: by Jenkinsfile
    - **Script Path**: `Jenkinsfile`
-5. Click **Save**
+6. Under **Scan Multibranch Pipeline Triggers**:
+   - Check **Periodically if not otherwise run**
+   - **Interval**: 5 minutes (or use a webhook for instant triggers — see below)
+7. Click **Save**
 
-## 6. Network Verification
+Jenkins will immediately scan the repo and create jobs for `master` and any open PRs.
+
+### Optional: GitHub Webhook for Instant Builds
+
+Instead of polling every 5 minutes, set up a webhook for instant build triggers:
+
+1. In GitHub, go to **Settings > Webhooks > Add webhook**
+2. **Payload URL**: `http://<your-jenkins-ip>:8080/github-webhook/`
+3. **Content type**: `application/json`
+4. **Events**: Select "Pull requests" and "Pushes"
+5. Click **Add webhook**
+
+Note: Your Jenkins master must be reachable from the internet for GitHub webhooks. If it's not (e.g., behind a firewall), the polling interval is fine.
+
+### Branch Filtering
+
+To build only `master` and PRs (not every feature branch), change the **Discover branches** behavior:
+- Strategy: **Only branches that are also filed as PRs**
+
+This means only `master` (as a PR target) and open PR branches get built.
+
+## 7. Network Verification
 
 Before running the pipeline, verify Docker containers on `192.168.0.75` can reach test services on `192.168.0.2`:
 
@@ -129,7 +170,7 @@ docker run --rm dotnetworkqueue-ci:latest bash -c "
 
 Note: These services may not respond to curl properly, but the connection attempt should not time out. If connections time out, check firewall rules between the Docker hosts.
 
-## 7. First Pipeline Run
+## 8. First Pipeline Run
 
 1. Go to the `DotNetWorkQueue` job
 2. Click **Build Now**
