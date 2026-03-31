@@ -4,10 +4,9 @@ This guide walks through setting up the Jenkins master to run the DotNetWorkQueu
 
 ## Prerequisites
 
-- Jenkins LTS installed on `192.168.0.2`
-- Docker installed on both agent hosts (`192.168.0.75` and `192.168.0.2`)
-- Docker daemon listening on TCP on both hosts (port 2375)
-- Test services running on `192.168.0.2`:
+- Jenkins LTS installed
+- One or more Docker hosts with the Docker daemon listening on TCP (port 2375)
+- Test services accessible from the Docker hosts:
   - SQL Server on port 1433
   - PostgreSQL on port 5432
   - Redis on port 6379
@@ -17,7 +16,8 @@ This guide walks through setting up the Jenkins master to run the DotNetWorkQueu
 On each Docker host, build the CI agent image:
 
 ```bash
-cd /path/to/dotnetworkqueue
+git clone https://github.com/blehnen/DotNetWorkQueue.git
+cd DotNetWorkQueue
 docker build -t dotnetworkqueue-ci:latest docker/
 ```
 
@@ -40,6 +40,8 @@ Go to **Manage Jenkins > Plugins > Available plugins** and install:
 | **Pipeline** | Declarative pipeline support (usually pre-installed) |
 | **HTML Publisher** | Publish ReportGenerator HTML coverage reports |
 | **Credentials Binding** | Inject secrets into pipeline steps |
+| **GitHub Branch Source** | Discover branches and PRs from GitHub repositories |
+| **GitHub** | GitHub API integration and webhook support |
 
 Restart Jenkins after installing plugins.
 
@@ -47,35 +49,27 @@ Restart Jenkins after installing plugins.
 
 Go to **Manage Jenkins > Clouds > New cloud > Docker**.
 
-### Docker Host 1 (192.168.0.75 - 4 agent slots)
+For each Docker host, create a cloud entry:
 
-- **Name**: `docker-host-75`
-- **Docker Host URI**: `tcp://192.168.0.75:2375`
-- **Container Cap**: `4`
+- **Name**: a descriptive name (e.g., `docker-host-1`)
+- **Docker Host URI**: `tcp://<docker-host-ip>:2375`
+- **Container Cap**: number of concurrent containers this host can run (depends on CPU/RAM)
 - **Docker Agent Template**:
   - **Labels**: `docker`
   - **Docker Image**: `dotnetworkqueue-ci:latest`
+  - **Pull strategy**: **Never pull** (image is built locally)
   - **Remote Filing System Root**: `/home/jenkins`
   - **Connect method**: Attach Docker container
 
-### Docker Host 2 (192.168.0.2 - 2 agent slots)
+All hosts should use the same `docker` label so the Jenkinsfile can request any available agent. If you have multiple hosts, list the preferred host first — Jenkins tries clouds top-to-bottom.
 
-- **Name**: `docker-host-2`
-- **Docker Host URI**: `tcp://192.168.0.2:2375`
-- **Container Cap**: `2`
-- **Docker Agent Template**:
-  - **Labels**: `docker`
-  - **Docker Image**: `dotnetworkqueue-ci:latest`
-  - **Remote Filing System Root**: `/home/jenkins`
-  - **Connect method**: Attach Docker container
-
-Both hosts use the same `docker` label so the Jenkinsfile can request any available agent.
+The pipeline runs 13 integration test stages in parallel, so you need at least 13 agent slots across all hosts for maximum parallelism. Fewer slots will work but stages will queue.
 
 ## 4. Configure Credentials
 
 Go to **Manage Jenkins > Credentials > System > Global credentials > Add Credentials**.
 
-Create three Secret Text credentials:
+Create four Secret Text credentials:
 
 ### SQL Server Connection String
 
@@ -83,7 +77,7 @@ Create three Secret Text credentials:
 - **ID**: `sqlserver-connstring`
 - **Secret**: Your SQL Server connection string, e.g.:
   ```
-  Server=192.168.0.2;Database=IntegrationTests;User Id=sa;Password=yourpassword;TrustServerCertificate=true;Encrypt=false
+  Server=<db-host>;Database=IntegrationTests;User Id=sa;Password=<password>;TrustServerCertificate=true;Encrypt=false
   ```
 
 ### PostgreSQL Connection String
@@ -92,7 +86,16 @@ Create three Secret Text credentials:
 - **ID**: `postgresql-connstring`
 - **Secret**: Your PostgreSQL connection string, e.g.:
   ```
-  Host=192.168.0.2;Database=integrationtests;Username=postgres;Password=yourpassword
+  Host=<db-host>;Database=integrationtests;Username=postgres;Password=<password>
+  ```
+
+### Redis Connection String
+
+- **Kind**: Secret text
+- **ID**: `redis-connstring`
+- **Secret**: Your Redis connection string, e.g.:
+  ```
+  <redis-host>,defaultDatabase=1,syncTimeout=15000
   ```
 
 ### Codecov Token
@@ -101,18 +104,7 @@ Create three Secret Text credentials:
 - **ID**: `codecov-token`
 - **Secret**: Your Codecov.io upload token (get this from codecov.io after adding the repository)
 
-## 5. Install Additional Plugins for Multibranch
-
-Go to **Manage Jenkins > Plugins > Available plugins** and install:
-
-| Plugin | Purpose |
-|--------|---------|
-| **GitHub Branch Source** | Discover branches and PRs from GitHub repositories |
-| **GitHub** | GitHub API integration and webhook support |
-
-Restart Jenkins after installing.
-
-## 6. Create the Multibranch Pipeline Job
+## 5. Create the Multibranch Pipeline Job
 
 A Multibranch Pipeline automatically builds `master` and every open PR.
 
@@ -141,7 +133,7 @@ Jenkins will immediately scan the repo and create jobs for `master` and any open
 Instead of polling every 5 minutes, set up a webhook for instant build triggers:
 
 1. In GitHub, go to **Settings > Webhooks > Add webhook**
-2. **Payload URL**: `http://<your-jenkins-ip>:8080/github-webhook/`
+2. **Payload URL**: `http://<your-jenkins-url>:8080/github-webhook/`
 3. **Content type**: `application/json`
 4. **Events**: Select "Pull requests" and "Pushes"
 5. Click **Add webhook**
@@ -155,27 +147,26 @@ To build only `master` and PRs (not every feature branch), change the **Discover
 
 This means only `master` (as a PR target) and open PR branches get built.
 
-## 7. Network Verification
+## 6. Network Verification
 
-Before running the pipeline, verify Docker containers on `192.168.0.75` can reach test services on `192.168.0.2`:
+Before running the pipeline, verify Docker containers can reach the test services:
 
 ```bash
-# Run from 192.168.0.75
 docker run --rm dotnetworkqueue-ci:latest bash -c "
-    curl -s --connect-timeout 5 192.168.0.2:1433 && echo 'SQL Server: OK' || echo 'SQL Server: FAIL'
-    curl -s --connect-timeout 5 192.168.0.2:5432 && echo 'PostgreSQL: OK' || echo 'PostgreSQL: FAIL'
-    curl -s --connect-timeout 5 192.168.0.2:6379 && echo 'Redis: OK' || echo 'Redis: FAIL'
+    curl -s --connect-timeout 5 <db-host>:1433 && echo 'SQL Server: OK' || echo 'SQL Server: FAIL'
+    curl -s --connect-timeout 5 <db-host>:5432 && echo 'PostgreSQL: OK' || echo 'PostgreSQL: FAIL'
+    curl -s --connect-timeout 5 <redis-host>:6379 && echo 'Redis: OK' || echo 'Redis: FAIL'
 "
 ```
 
-Note: These services may not respond to curl properly, but the connection attempt should not time out. If connections time out, check firewall rules between the Docker hosts.
+Note: These services may not respond to curl properly, but the connection attempt should not time out. If connections time out, check firewall rules between the Docker hosts and service hosts.
 
-## 8. First Pipeline Run
+## 7. First Pipeline Run
 
 1. Go to the `DotNetWorkQueue` job
-2. Click **Build Now**
-3. Monitor Stage 1 (Build & Unit Tests) — should complete in ~7 min
-4. If Stage 1 passes, Stage 2 starts 6 parallel agents
+2. Click **Build Now** (or **Scan Multibranch Pipeline Now** for the first scan)
+3. Monitor Stage 1 (Build & Unit Tests) — should complete in ~2 min
+4. If Stage 1 passes, Stage 2 starts up to 13 parallel integration test agents
 5. Stage 3 merges coverage and uploads to Codecov
 
 ### Troubleshooting
@@ -183,18 +174,39 @@ Note: These services may not respond to curl properly, but the connection attemp
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
 | "No nodes with label docker" | Docker cloud not configured or hosts unreachable | Check cloud config, verify Docker TCP is open |
-| Connection string errors | Credentials not created or wrong ID | Verify credential IDs match Jenkinsfile exactly |
-| SQL Server/PostgreSQL test failures | Firewall blocking container-to-service traffic | Open ports 1433/5432 from Docker network to 192.168.0.2 |
-| Coverage upload fails | codecov-token not set or Codecov not configured | Create token at codecov.io, add as Jenkins credential |
+| "docker: not found" in pipeline | Using `docker { image }` agent syntax | Use `agent { label 'docker' }` — the cloud provisions the container |
+| Java version error in agent | JRE in Docker image older than Jenkins master | Match the JRE version in `docker/Dockerfile` to your Jenkins master |
+| Connection string errors | Credentials not created or wrong ID | Verify credential IDs match Jenkinsfile: `sqlserver-connstring`, `postgresql-connstring`, `redis-connstring`, `codecov-token` |
+| `connectionstring.txt` not found | File written to wrong path | Connection strings must be in `bin/Debug/net10.0/` (written after build) |
+| SQLite `libdl.so` errors | Missing native library symlink | Rebuild Docker image — `docker/Dockerfile` includes the fix |
+| Test host crash (ObjectDisposedException) | Timer callback race on Linux | Fixed in `BaseMonitor.cs` — ensure you have the latest code |
+| Coverage upload fails | codecov-token not set or wrong CLI syntax | Verify credential exists; Jenkinsfile uses `codecov upload-process` subcommand |
 | Build takes too long | NuGet restore downloading on every run | Consider mounting a NuGet cache volume |
 
-## Pipeline Timing Targets
+## Pipeline Architecture
 
-| Stage | Expected Duration |
-|-------|------------------|
-| Build & Unit Tests | ~7 min |
-| Integration Tests (parallel) | ~63 min max |
-| Coverage Report | ~2 min |
-| **Total** | **< 65 min** |
+```
+Stage 1: Build & Unit Tests (~2 min, 1 agent)
+    |
+Stage 2: Integration Tests (~30-40 min, up to 13 agents in parallel)
+    |-- SqlServer          |-- PostgreSQL       |-- Redis          |-- SQLite
+    |-- SqlServer Linq     |-- PostgreSQL Linq  |-- Redis Linq     |-- SQLite Linq
+    |-- LiteDB             |-- LiteDB Linq      |-- Memory         |-- Memory Linq
+    |-- Dashboard
+    |
+Stage 3: Coverage Report (~1 min, 1 agent)
+    |-- Merge Cobertura XML via ReportGenerator
+    |-- Upload to Codecov.io
+    |-- Publish HTML report
+```
 
-If actual timing differs significantly, adjust the agent balancing in the `Jenkinsfile` parallel stages.
+## CI Split: Jenkins vs GitHub Actions
+
+| Concern | Jenkins | GitHub Actions |
+|---------|---------|----------------|
+| **Target framework** | net10.0 | net48 |
+| **OS** | Linux (Docker) | Windows |
+| **Unit tests** | Yes | Yes |
+| **Integration tests** | Yes (all transports) | No |
+| **Code coverage** | Coverlet + Codecov | No |
+| **Purpose** | Full CI with external services | .NET Framework compatibility check |
