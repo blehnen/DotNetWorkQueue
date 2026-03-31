@@ -177,3 +177,29 @@
 - **CI fix:** Excluded JobSchedulerTests from GitHub Actions (timing-sensitive)
 - **Lessons captured:** Task.Factory.StartNew vs Task.Run, chain migration, ManualResetEventSlim, internal queue name compliance
 - **Status:** Shipped
+
+## 2026-03-30 — Milestone Complete: Tier B Moderate Fixes
+
+- **Action:** Phase 8 built and merged (PR #85)
+- **Plans executed:** 3/3 (PLAN-1, PLAN-2, PLAN-3) + Task 4
+  - PLAN-1: Central Package Management (Directory.Packages.props, 36 .csproj updated)
+  - PLAN-2: Dashboard exception filter hardening + CORS support (H-4, H-3/M-9)
+  - PLAN-3: Health check endpoint + README update (H-3)
+  - Task 4: TODO/HACK audit + serialization binder fix (M-3, N-3)
+- **Additional fixes in PR:** .gitattributes + line ending normalization, UTF-16→UTF-8 conversion for GlobalSuppressions.cs files
+- **Status:** Shipped
+
+## 2026-03-30 — New Milestone: Jenkins CI Migration
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Migrate CI from TeamCity to Jenkins with 6 Docker agents on Linux
+- **Decisions:**
+  - All 21 net48-only test projects need net10.0 added (Linux Docker agents can't run net48)
+  - Code coverage switches from dotCover (JetBrains) to Coverlet (Cobertura format)
+  - 6 parallel agents balanced by transport test duration (~63 min target vs ~2hr TeamCity)
+  - Connection strings injected via Jenkins Credentials (currently TeamCity build params)
+  - Redis connection string is hardcoded in source — acceptable for now
+  - GitHub Actions keeps net48 unit tests for framework compatibility
+  - Codecov.io integration preserved via Cobertura upload
+- **Roadmap:** 5 phases: Multi-target tests → Coverlet → Docker+Jenkinsfile → Jenkins setup → E2E validation
+- **Status:** Roadmap approved, ready for Phase 1 planning
