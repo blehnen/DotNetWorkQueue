@@ -134,6 +134,9 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
+                            sh 'echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"'
+                        }
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
@@ -148,6 +151,9 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
+                            sh 'echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
+                        }
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
@@ -248,12 +254,13 @@ pipeline {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         withCredentials([
                             string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN'),
-                            string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')
+                            string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN'),
+                            string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')
                         ]) {
                             sh '''
                                 echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
                                 echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-postgresql.txt"
-                                echo "192.168.0.2,defaultDatabase=1,syncTimeout=15000" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-redis.txt"
+                                echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-redis.txt"
                             '''
                         }
                         sh '''
