@@ -9,12 +9,7 @@ pipeline {
 
     stages {
         stage('Build & Unit Tests') {
-            agent {
-                docker {
-                    image 'dotnetworkqueue-ci:latest'
-                    label 'docker'
-                }
-            }
+            agent { label 'docker' }
             steps {
                 sh 'dotnet restore "Source/DotNetWorkQueue.sln"'
                 sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug --no-restore'
@@ -70,12 +65,7 @@ pipeline {
             parallel {
                 // Agent 1: SqlServer Linq + Redis (~58 min)
                 stage('SqlServerLinq + Redis') {
-                    agent {
-                        docker {
-                            image 'dotnetworkqueue-ci:latest'
-                            label 'docker'
-                        }
-                    }
+                    agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
@@ -99,12 +89,7 @@ pipeline {
 
                 // Agent 2: SqlServer + Dashboard (~54 min)
                 stage('SqlServer + Dashboard') {
-                    agent {
-                        docker {
-                            image 'dotnetworkqueue-ci:latest'
-                            label 'docker'
-                        }
-                    }
+                    agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
@@ -128,12 +113,7 @@ pipeline {
 
                 // Agent 3: SQLite Linq + Memory (~51 min)
                 stage('SQLiteLinq + Memory') {
-                    agent {
-                        docker {
-                            image 'dotnetworkqueue-ci:latest'
-                            label 'docker'
-                        }
-                    }
+                    agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
@@ -153,12 +133,7 @@ pipeline {
 
                 // Agent 4: PostgreSQL + Memory Linq (~54 min)
                 stage('PostgreSQL + MemoryLinq') {
-                    agent {
-                        docker {
-                            image 'dotnetworkqueue-ci:latest'
-                            label 'docker'
-                        }
-                    }
+                    agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
@@ -182,12 +157,7 @@ pipeline {
 
                 // Agent 5: PostgreSQL Linq + LiteDB (~56 min)
                 stage('PostgreSQLLinq + LiteDB') {
-                    agent {
-                        docker {
-                            image 'dotnetworkqueue-ci:latest'
-                            label 'docker'
-                        }
-                    }
+                    agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
@@ -211,12 +181,7 @@ pipeline {
 
                 // Agent 6: SQLite + LiteDB Linq + Redis Linq (~63 min)
                 stage('SQLite + LiteDBLinq + RedisLinq') {
-                    agent {
-                        docker {
-                            image 'dotnetworkqueue-ci:latest'
-                            label 'docker'
-                        }
-                    }
+                    agent { label 'docker' }
                     steps {
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
 
@@ -241,12 +206,7 @@ pipeline {
         }
 
         stage('Coverage Report') {
-            agent {
-                docker {
-                    image 'dotnetworkqueue-ci:latest'
-                    label 'docker'
-                }
-            }
+            agent { label 'docker' }
             steps {
                 // Collect all coverage files
                 unstash 'unit-coverage'
