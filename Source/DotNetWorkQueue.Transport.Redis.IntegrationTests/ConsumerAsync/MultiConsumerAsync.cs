@@ -10,12 +10,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class MultiConsumerAsync
     {
         [TestMethod]
-        [DataRow(250, 1, 400, 10, 5, 5, ConnectionInfoTypes.Linux),
-         DataRow(35, 5, 200, 10, 1, 2, ConnectionInfoTypes.Linux)]
-        public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
+        [DataRow(250, 1, 400, 10, 5, 5),
+         DataRow(35, 5, 200, 10, 1, 2)]
+        public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.MultiConsumerAsync();
 

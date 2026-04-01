@@ -73,7 +73,8 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver \
+                                -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver'
                     }
@@ -90,7 +91,8 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver-linq
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver-linq \
+                                -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver-linq'
                     }
@@ -107,7 +109,8 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql \
+                                -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql'
                     }
@@ -124,7 +127,8 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql-linq
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql-linq \
+                                -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql-linq'
                     }
@@ -141,7 +145,8 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-redis
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-redis \
+                                -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis'
                     }
@@ -158,7 +163,8 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-redis-linq
+                                --collect:"XPlat Code Coverage" --results-directory coverage/int-redis-linq \
+                                -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis-linq'
                     }

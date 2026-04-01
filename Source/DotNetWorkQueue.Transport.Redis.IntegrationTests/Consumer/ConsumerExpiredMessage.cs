@@ -9,12 +9,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerExpiredMessage
     {
         [TestMethod]
-        [DataRow(100, 0, 60, 5, ConnectionInfoTypes.Linux),
-        DataRow(500, 0, 120, 5, ConnectionInfoTypes.Linux)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
+        [DataRow(100, 0, 60, 5),
+        DataRow(500, 0, 120, 5)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerExpiredMessage();
 
             consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),

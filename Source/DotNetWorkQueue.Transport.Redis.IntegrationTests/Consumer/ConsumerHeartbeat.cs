@@ -13,11 +13,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerHeartbeat
     {
         [TestMethod]
-        [DataRow(7, 15, 90, 3, ConnectionInfoTypes.Linux)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
+        [DataRow(7, 15, 90, 3)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerHeartbeat();
 
             consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),

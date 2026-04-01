@@ -23,6 +23,7 @@
     <PackageReference Include="MSTest.TestFramework" />
     <PackageReference Include="MSTest.TestAdapter" />
     <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Microsoft.Testing.Extensions.Retry" />
 </ItemGroup>
 
   <ItemGroup>

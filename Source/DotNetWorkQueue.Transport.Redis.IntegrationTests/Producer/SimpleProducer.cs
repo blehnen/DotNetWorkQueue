@@ -10,28 +10,27 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
     public class SimpleProducer
     {
         [TestMethod]
-        [DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux),
-         DataRow(100, false, false, false, false, ConnectionInfoTypes.Linux),
-         DataRow(500, true, false, false, false, ConnectionInfoTypes.Linux),
-         DataRow(500, false, false, false, false, ConnectionInfoTypes.Linux),
-         DataRow(100, true, true, false, false, ConnectionInfoTypes.Linux),
-         DataRow(100, false, true, false, false, ConnectionInfoTypes.Linux),
-         DataRow(100, true, false, true, false, ConnectionInfoTypes.Linux),
-         DataRow(100, false, false, false, true, ConnectionInfoTypes.Linux),
-         DataRow(100, true, false, true, true, ConnectionInfoTypes.Linux),
-         DataRow(100, true, true, true, false, ConnectionInfoTypes.Linux),
-         DataRow(100, false, true, true, true, ConnectionInfoTypes.Linux)]
+        [DataRow(100, true, false, false, false),
+         DataRow(100, false, false, false, false),
+         DataRow(500, true, false, false, false),
+         DataRow(500, false, false, false, false),
+         DataRow(100, true, true, false, false),
+         DataRow(100, false, true, false, false),
+         DataRow(100, true, false, true, false),
+         DataRow(100, false, false, false, true),
+         DataRow(100, true, false, true, true),
+         DataRow(100, true, true, true, false),
+         DataRow(100, false, true, true, true)]
         public void Run(
             int messageCount,
             bool interceptors,
             bool batchSending,
             bool enableDelay,
-            bool enableExpiration,
-            ConnectionInfoTypes type)
+            bool enableExpiration)
         {
 
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducer();
             if (enableExpiration && enableDelay)
             {

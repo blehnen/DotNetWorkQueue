@@ -16,15 +16,15 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
         [TestMethod]
 #if NETFULL
 #if NETFULL
-        [DataRow(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+        [DataRow(100, 1, 400, 5, 5, 5, LinqMethodTypes.Dynamic)]
 #else
 #endif
 #endif
-        [DataRow(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
+        [DataRow(100, 1, 400, 5, 5, 5, LinqMethodTypes.Compiled)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                     ConsumerMethodAsyncRollBack();

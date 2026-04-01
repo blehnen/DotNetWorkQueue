@@ -17,11 +17,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodMultipleDynamic
     {
         [TestMethod]
-        [DataRow(100, 0, 140, 5, ConnectionInfoTypes.Linux)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
+        [DataRow(100, 0, 140, 5)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                     ConsumerMethodMultipleDynamic();

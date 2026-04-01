@@ -16,17 +16,17 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
         [TestMethod]
 #if NETFULL
 #if NETFULL
-        [DataRow(10, 60, 5, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic)]
+        [DataRow(10, 60, 5, LinqMethodTypes.Dynamic)]
 #else
 #endif
 #else
-        [DataRow(1, 40, 1, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+        [DataRow(1, 40, 1, LinqMethodTypes.Compiled)]
 #endif
         public void Run(int messageCount, int timeOut,
-            int workerCount, ConnectionInfoTypes type, LinqMethodTypes linqMethodTypes)
+            int workerCount, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.ConsumerMethodErrorTable();
 

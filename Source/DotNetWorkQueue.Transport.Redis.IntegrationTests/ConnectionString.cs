@@ -1,18 +1,13 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 {
-    public class ConnectionInfo
+    public static class ConnectionInfo
     {
         private static string _connectionString;
 
-        public ConnectionInfo(ConnectionInfoTypes type)
-        {
-            // type parameter kept for backward compatibility with existing test DataRow attributes
-        }
-
-        public string ConnectionString
+        public static string ConnectionString
         {
             get
             {
@@ -30,10 +25,5 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
                 return _connectionString;
             }
         }
-    }
-
-    public enum ConnectionInfoTypes
-    {
-        Linux = 0
     }
 }

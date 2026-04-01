@@ -13,16 +13,15 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
     {
         [TestMethod]
 #if NETFULL
-        [DataRow(true, ConnectionInfoTypes.Linux)]
+        [DataRow(true)]
 #else
-        [DataRow(false, ConnectionInfoTypes.Linux)]
+        [DataRow(false)]
 #endif
         public void Run(
-            bool dynamic,
-            ConnectionInfoTypes type)
+            bool dynamic)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
 

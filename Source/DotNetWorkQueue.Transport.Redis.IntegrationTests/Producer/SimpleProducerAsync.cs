@@ -10,20 +10,19 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
     public class SimpleProducerAsync
     {
         [TestMethod]
-        [DataRow(100, true, false, ConnectionInfoTypes.Linux),
-         DataRow(100, false, false, ConnectionInfoTypes.Linux),
-         DataRow(250, true, false, ConnectionInfoTypes.Linux),
-         DataRow(200, false, false, ConnectionInfoTypes.Linux),
-         DataRow(100, true, true, ConnectionInfoTypes.Linux),
-         DataRow(100, false, true, ConnectionInfoTypes.Linux)]
+        [DataRow(100, true, false),
+         DataRow(100, false, false),
+         DataRow(250, true, false),
+         DataRow(200, false, false),
+         DataRow(100, true, true),
+         DataRow(100, false, true)]
         public async Task Run(
             int messageCount,
             bool interceptors,
-            bool batchSending,
-            ConnectionInfoTypes type)
+            bool batchSending)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducerAsync();
             await producer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, interceptors, false, batchSending, x => { },

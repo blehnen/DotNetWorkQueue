@@ -13,11 +13,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncErrorTable
     {
         [TestMethod]
-        [DataRow(1, 60, 1, 1, 0, ConnectionInfoTypes.Linux)]
-        public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
+        [DataRow(1, 60, 1, 1, 0)]
+        public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.ConsumerAsyncErrorTable();
 
