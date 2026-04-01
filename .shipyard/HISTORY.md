@@ -258,3 +258,17 @@
   - No changes to LiteDB/SQLite/Memory, no `#if NETFULL` cleanup, no callback signature refactoring
 - **Roadmap:** 2 independent phases: Phase 1 (Redis enum removal, 34 files), Phase 2 (retry attribute, 6 files)
 - **Status:** Roadmap approved, ready for planning
+
+## 2026-03-31 — Phases 1 & 2 Complete: Integration Test Cleanup
+
+- **Action:** `/shipyard:build` (both phases in parallel)
+- **Phase 1 — Redis ConnectionInfoTypes Removal:**
+  - Deleted `ConnectionInfoTypes` enum, converted `ConnectionInfo` to static class
+  - Updated 34 test files across Redis.IntegrationTests (18) and Redis.Linq.Integration.Tests (15 + 1 bug fix)
+- **Phase 2 — Remote Transport Test Retry:**
+  - Original plan used `[assembly: RetryOnFailure]` — discovered MSTest `RetryAttribute` is method-level only
+  - Pivoted to `Microsoft.Testing.Extensions.Retry` NuGet package with `--retry-failed-tests 1` CLI flag
+  - Added package to 6 .csproj files, updated 6 Jenkinsfile stages
+- **Review:** Spec compliance PASS, code quality PASS
+- **Commit:** `eb84367c` (42 files changed)
+- **Status:** All phases complete, ready to ship
