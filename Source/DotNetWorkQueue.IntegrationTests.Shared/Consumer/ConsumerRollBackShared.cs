@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                         }
 
                         Assert.AreEqual(messageCount, processedCount.ProcessedCount);
-                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics,
                             messageCount);
                         VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
                             messageCount, 1, 0);

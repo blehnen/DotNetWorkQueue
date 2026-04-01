@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                         }
 
                         Assert.AreEqual(messageCount, MethodIncrementWrapper.Count(id));
-                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics,
                             messageCount);
                         LoggerShared.CheckForErrors(queueConnection.Queue);
                     }

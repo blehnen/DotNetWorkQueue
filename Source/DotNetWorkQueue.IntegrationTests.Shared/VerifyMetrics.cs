@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -129,6 +130,40 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             {
                 throw new DotNetWorkQueueException($"Failed to find counter {name}");
             }
+        }
+
+        /// <summary>
+        /// Polls the live metrics until CommitCounter reaches the expected value or times out.
+        /// Fixes a race where the handler callback signals completion before the commit metric is incremented.
+        /// </summary>
+        public static void VerifyProcessedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 5000)
+        {
+            if (messageCount == 0)
+            {
+                VerifyProcessedCount(queueName, metrics.GetCollectedMetrics(), messageCount);
+                return;
+            }
+
+            const string name = "CommitMessage.CommitCounter";
+            var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+
+            while (DateTime.UtcNow < deadline)
+            {
+                var data = metrics.GetCollectedMetrics();
+                foreach (var counter in data.Counters.Where(
+                    c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    if (counter.Value >= messageCount)
+                    {
+                        Assert.AreEqual(messageCount, counter.Value);
+                        return;
+                    }
+                }
+                Thread.Sleep(100);
+            }
+
+            // Final assertion for clear error message on timeout
+            VerifyProcessedCount(queueName, metrics.GetCollectedMetrics(), messageCount);
         }
     }
 }
