@@ -1,0 +1,31 @@
+codecov:
+  require_ci_to_pass: false
+
+ignore:
+  # Unit test projects
+  - "Source/DotNetWorkQueue.Tests/**"
+  - "Source/DotNetWorkQueue.AppMetrics.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.SqlServer.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.Redis.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.SQLite.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.LiteDb.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.Memory.Tests/**"
+  - "Source/DotNetWorkQueue.Dashboard.Api.Tests/**"
+  - "Source/DotNetWorkQueue.Dashboard.Client.Tests/**"
+  # Integration test projects
+  - "Source/DotNetWorkQueue.IntegrationTests.Shared/**"
+  - "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/**"
+  - "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/**"
+  - "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/**"
+  - "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/**"
+  - "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/**"
+  - "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/**"
