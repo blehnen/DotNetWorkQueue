@@ -1,7 +1,7 @@
 {
   "phase": 1,
   "status": "ready",
-  "position": "Jenkins CI Migration — project definition and roadmap captured, ready for Phase 1 planning",
-  "message": "New milestone: Jenkins CI Migration. 5 phases planned. Phase 1: Multi-target 22 test projects to net10.0.",
-  "last_updated": "2026-03-30T00:00:00Z"
+  "position": "Integration Test Cleanup — project definition captured, ready for planning",
+  "message": "Roadmap approved. 2 phases: Redis ConnectionInfoTypes removal (34 files), remote transport test retry (6 projects). Both independent.",
+  "last_updated": "2026-03-31T00:00:00Z"
 }
