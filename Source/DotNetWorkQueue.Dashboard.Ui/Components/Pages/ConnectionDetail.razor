@@ -17,7 +17,7 @@ else if (_error != null)
 }
 else
 {
-    <MudText Typo="Typo.h4" Class="mb-4">Queues</MudText>
+    <MudText Typo="Typo.h5" Class="mb-2">Queues</MudText>
 
     @if (_queues == null || _queues.Count == 0)
     {
@@ -25,35 +25,43 @@ else
     }
     else
     {
-        <MudGrid Class="mb-6">
-            @foreach (var queue in _queues)
-            {
-                <MudItem xs="12" sm="6" md="4">
-                    <MudCard Elevation="2" Class="cursor-pointer" @onclick="() => NavigateToQueue(queue)">
-                        <MudCardHeader>
-                            <CardHeaderContent>
-                                <MudText Typo="Typo.h6">@queue.QueueName</MudText>
-                            </CardHeaderContent>
-                            <CardHeaderActions>
-                                <MudIcon Icon="@Icons.Material.Filled.Queue" Color="Color.Primary" />
-                            </CardHeaderActions>
-                        </MudCardHeader>
-                        @if (GetConsumerCount(queue.Id) > 0)
-                        {
-                            <MudCardContent>
-                                <MudChip T="string" Color="Color.Success" Variant="Variant.Outlined" Size="Size.Small"
-                                         Icon="@Icons.Material.Filled.People">
-                                    @GetConsumerCount(queue.Id) consumer@(GetConsumerCount(queue.Id) != 1 ? "s" : "")
+        <MudSimpleTable Elevation="2" Dense="true" Hover="true" Class="mb-6 cursor-pointer">
+            <thead>
+                <tr>
+                    <th>Queue</th>
+                    <th>Consumers</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var queue in _queues)
+                {
+                    <tr @onclick="() => NavigateToQueue(queue)">
+                        <td>
+                            <MudIcon Icon="@Icons.Material.Filled.Queue" Size="Size.Small" Color="Color.Primary" Class="mr-2" />
+                            @queue.QueueName
+                        </td>
+                        <td>
+                            @{
+                                var count = GetConsumerCount(queue.Id);
+                            }
+                            @if (count > 0)
+                            {
+                                <MudChip T="string" Color="Color.Success" Variant="Variant.Outlined" Size="Size.Small">
+                                    @count
                                 </MudChip>
-                            </MudCardContent>
-                        }
-                    </MudCard>
-                </MudItem>
-            }
-        </MudGrid>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">0</MudText>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
     }
 
-    <MudText Typo="Typo.h4" Class="mb-4">Scheduled Jobs</MudText>
+    <MudText Typo="Typo.h5" Class="mb-2">Scheduled Jobs</MudText>
 
     @if (_jobs == null || _jobs.Count == 0)
     {
