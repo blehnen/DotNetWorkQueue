@@ -29,6 +29,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
+using Microsoft.Extensions.Configuration;
+using DotNetWorkQueue.Transport.SqlServer.Basic;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.Redis.Basic;
+using DotNetWorkQueue.Transport.SQLite.Basic;
+using DotNetWorkQueue.Transport.LiteDb.Basic;
 
 namespace DotNetWorkQueue.Dashboard.Api
 {
@@ -138,6 +144,42 @@ namespace DotNetWorkQueue.Dashboard.Api
         }
 
         /// <summary>
+        /// Adds DotNetWorkQueue Dashboard services configured from an IConfiguration section.
+        /// Reads Dashboard:Connections[] entries and resolves transport types by name.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <param name="dashboardSection">The "Dashboard" configuration section containing Connections, EnableSwagger, ApiKey, etc.</param>
+        /// <returns>The service collection for chaining.</returns>
+        public static IServiceCollection AddDotNetWorkQueueDashboard(
+            this IServiceCollection services,
+            Microsoft.Extensions.Configuration.IConfiguration dashboardSection)
+        {
+            var interceptorOptions = dashboardSection.GetSection("Interceptors")
+                .Get<DashboardInterceptorOptions>();
+
+            return services.AddDotNetWorkQueueDashboard(options =>
+            {
+                options.EnableSwagger = dashboardSection.GetValue("EnableSwagger", true);
+                options.ApiKey = dashboardSection.GetValue<string>("ApiKey") ?? string.Empty;
+
+                foreach (var conn in dashboardSection.GetSection("Connections").GetChildren())
+                {
+                    var transport = conn["Transport"];
+                    var connectionString = conn["ConnectionString"];
+                    var displayName = conn["DisplayName"] ?? transport;
+                    var queues = conn.GetSection("Queues").Get<string[]>() ?? Array.Empty<string>();
+
+                    if (string.IsNullOrEmpty(transport))
+                        throw new ArgumentException("Each Dashboard connection must specify a Transport.");
+                    if (string.IsNullOrEmpty(connectionString))
+                        throw new ArgumentException($"Dashboard connection '{displayName}' must specify a ConnectionString.");
+
+                    AddConnectionByTransport(options, transport, connectionString, displayName!, queues, interceptorOptions);
+                }
+            });
+        }
+
+        /// <summary>
         /// Adds the DotNetWorkQueue Dashboard middleware to the application pipeline.
         /// </summary>
         /// <param name="app">The application builder.</param>
@@ -163,6 +205,57 @@ namespace DotNetWorkQueue.Dashboard.Api
             app.UseHealthChecks("/api/v1/dashboard/health");
 
             return app;
+        }
+
+        private static void AddConnectionByTransport(DashboardOptions options, string transport,
+            string connectionString, string displayName, string[] queues,
+            DashboardInterceptorOptions interceptors)
+        {
+            switch (transport)
+            {
+                case "SqlServer":
+                    options.AddConnection<SqlServerMessageQueueInit>(connectionString, conn =>
+                    {
+                        conn.DisplayName = displayName;
+                        foreach (var queue in queues)
+                            conn.AddQueue(queue, interceptors);
+                    });
+                    break;
+                case "PostgreSql":
+                    options.AddConnection<PostgreSqlMessageQueueInit>(connectionString, conn =>
+                    {
+                        conn.DisplayName = displayName;
+                        foreach (var queue in queues)
+                            conn.AddQueue(queue, interceptors);
+                    });
+                    break;
+                case "SQLite":
+                    options.AddConnection<SqLiteMessageQueueInit>(connectionString, conn =>
+                    {
+                        conn.DisplayName = displayName;
+                        foreach (var queue in queues)
+                            conn.AddQueue(queue, interceptors);
+                    });
+                    break;
+                case "LiteDb":
+                    options.AddConnection<LiteDbMessageQueueInit>(connectionString, conn =>
+                    {
+                        conn.DisplayName = displayName;
+                        foreach (var queue in queues)
+                            conn.AddQueue(queue, interceptors);
+                    });
+                    break;
+                case "Redis":
+                    options.AddConnection<RedisQueueInit>(connectionString, conn =>
+                    {
+                        conn.DisplayName = displayName;
+                        foreach (var queue in queues)
+                            conn.AddQueue(queue, interceptors);
+                    });
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown transport type: '{transport}'. Valid values: SqlServer, PostgreSql, SQLite, LiteDb, Redis.");
+            }
         }
     }
 
