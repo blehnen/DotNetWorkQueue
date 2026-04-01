@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
 
                         Assert.IsNull(processedCount.IdError);
                         Assert.AreEqual(messageCount, processedCount.ProcessedCount);
-                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics,
                             messageCount);
                         LoggerShared.CheckForErrors(queueConnection.Queue);
                     }

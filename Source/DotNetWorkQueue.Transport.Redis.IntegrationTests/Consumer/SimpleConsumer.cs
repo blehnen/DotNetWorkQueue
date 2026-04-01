@@ -13,12 +13,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class SimpleConsumer
     {
         [TestMethod]
-        [DataRow(500, 0, 240, 5, ConnectionInfoTypes.Linux),
-        DataRow(50, 5, 200, 10, ConnectionInfoTypes.Linux)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, ConnectionInfoTypes type)
+        [DataRow(500, 0, 240, 5),
+        DataRow(50, 5, 200, 10)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.SimpleConsumer();
             consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                     messageCount, runtime, timeOut, workerCount, false, x => { },

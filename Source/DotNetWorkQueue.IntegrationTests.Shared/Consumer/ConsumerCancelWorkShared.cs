@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                         }
 
                         Assert.AreEqual(messageCount, Interlocked.Read(ref processedCount.ProcessedCount));
-                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics,
                             messageCount);
                         LoggerShared.CheckForErrors(queueConnection.Queue);
                     }

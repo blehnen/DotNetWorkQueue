@@ -28,11 +28,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.History
     public class SimpleHistoryTests
     {
         [TestMethod]
-        [DataRow(5, ConnectionInfoTypes.Linux)]
-        public void Run(int messageCount, ConnectionInfoTypes type)
+        [DataRow(5)]
+        public void Run(int messageCount)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var test = new SimpleHistoryTest();
             test.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(
                 new QueueConnection(queueName, connectionString),

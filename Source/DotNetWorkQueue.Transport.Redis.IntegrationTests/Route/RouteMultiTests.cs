@@ -12,12 +12,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
     public class RouteMultiTests
     {
         [TestMethod]
-        [DataRow(100, 0, 400, 1, 2, ConnectionInfoTypes.Linux)]
+        [DataRow(100, 0, 400, 1, 2)]
         public void Run(int messageCount, int runtime, int timeOut, int readerCount,
-          int routeCount, ConnectionInfoTypes type)
+          int routeCount)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation.RouteMultiTests();
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
                 messageCount, runtime, timeOut, readerCount, routeCount, false, x => { },

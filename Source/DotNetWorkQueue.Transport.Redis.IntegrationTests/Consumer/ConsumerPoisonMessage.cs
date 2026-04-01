@@ -13,13 +13,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
     public class ConsumerPoisonMessage
     {
         [TestMethod]
-        [DataRow(1, 60, 1, ConnectionInfoTypes.Linux),
-        DataRow(10, 60, 5, ConnectionInfoTypes.Linux)]
-        public void Run(int messageCount, int timeOut, int workerCount,
-            ConnectionInfoTypes type)
+        [DataRow(1, 60, 1),
+        DataRow(10, 60, 5)]
+        public void Run(int messageCount, int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer = new DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.ConsumerPoisonMessage();
 
             consumer.Run<RedisQueueInit, FakeMessage, RedisQueueCreation>(new QueueConnection(queueName, connectionString),

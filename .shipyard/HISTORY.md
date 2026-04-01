@@ -203,3 +203,72 @@
   - Codecov.io integration preserved via Cobertura upload
 - **Roadmap:** 5 phases: Multi-target tests → Coverlet → Docker+Jenkinsfile → Jenkins setup → E2E validation
 - **Status:** Roadmap approved, ready for Phase 1 planning
+
+## 2026-03-30 — Phase 1 Complete: Multi-Target Test Projects
+
+- **Action:** Built on `jenkins` branch
+- **Changes:** Multi-targeted 22 test projects to `net10.0;net48`. Added `#if NETFULL` guards for Dynamic LINQ, GetObjectData serialization, conditioned Soap reference. Fixed LiteDB csproj casing for Linux.
+- **Commits:** 10 commits (`0c37c677`..`c7127d3c`)
+- **Status:** Phase 1 complete
+
+## 2026-03-30 — Phase 2 Complete: Code Coverage Migration
+
+- **Action:** Built on `jenkins` branch
+- **Changes:** Added `coverlet.collector` to all test projects. Removed `global.json` SDK pin (dotCover workaround). Cobertura XML output for Codecov.io.
+- **Commits:** 2 commits (`7012699f`, `5e6ad858`)
+- **Status:** Phase 2 complete
+
+## 2026-03-31 — Phase 3 Complete: Docker Agent Image + Jenkinsfile
+
+- **Action:** Built on `jenkins` branch
+- **Changes:** Created `docker/Dockerfile` (Ubuntu, .NET 8+10 SDKs, Java 21 JRE, libsqlite3). Created `Jenkinsfile` with 13 parallel integration test stages, label-based agents, Codecov CLI upload.
+- **Commits:** 10 commits (`c6cd36d4`..`1c72f93f`)
+- **Status:** Phase 3 complete
+
+## 2026-03-31 — Phase 4 Complete: Jenkins Setup + GitHub Actions Update
+
+- **Action:** Built on `jenkins` branch
+- **Changes:** Created `docs/jenkins-setup.md` (plugins, Docker cloud, credentials, Multibranch Pipeline). Updated `.github/workflows/ci.yml` for net48 unit tests only.
+- **Commits:** 6 commits (`f2ae4b46`..`1ec99846`)
+- **Status:** Phase 4 complete
+
+## 2026-03-31 — Phase 5 Complete: End-to-End Validation
+
+- **Action:** Iterative fixes on `jenkins` branch during real Jenkins pipeline runs
+- **Changes:** Connection string injection to bin dirs, Dashboard transport strings, Redis format fix, SQLite native libs, JobScheduler test exclusion, Codecov CLI syntax, Redis connectionstring.txt refactor (PR #87).
+- **Commits:** 8 commits (`bdaf881a`..`2edf7416`)
+- **Bug fixes:** `#if NETFULL` guard, BaseMonitor disposal race, time offset tolerance, LiteDB casing
+- **Status:** Phase 5 complete
+
+## 2026-03-31 — Milestone Shipped: Jenkins CI Migration
+
+- **Action:** `/shipyard:ship`
+- **Delivery:** All work merged to master via PR #86 (jenkins) and PR #87 (Redis refactor)
+- **Summary:** 37 commits, 230 files changed. 22 test projects multi-targeted, Coverlet coverage, Docker agent image, Jenkinsfile with 13 parallel stages, Jenkins setup guide, GitHub Actions narrowed to net48 unit tests.
+- **Tests:** 875 unit tests passing on net10.0
+- **Status:** Shipped
+
+## 2026-03-31 — New Milestone: Integration Test Cleanup
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Redis dead code removal + remote transport test retry
+- **Decisions:**
+  - Remove `ConnectionInfoTypes` enum (vestigial from Windows Redis support) — convert to static class matching SqlServer/PostgreSQL
+  - Add `[assembly: RetryOnFailure(MaxRetries = 1)]` to 6 remote transport test projects (Redis, SqlServer, PostgreSQL)
+  - No changes to LiteDB/SQLite/Memory, no `#if NETFULL` cleanup, no callback signature refactoring
+- **Roadmap:** 2 independent phases: Phase 1 (Redis enum removal, 34 files), Phase 2 (retry attribute, 6 files)
+- **Status:** Roadmap approved, ready for planning
+
+## 2026-03-31 — Phases 1 & 2 Complete: Integration Test Cleanup
+
+- **Action:** `/shipyard:build` (both phases in parallel)
+- **Phase 1 — Redis ConnectionInfoTypes Removal:**
+  - Deleted `ConnectionInfoTypes` enum, converted `ConnectionInfo` to static class
+  - Updated 34 test files across Redis.IntegrationTests (18) and Redis.Linq.Integration.Tests (15 + 1 bug fix)
+- **Phase 2 — Remote Transport Test Retry:**
+  - Original plan used `[assembly: RetryOnFailure]` — discovered MSTest `RetryAttribute` is method-level only
+  - Pivoted to `Microsoft.Testing.Extensions.Retry` NuGet package with `--retry-failed-tests 1` CLI flag
+  - Added package to 6 .csproj files, updated 6 Jenkinsfile stages
+- **Review:** Spec compliance PASS, code quality PASS
+- **Commit:** `eb84367c` (42 files changed)
+- **Status:** All phases complete, ready to ship

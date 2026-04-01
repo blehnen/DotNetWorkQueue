@@ -15,42 +15,42 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
     {
         [TestMethod]
 #if NETFULL
-        [DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
+        [DataRow(100, true, false, false, false, LinqMethodTypes.Compiled),
 #if NETFULL
-         DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
-         DataRow(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Dynamic),
+         DataRow(100, true, false, false, false, LinqMethodTypes.Dynamic),
+         DataRow(100, false, false, false, false, LinqMethodTypes.Dynamic),
+         DataRow(500, true, false, false, false, LinqMethodTypes.Dynamic),
+         DataRow(500, false, false, false, false, LinqMethodTypes.Dynamic),
+         DataRow(100, true, true, false, false, LinqMethodTypes.Dynamic),
+         DataRow(100, false, true, false, false, LinqMethodTypes.Dynamic),
+         DataRow(100, true, false, true, false, LinqMethodTypes.Dynamic),
+         DataRow(100, false, false, false, true, LinqMethodTypes.Dynamic),
+         DataRow(100, true, false, true, true, LinqMethodTypes.Dynamic),
+         DataRow(100, true, true, true, false, LinqMethodTypes.Dynamic),
+         DataRow(100, false, true, true, true, LinqMethodTypes.Dynamic),
 #endif
-         DataRow(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+         DataRow(100, false, false, false, false, LinqMethodTypes.Compiled),
+         DataRow(500, true, false, false, false, LinqMethodTypes.Compiled),
+         DataRow(500, false, false, false, false, LinqMethodTypes.Compiled),
+         DataRow(100, true, true, false, false, LinqMethodTypes.Compiled),
+         DataRow(100, false, true, false, false, LinqMethodTypes.Compiled),
+         DataRow(100, true, false, true, false, LinqMethodTypes.Compiled),
+         DataRow(100, false, false, false, true, LinqMethodTypes.Compiled),
+         DataRow(100, true, false, true, true, LinqMethodTypes.Compiled),
+         DataRow(100, true, true, true, false, LinqMethodTypes.Compiled),
+         DataRow(100, false, true, true, true, LinqMethodTypes.Compiled)]
 #else
-        [DataRow(100, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(500, true, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(500, false, false, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, true, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, false, true, false, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, true, false, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, false, false, false, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, true, false, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, true, true, true, false, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled),
-         DataRow(100, false, true, true, true, ConnectionInfoTypes.Linux, LinqMethodTypes.Compiled)]
+        [DataRow(100, true, false, false, false, LinqMethodTypes.Compiled),
+         DataRow(100, false, false, false, false, LinqMethodTypes.Compiled),
+         DataRow(500, true, false, false, false, LinqMethodTypes.Compiled),
+         DataRow(500, false, false, false, false, LinqMethodTypes.Compiled),
+         DataRow(100, true, true, false, false, LinqMethodTypes.Compiled),
+         DataRow(100, false, true, false, false, LinqMethodTypes.Compiled),
+         DataRow(100, true, false, true, false, LinqMethodTypes.Compiled),
+         DataRow(100, false, false, false, true, LinqMethodTypes.Compiled),
+         DataRow(100, true, false, true, true, LinqMethodTypes.Compiled),
+         DataRow(100, true, true, true, false, LinqMethodTypes.Compiled),
+         DataRow(100, false, true, true, true, LinqMethodTypes.Compiled)]
 #endif
         public void Run(
             int messageCount,
@@ -58,12 +58,11 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
             bool batchSending,
             bool enableDelay,
             bool enableExpiration,
-            ConnectionInfoTypes type,
             LinqMethodTypes linqMethodTypes)
         {
 
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
 

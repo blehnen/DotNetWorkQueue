@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
                         var count = MethodIncrementWrapper.Count(id);
                         Assert.AreEqual(messageCount, count);
-                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                        VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics,
                             messageCount);
                         LoggerShared.CheckForErrors(queueConnection.Queue);
                     }

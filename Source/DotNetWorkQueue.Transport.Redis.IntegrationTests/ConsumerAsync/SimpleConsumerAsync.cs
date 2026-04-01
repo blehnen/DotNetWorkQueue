@@ -9,13 +9,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class SimpleConsumerAsync
     {
         [TestMethod]
-        [DataRow(500, 1, 400, 10, 5, 5, 1, ConnectionInfoTypes.Linux),
-         DataRow(50, 5, 200, 10, 1, 2, 1, ConnectionInfoTypes.Linux)]
+        [DataRow(500, 1, 400, 10, 5, 5, 1),
+         DataRow(50, 5, 200, 10, 1, 2, 1)]
         public async Task Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-            int messageType, ConnectionInfoTypes type)
+            int messageType)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.SimpleConsumerAsync();
 

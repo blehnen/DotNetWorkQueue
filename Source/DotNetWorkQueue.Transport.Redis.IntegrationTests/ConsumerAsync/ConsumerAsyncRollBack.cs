@@ -13,12 +13,12 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     public class ConsumerAsyncRollBack
     {
         [TestMethod]
-        [DataRow(100, 1, 400, 5, 5, 5, ConnectionInfoTypes.Linux),
-         DataRow(50, 5, 200, 5, 1, 3, ConnectionInfoTypes.Linux)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, ConnectionInfoTypes type)
+        [DataRow(100, 1, 400, 5, 5, 5),
+         DataRow(50, 5, 200, 5, 1, 3)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize)
         {
             var queueName = GenerateQueueName.Create();
-            var connectionString = new ConnectionInfo(type).ConnectionString;
+            var connectionString = ConnectionInfo.ConnectionString;
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation.ConsumerAsyncRollBack();
 
