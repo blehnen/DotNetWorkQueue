@@ -65,6 +65,7 @@ pipeline {
                 stage('SqlServer') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 0, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
                             sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"'
@@ -83,6 +84,7 @@ pipeline {
                 stage('SqlServer Linq') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 5, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
                             sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
@@ -101,6 +103,7 @@ pipeline {
                 stage('PostgreSQL') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 10, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
                             sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
@@ -119,6 +122,7 @@ pipeline {
                 stage('PostgreSQL Linq') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 15, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
                             sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
@@ -137,6 +141,7 @@ pipeline {
                 stage('Redis') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 20, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
                             sh 'echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"'
@@ -155,6 +160,7 @@ pipeline {
                 stage('Redis Linq') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 25, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
                             sh 'echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
@@ -173,6 +179,7 @@ pipeline {
                 stage('SQLite') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 30, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" \
@@ -187,6 +194,7 @@ pipeline {
                 stage('SQLite Linq') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 35, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" \
@@ -201,6 +209,7 @@ pipeline {
                 stage('LiteDB') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 40, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" \
@@ -215,6 +224,7 @@ pipeline {
                 stage('LiteDB Linq') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 45, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" \
@@ -229,6 +239,7 @@ pipeline {
                 stage('Memory') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 50, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" \
@@ -243,6 +254,7 @@ pipeline {
                 stage('Memory Linq') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 55, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         sh '''
                             dotnet test "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" \
@@ -257,6 +269,7 @@ pipeline {
                 stage('Dashboard') {
                     agent { label 'docker' }
                     steps {
+                        sleep(time: 60, unit: 'SECONDS')
                         sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
                         withCredentials([
                             string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN'),

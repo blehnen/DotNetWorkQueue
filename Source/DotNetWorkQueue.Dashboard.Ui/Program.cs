@@ -19,6 +19,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using DotNetWorkQueue.Dashboard.Api;
 using DotNetWorkQueue.Dashboard.Ui.Components;
 using DotNetWorkQueue.Dashboard.Ui.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -32,7 +33,15 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddMudServices();
 
-// --- API client ---
+// --- Self-contained mode: embed Dashboard API in this process ---
+var dashboardSection = builder.Configuration.GetSection("Dashboard");
+var selfContained = dashboardSection.GetSection("Connections").GetChildren().Any();
+if (selfContained)
+{
+    builder.Services.AddDotNetWorkQueueDashboard(dashboardSection);
+}
+
+// --- API client (always registered; in self-contained mode, routes to the in-process API via localhost) ---
 var apiBaseUrl = builder.Configuration["DashboardApi:BaseUrl"] ?? "http://localhost:5000";
 var apiKey = builder.Configuration["DashboardApi:ApiKey"];
 builder.Services.AddHttpClient<IDashboardApiClient, DashboardApiClient>(client =>
@@ -81,10 +90,21 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
+if (selfContained)
+{
+    app.UseDotNetWorkQueueDashboard();
+}
+
+app.UseRouting();
 app.UseAuthentication();
 app.UseAntiforgery();
 
 app.UseStaticFiles();
+
+if (selfContained)
+{
+    app.MapControllers();
+}
 
 // --- Login / Logout endpoints ---
 app.MapPost("/auth/login", async (HttpContext ctx) =>

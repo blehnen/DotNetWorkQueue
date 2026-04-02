@@ -12,9 +12,9 @@
 {
     <MudLayout>
         <MudAppBar Elevation="1">
-            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
-                           OnClick="@ToggleDrawer" />
-            <MudText Typo="Typo.h6" Class="ml-3">DotNetWorkQueue Dashboard</MudText>
+            <MudLink Href="/" Underline="Underline.None" Color="Color.Inherit">
+                <MudText Typo="Typo.h6">DotNetWorkQueue Dashboard</MudText>
+            </MudLink>
             <MudSpacer />
             @if (AuthConfig.IsEnabled)
             {
@@ -22,9 +22,6 @@
                                title="Sign out" OnClick="Logout" />
             }
         </MudAppBar>
-        <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-            <NavMenu />
-        </MudDrawer>
         <MudMainContent Class="pa-4">
             @Body
         </MudMainContent>
@@ -32,7 +29,6 @@
 }
 
 @code {
-    private bool _drawerOpen = true;
     private bool _ready;
 
     private readonly MudTheme _theme = new()
@@ -69,8 +65,6 @@
         if (firstRender && AuthConfig.IsEnabled && !_ready)
             Nav.NavigateTo("/login", forceLoad: true);
     }
-
-    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
     private void Logout() => Nav.NavigateTo("/auth/logout", forceLoad: true);
 }
