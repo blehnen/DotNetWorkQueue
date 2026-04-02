@@ -19,6 +19,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using DotNetWorkQueue.Dashboard.Api;
 using DotNetWorkQueue.Dashboard.Ui.Components;
 using DotNetWorkQueue.Dashboard.Ui.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -31,6 +32,14 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddMudServices();
+
+// --- Self-contained mode: embed Dashboard API in this process ---
+var dashboardSection = builder.Configuration.GetSection("Dashboard");
+var selfContained = dashboardSection.GetSection("Connections").GetChildren().Any();
+if (selfContained)
+{
+    builder.Services.AddDotNetWorkQueueDashboard(dashboardSection);
+}
 
 // --- API client ---
 var apiBaseUrl = builder.Configuration["DashboardApi:BaseUrl"] ?? "http://localhost:5000";
@@ -85,6 +94,13 @@ app.UseAuthentication();
 app.UseAntiforgery();
 
 app.UseStaticFiles();
+
+if (selfContained)
+{
+    app.UseDotNetWorkQueueDashboard();
+    app.UseRouting();
+    app.MapControllers();
+}
 
 // --- Login / Logout endpoints ---
 app.MapPost("/auth/login", async (HttpContext ctx) =>
