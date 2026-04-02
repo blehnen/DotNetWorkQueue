@@ -52,6 +52,8 @@ docker run -d -p 8080:8080 -v "$(pwd)/appsettings.json:/app/appsettings.json:ro"
 
 See [Docker Hub](https://hub.docker.com/r/blehnen74/dotnetworkqueue-dashboard) for tags and [docker/dashboard/README.md](docker/dashboard/README.md) for full configuration (authentication, API keys, SQLite/LiteDB volume mounts, Docker Compose).
 
+---
+
 > **Metrics:** Built-in metrics are provided via `System.Diagnostics.Metrics` in the core library. No additional package is needed. To collect and export metrics, configure [OpenTelemetry.Metrics](https://github.com/open-telemetry/opentelemetry-dotnet) in your host application.
 
 ---
