@@ -86,7 +86,7 @@ The main library containing all abstractions, interfaces, and default implementa
 SimpleInjector is the IoC container. Each transport has an init class implementing `ITransportInit` that registers its services. `IContainerFactory` provides root-level container access to avoid circular dependencies.
 
 ### Multi-targeting
-Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (thread abort support, dynamic LINQ), `NETSTANDARD2_0` for .NET Standard paths.
+Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (dynamic LINQ, SoapFormatter), `NETSTANDARD2_0` for .NET Standard paths.
 
 ## Key Dependencies
 
@@ -104,4 +104,17 @@ Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (thre
 - Interface prefix: `I` (e.g., `IQueue`); Factory suffix: `Factory`; Config suffix: `Configuration`
 - Abstract base classes use prefix `A` or suffix `Base`
 - Thread-safe disposal via `Interlocked` operations throughout
-- **CI**: TeamCity is the local CI server and runs all tests (unit + integration across all transports). GitHub Actions (`.github/workflows/ci.yml`) provides cloud builds on all branches — runs unit tests and in-memory integration tests only (no external services like SQL Server, PostgreSQL, or Redis).
+- **CI**: Jenkins is the local CI server (setup guide at `docs/jenkins-setup.md`). It runs 13 parallel integration test stages on Docker agents (net10.0 only) with Coverlet code coverage uploaded to Codecov.io. GitHub Actions (`.github/workflows/ci.yml`) runs net48 unit tests only for .NET Framework compatibility validation.
+
+## Lessons Learned
+
+- When multi-targeting to net10.0 for Linux, check for: case-sensitive file paths in .csproj references, native library dependencies (libsqlite3, libdl), `#if NETFULL` guards on .NET Framework-only APIs (SoapFormatter, GetObjectData), and timer/clock resolution differences in tests.
+- Connection strings for `dotnet test --no-build` must be written to the bin output directory, not just the source directory.
+- Jenkins agent JRE version must exactly match the master's Java version — class file version mismatch causes silent agent launch failures.
+- When a change marked "out of scope" keeps causing friction in CI (e.g., hardcoded connection strings), just do it — the cost of workarounds exceeds the cost of the fix.
+- Label-based Jenkins agents are simpler than Docker Pipeline plugin for pre-built images.
+- Integration test metrics assertions can race: the handler callback signals completion before `CommitMessage.Commit()` increments the counter. Poll the live `IMetrics` object instead of taking a single snapshot.
+- Enabling `--retry-failed-tests` requires migrating ALL test projects to Microsoft.Testing.Platform (`EnableMSTestRunner` + `TestingPlatformDotnetTestSupport` in Directory.Build.props) — partial migration breaks coverage collection.
+- Dockerfile COPY paths must match exact Linux filesystem casing: `LiteDb.csproj` (not `LiteDB.csproj`), `Directory.Build.props` is in `Source/` not the repo root.
+- `--no-restore` on `dotnet publish` in Docker fails when a later `COPY Source/` invalidates the restore cache layer.
+- 13 parallel Jenkins stages need staggered startup (5s intervals) to avoid GitHub clone rate-limiting.

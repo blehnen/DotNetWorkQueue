@@ -272,3 +272,72 @@
 - **Review:** Spec compliance PASS, code quality PASS
 - **Commit:** `eb84367c` (42 files changed)
 - **Status:** All phases complete, ready to ship
+
+## 2026-04-01 — Fix: Metrics Counter Race Condition
+
+- **Action:** Debugging + fix on `integration_tests` branch, merged to master
+- **Problem:** `MultiConsumerAsync.Run` failed with 99/100 on Jenkins (Linux/Docker). Never failed on TeamCity (Windows/net48).
+- **Root cause:** Handler callback signals `waitForFinish.Set()` before `CommitMessage.Commit()` increments the metrics counter. On Linux with remote SQL Server + chaos mode, the commit lag is wide enough for the snapshot to miss the last increment.
+- **Fix:** Added polling overload to `VerifyMetrics.VerifyProcessedCount` — polls live `IMetrics` for up to 5 seconds instead of single snapshot. Updated all 13 callers.
+- **Bonus finding:** `--retry-failed-tests 1` in Jenkinsfile was silently ignored — requires Microsoft.Testing.Platform, not VSTest.
+- **Tests:** 56 Memory integration tests passing locally
+- **Status:** Merged to master
+
+## 2026-04-01 — Attempted: MSTest Runner Migration (PR #89, Reverted)
+
+- **Action:** Attempted to enable `EnableMSTestRunner` on 6 remote transport integration test projects
+- **Problem 1:** .NET 10 SDK requires `TestingPlatformDotnetTestSupport=true` — per-project didn't work due to multi-targeting MSBuild evaluation order
+- **Problem 2:** Moving `TestingPlatformDotnetTestSupport` to `Directory.Build.props` fixed the error but broke coverage collection for unit test projects that don't have `EnableMSTestRunner`
+- **Conclusion:** Full migration requires `EnableMSTestRunner` + `OutputType=Exe` on ALL test projects simultaneously — not a partial change
+- **Status:** PR #89 closed, branch deleted
+
+## 2026-04-01 — New Milestone: Dashboard Improvements
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** UI polish (compact layout) + Docker build (standalone Dashboard image)
+- **Decisions:**
+  - Replace connection/queue cards with compact MudSimpleTable rows
+  - Remove left nav rail — breadcrumbs + clickable title instead
+  - Move JSON-driven transport registration from sample project into base library
+  - Docker image includes all 5 transports, configured via mounted appsettings.json
+- **Roadmap:** 3 phases: UI Polish → Config-Driven Registration → Docker Image
+- **Status:** Roadmap approved
+
+## 2026-04-01 — Phase 1 Complete: UI Polish
+
+- **Action:** `/shipyard:build 1`
+- **Tasks:** 3/3 (nav drawer removal, connections table, queue table)
+- **Files modified:** MainLayout.razor, Home.razor, ConnectionDetail.razor
+- **Files deleted:** NavMenu.razor
+- **Tests:** 45 Dashboard integration tests passing
+- **Status:** Phase 1 complete
+
+## 2026-04-01 — Phase 2 Complete: Config-Driven Transport Registration
+
+- **Action:** `/shipyard:build 2`
+- **Tasks:** 2/2 (transport refs + POCO, IConfiguration overload)
+- **Files modified:** DashboardExtensions.cs, Dashboard.Api.csproj, Directory.Packages.props
+- **Files created:** DashboardConnectionConfig.cs
+- **Key fix:** IConfiguration namespace shadowed by DotNetWorkQueue.IConfiguration — used fully-qualified type
+- **Tests:** 45 Dashboard integration tests passing
+- **Test harness:** Converted DotnewWorkQueue.Api.Example to use IConfiguration overload with appsettings.json
+- **Status:** Phase 2 complete, awaiting user verification
+
+## 2026-04-02 — Phase 3 Complete: Docker Image
+
+- **Action:** `/shipyard:build 3`
+- **Tasks:** 2/2 (self-contained mode, Dockerfile + config + README)
+- **Files modified:** Program.cs (conditional API registration), Dashboard.Ui.csproj (ProjectReference), Dashboard.Api.csproj (LiteDb casing fix), DashboardConnectionConfig.cs (nullable fix)
+- **Files created:** docker/dashboard/Dockerfile, docker/dashboard/appsettings.example.json, docker/dashboard/README.md
+- **Docker verified:** Image builds, container starts, health endpoint 200, UI serves at :8080
+- **Fixes during build:** Linux case-sensitivity (3 path fixes), middleware ordering, non-root user, --no-restore removal
+- **Status:** Phase 3 complete
+
+## 2026-04-02 — Milestone Shipped: Dashboard Improvements
+
+- **Action:** `/shipyard:ship`
+- **Delivery:** PR #90 merged to master
+- **CI fix:** Staggered 13 parallel Jenkins stages with 5s intervals to avoid Git clone storms
+- **Lessons captured:** Docker case-sensitivity, --no-restore cache invalidation, Jenkins clone stagger, middleware ordering
+- **Summary:** 3 phases — UI Polish, Config-Driven Registration, Docker Image. 15 commits across the branch.
+- **Status:** Shipped

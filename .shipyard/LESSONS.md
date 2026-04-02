@@ -46,3 +46,78 @@
 - When removing a feature (Thread.Abort), grep for all references before planning — the roadmap's initial "gut to no-op" approach was changed to "delete entirely" after research showed no consumers
 
 ---
+
+## [2026-03-31] Milestone: Jenkins CI Migration
+
+### What Went Well
+- Multi-targeting 22 test projects was mechanical and clean — existing `#if NETFULL` guards handled conditional compilation with zero code changes
+- Coverlet integration was trivial (2 commits) — Central Package Management made it a single version entry + per-project references
+- Iterative E2E validation caught real issues early — the 8 fix commits during Phase 5 would have been much harder to debug without a running pipeline
+
+### Surprises / Discoveries
+- Pipeline evolved from 6 agents to 13 parallel stages — finer granularity provides better load balancing and faster failure isolation than the original plan
+- Docker Pipeline plugin was replaced with label-based agents — simpler configuration, works with pre-built images, avoids plugin complexity
+- Jenkins agent JRE must exactly match the master's Java version (21) — class file version mismatch causes silent agent launch failures
+- Connection strings need to be written to bin output dirs after build, not just source dirs — `dotnet test --no-build` runs from the bin directory
+- Redis was refactored to use `connectionstring.txt` despite being marked "out of scope" — consistency across all transports justified the change (PR #87)
+- LiteDB csproj reference casing (`LiteDB` vs `LiteDb`) breaks on Linux's case-sensitive filesystem — Windows hides this entirely
+- `libsqlite3` + `libdl` symlink needed in Docker image for SQLite tests — the .NET SQLite library loads native libs by name
+- BaseMonitor had a disposal race condition (timer callback vs dispose) only visible under Linux timing — never surfaced on Windows
+
+### Pitfalls to Avoid
+- `GetObjectData` serialization test needed `#if NETFULL` — not caught until Linux run because `SoapFormatter` doesn't exist on net10.0
+- Time offset tests need tolerance on Linux — different clock resolution/behavior than Windows produces slightly different values
+- Codecov CLI syntax changes between versions — the `upload-process` subcommand replaced the older syntax; always check current docs
+- Don't assume Windows-developed code runs identically on Linux — case sensitivity, native library paths, and timer resolution all differ
+
+### Process Improvements
+- Run multi-target builds on Linux early in the process (even in a simple Docker container) to catch platform-specific issues before building the full CI pipeline
+- When a change marked "out of scope" keeps causing friction (Redis hardcoded IP), just do it — the cost of the workaround exceeds the cost of the fix
+
+---
+
+## [2026-04-01] Post-Ship: Integration Test Stability
+
+### What Went Well
+- Root cause analysis of 99/100 metrics assertion was clean — the handler→commit→metric pipeline made the race obvious once examined
+- Polling overload was a minimal, targeted fix (35 lines added, 13 callers updated mechanically)
+
+### Surprises / Discoveries
+- `--retry-failed-tests 1` was silently ignored in the Jenkinsfile because the test projects use VSTest, not Microsoft.Testing.Platform. TeamCity had its own retry mechanism built-in.
+- Migrating to Microsoft.Testing.Platform (`EnableMSTestRunner`) on .NET 10 is an all-or-nothing change across the solution — partial migration breaks `--collect:"XPlat Code Coverage"` for non-migrated projects
+- `TestingPlatformDotnetTestSupport` must be in `Directory.Build.props` (not per-csproj) due to multi-targeting MSBuild evaluation order
+
+### Pitfalls to Avoid
+- Don't assume CI test retry is working just because the config is present — verify with actual retry output in logs
+- Don't set `TestingPlatformDotnetTestSupport=true` globally unless ALL test projects have `EnableMSTestRunner=true`
+- Metrics assertions that compare a counter snapshot to a processed count have an inherent race — the counter increment happens after the handler returns, not during
+
+### Process Improvements
+- When tests pass on Windows but fail on Linux, investigate timing/latency differences first — network round-trips to remote services are the most common cause
+
+---
+
+## [2026-04-02] Milestone: Dashboard Improvements
+
+### What Went Well
+- Conditional self-contained mode (check config section, embed API if present) kept both deployment patterns working from one codebase
+- Multi-stage Dockerfile with layer caching (csproj-first copy) produces a lean runtime image
+- Security audit caught real issues: non-root container, auth placeholder UX
+
+### Surprises / Discoveries
+- Docker builds on Linux are case-sensitive — `LiteDb.csproj` vs `LiteDB/` directory, `Directory.*.props` lives in `Source/` not repo root. Windows hides all of this.
+- `TreatWarningsAsErrors` in Release mode catches nullable warnings (CS8632) that Debug mode ignores — `string?` without `#nullable enable` compiles in Debug but fails Release
+- `--no-restore` on `dotnet publish` fails when `COPY Source/` invalidates the restore cache layer — the restore output gets overwritten
+- 13 parallel Jenkins stages cloning GitHub simultaneously causes "Maximum checkout retry attempts reached" — rate limiting from the same IP
+- `UseRouting()` should come before `UseAuthentication()` in the ASP.NET Core middleware pipeline — reviewer caught incorrect ordering
+
+### Pitfalls to Avoid
+- Always verify Dockerfile COPY paths against the actual Linux filesystem with `ls` — don't trust csproj references or Windows conventions
+- Don't use `--no-restore` in Docker multi-stage builds where a later COPY invalidates the restore cache
+- When adding parallel CI stages, stagger the start times to avoid Git clone storms (5s intervals work for 13 stages)
+
+### Process Improvements
+- Test Docker builds early (before review gates) to catch path/casing issues that only surface on Linux
+- For ASP.NET Core middleware, always check canonical ordering: UseRouting → UseAuthentication → UseAuthorization → UseEndpoints
+
+---
