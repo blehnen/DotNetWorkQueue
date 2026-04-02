@@ -38,7 +38,7 @@ RUN dotnet publish "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboar
 # Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 
-# Install SQLite native library (required by SQLite and LiteDB transports)
+# Install SQLite native library (required by the SQLite transport)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libsqlite3-0 \
     && rm -rf /var/lib/apt/lists/*
