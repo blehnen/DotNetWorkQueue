@@ -41,6 +41,17 @@ See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth doc
 | DotNetWorkQueue.Dashboard.Ui | Blazor Server web UI (MudBlazor) for browsing queues, viewing messages, managing errors, and monitoring consumers. Connects to the Dashboard API. | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Dashboard.Ui)](https://www.nuget.org/packages/DotNetWorkQueue.Dashboard.Ui/) |
 | DotNetWorkQueue.Dashboard.Client | Typed API client and consumer registration client. Sends heartbeats with running metric counters (processed, errors, rollbacks, poison messages). No dependency on the core library — HttpClient and System.Text.Json only. | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Dashboard.Client)](https://www.nuget.org/packages/DotNetWorkQueue.Dashboard.Client/) |
 
+**Docker**
+
+A pre-built Docker image runs both the Dashboard UI and API in a single container — no separate API container needed:
+
+```bash
+docker pull blehnen74/dotnetworkqueue-dashboard:latest
+docker run -d -p 8080:8080 -v "$(pwd)/appsettings.json:/app/appsettings.json:ro" blehnen74/dotnetworkqueue-dashboard:latest
+```
+
+See [Docker Hub](https://hub.docker.com/r/blehnen74/dotnetworkqueue-dashboard) for tags and [docker/dashboard/README.md](docker/dashboard/README.md) for full configuration (authentication, API keys, SQLite/LiteDB volume mounts, Docker Compose).
+
 > **Metrics:** Built-in metrics are provided via `System.Diagnostics.Metrics` in the core library. No additional package is needed. To collect and export metrics, configure [OpenTelemetry.Metrics](https://github.com/open-telemetry/opentelemetry-dotnet) in your host application.
 
 ---
