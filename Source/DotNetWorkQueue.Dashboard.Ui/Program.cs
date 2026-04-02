@@ -41,7 +41,7 @@ if (selfContained)
     builder.Services.AddDotNetWorkQueueDashboard(dashboardSection);
 }
 
-// --- API client ---
+// --- API client (always registered; in self-contained mode, routes to the in-process API via localhost) ---
 var apiBaseUrl = builder.Configuration["DashboardApi:BaseUrl"] ?? "http://localhost:5000";
 var apiKey = builder.Configuration["DashboardApi:ApiKey"];
 builder.Services.AddHttpClient<IDashboardApiClient, DashboardApiClient>(client =>
@@ -90,6 +90,12 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
+if (selfContained)
+{
+    app.UseDotNetWorkQueueDashboard();
+}
+
+app.UseRouting();
 app.UseAuthentication();
 app.UseAntiforgery();
 
@@ -97,8 +103,6 @@ app.UseStaticFiles();
 
 if (selfContained)
 {
-    app.UseDotNetWorkQueueDashboard();
-    app.UseRouting();
     app.MapControllers();
 }
 
