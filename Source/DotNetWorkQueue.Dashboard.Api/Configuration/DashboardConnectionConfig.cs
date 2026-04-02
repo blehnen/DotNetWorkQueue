@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         /// <summary>
         /// Optional display name shown in the Dashboard UI. Defaults to the transport name.
         /// </summary>
-        public string? DisplayName { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
 
         /// <summary>
         /// Queue names to monitor on this connection.

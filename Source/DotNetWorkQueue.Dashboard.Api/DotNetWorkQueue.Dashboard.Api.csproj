@@ -55,7 +55,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <ProjectReference Include="..\DotNetWorkQueue.Transport.PostgreSQL\DotNetWorkQueue.Transport.PostgreSQL.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.Redis\DotNetWorkQueue.Transport.Redis.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj" />
-    <ProjectReference Include="..\DotNetWorkQueue.Transport.LiteDB\DotNetWorkQueue.Transport.LiteDB.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.LiteDB\DotNetWorkQueue.Transport.LiteDb.csproj" />
   </ItemGroup>
 
 </Project>

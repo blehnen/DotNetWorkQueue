@@ -19,21 +19,21 @@ COPY Source/DotNetWorkQueue.Transport.SqlServer/DotNetWorkQueue.Transport.SqlSer
 COPY Source/DotNetWorkQueue.Transport.PostgreSQL/DotNetWorkQueue.Transport.PostgreSQL.csproj Source/DotNetWorkQueue.Transport.PostgreSQL/
 COPY Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj Source/DotNetWorkQueue.Transport.Redis/
 COPY Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj Source/DotNetWorkQueue.Transport.SQLite/
-COPY Source/DotNetWorkQueue.Transport.LiteDB/DotNetWorkQueue.Transport.LiteDB.csproj Source/DotNetWorkQueue.Transport.LiteDB/
+COPY Source/DotNetWorkQueue.Transport.LiteDB/DotNetWorkQueue.Transport.LiteDb.csproj Source/DotNetWorkQueue.Transport.LiteDB/
 COPY Source/DotNetWorkQueue.Dashboard.Api/DotNetWorkQueue.Dashboard.Api.csproj Source/DotNetWorkQueue.Dashboard.Api/
 COPY Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj Source/DotNetWorkQueue.Dashboard.Ui/
 
 # Copy build infrastructure (Central Package Management)
 COPY Lib/ Lib/
-COPY Directory.Build.props .
-COPY Directory.Packages.props .
+COPY Source/Directory.Build.props Source/
+COPY Source/Directory.Packages.props Source/
 
 RUN dotnet restore "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj"
 
 # Copy all source and publish
 COPY Source/ Source/
 RUN dotnet publish "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj" \
-    -c Release -f net10.0 -o /app/publish --no-restore
+    -c Release -f net10.0 -o /app/publish
 
 # Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
