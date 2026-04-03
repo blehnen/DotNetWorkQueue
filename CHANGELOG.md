@@ -1,3 +1,7 @@
+### 0.9.15 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
+- `DashboardOptions.AssemblyPaths` — configurable directories for user POCO DLLs so the dashboard can deserialize message bodies in Docker without embedding assemblies
+- Docker: `/app/plugins` directory created by default; supports volume mount or derived image
+
 ### 0.9.14 — 2026-04-03
 - Dashboard UI: replace connection and queue cards with compact tables; remove nav drawer, make title clickable
 - Dashboard UI: self-contained mode runs the UI and API in one process (for Docker)
