@@ -100,6 +100,30 @@ docker run -d \
 
 Set the connection string to the mounted path: `"Data Source=/data/sqlite/myqueue.db"`
 
+## User Message Assemblies (POCO DLLs)
+
+If your queues contain custom POCO types, the dashboard needs those assemblies to display typed message bodies. Mount a directory with your DLLs and configure the path:
+
+```bash
+docker run -d \
+  -p 8080:8080 \
+  -v "$(pwd)/appsettings.json:/app/appsettings.json:ro" \
+  -v "/path/to/your/dlls:/app/plugins:ro" \
+  blehnen74/dotnetworkqueue-dashboard:latest
+```
+
+Add to `appsettings.json`:
+
+```json
+{
+  "Dashboard": {
+    "AssemblyPaths": ["/app/plugins"]
+  }
+}
+```
+
+You can also build a derived image instead: `FROM blehnen74/dotnetworkqueue-dashboard:latest` and `COPY` your DLLs into `/app/plugins/`.
+
 ## Tags
 
 | Tag | Description |
