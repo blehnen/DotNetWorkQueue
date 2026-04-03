@@ -1,80 +1,80 @@
-# Roadmap: Dashboard Improvements
+# Roadmap: Fix History Duration for Fast-Completing Messages
 
 ## Overview
 
-Two focused improvements to the DotNetWorkQueue Dashboard: (1) tighten UI density on the Connections and Queue list pages, removing the left nav rail in favor of breadcrumbs; (2) create a Docker image for standalone Dashboard deployment with JSON-driven transport configuration moved into the base library.
+GitHub issue #94: messages that complete in under 1 millisecond show no duration (blank or inconsistent values) in the Dashboard history view. This is caused by a race condition where `RecordComplete` reads `StartedUtc` from the database before `RecordProcessingStart` has persisted it, resulting in `DurationMs` being NULL instead of 0. The fix normalizes all transports to store `DurationMs = 0` when the duration is unmeasurable, and updates the Dashboard UI to display "< 1 ms" for that case.
+
+This is a single-phase cosmetic fix. No pipeline, metrics, or architectural changes are involved.
 
 ## Dependency Graph
 
 ```
-Phase 1 (UI Polish) ──────────────────────────────────────────> Done
-                                                                  |
-Phase 2 (Config-Driven Transport Registration) ───> Phase 3 (Docker Image) ──> Done
+Phase 1 (Backend normalization + UI display fix) ──> Done
 ```
 
-Phases 1 and 2 are independent and can execute in parallel. Phase 3 depends on Phase 2.
+Single phase, no inter-phase dependencies.
 
 ---
 
-## Phase 1: UI Polish -- Compact Layout and Nav Rail Removal
+## Phase 1: Normalize DurationMs Across Transports and Fix Dashboard Display
 
-- **Scope:** ~30% of total project. Replace MudCard grid layouts on the Connections page (`Home.razor`) and Queue list page (`ConnectionDetail.razor`) with compact MudSimpleTable/MudList. Remove the MudDrawer and NavMenu from `MainLayout.razor`. Add breadcrumbs to `Home.razor` for consistency. No changes to queue detail pages, tab views, or any other existing UI.
+- **Scope:** 100% of project. Two vertical slices that share no file dependencies and can execute in parallel: (A) backend transport normalization and (B) Dashboard UI display fix. Both are small and self-contained.
 - **Dependencies:** None
-- **Risk:** Low -- purely presentational changes. Three Razor files and one layout file. No API or backend changes. Existing Dashboard integration tests exercise API endpoints, not rendered markup, so they remain unaffected.
-- **Files touched:**
-  - `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/Home.razor` -- replace MudGrid/MudCard with MudSimpleTable rows (transport name, display name, queue count; clickable rows)
-  - `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/ConnectionDetail.razor` -- replace MudGrid/MudCard with MudSimpleTable rows (queue name, consumer count; clickable rows). Keep the existing Scheduled Jobs table and breadcrumbs unchanged.
-  - `Source/DotNetWorkQueue.Dashboard.Ui/Components/Layout/MainLayout.razor` -- remove MudDrawer, NavMenu reference, hamburger MudIconButton, and `ToggleDrawer` method. The MudAppBar title becomes the clickable link back to Connections.
-  - `Source/DotNetWorkQueue.Dashboard.Ui/Components/Layout/NavMenu.razor` -- delete this file (single "Connections" link no longer needed)
-- **Success criteria:**
-  - Connections page renders a compact table/list instead of cards, with each row showing transport name, display name, and queue count
-  - Queue list page renders a compact table/list instead of cards, with each row showing queue name and consumer count
-  - No left nav drawer or hamburger icon is visible
-  - Clicking a connection row navigates to that connection's queue list
-  - Clicking a queue row navigates to that queue's detail page
-  - Breadcrumb navigation works on all pages (Home shows "Connections", ConnectionDetail shows "Connections > {name}", QueueDetail remains unchanged)
-  - `dotnet build "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj"` succeeds
-  - `dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~Memory"` passes (confirms API unaffected)
+- **Risk:** Low -- cosmetic fix only. `DurationMs` is used exclusively for history display. No changes to message processing pipelines, metrics, OpenTelemetry, or API response shapes. The `DurationMs` property remains `long?` on all models; we only change what value gets stored and how `0` is rendered.
 
----
+### Bug Analysis
 
-## Phase 2: Config-Driven Transport Registration
+| Transport | Write side | Read side | Fix needed |
+|---|---|---|---|
+| RelationalDatabase (SqlServer, PostgreSQL, SQLite) | `DurationMs` stays NULL -- second UPDATE has `WHERE StartedUtc IS NOT NULL` guard | Reads raw DB value (null if NULL) | Fix write: set `DurationMs = 0` when StartedUtc is NULL |
+| Redis | Already stores `0L` when `startedTicks == 0` (correct) | **`DurationMs = durationMs > 0 ? durationMs : (long?)null`** converts `0` back to `null` | Fix read: stop converting `0` to `null` in `QueryMessageHistoryHandler.cs` |
+| LiteDb | `DurationMs` defaults to `0` (long field) but only because it is not set | **`DurationMs = h.DurationMs > 0 ? h.DurationMs : (long?)null`** converts `0` back to `null` | Fix read: stop converting `0` to `null` in `QueryMessageHistoryHandler.cs`; make write explicit for clarity |
+| Memory | `DurationMs` stays `null` (only set inside `if (r.StartedUtc.HasValue)`) | No conversion (in-memory) | Fix write: add `else r.DurationMs = 0` |
 
-- **Scope:** ~40% of total project. Move the `AddConnectionByTransport` switch pattern from the sample project into `DashboardExtensions` in the Dashboard API library. Add an `IConfiguration`-based overload of `AddDotNetWorkQueueDashboard`. This requires the Dashboard API project to gain package references to all five transport assemblies. Add unit tests for the new overload and the transport name resolution.
-- **Dependencies:** None (independent of Phase 1)
-- **Risk:** Medium -- the Dashboard API csproj currently only references `DotNetWorkQueue` and `DotNetWorkQueue.Transport.RelationalDatabase`. Adding references to all five transport packages (`SqlServer`, `PostgreSQL`, `Redis`, `SQLite`, `LiteDb`) increases the dependency surface of the API library. This is an intentional trade-off: the Dashboard is a monitoring tool that needs to connect to any transport, so carrying all transport references is appropriate for this assembly. The alternative (a separate `DashboardExtensions.AllTransports` package) adds packaging complexity for no user benefit.
-- **Files touched:**
-  - `Source/DotNetWorkQueue.Dashboard.Api/DotNetWorkQueue.Dashboard.Api.csproj` -- add ProjectReferences to all five transport projects
-  - `Source/DotNetWorkQueue.Dashboard.Api/DashboardExtensions.cs` -- add `AddDotNetWorkQueueDashboard(IServiceCollection, IConfiguration)` overload and internal `ResolveTransportInitType(string)` method mapping transport name strings to `ITransportInit` types
-  - `Source/DotNetWorkQueue.Dashboard.Api/Configuration/DashboardConnectionConfig.cs` -- new POCO for JSON binding: `Transport`, `ConnectionString`, `DisplayName`, `Queues[]`
-  - `Source/DotNetWorkQueue.Dashboard.Api.Tests/DashboardExtensionsTests.cs` -- unit tests for transport name resolution (valid names, case handling, unknown transport throws) and IConfiguration overload (reads connections from config, registers expected types)
-- **Success criteria:**
-  - `DashboardExtensions.AddDotNetWorkQueueDashboard(IServiceCollection, IConfiguration)` exists and compiles
-  - Calling it with an `IConfiguration` section containing `Connections[]` entries registers the correct transport types (verified via unit tests inspecting `DashboardOptions.ConnectionRegistrations`)
-  - Transport name resolution handles: "SqlServer" -> `SqlServerMessageQueueInit`, "PostgreSql" -> `PostgreSqlMessageQueueInit`, "SQLite" -> `SqLiteMessageQueueInit`, "LiteDb" -> `LiteDbMessageQueueInit`, "Redis" -> `RedisQueueInit`
-  - Unknown transport name throws `ArgumentException` with clear message
-  - The existing `Action<DashboardOptions>` overload continues to work unchanged
-  - `dotnet build "Source/DotNetWorkQueue.Dashboard.Api/DotNetWorkQueue.Dashboard.Api.csproj"` succeeds
-  - `dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj"` passes
-  - `dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~Memory"` passes
+### Files Touched
 
----
+**Backend -- write side (transport history writers):**
+- `Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/WriteMessageHistoryHandler.cs` -- fix `RecordComplete` to set `DurationMs = 0` when StartedUtc is NULL
+- `Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs` -- fix `RecordComplete` to set `DurationMs = 0` when StartedUtc is null
+- `Source/DotNetWorkQueue.Transport.LiteDB/Basic/WriteMessageHistoryHandler.cs` -- make `RecordComplete` explicitly set `DurationMs = 0` when StartedUtc is 0
+- `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` -- no write-side change needed (already stores `0L`)
 
-## Phase 3: Docker Image and Example Configuration
+**Backend -- read side (transport history query handlers):**
+- `Source/DotNetWorkQueue.Transport.Redis/Basic/QueryMessageHistoryHandler.cs` (line 124) -- change `durationMs > 0 ? durationMs : (long?)null` to preserve `0` as a valid value (e.g., `durationMs > 0 ? durationMs : 0L`)
+- `Source/DotNetWorkQueue.Transport.LiteDB/Basic/QueryMessageHistoryHandler.cs` (line 100) -- same fix: stop converting `0` to `null`
 
-- **Scope:** ~30% of total project. Create a multi-stage Dockerfile for the Dashboard UI that produces a standalone ASP.NET Core image with all transports included. Ship an `appsettings.example.json` documenting all configuration options. Update the Dashboard UI's `Program.cs` to use the new `IConfiguration` overload from Phase 2 so it can be configured entirely via mounted JSON.
-- **Dependencies:** Phase 2 (requires the `IConfiguration` overload and transport resolution in the base library)
-- **Risk:** Medium -- Docker multi-stage builds with multi-targeted .NET projects (net8.0 + net10.0) require choosing a single runtime for the container image. The Dockerfile should target net10.0 for the container since it is the primary target. The existing `docker/Dockerfile` is a Jenkins CI agent image, not a Dashboard image -- this is a new Dockerfile at a different path. SQLite/LiteDB require native libraries (`libsqlite3-0`) and volume-mounted database paths inside the container.
-- **Files touched:**
-  - `Source/DotNetWorkQueue.Dashboard.Ui/Program.cs` -- add conditional path: if `Dashboard:Connections` config section exists, use the new `IConfiguration` overload from Phase 2 instead of requiring compile-time configuration
-  - `docker/dashboard/Dockerfile` -- new multi-stage Dockerfile: SDK stage builds the Dashboard UI project for net10.0; runtime stage uses `mcr.microsoft.com/dotnet/aspnet:10.0`, installs `libsqlite3-0`, copies published output, exposes port 8080
-  - `docker/dashboard/appsettings.example.json` -- example config showing all five transport connection entries with comments about SQLite/LiteDB volume mount requirements
-  - `docker/dashboard/README.md` -- build and run instructions (`docker build`, `docker run` with volume mount)
-- **Success criteria:**
-  - `docker build -t dotnetworkqueue-dashboard -f docker/dashboard/Dockerfile .` succeeds from the repository root
-  - The resulting image does not contain the .NET SDK (only the ASP.NET runtime)
-  - `docker run --rm -v ./docker/dashboard/appsettings.example.json:/app/appsettings.json -p 8080:8080 dotnetworkqueue-dashboard` starts without errors (will fail to connect to transports without real connection strings, but the app should start and serve the UI)
-  - `appsettings.example.json` contains entries for all five transports with placeholder connection strings
-  - SQLite and LiteDB entries include comments or notes about volume-mounted paths
-  - The Dashboard UI `Program.cs` still works without a `Dashboard:Connections` config section (falls back to the existing fluent API pattern for non-Docker hosts)
-  - `dotnet build "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj"` succeeds
+**Backend unit tests:**
+- `Source/DotNetWorkQueue.Tests/Transport/Memory/Basic/WriteMessageHistoryHandlerTests.cs` -- update `RecordComplete_WithoutStarted_DurationIsNull` to assert `DurationMs == 0` instead of `null`; update `RecordError_WithoutStarted_DurationIsNull` similarly
+- `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/WriteMessageHistoryHandlerTests.cs` -- no structural changes needed (mocked DB, does not verify DurationMs value)
+- `Source/DotNetWorkQueue.Transport.LiteDb.Tests/Basic/WriteMessageHistoryHandlerTests.cs` -- verify existing tests still pass; may need updates if tests assert `null` for `DurationMs`
+- `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs` -- verify existing tests still pass; may need updates if tests assert `null` for `DurationMs`
+
+**Dashboard UI:**
+- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Shared/HistoryTab.razor` -- update `FormatDuration` method: when `ms == 0`, return `"< 1 ms"` instead of `"0ms"`
+
+### Success Criteria
+
+1. **Build succeeds:**
+   ```bash
+   dotnet build "Source/DotNetWorkQueue.sln" -c Debug
+   ```
+
+2. **All affected unit tests pass:**
+   ```bash
+   dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
+   dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
+   dotnet test "Source/DotNetWorkQueue.Transport.LiteDb.Tests/DotNetWorkQueue.Transport.LiteDb.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
+   dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
+   ```
+
+3. **Dashboard API tests pass (memory transport -- no external services):**
+   ```bash
+   dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~Memory"
+   ```
+
+4. **Dashboard UI builds:**
+   ```bash
+   dotnet build "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj"
+   ```
+
+5. **Behavioral verification:** A fast-completing message on any transport stores `DurationMs = 0` (not null) and the Dashboard history table displays "< 1 ms" for that entry instead of blank or "0ms".
