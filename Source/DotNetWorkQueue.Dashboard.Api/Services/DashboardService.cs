@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Dashboard.Api.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Factory;
@@ -45,11 +46,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
     {
         private readonly IDashboardApi _dashboardApi;
         private readonly ILogger<DashboardService> _logger;
+        private readonly string[] _assemblyPaths;
 
-        public DashboardService(IDashboardApi dashboardApi, ILogger<DashboardService> logger)
+        public DashboardService(IDashboardApi dashboardApi, ILogger<DashboardService> logger, DashboardOptions options)
         {
             _dashboardApi = dashboardApi;
             _logger = logger;
+            _assemblyPaths = options.AssemblyPaths ?? Array.Empty<string>();
         }
 
         /// <inheritdoc />
@@ -462,16 +465,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// <see cref="Type"/>. Stage 1 checks the AppDomain (embedded scenario). Stage 2 tries
         /// to load the assembly from <see cref="AppContext.BaseDirectory"/> (standalone scenario
         /// where the user has placed their POCO DLLs in the dashboard's bin folder).
+        /// Stage 3 searches any additional directories configured in
+        /// <see cref="DashboardOptions.AssemblyPaths"/>.
         /// Returns null if the type cannot be resolved; never throws.
         /// </summary>
-        private static Type ResolveMessageBodyType(string portableName)
+        private Type ResolveMessageBodyType(string portableName)
         {
             // Stage 1: already loaded in AppDomain
             var type = Type.GetType(portableName);
             if (type != null)
                 return type;
 
-            // Stage 2: try loading from bin folder
             // portableName format: "TypeFullName, AssemblySimpleName"
             var commaIndex = portableName.IndexOf(',');
             if (commaIndex < 0)
@@ -479,8 +483,26 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
 
             var typeFullName = portableName[..commaIndex].Trim();
             var assemblySimpleName = portableName[(commaIndex + 1)..].Trim();
-            var assemblyPath = Path.Combine(AppContext.BaseDirectory, assemblySimpleName + ".dll");
+            var dllFileName = assemblySimpleName + ".dll";
 
+            // Stage 2: try loading from bin folder
+            var resolved = TryLoadType(Path.Combine(AppContext.BaseDirectory, dllFileName), typeFullName);
+            if (resolved != null)
+                return resolved;
+
+            // Stage 3: try configured assembly paths
+            foreach (var dir in _assemblyPaths)
+            {
+                resolved = TryLoadType(Path.Combine(dir, dllFileName), typeFullName);
+                if (resolved != null)
+                    return resolved;
+            }
+
+            return null;
+        }
+
+        private static Type TryLoadType(string assemblyPath, string typeFullName)
+        {
             if (!File.Exists(assemblyPath))
                 return null;
 

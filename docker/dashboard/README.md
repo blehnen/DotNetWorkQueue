@@ -127,6 +127,46 @@ Match the mount paths to the `ConnectionString` values in `appsettings.json`:
 { "Transport": "LiteDb",  "ConnectionString": "Filename=/data/litedb/myqueue.litedb" }
 ```
 
+## User Message Assemblies (POCO DLLs)
+
+The dashboard deserializes message bodies for display. If your queues contain custom POCO types, the dashboard needs access to those assemblies to show typed message content instead of raw bytes.
+
+### Option 1: Volume mount
+
+Mount a directory containing your DLLs and tell the dashboard where to look:
+
+```bash
+docker run -d \
+  --name dnwq-dashboard \
+  -p 8080:8080 \
+  -v "$(pwd)/appsettings.json:/app/appsettings.json:ro" \
+  -v "/path/to/your/dlls:/app/plugins:ro" \
+  blehnen74/dotnetworkqueue-dashboard:latest
+```
+
+Add the path to your `appsettings.json`:
+
+```json
+{
+  "Dashboard": {
+    "AssemblyPaths": ["/app/plugins"]
+  }
+}
+```
+
+### Option 2: Derived image
+
+Build a custom image that includes your DLLs:
+
+```dockerfile
+FROM blehnen74/dotnetworkqueue-dashboard:latest
+COPY MyMessages.dll /app/plugins/
+```
+
+Use the same `AssemblyPaths` configuration as above.
+
+Multiple paths are supported — the dashboard searches them in order after checking the application's own bin directory.
+
 ## External API Mode
 
 To point the UI at a separately hosted Dashboard API instead of running in-process, omit the `Dashboard:Connections` section and set:

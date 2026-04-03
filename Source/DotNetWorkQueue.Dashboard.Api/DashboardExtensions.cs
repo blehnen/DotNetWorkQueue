@@ -161,6 +161,7 @@ namespace DotNetWorkQueue.Dashboard.Api
             {
                 options.EnableSwagger = dashboardSection.GetValue("EnableSwagger", true);
                 options.ApiKey = dashboardSection.GetValue<string>("ApiKey") ?? string.Empty;
+                options.AssemblyPaths = dashboardSection.GetSection("AssemblyPaths").Get<string[]>() ?? Array.Empty<string>();
 
                 foreach (var conn in dashboardSection.GetSection("Connections").GetChildren())
                 {
