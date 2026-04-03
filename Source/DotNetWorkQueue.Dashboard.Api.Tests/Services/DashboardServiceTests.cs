@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Dashboard.Api.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
 using DotNetWorkQueue.Exceptions;
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         public void GetConnections_Returns_All_Registered_Connections()
         {
             var api = CreateApi(out _, out _);
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
 
             var result = service.GetConnections();
 
@@ -43,7 +44,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         public void GetQueues_Returns_Queues_For_Connection()
         {
             var api = CreateApi(out var connectionId, out _);
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
 
             var result = service.GetQueues(connectionId);
 
@@ -55,7 +56,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         public void GetQueues_Throws_For_Unknown_ConnectionId()
         {
             var api = CreateApi(out _, out _);
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
 
             var act = () => service.GetQueues(Guid.NewGuid());
 
@@ -76,7 +77,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             }));
             container.GetInstance<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetStatusAsync(queueId);
 
             result.Waiting.Should().Be(10);
@@ -104,7 +105,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             creation.BaseTransportOptions.Returns(options);
             container.GetInstance<IQueueCreation>().Returns(creation);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = service.GetFeatures(queueId);
 
             result.EnableStatus.Should().BeTrue();
@@ -124,7 +125,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.HandleAsync(Arg.Any<GetDashboardMessageCountQuery>()).Returns(Task.FromResult(42L));
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageCountQuery, long>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageCountAsync(queueId, null);
 
             result.Should().Be(42L);
@@ -141,7 +142,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.HandleAsync(Arg.Any<GetDashboardMessageDetailQuery>()).Returns(Task.FromResult((DashboardMessage)null));
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageDetailQuery, DashboardMessage>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageDetailAsync(queueId, "999");
 
             result.Should().BeNull();
@@ -159,7 +160,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 Task.FromResult(System.Text.Encoding.UTF8.GetBytes("{\"test\":true}")));
             container.GetInstance<IQueryHandlerAsync<GetDashboardConfigurationQuery, byte[]>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetConfigurationAsync(queueId);
 
             result.ConfigurationJson.Should().Be("{\"test\":true}");
@@ -181,7 +182,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             }));
             container.GetInstance<IQueryHandlerAsync<GetDashboardJobsQuery, IReadOnlyList<DashboardJob>>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetJobsByConnectionAsync(connectionId);
 
             result.Should().HaveCount(1);
@@ -206,7 +207,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 { connectionId, connectionInfo }
             });
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetJobsByConnectionAsync(connectionId);
 
             result.Should().BeEmpty();
@@ -216,7 +217,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         public async Task GetJobsByConnection_Throws_For_Unknown_ConnectionId()
         {
             var api = CreateApi(out _, out _);
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
 
             var act = async () => await service.GetJobsByConnectionAsync(Guid.NewGuid());
 
@@ -297,7 +298,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             container.GetInstance<IMessageFactory>().Returns(new MessageFactory());
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -319,7 +320,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult((DashboardMessageBody)null));
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "999");
 
             result.Should().BeNull();
@@ -348,7 +349,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             compositeSerialization.InternalSerializer.Returns(internalSerializer);
             container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -380,7 +381,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             compositeSerialization.InternalSerializer.Returns(internalSerializer);
             container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageHeadersAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -399,7 +400,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.HandleAsync(Arg.Any<GetDashboardMessageHeadersQuery>()).Returns(Task.FromResult((DashboardMessageHeaders)null));
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageHeadersQuery, DashboardMessageHeaders>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageHeadersAsync(queueId, "999");
 
             result.Should().BeNull();
@@ -427,7 +428,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             compositeSerialization.InternalSerializer.Returns(internalSerializer);
             container.GetInstance<ICompositeSerialization>().Returns(compositeSerialization);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageHeadersAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -450,7 +451,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 },
                 bodyValue: "hello");
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -470,7 +471,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 },
                 bodyValue: "hello");
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -492,7 +493,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 },
                 bodyValue: "hello");
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -585,7 +586,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             standardHeaders.StandardHeaders.MessageInterceptorGraph.Returns(messageInterceptorGraphData);
             container.GetInstance<IHeaders>().Returns(standardHeaders);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -640,7 +641,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             standardHeaders.StandardHeaders.MessageInterceptorGraph.Returns(messageInterceptorGraphData);
             container.GetInstance<IHeaders>().Returns(standardHeaders);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -692,7 +693,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             standardHeaders.StandardHeaders.MessageInterceptorGraph.Returns(messageInterceptorGraphData);
             container.GetInstance<IHeaders>().Returns(standardHeaders);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -747,7 +748,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             container.GetInstance<IMessageFactory>().Returns(new MessageFactory());
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
             result.Should().NotBeNull();
@@ -770,7 +771,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.Handle(Arg.Any<DashboardDeleteMessageCommand>()).Returns(1L);
             container.GetInstance<ICommandHandlerWithOutput<DashboardDeleteMessageCommand, long>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.DeleteMessageAsync(queueId, "42");
 
             result.Should().BeTrue();
@@ -787,7 +788,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.Handle(Arg.Any<DashboardDeleteMessageCommand>()).Returns(0L);
             container.GetInstance<ICommandHandlerWithOutput<DashboardDeleteMessageCommand, long>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.DeleteMessageAsync(queueId, "999");
 
             result.Should().BeFalse();
@@ -804,7 +805,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.Handle(Arg.Any<DashboardDeleteAllErrorMessagesCommand>()).Returns(7L);
             container.GetInstance<ICommandHandlerWithOutput<DashboardDeleteAllErrorMessagesCommand, long>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.DeleteAllErrorMessagesAsync(queueId);
 
             result.Should().Be(7L);
@@ -821,7 +822,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.Handle(Arg.Any<DashboardRequeueErrorMessageCommand>()).Returns(1L);
             container.GetInstance<ICommandHandlerWithOutput<DashboardRequeueErrorMessageCommand, long>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.RequeueErrorMessageAsync(queueId, "42");
 
             result.Should().BeTrue();
@@ -838,7 +839,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.Handle(Arg.Any<DashboardRequeueErrorMessageCommand>()).Returns(0L);
             container.GetInstance<ICommandHandlerWithOutput<DashboardRequeueErrorMessageCommand, long>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.RequeueErrorMessageAsync(queueId, "999");
 
             result.Should().BeFalse();
@@ -855,7 +856,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.Handle(Arg.Any<DashboardResetStaleMessageCommand>()).Returns(1L);
             container.GetInstance<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.ResetStaleMessageAsync(queueId, "42");
 
             result.Should().BeTrue();
@@ -872,7 +873,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             handler.Handle(Arg.Any<DashboardResetStaleMessageCommand>()).Returns(0L);
             container.GetInstance<ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>>().Returns(handler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.ResetStaleMessageAsync(queueId, "999");
 
             result.Should().BeFalse();
@@ -889,7 +890,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             bodyHandler.HandleAsync(Arg.Any<GetDashboardMessageBodyQuery>()).Returns(Task.FromResult((DashboardMessageBody)null));
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(bodyHandler);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "999","{}");
 
             result.Should().Be(EditMessageBodyResult.NotFound);
@@ -907,7 +908,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 },
                 messageStatus: 0);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "42","\"hello\"");
 
             result.Should().Be(EditMessageBodyResult.TypeUnresolvable);
@@ -926,7 +927,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 },
                 messageStatus: 1);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "42","\"hello\"");
 
             result.Should().Be(EditMessageBodyResult.MessageBeingProcessed);
@@ -945,7 +946,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 },
                 messageStatus: 0);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "42","{ not valid json");
 
             result.Should().Be(EditMessageBodyResult.InvalidJson);
@@ -964,7 +965,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
                 },
                 messageStatus: 0);
 
-            var service = new DashboardService(api, NullLogger<DashboardService>.Instance);
+            var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "42","\"hello world\"");
 
             result.Should().Be(EditMessageBodyResult.Success);

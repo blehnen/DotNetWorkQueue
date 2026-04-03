@@ -109,5 +109,24 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             opts.EnableCors.Should().BeTrue();
             opts.CorsOrigins.Should().ContainSingle().Which.Should().Be("http://localhost:5000");
         }
+
+        [TestMethod]
+        public void AssemblyPaths_Defaults_To_Empty()
+        {
+            var opts = new DashboardOptions();
+            opts.AssemblyPaths.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void AssemblyPaths_Can_Be_Set()
+        {
+            var opts = new DashboardOptions
+            {
+                AssemblyPaths = new[] { "/app/plugins", "/opt/dlls" }
+            };
+            opts.AssemblyPaths.Should().HaveCount(2);
+            opts.AssemblyPaths[0].Should().Be("/app/plugins");
+            opts.AssemblyPaths[1].Should().Be("/opt/dlls");
+        }
     }
 }

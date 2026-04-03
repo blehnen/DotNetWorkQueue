@@ -84,6 +84,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         public int ConsumerStaleThresholdSeconds { get; set; } = 90;
 
         /// <summary>
+        /// Additional directories to scan for user message-type assemblies (POCO DLLs).
+        /// Used by the dashboard to deserialize message bodies for display.
+        /// In Docker, mount a volume to one of these paths and place your DLLs there.
+        /// </summary>
+        public string[] AssemblyPaths { get; set; } = Array.Empty<string>();
+
+        /// <summary>
         /// Internal list of connection registrations.
         /// </summary>
         internal List<DashboardConnectionRegistration> ConnectionRegistrations { get; } = new List<DashboardConnectionRegistration>();

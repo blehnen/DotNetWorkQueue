@@ -53,6 +53,9 @@ RUN if [ ! -e /usr/lib/x86_64-linux-gnu/libdl.so ]; then \
 WORKDIR /app
 COPY --from=build /app/publish .
 
+# Default plugin directory for user POCO assemblies (volume-mount your DLLs here)
+RUN mkdir -p /app/plugins
+
 USER $APP_UID
 
 ENV ASPNETCORE_URLS=http://+:8080
