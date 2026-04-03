@@ -1,3 +1,7 @@
+### 0.9.16 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
+- Fix: pre-load plugin assemblies into the AppDomain at startup so Newtonsoft's `TypeNameHandling` binder can resolve user POCO types during deserialization
+- Diagnostic logging in `ResolveMessageBodyType` (debug per stage, warning on failure)
+
 ### 0.9.15 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
 - `DashboardOptions.AssemblyPaths` — configurable directories for user POCO DLLs so the dashboard can deserialize message bodies in Docker without embedding assemblies
 - Docker: `/app/plugins` directory created by default; supports volume mount or derived image
