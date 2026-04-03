@@ -1,3 +1,9 @@
+### 0.9.14 — 2026-04-03
+- Dashboard UI: replace connection and queue cards with compact tables; remove nav drawer, make title clickable
+- Dashboard UI: self-contained mode runs the UI and API in one process (for Docker)
+- `IConfiguration` overload for JSON-based transport registration (`DashboardConnectionConfig` POCO)
+- Docker image: `blehnen74/dotnetworkqueue-dashboard` on Docker Hub
+
 ### 0.9.13 — 2026-03-29
 - Fix: `QueueContainer.CreateAdminApi()` crash due to missing `QueueConnection` parameter after queue name validation changes in 0.9.12
 - **Breaking:** Remove `Thread.Abort()` and `AbortWorkerThreadsWhenStopping` configuration. Worker shutdown now relies entirely on cooperative cancellation via `CancellationToken`.

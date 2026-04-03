@@ -2,7 +2,45 @@
 
 A self-contained Docker image that runs both the Dashboard UI and the Dashboard API in a single container. No separate API container is needed; the API is registered in-process when the `Dashboard:Connections` configuration section is present.
 
-## Build
+## Quick Start (Docker Hub)
+
+```bash
+docker pull blehnen74/dotnetworkqueue-dashboard:latest
+
+docker run -d \
+  --name dnwq-dashboard \
+  -p 8080:8080 \
+  -v "$(pwd)/appsettings.json:/app/appsettings.json:ro" \
+  blehnen74/dotnetworkqueue-dashboard:latest
+```
+
+Open `http://localhost:8080` in your browser.
+
+### Minimal Config Example
+
+Create an `appsettings.json` with just the transport(s) you need:
+
+```json
+{
+  "Dashboard": {
+    "Connections": [
+      {
+        "Transport": "SqlServer",
+        "ConnectionString": "Server=host.docker.internal;Database=mydb;User Id=sa;Password=YourPassword;TrustServerCertificate=true",
+        "DisplayName": "SQL Server",
+        "Queues": ["myqueue"]
+      }
+    ]
+  },
+  "DashboardApi": {
+    "BaseUrl": "http://localhost:8080"
+  }
+}
+```
+
+See `appsettings.example.json` for a full config with all five transports.
+
+## Build from Source
 
 Run from the **repository root** (the build context must include `Source/`, `Lib/`, and the central build props):
 
@@ -10,26 +48,20 @@ Run from the **repository root** (the build context must include `Source/`, `Lib
 docker build -t dotnetworkqueue-dashboard -f docker/dashboard/Dockerfile .
 ```
 
-## Quick Start
+## Docker Compose
 
-1. Copy the example config and edit connection strings:
-
-```bash
-cp docker/dashboard/appsettings.example.json ./appsettings.json
-# Edit appsettings.json — update connection strings, credentials, API key
+```yaml
+services:
+  dashboard:
+    image: blehnen74/dotnetworkqueue-dashboard:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./appsettings.json:/app/appsettings.json:ro
+      # Uncomment for SQLite/LiteDB:
+      # - ./data/sqlite:/data/sqlite:ro
+      # - ./data/litedb:/data/litedb:ro
 ```
-
-2. Run the container:
-
-```bash
-docker run -d \
-  --name dnwq-dashboard \
-  -p 8080:8080 \
-  -v "$(pwd)/appsettings.json:/app/appsettings.json:ro" \
-  dotnetworkqueue-dashboard
-```
-
-Open `http://localhost:8080` in your browser.
 
 ## Configuration
 
@@ -85,7 +117,7 @@ docker run -d \
   -v "$(pwd)/appsettings.json:/app/appsettings.json:ro" \
   -v "/host/path/to/sqlite-data:/data/sqlite:ro" \
   -v "/host/path/to/litedb-data:/data/litedb:ro" \
-  dotnetworkqueue-dashboard
+  blehnen74/dotnetworkqueue-dashboard:latest
 ```
 
 Match the mount paths to the `ConnectionString` values in `appsettings.json`:
@@ -107,3 +139,8 @@ To point the UI at a separately hosted Dashboard API instead of running in-proce
   }
 }
 ```
+
+## Tags
+
+- `latest` — latest build from master
+- `x.y.z` — matches the DotNetWorkQueue NuGet package version

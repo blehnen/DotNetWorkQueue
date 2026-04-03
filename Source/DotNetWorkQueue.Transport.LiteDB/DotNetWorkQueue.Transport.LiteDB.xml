@@ -9,6 +9,95 @@
             Admin function implementation
             </summary>
         </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1">
+            <summary>
+            Creates tables for storing job info
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1.#ctor(System.Collections.Generic.List{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1"/> class.
+            </summary>
+            <param name="tables">The tables.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1.Tables">
+            <summary>
+            Gets the tables.
+            </summary>
+            <value>
+            The tables.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1">
+            <summary>
+            A command for creating the queue and saving the configuration
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1.#ctor(System.Collections.Generic.List{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1"/> class.
+            </summary>
+            <param name="tables">The tables.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1.Tables">
+            <summary>
+            Gets the tables.
+            </summary>
+            <value>
+            The tables.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.DeleteQueueTablesCommand">
+            <summary>
+            Deletes the tables for a queue
+            </summary>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand">
+            <summary>
+            Sets the last time a job was set to run in the jobs table
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.#ctor(System.String,System.DateTimeOffset,System.DateTimeOffset,LiteDB.LiteDatabase)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand"/> class.
+            </summary>
+            <param name="jobName">Name of the job.</param>
+            <param name="jobEventTime">The job event time.</param>
+            <param name="jobScheduledTime">The job scheduled time.</param>
+            <param name="db">The database.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.JobName">
+            <summary>
+            Gets the name of the job.
+            </summary>
+            <value>
+            The name of the job.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.JobEventTime">
+            <summary>
+            Gets the time.
+            </summary>
+            <value>
+            The time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.JobScheduledTime">
+            <summary>
+            Gets the job scheduled time.
+            </summary>
+            <value>
+            The job scheduled time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.Database">
+            <summary>
+            Gets the database.
+            </summary>
+            <value>
+            The database.
+            </value>
+        </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler.CreateJobTablesCommandHandler">
             <summary>
             Creates tables for storing job info
@@ -226,95 +315,6 @@
             Handles the specified command.
             </summary>
             <param name="command">The command.</param>
-        </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1">
-            <summary>
-            Creates tables for storing job info
-            </summary>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1.#ctor(System.Collections.Generic.List{`0})">
-            <summary>
-            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1"/> class.
-            </summary>
-            <param name="tables">The tables.</param>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateJobTablesCommand`1.Tables">
-            <summary>
-            Gets the tables.
-            </summary>
-            <value>
-            The tables.
-            </value>
-        </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1">
-            <summary>
-            A command for creating the queue and saving the configuration
-            </summary>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1.#ctor(System.Collections.Generic.List{`0})">
-            <summary>
-            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1"/> class.
-            </summary>
-            <param name="tables">The tables.</param>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.CreateQueueTablesAndSaveConfigurationCommand`1.Tables">
-            <summary>
-            Gets the tables.
-            </summary>
-            <value>
-            The tables.
-            </value>
-        </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.DeleteQueueTablesCommand">
-            <summary>
-            Deletes the tables for a queue
-            </summary>
-        </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand">
-            <summary>
-            Sets the last time a job was set to run in the jobs table
-            </summary>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.#ctor(System.String,System.DateTimeOffset,System.DateTimeOffset,LiteDB.LiteDatabase)">
-            <summary>
-            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand"/> class.
-            </summary>
-            <param name="jobName">Name of the job.</param>
-            <param name="jobEventTime">The job event time.</param>
-            <param name="jobScheduledTime">The job scheduled time.</param>
-            <param name="db">The database.</param>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.JobName">
-            <summary>
-            Gets the name of the job.
-            </summary>
-            <value>
-            The name of the job.
-            </value>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.JobEventTime">
-            <summary>
-            Gets the time.
-            </summary>
-            <value>
-            The time.
-            </value>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.JobScheduledTime">
-            <summary>
-            Gets the job scheduled time.
-            </summary>
-            <value>
-            The job scheduled time.
-            </value>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Command.SetJobLastKnownEventCommand.Database">
-            <summary>
-            Gets the database.
-            </summary>
-            <value>
-            The database.
-            </value>
         </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.ConnectionStringInfo">
             <summary>
@@ -1132,19 +1132,6 @@
             <param name="route">The route.</param>
             <param name="messageData">The message data.</param>
         </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.MessageExpiration">
-            <summary>
-            Returns the message expiration timespan, if any, for a new message
-            </summary>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.MessageExpiration.GetExpiration(DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand,System.Func{DotNetWorkQueue.IAdditionalMessageData,System.Nullable{System.TimeSpan}})">
-            <summary>
-            Gets the message expiration.
-            </summary>
-            <param name="commandSend">The command send.</param>
-            <param name="getExpirationFromMessageData">The get expiration from message data.</param>
-            <returns></returns>
-        </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Message.ReceiveMessage">
             <summary>
             Handles receiving a message
@@ -1186,6 +1173,19 @@
             </summary>
             <param name="context">The context.</param>
         </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.MessageExpiration">
+            <summary>
+            Returns the message expiration timespan, if any, for a new message
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.MessageExpiration.GetExpiration(DotNetWorkQueue.Transport.Shared.Basic.Command.SendMessageCommand,System.Func{DotNetWorkQueue.IAdditionalMessageData,System.Nullable{System.TimeSpan}})">
+            <summary>
+            Gets the message expiration.
+            </summary>
+            <param name="commandSend">The command send.</param>
+            <param name="getExpirationFromMessageData">The get expiration from message data.</param>
+            <returns></returns>
+        </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.PurgeMessageHistoryHandler">
             <summary>
             Purges old message history records for LiteDB transport.
@@ -1198,6 +1198,99 @@
         </member>
         <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.PurgeMessageHistoryHandler.Purge(System.DateTime)">
             <inheritdoc />
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery">
+            <summary>
+            Job exists params
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.#ctor(System.String,System.DateTimeOffset,LiteDB.LiteDatabase)">
+            <summary>Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery"/> class.</summary>
+            <param name="jobName">Name of the job.</param>
+            <param name="scheduledTime">The expected scheduled time.</param>
+            <param name="db">Database</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.JobName">
+            <summary>
+            Gets the name of the job.
+            </summary>
+            <value>
+            The name of the job.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.ScheduledTime">
+            <summary>
+            Gets the scheduled time.
+            </summary>
+            <value>
+            The scheduled time.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.Database">
+            <summary>
+            Gets the database.
+            </summary>
+            <value>
+            The database.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetQueueCountQuery.Status">
+            <summary>
+            The status to search for
+            </summary>
+            <remarks>Null if all</remarks>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetQueueOptionsQuery`1">
+            <summary>
+            Gets the queue options
+            </summary>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery">
+            <summary>
+            Options for determining if a table exists 
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery.#ctor(LiteDB.LiteDatabase,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery"/> class.
+            </summary>
+            <param name="db">The database.</param>
+            <param name="tableName">Name of the table.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery.Database">
+            <summary>
+            Gets the database.
+            </summary>
+            <value>
+            The database.
+            </value>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery.TableName">
+            <summary>
+            Gets the name of the table.
+            </summary>
+            <value>
+            The name of the table.
+            </value>
+        </member>
+        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery">
+            <summary>
+            Dequeues a message from the queue.
+            </summary>
+        </member>
+        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery.#ctor(System.Collections.Generic.List{System.String})">
+            <summary>
+            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery" /> class.
+            </summary>
+            <param name="routes">The routes.</param>
+        </member>
+        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery.Routes">
+            <summary>
+            Gets the route.
+            </summary>
+            <value>
+            The route.
+            </value>
         </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler.DoesJobExistQueryHandler">
             <summary>
@@ -1419,99 +1512,6 @@
         </member>
         <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.QueryMessageHistoryHandler.GetCount(System.Nullable{DotNetWorkQueue.Configuration.MessageHistoryStatus})">
             <inheritdoc />
-        </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery">
-            <summary>
-            Job exists params
-            </summary>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.#ctor(System.String,System.DateTimeOffset,LiteDB.LiteDatabase)">
-            <summary>Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery"/> class.</summary>
-            <param name="jobName">Name of the job.</param>
-            <param name="scheduledTime">The expected scheduled time.</param>
-            <param name="db">Database</param>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.JobName">
-            <summary>
-            Gets the name of the job.
-            </summary>
-            <value>
-            The name of the job.
-            </value>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.ScheduledTime">
-            <summary>
-            Gets the scheduled time.
-            </summary>
-            <value>
-            The scheduled time.
-            </value>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.DoesJobExistQuery.Database">
-            <summary>
-            Gets the database.
-            </summary>
-            <value>
-            The database.
-            </value>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetQueueCountQuery.Status">
-            <summary>
-            The status to search for
-            </summary>
-            <remarks>Null if all</remarks>
-        </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetQueueOptionsQuery`1">
-            <summary>
-            Gets the queue options
-            </summary>
-        </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery">
-            <summary>
-            Options for determining if a table exists 
-            </summary>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery.#ctor(LiteDB.LiteDatabase,System.String)">
-            <summary>
-            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery"/> class.
-            </summary>
-            <param name="db">The database.</param>
-            <param name="tableName">Name of the table.</param>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery.Database">
-            <summary>
-            Gets the database.
-            </summary>
-            <value>
-            The database.
-            </value>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.GetTableExistsQuery.TableName">
-            <summary>
-            Gets the name of the table.
-            </summary>
-            <value>
-            The name of the table.
-            </value>
-        </member>
-        <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery">
-            <summary>
-            Dequeues a message from the queue.
-            </summary>
-        </member>
-        <member name="M:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery.#ctor(System.Collections.Generic.List{System.String})">
-            <summary>
-            Initializes a new instance of the <see cref="T:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery" /> class.
-            </summary>
-            <param name="routes">The routes.</param>
-        </member>
-        <member name="P:DotNetWorkQueue.Transport.LiteDb.Basic.Query.ReceiveMessageQuery.Routes">
-            <summary>
-            Gets the route.
-            </summary>
-            <value>
-            The route.
-            </value>
         </member>
         <member name="T:DotNetWorkQueue.Transport.LiteDb.Basic.TableNameHelper">
             <summary>
