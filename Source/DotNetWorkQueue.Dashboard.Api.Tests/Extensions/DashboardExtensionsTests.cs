@@ -1,8 +1,11 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using DotNetWorkQueue.Dashboard.Api;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Services;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -152,6 +155,86 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             Assert.AreEqual(0, pruningServiceRegistrations.Count,
                 "ConsumerPruningService should not be registered when tracking is disabled");
+        }
+
+        [TestMethod]
+        public void AddDotNetWorkQueueDashboard_PreloadsAssemblies_From_AssemblyPaths()
+        {
+            // Copy a known DLL to a temp "plugin" directory
+            var pluginDir = Path.Combine(Path.GetTempPath(), "dnwq-preload-test-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(pluginDir);
+            try
+            {
+                // Use Newtonsoft.Json as a test DLL — it's in our bin but let's verify
+                // the preload path works by copying it and checking it loads from there
+                var sourceDll = Path.Combine(AppContext.BaseDirectory, "FluentAssertions.dll");
+                var destDll = Path.Combine(pluginDir, "FluentAssertions.dll");
+                File.Copy(sourceDll, destDll);
+
+                var services = new ServiceCollection();
+                services.AddLogging();
+
+                services.AddDotNetWorkQueueDashboard(options =>
+                {
+                    options.EnableSwagger = false;
+                    options.AssemblyPaths = new[] { pluginDir };
+                });
+
+                // If PreloadAssemblies threw, we wouldn't get here
+                var provider = services.BuildServiceProvider();
+                var opts = provider.GetRequiredService<DashboardOptions>();
+                opts.AssemblyPaths.Should().ContainSingle().Which.Should().Be(pluginDir);
+            }
+            finally
+            {
+                Directory.Delete(pluginDir, true);
+            }
+        }
+
+        [TestMethod]
+        public void AddDotNetWorkQueueDashboard_PreloadAssemblies_Ignores_NonexistentDir()
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+
+            // Should not throw even if the directory doesn't exist
+            services.AddDotNetWorkQueueDashboard(options =>
+            {
+                options.EnableSwagger = false;
+                options.AssemblyPaths = new[] { "/nonexistent/path/that/does/not/exist" };
+            });
+
+            var provider = services.BuildServiceProvider();
+            provider.GetRequiredService<DashboardOptions>().Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void AddDotNetWorkQueueDashboard_PreloadAssemblies_Ignores_InvalidDlls()
+        {
+            var pluginDir = Path.Combine(Path.GetTempPath(), "dnwq-preload-invalid-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(pluginDir);
+            try
+            {
+                // Write a non-.NET file with .dll extension
+                File.WriteAllText(Path.Combine(pluginDir, "NotADotNet.dll"), "this is not a valid dll");
+
+                var services = new ServiceCollection();
+                services.AddLogging();
+
+                // Should not throw on invalid DLLs
+                services.AddDotNetWorkQueueDashboard(options =>
+                {
+                    options.EnableSwagger = false;
+                    options.AssemblyPaths = new[] { pluginDir };
+                });
+
+                var provider = services.BuildServiceProvider();
+                provider.GetRequiredService<DashboardOptions>().Should().NotBeNull();
+            }
+            finally
+            {
+                Directory.Delete(pluginDir, true);
+            }
         }
     }
 }

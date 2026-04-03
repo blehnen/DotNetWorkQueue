@@ -471,10 +471,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// </summary>
         private Type ResolveMessageBodyType(string portableName)
         {
+            _logger.LogDebug("Resolving message body type: {PortableName}", portableName);
+
             // Stage 1: already loaded in AppDomain
             var type = Type.GetType(portableName);
             if (type != null)
+            {
+                _logger.LogDebug("Type resolved from AppDomain: {Type}", type.FullName);
                 return type;
+            }
 
             // portableName format: "TypeFullName, AssemblySimpleName"
             var commaIndex = portableName.IndexOf(',');
@@ -486,18 +491,30 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             var dllFileName = assemblySimpleName + ".dll";
 
             // Stage 2: try loading from bin folder
-            var resolved = TryLoadType(Path.Combine(AppContext.BaseDirectory, dllFileName), typeFullName);
+            var binPath = Path.Combine(AppContext.BaseDirectory, dllFileName);
+            var resolved = TryLoadType(binPath, typeFullName);
             if (resolved != null)
+            {
+                _logger.LogDebug("Type resolved from bin folder: {Path}", binPath);
                 return resolved;
+            }
+            _logger.LogDebug("Assembly not found in bin folder: {Path}", binPath);
 
             // Stage 3: try configured assembly paths
             foreach (var dir in _assemblyPaths)
             {
-                resolved = TryLoadType(Path.Combine(dir, dllFileName), typeFullName);
+                var pluginPath = Path.Combine(dir, dllFileName);
+                resolved = TryLoadType(pluginPath, typeFullName);
                 if (resolved != null)
+                {
+                    _logger.LogDebug("Type resolved from plugin path: {Path}", pluginPath);
                     return resolved;
+                }
+                _logger.LogDebug("Assembly not found in plugin path: {Path}", pluginPath);
             }
 
+            _logger.LogWarning("Could not resolve type {PortableName}. Searched: bin={BinDir}, plugins=[{PluginDirs}]",
+                portableName, AppContext.BaseDirectory, string.Join(", ", _assemblyPaths));
             return null;
         }
 

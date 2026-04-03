@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.IO;
 using System.Linq;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Controllers;
@@ -55,6 +56,10 @@ namespace DotNetWorkQueue.Dashboard.Api
         {
             var options = new DashboardOptions();
             configureOptions(options);
+
+            // Pre-load user assemblies so Newtonsoft's TypeNameHandling binder can resolve
+            // message types during deserialization (before ResolveMessageBodyType runs).
+            PreloadAssemblies(options.AssemblyPaths);
 
             services.AddSingleton(options);
             services.AddSingleton<IDashboardApi>(sp =>
@@ -256,6 +261,30 @@ namespace DotNetWorkQueue.Dashboard.Api
                     break;
                 default:
                     throw new ArgumentException($"Unknown transport type: '{transport}'. Valid values: SqlServer, PostgreSql, SQLite, LiteDb, Redis.");
+            }
+        }
+
+        private static void PreloadAssemblies(string[] paths)
+        {
+            if (paths == null || paths.Length == 0)
+                return;
+
+            foreach (var dir in paths)
+            {
+                if (!Directory.Exists(dir))
+                    continue;
+
+                foreach (var dll in Directory.GetFiles(dir, "*.dll"))
+                {
+                    try
+                    {
+                        System.Reflection.Assembly.LoadFrom(dll);
+                    }
+                    catch
+                    {
+                        // Not a valid .NET assembly — skip silently
+                    }
+                }
             }
         }
     }
