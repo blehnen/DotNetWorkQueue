@@ -341,3 +341,16 @@
 - **Lessons captured:** Docker case-sensitivity, --no-restore cache invalidation, Jenkins clone stagger, middleware ordering
 - **Summary:** 3 phases — UI Polish, Config-Driven Registration, Docker Image. 15 commits across the branch.
 - **Status:** Shipped
+
+## 2026-04-05 — New Milestone Started: Fix History Duration (issue #94)
+
+- **Action:** Project definition captured (commit `a2956451`), workspace cleaned up
+- **Scope:** Single-phase cosmetic fix — normalize `DurationMs = 0` across all transports when sub-millisecond, display "< 1 ms" in Dashboard UI
+- **Cleanup:**
+  - Archived prior Dashboard Improvements artifacts → `.shipyard/archive/dashboard-improvements/`
+  - Archived orphan metrics-race debug → `.shipyard/archive/metrics-race-debug/`
+  - Archived 10 pre-shipyard personal notes → `.shipyard/archive/pre-shipyard-notes/`
+  - Restored `.shipyard/ISSUES.md` (had been deleted in worktree)
+  - Reset STATE.json to phase 1, ready_for_planning
+- **Also filed:** Issue #97 (Redis history Status=Processing bug), Issue #98 (link Grafana dashboard from README)
+- **Status:** Ready for /shipyard:plan 1

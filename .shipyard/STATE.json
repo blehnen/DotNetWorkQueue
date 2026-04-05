@@ -1,7 +1,7 @@
 {
-  "phase": 3,
-  "status": "shipped",
-  "position": "Dashboard Improvements milestone shipped via PR #90",
-  "message": "All 3 phases complete. Phase 1: UI Polish (compact tables, nav drawer removed). Phase 2: Config-Driven Registration (IConfiguration overload, transport resolver). Phase 3: Docker Image (self-contained mode, multi-stage Dockerfile, example config). Merged to master.",
-  "last_updated": "2026-04-02T00:00:00Z"
+  "phase": 1,
+  "status": "ready_for_planning",
+  "position": "New milestone: Fix History Duration for Fast-Completing Messages (issue #94)",
+  "message": "PROJECT.md and ROADMAP.md captured for single-phase cosmetic fix. Prior Dashboard Improvements artifacts archived. Ready for /shipyard:plan 1.",
+  "last_updated": "2026-04-05T00:00:00Z"
 }
