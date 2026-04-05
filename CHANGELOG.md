@@ -1,3 +1,8 @@
+### 0.9.17 — 2026-04-05
+- Fix: message history `DurationMs` stores `0` (not `null`) when a message completes or errors before `StartedUtc` is persisted — fixes blank duration values for sub-millisecond messages across all transports (Memory, RelationalDatabase, LiteDB, Redis)
+- Dashboard UI: history table renders `< 1 ms` for sub-millisecond completions (GitHub #94)
+- RelationalDatabase: dropped `StartedUtc IS NOT NULL` guard from `RecordComplete` UPDATE so `DurationMs` is actually persisted for sub-ms rows (previous code computed 0 correctly but the UPDATE was a no-op due to the WHERE guard)
+
 ### 0.9.16 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
 - Fix: pre-load plugin assemblies into the AppDomain at startup so Newtonsoft's `TypeNameHandling` binder can resolve user POCO types during deserialization
 - Diagnostic logging in `ResolveMessageBodyType` (debug per stage, warning on failure)

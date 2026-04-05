@@ -1,3 +1,4 @@
+using System;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -152,6 +153,125 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             connection.Received(1).Open();
             command.Received(1).ExecuteNonQuery();
+        }
+
+        [TestMethod]
+        public void RecordComplete_WithoutStartedUtc_PassesDurationZero()
+        {
+            var (handler, factory, _) = Create(enabled: true);
+            var connection = Substitute.For<IDbConnection>();
+
+            var allParams = new System.Collections.Generic.List<IDbDataParameter>();
+            // Capture the CommandText of every command created during RecordComplete.
+            var capturedCommandTexts = new System.Collections.Generic.List<string>();
+
+            IDbCommand MakeTrackingCommand(bool returnsDbNull = false)
+            {
+                var cmd = Substitute.For<IDbCommand>();
+                var paramCollection = Substitute.For<IDataParameterCollection>();
+                cmd.Parameters.Returns(paramCollection);
+                cmd.CreateParameter().Returns(_ =>
+                {
+                    var p = Substitute.For<IDbDataParameter>();
+                    allParams.Add(p);
+                    return p;
+                });
+                // Intercept CommandText assignments so we can assert the SQL text later.
+                cmd.When(x => { x.CommandText = Arg.Any<string>(); })
+                   .Do(x => capturedCommandTexts.Add((string)x[0]));
+                if (returnsDbNull)
+                    cmd.ExecuteScalar().Returns(DBNull.Value);
+                return cmd;
+            }
+
+            int commandCallCount = 0;
+            connection.CreateCommand().Returns(_ =>
+            {
+                commandCallCount++;
+                // cmd1: first UPDATE (status+completed), cmd2: GetStartedUtc SELECT, cmd3: duration UPDATE
+                return MakeTrackingCommand(returnsDbNull: commandCallCount == 2);
+            });
+            factory.Create().Returns(connection);
+
+            handler.RecordComplete("q1");
+
+            // Assert the @DurationMs parameter was set to 0L (StartedUtc was null → duration = 0).
+            IDbDataParameter durationParam = null;
+            foreach (var p in allParams)
+            {
+                if ((string)p.ParameterName == "@DurationMs")
+                {
+                    durationParam = p;
+                    break;
+                }
+            }
+            Assert.IsNotNull(durationParam, "Expected a @DurationMs parameter to have been created");
+            Assert.AreEqual(0L, durationParam.Value);
+
+            // Assert the duration UPDATE SQL does NOT contain the StartedUtc IS NOT NULL guard.
+            // That guard caused the UPDATE to be a no-op when StartedUtc was never persisted,
+            // leaving DurationMs=NULL in the database even though C# computed 0L.
+            bool foundGuard = false;
+            foreach (var sql in capturedCommandTexts)
+            {
+                if (sql != null && sql.IndexOf("StartedUtc IS NOT NULL", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    foundGuard = true;
+                    break;
+                }
+            }
+            Assert.IsFalse(foundGuard,
+                "The duration UPDATE WHERE clause must not contain 'StartedUtc IS NOT NULL' — " +
+                "that guard makes the UPDATE a no-op when StartedUtc was never persisted.");
+        }
+
+        [TestMethod]
+        public void RecordError_WithoutStartedUtc_PassesDurationZero()
+        {
+            var (handler, factory, _) = Create(enabled: true);
+            var connection = Substitute.For<IDbConnection>();
+
+            var allParams = new System.Collections.Generic.List<IDbDataParameter>();
+
+            IDbCommand MakeTrackingCommand(bool returnsDbNull = false)
+            {
+                var cmd = Substitute.For<IDbCommand>();
+                var paramCollection = Substitute.For<IDataParameterCollection>();
+                cmd.Parameters.Returns(paramCollection);
+                cmd.CreateParameter().Returns(_ =>
+                {
+                    var p = Substitute.For<IDbDataParameter>();
+                    allParams.Add(p);
+                    return p;
+                });
+                if (returnsDbNull)
+                    cmd.ExecuteScalar().Returns(DBNull.Value);
+                return cmd;
+            }
+
+            int commandCallCount = 0;
+            connection.CreateCommand().Returns(_ =>
+            {
+                commandCallCount++;
+                // cmd1: GetStartedUtc SELECT, cmd2: UPDATE
+                return MakeTrackingCommand(returnsDbNull: commandCallCount == 1);
+            });
+            factory.Create().Returns(connection);
+
+            handler.RecordError("q1", "some error");
+
+            // Find the parameter named @DurationMs
+            IDbDataParameter durationParam = null;
+            foreach (var p in allParams)
+            {
+                if ((string)p.ParameterName == "@DurationMs")
+                {
+                    durationParam = p;
+                    break;
+                }
+            }
+            Assert.IsNotNull(durationParam, "Expected a @DurationMs parameter to have been created");
+            Assert.AreEqual(0L, durationParam.Value);
         }
 
         private static (WriteMessageHistoryHandler handler, IDbConnectionFactory factory, IBaseTransportOptions options)

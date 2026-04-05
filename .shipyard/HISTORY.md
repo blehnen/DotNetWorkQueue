@@ -341,3 +341,59 @@
 - **Lessons captured:** Docker case-sensitivity, --no-restore cache invalidation, Jenkins clone stagger, middleware ordering
 - **Summary:** 3 phases — UI Polish, Config-Driven Registration, Docker Image. 15 commits across the branch.
 - **Status:** Shipped
+
+## 2026-04-05 — New Milestone Started: Fix History Duration (issue #94)
+
+- **Action:** Project definition captured (commit `a2956451`), workspace cleaned up
+- **Scope:** Single-phase cosmetic fix — normalize `DurationMs = 0` across all transports when sub-millisecond, display "< 1 ms" in Dashboard UI
+- **Cleanup:**
+  - Archived prior Dashboard Improvements artifacts → `.shipyard/archive/dashboard-improvements/`
+  - Archived orphan metrics-race debug → `.shipyard/archive/metrics-race-debug/`
+  - Archived 10 pre-shipyard personal notes → `.shipyard/archive/pre-shipyard-notes/`
+  - Restored `.shipyard/ISSUES.md` (had been deleted in worktree)
+  - Reset STATE.json to phase 1, ready_for_planning
+- **Also filed:** Issue #97 (Redis history Status=Processing bug), Issue #98 (link Grafana dashboard from README)
+- **Status:** Ready for /shipyard:plan 1
+
+## 2026-04-05 — Phase 1 Planned
+
+- **Action:** `/shipyard:plan 1`
+- **Decisions captured (CONTEXT-1.md):**
+  - Scope expansion: fix RecordComplete AND RecordError (roadmap covered Complete only)
+  - TDD discipline: failing tests first for every fix
+  - Skip researcher (ROADMAP.md already exhaustive)
+- **Plans:** 2 plans, 6 tasks total
+  - **PLAN-1.1** (Wave 1, 3 tasks): write-side normalization — Memory, RelationalDatabase, LiteDb
+  - **PLAN-1.2** (Wave 2, 3 tasks): read-side fix + UI — Redis (read+write regression), LiteDb read, Dashboard UI `FormatDuration`
+- **Architect deviations noted:**
+  - RelationalDatabase refactored to two-UPDATE pattern since roadmap was written — fix path updated
+  - Read-side discriminator uses `CompletedUtc > 0` (more semantically correct than `DurationMs > 0`)
+  - Null rendering in UI preserved as `-` (minimal, non-breaking)
+- **Critique verdict:** READY — all 12 files verified, line numbers accurate, API surface confirmed, no blocking issues
+- **Status:** Ready for /shipyard:build 1
+
+## 2026-04-05 — Phase 1 Build Complete
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 2/2 (PLAN-1.1, PLAN-1.2)
+- **Commits:** 8 total
+  - **Wave 1 (PLAN-1.1):** `a2d2337e` Memory, `171c796f` RelationalDatabase, `8cf57c0c` LiteDb
+  - **Critical fix after Wave 1 review:** `b538823a` (removed `StartedUtc IS NOT NULL` guard from RecordComplete SQL — the C# was correct but the UPDATE was a silent no-op) + `03a356db` (removed dead first-UPDATE block detected by hardened test)
+  - **Wave 2 (PLAN-1.2):** `686117bc` Redis read+write regression, `08ce80be` LiteDb read, `a79cec3c` Dashboard UI FormatDuration
+- **Quality gates:**
+  - Phase Verification: PASS (after 03a356db fix)
+  - Security Audit: CLEAN — no critical/important findings, 3 suggestions
+  - Simplification: LOW_PRIORITY_FINDINGS — 1 comment suggestion
+  - Documentation: MINOR_GAPS — CHANGELOG entry added (0.9.17)
+- **Tests:** 875 core unit + 16 RelationalDatabase + 45 Dashboard integration all passing on net10.0
+- **Issues resolved:** ISSUE-014 (SQL WHERE guard bug), ISSUE-015 (dead test helper)
+- **Status:** Ready for /shipyard:ship
+
+## 2026-04-05 — Milestone Shipped: Fix History Duration (issue #94)
+
+- **Action:** `/shipyard:ship`
+- **Delivery:** PR #99 opened against master — https://github.com/blehnen/DotNetWorkQueue/pull/99
+- **Pre-ship verification:** 147 tests pass (29 Core + 16 RelationalDatabase + 22 LiteDb + 35 Redis + 45 Dashboard Integration), Dashboard UI build clean
+- **Lessons captured:** SQL WHERE guard no-op pattern, NSubstitute Redis mocking limitations (added to LESSONS.md and CLAUDE.md)
+- **Closes:** GitHub #94
+- **Status:** Shipped

@@ -69,6 +69,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 var now = DateTime.UtcNow;
                 r.Status = MessageHistoryStatus.Complete; r.CompletedUtc = now;
                 if (r.StartedUtc.HasValue) r.DurationMs = (long)(now - r.StartedUtc.Value).TotalMilliseconds;
+                else r.DurationMs = 0;
             }
         }
 
@@ -81,6 +82,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 var now = DateTime.UtcNow;
                 r.Status = MessageHistoryStatus.Error; r.CompletedUtc = now; r.ExceptionText = exception;
                 if (r.StartedUtc.HasValue) r.DurationMs = (long)(now - r.StartedUtc.Value).TotalMilliseconds;
+                else r.DurationMs = 0;
             }
         }
 

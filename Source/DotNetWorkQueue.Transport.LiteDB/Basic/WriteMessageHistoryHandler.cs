@@ -94,8 +94,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 {
                     record.Status = (int)MessageHistoryStatus.Complete;
                     record.CompletedUtc = now.Ticks;
-                    if (record.StartedUtc > 0)
-                        record.DurationMs = (long)(now - new DateTime(record.StartedUtc, DateTimeKind.Utc)).TotalMilliseconds;
+                    record.DurationMs = record.StartedUtc > 0
+                        ? (long)(now - new DateTime(record.StartedUtc, DateTimeKind.Utc)).TotalMilliseconds
+                        : 0L;
                     col.Update(record);
                 }
             }
@@ -115,8 +116,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                     record.Status = (int)MessageHistoryStatus.Error;
                     record.CompletedUtc = now.Ticks;
                     record.ExceptionText = exception;
-                    if (record.StartedUtc > 0)
-                        record.DurationMs = (long)(now - new DateTime(record.StartedUtc, DateTimeKind.Utc)).TotalMilliseconds;
+                    record.DurationMs = record.StartedUtc > 0
+                        ? (long)(now - new DateTime(record.StartedUtc, DateTimeKind.Utc)).TotalMilliseconds
+                        : 0L;
                     col.Update(record);
                 }
             }

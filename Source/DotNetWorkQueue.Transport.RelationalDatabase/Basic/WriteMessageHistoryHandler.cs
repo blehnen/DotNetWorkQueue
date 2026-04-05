@@ -105,20 +105,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
-                        SET Status = @Status, CompletedUtc = @CompletedUtc,
-                            DurationMs = CASE WHEN StartedUtc IS NOT NULL THEN @DurationPlaceholder ELSE NULL END
+                        SET Status = @Status, CompletedUtc = @CompletedUtc
                         WHERE QueueID = @QueueID AND Status = @PrevStatus";
 
                     AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Complete);
                     AddParameter(command, "@CompletedUtc", DbType.DateTime, now);
-                    AddParameter(command, "@DurationPlaceholder", DbType.Int64, 0L); // will be overridden below
                     AddParameter(command, "@QueueID", DbType.String, queueId);
                     AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Processing);
-
-                    // Calculate duration in a separate step for cross-db compatibility
-                    command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
-                        SET Status = @Status, CompletedUtc = @CompletedUtc
-                        WHERE QueueID = @QueueID AND Status = @PrevStatus";
 
                     command.ExecuteNonQuery();
                 }
@@ -128,7 +121,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 {
                     command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
                         SET DurationMs = @DurationMs
-                        WHERE QueueID = @QueueID AND StartedUtc IS NOT NULL AND CompletedUtc IS NOT NULL AND DurationMs IS NULL";
+                        WHERE QueueID = @QueueID AND CompletedUtc IS NOT NULL AND DurationMs IS NULL";
 
                     // Read start time to calculate duration
                     var startTime = GetStartedUtc(connection, queueId);
@@ -152,7 +145,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 connection.Open();
 
                 var startTime = GetStartedUtc(connection, queueId);
-                var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : (long?)null;
+                var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : 0L;
 
                 using (var command = connection.CreateCommand())
                 {
@@ -162,7 +155,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
                     AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Error);
                     AddParameter(command, "@CompletedUtc", DbType.DateTime, now);
-                    AddParameter(command, "@DurationMs", DbType.Int64, (object)durationMs ?? DBNull.Value);
+                    AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
                     AddParameter(command, "@ExceptionText", DbType.String, (object)exception ?? DBNull.Value);
                     AddParameter(command, "@QueueID", DbType.String, queueId);
                     AddParameter(command, "@PrevStatus1", DbType.Int32, (int)MessageHistoryStatus.Processing);

@@ -118,3 +118,5 @@ Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (dyna
 - Dockerfile COPY paths must match exact Linux filesystem casing: `LiteDb.csproj` (not `LiteDB.csproj`), `Directory.Build.props` is in `Source/` not the repo root.
 - `--no-restore` on `dotnet publish` in Docker fails when a later `COPY Source/` invalidates the restore cache layer.
 - 13 parallel Jenkins stages need staggered startup (5s intervals) to avoid GitHub clone rate-limiting.
+- SQL UPDATE tests that only assert parameter values can pass while the UPDATE is a silent no-op: a WHERE clause guard may exclude the very rows you're trying to fix. Capture and assert the actual `CommandText` to catch this — the parameter assertion alone is a false positive.
+- StackExchange.Redis `ConnectionMultiplexer` cannot be mocked with NSubstitute (sealed types + extension methods). Expose a `protected virtual GetDb()` seam on Redis handlers for testability; keep classes internal to contain the scope.
