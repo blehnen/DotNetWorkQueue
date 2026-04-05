@@ -354,3 +354,20 @@
   - Reset STATE.json to phase 1, ready_for_planning
 - **Also filed:** Issue #97 (Redis history Status=Processing bug), Issue #98 (link Grafana dashboard from README)
 - **Status:** Ready for /shipyard:plan 1
+
+## 2026-04-05 — Phase 1 Planned
+
+- **Action:** `/shipyard:plan 1`
+- **Decisions captured (CONTEXT-1.md):**
+  - Scope expansion: fix RecordComplete AND RecordError (roadmap covered Complete only)
+  - TDD discipline: failing tests first for every fix
+  - Skip researcher (ROADMAP.md already exhaustive)
+- **Plans:** 2 plans, 6 tasks total
+  - **PLAN-1.1** (Wave 1, 3 tasks): write-side normalization — Memory, RelationalDatabase, LiteDb
+  - **PLAN-1.2** (Wave 2, 3 tasks): read-side fix + UI — Redis (read+write regression), LiteDb read, Dashboard UI `FormatDuration`
+- **Architect deviations noted:**
+  - RelationalDatabase refactored to two-UPDATE pattern since roadmap was written — fix path updated
+  - Read-side discriminator uses `CompletedUtc > 0` (more semantically correct than `DurationMs > 0`)
+  - Null rendering in UI preserved as `-` (minimal, non-breaking)
+- **Critique verdict:** READY — all 12 files verified, line numbers accurate, API surface confirmed, no blocking issues
+- **Status:** Ready for /shipyard:build 1
