@@ -152,7 +152,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 connection.Open();
 
                 var startTime = GetStartedUtc(connection, queueId);
-                var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : (long?)null;
+                var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : 0L;
 
                 using (var command = connection.CreateCommand())
                 {
@@ -162,7 +162,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
                     AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Error);
                     AddParameter(command, "@CompletedUtc", DbType.DateTime, now);
-                    AddParameter(command, "@DurationMs", DbType.Int64, (object)durationMs ?? DBNull.Value);
+                    AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
                     AddParameter(command, "@ExceptionText", DbType.String, (object)exception ?? DBNull.Value);
                     AddParameter(command, "@QueueID", DbType.String, queueId);
                     AddParameter(command, "@PrevStatus1", DbType.Int32, (int)MessageHistoryStatus.Processing);
