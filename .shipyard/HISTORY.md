@@ -371,3 +371,20 @@
   - Null rendering in UI preserved as `-` (minimal, non-breaking)
 - **Critique verdict:** READY — all 12 files verified, line numbers accurate, API surface confirmed, no blocking issues
 - **Status:** Ready for /shipyard:build 1
+
+## 2026-04-05 — Phase 1 Build Complete
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 2/2 (PLAN-1.1, PLAN-1.2)
+- **Commits:** 8 total
+  - **Wave 1 (PLAN-1.1):** `a2d2337e` Memory, `171c796f` RelationalDatabase, `8cf57c0c` LiteDb
+  - **Critical fix after Wave 1 review:** `b538823a` (removed `StartedUtc IS NOT NULL` guard from RecordComplete SQL — the C# was correct but the UPDATE was a silent no-op) + `03a356db` (removed dead first-UPDATE block detected by hardened test)
+  - **Wave 2 (PLAN-1.2):** `686117bc` Redis read+write regression, `08ce80be` LiteDb read, `a79cec3c` Dashboard UI FormatDuration
+- **Quality gates:**
+  - Phase Verification: PASS (after 03a356db fix)
+  - Security Audit: CLEAN — no critical/important findings, 3 suggestions
+  - Simplification: LOW_PRIORITY_FINDINGS — 1 comment suggestion
+  - Documentation: MINOR_GAPS — CHANGELOG entry added (0.9.17)
+- **Tests:** 875 core unit + 16 RelationalDatabase + 45 Dashboard integration all passing on net10.0
+- **Issues resolved:** ISSUE-014 (SQL WHERE guard bug), ISSUE-015 (dead test helper)
+- **Status:** Ready for /shipyard:ship

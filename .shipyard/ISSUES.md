@@ -1,7 +1,25 @@
 # Issues
 
 ## Open
-(none)
+
+### ISSUE-014: RelationalDatabase RecordComplete WHERE clause blocks DurationMs=0 write when StartedUtc IS NULL
+- **Severity:** Important
+- **Source:** Plan 1.1 Review
+- **Status:** Resolved — commit b538823a, 2026-04-05
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/WriteMessageHistoryHandler.cs` (line 131)
+  - `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/WriteMessageHistoryHandlerTests.cs` (`RecordComplete_WithoutStartedUtc_PassesDurationZero`)
+- **Description:** The second UPDATE in `RecordComplete` contains `WHERE QueueID = @QueueID AND StartedUtc IS NOT NULL AND CompletedUtc IS NOT NULL AND DurationMs IS NULL`. When `StartedUtc` was never persisted, the WHERE predicate fails and the UPDATE is a no-op — leaving `DurationMs` as NULL in the database despite the C# correctly computing `durationMs = 0L`. The test `RecordComplete_WithoutStartedUtc_PassesDurationZero` verifies only that the `@DurationMs` parameter was set to `0L`, not that the row was actually updated. `RecordError` was correctly fixed (no StartedUtc guard). This is the residual unfixed portion of the original bug for the Complete path.
+- **Resolution:** Removed `StartedUtc IS NOT NULL AND` from the WHERE clause. Strengthened the test to intercept and assert against the actual SQL CommandText, confirming the guard is absent.
+
+### ISSUE-015: Dead local function `MakeTrackingParam` in RecordComplete_WithoutStartedUtc_PassesDurationZero test
+- **Severity:** Suggestion
+- **Source:** Plan 1.1 Review
+- **Status:** Resolved — commit b538823a, 2026-04-05
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/WriteMessageHistoryHandlerTests.cs` (lines ~174-185 of the new test method)
+- **Description:** The `MakeTrackingParam()` local function is defined inside `RecordComplete_WithoutStartedUtc_PassesDurationZero` but is never called. The implementation pivots to using `MakeTrackingCommand` with the `allParams` list instead. The dead function adds noise.
+- **Resolution:** Removed the unused `MakeTrackingParam()` local function from the test method.
 
 ## Closed
 
