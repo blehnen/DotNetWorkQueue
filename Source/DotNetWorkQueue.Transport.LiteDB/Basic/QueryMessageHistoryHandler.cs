@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 EnqueuedUtc = new DateTime(h.EnqueuedUtc, DateTimeKind.Utc),
                 StartedUtc = h.StartedUtc > 0 ? new DateTime(h.StartedUtc, DateTimeKind.Utc) : (DateTime?)null,
                 CompletedUtc = h.CompletedUtc > 0 ? new DateTime(h.CompletedUtc, DateTimeKind.Utc) : (DateTime?)null,
-                DurationMs = h.DurationMs > 0 ? h.DurationMs : (long?)null,
+                DurationMs = h.CompletedUtc > 0 ? h.DurationMs : (long?)null,
                 ExceptionText = h.ExceptionText,
                 RetryCount = h.RetryCount,
                 Route = h.Route,
