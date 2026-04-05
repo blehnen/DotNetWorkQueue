@@ -388,3 +388,12 @@
 - **Tests:** 875 core unit + 16 RelationalDatabase + 45 Dashboard integration all passing on net10.0
 - **Issues resolved:** ISSUE-014 (SQL WHERE guard bug), ISSUE-015 (dead test helper)
 - **Status:** Ready for /shipyard:ship
+
+## 2026-04-05 — Milestone Shipped: Fix History Duration (issue #94)
+
+- **Action:** `/shipyard:ship`
+- **Delivery:** PR #99 opened against master — https://github.com/blehnen/DotNetWorkQueue/pull/99
+- **Pre-ship verification:** 147 tests pass (29 Core + 16 RelationalDatabase + 22 LiteDb + 35 Redis + 45 Dashboard Integration), Dashboard UI build clean
+- **Lessons captured:** SQL WHERE guard no-op pattern, NSubstitute Redis mocking limitations (added to LESSONS.md and CLAUDE.md)
+- **Closes:** GitHub #94
+- **Status:** Shipped
