@@ -105,20 +105,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
-                        SET Status = @Status, CompletedUtc = @CompletedUtc,
-                            DurationMs = CASE WHEN StartedUtc IS NOT NULL THEN @DurationPlaceholder ELSE NULL END
+                        SET Status = @Status, CompletedUtc = @CompletedUtc
                         WHERE QueueID = @QueueID AND Status = @PrevStatus";
 
                     AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Complete);
                     AddParameter(command, "@CompletedUtc", DbType.DateTime, now);
-                    AddParameter(command, "@DurationPlaceholder", DbType.Int64, 0L); // will be overridden below
                     AddParameter(command, "@QueueID", DbType.String, queueId);
                     AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Processing);
-
-                    // Calculate duration in a separate step for cross-db compatibility
-                    command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
-                        SET Status = @Status, CompletedUtc = @CompletedUtc
-                        WHERE QueueID = @QueueID AND Status = @PrevStatus";
 
                     command.ExecuteNonQuery();
                 }
