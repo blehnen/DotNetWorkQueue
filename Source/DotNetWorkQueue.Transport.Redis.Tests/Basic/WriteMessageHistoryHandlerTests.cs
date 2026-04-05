@@ -10,8 +10,8 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
     public class WriteMessageHistoryHandlerTests
     {
         /// <summary>
-        /// Test wrapper that exposes the IDatabase mock without needing a real ConnectionMultiplexer.
-        /// We test through a subclass that overrides the database access path.
+        /// Test wrapper that injects an IDatabase directly via the GetDb() seam,
+        /// bypassing ConnectionMultiplexer which cannot be proxied by NSubstitute.
         /// </summary>
         private class TestableWriteMessageHistoryHandler : WriteMessageHistoryHandler
         {
@@ -23,8 +23,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
                 _db = db;
             }
 
-            // We can't override private methods, so we use this only for construction.
-            // The enabled path tests need the actual Connection.GetDatabase() call to succeed.
+            protected override IDatabase GetDb() => _db;
         }
 
         private WriteMessageHistoryHandler CreateDisabled()
@@ -227,6 +226,69 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var options = Substitute.For<IBaseTransportOptions>();
             var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
             Assert.IsNotNull(handler);
+        }
+
+        // --- Write-side regression: DurationMs=0 contract when StartedUtc is missing ---
+
+        private static (WriteMessageHistoryHandler handler, IDatabase db) CreateEnabledWithDb()
+        {
+            var db = Substitute.For<IDatabase>();
+            // HashGet(key, field, flags) — the 3-arg interface method that the 2-arg extension delegates to.
+            // Returns 0 to simulate StartedUtc never being persisted (race-window scenario).
+            db.HashGet(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(), Arg.Any<CommandFlags>()).Returns((RedisValue)0L);
+
+            var connection = Substitute.For<IRedisConnection>();
+            var connInfo = Substitute.For<IConnectionInformation>();
+            var redisNames = Substitute.For<RedisNames>(connInfo);
+            redisNames.Values.Returns("queue:test");
+
+            var options = Substitute.For<IBaseTransportOptions>();
+            options.EnableHistory.Returns(true);
+
+            return (new TestableWriteMessageHistoryHandler(connection, redisNames, options, db), db);
+        }
+
+        [TestMethod]
+        public void RecordComplete_WithoutStartedUtc_WritesDurationZero()
+        {
+            // Arrange: StartedUtc HashGet returns 0 (race-window: start not persisted)
+            var (handler, db) = CreateEnabledWithDb();
+
+            // Act
+            handler.RecordComplete("q1");
+
+            // Assert: HashSet(key, HashEntry[], flags) was called with DurationMs=0L
+            db.Received().HashSet(
+                Arg.Any<RedisKey>(),
+                Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "DurationMs", 0L)),
+                Arg.Any<CommandFlags>());
+        }
+
+        [TestMethod]
+        public void RecordError_WithoutStartedUtc_WritesDurationZero()
+        {
+            // Arrange: StartedUtc HashGet returns 0 (race-window: start not persisted)
+            var (handler, db) = CreateEnabledWithDb();
+
+            // Act
+            handler.RecordError("q1", "some error");
+
+            // Assert: HashSet(key, HashEntry[], flags) was called with DurationMs=0L
+            db.Received().HashSet(
+                Arg.Any<RedisKey>(),
+                Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "DurationMs", 0L)),
+                Arg.Any<CommandFlags>());
+        }
+
+        private static bool ContainsEntry(HashEntry[] entries, string name, long value)
+        {
+            if (entries == null) return false;
+            foreach (var entry in entries)
+            {
+                if (entry.Name == name && (long)entry.Value == value)
+                    return true;
+            }
+            return false;
         }
     }
 }

@@ -42,11 +42,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _options = options;
         }
 
+        /// <summary>Returns the Redis database to use. Protected virtual to allow test seam injection.</summary>
+        protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
+
         /// <inheritdoc />
         public IReadOnlyList<MessageHistoryRecord> Get(int pageIndex, int pageSize, MessageHistoryStatus? statusFilter)
         {
             if (!_options.EnableHistory) return new List<MessageHistoryRecord>();
-            var db = _connection.Connection.GetDatabase();
+            var db = GetDb();
 
             // Unfiltered: use Redis server-side pagination — exact range, single call
             if (!statusFilter.HasValue)
@@ -92,7 +95,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public MessageHistoryRecord GetByQueueId(string queueId)
         {
             if (!_options.EnableHistory) return null;
-            var db = _connection.Connection.GetDatabase();
+            var db = GetDb();
             return LoadRecord(db, queueId);
         }
 
@@ -100,7 +103,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public long GetCount(MessageHistoryStatus? statusFilter)
         {
             if (!_options.EnableHistory) return 0;
-            var db = _connection.Connection.GetDatabase();
+            var db = GetDb();
             if (!statusFilter.HasValue) return db.SortedSetLength(HistoryIndexKey);
             var members = db.SortedSetRangeByRank(HistoryIndexKey, 0, -1);
             return members.Count(m => { var s = (int)db.HashGet(HistoryHashKey(m.ToString()), "Status"); return s == (int)statusFilter.Value; });
@@ -121,7 +124,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 EnqueuedUtc = new DateTime(GetLong(dict, "EnqueuedUtc"), DateTimeKind.Utc),
                 StartedUtc = startedTicks > 0 ? new DateTime(startedTicks, DateTimeKind.Utc) : (DateTime?)null,
                 CompletedUtc = completedTicks > 0 ? new DateTime(completedTicks, DateTimeKind.Utc) : (DateTime?)null,
-                DurationMs = durationMs > 0 ? durationMs : (long?)null,
+                DurationMs = completedTicks > 0 ? durationMs : (long?)null,
                 ExceptionText = NullIfEmpty(GetString(dict, "ExceptionText")),
                 RetryCount = (int)GetLong(dict, "RetryCount"),
                 Route = NullIfEmpty(GetString(dict, "Route")), MessageType = NullIfEmpty(GetString(dict, "MessageType"))

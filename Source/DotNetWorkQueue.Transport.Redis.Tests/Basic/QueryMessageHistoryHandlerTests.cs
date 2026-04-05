@@ -166,5 +166,98 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
                 Assert.AreEqual(0, result.Count);
             }
         }
+
+        // --- LoadRecord discriminator tests (DurationMs=0 preservation) ---
+
+        /// <summary>Subclass that injects an IDatabase directly, bypassing ConnectionMultiplexer.</summary>
+        private class TestableQueryHandler : QueryMessageHistoryHandler
+        {
+            private readonly IDatabase _db;
+            public TestableQueryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options, IDatabase db)
+                : base(connection, redisNames, options) { _db = db; }
+            protected override IDatabase GetDb() => _db;
+        }
+
+        private static QueryMessageHistoryHandler CreateEnabledWithDb(IDatabase db)
+        {
+            var connection = Substitute.For<IRedisConnection>();
+            var connInfo = Substitute.For<IConnectionInformation>();
+            var redisNames = Substitute.For<RedisNames>(connInfo);
+            redisNames.Values.Returns("queue:test");
+
+            var options = Substitute.For<IBaseTransportOptions>();
+            options.EnableHistory.Returns(true);
+
+            return new TestableQueryHandler(connection, redisNames, options, db);
+        }
+
+        [TestMethod]
+        public void LoadRecord_CompletedStatus_DurationZero_PreservesZero()
+        {
+            // Arrange: Complete row, DurationMs stored as 0 (sub-ms completion)
+            var completedTicks = DateTime.UtcNow.Ticks;
+            var startedTicks = completedTicks - 100;
+            var entries = new HashEntry[]
+            {
+                new HashEntry("QueueID", "q1"),
+                new HashEntry("CorrelationID", "corr1"),
+                new HashEntry("Status", (int)MessageHistoryStatus.Complete),
+                new HashEntry("EnqueuedUtc", startedTicks),
+                new HashEntry("StartedUtc", startedTicks),
+                new HashEntry("CompletedUtc", completedTicks),
+                new HashEntry("DurationMs", 0L),
+                new HashEntry("ExceptionText", ""),
+                new HashEntry("RetryCount", 0),
+                new HashEntry("Route", ""),
+                new HashEntry("MessageType", "MyType"),
+            };
+
+            var db = Substitute.For<IDatabase>();
+            db.HashGetAll(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>()).Returns(entries);
+
+            var handler = CreateEnabledWithDb(db);
+
+            // Act
+            var record = handler.GetByQueueId("q1");
+
+            // Assert: DurationMs must be 0, NOT null
+            Assert.IsNotNull(record);
+            Assert.AreEqual(0L, record.DurationMs,
+                "DurationMs=0 on a completed row must be preserved as 0, not converted to null");
+        }
+
+        [TestMethod]
+        public void LoadRecord_EnqueuedStatus_NoCompletedUtc_DurationIsNull()
+        {
+            // Arrange: Enqueued row — CompletedUtc=0 means the row never completed
+            var enqueuedTicks = DateTime.UtcNow.Ticks;
+            var entries = new HashEntry[]
+            {
+                new HashEntry("QueueID", "q2"),
+                new HashEntry("CorrelationID", ""),
+                new HashEntry("Status", (int)MessageHistoryStatus.Enqueued),
+                new HashEntry("EnqueuedUtc", enqueuedTicks),
+                new HashEntry("StartedUtc", 0L),
+                new HashEntry("CompletedUtc", 0L),
+                new HashEntry("DurationMs", 0L),
+                new HashEntry("ExceptionText", ""),
+                new HashEntry("RetryCount", 0),
+                new HashEntry("Route", ""),
+                new HashEntry("MessageType", ""),
+            };
+
+            var db = Substitute.For<IDatabase>();
+            db.HashGetAll(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>()).Returns(entries);
+
+            var handler = CreateEnabledWithDb(db);
+
+            // Act
+            var record = handler.GetByQueueId("q2");
+
+            // Assert: DurationMs must be null — row never completed
+            Assert.IsNotNull(record);
+            Assert.IsNull(record.DurationMs,
+                "DurationMs must be null when CompletedUtc=0 (row never completed)");
+        }
     }
 }
