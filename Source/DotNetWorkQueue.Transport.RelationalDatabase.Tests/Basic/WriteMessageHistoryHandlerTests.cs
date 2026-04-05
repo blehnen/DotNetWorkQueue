@@ -161,21 +161,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var (handler, factory, _) = Create(enabled: true);
             var connection = Substitute.For<IDbConnection>();
 
-            // Use a real parameter-name-to-value dictionary to capture what the production code writes
-            var capturedParams = new System.Collections.Generic.Dictionary<string, object>();
-
-            // Factory to create a tracking parameter: records ParameterName→Value assignments
-            IDbDataParameter MakeTrackingParam()
-            {
-                var p = Substitute.For<IDbDataParameter>();
-                p.When(x => { x.ParameterName = Arg.Any<string>(); })
-                 .Do(x => { /* name set first */ });
-                // We'll collect by inspecting after the call — easier: just return a real-ish mock
-                return p;
-            }
-
-            // Simpler approach: collect all (name, value) pairs across all commands
             var allParams = new System.Collections.Generic.List<IDbDataParameter>();
+            // Capture the CommandText of every command created during RecordComplete.
+            var capturedCommandTexts = new System.Collections.Generic.List<string>();
 
             IDbCommand MakeTrackingCommand(bool returnsDbNull = false)
             {
@@ -188,6 +176,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
                     allParams.Add(p);
                     return p;
                 });
+                // Intercept CommandText assignments so we can assert the SQL text later.
+                cmd.When(x => { x.CommandText = Arg.Any<string>(); })
+                   .Do(x => capturedCommandTexts.Add((string)x[0]));
                 if (returnsDbNull)
                     cmd.ExecuteScalar().Returns(DBNull.Value);
                 return cmd;
@@ -204,7 +195,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             handler.RecordComplete("q1");
 
-            // Find the parameter named @DurationMs and assert its value is 0L
+            // Assert the @DurationMs parameter was set to 0L (StartedUtc was null → duration = 0).
             IDbDataParameter durationParam = null;
             foreach (var p in allParams)
             {
@@ -216,6 +207,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             }
             Assert.IsNotNull(durationParam, "Expected a @DurationMs parameter to have been created");
             Assert.AreEqual(0L, durationParam.Value);
+
+            // Assert the duration UPDATE SQL does NOT contain the StartedUtc IS NOT NULL guard.
+            // That guard caused the UPDATE to be a no-op when StartedUtc was never persisted,
+            // leaving DurationMs=NULL in the database even though C# computed 0L.
+            bool foundGuard = false;
+            foreach (var sql in capturedCommandTexts)
+            {
+                if (sql != null && sql.IndexOf("StartedUtc IS NOT NULL", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    foundGuard = true;
+                    break;
+                }
+            }
+            Assert.IsFalse(foundGuard,
+                "The duration UPDATE WHERE clause must not contain 'StartedUtc IS NOT NULL' — " +
+                "that guard makes the UPDATE a no-op when StartedUtc was never persisted.");
         }
 
         [TestMethod]

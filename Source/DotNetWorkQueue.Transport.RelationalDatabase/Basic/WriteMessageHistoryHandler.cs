@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 {
                     command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
                         SET DurationMs = @DurationMs
-                        WHERE QueueID = @QueueID AND StartedUtc IS NOT NULL AND CompletedUtc IS NOT NULL AND DurationMs IS NULL";
+                        WHERE QueueID = @QueueID AND CompletedUtc IS NOT NULL AND DurationMs IS NULL";
 
                     // Read start time to calculate duration
                     var startTime = GetStartedUtc(connection, queueId);
