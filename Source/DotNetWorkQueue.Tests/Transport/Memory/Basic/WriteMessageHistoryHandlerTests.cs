@@ -138,7 +138,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
         }
 
         [TestMethod]
-        public void RecordComplete_WithoutStarted_DurationIsNull()
+        public void RecordComplete_WithoutStarted_DurationIsZero()
         {
             var (handler, key) = CreateHandlerWithKey(enableHistory: true);
             handler.RecordEnqueue("q1", "c1", null, null, null, null);
@@ -150,7 +150,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             var record = records["q1"];
             Assert.AreEqual(MessageHistoryStatus.Complete, record.Status);
             Assert.IsNotNull(record.CompletedUtc);
-            Assert.IsNull(record.DurationMs);
+            Assert.AreEqual(0L, record.DurationMs);
         }
 
         [TestMethod]
@@ -189,7 +189,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
         }
 
         [TestMethod]
-        public void RecordError_WithoutStarted_DurationIsNull()
+        public void RecordError_WithoutStarted_DurationIsZero()
         {
             var (handler, key) = CreateHandlerWithKey(enableHistory: true);
             handler.RecordEnqueue("q1", "c1", null, null, null, null);
@@ -199,7 +199,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             var records = WriteMessageHistoryHandler.GetRecordsForQueue(key);
             var record = records["q1"];
             Assert.AreEqual(MessageHistoryStatus.Error, record.Status);
-            Assert.IsNull(record.DurationMs);
+            Assert.AreEqual(0L, record.DurationMs);
         }
 
         [TestMethod]
