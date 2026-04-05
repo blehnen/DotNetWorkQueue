@@ -1,5 +1,27 @@
 # Shipyard Lessons Learned
 
+## [2026-04-05] Phase 1: Fix History Duration for Fast-Completing Messages (issue #94)
+
+### What Went Well
+- TDD discipline caught real bugs post-implementation: the hardened regression test in commit `b538823a` detected a dead SQL block with the same guard pattern that a weaker assertion would have missed
+- Scope expansion decision (fix `RecordError` alongside `RecordComplete`) prevented a follow-up PR — the code pattern was identical in both paths
+- Architect's semantic improvement — using `CompletedUtc > 0` as the read-side discriminator instead of `DurationMs > 0` — correctly distinguishes "never completed" (null) from "sub-ms completion" (0)
+
+### Surprises / Discoveries
+- The SQL WHERE guard bug (`StartedUtc IS NOT NULL`) was subtle: C# computed `0L` correctly and the parameter was set properly, but the UPDATE was a silent no-op because the row didn't match the WHERE clause. Would have shipped a "fixed" display that wasn't actually fixed in the database
+- StackExchange.Redis `ConnectionMultiplexer` can't be mocked with NSubstitute (sealed types + extension methods) — required adding a `protected virtual GetDb()` seam to the Redis handlers
+- RelationalDatabase `RecordComplete` had been refactored to a two-UPDATE pattern since the roadmap was written, and contained dead code from the migration
+
+### Pitfalls to Avoid
+- Don't let tests only assert parameter values when the real bug is in the SQL. The original test would have passed while the bug persisted. Capture and assert the actual command text
+- When adding a WHERE clause guard to an UPDATE, verify it doesn't accidentally exclude the valid case you're trying to fix
+
+### Process Improvements
+- The reviewer + verifier combination earned its keep: reviewer caught the WHERE guard bug, verifier caught the dead code via the hardened test. Neither would have caught it alone
+- Using AskUserQuestion to capture user decisions upfront (CONTEXT-1) set the right scope and avoided mid-build scope creep
+
+---
+
 ## [2026-03-27] Milestone: Security & Stability Fixes
 
 ### What Went Well
