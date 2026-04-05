@@ -180,6 +180,37 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
         }
 
         [TestMethod]
+        public void RecordComplete_WithoutProcessingStart_StoresDurationZero()
+        {
+            var (handler, cm, tnh) = CreateHandler();
+            using (cm)
+            {
+                handler.RecordEnqueue("q1", "c1", null, "T", null, null);
+                handler.RecordProcessingStart("q1");
+
+                // Reset StartedUtc to 0 to simulate the race-window where StartedUtc was never persisted
+                using (var db = cm.GetDatabase())
+                {
+                    var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
+                    var record = col.FindAll().First();
+                    record.StartedUtc = 0;
+                    col.Update(record);
+                }
+
+                handler.RecordComplete("q1");
+
+                using (var db = cm.GetDatabase())
+                {
+                    var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
+                    var record = col.FindAll().First();
+                    record.Status.Should().Be((int)MessageHistoryStatus.Complete);
+                    record.StartedUtc.Should().Be(0, "StartedUtc was manually cleared to simulate missing start");
+                    record.DurationMs.Should().Be(0, "DurationMs must be explicitly 0 when StartedUtc is not set");
+                }
+            }
+        }
+
+        [TestMethod]
         public void RecordComplete_NoRecord_DoesNotThrow()
         {
             var (handler, cm, _) = CreateHandler();
