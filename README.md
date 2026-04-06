@@ -54,7 +54,7 @@ See [Docker Hub](https://hub.docker.com/r/blehnen74/dotnetworkqueue-dashboard) f
 
 ---
 
-> **Metrics:** Built-in metrics are provided via `System.Diagnostics.Metrics` in the core library. No additional package is needed. To collect and export metrics, configure [OpenTelemetry.Metrics](https://github.com/open-telemetry/opentelemetry-dotnet) in your host application. A sample [Grafana dashboard](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/main/grafana-dashboard.json) is available — import it into Grafana to visualize queue metrics.
+> **Metrics:** Built-in metrics are provided via `System.Diagnostics.Metrics` in the core library. No additional package is needed. To collect and export metrics, configure [OpenTelemetry.Metrics](https://github.com/open-telemetry/opentelemetry-dotnet) in your host application. A sample [Grafana dashboard](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/main/grafana-dashboard.json) (Prometheus data source) is available — import it into Grafana to visualize queue metrics.
 
 ---
 
