@@ -298,6 +298,25 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
         }
 
         [TestMethod]
+        public void RecordProcessingStart_When_No_Record_Exists_Does_Not_Write()
+        {
+            var (handler, db) = CreateEnabledWithDb();
+
+            // Override the default 0L return to RedisValue.Null for the Status field.
+            // RedisValue.Null casts to (int)0, which is the same as MessageHistoryStatus.Enqueued —
+            // the bug. The fix checks HasValue first so this must NOT write.
+            db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("Status"), Arg.Any<CommandFlags>())
+                .Returns(RedisValue.Null);
+
+            handler.RecordProcessingStart("unknown-id");
+
+            db.DidNotReceive().HashSet(
+                Arg.Any<RedisKey>(),
+                Arg.Any<HashEntry[]>(),
+                Arg.Any<CommandFlags>());
+        }
+
+        [TestMethod]
         public void RecordProcessingStart_When_Status_Is_Enqueued_Sets_Processing()
         {
             var (handler, db) = CreateEnabledWithDb();
