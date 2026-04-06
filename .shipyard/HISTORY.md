@@ -500,3 +500,11 @@
 - **Verification:** 19 LiteDb tests passing, Redis builds clean
 - **Bonus fix:** LiteDB QueryMessageHistoryHandler.Get had same query engine bug documented in GetCount — applied matching FindAll() workaround
 - **Status:** Phase 1 complete, ready for /shipyard:ship
+
+## 2026-04-06 — Milestone Shipped: Dashboard API History Tests
+
+- **Action:** `/shipyard:ship`
+- **Delivery:** PR #107 opened against master — https://github.com/blehnen/DotNetWorkQueue/pull/107
+- **Pre-ship verification:** 19/19 LiteDb history tests passing (net8.0 + net10.0), Redis builds clean
+- **Lessons captured:** LiteDB query engine bug, test race condition with CommitMessage.Commit
+- **Status:** Shipped
