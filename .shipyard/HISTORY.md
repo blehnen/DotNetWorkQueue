@@ -423,3 +423,14 @@
 - **Follow-up filed:** #104 (Redis unchecked cast on StartedUtc in RecordComplete/RecordError)
 - **Closes:** GitHub #97
 - **Status:** Shipped
+
+## 2026-04-06 — New Milestone: Redis History Bug Fixes (#104, #103)
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Two Redis transport bugs — unchecked StartedUtc cast (#104) + broken purge logic (#103)
+- **Decisions:**
+  - Purge checks Status field (terminal only) + CompletedUtc guard (belt-and-suspenders)
+  - Add GetDb() test seam to PurgeMessageHistoryHandler (matching WriteMessageHistoryHandler)
+  - Single phase, 2 parallel plans (disjoint files)
+- **Roadmap:** 1 phase, Wave 1 (parallel)
+- **Status:** Ready for /shipyard:plan 1

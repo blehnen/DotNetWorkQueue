@@ -1,7 +1,7 @@
 {
   "phase": 1,
-  "status": "shipped",
-  "position": "Milestone shipped",
-  "message": "Milestone shipped via PR #105. Closes #97.",
+  "status": "ready",
+  "position": "Project definition captured, ready for planning",
+  "message": "Redis History Bug Fixes (#104, #103) — 1 phase, 2 parallel plans. Roadmap approved.",
   "last_updated": "2026-04-06T00:00:00Z"
 }
