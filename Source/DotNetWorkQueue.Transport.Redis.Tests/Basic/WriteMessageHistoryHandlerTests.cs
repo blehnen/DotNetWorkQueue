@@ -1,4 +1,5 @@
 using System;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using NSubstitute;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -277,6 +278,57 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             db.Received().HashSet(
                 Arg.Any<RedisKey>(),
                 Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "DurationMs", 0L)),
+                Arg.Any<CommandFlags>());
+        }
+
+        [TestMethod]
+        public void RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite()
+        {
+            var (handler, db) = CreateEnabledWithDb();
+
+            db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("Status"), Arg.Any<CommandFlags>())
+                .Returns((RedisValue)(int)MessageHistoryStatus.Error);
+
+            handler.RecordProcessingStart("q1");
+
+            db.DidNotReceive().HashSet(
+                Arg.Any<RedisKey>(),
+                Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "Status", (int)MessageHistoryStatus.Processing)),
+                Arg.Any<CommandFlags>());
+        }
+
+        [TestMethod]
+        public void RecordProcessingStart_When_No_Record_Exists_Does_Not_Write()
+        {
+            var (handler, db) = CreateEnabledWithDb();
+
+            // Override the default 0L return to RedisValue.Null for the Status field.
+            // RedisValue.Null casts to (int)0, which is the same as MessageHistoryStatus.Enqueued —
+            // the bug. The fix checks HasValue first so this must NOT write.
+            db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("Status"), Arg.Any<CommandFlags>())
+                .Returns(RedisValue.Null);
+
+            handler.RecordProcessingStart("unknown-id");
+
+            db.DidNotReceive().HashSet(
+                Arg.Any<RedisKey>(),
+                Arg.Any<HashEntry[]>(),
+                Arg.Any<CommandFlags>());
+        }
+
+        [TestMethod]
+        public void RecordProcessingStart_When_Status_Is_Enqueued_Sets_Processing()
+        {
+            var (handler, db) = CreateEnabledWithDb();
+
+            db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("Status"), Arg.Any<CommandFlags>())
+                .Returns((RedisValue)(int)MessageHistoryStatus.Enqueued);
+
+            handler.RecordProcessingStart("q1");
+
+            db.Received().HashSet(
+                Arg.Any<RedisKey>(),
+                Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "Status", (int)MessageHistoryStatus.Processing)),
                 Arg.Any<CommandFlags>());
         }
 

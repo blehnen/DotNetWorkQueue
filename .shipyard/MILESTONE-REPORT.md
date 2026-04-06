@@ -1,74 +1,61 @@
-# Milestone Report: Fix History Duration for Fast-Completing Messages
+# Milestone Report: Fix History Status for Errored Messages (Issue #97)
 
-**Completed:** 2026-04-05
+**Completed:** 2026-04-06
 **Phases:** 1/1 complete
-**GitHub Issue:** #94
+**GitHub Issue:** #97
 
 ## Milestone Summary
 
-A single-phase cosmetic fix addressing GitHub issue #94: messages completing in under 1 millisecond (or before `StartedUtc` could be persisted) displayed blank or inconsistent `Duration` values in the Dashboard history view. Root cause was a race condition between `RecordProcessingStart` and `RecordComplete` across all transports, with the user-visible symptom being `DurationMs = NULL` in storage.
+A single-phase bug fix addressing GitHub issue #97: Dashboard history shows `Status=Processing` for messages that exhausted retries and moved to the error queue. Two distinct bugs contributed:
 
-The fix normalizes `DurationMs = 0` at the write-side across all transports, preserves `0` correctly on the read-side (fixing transports that silently converted `0` to `null`), and updates the Dashboard UI to render `< 1 ms` for sub-millisecond completions.
+**Bug A:** `ReceiveMessagesErrorHistoryDecorator` read `context.MessageId` after the inner handler cleared it via `SetMessageAndHeaders(null, ...)`, so `RecordError` was never called for terminal errors.
+
+**Bug B:** Redis and Memory `RecordProcessingStart` unconditionally set `Status=Processing`, overwriting Error status on retries. RelationalDatabase and LiteDb already guarded this.
 
 ## Phase Summaries
 
-### Phase 1: Normalize DurationMs Across Transports and Fix Dashboard Display
+### Phase 1: Fix History Error Recording and Retry Status Guard
 
 **Status:** Complete
 
-**Scope (expanded beyond roadmap):** Per CONTEXT-1 user decision, fix applied to BOTH `RecordComplete` AND `RecordError` paths (roadmap covered Complete only).
+**Wave 1 (3 parallel plans):**
 
-**Two waves:**
+- **PLAN-1.1 (Decorator fix):** Captures `messageId` before delegating to inner handler, ensuring `RecordError` is called with the correct value even when the inner handler clears context.
+- **PLAN-1.2 (RecordProcessingStart guard):** Redis and Memory transports now only transition from Enqueued to Processing, matching RelationalDatabase/LiteDb patterns.
+- **PLAN-1.3 (Regression tests):** 5 new tests covering both bugs across all affected transports.
 
-- **Wave 1 — Write-side normalization** (PLAN-1.1, 3 tasks)
-  - Memory, RelationalDatabase, LiteDb `WriteMessageHistoryHandler`: both `RecordComplete` and `RecordError` now store `DurationMs = 0` when `StartedUtc` is missing
-  - Two critical fixes applied post-review: removed `StartedUtc IS NOT NULL` guard from RelationalDatabase `RecordComplete` SQL UPDATE, and deleted a dead first-UPDATE block that contained the same guard pattern
-
-- **Wave 2 — Read-side + UI** (PLAN-1.2, 3 tasks)
-  - Redis and LiteDb `QueryMessageHistoryHandler`: discriminator changed from `DurationMs > 0` to `CompletedUtc > 0` (semantically correct — distinguishes "never completed" from "sub-ms completion")
-  - Dashboard UI `FormatDuration` in `HistoryTab.razor`: renders `< 1 ms` for `DurationMs == 0`, preserves `-` for null (unchanged)
+**Review fix:** Redis guard additionally checks `rawStatus.HasValue` before integer cast to prevent null-cast collision (`RedisValue.Null` casts to `0` = `MessageHistoryStatus.Enqueued`).
 
 ## Key Decisions
 
-1. **Scope expansion to Error path** — fixed RecordError alongside RecordComplete to avoid shipping half a fix (CONTEXT-1 Decision 1)
-2. **TDD discipline** — every fix landed with a failing test first, then production change (CONTEXT-1 Decision 2)
-3. **Skip researcher step** — ROADMAP.md was exhaustive enough to plan directly (CONTEXT-1 Decision 3)
-4. **Semantic read-side improvement** — architect chose `CompletedUtc > 0` discriminator over the roadmap's `DurationMs > 0` (architect deviation)
-5. **Null UI rendering preserved** — `-` for null, non-breaking
+1. Fix applied in decorator/shared layer, not per-transport (Bug A)
+2. Redis guard uses `HasValue` check before integer comparison (caught in review)
+3. Memory guard adds `&& r.Status == MessageHistoryStatus.Enqueued` to existing conditional
+4. All 3 plans executed in parallel (Wave 1) — disjoint file sets
 
 ## Documentation Status
 
-- **CHANGELOG.md:** Updated with `0.9.17 — 2026-04-05` entry covering the fix, UI change, and SQL guard removal
-- **Public API docs:** No changes (all changes to internal handlers)
-- **Architecture docs:** No changes (fix is below architecture abstraction)
-- **User guides:** No changes (bug restoration, not new feature)
+- CHANGELOG updated with bug fix entry
+- No public API changes — no API/architecture doc updates needed
 
 ## Known Issues
 
-None. Two issues caught during review (ISSUE-014, ISSUE-015) were fully resolved within the phase.
-
-Three low-priority suggestions from the audit/simplification agents were deferred as non-blocking:
-- Add SQL comment explaining why the `StartedUtc IS NOT NULL` guard was dropped
-- Add inline comment documenting the `commandCallCount == 2` coupling in the RelationalDatabase test
-- Guard against negative durations in `FormatDuration` (clock skew edge case)
+- Filed #104: Redis `RecordComplete`/`RecordError` have same unchecked `(long)` cast on `StartedUtc` HashGet (pre-existing)
 
 ## Quality Gates
 
 | Gate | Result |
 |------|--------|
-| Phase Verification | PASS (after dead-code fix `03a356db`) |
-| Security Audit | CLEAN — no critical/important findings |
-| Simplification Review | LOW_PRIORITY — 1 comment suggestion |
-| Documentation Review | MINOR_GAPS — CHANGELOG added |
+| Phase Verification | PASS — 878 core + 166 Redis tests |
+| Security Audit | PASS — no critical findings |
+| Simplification Review | Defer — no high-priority findings |
+| Documentation Review | Complete — CHANGELOG updated |
 
 ## Metrics
 
 - **Phases:** 1
-- **Plans executed:** 2 (PLAN-1.1, PLAN-1.2)
-- **Tasks:** 6 (3 per plan)
-- **Critical post-review fixes:** 2
-- **Commits on branch:** 11 (3 shipyard + 8 fix commits)
-- **Files modified:** 13 (6 production, 5 tests, CHANGELOG, shipyard artifacts)
-- **LOC delta:** ~40 production, ~200 tests
-- **Tests added/updated:** 147 tests passing (across 5 unit test suites + 45 integration)
-- **Bugs caught during review:** 2 real ones (SQL WHERE guard no-op, dead SQL block)
+- **Plans executed:** 3 + 1 review fix
+- **Commits:** 4 implementation + 1 artifacts
+- **Files modified:** 6 (3 production, 3 test)
+- **Tests added:** 5 new regression tests
+- **Bugs caught during review:** 1 (Redis null-cast collision)

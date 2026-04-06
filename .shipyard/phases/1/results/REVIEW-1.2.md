@@ -1,53 +1,55 @@
-# Review: Plan 1.2
+# Re-Review: Plan 1.2 (after fix)
 
 ## Verdict: PASS
+
+## Findings
+
+### Critical
+
+None.
+
+### Minor
+
+None.
+
+### Positive
+
+- The fix at `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` lines 68-69 is exactly the remediation prescribed in the original review. `rawStatus.HasValue` is checked before the integer cast, so `RedisValue.Null` (which casts to `0` = `Enqueued`) no longer passes the guard. A missing record now correctly short-circuits without writing.
+- The new test `RecordProcessingStart_When_No_Record_Exists_Does_Not_Write` configures `HashGet` to return `RedisValue.Null` for the "Status" field and asserts `HashSet` is never called. This is a precise regression guard for the null-cast collision. The test comment accurately explains the bug it was written to prevent.
+- All 3 pre-existing `RecordProcessingStart` tests remain semantically correct under the fix:
+  - `RecordProcessingStart_When_Disabled_Does_Not_Call_Redis` -- unaffected (returns before the hash read).
+  - `RecordProcessingStart_When_Enabled_Accesses_Connection` -- still valid; the `Connection` property is accessed before `HashGet`, so the `NullReferenceException` fires at the same point as before.
+  - `RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite` -- still valid; returns a `HasValue=true` `RedisValue` with a non-Enqueued integer, so the guard correctly blocks the write.
+  - `RecordProcessingStart_When_Status_Is_Enqueued_Sets_Processing` -- still valid; returns `(RedisValue)(int)MessageHistoryStatus.Enqueued` which has `HasValue=true` and integer value `0`, so the guard passes and `HashSet` is called.
+
+---
+
+# REVIEW-1.2 — Guard RecordProcessingStart in Redis and Memory Transports (original)
+
+**Plan:** PLAN-1.2
+**Commit:** db724466
+**Reviewer:** Claude Sonnet 4.6
+**Date:** 2026-04-06
 
 ---
 
 ## Stage 1: Spec Compliance
 
-### Task 1: Redis transport — read-side fix + write-side regression coverage
+**Verdict:** PASS
 
-- **Status: PASS**
-- **Evidence:**
-  - Production fix: `Source/DotNetWorkQueue.Transport.Redis/Basic/QueryMessageHistoryHandler.cs` line 127 now reads `DurationMs = completedTicks > 0 ? durationMs : (long?)null,` (was `durationMs > 0`). The correct discriminator is in place.
-  - Read-side TDD: Builder reports RED run `Failed: 1 (LoadRecord_CompletedStatus_DurationZero_PreservesZero), Passed: 33`; GREEN run `Failed: 0, Passed: 34`. Full RED→GREEN cycle confirmed.
-  - Test assertions verified in `QueryMessageHistoryHandlerTests.cs` line 225: `Assert.AreEqual(0L, record.DurationMs, "DurationMs=0 on a completed row must be preserved as 0, not converted to null")` and line 259: `Assert.IsNull(record.DurationMs, "DurationMs must be null when CompletedUtc=0")`.
-  - Write-side regression: `WriteMessageHistoryHandlerTests.cs` lines 261-263 and 277-279 assert `db.Received().HashSet(…, Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "DurationMs", 0L)), …)` for both `RecordComplete_WithoutStartedUtc_WritesDurationZero` and `RecordError_WithoutStartedUtc_WritesDurationZero`. Write-side tests pass immediately (lock-in, not RED→GREEN) — anticipated and correctly documented.
-  - `protected virtual GetDb()` seam added to both `QueryMessageHistoryHandler` and `WriteMessageHistoryHandler`. Plan explicitly permitted this (`"introduce protected virtual GetDb() seam if required — no behavioral change"`). All `_connection.Connection.GetDatabase()` call sites are replaced with `GetDb()`. Behavioral change is zero.
-- **Notes:** The NSubstitute extension-method limitation was a genuine constraint. Using the 3-argument interface methods (`HashGet(RedisKey, RedisValue, CommandFlags)`, `HashGetAll(RedisKey, CommandFlags)`, `HashSet(RedisKey, HashEntry[], CommandFlags)`) is the correct workaround — the 2-arg extensions delegate to these, so the mock configuration is effective. This is not a test-quality issue.
+### Task 1: Redis RecordProcessingStart guard
 
----
+- Status: PASS
+- Evidence: `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` lines 68-69. Two lines inserted before the `HashSet` call: `var currentStatus = (int)db.HashGet(HistoryHashKey(queueId), "Status");` followed by `if (currentStatus != (int)MessageHistoryStatus.Enqueued) return;`.
+- Notes: The guard reads the current hash field and early-returns on any non-Enqueued value. No other methods in the file were changed, satisfying the acceptance criterion. The `RedisValue.Null` cast concern (raised explicitly in the review brief) is addressed correctly: `RedisValue.Null` cast to `(int)` yields `0`, which equals `MessageHistoryStatus.Enqueued = 0`.
 
-### Task 2: LiteDb QueryMessageHistoryHandler — stop converting DurationMs 0 to null
+  **However**, this produces a subtle correctness edge case — see the Important finding in Stage 2.
 
-- **Status: PASS**
-- **Evidence:**
-  - Production fix: `Source/DotNetWorkQueue.Transport.LiteDB/Basic/QueryMessageHistoryHandler.cs` line 100 now reads `DurationMs = h.CompletedUtc > 0 ? h.DurationMs : (long?)null,` (was `h.DurationMs > 0`). Correct discriminator confirmed.
-  - TDD: Builder reports RED run `Failed: 1 (Query_CompletedRow_DurationZero_PreservesZero), Passed: 1`; GREEN run `Failed: 0, Passed: 2`. Full RED→GREEN cycle confirmed.
-  - Test assertions verified in `QueryMessageHistoryHandlerTests.cs`: `record.DurationMs.Should().Be(0L, "DurationMs=0 on a completed row must be preserved as 0, not converted to null")` and `record.DurationMs.Should().BeNull("DurationMs must be null when CompletedUtc=0 (row never completed)")`.
-  - Tests use a real in-memory LiteDB instance via `CreateHandler()` / `InsertRow()` — no mocking of the database layer. This is stronger than a mock-based approach for a data-mapping bug.
-- **Notes:** None. Implementation exactly matches the plan's specified one-line change.
+### Task 2: Memory RecordProcessingStart guard
 
----
-
-### Task 3: Dashboard UI — render "< 1 ms" for DurationMs==0, preserve "-" for null
-
-- **Status: PASS**
-- **Evidence:**
-  - `Source/DotNetWorkQueue.Dashboard.Ui/Components/Shared/HistoryTab.razor` line 154: `if (ms == 0) return "< 1 ms";` is present between the null-check and the positive-value branch.
-  - Confirmed via grep: `FormatDuration(long? ms)` at line 151; null path is unchanged (returns `"-"`); zero path returns `"< 1 ms"`; positive path returns the existing formatted string.
-  - tdd="false" task — verified by build check only, as specified.
-- **Notes:** The null-rendering contract from CONTEXT-1 is honored exactly: `null` → `"-"` (unchanged), `0` → `"< 1 ms"` (new), `>0` → formatted string (unchanged).
-
----
-
-### CONTEXT-1 Decision Compliance
-
-- **Decision 1 (RecordError scope):** Write-side regression tests cover both `RecordComplete` and `RecordError` paths for Redis. LiteDb read-side fix applies to the single `MapRecord` call site, which covers all statuses including Error.
-- **Decision 2 (TDD):** Tasks 1 and 2 both executed full RED→GREEN cycles with documented run output. Task 3 is `tdd="false"` by design.
-- **Decision 3 (null UI behavior preserved):** `FormatDuration(null)` path is unchanged. Confirmed.
-- **Wave 1 coordination:** The `completedTicks > 0` / `h.CompletedUtc > 0` discriminator correctly round-trips the Wave 1 write-side fix. A row written with `DurationMs=0L` and `CompletedUtc=<ticks>` is now read back as `DurationMs=0L` rather than `null` on both transports.
+- Status: PASS
+- Evidence: `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs` line 60. The original `if (GetRecords().TryGetValue(queueId, out var r))` is now `if (GetRecords().TryGetValue(queueId, out var r) && r.Status == MessageHistoryStatus.Enqueued)`.
+- Notes: Syntactically and semantically correct. The short-circuit `&&` means the status check only runs when the record exists; no null-reference risk is introduced. No other methods changed.
 
 ---
 
@@ -57,34 +59,45 @@
 
 None.
 
----
-
 ### Important
 
-- **`GetDb()` seam is `protected virtual` on sealed-capable classes with no other subclassing use in production code** (`Source/DotNetWorkQueue.Transport.Redis/Basic/QueryMessageHistoryHandler.cs` line 46, `WriteMessageHistoryHandler.cs` line 44).
-  - This is a test-only hook exposed on production classes. The classes are not `sealed`, so any consumer can subclass and override `GetDb()` to inject an arbitrary database, potentially bypassing connection management. The risk is low in practice (these are internal transport classes, not part of the public API), but the seam is wider than necessary.
-  - Remediation: Add `internal` visibility to the `GetDb()` method (change `protected virtual` to `protected internal virtual`) or document in the XML summary that overriding is for test use only. Alternatively, if the project follows the pattern of marking test-seam classes `internal`, verify the classes themselves are `internal` — if so, the exposure scope is already contained. The existing XML summary comment (`Returns the Redis database to use. Protected virtual to allow test seam injection`) is good; confirm it is preserved in the release build's XML documentation output.
+- **Redis guard yields a false negative when the history record does not exist** at `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` line 68.
 
-- **Redis `QueryMessageHistoryHandlerTests` mixes assertion libraries** (`Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/QueryMessageHistoryHandlerTests.cs` lines 225/259 use `Assert.AreEqual`/`Assert.IsNull` for the new tests while the LiteDb tests use `FluentAssertions`).
-  - This is inconsistent within the test suite added in this wave. It is not a bug, but it reduces readability — a reader must context-switch between assertion styles in the same project.
-  - Remediation: Standardize the Redis query handler tests to use MSTest assertions exclusively (matching the existing disabled-path tests in the same file), or adopt FluentAssertions throughout. Given the project's plan to replace FluentAssertions with MSTest assertions (per MEMORY.md), using `Assert.AreEqual`/`Assert.IsNull` is actually the correct direction for new tests.
+  `MessageHistoryStatus.Enqueued = 0` and `(int)RedisValue.Null = 0` are the same integer. When `RecordProcessingStart` is called for a `queueId` that has no history record (e.g., if `EnableHistory` was off during enqueue and turned on before processing, or if history data was evicted), `db.HashGet` returns `RedisValue.Null`, which casts to `0`, which equals `(int)MessageHistoryStatus.Enqueued`. The guard therefore passes, and the `HashSet` executes — writing a Processing-status hash entry without a prior Enqueued entry or index entry. This leaves an orphaned, partially-populated record.
 
----
+  The Memory transport does not share this risk because `TryGetValue` returns false when the record is absent, so the body is never reached.
+
+  This is consistent with what the builder documented in SUMMARY-1.2.md ("A `RedisValue.Null` cast to `(int)` yields 0, which is not Enqueued, so records that do not exist in the hash are safely skipped") — but that statement is **incorrect**. `0` IS `Enqueued`, not "not Enqueued". The guard passes (does not skip) for missing records.
+
+  Whether this scenario is reachable in practice depends on operational guarantees (history always enabled when queue is created, no TTL on Redis keys). If those guarantees hold, the impact is low. If they do not, a dangling record can be written.
+
+  Remediation: Add an existence check before the status comparison. The simplest approach: check `HashExists` first, or compare the raw `RedisValue` before casting:
+
+  ```csharp
+  var rawStatus = db.HashGet(HistoryHashKey(queueId), "Status");
+  if (!rawStatus.HasValue || (int)rawStatus != (int)MessageHistoryStatus.Enqueued) return;
+  ```
+
+  This correctly skips both missing records and records in non-Enqueued states.
+
+- **Missing test coverage for the `RedisValue.Null` / missing-record case** at `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs`.
+
+  The builder reports 21/21 tests pass, but there is no test that calls `RecordProcessingStart` for a `queueId` that was never enqueued. Given the incorrect null-handling behaviour described above, this case is exactly the one that needs a test. Adding a test would both catch the bug and serve as a regression guard.
+
+  Remediation: Add a test that calls `RecordProcessingStart(unknownId)` without a prior `RecordEnqueue` and asserts that no hash key is created in the Redis store (verifiable via the `GetDb()` seam already present on the class).
 
 ### Suggestions
 
-- **LiteDb `QueryMessageHistoryHandlerTests` disposes `connectionManager` inside `using(cm)` but the handler holds a reference to the same manager** (`Source/DotNetWorkQueue.Transport.LiteDb.Tests/Basic/QueryMessageHistoryHandlerTests.cs`). The test calls `handler.GetByQueueId("q1")` inside the `using(cm)` block, so this is safe. However, if a future test calls the handler after the `using` block closes, a use-after-dispose defect would occur silently. The pattern is correct as written; it is worth adding a comment to make the dependency explicit.
+- The `RecordRollback` method in the Redis handler resets `Status` back to `Enqueued` (line 101). This means a re-queued message will correctly pass the Enqueued guard on its next `RecordProcessingStart` call. The retry path is therefore sound — no action needed, just confirming the design holds.
 
-- **No test for `FormatDuration` edge cases** (negative values, `long.MaxValue`). The spec does not require these, and the Razor component has no unit test framework, so this is a known gap noted by the plan itself. It is recorded here for future reference when a test harness for Blazor components is available.
-
-- **Write-side regression tests for Redis assert `HashSet` was called but do not assert the full entry set** — only that the `HashEntry[]` array contains an entry with key `"DurationMs"` and value `0L`. This is intentional (minimal lock-in per the plan) but does not prevent a regression where `DurationMs` is written correctly while other fields (e.g., `Status`, `CompletedUtc`) are silently dropped.
+- The Memory `RecordProcessingStart` line 60 packs three statements into one line. This is consistent with the existing style in the file (`RecordDelete`, `RecordExpire`, `RecordRollback` use the same pattern), so no change is needed. A future cleanup could split these for readability, but it is out of scope here.
 
 ---
 
-## Positive Observations
+## Summary
 
-- The `completedTicks > 0` discriminator is the correct semantic: it distinguishes "this row has been completed" from "this row has a measured non-zero duration." This distinction matters for the Deleted, Expired, and Rollback states, which can have `CompletedUtc > 0` but `DurationMs = 0` if processing was sub-millisecond — the fix handles them correctly without special-casing.
-- The LiteDb tests using a real in-memory database instance are the highest-confidence approach for a data-mapping bug. This is stronger than mocking and directly exercises the full read path.
-- The builder's disclosure of the NSubstitute extension-method constraint and the 3-argument workaround is thorough and accurate. The approach is idiomatic.
-- Commit messages follow the project's conventional commit format and accurately describe the behavioral change and test strategy.
-- The `ISSUES.md` file was correctly modified (status `M`) to record non-blocking findings carried forward from this wave.
+**Verdict:** REQUEST CHANGES
+
+Both guards are implemented as specified and satisfy the done criteria. The Memory implementation is correct in all cases. The Redis implementation contains an off-by-one semantic error: `RedisValue.Null` casts to `0`, which equals `MessageHistoryStatus.Enqueued`, so missing records are not skipped as the builder believed — they pass the guard and get a spurious Processing record written. The fix is a one-line change to check `rawStatus.HasValue` before comparing. A corresponding test should be added to cover this path.
+
+Critical: 0 | Important: 2 | Suggestions: 0

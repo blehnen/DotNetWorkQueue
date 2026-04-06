@@ -1,61 +1,69 @@
-# Simplification Review: Phase 1
-**Phase:** Fix History Duration for Fast-Completing Messages (issue #94, Phase 1)
-**Date:** 2026-04-05
-**Files analyzed:** 12 (8 production, 4 test)
-**Findings:** 0 high priority, 2 low priority
-
-## Verdict: LOW_PRIORITY_FINDINGS
+# Simplification Report
+**Phase:** 1 — Fix History Status for Errored Messages
+**Date:** 2026-04-06
+**Files analyzed:** 6 source files (1 SUMMARY doc excluded)
+**Findings:** 0 High, 2 Medium, 2 Low
 
 ---
 
-## High Priority (recommend fix before shipping)
+## High Priority
 
 None.
 
 ---
 
-## Low Priority (suggestions, deferrable)
+## Medium Priority
 
-### 1. RelationalDatabase test: command-index coupling undocumented
-- **Type:** Refactor (comment only)
-- **Location:** `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/WriteMessageHistoryHandlerTests.cs` — the `MakeTrackingCommand` callback that returns `returnsDbNull: commandCallCount == 2`
-- **Description:** The mock returns `DBNull` for the second command, which must be the `GetStartedUtc` SELECT. This implicit ordering assumption (cmd1=status UPDATE, cmd2=SELECT, cmd3=duration UPDATE) is correct today but will silently produce a false-positive if the implementation reorders the SELECT before the first UPDATE. No comment explains why `commandCallCount == 2` is the SELECT.
-- **Suggestion:** Add a single inline comment: `// cmd1=status UPDATE, cmd2=GetStartedUtc SELECT (returns DBNull to simulate missing start), cmd3=duration UPDATE`. No code change required.
-- **Impact:** 1 line added; eliminates future maintainer confusion.
+### Repeated inline connection setup in Redis "enabled path" tests
+- **Type:** Consolidate
+- **Locations:**
+  - `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs:109-120` (`RecordProcessingStart_When_Enabled_Accesses_Connection`)
+  - `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs:123-135` (`RecordComplete_When_Enabled_Accesses_Connection`)
+  - `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs:138-150` (`RecordError_When_Enabled_Accesses_Connection`)
+  - `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs:153-163` (`RecordExpire_When_Enabled_Accesses_Connection`)
+- **Description:** Each of the four "enabled path" connection-access tests builds its own `IRedisConnection` / `IConnectionInformation` / `RedisNames` / `IBaseTransportOptions` block inline (≈10 lines each, ~40 lines total). The pattern is structurally identical across all four; only the method called on `handler` differs. A `CreateEnabledWithoutDb()` factory (parallel to the existing `CreateDisabled()` and `CreateEnabledWithDb()` helpers) would collapse each test body to 3-4 lines.
+- **Suggestion:** Add a `private static WriteMessageHistoryHandler CreateEnabledWithoutDb()` helper that returns a `WriteMessageHistoryHandler` with `EnableHistory = true` and no mock db injection. Replace the four inline setups with calls to that helper.
+- **Impact:** ~28 lines removable; test intent becomes clearer because the setup noise is gone.
 
-### 2. Redis `GetDb()` virtual seam is minimally wider than necessary
-- **Type:** Note (no change recommended)
-- **Location:** `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` and `QueryMessageHistoryHandler.cs` — the new `protected virtual IDatabase GetDb()` method in each class
-- **Description:** `GetDb()` is `protected virtual`, meaning it is part of the inheritable surface of a class that was previously fully sealed-by-convention. It is called from one location per handler. The SUMMARY documents why this was required (NSubstitute cannot proxy `ConnectionMultiplexer`; extension-method overload ambiguity). There is no simpler alternative given the StackExchange.Redis API constraints.
-- **Suggestion:** No change. The seam is the minimal testability escape hatch available under the constraints. If the team later moves to an `IConnectionMultiplexer` abstraction, `GetDb()` can be removed at that point.
-- **Impact:** None — finding is informational only.
+### `hasMessageId` / `messageIdValue` intermediates in decorator production code
+- **Type:** Refactor
+- **Locations:** `Source/DotNetWorkQueue/History/Decorator/ReceiveMessagesErrorHistoryDecorator.cs:45-47`
+- **Description:** Three intermediate variables (`messageId`, `hasMessageId`, `messageIdValue`) are introduced to capture the context state before delegation. The logic is correct and necessary, but `messageIdValue` is used only inside the `if (hasMessageId)` branch. The variable could be inlined at the `RecordError` call site without reducing clarity, saving one line and one variable declaration. This is minor — the current form also reads clearly.
+- **Suggestion:** Inline `messageIdValue` directly into the `RecordError` call:
+  ```csharp
+  var messageId = context.MessageId;
+  var hasMessageId = messageId != null && messageId.HasValue;
+  var result = _handler.MessageFailedProcessing(message, context, exception);
+  if (_options.EnableHistory && _options.HistoryOptions.TrackError && hasMessageId)
+  {
+      ...
+      _history.RecordError(messageId.Id.Value.ToString(), exceptionText);
+  }
+  ```
+- **Impact:** 1 line removed, 1 fewer variable; no behavioral change.
 
 ---
 
-## Intentional Complexity (do not change)
+## Low Priority
 
-### Per-transport duplication in WriteMessageHistoryHandler / QueryMessageHistoryHandler
-Each of the four transports (Memory, RelationalDatabase, LiteDb, Redis) has its own `WriteMessageHistoryHandler` and `QueryMessageHistoryHandler`. The same `DurationMs = 0` normalization was applied four times. This is expected: each handler encodes transport-specific storage details (Redis hashes, LiteDB documents, SQL parameters, in-memory dictionaries). The normalization logic itself is trivial (`else r.DurationMs = 0` or a ternary); it does not meet the Rule of Three threshold for extraction because there is no shared call site and each handler has a structurally different surrounding context. The duplication is load-bearing and intentional.
+- **`CreateHandler()` vs `CreateHandlerWithKey()` in Memory tests — divergent helpers.**
+  `Source/DotNetWorkQueue.Tests/Transport/Memory/Basic/WriteMessageHistoryHandlerTests.cs:421-431` and `:433-453`. `CreateHandler()` (returns handler only, `EnableHistory=false`) is a vestige used by at most one test. All new tests added in this phase use `CreateHandlerWithKey`. If `CreateHandler` has no remaining callers after the phase additions, it can be removed. Verify with a quick search before acting.
 
-### Two-UPDATE pattern in RelationalDatabase RecordComplete
-The `RecordComplete` path issues two SQL UPDATEs (status update, then duration update). This was pre-existing architecture, not introduced by this phase. Phase 1 only removed a dead first-UPDATE block (commit `03a356db`) and a WHERE-clause guard (`b538823a`). The two-UPDATE pattern remains but is now correct; consolidating it into a single UPDATE would require a schema-level redesign that is explicitly out of scope per PROJECT.md.
-
-### Test scaffolding differences across transports
-- Memory and RelationalDatabase tests use mocked `IDbConnection`/`IDbCommand` chains with name-based parameter capture.
-- LiteDb tests use a real in-memory LiteDB instance.
-- Redis tests use a `Testable*Handler` subclass seam overriding `GetDb()`.
-
-These differences reflect genuine constraints (LiteDB's in-process nature makes real storage cheaper than mocking; Redis's sealed types require the seam). Unifying the scaffolding would add abstraction cost with no correctness benefit. This is appropriate per-transport divergence.
+- **`TestableWriteMessageHistoryHandler` inner class comment could be shortened.**
+  `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs:13-16`. The XML summary on the inner test class accurately explains the NSubstitute seam rationale — this is good documentation. However, the same explanation also appears as an inline comment block at line 90-92. The duplication is harmless but one of the two locations is sufficient. Suggestion: keep the XML summary on the class, remove the section comment block.
 
 ---
 
 ## Summary
-- **Duplication found:** 0 extractable instances (per-transport duplication is intentional)
-- **Dead code found:** 0 (the dead SQL CASE block and `MakeTrackingParam()` local were already removed in commits `03a356db` and `b538823a` during the phase)
-- **Complexity hotspots:** 0 functions exceeding thresholds
-- **AI bloat patterns:** 0 instances
-- **Estimated cleanup impact:** 1 comment line to add
+
+- **Duplication found:** 1 instance (4 near-duplicate inline setups in Redis test file)
+- **Dead code found:** 0 (no unused imports, variables, or unreachable branches in changed files)
+- **Complexity hotspots:** 0 functions exceeding thresholds (all production methods are < 15 lines; all test methods are < 30 lines)
+- **AI bloat patterns:** 0 (no re-raising catch blocks, no redundant type checks, no impossible null guards)
+- **Estimated cleanup impact:** ~30 lines removable across both findings
+
+---
 
 ## Recommendation
 
-The phase is clean enough to ship without remediation. The one actionable finding (command-index comment in the RelationalDatabase test) is a 1-line documentation improvement that can be applied immediately or deferred without risk. No code should be changed before shipping based on this review.
+**Defer.** The phase changes are focused and clean. The two production source changes (`ReceiveMessagesErrorHistoryDecorator.cs`, Redis and Memory `WriteMessageHistoryHandler.cs`) are minimal, purpose-built fixes with no structural bloat. The test additions follow the existing helper pattern of the file and introduce no new abstractions. The Medium finding (Redis enabled-path test duplication) is real but below the Rule of Three threshold for mandatory extraction — it is 4 near-duplicate blocks in one file, which is worth a follow-up ticket but does not block shipping. No issues need to be tracked in ISSUES.md; neither finding rises to a severity level that warrants deferral tracking given they are contained to test code.

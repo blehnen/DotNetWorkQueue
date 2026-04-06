@@ -1,5 +1,24 @@
 # Shipyard Lessons Learned
 
+## [2026-04-06] Phase 1: Fix History Status for Errored Messages (issue #97)
+
+### What Went Well
+- Parallel Wave 1 worked cleanly: 3 plans with disjoint file sets completed without merge conflicts
+- Review gate caught a real bug: Redis `RedisValue.Null` casts to `(int)0`, which equals `MessageHistoryStatus.Enqueued` — the builder's SUMMARY had the logic inverted
+
+### Surprises / Discoveries
+- `RedisValue.Null` cast to `(int)` yields `0`, not an exception. When `Enqueued = 0`, the null case collides with the valid case. Always check `.HasValue` before casting Redis values to integers.
+- All 3 builders hit stale `obj/` artifacts when using `--no-restore`; full restore builds were needed. This is a recurring issue in this codebase.
+
+### Pitfalls to Avoid
+- When guarding Redis hash reads, never assume the default cast value is "safe" — check the actual enum values. `0` is a valid enum member in most C# enums.
+- Don't trust builder summaries that claim null behavior is safe — verify against the actual enum definition.
+
+### Process Improvements
+- The review gate continues to prove its value: 1 real bug caught per milestone on average. The null-cast collision would have shipped as a subtle regression (writing phantom Processing entries for non-existent records).
+
+---
+
 ## [2026-04-05] Phase 1: Fix History Duration for Fast-Completing Messages (issue #94)
 
 ### What Went Well

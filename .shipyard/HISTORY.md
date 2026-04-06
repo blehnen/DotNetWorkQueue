@@ -397,3 +397,29 @@
 - **Lessons captured:** SQL WHERE guard no-op pattern, NSubstitute Redis mocking limitations (added to LESSONS.md and CLAUDE.md)
 - **Closes:** GitHub #94
 - **Status:** Shipped
+
+## 2026-04-06 — Phase 1 Build Complete (issue #97)
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 3/3 (PLAN-1.1, PLAN-1.2, PLAN-1.3) + 1 review fix
+- **Commits:**
+  - `7aa86cfa` — fix decorator to capture messageId before delegation (Bug A)
+  - `db724466` — guard RecordProcessingStart in Redis and Memory transports (Bug B)
+  - `3ddc78a2` — add regression tests for Bug A and Bug B
+  - `a277ac95` — fix Redis RecordProcessingStart null-cast collision (review fix)
+- **Review:** PLAN-1.1 PASS, PLAN-1.2 PASS (after null-cast fix), PLAN-1.3 PASS
+- **Verification:** 878 core + 166 Redis tests passing, full solution builds clean
+- **Security audit:** PASS — no critical findings; advisory about pre-existing unchecked cast in RecordComplete/RecordError
+- **Simplification:** Defer — no high-priority findings, test code duplication is minor
+- **Documentation:** CHANGELOG updated
+- **Status:** Phase 1 complete, ready for /shipyard:ship
+
+## 2026-04-06 — Milestone Shipped: Fix History Status for Errored Messages (issue #97)
+
+- **Action:** `/shipyard:ship`
+- **Delivery:** PR #105 opened against master — https://github.com/blehnen/DotNetWorkQueue/pull/105
+- **Pre-ship verification:** 37 targeted + 878 core + 166 Redis tests passing (net10.0)
+- **Lessons captured:** Redis null-cast collision, HasValue guard pattern (added to LESSONS.md and CLAUDE.md)
+- **Follow-up filed:** #104 (Redis unchecked cast on StartedUtc in RecordComplete/RecordError)
+- **Closes:** GitHub #97
+- **Status:** Shipped

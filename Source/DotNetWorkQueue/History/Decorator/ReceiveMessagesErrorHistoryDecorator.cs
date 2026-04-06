@@ -41,8 +41,13 @@ namespace DotNetWorkQueue.History.Decorator
 
         public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
+            // Capture messageId before delegation -- inner handler may clear context.MessageId via SetMessageAndHeaders(null, ...)
+            var messageId = context.MessageId;
+            var hasMessageId = messageId != null && messageId.HasValue;
+            var messageIdValue = hasMessageId ? messageId.Id.Value.ToString() : null;
+
             var result = _handler.MessageFailedProcessing(message, context, exception);
-            if (_options.EnableHistory && _options.HistoryOptions.TrackError && context.MessageId != null && context.MessageId.HasValue)
+            if (_options.EnableHistory && _options.HistoryOptions.TrackError && hasMessageId)
             {
                 try
                 {
@@ -50,11 +55,11 @@ namespace DotNetWorkQueue.History.Decorator
                     if (exceptionText != null && exceptionText.Length > _options.HistoryOptions.MaxExceptionLength)
                         exceptionText = exceptionText.Substring(0, _options.HistoryOptions.MaxExceptionLength);
 
-                    _history.RecordError(context.MessageId.Id.Value.ToString(), exceptionText);
+                    _history.RecordError(messageIdValue, exceptionText);
                 }
                 catch (Exception ex)
                 {
-                    _log.LogWarning(ex, "Failed to record history for error of message {MessageId}", context.MessageId.Id.Value);
+                    _log.LogWarning(ex, "Failed to record history for error of message {MessageId}", messageIdValue);
                 }
             }
             return result;

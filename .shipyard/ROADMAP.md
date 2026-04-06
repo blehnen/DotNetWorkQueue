@@ -1,56 +1,55 @@
-# Roadmap: Fix History Duration for Fast-Completing Messages
+# Roadmap: Fix History Status Stuck on Processing for Terminal Errors (Issue #97)
 
 ## Overview
 
-GitHub issue #94: messages that complete in under 1 millisecond show no duration (blank or inconsistent values) in the Dashboard history view. This is caused by a race condition where `RecordComplete` reads `StartedUtc` from the database before `RecordProcessingStart` has persisted it, resulting in `DurationMs` being NULL instead of 0. The fix normalizes all transports to store `DurationMs = 0` when the duration is unmeasurable, and updates the Dashboard UI to display "< 1 ms" for that case.
+GitHub issue #97: Dashboard history shows Status=Processing for messages that exhausted retries and moved to the error queue. Two distinct bugs contribute to this:
 
-This is a single-phase cosmetic fix. No pipeline, metrics, or architectural changes are involved.
+**Bug A -- Terminal error not recorded.** `ReceiveMessagesErrorHistoryDecorator` calls `_handler.MessageFailedProcessing()` first, then tries to read `context.MessageId` to call `RecordError`. But when the inner handler (`ReceiveErrorMessage<T>`, `RedisQueueReceiveMessagesError`, Memory `ReceiveErrorMessage`) moves a message to the error queue, it calls `context.SetMessageAndHeaders(null, ...)` which clears the messageId. By the time the decorator checks `context.MessageId`, it is null, so `RecordError` is never called. The fix is to capture the messageId *before* delegating to the inner handler.
+
+**Bug B -- Retry overwrites Error status.** `RecordProcessingStart` in the Redis and Memory WriteMessageHistoryHandler implementations unconditionally sets Status=Processing. If a message was previously marked Error (or remains in Error from a partial failure), a retry dequeue will overwrite Error back to Processing. The RelationalDatabase and LiteDb implementations already guard this with a `WHERE Status = Enqueued` clause. The fix is to add the same guard to Redis and Memory.
+
+Both bugs are display-only. No message processing pipelines, public APIs, or data integrity are affected.
 
 ## Dependency Graph
 
 ```
-Phase 1 (Backend normalization + UI display fix) ──> Done
+Phase 1 (Decorator fix + RecordProcessingStart guard + tests) ──> Done
 ```
 
-Single phase, no inter-phase dependencies.
+Single phase, no inter-phase dependencies. All three tasks within this phase can execute in parallel (Wave 1) since they touch disjoint file sets.
 
 ---
 
-## Phase 1: Normalize DurationMs Across Transports and Fix Dashboard Display
+## Phase 1: Fix History Error Recording and Retry Status Guard ✅ COMPLETE
 
-- **Scope:** 100% of project. Two vertical slices that share no file dependencies and can execute in parallel: (A) backend transport normalization and (B) Dashboard UI display fix. Both are small and self-contained.
+- **Scope:** 100% of project. Three vertical slices that share no file dependencies: (A) fix the decorator to capture messageId before delegation, (B) guard RecordProcessingStart in Redis and Memory transports, (C) unit tests for both fixes.
 - **Dependencies:** None
-- **Risk:** Low -- cosmetic fix only. `DurationMs` is used exclusively for history display. No changes to message processing pipelines, metrics, OpenTelemetry, or API response shapes. The `DurationMs` property remains `long?` on all models; we only change what value gets stored and how `0` is rendered.
+- **Risk:** Low -- display-only bug.
+- **Status:** Complete — 4 commits, 878+166 tests passing, security audit PASS The decorator fix changes the order of two reads (capture messageId before vs. after delegation). The RecordProcessingStart guard adds a status check that already exists in RelationalDatabase and LiteDb transports. No changes to message processing, DI registration, public interfaces, or serialization.
 
 ### Bug Analysis
 
-| Transport | Write side | Read side | Fix needed |
-|---|---|---|---|
-| RelationalDatabase (SqlServer, PostgreSQL, SQLite) | `DurationMs` stays NULL -- second UPDATE has `WHERE StartedUtc IS NOT NULL` guard | Reads raw DB value (null if NULL) | Fix write: set `DurationMs = 0` when StartedUtc is NULL |
-| Redis | Already stores `0L` when `startedTicks == 0` (correct) | **`DurationMs = durationMs > 0 ? durationMs : (long?)null`** converts `0` back to `null` | Fix read: stop converting `0` to `null` in `QueryMessageHistoryHandler.cs` |
-| LiteDb | `DurationMs` defaults to `0` (long field) but only because it is not set | **`DurationMs = h.DurationMs > 0 ? h.DurationMs : (long?)null`** converts `0` back to `null` | Fix read: stop converting `0` to `null` in `QueryMessageHistoryHandler.cs`; make write explicit for clarity |
-| Memory | `DurationMs` stays `null` (only set inside `if (r.StartedUtc.HasValue)`) | No conversion (in-memory) | Fix write: add `else r.DurationMs = 0` |
+| Component | Current Behavior | Fix |
+|---|---|---|
+| `ReceiveMessagesErrorHistoryDecorator` | Reads `context.MessageId` after inner handler clears it | Capture `context.MessageId` before calling `_handler.MessageFailedProcessing()` |
+| Redis `WriteMessageHistoryHandler.RecordProcessingStart` | Sets Status=Processing unconditionally | Only set Processing when current status is Enqueued (check hash field before write) |
+| Memory `WriteMessageHistoryHandler.RecordProcessingStart` | Sets Status=Processing unconditionally | Only set Processing when `r.Status == MessageHistoryStatus.Enqueued` |
+| RelationalDatabase `WriteMessageHistoryHandler.RecordProcessingStart` | Already guarded: `WHERE Status = @PrevStatus` (Enqueued) | No change needed |
+| LiteDb `WriteMessageHistoryHandler.RecordProcessingStart` | Already guarded: `FindOne(x => x.Status == Enqueued)` | No change needed |
 
 ### Files Touched
 
-**Backend -- write side (transport history writers):**
-- `Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/WriteMessageHistoryHandler.cs` -- fix `RecordComplete` to set `DurationMs = 0` when StartedUtc is NULL
-- `Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs` -- fix `RecordComplete` to set `DurationMs = 0` when StartedUtc is null
-- `Source/DotNetWorkQueue.Transport.LiteDB/Basic/WriteMessageHistoryHandler.cs` -- make `RecordComplete` explicitly set `DurationMs = 0` when StartedUtc is 0
-- `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` -- no write-side change needed (already stores `0L`)
+**Bug A -- Decorator terminal error fix:**
+- `Source/DotNetWorkQueue/History/Decorator/ReceiveMessagesErrorHistoryDecorator.cs` -- capture messageId before delegating to inner handler
 
-**Backend -- read side (transport history query handlers):**
-- `Source/DotNetWorkQueue.Transport.Redis/Basic/QueryMessageHistoryHandler.cs` (line 124) -- change `durationMs > 0 ? durationMs : (long?)null` to preserve `0` as a valid value (e.g., `durationMs > 0 ? durationMs : 0L`)
-- `Source/DotNetWorkQueue.Transport.LiteDB/Basic/QueryMessageHistoryHandler.cs` (line 100) -- same fix: stop converting `0` to `null`
+**Bug B -- RecordProcessingStart guard:**
+- `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` -- guard RecordProcessingStart to only transition Enqueued to Processing
+- `Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs` -- guard RecordProcessingStart to only transition Enqueued to Processing
 
-**Backend unit tests:**
-- `Source/DotNetWorkQueue.Tests/Transport/Memory/Basic/WriteMessageHistoryHandlerTests.cs` -- update `RecordComplete_WithoutStarted_DurationIsNull` to assert `DurationMs == 0` instead of `null`; update `RecordError_WithoutStarted_DurationIsNull` similarly
-- `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/WriteMessageHistoryHandlerTests.cs` -- no structural changes needed (mocked DB, does not verify DurationMs value)
-- `Source/DotNetWorkQueue.Transport.LiteDb.Tests/Basic/WriteMessageHistoryHandlerTests.cs` -- verify existing tests still pass; may need updates if tests assert `null` for `DurationMs`
-- `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs` -- verify existing tests still pass; may need updates if tests assert `null` for `DurationMs`
-
-**Dashboard UI:**
-- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Shared/HistoryTab.razor` -- update `FormatDuration` method: when `ms == 0`, return `"< 1 ms"` instead of `"0ms"`
+**Unit tests:**
+- `Source/DotNetWorkQueue.Tests/History/Decorator/ReceiveMessagesErrorHistoryDecoratorTests.cs` -- add test: when inner handler returns Error and clears messageId, RecordError is still called with the original messageId
+- `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs` -- add test: RecordProcessingStart does not overwrite Error status
+- `Source/DotNetWorkQueue.Tests/Transport/Memory/Basic/WriteMessageHistoryHandlerTests.cs` -- add test: RecordProcessingStart does not overwrite Error status
 
 ### Success Criteria
 
@@ -61,20 +60,17 @@ Single phase, no inter-phase dependencies.
 
 2. **All affected unit tests pass:**
    ```bash
+   dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" --filter "FullyQualifiedName~ReceiveMessagesErrorHistoryDecorator"
    dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
-   dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
-   dotnet test "Source/DotNetWorkQueue.Transport.LiteDb.Tests/DotNetWorkQueue.Transport.LiteDb.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
    dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
    ```
 
-3. **Dashboard API tests pass (memory transport -- no external services):**
+3. **Full unit test suites pass (no regressions):**
    ```bash
-   dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~Memory"
+   dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"
+   dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj"
+   dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj"
+   dotnet test "Source/DotNetWorkQueue.Transport.LiteDb.Tests/DotNetWorkQueue.Transport.LiteDb.Tests.csproj"
    ```
 
-4. **Dashboard UI builds:**
-   ```bash
-   dotnet build "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj"
-   ```
-
-5. **Behavioral verification:** A fast-completing message on any transport stores `DurationMs = 0` (not null) and the Dashboard history table displays "< 1 ms" for that entry instead of blank or "0ms".
+4. **Behavioral verification:** A message that exhausts retries and moves to the error queue shows Status=Error (not Processing) in the dashboard history. A message that retries successfully does not have its Error status overwritten to Processing.

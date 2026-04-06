@@ -86,6 +86,27 @@ namespace DotNetWorkQueue.Tests.History.Decorator
             Assert.AreEqual(ReceiveMessagesErrorResult.Retry, result);
         }
 
+        [TestMethod]
+        public void MessageFailedProcessing_When_Inner_Handler_Clears_MessageId_Still_Records_Error()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackError: true);
+            var context = CreateContext();
+            var message = Substitute.For<IReceivedMessageInternal>();
+            var exception = new InvalidOperationException("test error");
+
+            // Simulate inner handler clearing context.MessageId (as ReceiveErrorMessage does via SetMessageAndHeaders(null, ...))
+            inner.MessageFailedProcessing(message, context, exception).Returns(callInfo =>
+            {
+                context.MessageId.Returns((IMessageId)null);
+                return ReceiveMessagesErrorResult.Error;
+            });
+
+            decorator.MessageFailedProcessing(message, context, exception);
+
+            // RecordError must still be called with the ORIGINAL messageId value "42"
+            history.Received(1).RecordError("42", Arg.Is<string>(s => s.Contains("test error")));
+        }
+
         private static IMessageContext CreateContext()
         {
             var context = Substitute.For<IMessageContext>();

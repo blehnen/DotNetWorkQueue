@@ -1,335 +1,148 @@
-# Plan Critique: Phase 1 (Fix History Duration)
-
+# Plan Critique: Phase 1 (Issue #97)
 **Date:** 2026-04-05  
-**Type:** plan-review + feasibility-stress-test  
-**Plans Reviewed:** PLAN-1.1 (Wave 1), PLAN-1.2 (Wave 2)
+**Type:** plan-review (pre-execution feasibility stress test)
 
 ---
 
 ## Executive Summary
-
 **Verdict: READY**
 
-Both plans are well-formed, technically sound, and ready for execution. All file paths exist, APIs match referenced signatures, and verification commands are valid. Task structure is clean (3 per plan), TDD discipline is enforced, and wave dependencies are correctly ordered.
+All three plans are feasible, well-specified, and ready for execution. File paths exist, API signatures match, line numbers are accurate, helper methods are available, and there are zero file conflicts between plans. The plans are appropriately scoped and testable.
 
 ---
 
 ## Per-Plan Findings
 
-### PLAN-1.1: Normalize DurationMs Write-Side
+### PLAN-1.1: Fix ReceiveMessagesErrorHistoryDecorator
+**Status: PASS**
 
-#### File Paths & API Surface ✓
+| Item | Finding | Evidence |
+|------|---------|----------|
+| **File exists** | PASS | `Source/DotNetWorkQueue/History/Decorator/ReceiveMessagesErrorHistoryDecorator.cs` exists (63 lines) |
+| **Line numbers** | PASS | `MessageFailedProcessing` method found at line 42 (matches plan: line 42-61) |
+| **API signature** | PASS | Method signature: `public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)` matches task description |
+| **Context.MessageId access** | PASS | Current code reads `context.MessageId` at line 45 after calling `_handler.MessageFailedProcessing()` at line 44 (confirms the bug) |
+| **Scope** | PASS | Touches only 1 file; no overlap with Plans 1.2 or 1.3 |
+| **Task count** | PASS | 1 task (within 3-task limit) |
+| **Verification commands** | PASS | All commands are syntactically valid and runnable |
 
-| File | Status | Details |
-|------|--------|---------|
-| `Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs` | FOUND | `RecordComplete()`, `RecordError()` methods present |
-| `Source/DotNetWorkQueue.Tests/Transport/Memory/Basic/WriteMessageHistoryHandlerTests.cs` | FOUND | Test methods at lines 141 & 192 as referenced |
-| `Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/WriteMessageHistoryHandler.cs` | FOUND | `RecordComplete()` at line 98, `RecordError()` at line 146 (matches plan) |
-| `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/...` | FOUND | Test project exists for mocked IDbConnectionFactory testing |
-| `Source/DotNetWorkQueue.Transport.LiteDB/Basic/WriteMessageHistoryHandler.cs` | FOUND | `RecordComplete()` at line 82, `RecordError()` at line 102 (matches plan) |
-| `Source/DotNetWorkQueue.Transport.LiteDb.Tests/Basic/WriteMessageHistoryHandlerTests.cs` | FOUND | Test files exist; existing test at line 232 noted in plan |
-
-#### Task Count & Structure ✓
-
-- **3 tasks** (hard constraint: ≤3 per plan) ✓
-- Each task is single-threaded, sequential (Memory → RelationalDatabase → LiteDb)
-- No file conflicts (each transport's handlers are independent)
-
-#### TDD Discipline ✓
-
-All 3 tasks have explicit Red → Green → Commit steps:
-- Task 1: Test assertions flip from `null` to `0`, commit after GREEN
-- Task 2: New tests added (`*_PassesDurationZero`), mock pattern clear
-- Task 3: New test added (`RecordComplete_WithoutProcessingStart_StoresDurationZero`), or "lock-in" if accidentally green
-
-#### API Spot Checks ✓
-
-- `RecordComplete(string queueId)` signature matches at RelationalDatabase:98
-- `RecordError(string queueId, string exception)` signature matches at RelationalDatabase:146
-- Memory `ConcurrentDictionary` storage pattern is standard across codebase
-- Redis write-side already implements `0L` path (verified at lines 69-80)
-
-#### Verification Commands ✓
-
-```bash
-dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
-dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
-dotnet test "Source/DotNetWorkQueue.Transport.LiteDb.Tests/DotNetWorkQueue.Transport.LiteDb.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
-```
-
-All projects exist, filter syntax is valid (matches existing test conventions).
-
-#### Must-Haves Coverage ✓
-
-- ☑ Memory stores DurationMs=0 on Complete (Task 1)
-- ☑ Memory stores DurationMs=0 on Error (Task 1)
-- ☑ RelationalDatabase stores DurationMs=0 on Complete (Task 2)
-- ☑ RelationalDatabase stores DurationMs=0 on Error (Task 2)
-- ☑ LiteDb stores DurationMs=0 on Complete (Task 3)
-- ☑ LiteDb stores DurationMs=0 on Error (Task 3)
-- ☑ Redis verified as already correct (non-blocking dependency for PLAN-1.2)
-- ☑ TDD discipline enforced (Red → Green per task)
-- ☑ No shape/metrics/OpenTelemetry/API changes (implicit in code-level focus)
-
-#### Risks & Mitigations
-
-| Risk | Severity | Mitigation |
-|------|----------|-----------|
-| Test fixtures may assert `null` (buggy behavior); flip must be explicit | Low | Plan Step 1 explicitly calls out test rename + assertion change |
-| RelationalDatabase may have 1 UPDATE instead of 2 (refactored since plan written) | **Medium** | Plan Task 2 already acknowledges refactor; two-UPDATE pattern confirmed in code |
-| LiteDb "fragile" behavior (relies on default 0 from prior insert) | Low | Task 3 makes it explicit; test added to lock in |
+**No issues detected.**
 
 ---
 
-### PLAN-1.2: Normalize DurationMs Read-Side + Dashboard UI
+### PLAN-1.2: Guard RecordProcessingStart in Redis and Memory
+**Status: PASS**
 
-#### File Paths & API Surface ✓
+| Item | Finding | Evidence |
+|------|---------|----------|
+| **Files exist** | PASS | Both files exist: `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` (118 lines) and `Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs` (122 lines) |
+| **Redis method location** | PASS | `RecordProcessingStart` at line 64 (matches plan: lines 64-69) |
+| **Memory method location** | PASS | `RecordProcessingStart` at line 57 (matches plan: lines 57-61) |
+| **Redis current behavior** | PASS | Unconditionally calls `db.HashSet()` without status guard (confirms the bug) |
+| **Memory current behavior** | PASS | Unconditionally sets `r.Status = MessageHistoryStatus.Processing` without guard (confirms the bug) |
+| **Enum values correct** | PASS | `MessageHistoryStatus` enum found at `Source/DotNetWorkQueue/Configuration/MessageHistoryStatus.cs`; `Enqueued = 0`, `Processing = 1`, `Error = 3` |
+| **Scope** | PASS | Touches 2 files (both implementation, no tests); no overlap with Plans 1.1 or 1.3 |
+| **Task count** | PASS | 2 tasks (within 3-task limit) |
+| **Verification commands** | PASS | All commands are syntactically valid |
 
-| File | Status | Details |
-|------|--------|---------|
-| `Source/DotNetWorkQueue.Transport.Redis/Basic/QueryMessageHistoryHandler.cs` | FOUND | Line 124 reads `durationMs > 0 ? durationMs : (long?)null` (bug confirmed) |
-| `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` | FOUND | Lines 69-80 confirmed to store `0L` correctly |
-| `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/QueryMessageHistoryHandlerTests.cs` | FOUND | Test project exists for mock IDatabase setup |
-| `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs` | FOUND | Regression tests can be added |
-| `Source/DotNetWorkQueue.Transport.LiteDB/Basic/QueryMessageHistoryHandler.cs` | FOUND | Line 100 has identical bug: `DurationMs > 0 ? ... : (long?)null` |
-| `Source/DotNetWorkQueue.Transport.LiteDb.Tests/Basic/QueryMessageHistoryHandlerTests.cs` | FOUND | Test project exists |
-| `Source/DotNetWorkQueue.Dashboard.Ui/Components/Shared/HistoryTab.razor` | FOUND | `FormatDuration(long? ms)` at line 151 |
-
-**Note:** Plan references line 69 for Redis write-side; actual span is 60–85. Line numbers are approximate but code pattern is correct.
-
-#### Task Count & Structure ✓
-
-- **3 tasks** (hard constraint met) ✓
-- Task 1: Redis read + write-side regression (bundled by transport)
-- Task 2: LiteDb read (scoped, single file change)
-- Task 3: Dashboard UI (non-TDD, build + integration test verification)
-
-#### Dependencies ✓
-
-- PLAN-1.2 depends on PLAN-1.1 (correct: writes must exist before reads can validate 0 ≠ null)
-- Tasks 1–2 are transport-isolated (can run parallel, but sequential in plan is safe)
-- Task 3 depends on Tasks 1–2 to have DurationMs=0 flowing through the system
-
-#### TDD Discipline ✓
-
-- Task 1: RED tests (read: `_PreservesZero`, write: regression locks); GREEN fix
-- Task 2: RED tests (`Query_*_PreservesZero`); GREEN fix
-- Task 3: Marked `tdd="false"` (Razor component, verified via integration tests) — **acceptable** given UI testing model
-
-#### API Spot Checks ✓
-
-- Redis QueryMessageHistoryHandler line 124 **confirmed** to have bug: `durationMs > 0 ? ... : null`
-- LiteDb QueryMessageHistoryHandler line 100 **confirmed** to have identical bug
-- Both use same discriminator fix: `CompletedUtc > 0` instead of `DurationMs > 0`
-- Dashboard HistoryTab.razor line 151 **confirmed** to have `FormatDuration` method
-
-#### Verification Commands ✓
-
-```bash
-dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" --filter "FullyQualifiedName~QueryMessageHistoryHandler|FullyQualifiedName~WriteMessageHistoryHandler"
-dotnet test "Source/DotNetWorkQueue.Transport.LiteDb.Tests/DotNetWorkQueue.Transport.LiteDb.Tests.csproj" --filter "FullyQualifiedName~QueryMessageHistoryHandler"
-dotnet build "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj" -c Debug
-dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~Memory"
-```
-
-All commands are valid. Filter syntax follows project conventions.
-
-#### Must-Haves Coverage ✓
-
-- ☑ Redis preserves DurationMs=0 on read (Task 1)
-- ☑ Redis write-side regression tests lock in `0L` contract (Task 1)
-- ☑ LiteDb preserves DurationMs=0 on read (Task 2)
-- ☑ Dashboard UI renders "< 1 ms" when ms==0 (Task 3)
-- ☑ Dashboard UI renders "-" when ms is null (Task 3, null path unchanged)
-- ☑ Memory Dashboard API integration tests pass e2e (Task 3 verification)
-
-#### Risks & Mitigations
-
-| Risk | Severity | Mitigation |
-|------|----------|-----------|
-| `CompletedUtc > 0` discriminator is correct but underdocumented | Low | Plan Task descriptions explain the pattern; code comment recommended during implementation |
-| Redis WriteMessageHistoryHandler seam (`protected virtual GetDb()`) adds indirection | Low | Seam is optional; tests can mock at IDatabase level instead |
-| Dashboard UI integration tests may be slow (full service stack) | Low | Memory filter explicitly used; no external services needed |
-| Test for `Query_EnqueuedRow_NoCompletion_DurationIsNull` (PLAN-1.2 Task 2) may accidentally pass | Low | Plan acknowledges this in Task 3 step; acceptable if locked in |
+**No issues detected.**
 
 ---
 
-## Cross-Plan Analysis
+### PLAN-1.3: Unit tests for Bug A and Bug B
+**Status: PASS**
 
-### Scope Coverage (ROADMAP.md Phase 1) ✓
+| Item | Finding | Evidence |
+|------|---------|----------|
+| **Test files exist** | PASS | All three test files exist: `Source/DotNetWorkQueue.Tests/History/Decorator/ReceiveMessagesErrorHistoryDecoratorTests.cs` (119 lines), `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs` (294 lines), `Source/DotNetWorkQueue.Tests/Transport/Memory/Basic/WriteMessageHistoryHandlerTests.cs` (423 lines) |
+| **CreateDecorator helper** | PASS | Helper method found in decorator test file; used by existing tests |
+| **CreateContext helper** | PASS | Helper method found in decorator test file; used by existing tests |
+| **CreateEnabledWithDb helper** | PASS | Found in Redis test file at line 233; used by existing tests |
+| **ContainsEntry helper** | PASS | Found in Redis test file at line 283; available for reuse |
+| **CreateHandlerWithKey helper** | PASS | Found in Memory test file; used by existing tests |
+| **GetRecordsForQueue method** | PASS | Static method on `WriteMessageHistoryHandler` class; used by existing tests |
+| **Scope** | PASS | Touches 3 test files only (no implementation changes); disjoint from Plans 1.1 and 1.2 |
+| **Task count** | PASS | 3 tasks (at limit) |
+| **TDD flag** | PASS | Correctly marked `tdd: true` (tests can be written before fixes) |
+| **Test methodology** | PASS | Task 1 uses mocking (NSubstitute) with callback simulation; Tasks 2-3 use real in-memory data structures |
+| **Assertion style** | PASS | Uses `Received(1)`, `DidNotReceive()`, `Assert.AreEqual()` patterns consistent with existing test style |
+| **Verification commands** | PASS | All commands are valid; tests will pass after Plans 1.1 and 1.2 are applied |
 
-| Criterion | PLAN-1.1 | PLAN-1.2 | Coverage |
-|-----------|----------|----------|----------|
-| Build succeeds | ✓ | ✓ | Full |
-| All affected unit tests pass | ✓ | ✓ | Full |
-| Dashboard UI builds | ✗ | ✓ | Full |
-| Dashboard UI renders `"< 1 ms"` | ✗ | ✓ | Full |
-| Behavioral verification on Memory transport | ✓ | ✓ | Full (Plan-level integration test) |
-
-**All ROADMAP Phase 1 requirements are addressed by the two plans collectively.**
-
-### Context Decisions Honored ✓
-
-| Decision | PLAN-1.1 | PLAN-1.2 | Status |
-|----------|----------|----------|--------|
-| Scope: Fix RecordError + RecordComplete (not just Complete) | ✓ | N/A | Honored (both paths covered in PLAN-1.1 Tasks 1–3) |
-| TDD discipline: Red first, then Green | ✓ | ✓ | Honored (explicit steps in all tasks except UI) |
-| Skip research agent | ✓ | ✓ | N/A (no RESEARCH.md produced) |
-
-### Wave Ordering ✓
-
-- Wave 1 (PLAN-1.1): Writes succeed with DurationMs=0
-- Wave 2 (PLAN-1.2): Reads preserve the 0, UI displays it
-- **Dependency graph is acyclic and correctly ordered**
-
-### File Conflict Check ✓
-
-- PLAN-1.1 touches: 5 unique files (Memory ×2, RelationalDatabase ×1, LiteDb ×2)
-- PLAN-1.2 touches: 7 unique files (Redis ×4, LiteDb ×2, Dashboard.Ui ×1)
-- **Overlap: LiteDb tests** (PLAN-1.1 Task 3 writes tests; PLAN-1.2 Task 2 writes tests)
-  - **No conflict**: Both write to the same test file, but Task 1 (write tests) completes before Task 2 (read tests are added to same file). Sequential execution within LiteDb is safe.
-
-### Complexity Assessment
-
-| Metric | PLAN-1.1 | PLAN-1.2 | Assessment |
-|--------|----------|----------|-----------|
-| Files touched | 5 | 7 | Moderate (6 total unique files + Dashboard.Ui) |
-| Directories touched | 5 | 6 | Moderate (Memory, RelationalDatabase, LiteDb ×2, Redis, Dashboard.Ui) |
-| Tasks | 3 | 3 | Clean (hard constraint met) |
-| Lines of code to change | ~20–40 | ~10–20 | Low-risk (small deltas per file) |
+**No issues detected.**
 
 ---
 
-## Detailed Spot Checks: Line Numbers
+## Phase Requirements Coverage
 
-| Reference | Actual | Variance | Status |
-|-----------|--------|----------|--------|
-| PLAN-1.1 Task 1: Memory test at line 141 | Confirmed | 0 | ✓ |
-| PLAN-1.1 Task 1: Memory test at line 192 | Confirmed | 0 | ✓ |
-| PLAN-1.1 Task 2: RelationalDatabase RecordComplete line 98 | Confirmed | 0 | ✓ |
-| PLAN-1.1 Task 2: RelationalDatabase RecordError line 146 | Confirmed | 0 | ✓ |
-| PLAN-1.1 Task 3: LiteDb RecordComplete line 82 | Confirmed | 0 | ✓ |
-| PLAN-1.1 Task 3: LiteDb RecordError line 102 | Confirmed | 0 | ✓ |
-| PLAN-1.1 Task 3: LiteDb existing test line 232 | Not verified (acceptable in bounds) | ~10 | ✓ |
-| PLAN-1.2 Task 1: Redis write-side line 69-80 | Confirmed 60-85 | ~10 | ✓ |
-| PLAN-1.2 Task 1: Redis read-side line 124 | Confirmed | 0 | ✓ |
-| PLAN-1.2 Task 2: LiteDb read-side line 100 | Confirmed | 0 | ✓ |
-| PLAN-1.2 Task 3: Dashboard HistoryTab line 151 | Confirmed | 0 | ✓ |
+| Requirement | Plan | Evidence |
+|---|---|---|
+| **Build succeeds** | All | Verification commands in each plan include `dotnet build` and `--no-restore` |
+| **Bug A fix** | 1.1 | Captures `messageId` before calling `_handler.MessageFailedProcessing()` |
+| **Bug B fix (Redis)** | 1.2 | Adds guard: `if (currentStatus != (int)MessageHistoryStatus.Enqueued) return;` |
+| **Bug B fix (Memory)** | 1.2 | Adds guard: `&& r.Status == MessageHistoryStatus.Enqueued` to conditional |
+| **Unit tests for Bug A** | 1.3 | Test: `MessageFailedProcessing_When_Inner_Handler_Clears_MessageId_Still_Records_Error` |
+| **Unit tests for Bug B (Redis)** | 1.3 | Tests: `RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite` and `When_Status_Is_Enqueued_Sets_Processing` |
+| **Unit tests for Bug B (Memory)** | 1.3 | Tests: `RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite` and `When_Status_Is_Complete_Does_Not_Overwrite` |
+| **No regressions** | All | All plans include verification commands for full test suites |
 
-**All line numbers are accurate or within acceptable variance (≤10 lines).**
+**All ROADMAP success criteria are covered.**
 
 ---
 
-## Acceptance Criteria Testability
+## Wave 1 Parallelism Check
 
-### PLAN-1.1
+| Plan | Dependencies | Files Touched | Conflicts |
+|---|---|---|---|
+| 1.1 | None | Decorator only | None |
+| 1.2 | None | Redis + Memory handlers | None |
+| 1.3 | None (writes tests before fixes) | Test files only | None |
 
-| Task | Acceptance Criteria | Testable? | Evidence |
-|------|-------------------|-----------|----------|
-| 1 | Both tests named `*_DurationIsZero` pass; no regression | ✓ Yes | Test names + `--filter` command |
-| 2 | New tests `*_PassesDurationZero` pass; parameter assertions valid | ✓ Yes | NSubstitute mock assertions |
-| 3 | `DurationMs=0` explicit in both methods; test passes | ✓ Yes | Code review + `--filter` command |
-
-### PLAN-1.2
-
-| Task | Acceptance Criteria | Testable? | Evidence |
-|------|-------------------|-----------|----------|
-| 1 | `CompletedUtc > 0` on line 124; 4 tests pass (2 query + 2 write) | ✓ Yes | Code inspection + `--filter` command |
-| 2 | `CompletedUtc > 0` on line 100; 2 tests pass | ✓ Yes | Code inspection + `--filter` command |
-| 3 | `FormatDuration(null)` → `"-"`, `FormatDuration(0)` → `"< 1 ms"` | ✓ Yes | Code review + integration test run |
-
-**All acceptance criteria are concrete and verifiable.**
+**Verdict: True parallelism possible.** No blocking dependencies. Test files (1.3) are disjoint from implementation files (1.1, 1.2), so tests can be written first (TDD), then fixes applied in any order.
 
 ---
 
-## Hidden Dependencies & Coupling
+## Risk Assessment
 
-### PLAN-1.1 → PLAN-1.2
-
-- PLAN-1.1 writes `DurationMs=0`; PLAN-1.2 reads it back and displays it
-- This is an explicit dependency (declared in PLAN-1.2's `dependencies: [1.1]`)
-- No hidden coupling detected ✓
-
-### Within PLAN-1.1
-
-- Memory, RelationalDatabase, LiteDb are completely independent
-- Redis is NOT in PLAN-1.1 (already correct, handled in PLAN-1.2)
-- No implicit coupling ✓
-
-### Within PLAN-1.2
-
-- Task 1 (Redis) and Task 2 (LiteDb) are independent
-- Task 3 (Dashboard) depends on Tasks 1 & 2 outputs, but input is through API contracts (safe)
-- No hidden coupling ✓
+| Risk | Level | Mitigation |
+|---|---|---|
+| **File edits are surgical** | LOW | Each plan modifies small, well-bounded sections (3 areas total). No cascading changes. |
+| **API complexity** | LOW | All changes are to internal methods with well-documented behavior. No public API changes. |
+| **Enum assumptions** | LOW | Enum values verified: `Enqueued=0`, `Processing=1`, `Error=3`. Guard patterns match existing RelationalDatabase/LiteDb implementations. |
+| **Test helper availability** | LOW | All helpers (`CreateDecorator`, `CreateContext`, `CreateEnabledWithDb`, `GetRecordsForQueue`, etc.) are present and used by existing tests. |
+| **Line number drift** | LOW | Files are stable; verified current line counts and method positions match plan descriptions. |
+| **NSubstitute mocking** | MEDIUM | Task 1.3.1 uses callback-based mocking to simulate inner handler nullifying `context.MessageId`. Requires understanding NSubstitute `.Returns(callInfo => ...)` pattern, but this is standard in the codebase. |
 
 ---
 
-## Verification Protocol Completeness
+## Verification Syntax Check
 
-### PLAN-1.1
+All verification commands are syntactically valid:
 
-Each task has a clear verification command:
+- `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` ✓
+- `dotnet build "Source/DotNetWorkQueue/DotNetWorkQueue.csproj" --no-restore` ✓
+- `dotnet build "Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj" --no-restore` ✓
+- `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" --no-restore --filter "FullyQualifiedName~ReceiveMessagesErrorHistoryDecoratorTests"` ✓
+- `dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" --no-restore --filter "FullyQualifiedName~WriteMessageHistoryHandlerTests"` ✓
 
-```bash
-dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandler"
-```
-
-Expected format: `Passed! - Failed: 0, Passed: >=12, Skipped: 0` — **machine-parseable ✓**
-
-### PLAN-1.2
-
-Task 1 & 2 verification commands valid; Task 3 uses build + integration test:
-
-```bash
-dotnet build "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj" -c Debug
-dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~Memory"
-```
-
-Plan-level e2e verification also provided (all builds + full test run) — **comprehensive ✓**
-
----
-
-## Final Verdict Summary
-
-| Check | Result | Notes |
-|-------|--------|-------|
-| All file paths exist | PASS | 12/12 files found |
-| API surfaces match | PASS | All methods, parameters, line numbers confirmed |
-| Verification commands runnable | PASS | All `.csproj` files exist, syntax valid |
-| Task count ≤3 per plan | PASS | 3 + 3 (hard constraint met) |
-| Wave dependencies acyclic | PASS | PLAN-1.1 → PLAN-1.2, no cycles |
-| File conflicts | PASS | LiteDb test overlap is sequential-safe |
-| TDD discipline encoded | PASS | Red → Green steps explicit (except Razor) |
-| Scope coverage | PASS | All ROADMAP Phase 1 criteria addressed |
-| Context decisions honored | PASS | Scope (RecordError+Complete), TDD, no research |
-| Complexity risk | ACCEPTABLE | 6 unique dirs, 12 files, ~30–60 lines total — low-risk changes |
+All are executable and will produce measurable pass/fail results.
 
 ---
 
 ## Recommendations
 
-1. **During PLAN-1.1 Task 2 (RelationalDatabase):** Double-check the two-UPDATE pattern in current code matches plan description (plan mentions refactor was already applied). Code inspection confirmed; proceed.
+1. **Execute in order: 1.1 → 1.2 → 1.3** (or true parallel if builder prefers).  
+   Tests in 1.3 will fail until 1.1 and 1.2 are applied, which is expected in TDD.
 
-2. **During PLAN-1.2 Task 1 (Redis):** The `GetDb()` seam is optional. If test mocking is clean via IDatabase mock constructor, skip the seam. Keep code minimal.
+2. **Spot-check before execution:**  
+   - Verify that `MessageHistoryStatus.Enqueued` has value 0 or 1 (not inverted).
+   - Confirm `RedisValue.Null` casts to 0 (line 55 of Plan 1.2, Task 1).
 
-3. **During PLAN-1.2 Task 2 (LiteDb):** Add a code comment explaining the `CompletedUtc > 0` discriminator choice (line 100 after fix): `// Use CompletedUtc, not DurationMs, to discriminate null vs 0 — only completed rows have DurationMs >= 0`
-
-4. **Plan-level e2e test (after PLAN-1.2 Task 3):** Run the full verification sequence (build + test Memory filter) to confirm the full write → read → UI path produces "< 1 ms" for sub-ms messages. This is already outlined in PLAN-1.2 but is worth calling out as critical.
+3. **Post-execution verification:**  
+   - Run the full test suites listed in ROADMAP success criteria.
+   - Manually verify in Dashboard that a retried message shows Status=Error, not Processing.
 
 ---
 
-## Conclusion
+## Verdict: **READY**
 
-**VERDICT: READY ✓**
-
-Both plans are well-designed, technically sound, and ready for immediate execution. All checks passed:
-
-- ✓ File paths verified
-- ✓ API signatures confirmed
-- ✓ Verification commands validated
-- ✓ TDD discipline encoded
-- ✓ Scope fully covered
-- ✓ Dependencies acyclic
-- ✓ No blocking risks identified
-
-**Next Step:** Dispatch to builder/executor agent with both plans. Expect PLAN-1.1 to complete in ~2–4 hours (3 sequential TDD cycles × 20–30 min each), followed by PLAN-1.2 in ~2–3 hours (3 tasks, mix of TDD + integration test verification).
+All plans are feasible, well-scoped, testable, and ready for builder execution. No blockers identified.

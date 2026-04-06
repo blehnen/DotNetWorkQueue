@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public void RecordProcessingStart(string queueId)
         {
             if (!_options.EnableHistory) return;
-            if (GetRecords().TryGetValue(queueId, out var r)) { r.Status = MessageHistoryStatus.Processing; r.StartedUtc = DateTime.UtcNow; }
+            if (GetRecords().TryGetValue(queueId, out var r) && r.Status == MessageHistoryStatus.Enqueued) { r.Status = MessageHistoryStatus.Processing; r.StartedUtc = DateTime.UtcNow; }
         }
 
         /// <inheritdoc />
