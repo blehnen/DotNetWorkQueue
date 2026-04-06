@@ -76,7 +76,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (!_options.EnableHistory) return;
             var db = GetDb();
             var now = DateTime.UtcNow;
-            var startedTicks = (long)db.HashGet(HistoryHashKey(queueId), "StartedUtc");
+            var rawStarted = db.HashGet(HistoryHashKey(queueId), "StartedUtc");
+            var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
             var durationMs = startedTicks > 0 ? (long)(now - new DateTime(startedTicks, DateTimeKind.Utc)).TotalMilliseconds : 0L;
             db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Complete), new HashEntry("CompletedUtc", now.Ticks), new HashEntry("DurationMs", durationMs) });
         }
@@ -87,7 +88,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (!_options.EnableHistory) return;
             var db = GetDb();
             var now = DateTime.UtcNow;
-            var startedTicks = (long)db.HashGet(HistoryHashKey(queueId), "StartedUtc");
+            var rawStarted = db.HashGet(HistoryHashKey(queueId), "StartedUtc");
+            var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
             var durationMs = startedTicks > 0 ? (long)(now - new DateTime(startedTicks, DateTimeKind.Utc)).TotalMilliseconds : 0L;
             db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Error), new HashEntry("CompletedUtc", now.Ticks), new HashEntry("DurationMs", durationMs), new HashEntry("ExceptionText", exception ?? "") });
         }
