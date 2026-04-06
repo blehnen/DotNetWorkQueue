@@ -443,3 +443,16 @@
   - PLAN-1.2: Purge logic fix — GetDb() seam, HasValue guards, terminal-status-only (#103)
 - **Critique Verdict:** READY — all file paths verified, zero file overlap, API surface confirmed
 - **Status:** Ready for /shipyard:build 1
+
+## 2026-04-06 — Phase 1 Build Complete (Redis history fixes #104, #103)
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 2/2 (PLAN-1.1, PLAN-1.2)
+- **Commits:** 4 (tests + fixes for both plans)
+- **Review:** Both PASS (PLAN-1.2 minor: extra Redis call for orphan cleanup)
+- **Verification:** 172/172 Redis tests passing
+- **Security audit:** PASS — no critical findings
+- **Simplification:** Ship as-is — no issues beyond what reviewers caught
+- **Documentation:** CHANGELOG update needed at ship time
+- **Discovery:** RedisValue.Null cast to (long) silently returns 0L (doesn't throw) in current StackExchange.Redis — guard still correct for forward safety
+- **Status:** Phase 1 complete, ready for /shipyard:ship

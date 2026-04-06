@@ -21,6 +21,33 @@
 - **Description:** The `MakeTrackingParam()` local function is defined inside `RecordComplete_WithoutStartedUtc_PassesDurationZero` but is never called. The implementation pivots to using `MakeTrackingCommand` with the `allParams` list instead. The dead function adds noise.
 - **Resolution:** Removed the unused `MakeTrackingParam()` local function from the test method.
 
+### ISSUE-016: Redundant Redis round-trip in orphan path of PurgeMessageHistoryHandler
+- **Severity:** Important
+- **Source:** Plan 1.2 Review
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs` (Purge method, loop body)
+- **Description:** `rawCompleted` is read unconditionally before the `!rawStatus.HasValue` guard. When the hash is absent (orphan case), this is a wasted Redis round-trip returning `RedisValue.Null` that is immediately discarded by `continue`. In bulk orphan scans this doubles Redis calls in the hot path.
+- **Remediation:** Move `var rawCompleted = db.HashGet(...)` inside the `rawStatus.HasValue` branch, after the orphan `continue`.
+
+### ISSUE-017: Orphan test does not assert CompletedUtc is never read (fragile test)
+- **Severity:** Important
+- **Source:** Plan 1.2 Review
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs` (`Purge_Handles_Missing_Hash_Gracefully`)
+- **Description:** The orphan test stubs `Status` to `RedisValue.Null` but does not stub `CompletedUtc` and does not assert it is never called. NSubstitute silently returns default `RedisValue.Null` for the unstubbed call. If the read order changes or the guard moves, the test passes against the wrong code path. Once ISSUE-016 is fixed, add `db.DidNotReceive().HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("CompletedUtc"), Arg.Any<CommandFlags>())` to make the contract explicit.
+- **Remediation:** After applying ISSUE-016 fix, add the `DidNotReceive` assertion for `CompletedUtc` in the orphan test.
+
+### ISSUE-018: No test for Enqueued status in PurgeMessageHistoryHandler
+- **Severity:** Suggestion
+- **Source:** Plan 1.2 Review
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs`
+- **Description:** `Purge_Skips_Processing_Records` covers status=1 (Processing). There is no test for status=0 (Enqueued), the other non-terminal state the original bug would have deleted. Adding `Purge_Skips_Enqueued_Records` would document that both active states are protected.
+- **Remediation:** Add `Purge_Skips_Enqueued_Records` mirroring `Purge_Skips_Processing_Records` with `MessageHistoryStatus.Enqueued`.
+
 ## Closed
 
 ### ISSUE-001: Unused `fixture` variable in QueueCreatorTests after Plan 1.1 refactor
