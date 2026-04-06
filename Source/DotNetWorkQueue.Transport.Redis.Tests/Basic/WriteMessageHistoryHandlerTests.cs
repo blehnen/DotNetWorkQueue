@@ -332,6 +332,32 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
                 Arg.Any<CommandFlags>());
         }
 
+        [TestMethod]
+        public void RecordComplete_When_Hash_Missing_Does_Not_Throw()
+        {
+            var (handler, db) = CreateEnabledWithDb();
+            db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("StartedUtc"), Arg.Any<CommandFlags>())
+                .Returns(RedisValue.Null);
+            handler.RecordComplete("missing-id");
+            db.Received().HashSet(
+                Arg.Any<RedisKey>(),
+                Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "DurationMs", 0L)),
+                Arg.Any<CommandFlags>());
+        }
+
+        [TestMethod]
+        public void RecordError_When_Hash_Missing_Does_Not_Throw()
+        {
+            var (handler, db) = CreateEnabledWithDb();
+            db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("StartedUtc"), Arg.Any<CommandFlags>())
+                .Returns(RedisValue.Null);
+            handler.RecordError("missing-id", "some error");
+            db.Received().HashSet(
+                Arg.Any<RedisKey>(),
+                Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "DurationMs", 0L)),
+                Arg.Any<CommandFlags>());
+        }
+
         private static bool ContainsEntry(HashEntry[] entries, string name, long value)
         {
             if (entries == null) return false;
