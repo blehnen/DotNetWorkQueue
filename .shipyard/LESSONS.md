@@ -1,5 +1,22 @@
 # Shipyard Lessons Learned
 
+## [2026-04-06] Phase 1: Redis History Bug Fixes (#104, #103)
+
+### What Went Well
+- Small scope with parallel plans completed in one pass — no retries needed
+- Purge fix handles orphaned sorted set entries (hash already deleted) — a scenario not in the original issue
+
+### Surprises / Discoveries
+- `(long)RedisValue.Null` silently returns `0L` in current StackExchange.Redis — it does NOT throw `InvalidOperationException` as issue #104 assumed. The HasValue guard is still correct for forward safety and making the zero-default intent explicit.
+
+### Pitfalls to Avoid
+- Don't assume Redis cast behavior from documentation alone — test it. The implicit conversion behavior may vary across StackExchange.Redis versions.
+
+### Process Improvements
+- For small, well-scoped fixes (2 plans, 4 files), the full pipeline runs fast enough that --light isn't needed
+
+---
+
 ## [2026-04-06] Phase 1: Fix History Status for Errored Messages (issue #97)
 
 ### What Went Well
