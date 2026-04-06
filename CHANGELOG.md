@@ -1,49 +1,49 @@
 ### 0.9.18 — 2026-04-05
-- Build: enable deterministic builds, portable debug symbols, `.snupkg` symbol packages, and Source Link (GitHub #95)
-- Docs: link sample Grafana dashboard (Prometheus data source) from README (GitHub #98)
+- Deterministic builds, portable debug symbols, `.snupkg` symbol packages, Source Link via `Microsoft.SourceLink.GitHub` (GitHub #95)
+- Link sample Grafana dashboard (Prometheus data source) from README (GitHub #98)
 
 ### 0.9.17 — 2026-04-05
-- Fix: message history `DurationMs` stores `0` (not `null`) when a message completes or errors before `StartedUtc` is persisted — fixes blank duration values for sub-millisecond messages across all transports (Memory, RelationalDatabase, LiteDB, Redis)
-- Dashboard UI: history table renders `< 1 ms` for sub-millisecond completions (GitHub #94)
-- RelationalDatabase: dropped `StartedUtc IS NOT NULL` guard from `RecordComplete` UPDATE so `DurationMs` is actually persisted for sub-ms rows (previous code computed 0 correctly but the UPDATE was a no-op due to the WHERE guard)
+- Fix: message history `DurationMs` stores `0` (not `null`) when a message completes or errors before `StartedUtc` is persisted; fixes blank duration in Dashboard for sub-millisecond messages (Memory, RelationalDatabase, LiteDB, Redis) (GitHub #94)
+- Dashboard UI: history table shows `< 1 ms` for zero-duration completions
+- RelationalDatabase: drop `StartedUtc IS NOT NULL` guard from `RecordComplete` UPDATE; the guard made the UPDATE a no-op for sub-ms rows even though the C# computed `DurationMs = 0` correctly
 
 ### 0.9.16 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
-- Fix: pre-load plugin assemblies into the AppDomain at startup so Newtonsoft's `TypeNameHandling` binder can resolve user POCO types during deserialization
+- Fix: pre-load plugin assemblies into AppDomain at startup so Newtonsoft `TypeNameHandling` can resolve user POCO types during deserialization
 - Diagnostic logging in `ResolveMessageBodyType` (debug per stage, warning on failure)
 
 ### 0.9.15 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
-- `DashboardOptions.AssemblyPaths` — configurable directories for user POCO DLLs so the dashboard can deserialize message bodies in Docker without embedding assemblies
-- Docker: `/app/plugins` directory created by default; supports volume mount or derived image
+- `DashboardOptions.AssemblyPaths` — directories for user POCO DLLs so the dashboard can deserialize message bodies in Docker without embedding assemblies
+- Docker: `/app/plugins` directory created by default; volume-mount or extend the image
 
 ### 0.9.14 — 2026-04-03
-- Dashboard UI: replace connection and queue cards with compact tables; remove nav drawer, make title clickable
-- Dashboard UI: self-contained mode runs the UI and API in one process (for Docker)
+- Dashboard UI: replace connection/queue cards with compact tables; remove nav drawer, make title clickable
+- Dashboard UI: self-contained mode runs UI and API in one process (for Docker)
 - `IConfiguration` overload for JSON-based transport registration (`DashboardConnectionConfig` POCO)
 - Docker image: `blehnen74/dotnetworkqueue-dashboard` on Docker Hub
 
 ### 0.9.13 — 2026-03-29
-- Fix: `QueueContainer.CreateAdminApi()` crash due to missing `QueueConnection` parameter after queue name validation changes in 0.9.12
-- **Breaking:** Remove `Thread.Abort()` and `AbortWorkerThreadsWhenStopping` configuration. Worker shutdown now relies entirely on cooperative cancellation via `CancellationToken`.
+- Fix: `QueueContainer.CreateAdminApi()` crash from missing `QueueConnection` parameter after queue name validation changes in 0.9.12
+- **Breaking:** Remove `Thread.Abort()` and `AbortWorkerThreadsWhenStopping` config; worker shutdown uses `CancellationToken` only
 - Replace `new Thread(MainLoop)` with `Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning)` in PrimaryWorker and Worker
-- Replace `Thread.Sleep(20)` spin-wait in `BaseMonitor.Cancel()` with `ManualResetEventSlim` signaling
+- Replace `Thread.Sleep(20)` spin-wait in `BaseMonitor.Cancel()` with `ManualResetEventSlim`
 
 ### 0.9.12 — 2026-03-29
-- Default `DenyListSerializationBinder` blocks 30 known Newtonsoft.Json deserialization gadget types (ObjectDataProvider, WindowsIdentity, Process, DataSet, etc.). Registered as the default `ISerializationBinder` via DI.
-- Optional `AllowListSerializationBinder` for strict type control; only explicitly registered types can be deserialized. Register via DI to replace the default.
-- **Breaking:** Queue name validation on all 6 transports; rejects SQL injection characters at construction time. Allowed: alphanumeric, underscores, dots (Redis also allows hyphens). Per-transport max lengths: SQL Server 128, PostgreSQL 63, Redis 512, LiteDB 256.
-- Fix: `DashboardConsumerClient` implements `IAsyncDisposable`; `DisposeAsync()` properly awaits HTTP DELETE unregistration. Sync `Dispose()` no longer blocks with `.GetAwaiter().GetResult()` (deadlock risk in SynchronizationContext environments).
-- Remove `DotNetWorkQueue.IntegrationTests.Metrics` project; metric tracking types moved into `IntegrationTests.Shared/Metrics/`
-- Add `SECURITY.md` covering Dynamic LINQ compilation risks, serialization binder usage, queue backend access control, and deployment recommendations
+- Default `DenyListSerializationBinder` blocks 30 known Newtonsoft.Json deserialization gadget types (ObjectDataProvider, WindowsIdentity, Process, DataSet, etc.); registered as the default `ISerializationBinder` via DI
+- Optional `AllowListSerializationBinder` for strict type control; only explicitly registered types can be deserialized; register via DI to replace the default
+- **Breaking:** Queue name validation on all 6 transports; rejects SQL injection characters at construction time. Allowed: alphanumeric, underscores, dots (Redis also allows hyphens). Max lengths: SQL Server 128, PostgreSQL 63, Redis 512, LiteDB 256
+- Fix: `DashboardConsumerClient` implements `IAsyncDisposable`; `DisposeAsync()` awaits HTTP DELETE unregistration; sync `Dispose()` no longer blocks with `.GetAwaiter().GetResult()`
+- Remove `DotNetWorkQueue.IntegrationTests.Metrics` project; metric tracking types moved to `IntegrationTests.Shared/Metrics/`
+- Add `SECURITY.md` (Dynamic LINQ risks, serialization binder usage, queue backend access, deployment recommendations)
 
 ### 0.9.11 — 2026-03-26
-- **Breaking:** `IHistoryConfiguration` removed — history decorators and monitors now use `IBaseTransportOptions.EnableHistory` and `IBaseTransportOptions.HistoryOptions` directly.
-- **Breaking:** `IHistoryTransportOptions` added to `IBaseTransportOptions` — all transport options classes now expose `HistoryOptions` (RetentionDays, MaxExceptionLength, StoreBody, Track* flags, MonitorTime)
-- History query pagination now uses database-level `OFFSET/LIMIT` (PostgreSQL, SQLite) or `OFFSET...FETCH NEXT` (SQL Server) instead of in-memory skip/take
-- Redis history queries: unfiltered pages use `SortedSetRangeByRank` server-side pagination; filtered pages use batched scanning
-- `IBaseTransportOptions` registered in DI for all 6 transports — decorators inject it directly
+- **Breaking:** `IHistoryConfiguration` removed; history decorators and monitors use `IBaseTransportOptions.EnableHistory` and `IBaseTransportOptions.HistoryOptions` directly
+- **Breaking:** `IHistoryTransportOptions` added to `IBaseTransportOptions`; all transport options classes expose `HistoryOptions` (RetentionDays, MaxExceptionLength, StoreBody, Track* flags, MonitorTime)
+- History query pagination uses database-level `OFFSET/LIMIT` (PostgreSQL, SQLite) or `OFFSET...FETCH NEXT` (SQL Server) instead of in-memory skip/take
+- Redis history queries: unfiltered pages use `SortedSetRangeByRank` for server-side pagination; filtered pages use batched scanning
+- `IBaseTransportOptions` registered in DI for all 6 transports; decorators inject it directly
 - `IDbPaginationSyntax` interface for transport-specific SQL pagination (`LimitOffsetPaginationSyntax`, `FetchNextPaginationSyntax`)
-- Fix: history table index names now include queue name (e.g., `IX_{historyTable}_QueueID`) — prevents collision from leftover indexes in PostgreSQL (schema-wide unique) and SQL Server (`DF_` default constraint)
-- Redis and Memory transports: persistent history configuration via saved transport options (Redis Configuration key, Memory static DataStorage)
+- Fix: history table index names include queue name (e.g., `IX_{historyTable}_QueueID`) to prevent collision from leftover indexes in PostgreSQL and SQL Server
+- Redis and Memory transports: persistent history config via saved transport options (Redis Configuration key, Memory static DataStorage)
 
 ### 0.9.10 — 2026-03-20
 - `EnableHistory` on transport options (SQLite, SQL Server, PostgreSQL, LiteDB) — set during queue creation like other options. Redis and Memory don't need this; they create history storage at runtime when `IHistoryConfiguration.Enabled` is true.
