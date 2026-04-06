@@ -487,3 +487,16 @@
   - PLAN-1.2: RedisHistoryTests.cs (4 disabled + 15 enabled = 19 tests)
 - **Critique Verdict:** CAUTION→READY — minor test count doc issue, all APIs verified
 - **Status:** Ready for /shipyard:build 1
+
+## 2026-04-06 — Phase 1 Build Complete (Dashboard API history tests)
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 2/2 (PLAN-1.1, PLAN-1.2) + 1 review fix
+- **Commits:**
+  - `2f9be036` — LiteDb history tests (19 tests) + LiteDB transport query bug fix
+  - `f2b432c6` — Redis history tests (19 tests)
+  - `3ebb0a48` — Fix Redis scope disposal + timeout comment
+- **Reviews:** PLAN-1.1 PASS, PLAN-1.2 PASS (after scope disposal fix)
+- **Verification:** 19 LiteDb tests passing, Redis builds clean
+- **Bonus fix:** LiteDB QueryMessageHistoryHandler.Get had same query engine bug documented in GetCount — applied matching FindAll() workaround
+- **Status:** Phase 1 complete, ready for /shipyard:ship

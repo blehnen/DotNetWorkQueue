@@ -2,6 +2,24 @@
 
 ## Open
 
+### ISSUE-019: Missing SUMMARY-1.1.md artifact for Plan 1.1 (LiteDb history tests)
+- **Severity:** Important
+- **Source:** Plan 1.1 Review
+- **Status:** Open
+- **Files:**
+  - `.shipyard/phases/1/results/SUMMARY-1.1.md` (missing)
+- **Description:** The builder did not deposit a SUMMARY artifact before review. The test-run output (pass count, duration, LiteDB bug fix rationale) is unrecorded, breaking the audit trail. The results directory contains `REVIEW-1.2.md` but no `SUMMARY-1.1.md`.
+- **Remediation:** Create `.shipyard/phases/1/results/SUMMARY-1.1.md` documenting the test run output and the LiteDB `Get()` workaround rationale.
+
+### ISSUE-020: LiteDbHistoryEnabledTests.CleanupAsync may double-dispose _scope after _creation.Dispose()
+- **Severity:** Important
+- **Source:** Plan 1.1 Review
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/LiteDbHistoryTests.cs` (lines 208-254, CleanupAsync)
+- **Description:** `_scope` is assigned from `_creation.Scope`. `CleanupAsync` calls `_creation.Dispose()` then `_scope.Dispose()` independently. If `ICreationScope` is not idempotent on dispose, this is a double-dispose. The same pattern appears in MemoryHistoryTests, so it is likely safe, but it is unconfirmed.
+- **Remediation:** Verify `ICreationScope.Dispose()` is idempotent. If confirmed, add a comment. If not, null `_scope` after `_creation.Dispose()` to guard against double-dispose.
+
 ### ISSUE-014: RelationalDatabase RecordComplete WHERE clause blocks DurationMs=0 write when StartedUtc IS NULL
 - **Severity:** Important
 - **Source:** Plan 1.1 Review
