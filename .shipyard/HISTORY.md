@@ -413,3 +413,13 @@
 - **Simplification:** Defer — no high-priority findings, test code duplication is minor
 - **Documentation:** CHANGELOG updated
 - **Status:** Phase 1 complete, ready for /shipyard:ship
+
+## 2026-04-06 — Milestone Shipped: Fix History Status for Errored Messages (issue #97)
+
+- **Action:** `/shipyard:ship`
+- **Delivery:** PR #105 opened against master — https://github.com/blehnen/DotNetWorkQueue/pull/105
+- **Pre-ship verification:** 37 targeted + 878 core + 166 Redis tests passing (net10.0)
+- **Lessons captured:** Redis null-cast collision, HasValue guard pattern (added to LESSONS.md and CLAUDE.md)
+- **Follow-up filed:** #104 (Redis unchecked cast on StartedUtc in RecordComplete/RecordError)
+- **Closes:** GitHub #97
+- **Status:** Shipped
