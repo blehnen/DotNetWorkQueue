@@ -1,32 +1,29 @@
-# Session Handoff — 2026-04-05
+# Session Handoff — 2026-04-06
 
-## Where We Left Off
+## Current Task
 
-**Branch:** `fix_history_for_error_messages`
-**Phase 1:** Planned, ready for `/shipyard:build 1`
-**Issue:** #97 — Dashboard history shows Status=Processing for errored messages
+All three milestones shipped this session. No active work in progress.
 
-## Plans Ready (Wave 1, all parallel)
+## Approach
 
-- **PLAN-1.1:** Fix ReceiveMessagesErrorHistoryDecorator — capture messageId before delegation
-- **PLAN-1.2:** Guard RecordProcessingStart in Redis + Memory transports
-- **PLAN-1.3:** Unit tests for both fixes
+Three milestones completed back-to-back:
+1. **Issue #97** — Fix history status for errored messages (PR #105, merged)
+2. **Issues #104/#103** — Redis history unchecked casts + broken purge (PR #106, merged)
+3. **Dashboard API history tests** — Redis & LiteDb integration tests (PR #107, open)
 
-## Also Done This Session
+## Tried
 
-- Closed #94 (already fixed by PR #99)
-- Closed #95 — deterministic builds, Source Link, symbol packages
-- Closed #98 — Grafana dashboard link in README
-- Bumped all packages to 0.9.18, built and packed to /deploy
-- Docker image 0.9.18 pushed to Docker Hub
-- Filed #100 (Schyntax replacement), #101 (JpLabs removal), #102 (Aq.ExpressionJsonSerializer publish)
+- PR #105: Decorator messageId capture + RecordProcessingStart guard in Redis/Memory. Review caught Redis null-cast collision (RedisValue.Null → int 0 = Enqueued). Fixed with HasValue check. Merged.
+- PR #106: HasValue guard on StartedUtc + purge logic rewrite with terminal-status-only deletion. Discovery: RedisValue.Null cast to (long) silently returns 0L (doesn't throw). Merged.
+- PR #107: LiteDb + Redis history integration tests (38 new tests). LiteDb tests immediately caught a real transport bug in QueryMessageHistoryHandler.Get (LiteDB query engine issue). Open, awaiting Jenkins CI.
 
-## Unpushed NuGet Packages
+## Remaining
 
-12 .nupkg + 12 .snupkg at 0.9.18 in /deploy — user needs to push to NuGet manually.
+- **PR #107** needs merge after Jenkins CI passes
+- **Issue #104** filed during session — now resolved by PR #106
+- **Branches to clean up after merge:** `fix_redis_history_bugs`, `fix_history_for_error_messages`, `dashboard-history-tests`
+- Open GitHub issues: #100 (Schyntax replacement), #101 (JpLabs removal), #102 (Aq.ExpressionJsonSerializer), #96 (Dashboard multi-API), #91 (login dark theme)
 
-## Resume Command
+## Open Questions
 
-```
-/shipyard:build 1
-```
+- None — all work is shipped or in open PRs awaiting CI
