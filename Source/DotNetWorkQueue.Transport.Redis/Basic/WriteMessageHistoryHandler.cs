@@ -65,6 +65,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
+            var currentStatus = (int)db.HashGet(HistoryHashKey(queueId), "Status");
+            if (currentStatus != (int)MessageHistoryStatus.Enqueued) return;
             db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Processing), new HashEntry("StartedUtc", DateTime.UtcNow.Ticks) });
         }
 
