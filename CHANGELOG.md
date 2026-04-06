@@ -1,3 +1,7 @@
+### 0.9.18 — 2026-04-05
+- Build: enable deterministic builds, portable debug symbols, `.snupkg` symbol packages, and Source Link (GitHub #95)
+- Docs: link sample Grafana dashboard (Prometheus data source) from README (GitHub #98)
+
 ### 0.9.17 — 2026-04-05
 - Fix: message history `DurationMs` stores `0` (not `null`) when a message completes or errors before `StartedUtc` is persisted — fixes blank duration values for sub-millisecond messages across all transports (Memory, RelationalDatabase, LiteDB, Redis)
 - Dashboard UI: history table renders `< 1 ms` for sub-millisecond completions (GitHub #94)
