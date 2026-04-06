@@ -1,53 +1,53 @@
-# Project: Fix History Duration for Fast-Completing Messages
+# Project: Fix History Status for Errored Messages
 
 ## Description
 
-Fix GitHub issue #94: some history entries show no duration (or inconsistent values) for messages that complete in under 1 millisecond. This is a race condition where `RecordComplete` reads `StartedUtc` from the database before `RecordProcessingStart` has persisted it. The fix is cosmetic — normalize the backend to store `0` when duration is unmeasurable, and display "< 1 ms" in the Dashboard UI.
+Fix GitHub issue #97: Dashboard history shows `Status=Processing` for messages that exhausted retries and moved to the error queue. The root cause is that `RecordError` is never called on the retry-exhausted path — `ReceiveErrorMessage<T>.MessageFailedProcessing()` moves the record directly without going through the history decorator. A secondary issue is that `RecordProcessingStart` unconditionally resets Status to Processing on each retry, overwriting prior error info.
+
+This affects all transports (Redis, SqlServer, PostgreSQL, SQLite, LiteDb, Memory), not just Redis where it was first observed.
 
 ## Goals
 
-1. Normalize all transports to store `DurationMs = 0` when a message completes but `StartedUtc` was not yet persisted (race condition on fast messages)
-2. Display "< 1 ms" in the Dashboard UI when `DurationMs == 0` and status is Complete
-3. Fix the `0L` vs `null` inconsistency across transports for this case
+1. Ensure `RecordError` is called before a message moves to the error queue on retry exhaustion, so the history row shows `Status=Error` with the exception text
+2. Prevent `RecordProcessingStart` from overwriting `Status=Error` back to `Processing` on retries — preserve the error state in history
+3. Add unit tests covering the retry-exhausted history path
 
 ## Non-Goals
 
-- Structural fix (passing start timestamp in-memory through the processing pipeline) — overkill for a display-only issue
-- Changing metrics, OpenTelemetry, or any non-history code — DurationMs is purely for history display
-- Redesigning the history recording pipeline
-- Fixing any other history-related issues
+- Changing retry logic or poison message handling
+- Modifying the Dashboard UI (it already renders Error status correctly)
+- Changing the history API response shape or `MessageHistoryRecord` model
+- Adding integration tests (unit tests on the decorator are sufficient)
 
 ## Requirements
 
-### Backend (Transport History Writers)
+### Decorator fix (terminal error)
+- `ReceiveMessagesErrorHistoryDecorator` (or a new decorator) must call `RecordError` when `MessageFailedProcessing` results in a move-to-error-queue outcome
+- The fix must work for all transports since they share `ReceiveErrorMessage<T>` from Transport.Shared
 
-- RelationalDatabase transports (SqlServer, PostgreSQL, SQLite): ensure `DurationMs = 0` (not null) when `StartedUtc` is missing but message status is Complete
-- Redis transport: same normalization to `0`
-- LiteDb transport: verify behavior (works in-memory, may not race, but should be consistent)
-- Memory transport: normalize from `(long?)null` to `0` for consistency
+### Retry reset fix
+- `RecordProcessingStart` should not overwrite `Status=Error` — either skip the status reset if status is already Error, or use a different approach
+- This applies to all transport WriteMessageHistoryHandler implementations (Redis, Memory, RelationalDatabase)
 
-### Dashboard UI
-
-- History table: display "< 1 ms" when `DurationMs == 0` and status indicates completion
-- No changes to other history columns or the history API response shape
+### Tests
+- Unit tests verifying that history records error status when retries are exhausted
+- Unit tests verifying that RecordProcessingStart does not overwrite error status
 
 ## Non-Functional Requirements
 
-- All existing unit tests must continue to pass
-- All existing Dashboard API integration tests must continue to pass
-- No changes to the `MessageHistoryRecord` class shape or the Dashboard API response contract
+- No changes to message processing performance
+- No changes to the MessageHistoryRecord class shape
 
 ## Success Criteria
 
-1. A fast-completing message on any transport shows "< 1 ms" in the Dashboard history view instead of blank/0
-2. All transports consistently store `DurationMs = 0` for sub-millisecond completions
-3. `dotnet build "Source/DotNetWorkQueueNoTests.sln"` succeeds
-4. `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` passes
-5. `dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj"` passes
-6. `dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~Memory"` passes
+1. A message that exhausts retries shows `Status=Error` in Dashboard history (not `Processing`)
+2. All existing unit tests pass
+3. All existing Dashboard integration tests pass (Memory transport)
+4. New unit tests cover both the terminal-error and retry-reset fixes
+5. `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug` succeeds
 
 ## Constraints
 
-- DurationMs is purely for history display — does not feed into metrics, OpenTelemetry, or aggregation queries
-- The race condition only occurs for sub-millisecond messages, so `0` is a correct approximation
-- Must not change the `MessageHistoryRecord` property types or Dashboard API response shape
+- Fix must be in the decorator/shared layer, not per-transport
+- Must not change public API surface
+- Display-only bug — no changes to message processing pipelines
