@@ -1,103 +1,74 @@
-# Re-Review: Plan 1.2 (after fix)
-
-## Verdict: PASS
-
-## Findings
-
-### Critical
-
-None.
-
-### Minor
-
-None.
-
-### Positive
-
-- The fix at `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` lines 68-69 is exactly the remediation prescribed in the original review. `rawStatus.HasValue` is checked before the integer cast, so `RedisValue.Null` (which casts to `0` = `Enqueued`) no longer passes the guard. A missing record now correctly short-circuits without writing.
-- The new test `RecordProcessingStart_When_No_Record_Exists_Does_Not_Write` configures `HashGet` to return `RedisValue.Null` for the "Status" field and asserts `HashSet` is never called. This is a precise regression guard for the null-cast collision. The test comment accurately explains the bug it was written to prevent.
-- All 3 pre-existing `RecordProcessingStart` tests remain semantically correct under the fix:
-  - `RecordProcessingStart_When_Disabled_Does_Not_Call_Redis` -- unaffected (returns before the hash read).
-  - `RecordProcessingStart_When_Enabled_Accesses_Connection` -- still valid; the `Connection` property is accessed before `HashGet`, so the `NullReferenceException` fires at the same point as before.
-  - `RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite` -- still valid; returns a `HasValue=true` `RedisValue` with a non-Enqueued integer, so the guard correctly blocks the write.
-  - `RecordProcessingStart_When_Status_Is_Enqueued_Sets_Processing` -- still valid; returns `(RedisValue)(int)MessageHistoryStatus.Enqueued` which has `HasValue=true` and integer value `0`, so the guard passes and `HashSet` is called.
-
+---
+phase: redis-history-fixes
+plan: "1.2"
+reviewer: claude-sonnet-4-6
+date: 2026-04-06
+verdict: PASS
 ---
 
-# REVIEW-1.2 — Guard RecordProcessingStart in Redis and Memory Transports (original)
-
-**Plan:** PLAN-1.2
-**Commit:** db724466
-**Reviewer:** Claude Sonnet 4.6
-**Date:** 2026-04-06
-
----
+# REVIEW-1.2: Purge Logic Fix
 
 ## Stage 1: Spec Compliance
-
 **Verdict:** PASS
 
-### Task 1: Redis RecordProcessingStart guard
-
+### Task 1: PurgeMessageHistoryHandlerTests.cs (TDD — tests written first)
 - Status: PASS
-- Evidence: `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` lines 68-69. Two lines inserted before the `HashSet` call: `var currentStatus = (int)db.HashGet(HistoryHashKey(queueId), "Status");` followed by `if (currentStatus != (int)MessageHistoryStatus.Enqueued) return;`.
-- Notes: The guard reads the current hash field and early-returns on any non-Enqueued value. No other methods in the file were changed, satisfying the acceptance criterion. The `RedisValue.Null` cast concern (raised explicitly in the review brief) is addressed correctly: `RedisValue.Null` cast to `(int)` yields `0`, which equals `MessageHistoryStatus.Enqueued = 0`.
+- Evidence: `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs` at commit `bfefff56` contains all four specified test methods: `Purge_Returns_Zero_When_History_Disabled`, `Purge_Skips_Processing_Records`, `Purge_Removes_Old_Complete_Records`, `Purge_Handles_Missing_Hash_Gracefully`. The `TestablePurgeMessageHistoryHandler` inner class overrides `GetDb()` — identical pattern to `WriteMessageHistoryHandlerTests`.
+- Notes: `SortedSetRangeByScore` is mocked with the full 8-parameter interface signature as required. `KeyDelete` is asserted with the 2-parameter `(RedisKey, CommandFlags)` signature. The plan specified these explicitly to avoid NSubstitute intercepting the wrong overload — both are correct. The `Purge_Returns_Zero_When_History_Disabled` test constructs `PurgeMessageHistoryHandler` directly (not `Testable...`) which is valid since it never calls `GetDb()`.
 
-  **However**, this produces a subtle correctness edge case — see the Important finding in Stage 2.
-
-### Task 2: Memory RecordProcessingStart guard
-
+### Task 2: PurgeMessageHistoryHandler.cs (Fix)
 - Status: PASS
-- Evidence: `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs` line 60. The original `if (GetRecords().TryGetValue(queueId, out var r))` is now `if (GetRecords().TryGetValue(queueId, out var r) && r.Status == MessageHistoryStatus.Enqueued)`.
-- Notes: Syntactically and semantically correct. The short-circuit `&&` means the status check only runs when the record exists; no null-reference risk is introduced. No other methods changed.
+- Evidence: `Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs` at commit `0e07035f` contains:
+  1. `using DotNetWorkQueue.Configuration;` and `using StackExchange.Redis;` added after line 19.
+  2. `protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();` inserted after the constructor.
+  3. `Purge()` body replaced: uses `GetDb()`, reads `rawStatus`/`rawCompleted` with `.HasValue` guards, orphan path calls `SortedSetRemove` only, terminal-status-only deletion guard via `isTerminal` flag.
+- Notes: All five behavioral changes listed in the plan are present. The `MessageHistoryStatus` enum values (Enqueued=0, Processing=1, Complete=2, Error=3, Deleted=4, Expired=5) match what the `isTerminal` check and test casts expect. No `Enqueued` status appears in the terminal set, which is correct.
+
+### Plan 1.1 Overlap Check
+- Status: PASS
+- Evidence: PLAN-1.1 touches only `WriteMessageHistoryHandler.cs` and `WriteMessageHistoryHandlerTests.cs`. PLAN-1.2 touches only `PurgeMessageHistoryHandler.cs` and `PurgeMessageHistoryHandlerTests.cs`. Zero file overlap confirmed.
 
 ---
 
 ## Stage 2: Code Quality
 
 ### Critical
-
 None.
 
 ### Important
 
-- **Redis guard yields a false negative when the history record does not exist** at `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` line 68.
+- **Orphan path reads `rawCompleted` unnecessarily before the `HasValue` guard**
+  - In `PurgeMessageHistoryHandler.cs` (commit `0e07035f`), the `Purge()` method reads both `rawStatus` and `rawCompleted` before checking `rawStatus.HasValue`. When the hash is absent (orphan case), `rawCompleted` will also be `RedisValue.Null`, making that read a no-op waste. More importantly, it is a second round-trip to Redis for data that is never used. In a scan over thousands of orphaned entries this doubles the Redis calls in the hot path.
+  - Remediation: Move the `rawCompleted` read inside the `rawStatus.HasValue` branch, after the `continue` for the orphan case:
+    ```csharp
+    if (!rawStatus.HasValue)
+    {
+        db.SortedSetRemove(HistoryIndexKey, queueId);
+        count++;
+        continue;
+    }
+    var rawCompleted = db.HashGet(HistoryHashKey(queueId), "CompletedUtc");
+    ```
 
-  `MessageHistoryStatus.Enqueued = 0` and `(int)RedisValue.Null = 0` are the same integer. When `RecordProcessingStart` is called for a `queueId` that has no history record (e.g., if `EnableHistory` was off during enqueue and turned on before processing, or if history data was evicted), `db.HashGet` returns `RedisValue.Null`, which casts to `0`, which equals `(int)MessageHistoryStatus.Enqueued`. The guard therefore passes, and the `HashSet` executes — writing a Processing-status hash entry without a prior Enqueued entry or index entry. This leaves an orphaned, partially-populated record.
-
-  The Memory transport does not share this risk because `TryGetValue` returns false when the record is absent, so the body is never reached.
-
-  This is consistent with what the builder documented in SUMMARY-1.2.md ("A `RedisValue.Null` cast to `(int)` yields 0, which is not Enqueued, so records that do not exist in the hash are safely skipped") — but that statement is **incorrect**. `0` IS `Enqueued`, not "not Enqueued". The guard passes (does not skip) for missing records.
-
-  Whether this scenario is reachable in practice depends on operational guarantees (history always enabled when queue is created, no TTL on Redis keys). If those guarantees hold, the impact is low. If they do not, a dangling record can be written.
-
-  Remediation: Add an existence check before the status comparison. The simplest approach: check `HashExists` first, or compare the raw `RedisValue` before casting:
-
-  ```csharp
-  var rawStatus = db.HashGet(HistoryHashKey(queueId), "Status");
-  if (!rawStatus.HasValue || (int)rawStatus != (int)MessageHistoryStatus.Enqueued) return;
-  ```
-
-  This correctly skips both missing records and records in non-Enqueued states.
-
-- **Missing test coverage for the `RedisValue.Null` / missing-record case** at `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs`.
-
-  The builder reports 21/21 tests pass, but there is no test that calls `RecordProcessingStart` for a `queueId` that was never enqueued. Given the incorrect null-handling behaviour described above, this case is exactly the one that needs a test. Adding a test would both catch the bug and serve as a regression guard.
-
-  Remediation: Add a test that calls `RecordProcessingStart(unknownId)` without a prior `RecordEnqueue` and asserts that no hash key is created in the Redis store (verifiable via the `GetDb()` seam already present on the class).
+- **`Purge_Handles_Missing_Hash_Gracefully` test does not stub `CompletedUtc`, but the implementation reads it before the guard**
+  - `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs` — the orphan test stubs `Status` to `RedisValue.Null` but does not stub `CompletedUtc`. Because the current implementation reads `rawCompleted` unconditionally before the `HasValue` check, NSubstitute returns the default `RedisValue` (which is `RedisValue.Null`, `HasValue = false`). This means the test passes today but is fragile: if the read order is swapped or the guard is moved, the test will silently start testing a different code path. The test should be explicit about what `CompletedUtc` returns in the orphan case to communicate intent.
+  - Remediation: Add `db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("CompletedUtc"), Arg.Any<CommandFlags>()).Returns(RedisValue.Null);` to the `Purge_Handles_Missing_Hash_Gracefully` arrange section, and after fixing the implementation as above, verify this mock is never called (add `db.DidNotReceive().HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("CompletedUtc"), Arg.Any<CommandFlags>())`).
 
 ### Suggestions
 
-- The `RecordRollback` method in the Redis handler resets `Status` back to `Enqueued` (line 101). This means a re-queued message will correctly pass the Enqueued guard on its next `RecordProcessingStart` call. The retry path is therefore sound — no action needed, just confirming the design holds.
+- **No test for `Enqueued` status (the other non-terminal state)**
+  - `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs` — `Purge_Skips_Processing_Records` covers `Processing` (status=1). There is no parallel test asserting that `Enqueued` (status=0) records are also skipped. Given that the original bug deleted any record with `completedTicks == 0` — which covers both Processing and Enqueued — a test for the Enqueued path would document this protection explicitly.
+  - Remediation: Add `Purge_Skips_Enqueued_Records` mirroring `Purge_Skips_Processing_Records` with `MessageHistoryStatus.Enqueued`.
 
-- The Memory `RecordProcessingStart` line 60 packs three statements into one line. This is consistent with the existing style in the file (`RecordDelete`, `RecordExpire`, `RecordRollback` use the same pattern), so no change is needed. A future cleanup could split these for readability, but it is out of scope here.
+- **`HistoryHashKey` is called twice per member in the hot path**
+  - `Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs` — `HistoryHashKey(queueId)` is called on every `HashGet` and again on `KeyDelete`/`SortedSetRemove`. The method is a simple string interpolation so the cost is minimal, but materialising the key once per loop iteration would improve readability and micro-performance in bulk purges.
+  - Remediation: `var hashKey = HistoryHashKey(queueId);` at the top of the loop body, then reference `hashKey` throughout.
 
 ---
 
 ## Summary
+**Verdict:** PASS (MINOR_ISSUES)
 
-**Verdict:** REQUEST CHANGES
+Both bugs described in the plan are correctly fixed: the unchecked `(long)` cast on a potentially-null `RedisValue` is replaced with explicit `.HasValue` guards, and purge is correctly restricted to terminal statuses only. The `GetDb()` seam exists and matches the `WriteMessageHistoryHandler` pattern. The four tests cover the required acceptance criteria and the mock signatures are correct for NSubstitute's interface interception. The two Important findings are a redundant Redis round-trip in the orphan path and a test gap that makes the orphan test fragile — neither blocks merge but both should be addressed in a follow-up.
 
-Both guards are implemented as specified and satisfy the done criteria. The Memory implementation is correct in all cases. The Redis implementation contains an off-by-one semantic error: `RedisValue.Null` casts to `0`, which equals `MessageHistoryStatus.Enqueued`, so missing records are not skipped as the builder believed — they pass the guard and get a spurious Processing record written. The fix is a one-line change to check `rawStatus.HasValue` before comparing. A corresponding test should be added to cover this path.
-
-Critical: 0 | Important: 2 | Suggestions: 0
+Critical: 0 | Important: 2 | Suggestions: 2

@@ -1,53 +1,55 @@
-# Project: Fix History Status for Errored Messages
+# Project: Redis History Bug Fixes
 
 ## Description
 
-Fix GitHub issue #97: Dashboard history shows `Status=Processing` for messages that exhausted retries and moved to the error queue. The root cause is that `RecordError` is never called on the retry-exhausted path — `ReceiveErrorMessage<T>.MessageFailedProcessing()` moves the record directly without going through the history decorator. A secondary issue is that `RecordProcessingStart` unconditionally resets Status to Processing on each retry, overwriting prior error info.
+Fix two related bugs in the Redis transport's history handling. Issue #104: `RecordComplete` and `RecordError` in `WriteMessageHistoryHandler` perform unchecked `(long)` casts on `RedisValue` that throw when the hash is absent. Issue #103: `PurgeMessageHistoryHandler.Purge()` has broken logic that purges active (Enqueued/Processing) records and throws on missing hashes.
 
-This affects all transports (Redis, SqlServer, PostgreSQL, SQLite, LiteDb, Memory), not just Redis where it was first observed.
+Both bugs are in the Redis transport only. No other transports are affected.
 
 ## Goals
 
-1. Ensure `RecordError` is called before a message moves to the error queue on retry exhaustion, so the history row shows `Status=Error` with the exception text
-2. Prevent `RecordProcessingStart` from overwriting `Status=Error` back to `Processing` on retries — preserve the error state in history
-3. Add unit tests covering the retry-exhausted history path
+1. Guard all Redis `HashGet` casts in `WriteMessageHistoryHandler.RecordComplete` and `RecordError` with `.HasValue` checks, defaulting to `0L` when absent
+2. Fix `PurgeMessageHistoryHandler.Purge()` to only remove terminal-state records (Complete, Error, Deleted, Expired) whose `CompletedUtc` is older than the cutoff
+3. Add `protected virtual GetDb()` test seam to `PurgeMessageHistoryHandler` (matching `WriteMessageHistoryHandler` pattern)
+4. Add unit tests for all fixes
 
 ## Non-Goals
 
-- Changing retry logic or poison message handling
-- Modifying the Dashboard UI (it already renders Error status correctly)
-- Changing the history API response shape or `MessageHistoryRecord` model
-- Adding integration tests (unit tests on the decorator are sufficient)
+- Changing any other transport's history handlers
+- Modifying the Dashboard UI or API
+- Adding integration tests (unit tests with mocked IDatabase are sufficient)
+- Changing the history data model or Redis key structure
 
 ## Requirements
 
-### Decorator fix (terminal error)
-- `ReceiveMessagesErrorHistoryDecorator` (or a new decorator) must call `RecordError` when `MessageFailedProcessing` results in a move-to-error-queue outcome
-- The fix must work for all transports since they share `ReceiveErrorMessage<T>` from Transport.Shared
+### #104 — HasValue guard on StartedUtc
+- `RecordComplete`: replace `(long)db.HashGet(...)` with `HasValue` check, default `0L`
+- `RecordError`: same fix
+- Unit tests: verify both methods handle missing hash gracefully (return `0L` duration)
 
-### Retry reset fix
-- `RecordProcessingStart` should not overwrite `Status=Error` — either skip the status reset if status is already Error, or use a different approach
-- This applies to all transport WriteMessageHistoryHandler implementations (Redis, Memory, RelationalDatabase)
-
-### Tests
-- Unit tests verifying that history records error status when retries are exhausted
-- Unit tests verifying that RecordProcessingStart does not overwrite error status
+### #103 — Purge logic fix
+- Add `protected virtual GetDb()` seam to `PurgeMessageHistoryHandler`
+- Add `.HasValue` guard on `CompletedUtc` HashGet — skip records where hash was pruned
+- Read `Status` field; only purge when status is terminal (Complete, Error, Deleted, Expired)
+- Replace broken condition with: Status is terminal AND CompletedUtc > 0 AND CompletedUtc < cutoff
+- Unit tests: purge skips Processing records, purges old Complete records, handles missing hashes
 
 ## Non-Functional Requirements
 
-- No changes to message processing performance
-- No changes to the MessageHistoryRecord class shape
+- No performance regression in purge operations
+- Consistent error handling pattern with the `RecordProcessingStart` fix from PR #105
 
 ## Success Criteria
 
-1. A message that exhausts retries shows `Status=Error` in Dashboard history (not `Processing`)
-2. All existing unit tests pass
-3. All existing Dashboard integration tests pass (Memory transport)
-4. New unit tests cover both the terminal-error and retry-reset fixes
-5. `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug` succeeds
+1. `RecordComplete` and `RecordError` do not throw when Redis hash is absent
+2. Purge only removes terminal-state records older than the cutoff
+3. Purge does not throw when a hash is missing between index scan and field read
+4. All existing Redis unit tests pass
+5. New unit tests cover all fix scenarios
+6. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds
 
 ## Constraints
 
-- Fix must be in the decorator/shared layer, not per-transport
-- Must not change public API surface
-- Display-only bug — no changes to message processing pipelines
+- Fix must be in the Redis transport only
+- Must follow existing `HasValue` guard pattern from PR #105
+- Must follow `GetDb()` test seam pattern from `WriteMessageHistoryHandler`

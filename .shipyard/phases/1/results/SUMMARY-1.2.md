@@ -1,122 +1,60 @@
-# SUMMARY-1.2 — Guard RecordProcessingStart in Redis and Memory Transports
+# SUMMARY-1.2: Purge Logic Fix (Phase 1, PLAN-1.2)
 
-**Plan:** PLAN-1.2  
-**Branch:** fix_history_for_error_messages  
-**Commit:** db724466  
-**Date:** 2026-04-06  
-**Status:** COMPLETE
+## Status: COMPLETE
 
----
+## Tasks Executed
 
-## Tasks Completed
+### Task 1: PurgeMessageHistoryHandlerTests.cs (TDD — tests written first)
 
-### Task 1: Redis RecordProcessingStart guard
+**File:** `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs`
 
-**File:** `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs`
+The existing file contained only 1 test (disabled-path). It was replaced with a full 4-test suite:
 
-Added a status check before the unconditional `HashSet`. The method now reads the
-current `Status` field from the Redis hash before writing. If the value is not
-`MessageHistoryStatus.Enqueued` (integer 1), the method returns early. A
-`RedisValue.Null` cast to `(int)` yields 0, which is not Enqueued, so records that
-do not exist in the hash are safely skipped.
+- `Purge_Returns_Zero_When_History_Disabled` — guards early-return path
+- `Purge_Skips_Processing_Records` — asserts KeyDelete NOT called for Processing status, result=0
+- `Purge_Removes_Old_Complete_Records` — asserts KeyDelete called for Complete+old CompletedUtc, result=1
+- `Purge_Handles_Missing_Hash_Gracefully` — asserts SortedSetRemove called for orphaned index entry (Status=Null), no KeyDelete, result=1
 
-### Task 2: Memory RecordProcessingStart guard
+The `TestablePurgeMessageHistoryHandler` inner class overrides `GetDb()` to inject a substituted `IDatabase`, matching the pattern established by `WriteMessageHistoryHandlerTests`.
 
-**File:** `Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs`
+Build confirmed CS0115 compile error (no `GetDb()` to override) before implementation — TDD failure state verified.
 
-Added `&& r.Status == MessageHistoryStatus.Enqueued` to the existing
-`TryGetValue` condition. No other logic changed.
+**Commit:** `bfefff56` — `shipyard(phase-1): add purge handler tests`
 
----
+### Task 2: PurgeMessageHistoryHandler.cs (Fix)
 
-## Files Modified
+**File:** `Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs`
 
-| File | Change |
-|------|--------|
-| `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` | +2 lines: read current status, early-return if not Enqueued |
-| `Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs` | +1 condition: `&& r.Status == MessageHistoryStatus.Enqueued` |
+Three changes applied:
 
----
-
-## Decisions Made
-
-- **--no-restore skipped:** The plan's verify commands used `--no-restore`, but stale
-  `obj/` artifacts from a prior build caused `MSB3030` errors. Ran with restore
-  instead. Both builds succeeded with 0 warnings, 0 errors.
-- **No other methods changed** in either file, per plan acceptance criteria.
-
----
+1. Added usings: `DotNetWorkQueue.Configuration` and `StackExchange.Redis`
+2. Added `protected virtual IDatabase GetDb()` seam after constructor
+3. Replaced entire `Purge()` method body:
+   - Calls `GetDb()` instead of `_connection.Connection.GetDatabase()` directly
+   - Reads `rawStatus` and checks `rawStatus.HasValue` — if false, treats as orphaned index entry, calls `SortedSetRemove` only, increments count, continues
+   - Casts status only after HasValue guard eliminates Null-as-zero false positive
+   - Restricts deletion to terminal statuses: Complete, Error, Deleted, Expired
+   - Processing records are skipped entirely (no delete, no count increment)
 
 ## Verification Results
 
 | Command | Result |
-|---------|--------|
-| `dotnet build DotNetWorkQueue.Transport.Redis.csproj` | PASS — 0 warnings, 0 errors |
-| `dotnet build DotNetWorkQueue.csproj` | PASS — 0 warnings, 0 errors |
-| Redis `WriteMessageHistoryHandlerTests` | PASS — 21/21 (net10.0) |
-| Memory `WriteMessageHistoryHandlerTests` | PASS — 31/31 (net10.0) |
+|---|---|
+| `dotnet build ...Transport.Redis.csproj` | PASSED — 0 warnings, 0 errors |
+| `dotnet test ... --filter PurgeMessageHistoryHandlerTests` | PASSED — 4/4 (net10.0) |
+| `dotnet test ...Transport.Redis.Tests.csproj` | PASSED — 172/172 (net10.0) |
 
-Note: Both test runs emit a `mono` not-found message for the net48 target slice.
-This is a known WSL environment artifact — net48 tests require a Windows runner
-(GitHub Actions). The net10.0 results are clean.
+Note: net48 target aborts with "Could not find 'mono' host" in the WSL2 environment — this is an environment constraint, not a test failure. GitHub Actions validates net48.
 
----
+## Deviations from Plan
 
-## Issues Encountered
+None. Implementation matched the plan specification exactly.
 
-None beyond the `--no-restore` stale-artifact issue noted above.
+## Root Bug Fixed
 
----
+The original `Purge()` cast `db.HashGet(..., "CompletedUtc")` directly to `long` without checking `HasValue`. When a hash field is missing, `RedisValue.Null` casts to `0L`, triggering the `completedTicks == 0` branch and deleting records still being processed. The fix adds `HasValue` guards on both `Status` and `CompletedUtc` fields, and restricts deletion to terminal statuses only.
 
-## Acceptance Criteria Verification
+## Commits
 
-- [x] Redis: RecordProcessingStart reads current Status before writing; only updates when Enqueued
-- [x] Memory: RecordProcessingStart only updates when `r.Status == MessageHistoryStatus.Enqueued`
-- [x] No other methods changed in either file
-
----
-
-## Review Finding Fix (PLAN-1.2 critical review)
-
-**Date:** 2026-04-06
-
-### Bug Fixed: Null-cast collision in Redis RecordProcessingStart
-
-`MessageHistoryStatus.Enqueued` has integer value `0`. When `db.HashGet` returns
-`RedisValue.Null` (no hash exists for that queueId), casting to `(int)` also yields
-`0`. The guard `currentStatus != (int)MessageHistoryStatus.Enqueued` evaluated to
-`0 != 0` = false, so the method did NOT return early — it wrote a Processing hash
-for a record that was never enqueued.
-
-**Fix applied to:**
-`Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs`
-
-Old guard:
-```csharp
-var currentStatus = (int)db.HashGet(HistoryHashKey(queueId), "Status");
-if (currentStatus != (int)MessageHistoryStatus.Enqueued) return;
-```
-
-New guard:
-```csharp
-var rawStatus = db.HashGet(HistoryHashKey(queueId), "Status");
-if (!rawStatus.HasValue || (int)rawStatus != (int)MessageHistoryStatus.Enqueued) return;
-```
-
-### New Test Added
-
-`Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs`
-
-`RecordProcessingStart_When_No_Record_Exists_Does_Not_Write` — configures
-`HashGet` to return `RedisValue.Null` for the "Status" field, then asserts that
-`HashSet` is never called. This test would have failed against the old code (the
-null-cast collision would have caused a write to proceed).
-
-### Verification
-
-| Command | Result |
-|---------|--------|
-| `dotnet build DotNetWorkQueue.Transport.Redis.csproj` | PASS — 0 warnings, 0 errors |
-| Redis `WriteMessageHistoryHandlerTests` | PASS — 21/21 (net10.0) |
-
-**Commit:** shipyard(phase-1): fix Redis RecordProcessingStart null-cast collision
+- `bfefff56` — `shipyard(phase-1): add purge handler tests`
+- `0e07035f` — `shipyard(phase-1): fix purge logic with HasValue guards and terminal-status-only deletion`

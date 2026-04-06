@@ -1,56 +1,72 @@
 # Documentation Report
-**Phase:** 1 — Fix History Status for Errored Messages (GitHub #97)
+**Phase:** 1 — Redis History Bug Fixes (issues #103, #104)
 **Date:** 2026-04-06
 
 ## Summary
-- API/Code docs: 0 files require documentation changes (no public interface changes)
-- Architecture updates: none required
-- User-facing docs: CHANGELOG.md updated with 1 entry
+
+- API/Code docs: 0 files require documentation updates (all changed interfaces are internal)
+- Architecture updates: 0 sections affected (no design changes, no new components)
+- User-facing docs: CHANGELOG.md requires one new entry before this branch ships
+- Test coverage notes: 1 implementation deviation worth preserving in code comments
 
 ## API Documentation
 
-### ReceiveMessagesErrorHistoryDecorator (`Source/DotNetWorkQueue/History/Decorator/ReceiveMessagesErrorHistoryDecorator.cs`)
-- **Public interfaces:** 0 changed
-- **Documentation status:** No change needed
+### WriteMessageHistoryHandler (`Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs`)
 
-The fix is entirely internal: three locals are captured before delegating to the inner
-handler. The public method signature (`MessageFailedProcessing`) is unchanged. No
-documentation is required.
+- **Public interfaces:** 0 (class is internal to the Redis transport)
+- **Documentation status:** No action required
 
-### WriteMessageHistoryHandler — Redis (`Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs`)
-- **Public interfaces:** 0 changed
-- **Documentation status:** No change needed
+The change adds `.HasValue` guards before `(long)` casts on `RedisValue` results in `RecordComplete` and `RecordError`. These are internal methods with no public surface. The deviation note from SUMMARY-1.1 is worth preserving as a code comment: StackExchange.Redis silently casts `RedisValue.Null` to `0L` today, but the guard is explicit defensive code that does not rely on that undocumented behavior.
 
-`RecordProcessingStart` is an internal method. The behavioral contract (only advance
-status from Enqueued to Processing, never overwrite a terminal state) was already the
-intended behavior; this is a bug fix, not a new constraint.
+**Recommended inline comment** (non-blocking) in `WriteMessageHistoryHandler.cs` at the `HasValue` guard site:
 
-### WriteMessageHistoryHandler — Memory (`Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs`)
-- **Public interfaces:** 0 changed
-- **Documentation status:** No change needed
+```csharp
+// HasValue guard: RedisValue.Null silently casts to 0L today, but the guard
+// makes intent explicit and avoids reliance on undocumented implicit cast behavior.
+var startedTicks = db.HashGet(...).HasValue ? (long)db.HashGet(...) : 0L;
+```
 
-Same reasoning as Redis above.
+### PurgeMessageHistoryHandler (`Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs`)
+
+- **Public interfaces:** 0 (class is internal to the Redis transport)
+- **Documentation status:** No action required
+
+The `protected virtual GetDb()` seam added for testability has no public surface. The corrected purge logic (terminal-state guard + `HasValue` on `CompletedUtc`) has no impact on any documented API contract.
 
 ## Architecture Updates
 
-None. This phase touched only internal implementation details of the history subsystem.
-No component boundaries changed, no new dependencies were introduced, and no data flow
-was altered beyond correcting two race-condition defects.
+No architecture changes. Both fixes are contained within the Redis transport's existing `Basic/` handler layer. The `protected virtual GetDb()` seam follows the established pattern already present in `WriteMessageHistoryHandler` — no new pattern is introduced.
 
 ## User-Facing Documentation
 
-### CHANGELOG.md
-- **Type:** Release notes
-- **Status:** Updated — entry added under a new `0.9.19` heading
+### CHANGELOG.md — entry required before ship
 
-The two bugs fixed are user-visible (errored messages appeared as "Processing" in the
-history table), so a changelog entry is warranted.
+**Type:** Changelog
+**Status:** Not yet written — must be added before merging to master
+
+The CHANGELOG follows the established format (`0.9.X — date\n- Fix: ...`). The entry should cover both issues in one block since they ship together. Suggested wording aligned with existing changelog style:
+
+```markdown
+### 0.9.19 — TBD (Redis transport only)
+- Fix: `WriteMessageHistoryHandler.RecordComplete` and `RecordError` guard Redis
+  `HashGet` results with `.HasValue` before casting to `long`; prevents reliance on
+  undocumented implicit cast behavior when the history hash is absent (GitHub #104)
+- Fix: `PurgeMessageHistoryHandler.Purge()` no longer deletes Enqueued or Processing
+  records; only terminal-state records (Complete, Error, Deleted, Expired) with a
+  `CompletedUtc` older than the retention cutoff are removed; missing hashes are
+  handled without throwing (GitHub #103)
+```
+
+Version number should be confirmed against the current package version at ship time.
 
 ## Gaps
 
-None identified. The fixes are self-contained and do not touch any documented public API,
-configuration surface, or user-facing feature.
+None that require action before shipping. The only pre-ship requirement is the CHANGELOG entry above.
 
 ## Recommendations
 
-None beyond the CHANGELOG update already applied.
+1. **Add the CHANGELOG entry** (required, pre-ship). File: `/mnt/f/git/dotnetworkqueue/CHANGELOG.md`.
+
+2. **Optional inline comment** in `WriteMessageHistoryHandler.cs` at the `HasValue` guard to document why the guard exists despite StackExchange.Redis's current implicit cast behavior. Low priority — the SUMMARY-1.1 deviation note preserves this reasoning in the shipyard record already.
+
+3. No README updates, no migration guide, no architecture doc changes needed. This is a pure bug fix with no user-visible behavior change beyond correctness.

@@ -1,40 +1,40 @@
-# SUMMARY-1.1: Fix ReceiveMessagesErrorHistoryDecorator (Bug A)
+# SUMMARY-1.1: HasValue Guard on StartedUtc (#104)
 
 ## Status: COMPLETE
 
-## Tasks Completed
+## Tasks Executed
 
-### Task 1: Capture messageId before delegating to inner handler
+### Task 1 — Add failing tests (TDD)
+- Added `RecordComplete_When_Hash_Missing_Does_Not_Throw` and `RecordError_When_Hash_Missing_Does_Not_Throw` to `WriteMessageHistoryHandlerTests.cs`.
+- Both tests use the existing `CreateEnabledWithDb()` helper and override `HashGet` for the `"StartedUtc"` field to return `RedisValue.Null`, then assert `DurationMs=0L` is written via `HashSet`.
+- Commit: `b17a6e15` — `shipyard(phase-1): add tests for missing hash in RecordComplete/RecordError`
 
-**File modified:**
-`Source/DotNetWorkQueue/History/Decorator/ReceiveMessagesErrorHistoryDecorator.cs`
+### Task 2 — Apply HasValue guard fix
+- In `WriteMessageHistoryHandler.cs`, replaced the direct `(long)db.HashGet(...)` cast in both `RecordComplete` (line 79) and `RecordError` (line 90) with:
+  ```csharp
+  var rawStarted = db.HashGet(HistoryHashKey(queueId), "StartedUtc");
+  var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
+  ```
+- Commit: `2f241e31` — `shipyard(phase-1): guard StartedUtc cast with HasValue in RecordComplete/RecordError`
 
-**Change:** In `MessageFailedProcessing`, added three locals captured *before* `_handler.MessageFailedProcessing()` is called:
-- `messageId` — snapshot of `context.MessageId`
-- `hasMessageId` — pre-evaluated null/HasValue guard
-- `messageIdValue` — pre-evaluated string form of the ID
+## Verification
 
-Replaced all downstream references to `context.MessageId` with these pre-captured locals.
+```
+dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/..." --filter "FullyQualifiedName~WriteMessageHistoryHandlerTests"
+Passed! - Failed: 0, Passed: 24, Skipped: 0, Total: 24
+```
 
-## Verification Results
+All 24 `WriteMessageHistoryHandlerTests` pass, including the two new ones.
 
-| Step | Result |
-|------|--------|
-| `dotnet build DotNetWorkQueue.csproj` | PASS — 0 warnings, 0 errors |
-| `ReceiveMessagesErrorHistoryDecoratorTests` (net10.0) | PASS — 6/6 tests passed |
+## Deviations
 
-Note: The `--no-restore` flag caused a stale-obj failure on first attempt. Rebuilt with restore; subsequent build was clean. This is an environment artifact, not a code issue.
+### TDD pre-failure observation
+The two new tests passed even before the fix was applied. This is because `StackExchange.Redis` silently converts `RedisValue.Null` to `0L` on an implicit `(long)` cast — it does not throw. The fix is still correct and necessary: the explicit `HasValue` guard makes the intent clear and does not rely on undocumented implicit cast behaviour that could change in a future library version. The tests remain valid contract tests asserting the `DurationMs=0L` outcome.
 
-The mono-related error in test output is VSTest attempting to run the net48 TFM without Mono installed on this WSL2 Linux host. The net10.0 TFM ran and passed cleanly. This is expected behavior for this environment.
+### Transient build cache error
+On the first attempt to build the test project after applying the fix, a stale-cache error appeared: `PurgeMessageHistoryHandlerTests.TestablePurgeMessageHistoryHandler.GetDb(): no suitable method found to override`. This was a build-cache artifact — the `GetDb()` seam already existed in the production `PurgeMessageHistoryHandler` assembly (verified by grep). A second build succeeded immediately with no changes required.
 
-## Commit
+## Files Modified
 
-`7aa86cfa` — `shipyard(phase-1): fix decorator to capture messageId before delegation`
-
-## Decisions Made
-
-No deviations from the plan. The fix was applied exactly as specified.
-
-## Issues Encountered
-
-None beyond the environment-level `--no-restore` stale-obj transient failure, which resolved with a full restore build.
+- `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs` — added 2 test methods
+- `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` — applied HasValue guard in `RecordComplete` and `RecordError`

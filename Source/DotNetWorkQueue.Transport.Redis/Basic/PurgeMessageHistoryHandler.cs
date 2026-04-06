@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Configuration;
+using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -38,19 +40,40 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _options = options;
         }
 
+        /// <summary>Returns the Redis database to use. Protected virtual to allow test seam injection.</summary>
+        protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
+
         /// <inheritdoc />
         public long Purge(DateTime olderThan)
         {
             if (!_options.EnableHistory) return 0;
-            var db = _connection.Connection.GetDatabase();
+            var db = GetDb();
             var cutoffTicks = olderThan.Ticks;
             var members = db.SortedSetRangeByScore(HistoryIndexKey, double.NegativeInfinity, cutoffTicks);
             long count = 0;
             foreach (var member in members)
             {
                 var queueId = member.ToString();
-                var completedTicks = (long)db.HashGet(HistoryHashKey(queueId), "CompletedUtc");
-                if ((completedTicks > 0 && completedTicks < cutoffTicks) || completedTicks == 0)
+                var rawStatus = db.HashGet(HistoryHashKey(queueId), "Status");
+                var rawCompleted = db.HashGet(HistoryHashKey(queueId), "CompletedUtc");
+
+                if (!rawStatus.HasValue)
+                {
+                    // Orphaned index entry: hash was already deleted. Clean up the index.
+                    db.SortedSetRemove(HistoryIndexKey, queueId);
+                    count++;
+                    continue;
+                }
+
+                var status = (MessageHistoryStatus)(int)rawStatus;
+                var completedTicks = rawCompleted.HasValue ? (long)rawCompleted : 0L;
+
+                var isTerminal = status == MessageHistoryStatus.Complete
+                              || status == MessageHistoryStatus.Error
+                              || status == MessageHistoryStatus.Deleted
+                              || status == MessageHistoryStatus.Expired;
+
+                if (isTerminal && completedTicks > 0 && completedTicks < cutoffTicks)
                 {
                     db.KeyDelete(HistoryHashKey(queueId));
                     db.SortedSetRemove(HistoryIndexKey, queueId);
