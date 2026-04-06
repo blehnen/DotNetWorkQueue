@@ -478,3 +478,12 @@
   - No production code changes
 - **Roadmap:** 1 phase, 2 parallel plans (LiteDb + Redis)
 - **Status:** Ready for /shipyard:plan 1
+
+## 2026-04-06 — Phase 1 Planned
+
+- **Action:** `/shipyard:plan 1`
+- **Plans:** 2 plans in Wave 1 (parallel)
+  - PLAN-1.1: LiteDbHistoryTests.cs (4 disabled + 15 enabled = 19 tests)
+  - PLAN-1.2: RedisHistoryTests.cs (4 disabled + 15 enabled = 19 tests)
+- **Critique Verdict:** CAUTION→READY — minor test count doc issue, all APIs verified
+- **Status:** Ready for /shipyard:build 1

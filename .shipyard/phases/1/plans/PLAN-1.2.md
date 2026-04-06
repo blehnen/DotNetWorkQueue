@@ -1,267 +1,452 @@
 ---
-phase: redis-history-fixes
+phase: dashboard-history-tests
 plan: "1.2"
 wave: 1
 dependencies: []
 must_haves:
-  - Purge does not delete records in Enqueued or Processing state
-  - Purge handles missing hash gracefully (no throw when hash pruned between index scan and field read)
-  - Purge only deletes terminal records (Complete/Error/Deleted/Expired) with CompletedUtc > 0 and < cutoff
-  - GetDb() seam exists for test injection (matching WriteMessageHistoryHandler pattern)
-  - All tests pass via mock IDatabase, no real Redis needed
+  - RedisHistoryDisabledTests class with 4 tests matching MemoryHistoryDisabledTests pattern
+  - RedisHistoryEnabledTests class with 14 tests matching MemoryHistoryEnabledTests pattern
+  - Uses RedisQueueInit / RedisQueueCreation
+  - Uses ConnectionStrings.Redis (reads from connectionstring-redis.txt)
+  - No scope sharing needed (Redis does not use RegisterNonScopedSingleton)
+  - EnableHistory = true for enabled tests via RedisBaseTransportOptions
+  - LGPL-2.1 license header
+  - Tests require a running Redis instance
 files_touched:
-  - Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs
-  - Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs
-tdd: true
+  - Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs
+tdd: false
 ---
 
-# Plan 1.2: Purge logic fix (#103)
+# Plan 1.2 -- Redis History Tests
 
 ## Context
 
-`PurgeMessageHistoryHandler.Purge()` has two bugs:
+Add Dashboard API integration tests for Redis transport covering history endpoints.
+Follow the exact `MemoryHistoryTests.cs` pattern (Disabled + Enabled classes).
+Redis uses `ConnectionStrings.Redis` which reads from `connectionstring-redis.txt`.
+Redis does NOT use scope sharing (`RegisterNonScopedSingleton`) -- its `AddConnection` uses the 2-arg overload.
+The `RedisQueueCreation.Options` property returns `RedisBaseTransportOptions` which has `EnableHistory`.
+Redis queues are auto-created (creation is a no-op), but `RemoveQueue` cleans up keys.
 
-1. **Missing hash throws:** Line 52 does `(long)db.HashGet(...)` which throws `InvalidOperationException` when the hash was pruned between the sorted set scan and the field read.
-
-2. **Broken purge logic:** Line 53 condition `(completedTicks > 0 && completedTicks < cutoffTicks) || completedTicks == 0` means records that were never completed (`CompletedUtc == 0`) -- including actively Processing records -- are purged. This is backwards: Processing records should be preserved, and only terminal-state records should be removed.
-
-Additionally, line 45 calls `_connection.Connection.GetDatabase()` directly, making the class untestable without a real Redis connection. Adding a `protected virtual GetDb()` seam matches the pattern already in `WriteMessageHistoryHandler` (line 44).
-
-## Dependencies
-
-- None. This plan touches only `PurgeMessageHistoryHandler.cs` and its test file.
-- Disjoint from Plan 1.1 (WriteMessageHistoryHandler). Both can execute in parallel.
+**Important**: Redis message IDs are string-based UUIDs, not integers. The "not found" test for `HistoryByQueueId` uses a string ID (`nonexistent-id-12345`) matching the pattern in `RedisEndpointTests.cs`.
 
 ## Tasks
 
-<task id="1" files="Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs" tdd="true">
+<task id="1" files="Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs" tdd="false">
   <action>
-  Replace the entire contents of `PurgeMessageHistoryHandlerTests.cs` with the full test class below. This adds a `TestablePurgeMessageHistoryHandler` (matching the `TestableWriteMessageHistoryHandler` pattern from the sibling test file) and four test methods.
+Create `RedisHistoryTests.cs` with two classes:
 
-  The file must contain:
+**`RedisHistoryDisabledTests`** -- 4 test methods. Creates a Redis queue WITHOUT `EnableHistory`. Sends 3 messages. Verifies all history endpoints return empty/zero/NotFound.
 
-  ```csharp
-  using System;
-  using DotNetWorkQueue.Configuration;
-  using DotNetWorkQueue.Transport.Redis.Basic;
-  using NSubstitute;
-  using Microsoft.VisualStudio.TestTools.UnitTesting;
-  using StackExchange.Redis;
+**`RedisHistoryEnabledTests`** -- 14 test methods. Creates queue with `EnableHistory = true`. Sends and consumes 5 messages to completion. Verifies history listing, pagination, status filtering, count, lookup by QueueId, field presence, and purge.
 
-  namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
-  {
-      [TestClass]
-      public class PurgeMessageHistoryHandlerTests
-      {
-          /// <summary>
-          /// Test wrapper that injects an IDatabase directly via the GetDb() seam,
-          /// bypassing ConnectionMultiplexer which cannot be proxied by NSubstitute.
-          /// </summary>
-          private class TestablePurgeMessageHistoryHandler : PurgeMessageHistoryHandler
-          {
-              private readonly IDatabase _db;
+Key transport-specific differences from MemoryHistoryTests.cs:
+- Init type: `RedisQueueInit` (not `MemoryDashboardInit`)
+- Creation type: `RedisQueueCreation` (not `MessageQueueCreation`)
+- Connection string: `ConnectionStrings.Redis` (reads connectionstring-redis.txt)
+- No scope sharing: `AddConnection` uses 2-arg overload (no `RegisterNonScopedSingleton`)
+- Options: `_creation.Options.EnableHistory = true` (RedisBaseTransportOptions)
+- Not-found IDs: use string `"nonexistent-id-12345"` instead of integer `99999`
+- Using directives: `DotNetWorkQueue.Transport.Redis.Basic` (not Memory)
 
-              public TestablePurgeMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options, IDatabase db)
-                  : base(connection, redisNames, options)
-              {
-                  _db = db;
-              }
+Complete file content follows:
 
-              protected override IDatabase GetDb() => _db;
-          }
+```csharp
+// ---------------------------------------------------------------------
+//This file is part of DotNetWorkQueue
+//Copyright © 2015-2026 Brian Lehnen
+//
+//This library is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This library is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// ---------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
+using DotNetWorkQueue.Dashboard.Api.Models;
+using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.Redis.Basic;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-          private static (PurgeMessageHistoryHandler handler, IDatabase db) CreateEnabledWithDb()
-          {
-              var db = Substitute.For<IDatabase>();
-              var connection = Substitute.For<IRedisConnection>();
-              var connInfo = Substitute.For<IConnectionInformation>();
-              var redisNames = Substitute.For<RedisNames>(connInfo);
-              redisNames.Values.Returns("queue:test");
+namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
+{
+    /// <summary>
+    /// Tests for the history API endpoints when history is NOT enabled on a Redis transport.
+    /// The NoOp handlers should return empty results.
+    /// </summary>
+    [TestClass]
+    public class RedisHistoryDisabledTests
+    {
+        private DashboardTestServer _server;
+        private TransportFixture<RedisQueueInit, RedisQueueCreation> _fixture;
+        private Guid _queueId;
 
-              var options = Substitute.For<IBaseTransportOptions>();
-              options.EnableHistory.Returns(true);
+        [TestInitialize]
+        public async Task InitializeAsync()
+        {
+            var queueName = QueueNameGenerator.Create();
+            var connStr = ConnectionStrings.Redis;
 
-              return (new TestablePurgeMessageHistoryHandler(connection, redisNames, options, db), db);
-          }
+            _fixture = new TransportFixture<RedisQueueInit, RedisQueueCreation>(
+                queueName, connStr);
 
-          [TestMethod]
-          public void Purge_Returns_Zero_When_History_Disabled()
-          {
-              var connection = Substitute.For<IRedisConnection>();
-              var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
-              var options = Substitute.For<IBaseTransportOptions>();
-              options.EnableHistory.Returns(false);
-              var handler = new PurgeMessageHistoryHandler(connection, redisNames, options);
+            _fixture.SendMessages<FakeMessage>(3);
 
-              var result = handler.Purge(DateTime.UtcNow);
-              Assert.AreEqual(0, result);
-          }
+            _server = await DashboardTestServer.CreateAsync(options =>
+            {
+                options.EnableSwagger = false;
+                options.AddConnection<RedisQueueInit>(connStr,
+                    conn => conn.AddQueue(queueName));
+            });
 
-          [TestMethod]
-          public void Purge_Skips_Processing_Records()
-          {
-              var (handler, db) = CreateEnabledWithDb();
-              var cutoff = DateTime.UtcNow;
+            var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
+                "api/v1/dashboard/connections");
+            var queues = await _server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
+                $"api/v1/dashboard/connections/{connections[0].Id}/queues");
+            _queueId = queues[0].Id;
+        }
 
-              // One record in sorted set, enqueued before cutoff
-              db.SortedSetRangeByScore(Arg.Any<RedisKey>(), Arg.Any<double>(), Arg.Any<double>(),
-                      Arg.Any<Exclude>(), Arg.Any<Order>(), Arg.Any<long>(), Arg.Any<long>(), Arg.Any<CommandFlags>())
-                  .Returns(new RedisValue[] { "q1" });
+        [TestCleanup]
+        public async Task CleanupAsync()
+        {
+            if (_server != null) await _server.DisposeAsync();
+            _fixture?.Dispose();
+        }
 
-              // Status = Processing (not terminal)
-              db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("Status"), Arg.Any<CommandFlags>())
-                  .Returns((RedisValue)(int)MessageHistoryStatus.Processing);
-              db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("CompletedUtc"), Arg.Any<CommandFlags>())
-                  .Returns((RedisValue)0L);
+        [TestMethod]
+        public async Task History_Returns_Empty_When_Not_Enabled()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history");
 
-              var result = handler.Purge(cutoff);
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+        }
 
-              Assert.AreEqual(0, result);
-              db.DidNotReceive().KeyDelete(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>());
-          }
+        [TestMethod]
+        public async Task HistoryCount_Returns_Zero_When_Not_Enabled()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var count = await response.Content.ReadFromJsonAsync<long>();
+            count.Should().Be(0);
+        }
 
-          [TestMethod]
-          public void Purge_Removes_Old_Complete_Records()
-          {
-              var (handler, db) = CreateEnabledWithDb();
-              var cutoff = DateTime.UtcNow;
-              var oldCompletedTicks = cutoff.AddHours(-1).Ticks;
+        [TestMethod]
+        public async Task HistoryByMessageId_Returns_NotFound_When_Not_Enabled()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/nonexistent-id-12345");
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
 
-              // One record in sorted set
-              db.SortedSetRangeByScore(Arg.Any<RedisKey>(), Arg.Any<double>(), Arg.Any<double>(),
-                      Arg.Any<Exclude>(), Arg.Any<Order>(), Arg.Any<long>(), Arg.Any<long>(), Arg.Any<CommandFlags>())
-                  .Returns(new RedisValue[] { "q1" });
+        [TestMethod]
+        public async Task PurgeHistory_Returns_Zero_When_Not_Enabled()
+        {
+            var response = await _server.Client.DeleteAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
+            result.Deleted.Should().Be(0);
+        }
+    }
 
-              // Status = Complete (terminal), CompletedUtc = 1 hour ago
-              db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("Status"), Arg.Any<CommandFlags>())
-                  .Returns((RedisValue)(int)MessageHistoryStatus.Complete);
-              db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("CompletedUtc"), Arg.Any<CommandFlags>())
-                  .Returns((RedisValue)oldCompletedTicks);
+    /// <summary>
+    /// Tests for the history API endpoints when history IS enabled on a Redis transport.
+    /// Messages are sent and consumed to completion so that history records are populated.
+    /// </summary>
+    [TestClass]
+    public class RedisHistoryEnabledTests
+    {
+        private const int MessageCount = 5;
+        private DashboardTestServer _server;
+        private string _queueName;
+        private ICreationScope _scope;
+        private QueueCreationContainer<RedisQueueInit> _creationContainer;
+        private RedisQueueCreation _creation;
+        private Guid _queueId;
 
-              var result = handler.Purge(cutoff);
+        [TestInitialize]
+        public async Task InitializeAsync()
+        {
+            _queueName = QueueNameGenerator.Create();
+            var connStr = ConnectionStrings.Redis;
+            var queueConnection = new QueueConnection(_queueName, connStr);
 
-              Assert.AreEqual(1, result);
-              db.Received(1).KeyDelete(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>());
-          }
+            // Create queue with history enabled
+            _creationContainer = new QueueCreationContainer<RedisQueueInit>();
+            _creation = _creationContainer.GetQueueCreation<RedisQueueCreation>(queueConnection);
+            _creation.Options.EnableHistory = true;
+            var createResult = _creation.CreateQueue();
+            Assert.IsTrue(createResult.Success, createResult.ErrorMessage);
+            _scope = _creation.Scope;
 
-          [TestMethod]
-          public void Purge_Handles_Missing_Hash_Gracefully()
-          {
-              var (handler, db) = CreateEnabledWithDb();
-              var cutoff = DateTime.UtcNow;
+            // Send and consume messages to completion (generates history records)
+            using (var queueContainer = new QueueContainer<RedisQueueInit>())
+            {
+                using (var producer = queueContainer.CreateProducer<FakeMessage>(queueConnection))
+                {
+                    for (var i = 0; i < MessageCount; i++)
+                    {
+                        var result = producer.Send(new FakeMessage());
+                        Assert.IsFalse(result.HasError, $"Send failed: {result.SendingException?.Message}");
+                    }
+                }
 
-              // One record in sorted set, but hash was already deleted
-              db.SortedSetRangeByScore(Arg.Any<RedisKey>(), Arg.Any<double>(), Arg.Any<double>(),
-                      Arg.Any<Exclude>(), Arg.Any<Order>(), Arg.Any<long>(), Arg.Any<long>(), Arg.Any<CommandFlags>())
-                  .Returns(new RedisValue[] { "q1" });
+                var processedCount = 0;
+                var waitHandle = new ManualResetEventSlim(false);
+                using (var consumer = queueContainer.CreateConsumer(queueConnection))
+                {
+                    consumer.Configuration.Worker.WorkerCount = 1;
+                    consumer.Start<FakeMessage>((message, notifications) =>
+                    {
+                        if (Interlocked.Increment(ref processedCount) >= MessageCount)
+                            waitHandle.Set();
+                    }, new ConsumerQueueNotifications());
 
-              // Both fields return Null (hash absent)
-              db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("Status"), Arg.Any<CommandFlags>())
-                  .Returns(RedisValue.Null);
-              db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("CompletedUtc"), Arg.Any<CommandFlags>())
-                  .Returns(RedisValue.Null);
+                    waitHandle.Wait(TimeSpan.FromSeconds(30));
+                }
 
-              // Should not throw, and should clean up the orphaned index entry
-              var result = handler.Purge(cutoff);
+                Assert.AreEqual(MessageCount, processedCount, "Not all messages were processed");
+            }
 
-              // Orphaned index entry is removed, hash key delete is safe (no-op on missing key)
-              Assert.AreEqual(1, result);
-              db.Received(1).SortedSetRemove(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(), Arg.Any<CommandFlags>());
-          }
-      }
-  }
-  ```
+            // Start Dashboard server
+            _server = await DashboardTestServer.CreateAsync(options =>
+            {
+                options.EnableSwagger = false;
+                options.AddConnection<RedisQueueInit>(connStr,
+                    conn => conn.AddQueue(_queueName));
+            });
 
-  **IMPORTANT:** The `SortedSetRangeByScore` mock must match the full 8-parameter interface signature (key, start, stop, exclude, order, skip, take, flags), NOT the 3-parameter extension method, because NSubstitute intercepts the interface method.
+            var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
+                "api/v1/dashboard/connections");
+            var queues = await _server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
+                $"api/v1/dashboard/connections/{connections[0].Id}/queues");
+            _queueId = queues[0].Id;
+        }
 
-  Similarly, `KeyDelete` must be mocked/asserted with the 2-parameter signature `(RedisKey, CommandFlags)`, not the single-parameter extension.
-  </action>
-  <verify>dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" --filter "FullyQualifiedName~PurgeMessageHistoryHandlerTests"</verify>
-  <done>All four tests compile. `Purge_Returns_Zero_When_History_Disabled` passes. The other three FAIL because: (a) `GetDb()` seam does not exist yet so `TestablePurgeMessageHistoryHandler` won't compile, or (b) the purge logic still deletes Processing records / throws on Null. This confirms the Red phase.</done>
-</task>
+        [TestCleanup]
+        public async Task CleanupAsync()
+        {
+            if (_server != null) await _server.DisposeAsync();
+            try { _creation?.RemoveQueue(); } catch { /* best-effort */ }
+            _creation?.Dispose();
+            _creationContainer?.Dispose();
+            _scope?.Dispose();
+        }
 
-<task id="2" files="Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs" tdd="true">
-  <action>
-  Apply three changes to `PurgeMessageHistoryHandler.cs`:
+        [TestMethod]
+        public async Task History_Returns_Records_When_Enabled()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageSize=100");
 
-  **Change 1 -- Add using directive.** Add at line 19 (after `using System;`):
-  ```csharp
-  using DotNetWorkQueue.Configuration;
-  using StackExchange.Redis;
-  ```
-  These are needed for `MessageHistoryStatus` and `IDatabase`.
+            result.Should().NotBeNull();
+            result.Items.Should().NotBeEmpty();
+            result.Items.Count.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
 
-  **Change 2 -- Add GetDb() seam.** Insert after line 39 (after the constructor closing brace) and before line 41 (`/// <inheritdoc />`):
-  ```csharp
+        [TestMethod]
+        public async Task History_Pagination_Page0()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageIndex=0&pageSize=2");
 
-          /// <summary>Returns the Redis database to use. Protected virtual to allow test seam injection.</summary>
-          protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
+            result.Should().NotBeNull();
+            result.Items.Should().HaveCount(2);
+            result.TotalCount.Should().BeGreaterThanOrEqualTo(MessageCount);
+            result.PageIndex.Should().Be(0);
+            result.PageSize.Should().Be(2);
+        }
 
-  ```
+        [TestMethod]
+        public async Task History_Pagination_Page1()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageIndex=1&pageSize=2");
 
-  **Change 3 -- Fix the Purge method.** Replace the entire `Purge` method body (lines 42-61) with:
-  ```csharp
-          /// <inheritdoc />
-          public long Purge(DateTime olderThan)
-          {
-              if (!_options.EnableHistory) return 0;
-              var db = GetDb();
-              var cutoffTicks = olderThan.Ticks;
-              var members = db.SortedSetRangeByScore(HistoryIndexKey, double.NegativeInfinity, cutoffTicks);
-              long count = 0;
-              foreach (var member in members)
-              {
-                  var queueId = member.ToString();
-                  var rawStatus = db.HashGet(HistoryHashKey(queueId), "Status");
-                  var rawCompleted = db.HashGet(HistoryHashKey(queueId), "CompletedUtc");
+            result.Should().NotBeNull();
+            result.Items.Should().HaveCount(2);
+            result.PageIndex.Should().Be(1);
+        }
 
-                  if (!rawStatus.HasValue)
-                  {
-                      // Orphaned index entry: hash was already deleted. Clean up the index.
-                      db.SortedSetRemove(HistoryIndexKey, queueId);
-                      count++;
-                      continue;
-                  }
+        [TestMethod]
+        public async Task History_Pagination_BeyondLast_Returns_Empty()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageIndex=100&pageSize=25");
 
-                  var status = (MessageHistoryStatus)(int)rawStatus;
-                  var completedTicks = rawCompleted.HasValue ? (long)rawCompleted : 0L;
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+            result.TotalCount.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
 
-                  // Only purge terminal states with a valid completion timestamp before cutoff
-                  var isTerminal = status == MessageHistoryStatus.Complete
-                                || status == MessageHistoryStatus.Error
-                                || status == MessageHistoryStatus.Deleted
-                                || status == MessageHistoryStatus.Expired;
+        [TestMethod]
+        public async Task History_Filtered_By_Complete_Status()
+        {
+            // Status 2 = Complete
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?status=2&pageSize=100");
 
-                  if (isTerminal && completedTicks > 0 && completedTicks < cutoffTicks)
-                  {
-                      db.KeyDelete(HistoryHashKey(queueId));
-                      db.SortedSetRemove(HistoryIndexKey, queueId);
-                      count++;
-                  }
-              }
-              return count;
-          }
-  ```
+            result.Should().NotBeNull();
+            result.Items.Should().NotBeEmpty();
+            result.Items.Should().AllSatisfy(item => item.Status.Should().Be(2));
+        }
 
-  The key behavioral changes:
-  1. `var db = GetDb();` instead of `_connection.Connection.GetDatabase()` -- enables test seam
-  2. `rawStatus` and `rawCompleted` use `.HasValue` guards -- no unchecked casts
-  3. Orphaned index entries (hash deleted) are cleaned up gracefully
-  4. Only terminal states (Complete=2, Error=3, Deleted=4, Expired=5) are purged
-  5. Processing (1) and Enqueued (0) records are never deleted
-  </action>
-  <verify>dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" --filter "FullyQualifiedName~PurgeMessageHistoryHandlerTests"</verify>
-  <done>All four PurgeMessageHistoryHandlerTests pass: `Purge_Returns_Zero_When_History_Disabled`, `Purge_Skips_Processing_Records`, `Purge_Removes_Old_Complete_Records`, `Purge_Handles_Missing_Hash_Gracefully`. No regressions in existing tests.</done>
-</task>
+        [TestMethod]
+        public async Task History_Filtered_By_Error_Status_Returns_Empty()
+        {
+            // Status 3 = Error -- no errors in this test
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?status=3&pageSize=100");
 
-## Verification
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+        }
 
-```bash
-# Build the transport project
-dotnet build "Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj" -c Debug
+        [TestMethod]
+        public async Task History_Filtered_By_Processing_Status_Returns_Empty()
+        {
+            // Status 1 = Processing -- all messages have completed
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?status=1&pageSize=100");
 
-# Run ALL tests in the Redis test project to check for regressions
-dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj"
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task HistoryCount_NoFilter()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var count = await response.Content.ReadFromJsonAsync<long>();
+            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
+
+        [TestMethod]
+        public async Task HistoryCount_WithCompleteStatusFilter()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count?status=2");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var count = await response.Content.ReadFromJsonAsync<long>();
+            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
+
+        [TestMethod]
+        public async Task HistoryCount_WithErrorStatusFilter_Returns_Zero()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count?status=3");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var count = await response.Content.ReadFromJsonAsync<long>();
+            count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public async Task HistoryByQueueId_Returns_Record()
+        {
+            var history = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageSize=1");
+            history.Items.Should().NotBeEmpty();
+            var recordQueueId = history.Items[0].QueueId;
+
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/{recordQueueId}");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var record = await response.Content.ReadFromJsonAsync<HistoryResponse>();
+            record.Should().NotBeNull();
+            record.QueueId.Should().Be(recordQueueId);
+            record.Status.Should().Be(2); // Complete
+        }
+
+        [TestMethod]
+        public async Task HistoryByQueueId_NotFound()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/nonexistent-id-12345");
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [TestMethod]
+        public async Task History_Records_Have_Expected_Fields()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageSize=1");
+
+            result.Items.Should().NotBeEmpty();
+            var record = result.Items[0];
+
+            record.QueueId.Should().NotBeNullOrEmpty();
+            record.Status.Should().Be(2); // Complete
+            record.EnqueuedUtc.Should().BeAfter(DateTime.MinValue);
+        }
+
+        [TestMethod]
+        public async Task PurgeHistory_WithDateFilter_Removes_Records()
+        {
+            // Purge records "older than 0 days" = purge all
+            var response = await _server.Client.DeleteAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history?olderThanDays=0");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
+            result.Deleted.Should().BeGreaterThanOrEqualTo(MessageCount);
+
+            // Verify count is now 0
+            var countResponse = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count");
+            var count = await countResponse.Content.ReadFromJsonAsync<long>();
+            count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public async Task PurgeHistory_FutureDays_Removes_Nothing()
+        {
+            // Purge records older than 365 days - none should qualify since they were just created
+            var response = await _server.Client.DeleteAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history?olderThanDays=365");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
+            result.Deleted.Should().Be(0);
+
+            // Verify count is unchanged
+            var countResponse = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count");
+            var count = await countResponse.Content.ReadFromJsonAsync<long>();
+            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
+    }
+}
 ```
+  </action>
+  <verify>dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" -c Debug --no-restore 2>&1 | tail -5</verify>
+  <done>File exists at Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs. Build succeeds with 0 errors. File contains both RedisHistoryDisabledTests (4 test methods) and RedisHistoryEnabledTests (14 test methods).</done>
+</task>
 
-Expected: all tests pass, including the four new purge tests and all pre-existing tests.
+<task id="2" files="Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs" tdd="false">
+  <action>
+Run the Redis history tests (both Disabled and Enabled classes). Requires a running Redis instance with connection string in `connectionstring-redis.txt`.
+  </action>
+  <verify>dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~RedisHistory" --no-build -c Debug 2>&1 | tail -20</verify>
+  <done>All 18 Redis history tests pass (4 disabled + 14 enabled). Zero failures, zero skipped.</done>
+</task>
