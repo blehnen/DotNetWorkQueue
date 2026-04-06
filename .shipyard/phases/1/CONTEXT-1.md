@@ -1,10 +1,8 @@
-# Phase 1 Context: Fix History Error Recording
+# Phase 1 Context: Redis History Fixes
 
 ## Decisions
 
-- **Fix location:** Decorator layer (ReceiveMessagesErrorHistoryDecorator), not per-transport
-- **RecordProcessingStart guard:** Fix only Redis and Memory (RelationalDatabase and LiteDb already guarded)
-- **Scope:** Bug fix + unit tests
-- **Root cause (Bug A):** context.MessageId is read AFTER inner handler clears it — capture before delegation
-- **Root cause (Bug B):** Redis/Memory RecordProcessingStart unconditionally sets Status=Processing
-- **Skip research:** Roadmap architect already traced all code paths
+- **Purge guard:** Check Status field (terminal only) + CompletedUtc — belt-and-suspenders approach
+- **Test seam:** Add `protected virtual GetDb()` to PurgeMessageHistoryHandler (matching WriteMessageHistoryHandler)
+- **HasValue pattern:** Follow exact pattern from PR #105 RecordProcessingStart fix
+- **Skip research:** Roadmap has all details, code was already read during brainstorming

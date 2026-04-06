@@ -434,3 +434,12 @@
   - Single phase, 2 parallel plans (disjoint files)
 - **Roadmap:** 1 phase, Wave 1 (parallel)
 - **Status:** Ready for /shipyard:plan 1
+
+## 2026-04-06 — Phase 1 Planned
+
+- **Action:** `/shipyard:plan 1`
+- **Plans:** 2 plans in Wave 1 (parallel)
+  - PLAN-1.1: HasValue guard on StartedUtc in RecordComplete/RecordError (#104)
+  - PLAN-1.2: Purge logic fix — GetDb() seam, HasValue guards, terminal-status-only (#103)
+- **Critique Verdict:** READY — all file paths verified, zero file overlap, API surface confirmed
+- **Status:** Ready for /shipyard:build 1

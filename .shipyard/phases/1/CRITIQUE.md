@@ -1,148 +1,199 @@
-# Plan Critique: Phase 1 (Issue #97)
-**Date:** 2026-04-05  
-**Type:** plan-review (pre-execution feasibility stress test)
+# Plan Critique Report
+**Phase:** 1 (redis-history-fixes)  
+**Wave:** 1 (parallel execution)  
+**Date:** 2026-04-06  
+**Type:** Plan-Review (Feasibility Stress Test)
 
 ---
 
 ## Executive Summary
-**Verdict: READY**
-
-All three plans are feasible, well-specified, and ready for execution. File paths exist, API signatures match, line numbers are accurate, helper methods are available, and there are zero file conflicts between plans. The plans are appropriately scoped and testable.
+Both plans are **READY** for execution. All referenced files exist, API surfaces match the code, verification commands are syntactically correct, and no file overlaps or hidden dependencies exist between the parallel plans.
 
 ---
 
-## Per-Plan Findings
+## PLAN-1.1: HasValue Guard on StartedUtc
 
-### PLAN-1.1: Fix ReceiveMessagesErrorHistoryDecorator
-**Status: PASS**
+### File Existence
+| File | Status | Notes |
+|------|--------|-------|
+| `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` | ✓ EXISTS | Contains `RecordComplete()` (line 74) and `RecordError()` (line 85) methods; both call unchecked `(long)db.HashGet(...)` at lines 79 and 90 |
+| `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs` | ✓ EXISTS | Contains 22 existing test methods; `TestableWriteMessageHistoryHandler` pattern already in place (line 11); `CreateEnabledWithDb()` helper exists; `GetDb()` override confirmed at line 14 |
 
-| Item | Finding | Evidence |
-|------|---------|----------|
-| **File exists** | PASS | `Source/DotNetWorkQueue/History/Decorator/ReceiveMessagesErrorHistoryDecorator.cs` exists (63 lines) |
-| **Line numbers** | PASS | `MessageFailedProcessing` method found at line 42 (matches plan: line 42-61) |
-| **API signature** | PASS | Method signature: `public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)` matches task description |
-| **Context.MessageId access** | PASS | Current code reads `context.MessageId` at line 45 after calling `_handler.MessageFailedProcessing()` at line 44 (confirms the bug) |
-| **Scope** | PASS | Touches only 1 file; no overlap with Plans 1.2 or 1.3 |
-| **Task count** | PASS | 1 task (within 3-task limit) |
-| **Verification commands** | PASS | All commands are syntactically valid and runnable |
+### API Surface Verification
+- **RecordComplete method:** Located at line 74. Contains exact vulnerable code: `var startedTicks = (long)db.HashGet(HistoryHashKey(queueId), "StartedUtc");` at line 79.
+- **RecordError method:** Located at line 85. Contains exact vulnerable code: `var startedTicks = (long)db.HashGet(HistoryHashKey(queueId), "StartedUtc");` at line 90.
+- **GetDb() seam:** Already exists in WriteMessageHistoryHandler (confirmed via file scan). Pattern is established and ready.
+- **Test insertion point:** Plan specifies line 282 for insertion (after `RecordError_WithoutStartedUtc_WritesDurationZero`). Last test method in file is at line 319. Insertion space available.
 
-**No issues detected.**
+### Verification Commands
+```bash
+# PLAN-1.1 Task 1 (TDD - Red phase)
+dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" \
+  --filter "FullyQualifiedName~RecordComplete_When_Hash_Missing_Does_Not_Throw|FullyQualifiedName~RecordError_When_Hash_Missing_Does_Not_Throw"
 
----
+# PLAN-1.1 Task 2 (implementation + verification)
+dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" \
+  --filter "FullyQualifiedName~WriteMessageHistoryHandlerTests"
+```
+**Status:** Commands are syntactically correct and executable (verified via bash syntax check).
 
-### PLAN-1.2: Guard RecordProcessingStart in Redis and Memory
-**Status: PASS**
-
-| Item | Finding | Evidence |
-|------|---------|----------|
-| **Files exist** | PASS | Both files exist: `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` (118 lines) and `Source/DotNetWorkQueue/Transport/Memory/Basic/WriteMessageHistoryHandler.cs` (122 lines) |
-| **Redis method location** | PASS | `RecordProcessingStart` at line 64 (matches plan: lines 64-69) |
-| **Memory method location** | PASS | `RecordProcessingStart` at line 57 (matches plan: lines 57-61) |
-| **Redis current behavior** | PASS | Unconditionally calls `db.HashSet()` without status guard (confirms the bug) |
-| **Memory current behavior** | PASS | Unconditionally sets `r.Status = MessageHistoryStatus.Processing` without guard (confirms the bug) |
-| **Enum values correct** | PASS | `MessageHistoryStatus` enum found at `Source/DotNetWorkQueue/Configuration/MessageHistoryStatus.cs`; `Enqueued = 0`, `Processing = 1`, `Error = 3` |
-| **Scope** | PASS | Touches 2 files (both implementation, no tests); no overlap with Plans 1.1 or 1.3 |
-| **Task count** | PASS | 2 tasks (within 3-task limit) |
-| **Verification commands** | PASS | All commands are syntactically valid |
-
-**No issues detected.**
+### Dependencies & Ordering
+- No external dependencies declared.
+- Disjoint from PLAN-1.2 (no shared files).
+- Can execute in parallel with PLAN-1.2.
 
 ---
 
-### PLAN-1.3: Unit tests for Bug A and Bug B
-**Status: PASS**
+## PLAN-1.2: Purge Logic Fix
 
-| Item | Finding | Evidence |
-|------|---------|----------|
-| **Test files exist** | PASS | All three test files exist: `Source/DotNetWorkQueue.Tests/History/Decorator/ReceiveMessagesErrorHistoryDecoratorTests.cs` (119 lines), `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs` (294 lines), `Source/DotNetWorkQueue.Tests/Transport/Memory/Basic/WriteMessageHistoryHandlerTests.cs` (423 lines) |
-| **CreateDecorator helper** | PASS | Helper method found in decorator test file; used by existing tests |
-| **CreateContext helper** | PASS | Helper method found in decorator test file; used by existing tests |
-| **CreateEnabledWithDb helper** | PASS | Found in Redis test file at line 233; used by existing tests |
-| **ContainsEntry helper** | PASS | Found in Redis test file at line 283; available for reuse |
-| **CreateHandlerWithKey helper** | PASS | Found in Memory test file; used by existing tests |
-| **GetRecordsForQueue method** | PASS | Static method on `WriteMessageHistoryHandler` class; used by existing tests |
-| **Scope** | PASS | Touches 3 test files only (no implementation changes); disjoint from Plans 1.1 and 1.2 |
-| **Task count** | PASS | 3 tasks (at limit) |
-| **TDD flag** | PASS | Correctly marked `tdd: true` (tests can be written before fixes) |
-| **Test methodology** | PASS | Task 1 uses mocking (NSubstitute) with callback simulation; Tasks 2-3 use real in-memory data structures |
-| **Assertion style** | PASS | Uses `Received(1)`, `DidNotReceive()`, `Assert.AreEqual()` patterns consistent with existing test style |
-| **Verification commands** | PASS | All commands are valid; tests will pass after Plans 1.1 and 1.2 are applied |
+### File Existence
+| File | Status | Notes |
+|------|--------|-------|
+| `Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs` | ✓ EXISTS | `Purge()` method at line 42; vulnerable code confirmed at line 52: `(long)db.HashGet(...)` without HasValue check; no `GetDb()` seam yet |
+| `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs` | ✓ EXISTS | Currently 29 lines; contains only 1 basic test (`Purge_When_Disabled_Returns_Zero`); plan requires complete replacement with full test class including `TestablePurgeMessageHistoryHandler` pattern |
 
-**No issues detected.**
+### API Surface Verification
+- **Purge method signature:** Confirmed at line 42: `public long Purge(DateTime olderThan)`.
+- **Current vulnerabilities verified:**
+  - Line 45: Direct call to `_connection.Connection.GetDatabase()` (untestable, no seam).
+  - Line 52: Unchecked cast `(long)db.HashGet(HistoryHashKey(queueId), "CompletedUtc")` (throws on Null).
+  - Line 53: Broken logic `(completedTicks > 0 && completedTicks < cutoffTicks) || completedTicks == 0` (purges active Processing records).
+- **Helper methods:** `HistoryHashKey()` at line 30 and `HistoryIndexKey` property at line 31 both exist and match usage in task description.
+- **MessageHistoryStatus enum:** Located at `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/Configuration/MessageHistoryStatus.cs` (confirmed via grep); required for Status cast in plan's new code.
 
----
+### Test Pattern Requirements
+Plan requires a `TestablePurgeMessageHistoryHandler` subclass (mirroring `TestableWriteMessageHistoryHandler` from PLAN-1.1's test file):
+- Plan calls for `protected override IDatabase GetDb()` seam in test subclass.
+- Pattern matches the existing Redis handler mocking approach (as per CLAUDE.md lesson: "StackExchange.Redis ConnectionMultiplexer cannot be mocked with NSubstitute").
+- **Status:** Pattern is correct and consistent with codebase conventions.
 
-## Phase Requirements Coverage
+### Verification Commands
+```bash
+# PLAN-1.2 Task 1 (TDD - Red phase, test file replacement)
+dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" \
+  --filter "FullyQualifiedName~PurgeMessageHistoryHandlerTests"
 
-| Requirement | Plan | Evidence |
-|---|---|---|
-| **Build succeeds** | All | Verification commands in each plan include `dotnet build` and `--no-restore` |
-| **Bug A fix** | 1.1 | Captures `messageId` before calling `_handler.MessageFailedProcessing()` |
-| **Bug B fix (Redis)** | 1.2 | Adds guard: `if (currentStatus != (int)MessageHistoryStatus.Enqueued) return;` |
-| **Bug B fix (Memory)** | 1.2 | Adds guard: `&& r.Status == MessageHistoryStatus.Enqueued` to conditional |
-| **Unit tests for Bug A** | 1.3 | Test: `MessageFailedProcessing_When_Inner_Handler_Clears_MessageId_Still_Records_Error` |
-| **Unit tests for Bug B (Redis)** | 1.3 | Tests: `RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite` and `When_Status_Is_Enqueued_Sets_Processing` |
-| **Unit tests for Bug B (Memory)** | 1.3 | Tests: `RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite` and `When_Status_Is_Complete_Does_Not_Overwrite` |
-| **No regressions** | All | All plans include verification commands for full test suites |
+# PLAN-1.2 Task 2 (Purge implementation fix)
+dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" \
+  --filter "FullyQualifiedName~PurgeMessageHistoryHandlerTests"
+```
+**Status:** Commands are syntactically correct and executable (verified via bash syntax check).
 
-**All ROADMAP success criteria are covered.**
+### Plan-Specific Notes
+- Plan calls for using `IDatabase` interface (StackExchange.Redis), not a wrapper. This is correct because the seam injects the real IDatabase mock, bypassing ConnectionMultiplexer.
+- Test file replacement is complete: removes the stub `Create(bool)` helper and replaces with `CreateEnabledWithDb()` + `TestablePurgeMessageHistoryHandler`. No conflicts.
+- Four new tests have clear assertions and expectations documented in the plan.
 
----
-
-## Wave 1 Parallelism Check
-
-| Plan | Dependencies | Files Touched | Conflicts |
-|---|---|---|---|
-| 1.1 | None | Decorator only | None |
-| 1.2 | None | Redis + Memory handlers | None |
-| 1.3 | None (writes tests before fixes) | Test files only | None |
-
-**Verdict: True parallelism possible.** No blocking dependencies. Test files (1.3) are disjoint from implementation files (1.1, 1.2), so tests can be written first (TDD), then fixes applied in any order.
+### Dependencies & Ordering
+- No external dependencies declared.
+- Disjoint from PLAN-1.1 (no shared files).
+- Can execute in parallel with PLAN-1.1.
 
 ---
 
-## Risk Assessment
+## Cross-Plan Analysis
 
-| Risk | Level | Mitigation |
-|---|---|---|
-| **File edits are surgical** | LOW | Each plan modifies small, well-bounded sections (3 areas total). No cascading changes. |
-| **API complexity** | LOW | All changes are to internal methods with well-documented behavior. No public API changes. |
-| **Enum assumptions** | LOW | Enum values verified: `Enqueued=0`, `Processing=1`, `Error=3`. Guard patterns match existing RelationalDatabase/LiteDb implementations. |
-| **Test helper availability** | LOW | All helpers (`CreateDecorator`, `CreateContext`, `CreateEnabledWithDb`, `GetRecordsForQueue`, etc.) are present and used by existing tests. |
-| **Line number drift** | LOW | Files are stable; verified current line counts and method positions match plan descriptions. |
-| **NSubstitute mocking** | MEDIUM | Task 1.3.1 uses callback-based mocking to simulate inner handler nullifying `context.MessageId`. Requires understanding NSubstitute `.Returns(callInfo => ...)` pattern, but this is standard in the codebase. |
+### File Overlap
+| File | PLAN-1.1 | PLAN-1.2 | Conflict? |
+|------|----------|----------|-----------|
+| `Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs` | Touched | — | No |
+| `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs` | Touched | — | No |
+| `Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs` | — | Touched | No |
+| `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs` | — | Touched | No |
 
----
+**Result:** Zero file overlap. Plans are fully parallel-safe.
 
-## Verification Syntax Check
+### Hidden Dependencies
+- Both plans touch only their respective handler + test files (4 files total, no shared).
+- Both plans use the same `HistoryHashKey()` / `HistoryIndexKey` patterns (read-only constants, no conflict).
+- Both plans use the same test pattern: `CreateEnabledWithDb()` + `TestableXxxHandler` seam injection (pattern is established, not conflicting).
+- No cross-handler method calls or shared logic paths.
 
-All verification commands are syntactically valid:
+**Result:** No hidden ordering constraints. Parallel execution is safe.
 
-- `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` ✓
-- `dotnet build "Source/DotNetWorkQueue/DotNetWorkQueue.csproj" --no-restore` ✓
-- `dotnet build "Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj" --no-restore` ✓
-- `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" --no-restore --filter "FullyQualifiedName~ReceiveMessagesErrorHistoryDecoratorTests"` ✓
-- `dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" --no-restore --filter "FullyQualifiedName~WriteMessageHistoryHandlerTests"` ✓
+### Complexity Assessment
+| Plan | Files Touched | Directories | Complexity | Risk |
+|------|---------------|-------------|-----------|------|
+| PLAN-1.1 | 2 | 2 | Low (guard pattern, precedent in RecordProcessingStart) | Low |
+| PLAN-1.2 | 2 | 2 | Medium (refactor Purge method, add GetDb seam, 4 tests) | Low-Medium |
 
-All are executable and will produce measurable pass/fail results.
-
----
-
-## Recommendations
-
-1. **Execute in order: 1.1 → 1.2 → 1.3** (or true parallel if builder prefers).  
-   Tests in 1.3 will fail until 1.1 and 1.2 are applied, which is expected in TDD.
-
-2. **Spot-check before execution:**  
-   - Verify that `MessageHistoryStatus.Enqueued` has value 0 or 1 (not inverted).
-   - Confirm `RedisValue.Null` casts to 0 (line 55 of Plan 1.2, Task 1).
-
-3. **Post-execution verification:**  
-   - Run the full test suites listed in ROADMAP success criteria.
-   - Manually verify in Dashboard that a retried message shows Status=Error, not Processing.
+**Wave 1 Touch Count:** 4 files, 2 directories (below 10-file threshold; acceptable complexity for parallel wave).
 
 ---
 
-## Verdict: **READY**
+## Verification Runbook Validation
 
-All plans are feasible, well-scoped, testable, and ready for builder execution. No blockers identified.
+### PLAN-1.1 Verification
+```bash
+dotnet build "Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj" -c Debug
+dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj"
+```
+- Build command is correct.
+- Test command runs all tests (will include new tests once added by Task 1).
+- Expected outcomes match plan (two new tests fail in Red phase; pass after Task 2).
+
+### PLAN-1.2 Verification
+```bash
+dotnet build "Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj" -c Debug
+dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj"
+```
+- Build command is correct.
+- Test command runs all tests (will include four new tests after Task 1 replaces test file).
+- Expected outcomes match plan (tests fail/error in Red phase; pass after Task 2).
+
+---
+
+## Redis Pattern Validation
+
+### GetDb() Seam Pattern (CLAUDE.md Lesson)
+The plans correctly apply the established Redis mocking pattern:
+- **PLAN-1.1:** Already uses `GetDb()` in production code; tests use `TestableWriteMessageHistoryHandler` override.
+- **PLAN-1.2:** Plan adds `GetDb()` seam to production code + creates matching `TestablePurgeMessageHistoryHandler` test wrapper.
+
+**Verification:**
+- WriteMessageHistoryHandler **already has** `protected virtual GetDb()` seam. ✓
+- WriteMessageHistoryHandlerTests **already has** `TestableWriteMessageHistoryHandler : WriteMessageHistoryHandler` with `protected override IDatabase GetDb()`. ✓
+- PLAN-1.2 will add matching seam to PurgeMessageHistoryHandler (currently uses direct `_connection.Connection.GetDatabase()` at line 45). ✓
+
+**Result:** Pattern is correct and consistent. Both plans follow the Redis ConnectionMultiplexer mocking workaround.
+
+---
+
+## Known Constraints & Notes
+
+1. **NSubstitute + StackExchange.Redis:** Both plans assume IDatabase can be mocked directly. This is correct because:
+   - IDatabase is an interface (part of StackExchange.Redis).
+   - ConnectionMultiplexer is sealed and cannot be mocked (CLAUDE.md lesson).
+   - The GetDb() seam pattern provides the injection point.
+
+2. **No external service dependencies:** Both plans use mock IDatabase; no real Redis connection needed. Suitable for CI.
+
+3. **TDD ordering:** Plans correctly order TDD tasks:
+   - Task 1 (test file) uses TDD Red phase (tests fail initially).
+   - Task 2 (implementation) fixes the code (Green phase).
+   - No cross-task dependencies within a plan.
+
+4. **Test syntax details:** Plan-1.2 notes the importance of matching 8-parameter `SortedSetRangeByScore` interface signature (not 3-parameter extension method) for NSubstitute interception. This is correct and a common NSubstitute gotcha.
+
+---
+
+## Verdict: READY
+
+### Summary
+- ✓ All files exist and paths are correct.
+- ✓ API surfaces match code (methods, parameters, line numbers verified).
+- ✓ Verification commands are syntactically valid and executable.
+- ✓ No file overlap; plans are parallel-safe.
+- ✓ No hidden dependencies or ordering constraints.
+- ✓ Test patterns follow established Redis mocking conventions.
+- ✓ Complexity is acceptable for Wave 1.
+
+### Recommendation
+Both plans are **feasible and ready for execution**. Proceed with Wave 1 parallel execution.
+
+### Pre-Execution Checklist
+- [ ] Builder confirms access to Redis transport test project.
+- [ ] Builder has dotnet CLI available (check `dotnet --version`).
+- [ ] No merge conflicts expected on master (verify before checkout).
+- [ ] Both plans can begin simultaneously (no ordering constraint).
+
