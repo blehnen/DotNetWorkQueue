@@ -385,6 +385,39 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             Assert.AreEqual(1, record.RetryCount);
         }
 
+        [TestMethod]
+        public void RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite()
+        {
+            var (handler, key) = CreateHandlerWithKey(enableHistory: true);
+
+            handler.RecordEnqueue("q1", "c1", null, null, null, null);
+            handler.RecordProcessingStart("q1"); // Enqueued -> Processing
+            handler.RecordError("q1", "fatal error"); // Processing -> Error
+
+            // Now attempt to start processing again (simulates re-dequeue for error queue)
+            handler.RecordProcessingStart("q1");
+
+            var records = WriteMessageHistoryHandler.GetRecordsForQueue(key);
+            var record = records["q1"];
+            Assert.AreEqual(MessageHistoryStatus.Error, record.Status);
+        }
+
+        [TestMethod]
+        public void RecordProcessingStart_When_Status_Is_Complete_Does_Not_Overwrite()
+        {
+            var (handler, key) = CreateHandlerWithKey(enableHistory: true);
+
+            handler.RecordEnqueue("q1", "c1", null, null, null, null);
+            handler.RecordProcessingStart("q1");
+            handler.RecordComplete("q1"); // Processing -> Complete
+
+            handler.RecordProcessingStart("q1");
+
+            var records = WriteMessageHistoryHandler.GetRecordsForQueue(key);
+            var record = records["q1"];
+            Assert.AreEqual(MessageHistoryStatus.Complete, record.Status);
+        }
+
         private static WriteMessageHistoryHandler CreateHandler()
         {
             var connectionInfo = Substitute.For<IConnectionInformation>();
