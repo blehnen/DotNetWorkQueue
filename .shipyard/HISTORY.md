@@ -465,3 +465,16 @@
 - **Lessons captured:** RedisValue.Null (long) cast behavior, orphan index cleanup
 - **Closes:** GitHub #104, #103
 - **Status:** Shipped
+
+## 2026-04-06 — New Milestone: Dashboard API History Tests
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Add Redis and LiteDb history integration tests to Dashboard API test suite
+- **Motivation:** Redis history purge bug (#103) went undetected for 7 days — no integration test covered Redis purge
+- **Decisions:**
+  - Full pattern: both Disabled + Enabled test classes per transport (~15 tests each)
+  - Follow exact MemoryHistoryTests.cs pattern
+  - Jenkins CI for Redis (connection string gated), LiteDb runs everywhere
+  - No production code changes
+- **Roadmap:** 1 phase, 2 parallel plans (LiteDb + Redis)
+- **Status:** Ready for /shipyard:plan 1
