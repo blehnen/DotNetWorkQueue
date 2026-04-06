@@ -456,3 +456,12 @@
 - **Documentation:** CHANGELOG update needed at ship time
 - **Discovery:** RedisValue.Null cast to (long) silently returns 0L (doesn't throw) in current StackExchange.Redis — guard still correct for forward safety
 - **Status:** Phase 1 complete, ready for /shipyard:ship
+
+## 2026-04-06 — Milestone Shipped: Redis History Bug Fixes (#104, #103)
+
+- **Action:** `/shipyard:ship`
+- **Delivery:** PR #106 opened against master — https://github.com/blehnen/DotNetWorkQueue/pull/106
+- **Pre-ship verification:** 172/172 Redis tests passing (net10.0)
+- **Lessons captured:** RedisValue.Null (long) cast behavior, orphan index cleanup
+- **Closes:** GitHub #104, #103
+- **Status:** Shipped
