@@ -1,7 +1,7 @@
 {
   "phase": 1,
-  "status": "shipped",
-  "position": "Milestone shipped via PR #99",
-  "message": "Fix History Duration for Fast-Completing Messages (issue #94) — single-phase milestone delivered. 147 tests passing. Closes GitHub #94.",
+  "status": "planned",
+  "position": "Phase 1 planned, ready for build",
+  "message": "Fix History Status for Errored Messages (issue #97) — 3 plans in Wave 1 (parallel). Critique: READY.",
   "last_updated": "2026-04-05T00:00:00Z"
 }
