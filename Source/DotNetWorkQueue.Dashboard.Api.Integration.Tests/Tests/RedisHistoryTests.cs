@@ -126,6 +126,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         private string _queueName;
         private QueueCreationContainer<RedisQueueInit> _creationContainer;
         private RedisQueueCreation _creation;
+        private ICreationScope _scope;
         private Guid _queueId;
 
         [TestInitialize]
@@ -141,6 +142,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             _creation.Options.EnableHistory = true;
             var createResult = _creation.CreateQueue();
             Assert.IsTrue(createResult.Success, createResult.ErrorMessage);
+            _scope = _creation.Scope;
 
             // Send and consume messages to completion (generates history records)
             using (var queueContainer = new QueueContainer<RedisQueueInit>())
@@ -165,7 +167,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                             waitHandle.Set();
                     }, new ConsumerQueueNotifications());
 
-                    waitHandle.Wait(TimeSpan.FromSeconds(60));
+                    waitHandle.Wait(TimeSpan.FromSeconds(60)); // Redis needs longer timeout than Memory due to network round-trips under CI load
                 }
 
                 Assert.AreEqual(MessageCount, processedCount, "Not all messages were processed");
@@ -191,6 +193,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             if (_server != null) await _server.DisposeAsync();
             try { _creation?.RemoveQueue(); } catch { /* best-effort */ }
+            _scope?.Dispose();
             _creation?.Dispose();
             _creationContainer?.Dispose();
         }
