@@ -67,6 +67,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetWorkQueue.Aq.ExpressionJsonSerializer" />
     <PackageReference Include="GuerrillaNtp" />
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
@@ -82,17 +83,11 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 		<Reference Include="Schyntax">
 			<HintPath>..\..\Lib\Schyntax\net8.0\Schyntax.dll</HintPath>
 		</Reference>
-		<Reference Include="Aq.ExpressionJsonSerializer">
-			<HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net8.0\Aq.ExpressionJsonSerializer.dll</HintPath>
-		</Reference>
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
 		<Reference Include="Schyntax">
 			<HintPath>..\..\Lib\Schyntax\net10.0\Schyntax.dll</HintPath>
-		</Reference>
-		<Reference Include="Aq.ExpressionJsonSerializer">
-			<HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net10.0\Aq.ExpressionJsonSerializer.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 
@@ -101,17 +96,11 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <Reference Include="Schyntax">
       <HintPath>..\..\Lib\Schyntax\net48\Schyntax.dll</HintPath>
     </Reference>
-    <Reference Include="Aq.ExpressionJsonSerializer">
-      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\net48\Aq.ExpressionJsonSerializer.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <Reference Include="Schyntax">
       <HintPath>..\..\Lib\Schyntax\netstandard2.0\Schyntax.dll</HintPath>
-    </Reference>
-    <Reference Include="Aq.ExpressionJsonSerializer">
-      <HintPath>..\..\Lib\Aq.ExpressionJsonSerializer\netstandard2.0\Aq.ExpressionJsonSerializer.dll</HintPath>
     </Reference>
   </ItemGroup>
   
@@ -130,14 +119,10 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
   <Target Name="IncludeVendoredDllsInPack" BeforeTargets="GenerateNuspec">
     <ItemGroup>
       <_PackageFiles Include="..\..\Lib\Schyntax\net8.0\Schyntax.dll" PackagePath="lib\net8.0" />
-      <_PackageFiles Include="..\..\Lib\Aq.ExpressionJsonSerializer\net8.0\Aq.ExpressionJsonSerializer.dll" PackagePath="lib\net8.0" />
       <_PackageFiles Include="..\..\Lib\Schyntax\net10.0\Schyntax.dll" PackagePath="lib\net10.0" />
-      <_PackageFiles Include="..\..\Lib\Aq.ExpressionJsonSerializer\net10.0\Aq.ExpressionJsonSerializer.dll" PackagePath="lib\net10.0" />
       <_PackageFiles Include="..\..\Lib\Schyntax\net48\Schyntax.dll" PackagePath="lib\net48" />
-      <_PackageFiles Include="..\..\Lib\Aq.ExpressionJsonSerializer\net48\Aq.ExpressionJsonSerializer.dll" PackagePath="lib\net48" />
       <_PackageFiles Include="..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll" PackagePath="lib\net48" />
       <_PackageFiles Include="..\..\Lib\Schyntax\netstandard2.0\Schyntax.dll" PackagePath="lib\netstandard2.0" />
-      <_PackageFiles Include="..\..\Lib\Aq.ExpressionJsonSerializer\netstandard2.0\Aq.ExpressionJsonSerializer.dll" PackagePath="lib\netstandard2.0" />
     </ItemGroup>
   </Target>
 </Project>

@@ -1,6 +1,7 @@
 <Project>
   <ItemGroup>
     <!-- Core -->
+    <PackageVersion Include="DotNetWorkQueue.Aq.ExpressionJsonSerializer" Version="1.0.0" />
     <PackageVersion Include="GuerrillaNtp" Version="3.1.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
