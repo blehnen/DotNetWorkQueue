@@ -1,104 +1,282 @@
-# Roadmap: Publish Aq.ExpressionJsonSerializer as NuGet Package (issue #102)
+# Roadmap: Drop net48/netstandard2.0 (issue #101)
 
 ## Overview
 
-Two-repo project to publish the vendored Aq.ExpressionJsonSerializer as a proper NuGet package, then replace the bundled DLL references in DotNetWorkQueue. This eliminates NuGet Package Explorer health warnings and enables Source Link debugging for consumers.
+Remove net48 and netstandard2.0 targets from the entire solution, delete all `#if NETFULL` / `#if NETSTANDARD2_0` conditional compilation, remove vendored JpLabs.DynamicCode, clean up Schyntax net48/netstandard2.0 DLLs, update CI, update README. Version 0.9.3 breaking change.
+
+**Total scope:** ~30 csproj files, ~97 .cs files, 1 CI workflow, 1 README, 3 Lib directory deletions.
 
 ## Dependency Graph
 
 ```
-Phase 1 (expression-json-serializer repo)
-    |
-    v
---- MANUAL GATE: push v1.0.0 tag, verify nuget.org publish ---
-    |
-    v
-Phase 2 (DotNetWorkQueue repo)
+Phase 1  (Core + Lib)
+   |
+   v
+Phase 2  (Shared test infra + unit tests)        Phase 3a-3f  (Linq integration tests, by transport)
+   |                                                  |
+   +--------------------------------------------------+
+   |
+   v
+Phase 4  (CI + Docs + Version bump)
 ```
 
-Strictly sequential. Phase 2 cannot begin until the package is live on nuget.org.
+Phase 1 is the foundation -- everything depends on it.
+Phase 2 depends on Phase 1 (shared test helpers reference core interfaces).
+Phases 3a-3f depend on Phase 2 (each Linq integration test project uses shared test helpers) and can execute in parallel with each other.
+Phase 4 depends on all prior phases completing (CI and docs reflect the final state).
 
 ---
 
-## Phase 1: Prepare Fork for NuGet Publishing
+## Phase 1: Core Library, Transport Libraries, and Vendored DLL Cleanup
 
-**Repo:** `F:\Git\expression-json-serializer` (github.com/blehnen/expression-json-serializer)
-**Risk:** Low -- no consumers yet; mistakes can be corrected with a v1.0.1 patch.
-**Scope:** ~40% of total project effort.
+**Risk:** HIGH -- every project in the solution depends on these. Errors here break everything downstream.
+**Scope:** ~15% of total files, but highest impact.
+**Strategy:** Fail fast. If the core does not build after this phase, nothing else matters.
 
 ### What Changes
 
-1. **Merge upstream** -- Merge `upstream/master` (aquilae/expression-json-serializer) to incorporate loop and goto expression support (2 commits, 69 lines across 5 files). Clean merge expected — fork changes are in csproj/tests only.
-2. **Update csproj** -- Add NuGet metadata (PackageId `DotNetWorkQueue.Aq.ExpressionJsonSerializer`, version `1.0.0`, license, repository URL, description, readme), enable deterministic build, Source Link, XML doc generation, `.snupkg` symbol package. Bump `Newtonsoft.Json` from `13.0.1` to `13.0.4` to align with DotNetWorkQueue. Keep assembly name and root namespace as `Aq.ExpressionJsonSerializer` (unchanged).
-3. **Add GitHub Actions CI** -- Workflow at `.github/workflows/ci.yml`: build + test on PR/push to `main`, publish to nuget.org on `v*` tag using `NUGET_API_KEY` secret.
-4. **Add Jenkinsfile** -- Build + test on all 4 TFMs (`net10.0`, `net8.0`, `net48`, `netstandard2.0`) for internal CI. Follow the pattern from DotNetWorkQueue's Jenkinsfile (agent label `docker`, environment variables `DOTNET_CLI_TELEMETRY_OPTOUT`, `DOTNET_NOLOGO`).
+1. **DotNetWorkQueue.csproj** -- Remove net48/netstandard2.0 from TargetFrameworks. Remove all net48/netstandard2.0 PropertyGroup conditions and DefineConstants. Remove net48/netstandard2.0 Schyntax ItemGroups. Remove JpLabs.DynamicCode reference and its `_PackageFiles` entry. Remove net48/netstandard2.0 `_PackageFiles` entries for Schyntax. Update Description text.
+2. **10 core .cs files** -- Remove all `#if NETFULL` blocks (dynamic LINQ method overloads, SoapFormatter, GetObjectData). Remove `#if NETSTANDARD2_0` / `#if !NETFULL` guards keeping only the modern code path. Files: `ASendJobToQueue.cs`, `ISendJobToQueue.cs`, `IProducerMethodQueue.cs`, `IProducerMethodJobQueue.cs`, `IJobScheduler.cs`, `CompileException.cs`, `ProducerMethodQueue.cs`, `ProducerMethodJobQueue.cs`, `ScheduledJob.cs`, `ProducerMethodJobQueueDecorator.cs`.
+3. **8 transport library csproj files** (csproj-only, no .cs changes) -- Remove net48/netstandard2.0 from TargetFrameworks and delete their PropertyGroup/ItemGroup conditions. Projects: SqlServer, PostgreSQL, SQLite, Redis, LiteDB, Memory, RelationalDatabase, Shared.
+4. **Delete vendored files** -- `Lib/JpLabs.DynamicCode/` (entire directory), `Lib/Schyntax/net48/`, `Lib/Schyntax/netstandard2.0/`.
 
-### Files Touched (in expression-json-serializer repo)
+### Files Touched
 
-- `Aq.ExpressionJsonSerializer/Aq.ExpressionJsonSerializer.csproj`
-- `.github/workflows/ci.yml` (new)
-- `Jenkinsfile` (new)
-
-### Success Criteria
-
-1. `dotnet build Aq.ExpressionJsonSerializer.sln -c Release` succeeds on all 4 TFMs with no warnings
-2. `dotnet test Aq.ExpressionJsonSerializer.Tests/Aq.ExpressionJsonSerializer.Tests.csproj` -- all tests pass
-3. `dotnet pack Aq.ExpressionJsonSerializer/Aq.ExpressionJsonSerializer.csproj -c Release` produces `DotNetWorkQueue.Aq.ExpressionJsonSerializer.1.0.0.nupkg` and `.snupkg`
-4. NuGet Package Explorer shows: XML docs present, Source Link valid, deterministic build, no health warnings
-5. GitHub Actions workflow file passes `actionlint` or manual review
-6. Jenkinsfile is syntactically valid
-
----
-
-## Manual Gate: Publish to nuget.org
-
-**Owner:** User (Brian Lehnen)
-**Prerequisite:** Phase 1 complete and merged to `main`.
-
-### Steps
-
-1. Create `NUGET_API_KEY` secret in the `expression-json-serializer` GitHub repository settings
-2. Push a `v1.0.0` tag to `main`: `git tag v1.0.0 && git push origin v1.0.0`
-3. Verify GitHub Actions publish job completes successfully
-4. Verify `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.0 appears on [nuget.org](https://www.nuget.org/packages/DotNetWorkQueue.Aq.ExpressionJsonSerializer/)
-5. Verify Source Link works: `sourcelink test DotNetWorkQueue.Aq.ExpressionJsonSerializer.1.0.0.nupkg` or confirm in NuGet Package Explorer
-
-### Gate Criteria
-
-Package is listed on nuget.org and `dotnet add package DotNetWorkQueue.Aq.ExpressionJsonSerializer --version 1.0.0` succeeds.
-
----
-
-## Phase 2: Swap DotNetWorkQueue to PackageReference
-
-**Repo:** `F:\Git\dotnetworkqueue` (this repo)
-**Risk:** Medium -- touches the core project's build; any mistake breaks all downstream projects. Mitigated by: the change is mechanical (reference swap), and all existing tests serve as verification.
-**Scope:** ~60% of total project effort (more verification surface area).
-
-### What Changes
-
-1. **Add to Central Package Management** -- Add `<PackageVersion Include="DotNetWorkQueue.Aq.ExpressionJsonSerializer" Version="1.0.0" />` to `Source/Directory.Packages.props`.
-2. **Replace references in csproj** -- In `Source/DotNetWorkQueue/DotNetWorkQueue.csproj`:
-   - Remove all 4 per-TFM `<Reference Include="Aq.ExpressionJsonSerializer">` + `<HintPath>` blocks (from the `net8.0`, `net10.0`, `net48`, and `netstandard2.0` conditional ItemGroups)
-   - Remove all 4 `<_PackageFiles Include="..\..\Lib\Aq.ExpressionJsonSerializer\...">` entries from the `IncludeVendoredDllsInPack` target
-   - Add a single `<PackageReference Include="DotNetWorkQueue.Aq.ExpressionJsonSerializer" />` in the unconditional `<ItemGroup>` alongside the other PackageReferences
-3. **Delete vendored DLLs** -- Remove `Lib/Aq.ExpressionJsonSerializer/` directory entirely (12 files across 4 TFM subdirectories + README.md).
-
-### Files Touched (in DotNetWorkQueue repo)
-
-- `Source/Directory.Packages.props`
 - `Source/DotNetWorkQueue/DotNetWorkQueue.csproj`
-- `Lib/Aq.ExpressionJsonSerializer/` (deleted)
+- `Source/DotNetWorkQueue/ASendJobToQueue.cs`
+- `Source/DotNetWorkQueue/ISendJobToQueue.cs`
+- `Source/DotNetWorkQueue/IProducerMethodQueue.cs`
+- `Source/DotNetWorkQueue/IProducerMethodJobQueue.cs`
+- `Source/DotNetWorkQueue/IJobScheduler.cs`
+- `Source/DotNetWorkQueue/Exceptions/CompileException.cs`
+- `Source/DotNetWorkQueue/Queue/ProducerMethodQueue.cs`
+- `Source/DotNetWorkQueue/Queue/ProducerMethodJobQueue.cs`
+- `Source/DotNetWorkQueue/JobScheduler/ScheduledJob.cs`
+- `Source/DotNetWorkQueue/Trace/Decorator/ProducerMethodJobQueueDecorator.cs`
+- `Source/DotNetWorkQueue.Transport.SqlServer/DotNetWorkQueue.Transport.SqlServer.csproj`
+- `Source/DotNetWorkQueue.Transport.PostgreSQL/DotNetWorkQueue.Transport.PostgreSQL.csproj`
+- `Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj`
+- `Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj`
+- `Source/DotNetWorkQueue.Transport.LiteDB/DotNetWorkQueue.Transport.LiteDb.csproj`
+- `Source/DotNetWorkQueue.Transport.Memory/DotNetWorkQueue.Transport.Memory.csproj`
+- `Source/DotNetWorkQueue.Transport.RelationalDatabase/DotNetWorkQueue.Transport.RelationalDatabase.csproj`
+- `Source/DotNetWorkQueue.Transport.Shared/DotNetWorkQueue.Transport.Shared.csproj`
+- `Lib/JpLabs.DynamicCode/` (deleted)
+- `Lib/Schyntax/net48/` (deleted)
+- `Lib/Schyntax/netstandard2.0/` (deleted)
 
 ### Success Criteria
 
-1. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with no errors
-2. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` succeeds with no warnings (TreatWarningsAsErrors)
-3. `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` -- all unit tests pass
-4. `dotnet pack "Source/DotNetWorkQueue/DotNetWorkQueue.csproj" -c Release` produces a valid nupkg
-5. NuGet Package Explorer on the DotNetWorkQueue nupkg shows `DotNetWorkQueue.Aq.ExpressionJsonSerializer` as a proper package dependency (not a bundled DLL) with no health warnings
-6. `Lib/Aq.ExpressionJsonSerializer/` directory no longer exists
-7. Full CI (Jenkins + GitHub Actions) passes
+1. `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug` succeeds with 0 errors
+2. `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release` succeeds with 0 errors, 0 warnings
+3. `grep -r "NETFULL\|NETSTANDARD2_0" Source/DotNetWorkQueue/ --include="*.cs" --include="*.csproj"` returns 0 matches
+4. `grep -r "net48\|netstandard2.0" Source/DotNetWorkQueue/ --include="*.csproj"` returns 0 matches
+5. All 8 transport library csproj files have only `net10.0;net8.0` in TargetFrameworks
+6. `Lib/JpLabs.DynamicCode/` does not exist
+7. `Lib/Schyntax/net48/` and `Lib/Schyntax/netstandard2.0/` do not exist
+
+---
+
+## Phase 2: Shared Test Infrastructure and Unit Tests
+
+**Risk:** MEDIUM -- the shared test helpers define the dynamic LINQ test patterns used by every Linq integration test. Getting the conditional removal wrong here propagates downstream.
+**Scope:** ~20% of total files.
+**Depends on:** Phase 1.
+
+### What Changes
+
+1. **DotNetWorkQueue.IntegrationTests.Shared** -- 19 .cs files: remove `#if NETFULL` blocks (dynamic LINQ test cases, `LinqMethodTypes.Dynamic`), keep modern code paths. 1 csproj: remove net48 from TargetFrameworks and conditional PropertyGroup/ItemGroup blocks.
+2. **DotNetWorkQueue.Tests** -- 1 .cs file (`CompileExceptionTests.cs`): remove `#if NETFULL` guard. 1 csproj: remove net48 and conditional blocks.
+3. **8 unit test csproj files** (csproj-only, no .cs changes) -- Remove net48 from TargetFrameworks and conditional PropertyGroup/ItemGroup blocks. Projects: SqlServer.Tests, PostgreSQL.Tests, SQLite.Tests, Redis.Tests, LiteDb.Tests, Memory.Tests, RelationalDatabase.Tests, AppMetrics.Tests (if applicable).
+4. **6 base integration test csproj files** (csproj-only) -- Remove net48 from TargetFrameworks and conditional blocks. Projects: SqlServer.IntegrationTests, PostgreSQL.Integration.Tests, SQLite.Integration.Tests, Redis.IntegrationTests, LiteDB.IntegrationTests, Memory.Integration.Tests.
+
+### Files Touched
+
+- `Source/DotNetWorkQueue.IntegrationTests.Shared/` -- 19 .cs files + 1 csproj
+- `Source/DotNetWorkQueue.Tests/Exceptions/CompileExceptionTests.cs`
+- `Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj`
+- 8 unit test csproj files (listed above)
+- 6 base integration test csproj files (listed above)
+
+### Success Criteria
+
+1. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with 0 errors
+2. `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` -- all tests pass
+3. `grep -r "NETFULL\|NETSTANDARD2_0" Source/DotNetWorkQueue.IntegrationTests.Shared/ Source/DotNetWorkQueue.Tests/ --include="*.cs" --include="*.csproj"` returns 0 matches
+4. `grep -r "net48" Source/DotNetWorkQueue.Tests/ Source/DotNetWorkQueue.IntegrationTests.Shared/ --include="*.csproj"` returns 0 matches
+5. All unit test and base integration test csproj files have only `net10.0` in TargetFrameworks
+
+---
+
+## Phase 3a: SqlServer Linq Integration Tests
+
+**Risk:** LOW -- mechanical removal of `#if NETFULL` blocks. Pattern identical across all transport Linq tests.
+**Scope:** ~8% of total files.
+**Depends on:** Phase 2.
+**Parallel with:** Phases 3b, 3c, 3d, 3e, 3f.
+
+### What Changes
+
+Remove `#if NETFULL` blocks from 13 .cs files (dynamic LINQ test methods using `LinqMethodTypes.Dynamic`). Update 1 csproj: remove net48 from TargetFrameworks and conditional blocks.
+
+### Files Touched
+
+- `Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/` -- 13 .cs files + 1 csproj
+
+### Success Criteria
+
+1. `grep -r "NETFULL" Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/ --include="*.cs"` returns 0 matches
+2. `grep -r "net48" Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/ --include="*.csproj"` returns 0 matches
+3. `dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" -c Debug` succeeds
+
+---
+
+## Phase 3b: PostgreSQL Linq Integration Tests
+
+**Risk:** LOW -- identical pattern to Phase 3a.
+**Scope:** ~8% of total files.
+**Depends on:** Phase 2.
+**Parallel with:** Phases 3a, 3c, 3d, 3e, 3f.
+
+### What Changes
+
+Remove `#if NETFULL` blocks from 13 .cs files. Update 1 csproj.
+
+### Files Touched
+
+- `Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/` -- 13 .cs files + 1 csproj
+
+### Success Criteria
+
+1. `grep -r "NETFULL" Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/ --include="*.cs"` returns 0 matches
+2. `grep -r "net48" Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/ --include="*.csproj"` returns 0 matches
+3. `dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" -c Debug` succeeds
+
+---
+
+## Phase 3c: SQLite Linq Integration Tests
+
+**Risk:** LOW -- identical pattern.
+**Scope:** ~8% of total files.
+**Depends on:** Phase 2.
+**Parallel with:** Phases 3a, 3b, 3d, 3e, 3f.
+
+### What Changes
+
+Remove `#if NETFULL` blocks from 13 .cs files. Update 1 csproj.
+
+### Files Touched
+
+- `Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/` -- 13 .cs files + 1 csproj
+
+### Success Criteria
+
+1. `grep -r "NETFULL" Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/ --include="*.cs"` returns 0 matches
+2. `grep -r "net48" Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/ --include="*.csproj"` returns 0 matches
+3. `dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" -c Debug` succeeds
+
+---
+
+## Phase 3d: Redis Linq Integration Tests
+
+**Risk:** LOW -- identical pattern.
+**Scope:** ~8% of total files.
+**Depends on:** Phase 2.
+**Parallel with:** Phases 3a, 3b, 3c, 3e, 3f.
+
+### What Changes
+
+Remove `#if NETFULL` blocks from 14 .cs files. Update 1 csproj.
+
+### Files Touched
+
+- `Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/` -- 14 .cs files + 1 csproj
+
+### Success Criteria
+
+1. `grep -r "NETFULL" Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/ --include="*.cs"` returns 0 matches
+2. `grep -r "net48" Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/ --include="*.csproj"` returns 0 matches
+3. `dotnet build "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" -c Debug` succeeds
+
+---
+
+## Phase 3e: LiteDB Linq Integration Tests
+
+**Risk:** LOW -- identical pattern.
+**Scope:** ~8% of total files.
+**Depends on:** Phase 2.
+**Parallel with:** Phases 3a, 3b, 3c, 3d, 3f.
+
+### What Changes
+
+Remove `#if NETFULL` blocks from 13 .cs files. Update 1 csproj.
+
+### Files Touched
+
+- `Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/` -- 13 .cs files + 1 csproj
+
+### Success Criteria
+
+1. `grep -r "NETFULL" Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/ --include="*.cs"` returns 0 matches
+2. `grep -r "net48" Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/ --include="*.csproj"` returns 0 matches
+3. `dotnet build "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" -c Debug` succeeds
+
+---
+
+## Phase 3f: Memory Linq Integration Tests
+
+**Risk:** LOW -- identical pattern.
+**Scope:** ~7% of total files.
+**Depends on:** Phase 2.
+**Parallel with:** Phases 3a, 3b, 3c, 3d, 3e.
+
+### What Changes
+
+Remove `#if NETFULL` blocks from 10 .cs files. Update 1 csproj.
+
+### Files Touched
+
+- `Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/` -- 10 .cs files + 1 csproj
+
+### Success Criteria
+
+1. `grep -r "NETFULL" Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ --include="*.cs"` returns 0 matches
+2. `grep -r "net48" Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ --include="*.csproj"` returns 0 matches
+3. `dotnet build "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" -c Debug` succeeds
+
+---
+
+## Phase 4: CI, Documentation, and Version Bump
+
+**Risk:** LOW -- cosmetic and configuration changes. No functional code affected.
+**Scope:** ~5% of total effort.
+**Depends on:** Phases 1, 2, 3a-3f (all prior phases complete).
+
+### What Changes
+
+1. **GitHub Actions CI** (`.github/workflows/ci.yml`) -- Remove all `-f net48` flags from test steps. Remove `windows-latest` runner (switch to `ubuntu-latest` since net48 no longer needed). Remove `dotnet-version: 10.0.100` explicit version if standard `10.0.x` wildcard works. Update comments to reflect net48 removal.
+2. **README.md** -- Remove "Targets .NET 4.8" and ".NET Standard 2.0" from description. Remove "No support for dynamic LINQ statements" limitation section. Remove dynamic LINQ code examples and casting notes. Remove JpLabs.DynamicCode from custom libraries list. Remove application domain sandbox security note (only relevant to dynamic LINQ).
+3. **CLAUDE.md** -- Update project overview to reflect net10.0/net8.0 only. Remove net48 test commands. Update conventions section.
+4. **Version bump** -- Update `<Version>` to `0.9.3` in `Source/DotNetWorkQueue/DotNetWorkQueue.csproj`. Update Description to remove net48/netstandard2.0 references.
+
+### Files Touched
+
+- `.github/workflows/ci.yml`
+- `README.md`
+- `CLAUDE.md`
+- `Source/DotNetWorkQueue/DotNetWorkQueue.csproj` (version only -- TFM already done in Phase 1)
+
+### Success Criteria
+
+1. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` -- 0 errors
+2. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` -- 0 errors, 0 warnings
+3. `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` -- all tests pass
+4. `grep -r "NETFULL\|NETSTANDARD2_0" Source/ --include="*.cs" --include="*.csproj"` -- 0 matches
+5. `grep -r "net48\|netstandard2.0" Source/ --include="*.csproj"` -- 0 matches
+6. `grep "JpLabs\|DynamicCode" README.md` -- 0 matches
+7. `grep "dynamic LINQ" README.md` -- 0 matches
+8. Version in DotNetWorkQueue.csproj is `0.9.3`
+9. GitHub Actions workflow does not reference `net48` or `windows-latest`
 
 ---
 
@@ -106,7 +284,24 @@ Package is listed on nuget.org and `dotnet add package DotNetWorkQueue.Aq.Expres
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| Newtonsoft.Json version mismatch | Low | High | Fork pinned to 13.0.4, same as DotNetWorkQueue |
-| nuget.org publish failure | Low | Blocks Phase 2 | Validate locally with `dotnet nuget push --source https://api.nuget.org/v3/index.json --dry-run` first |
-| Assembly name change breaks runtime | N/A | N/A | Assembly name stays `Aq.ExpressionJsonSerializer` -- no change |
-| net48 build breaks on Linux CI | Low | Medium | GitHub Actions uses `windows-latest` for net48; Jenkins Docker image has net48 targeting pack |
+| Core csproj changes break all downstream builds | Medium | Critical | Phase 1 builds with `DotNetWorkQueueNoTests.sln` first (no test project deps) |
+| Removing wrong branch of `#if` conditional | Low | High | Each `#if NETFULL` block: delete the NETFULL branch, keep the `#else` branch. Each `#if !NETFULL`: keep the body, remove the guard. Verify with grep for zero remaining occurrences |
+| Missing a csproj file | Low | Medium | Full grep enumeration done -- 30 csproj files identified |
+| Integration tests fail due to removed dynamic LINQ test cases | Low | Low | Tests that only existed for dynamic LINQ are expected to be removed entirely. Remaining tests cover the same queue operations via standard LINQ |
+| `CompileException.cs` removal breaks compilation | Low | Medium | Check if `CompileException` is referenced outside `#if NETFULL` guards. If so, keep the class but remove only the NETFULL-specific members |
+
+## Execution Order
+
+| Wave | Phases | Can Parallelize? |
+|------|--------|-----------------|
+| 1 | Phase 1 | No -- foundation |
+| 2 | Phase 2 | No -- depends on Phase 1 |
+| 3 | Phases 3a, 3b, 3c, 3d, 3e, 3f | Yes -- all 6 are independent |
+| 4 | Phase 4 | No -- depends on all prior |
+
+**Estimated plans per phase:**
+- Phase 1: 1 plan (3 tasks)
+- Phase 2: 1 plan (3 tasks)
+- Phases 3a-3f: 1 plan each (2-3 tasks each), parallelizable
+- Phase 4: 1 plan (3 tasks)
+- **Total: 10 plans**

@@ -1,7 +1,7 @@
 {
-  "phase": 2,
-  "status": "complete",
-  "position": "Phase 2 build complete",
-  "message": "Publish Aq.ExpressionJsonSerializer as NuGet package (issue #102). Both phases complete — ready to ship.",
+  "phase": 1,
+  "status": "ready_for_planning",
+  "position": "Project definition captured, ready for planning",
+  "message": "Drop net48/netstandard2.0 and remove JpLabs.DynamicCode (issue #101). 10 phases, 6 parallel. Roadmap approved.",
   "last_updated": "2026-04-07T00:00:00Z"
 }

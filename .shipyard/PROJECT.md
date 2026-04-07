@@ -1,65 +1,77 @@
-# Project: Publish Aq.ExpressionJsonSerializer as NuGet Package (issue #102)
+# Project: Drop net48/netstandard2.0 and Remove JpLabs.DynamicCode (issue #101)
 
 ## Description
 
-Aq.ExpressionJsonSerializer is currently bundled as pre-compiled DLLs in `/Lib` with no XML docs, no symbols, and no Source Link. This causes NuGet Package Explorer health warnings on every DotNetWorkQueue package. The library's source code lives in a fork at `github.com/blehnen/expression-json-serializer` (local: `F:\Git\expression-json-serializer`).
+JpLabs.DynamicCode is a vendored DLL used only for dynamic LINQ expression support on .NET Framework 4.8, guarded by `#if NETFULL`. The source code is no longer available on the web. With the employer's .NET 10 migration removing the net48 blocker, this milestone drops net48 and netstandard2.0 targets entirely, removes all conditional compilation blocks (`#if NETFULL`, `#if NETSTANDARD2_0`), and deletes the JpLabs vendored DLL.
 
-This project publishes the fork as `DotNetWorkQueue.Aq.ExpressionJsonSerializer` on nuget.org, then replaces the bundled DLL reference in DotNetWorkQueue with a proper PackageReference.
+This is a breaking change — version bumps to 0.9.3. The employer stays on the current version until their .NET 10 migration completes.
 
 ## Goals
 
-1. Publish `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.0 to nuget.org with deterministic build, Source Link, XML docs, and `.snupkg` symbols
-2. Set up GitHub Actions CI in the fork: build + test on PR/push, publish to nuget.org on version tag (`v*`)
-3. Set up Jenkinsfile in the fork for internal CI (build + test)
-4. Replace bundled DLL references in DotNetWorkQueue with a proper PackageReference
-5. Remove `/Lib/Aq.ExpressionJsonSerializer/` from DotNetWorkQueue
-6. Resolve NuGet Package Explorer health warnings
+1. Remove `net48` and `netstandard2.0` from all `TargetFrameworks` across the solution (~40+ csproj files)
+2. Delete `Lib/JpLabs.DynamicCode/` (DLL, PDB, README)
+3. Remove all `#if NETFULL` code blocks (dynamic LINQ, SoapFormatter, GetObjectData) — ~186 occurrences across ~127 files
+4. Remove all `#if NETSTANDARD2_0` / `#if !NETFULL` conditional blocks (keep the modern code path only)
+5. Remove `NETFULL` and `NETSTANDARD2_0` from any `DefineConstants`
+6. Remove `Lib/Schyntax/net48/` and `Lib/Schyntax/netstandard2.0/` (keep net8.0 + net10.0 only)
+7. Update `_PackageFiles` in DotNetWorkQueue.csproj to drop net48/netstandard2.0 Schyntax entries
+8. Remove net48 from GitHub Actions CI matrix (no more windows-latest leg)
+9. Update README.md to remove dynamic LINQ references
+10. Bump version to 0.9.3
 
 ## Non-Goals
 
-- Renaming the assembly or namespace (stays `Aq.ExpressionJsonSerializer`)
-- Changing any source code in the serializer library
-- Updating DotNetWorkQueue's own NuGet package version
-- Publishing any other `/Lib` libraries (Schyntax #100, JpLabs #101 are separate)
+- Schyntax NuGet publishing (issue #100 — separate milestone)
+- Functional changes — this is purely dropping dead targets and dead code
+- Changing the expression-json-serializer NuGet package (it keeps all 4 TFMs for other consumers)
+- Updating the wiki (separate project)
 
 ## Requirements
 
-### NuGet Package (expression-json-serializer repo)
-- Package ID: `DotNetWorkQueue.Aq.ExpressionJsonSerializer`
-- Version: `1.0.0`
-- Assembly name and namespace: `Aq.ExpressionJsonSerializer` (unchanged)
-- Target frameworks: `net10.0;net8.0;net48;netstandard2.0`
-- Dependency: `Newtonsoft.Json` aligned to `13.0.4` (matches DotNetWorkQueue)
-- Deterministic build, Source Link, XML doc generation, `.snupkg` symbol package
-- Full NuGet metadata: license expression, repository URL, description, readme
+### Target Framework Removal
+- All csproj files: remove `net48` and `netstandard2.0` from `TargetFrameworks`
+- Remaining targets: `net10.0;net8.0` only
+- Remove any TFM-conditional `<ItemGroup>` or `<PropertyGroup>` blocks for net48/netstandard2.0
 
-### CI Pipelines (expression-json-serializer repo)
-- GitHub Actions: build + test on PR/push to main, publish to nuget.org on `v*` tag
-- Uses `NUGET_API_KEY` GitHub secret (user sets up before first publish)
-- Jenkinsfile: build + test on all 4 TFMs
+### Conditional Compilation Cleanup
+- Remove all `#if NETFULL` blocks and their contents (dead code)
+- Remove all `#if NETSTANDARD2_0` / `#if !NETFULL` guards — keep the `#else` (modern) branch as the only path
+- Remove `NETFULL` / `NETSTANDARD2_0` from `DefineConstants` in any csproj
+- Remove `CompileException.cs` if it's only used for dynamic LINQ compilation errors
 
-### DotNetWorkQueue Integration (this repo)
-- Replace 4 per-TFM `<Reference>` + `<HintPath>` blocks with single `<PackageReference>`
-- Remove `<_PackageFiles>` manual packing entries
-- Add to `Directory.Packages.props` (Central Package Management)
-- Delete `/Lib/Aq.ExpressionJsonSerializer/` directory
+### Vendored DLL Cleanup
+- Delete `Lib/JpLabs.DynamicCode/` entirely
+- Delete `Lib/Schyntax/net48/` and `Lib/Schyntax/netstandard2.0/`
+- Update `_PackageFiles` in DotNetWorkQueue.csproj
+
+### CI Updates
+- Remove net48 leg from GitHub Actions CI matrix (`.github/workflows/ci.yml`)
+- No Jenkinsfile changes needed (already runs net10.0 only)
+
+### Documentation
+- Update README.md to remove references to dynamic LINQ support
+- Do NOT update the wiki (separate effort)
 
 ## Non-Functional Requirements
 
-- Package must be published to nuget.org before DotNetWorkQueue can reference it
-- All existing DotNetWorkQueue tests must pass after the swap
+- All existing tests must pass on net10.0 and net8.0 after removal
+- Solution must build cleanly in both Debug and Release configurations
+- No orphaned files or dead references left behind
 
 ## Success Criteria
 
-1. `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.0 available on nuget.org
-2. `dotnet build "Source/DotNetWorkQueue.sln"` succeeds with PackageReference (no `/Lib` DLLs)
-3. All unit and integration tests pass
-4. NuGet Package Explorer shows no health warnings for the serializer dependency
-5. Source Link works (consumers can step into serializer code)
+1. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` — 0 errors
+2. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` — 0 errors, 0 warnings
+3. `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` — all tests pass
+4. `grep -r "NETFULL\|NETSTANDARD2_0" Source/ --include="*.cs"` — 0 matches
+5. `grep -r "net48\|netstandard2.0" Source/ --include="*.csproj"` — 0 matches
+6. `Lib/JpLabs.DynamicCode/` does not exist
+7. `Lib/Schyntax/net48/` and `Lib/Schyntax/netstandard2.0/` do not exist
+8. GitHub Actions CI passes without net48 leg
 
 ## Constraints
 
-- Two-repo project: Phase 1 in `expression-json-serializer`, Phase 2 in `DotNetWorkQueue`
-- Package must be published to nuget.org before Phase 2 can begin
-- User must create `NUGET_API_KEY` secret in GitHub before first tag push
-- Newtonsoft.Json version must align with DotNetWorkQueue (13.0.4)
+- Breaking change — version 0.9.3
+- ~127 files affected, ~40+ csproj files — needs phased approach
+- More breaking changes coming in future PRs before a release
+- Employer stays on current version — no migration pressure
