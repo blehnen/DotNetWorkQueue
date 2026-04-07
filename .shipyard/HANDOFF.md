@@ -2,26 +2,36 @@
 
 ## Current Task
 
-Issue #101 milestone brainstormed and roadmap approved. No active build work.
+Issue #101 milestone: Drop net48/netstandard2.0. Phases 1 and 2 complete, Phase 3 next.
 
 ## Approach
 
-Two milestones this session:
-1. **Issue #102** — Published `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.1 to nuget.org. PR #108 open (DotNetWorkQueue reference swap). Fork has GitHub Actions CI + Jenkinsfile.
-2. **Issue #101** — Drop net48/netstandard2.0, remove JpLabs.DynamicCode. Roadmap approved: 10 phases, 6 parallel. Ready for `/shipyard:plan 1`.
+10-phase roadmap across 4 waves. Working on branch `issue-101-drop-net48` off master.
+
+Key decisions:
+- Direct execution for mechanical edits (builder agents exhaust context on bulk file changes)
+- Skip research (ROADMAP already exhaustive)
+- Perl regex via write-to-/tmp + cp for bulk `#if NETFULL` removal (Perl `-i` fails on WSL due to temp file rename across mount points)
+- Audit/simplifier/documenter skipped for Phase 2 (pure mechanical deletions, full pipeline runs at ship time)
+- `LinqExpressionToRun` type preserved for serialization compatibility; `LinqCompiler` throws `NotSupportedException`
+- `CompileException` class kept (public type, separate breaking change)
 
 ## Tried
 
-- Issue #102: Full pipeline — brainstorm, plan, build, review, audit, ship. v1.0.0 had deterministic build issue → patched to v1.0.1 with `ContinuousIntegrationBuild`. Also found 3 `Dictionary` → `ConcurrentDictionary` thread-safety issues and missing `NETFULL` define for net48 tests.
-- Issue #101: Brainstorming complete. Grep analysis shows 186 occurrences of `#if NETFULL`/`NETSTANDARD2_0` across 127 files. Roadmap phases the work by layer (core → test infra → per-transport Linq tests → CI/docs).
+- **Phase 1 (complete):** Core csproj + 8 transport csproj + 11 .cs conditional cleanup + vendored DLL deletion. 6 commits. Critique caught missing JpLabs dependency chain (DynamicCodeCompiler, LinqCompiler, ComponentRegistration). Also fixed NU1510 Microsoft.CSharp warning.
+- **Phase 2 (complete):** IntegrationTests.Shared 19 .cs + 1 csproj, CompileExceptionTests.cs, 14 test/integration csproj. 2 commits. Full solution build has 23 NU1201 errors from Phase 3 Linq projects (expected — they still target net48).
+- Builder agents ran out of context twice (Phase 1 PLAN-1.1, reviewer). Direct execution proved faster and more reliable.
+- AppMetrics.Tests doesn't exist (ROADMAP said 8 unit test csproj, only 7 found).
+- Redis integration test csproj filename was `Integration.Tests` not `IntegrationTests` — needed glob to find.
 
 ## Remaining
 
-- **PR #108** (issue #102) needs merge after Jenkins CI passes
-- **Issue #101** ready for `/shipyard:plan 1` — Phase 1 is core library + transport csproj + vendored DLL cleanup (~20 files, HIGH risk)
-- Stale branches to clean up: 46 merged remote branches identified earlier but not yet deleted (user chose to keep version branches 0.9.8, 0.9.9, 0.9.9-cancelsupport)
-- Currently on `master` branch (switched from `issue-102-nuget-serializer` for issue #101 work)
+- **Phase 3a-3f** (Wave 3): Remove `#if NETFULL` from 6 Linq integration test projects (SqlServer, PostgreSQL, SQLite, Redis, LiteDB, Memory). Same pattern as Phase 2. All 6 can execute in parallel. ~76 .cs files + 6 csproj. Run `/shipyard:plan 3`.
+- **Phase 4** (Wave 4): CI (.github/workflows/ci.yml), README.md, CLAUDE.md, SECURITY.md, version bump to 0.9.3. Run `/shipyard:plan 4` after Phase 3.
+- **PR #108** already merged to master (confirmed at session start).
+- Full solution build (`DotNetWorkQueue.sln`) blocked until Phase 3 completes.
+- Currently on `issue-101-drop-net48` branch, 10 commits ahead of master.
 
 ## Open Questions
 
-- None — issue #101 design is fully captured in PROJECT.md and ROADMAP.md
+- None — design fully captured in PROJECT.md and ROADMAP.md.
