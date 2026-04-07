@@ -465,3 +465,46 @@
 - **Lessons captured:** RedisValue.Null (long) cast behavior, orphan index cleanup
 - **Closes:** GitHub #104, #103
 - **Status:** Shipped
+
+## 2026-04-06 — New Milestone: Dashboard API History Tests
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Add Redis and LiteDb history integration tests to Dashboard API test suite
+- **Motivation:** Redis history purge bug (#103) went undetected for 7 days — no integration test covered Redis purge
+- **Decisions:**
+  - Full pattern: both Disabled + Enabled test classes per transport (~15 tests each)
+  - Follow exact MemoryHistoryTests.cs pattern
+  - Jenkins CI for Redis (connection string gated), LiteDb runs everywhere
+  - No production code changes
+- **Roadmap:** 1 phase, 2 parallel plans (LiteDb + Redis)
+- **Status:** Ready for /shipyard:plan 1
+
+## 2026-04-06 — Phase 1 Planned
+
+- **Action:** `/shipyard:plan 1`
+- **Plans:** 2 plans in Wave 1 (parallel)
+  - PLAN-1.1: LiteDbHistoryTests.cs (4 disabled + 15 enabled = 19 tests)
+  - PLAN-1.2: RedisHistoryTests.cs (4 disabled + 15 enabled = 19 tests)
+- **Critique Verdict:** CAUTION→READY — minor test count doc issue, all APIs verified
+- **Status:** Ready for /shipyard:build 1
+
+## 2026-04-06 — Phase 1 Build Complete (Dashboard API history tests)
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 2/2 (PLAN-1.1, PLAN-1.2) + 1 review fix
+- **Commits:**
+  - `2f9be036` — LiteDb history tests (19 tests) + LiteDB transport query bug fix
+  - `f2b432c6` — Redis history tests (19 tests)
+  - `3ebb0a48` — Fix Redis scope disposal + timeout comment
+- **Reviews:** PLAN-1.1 PASS, PLAN-1.2 PASS (after scope disposal fix)
+- **Verification:** 19 LiteDb tests passing, Redis builds clean
+- **Bonus fix:** LiteDB QueryMessageHistoryHandler.Get had same query engine bug documented in GetCount — applied matching FindAll() workaround
+- **Status:** Phase 1 complete, ready for /shipyard:ship
+
+## 2026-04-06 — Milestone Shipped: Dashboard API History Tests
+
+- **Action:** `/shipyard:ship`
+- **Delivery:** PR #107 opened against master — https://github.com/blehnen/DotNetWorkQueue/pull/107
+- **Pre-ship verification:** 19/19 LiteDb history tests passing (net8.0 + net10.0), Redis builds clean
+- **Lessons captured:** LiteDB query engine bug, test race condition with CommitMessage.Commit
+- **Status:** Shipped

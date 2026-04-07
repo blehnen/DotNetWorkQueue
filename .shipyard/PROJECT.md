@@ -1,55 +1,66 @@
-# Project: Redis History Bug Fixes
+# Project: Dashboard API History Tests — Redis & LiteDb
 
 ## Description
 
-Fix two related bugs in the Redis transport's history handling. Issue #104: `RecordComplete` and `RecordError` in `WriteMessageHistoryHandler` perform unchecked `(long)` casts on `RedisValue` that throw when the hash is absent. Issue #103: `PurgeMessageHistoryHandler.Purge()` has broken logic that purges active (Enqueued/Processing) records and throws on missing hashes.
+Add end-to-end Dashboard API integration tests for Redis and LiteDb transports covering history endpoints. These transports are missing from the existing history test coverage (Memory, SQLite, SqlServer, PostgreSQL already have tests). The Redis history purge bug (#103) went undetected for 7 days after release because no integration test exercised the Redis purge code path.
 
-Both bugs are in the Redis transport only. No other transports are affected.
+Both test files follow the established `MemoryHistoryTests.cs` pattern with Disabled + Enabled test classes.
 
 ## Goals
 
-1. Guard all Redis `HashGet` casts in `WriteMessageHistoryHandler.RecordComplete` and `RecordError` with `.HasValue` checks, defaulting to `0L` when absent
-2. Fix `PurgeMessageHistoryHandler.Purge()` to only remove terminal-state records (Complete, Error, Deleted, Expired) whose `CompletedUtc` is older than the cutoff
-3. Add `protected virtual GetDb()` test seam to `PurgeMessageHistoryHandler` (matching `WriteMessageHistoryHandler` pattern)
-4. Add unit tests for all fixes
+1. Add `RedisHistoryTests.cs` with `RedisHistoryDisabledTests` + `RedisHistoryEnabledTests` (~15 tests)
+2. Add `LiteDbHistoryTests.cs` with `LiteDbHistoryDisabledTests` + `LiteDbHistoryEnabledTests` (~15 tests)
+3. Both follow the exact `MemoryHistoryTests.cs` pattern: send + consume messages, then test listing, pagination, status filtering, count, individual record lookup, purge
+4. Tests run in Jenkins CI (Redis available) and locally for LiteDb (no server dependency)
 
 ## Non-Goals
 
-- Changing any other transport's history handlers
-- Modifying the Dashboard UI or API
-- Adding integration tests (unit tests with mocked IDatabase are sufficient)
-- Changing the history data model or Redis key structure
+- Improving DashboardExtensions.cs coverage (separate effort)
+- Adding SqlServer/PostgreSQL/SQLite history tests (already exist)
+- Adding Docker Compose or testcontainers for local Redis
+- Changing the Dashboard API itself
+- Adding new test infrastructure beyond what already exists
 
 ## Requirements
 
-### #104 — HasValue guard on StartedUtc
-- `RecordComplete`: replace `(long)db.HashGet(...)` with `HasValue` check, default `0L`
-- `RecordError`: same fix
-- Unit tests: verify both methods handle missing hash gracefully (return `0L` duration)
+### RedisHistoryTests.cs
+- `RedisHistoryDisabledTests`: history endpoints return empty/zero/NotFound when `EnableHistory = false`
+- `RedisHistoryEnabledTests`: send + consume messages, verify all history endpoints work correctly
+- Connection string from `connectionstring.txt` (matching existing Redis integration test pattern)
+- Uses `RedisDashboardInit` and appropriate queue creation type
+- Skipped when Redis is not available (no connection string)
 
-### #103 — Purge logic fix
-- Add `protected virtual GetDb()` seam to `PurgeMessageHistoryHandler`
-- Add `.HasValue` guard on `CompletedUtc` HashGet — skip records where hash was pruned
-- Read `Status` field; only purge when status is terminal (Complete, Error, Deleted, Expired)
-- Replace broken condition with: Status is terminal AND CompletedUtc > 0 AND CompletedUtc < cutoff
-- Unit tests: purge skips Processing records, purges old Complete records, handles missing hashes
+### LiteDbHistoryTests.cs
+- `LiteDbHistoryDisabledTests`: history endpoints return empty/zero/NotFound when `EnableHistory = false`
+- `LiteDbHistoryEnabledTests`: send + consume messages, verify all history endpoints work correctly
+- File-based connection string (no server dependency)
+- Uses `LiteDbDashboardInit` and appropriate queue creation type
+
+### Test coverage per Enabled class
+- History listing with pagination (page 0, page 1, beyond last)
+- Status filtering (Complete, Error, Processing)
+- History count (with and without status filter)
+- History by queue ID (found and not found)
+- Record field validation (QueueId, Status, EnqueuedUtc)
+- Purge with date filter (removes completed records)
+- Purge with future days (removes nothing)
 
 ## Non-Functional Requirements
 
-- No performance regression in purge operations
-- Consistent error handling pattern with the `RecordProcessingStart` fix from PR #105
+- Tests must be independent (no shared state between test methods)
+- Cleanup must remove queues/files after each test class
+- Redis tests must not fail when Redis is unavailable (skip gracefully)
 
 ## Success Criteria
 
-1. `RecordComplete` and `RecordError` do not throw when Redis hash is absent
-2. Purge only removes terminal-state records older than the cutoff
-3. Purge does not throw when a hash is missing between index scan and field read
-4. All existing Redis unit tests pass
-5. New unit tests cover all fix scenarios
-6. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds
+1. `RedisHistoryTests.cs` passes when Redis is available (Jenkins CI)
+2. `LiteDbHistoryTests.cs` passes everywhere (no external dependencies)
+3. All existing Dashboard integration tests continue to pass
+4. `dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj"` succeeds
 
 ## Constraints
 
-- Fix must be in the Redis transport only
-- Must follow existing `HasValue` guard pattern from PR #105
-- Must follow `GetDb()` test seam pattern from `WriteMessageHistoryHandler`
+- Must follow existing `MemoryHistoryTests.cs` pattern exactly
+- Must use existing test infrastructure (`DashboardTestServer`, `TransportFixture`, `ConnectionStrings`, etc.)
+- Redis tests run in Jenkins CI only (connection string gated)
+- No changes to production code

@@ -1,126 +1,454 @@
 ---
-phase: redis-history-fixes
+phase: dashboard-history-tests
 plan: "1.1"
 wave: 1
 dependencies: []
 must_haves:
-  - RecordComplete does not throw when history hash is absent in Redis
-  - RecordError does not throw when history hash is absent in Redis
-  - Duration defaults to 0 when StartedUtc field is missing
-  - Tests prove both methods handle RedisValue.Null safely
+  - LiteDbHistoryDisabledTests class with 4 tests matching MemoryHistoryDisabledTests pattern
+  - LiteDbHistoryEnabledTests class with 14 tests matching MemoryHistoryEnabledTests pattern
+  - Uses LiteDbMessageQueueInit / LiteDbMessageQueueCreation
+  - Uses ConnectionStrings.LiteDbMemory (in-memory, no file cleanup needed)
+  - Scope sharing via RegisterNonScopedSingleton
+  - EnableStatusTable = true and EnableHistory = true for enabled tests
+  - LGPL-2.1 license header
 files_touched:
-  - Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs
-  - Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs
-tdd: true
+  - Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/LiteDbHistoryTests.cs
+tdd: false
 ---
 
-# Plan 1.1: HasValue guard on StartedUtc (#104)
+# Plan 1.1 -- LiteDb History Tests
 
 ## Context
 
-`WriteMessageHistoryHandler.RecordComplete` (line 79) and `RecordError` (line 90) both do:
-
-```csharp
-var startedTicks = (long)db.HashGet(HistoryHashKey(queueId), "StartedUtc");
-```
-
-When the hash key does not exist in Redis (e.g., it was purged, expired via TTL, or never written due to a race), `HashGet` returns `RedisValue.Null`. Casting `RedisValue.Null` to `(long)` throws a `System.InvalidOperationException`. The fix follows the exact same `HasValue` guard pattern already applied in `RecordProcessingStart` (line 68-69) by PR #105.
-
-## Dependencies
-
-- None. This plan touches only `WriteMessageHistoryHandler.cs` and its test file.
-- Disjoint from Plan 1.2 (PurgeMessageHistoryHandler). Both can execute in parallel.
+Add Dashboard API integration tests for LiteDb transport covering history endpoints.
+Follow the exact `MemoryHistoryTests.cs` pattern (Disabled + Enabled classes).
+LiteDb uses `:memory:` connection string and requires scope sharing via `RegisterNonScopedSingleton`.
+The `LiteDbMessageQueueCreation.Options` property returns `LiteDbMessageQueueTransportOptions` which has `EnableStatusTable` and `EnableHistory`.
 
 ## Tasks
 
-<task id="1" files="Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/WriteMessageHistoryHandlerTests.cs" tdd="true">
+<task id="1" files="Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/LiteDbHistoryTests.cs" tdd="false">
   <action>
-  Add two new test methods to the existing `WriteMessageHistoryHandlerTests` class, after the existing `RecordError_WithoutStartedUtc_WritesDurationZero` test (line 282). These tests use the existing `CreateEnabledWithDb()` helper but configure `HashGet` to return `RedisValue.Null` for the "StartedUtc" field specifically.
+Create `LiteDbHistoryTests.cs` with two classes:
 
-  Add these two tests:
+**`LiteDbHistoryDisabledTests`** -- 4 test methods. Creates a LiteDb queue with `EnableStatusTable = true` but WITHOUT `EnableHistory`. Sends 3 messages. Verifies all history endpoints return empty/zero/NotFound.
 
-  ```csharp
-  [TestMethod]
-  public void RecordComplete_When_Hash_Missing_Does_Not_Throw()
-  {
-      var (handler, db) = CreateEnabledWithDb();
+**`LiteDbHistoryEnabledTests`** -- 14 test methods. Creates queue with `EnableStatusTable = true` AND `EnableHistory = true`. Sends and consumes 5 messages to completion. Verifies history listing, pagination, status filtering, count, lookup by QueueId, field presence, and purge.
 
-      // Override: StartedUtc returns RedisValue.Null (hash absent)
-      db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("StartedUtc"), Arg.Any<CommandFlags>())
-          .Returns(RedisValue.Null);
+Key transport-specific differences from MemoryHistoryTests.cs:
+- Init type: `LiteDbMessageQueueInit` (not `MemoryDashboardInit`)
+- Creation type: `LiteDbMessageQueueCreation` (not `MessageQueueCreation`)
+- Connection string: `ConnectionStrings.LiteDbMemory`
+- Options setup: `options.Options.EnableStatusTable = true` in both; `options.Options.EnableHistory = true` in Enabled only
+- Scope sharing: `serviceRegister.RegisterNonScopedSingleton(_scope)` in AddConnection call (required for LiteDb)
+- Using directives: `DotNetWorkQueue.Transport.LiteDb.Basic` (not Memory)
 
-      handler.RecordComplete("missing-id");
+Complete file content follows:
 
-      // Should still write with DurationMs=0
-      db.Received().HashSet(
-          Arg.Any<RedisKey>(),
-          Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "DurationMs", 0L)),
-          Arg.Any<CommandFlags>());
-  }
+```csharp
+// ---------------------------------------------------------------------
+//This file is part of DotNetWorkQueue
+//Copyright © 2015-2026 Brian Lehnen
+//
+//This library is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This library is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// ---------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
+using DotNetWorkQueue.Dashboard.Api.Models;
+using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.LiteDb.Basic;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-  [TestMethod]
-  public void RecordError_When_Hash_Missing_Does_Not_Throw()
-  {
-      var (handler, db) = CreateEnabledWithDb();
+namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
+{
+    /// <summary>
+    /// Tests for the history API endpoints when history is NOT enabled on a LiteDb transport.
+    /// The NoOp handlers should return empty results.
+    /// </summary>
+    [TestClass]
+    public class LiteDbHistoryDisabledTests
+    {
+        private DashboardTestServer _server;
+        private TransportFixture<LiteDbMessageQueueInit, LiteDbMessageQueueCreation> _fixture;
+        private Guid _queueId;
 
-      // Override: StartedUtc returns RedisValue.Null (hash absent)
-      db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("StartedUtc"), Arg.Any<CommandFlags>())
-          .Returns(RedisValue.Null);
+        [TestInitialize]
+        public async Task InitializeAsync()
+        {
+            var queueName = QueueNameGenerator.Create();
+            var connStr = ConnectionStrings.LiteDbMemory;
 
-      handler.RecordError("missing-id", "some error");
+            _fixture = new TransportFixture<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(
+                queueName, connStr,
+                options =>
+                {
+                    options.Options.EnableStatusTable = true;
+                });
 
-      // Should still write with DurationMs=0
-      db.Received().HashSet(
-          Arg.Any<RedisKey>(),
-          Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "DurationMs", 0L)),
-          Arg.Any<CommandFlags>());
-  }
-  ```
+            _fixture.SendMessages<FakeMessage>(3);
 
-  Insert after line 298 (the closing brace of `RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite`), or more precisely after the existing `RecordError_WithoutStartedUtc_WritesDurationZero` block ending at line 282. The exact insertion point is after line 282 and before `[TestMethod] public void RecordProcessingStart_When_Status_Is_Error_Does_Not_Overwrite`.
-  </action>
-  <verify>dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" --filter "FullyQualifiedName~RecordComplete_When_Hash_Missing_Does_Not_Throw|FullyQualifiedName~RecordError_When_Hash_Missing_Does_Not_Throw"</verify>
-  <done>Both tests exist and FAIL with InvalidOperationException (Red phase of TDD). This confirms the bug is real and the tests detect it.</done>
-</task>
+            _server = await DashboardTestServer.CreateAsync(options =>
+            {
+                options.EnableSwagger = false;
+                options.AddConnection<LiteDbMessageQueueInit>(connStr,
+                    serviceRegister => serviceRegister.RegisterNonScopedSingleton(_fixture.Scope),
+                    conn => conn.AddQueue(queueName));
+            });
 
-<task id="2" files="Source/DotNetWorkQueue.Transport.Redis/Basic/WriteMessageHistoryHandler.cs" tdd="true">
-  <action>
-  Apply the HasValue guard fix to both `RecordComplete` and `RecordError` methods.
+            var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
+                "api/v1/dashboard/connections");
+            var queues = await _server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
+                $"api/v1/dashboard/connections/{connections[0].Id}/queues");
+            _queueId = queues[0].Id;
+        }
 
-  **RecordComplete (line 79):** Replace:
-  ```csharp
-            var startedTicks = (long)db.HashGet(HistoryHashKey(queueId), "StartedUtc");
-  ```
-  with:
-  ```csharp
-            var rawStarted = db.HashGet(HistoryHashKey(queueId), "StartedUtc");
-            var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
-  ```
+        [TestCleanup]
+        public async Task CleanupAsync()
+        {
+            if (_server != null) await _server.DisposeAsync();
+            _fixture?.Dispose();
+        }
 
-  **RecordError (line 90):** Replace:
-  ```csharp
-            var startedTicks = (long)db.HashGet(HistoryHashKey(queueId), "StartedUtc");
-  ```
-  with:
-  ```csharp
-            var rawStarted = db.HashGet(HistoryHashKey(queueId), "StartedUtc");
-            var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
-  ```
+        [TestMethod]
+        public async Task History_Returns_Empty_When_Not_Enabled()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history");
 
-  Both replacements follow the identical pattern used at line 68-69 for `RecordProcessingStart`.
-  </action>
-  <verify>dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" --filter "FullyQualifiedName~WriteMessageHistoryHandlerTests"</verify>
-  <done>All WriteMessageHistoryHandlerTests pass (including the two new Hash_Missing tests from Task 1 and all pre-existing tests). No regressions.</done>
-</task>
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+        }
 
-## Verification
+        [TestMethod]
+        public async Task HistoryCount_Returns_Zero_When_Not_Enabled()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var count = await response.Content.ReadFromJsonAsync<long>();
+            count.Should().Be(0);
+        }
 
-```bash
-# Build the transport project
-dotnet build "Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj" -c Debug
+        [TestMethod]
+        public async Task HistoryByMessageId_Returns_NotFound_When_Not_Enabled()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/99999");
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
 
-# Run ALL tests in the Redis test project to check for regressions
-dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj"
+        [TestMethod]
+        public async Task PurgeHistory_Returns_Zero_When_Not_Enabled()
+        {
+            var response = await _server.Client.DeleteAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
+            result.Deleted.Should().Be(0);
+        }
+    }
+
+    /// <summary>
+    /// Tests for the history API endpoints when history IS enabled on a LiteDb transport.
+    /// Messages are sent and consumed to completion so that history records are populated.
+    /// </summary>
+    [TestClass]
+    public class LiteDbHistoryEnabledTests
+    {
+        private const int MessageCount = 5;
+        private DashboardTestServer _server;
+        private string _queueName;
+        private ICreationScope _scope;
+        private QueueCreationContainer<LiteDbMessageQueueInit> _creationContainer;
+        private LiteDbMessageQueueCreation _creation;
+        private Guid _queueId;
+
+        [TestInitialize]
+        public async Task InitializeAsync()
+        {
+            _queueName = QueueNameGenerator.Create();
+            var connStr = ConnectionStrings.LiteDbMemory;
+            var queueConnection = new QueueConnection(_queueName, connStr);
+
+            // Create queue with history enabled
+            _creationContainer = new QueueCreationContainer<LiteDbMessageQueueInit>();
+            _creation = _creationContainer.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
+            _creation.Options.EnableStatusTable = true;
+            _creation.Options.EnableHistory = true;
+            var createResult = _creation.CreateQueue();
+            Assert.IsTrue(createResult.Success, createResult.ErrorMessage);
+            _scope = _creation.Scope;
+
+            // Send and consume messages to completion (generates history records)
+            using (var queueContainer = new QueueContainer<LiteDbMessageQueueInit>(
+                       serviceRegister => serviceRegister.RegisterNonScopedSingleton(_scope)))
+            {
+                using (var producer = queueContainer.CreateProducer<FakeMessage>(queueConnection))
+                {
+                    for (var i = 0; i < MessageCount; i++)
+                    {
+                        var result = producer.Send(new FakeMessage());
+                        Assert.IsFalse(result.HasError, $"Send failed: {result.SendingException?.Message}");
+                    }
+                }
+
+                var processedCount = 0;
+                var waitHandle = new ManualResetEventSlim(false);
+                using (var consumer = queueContainer.CreateConsumer(queueConnection))
+                {
+                    consumer.Configuration.Worker.WorkerCount = 1;
+                    consumer.Start<FakeMessage>((message, notifications) =>
+                    {
+                        if (Interlocked.Increment(ref processedCount) >= MessageCount)
+                            waitHandle.Set();
+                    }, new ConsumerQueueNotifications());
+
+                    waitHandle.Wait(TimeSpan.FromSeconds(30));
+                }
+
+                Assert.AreEqual(MessageCount, processedCount, "Not all messages were processed");
+            }
+
+            // Start Dashboard server
+            _server = await DashboardTestServer.CreateAsync(options =>
+            {
+                options.EnableSwagger = false;
+                options.AddConnection<LiteDbMessageQueueInit>(connStr,
+                    serviceRegister => serviceRegister.RegisterNonScopedSingleton(_scope),
+                    conn => conn.AddQueue(_queueName));
+            });
+
+            var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
+                "api/v1/dashboard/connections");
+            var queues = await _server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
+                $"api/v1/dashboard/connections/{connections[0].Id}/queues");
+            _queueId = queues[0].Id;
+        }
+
+        [TestCleanup]
+        public async Task CleanupAsync()
+        {
+            if (_server != null) await _server.DisposeAsync();
+            try { _creation?.RemoveQueue(); } catch { /* best-effort */ }
+            _creation?.Dispose();
+            _creationContainer?.Dispose();
+            _scope?.Dispose();
+        }
+
+        [TestMethod]
+        public async Task History_Returns_Records_When_Enabled()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageSize=100");
+
+            result.Should().NotBeNull();
+            result.Items.Should().NotBeEmpty();
+            result.Items.Count.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
+
+        [TestMethod]
+        public async Task History_Pagination_Page0()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageIndex=0&pageSize=2");
+
+            result.Should().NotBeNull();
+            result.Items.Should().HaveCount(2);
+            result.TotalCount.Should().BeGreaterThanOrEqualTo(MessageCount);
+            result.PageIndex.Should().Be(0);
+            result.PageSize.Should().Be(2);
+        }
+
+        [TestMethod]
+        public async Task History_Pagination_Page1()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageIndex=1&pageSize=2");
+
+            result.Should().NotBeNull();
+            result.Items.Should().HaveCount(2);
+            result.PageIndex.Should().Be(1);
+        }
+
+        [TestMethod]
+        public async Task History_Pagination_BeyondLast_Returns_Empty()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageIndex=100&pageSize=25");
+
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+            result.TotalCount.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
+
+        [TestMethod]
+        public async Task History_Filtered_By_Complete_Status()
+        {
+            // Status 2 = Complete
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?status=2&pageSize=100");
+
+            result.Should().NotBeNull();
+            result.Items.Should().NotBeEmpty();
+            result.Items.Should().AllSatisfy(item => item.Status.Should().Be(2));
+        }
+
+        [TestMethod]
+        public async Task History_Filtered_By_Error_Status_Returns_Empty()
+        {
+            // Status 3 = Error -- no errors in this test
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?status=3&pageSize=100");
+
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task History_Filtered_By_Processing_Status_Returns_Empty()
+        {
+            // Status 1 = Processing -- all messages have completed
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?status=1&pageSize=100");
+
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task HistoryCount_NoFilter()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var count = await response.Content.ReadFromJsonAsync<long>();
+            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
+
+        [TestMethod]
+        public async Task HistoryCount_WithCompleteStatusFilter()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count?status=2");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var count = await response.Content.ReadFromJsonAsync<long>();
+            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
+
+        [TestMethod]
+        public async Task HistoryCount_WithErrorStatusFilter_Returns_Zero()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count?status=3");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var count = await response.Content.ReadFromJsonAsync<long>();
+            count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public async Task HistoryByQueueId_Returns_Record()
+        {
+            var history = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageSize=1");
+            history.Items.Should().NotBeEmpty();
+            var recordQueueId = history.Items[0].QueueId;
+
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/{recordQueueId}");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var record = await response.Content.ReadFromJsonAsync<HistoryResponse>();
+            record.Should().NotBeNull();
+            record.QueueId.Should().Be(recordQueueId);
+            record.Status.Should().Be(2); // Complete
+        }
+
+        [TestMethod]
+        public async Task HistoryByQueueId_NotFound()
+        {
+            var response = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/99999");
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [TestMethod]
+        public async Task History_Records_Have_Expected_Fields()
+        {
+            var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
+                $"api/v1/dashboard/queues/{_queueId}/history?pageSize=1");
+
+            result.Items.Should().NotBeEmpty();
+            var record = result.Items[0];
+
+            record.QueueId.Should().NotBeNullOrEmpty();
+            record.Status.Should().Be(2); // Complete
+            record.EnqueuedUtc.Should().BeAfter(DateTime.MinValue);
+        }
+
+        [TestMethod]
+        public async Task PurgeHistory_WithDateFilter_Removes_Records()
+        {
+            // Purge records "older than 0 days" = purge all
+            var response = await _server.Client.DeleteAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history?olderThanDays=0");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
+            result.Deleted.Should().BeGreaterThanOrEqualTo(MessageCount);
+
+            // Verify count is now 0
+            var countResponse = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count");
+            var count = await countResponse.Content.ReadFromJsonAsync<long>();
+            count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public async Task PurgeHistory_FutureDays_Removes_Nothing()
+        {
+            // Purge records older than 365 days - none should qualify since they were just created
+            var response = await _server.Client.DeleteAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history?olderThanDays=365");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
+            result.Deleted.Should().Be(0);
+
+            // Verify count is unchanged
+            var countResponse = await _server.Client.GetAsync(
+                $"api/v1/dashboard/queues/{_queueId}/history/count");
+            var count = await countResponse.Content.ReadFromJsonAsync<long>();
+            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+        }
+    }
+}
 ```
+  </action>
+  <verify>dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" -c Debug --no-restore 2>&1 | tail -5</verify>
+  <done>File exists at Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/LiteDbHistoryTests.cs. Build succeeds with 0 errors. File contains both LiteDbHistoryDisabledTests (4 test methods) and LiteDbHistoryEnabledTests (14 test methods).</done>
+</task>
 
-Expected: all tests pass, including the two new `_When_Hash_Missing_` tests and all 17+ existing tests.
+<task id="2" files="Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/LiteDbHistoryTests.cs" tdd="false">
+  <action>
+Run the LiteDb history tests (both Disabled and Enabled classes). LiteDb uses in-memory mode so no external services are needed.
+  </action>
+  <verify>dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~LiteDbHistory" --no-build -c Debug 2>&1 | tail -20</verify>
+  <done>All 18 LiteDb history tests pass (4 disabled + 14 enabled). Zero failures, zero skipped.</done>
+</task>

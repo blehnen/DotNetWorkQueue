@@ -48,9 +48,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             using (var db = _connectionManager.GetDatabase())
             {
                 var col = db.Database.GetCollection<HistoryTable>(_tableNameHelper.HistoryName);
-                var query = statusFilter.HasValue
-                    ? col.Find(x => x.Status == (int)statusFilter.Value)
-                    : col.FindAll();
+                // Use FindAll + LINQ-to-Objects for status filtering because LiteDB's LINQ query
+                // engine does not reliably match on recently-updated int fields (same issue as GetCount).
+                IEnumerable<HistoryTable> query = col.FindAll();
+                if (statusFilter.HasValue)
+                {
+                    var statusValue = (int)statusFilter.Value;
+                    query = query.Where(x => x.Status == statusValue);
+                }
 
                 return query
                     .OrderByDescending(x => x.EnqueuedUtc)

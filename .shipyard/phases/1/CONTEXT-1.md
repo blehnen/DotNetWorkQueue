@@ -1,8 +1,9 @@
-# Phase 1 Context: Redis History Fixes
+# Phase 1 Context: Dashboard API History Tests
 
 ## Decisions
 
-- **Purge guard:** Check Status field (terminal only) + CompletedUtc — belt-and-suspenders approach
-- **Test seam:** Add `protected virtual GetDb()` to PurgeMessageHistoryHandler (matching WriteMessageHistoryHandler)
-- **HasValue pattern:** Follow exact pattern from PR #105 RecordProcessingStart fix
-- **Skip research:** Roadmap has all details, code was already read during brainstorming
+- **Pattern:** Follow MemoryHistoryTests.cs exactly (both Disabled + Enabled classes per transport)
+- **Scope:** Redis + LiteDb only (other transports already have history tests)
+- **CI:** Redis tests run in Jenkins only (connection string gated). LiteDb runs everywhere.
+- **No production changes:** Test-only files
+- **Skip research:** Existing test patterns already read during brainstorming

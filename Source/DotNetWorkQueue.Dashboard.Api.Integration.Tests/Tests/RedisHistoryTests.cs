@@ -1,57 +1,3 @@
----
-phase: dashboard-history-tests
-plan: "1.2"
-wave: 1
-dependencies: []
-must_haves:
-  - RedisHistoryDisabledTests class with 4 tests matching MemoryHistoryDisabledTests pattern
-  - RedisHistoryEnabledTests class with 14 tests matching MemoryHistoryEnabledTests pattern
-  - Uses RedisQueueInit / RedisQueueCreation
-  - Uses ConnectionStrings.Redis (reads from connectionstring-redis.txt)
-  - No scope sharing needed (Redis does not use RegisterNonScopedSingleton)
-  - EnableHistory = true for enabled tests via RedisBaseTransportOptions
-  - LGPL-2.1 license header
-  - Tests require a running Redis instance
-files_touched:
-  - Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs
-tdd: false
----
-
-# Plan 1.2 -- Redis History Tests
-
-## Context
-
-Add Dashboard API integration tests for Redis transport covering history endpoints.
-Follow the exact `MemoryHistoryTests.cs` pattern (Disabled + Enabled classes).
-Redis uses `ConnectionStrings.Redis` which reads from `connectionstring-redis.txt`.
-Redis does NOT use scope sharing (`RegisterNonScopedSingleton`) -- its `AddConnection` uses the 2-arg overload.
-The `RedisQueueCreation.Options` property returns `RedisBaseTransportOptions` which has `EnableHistory`.
-Redis queues are auto-created (creation is a no-op), but `RemoveQueue` cleans up keys.
-
-**Important**: Redis message IDs are string-based UUIDs, not integers. The "not found" test for `HistoryByQueueId` uses a string ID (`nonexistent-id-12345`) matching the pattern in `RedisEndpointTests.cs`.
-
-## Tasks
-
-<task id="1" files="Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs" tdd="false">
-  <action>
-Create `RedisHistoryTests.cs` with two classes:
-
-**`RedisHistoryDisabledTests`** -- 4 test methods. Creates a Redis queue WITHOUT `EnableHistory`. Sends 3 messages. Verifies all history endpoints return empty/zero/NotFound.
-
-**`RedisHistoryEnabledTests`** -- 14 test methods. Creates queue with `EnableHistory = true`. Sends and consumes 5 messages to completion. Verifies history listing, pagination, status filtering, count, lookup by QueueId, field presence, and purge.
-
-Key transport-specific differences from MemoryHistoryTests.cs:
-- Init type: `RedisQueueInit` (not `MemoryDashboardInit`)
-- Creation type: `RedisQueueCreation` (not `MessageQueueCreation`)
-- Connection string: `ConnectionStrings.Redis` (reads connectionstring-redis.txt)
-- No scope sharing: `AddConnection` uses 2-arg overload (no `RegisterNonScopedSingleton`)
-- Options: `_creation.Options.EnableHistory = true` (RedisBaseTransportOptions)
-- Not-found IDs: use string `"nonexistent-id-12345"` instead of integer `99999`
-- Using directives: `DotNetWorkQueue.Transport.Redis.Basic` (not Memory)
-
-Complete file content follows:
-
-```csharp
 // ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
@@ -178,9 +124,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         private const int MessageCount = 5;
         private DashboardTestServer _server;
         private string _queueName;
-        private ICreationScope _scope;
         private QueueCreationContainer<RedisQueueInit> _creationContainer;
         private RedisQueueCreation _creation;
+        private ICreationScope _scope;
         private Guid _queueId;
 
         [TestInitialize]
@@ -221,7 +167,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                             waitHandle.Set();
                     }, new ConsumerQueueNotifications());
 
-                    waitHandle.Wait(TimeSpan.FromSeconds(30));
+                    waitHandle.Wait(TimeSpan.FromSeconds(60)); // Redis needs longer timeout than Memory due to network round-trips under CI load
                 }
 
                 Assert.AreEqual(MessageCount, processedCount, "Not all messages were processed");
@@ -247,9 +193,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             if (_server != null) await _server.DisposeAsync();
             try { _creation?.RemoveQueue(); } catch { /* best-effort */ }
+            _scope?.Dispose();
             _creation?.Dispose();
             _creationContainer?.Dispose();
-            _scope?.Dispose();
         }
 
         [TestMethod]
@@ -437,16 +383,3 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         }
     }
 }
-```
-  </action>
-  <verify>dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" -c Debug --no-restore 2>&1 | tail -5</verify>
-  <done>File exists at Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs. Build succeeds with 0 errors. File contains both RedisHistoryDisabledTests (4 test methods) and RedisHistoryEnabledTests (14 test methods).</done>
-</task>
-
-<task id="2" files="Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs" tdd="false">
-  <action>
-Run the Redis history tests (both Disabled and Enabled classes). Requires a running Redis instance with connection string in `connectionstring-redis.txt`.
-  </action>
-  <verify>dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~RedisHistory" --no-build -c Debug 2>&1 | tail -20</verify>
-  <done>All 18 Redis history tests pass (4 disabled + 14 enabled). Zero failures, zero skipped.</done>
-</task>

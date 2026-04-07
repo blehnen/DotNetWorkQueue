@@ -1,57 +1,3 @@
----
-phase: dashboard-history-tests
-plan: "1.2"
-wave: 1
-dependencies: []
-must_haves:
-  - RedisHistoryDisabledTests class with 4 tests matching MemoryHistoryDisabledTests pattern
-  - RedisHistoryEnabledTests class with 14 tests matching MemoryHistoryEnabledTests pattern
-  - Uses RedisQueueInit / RedisQueueCreation
-  - Uses ConnectionStrings.Redis (reads from connectionstring-redis.txt)
-  - No scope sharing needed (Redis does not use RegisterNonScopedSingleton)
-  - EnableHistory = true for enabled tests via RedisBaseTransportOptions
-  - LGPL-2.1 license header
-  - Tests require a running Redis instance
-files_touched:
-  - Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs
-tdd: false
----
-
-# Plan 1.2 -- Redis History Tests
-
-## Context
-
-Add Dashboard API integration tests for Redis transport covering history endpoints.
-Follow the exact `MemoryHistoryTests.cs` pattern (Disabled + Enabled classes).
-Redis uses `ConnectionStrings.Redis` which reads from `connectionstring-redis.txt`.
-Redis does NOT use scope sharing (`RegisterNonScopedSingleton`) -- its `AddConnection` uses the 2-arg overload.
-The `RedisQueueCreation.Options` property returns `RedisBaseTransportOptions` which has `EnableHistory`.
-Redis queues are auto-created (creation is a no-op), but `RemoveQueue` cleans up keys.
-
-**Important**: Redis message IDs are string-based UUIDs, not integers. The "not found" test for `HistoryByQueueId` uses a string ID (`nonexistent-id-12345`) matching the pattern in `RedisEndpointTests.cs`.
-
-## Tasks
-
-<task id="1" files="Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs" tdd="false">
-  <action>
-Create `RedisHistoryTests.cs` with two classes:
-
-**`RedisHistoryDisabledTests`** -- 4 test methods. Creates a Redis queue WITHOUT `EnableHistory`. Sends 3 messages. Verifies all history endpoints return empty/zero/NotFound.
-
-**`RedisHistoryEnabledTests`** -- 14 test methods. Creates queue with `EnableHistory = true`. Sends and consumes 5 messages to completion. Verifies history listing, pagination, status filtering, count, lookup by QueueId, field presence, and purge.
-
-Key transport-specific differences from MemoryHistoryTests.cs:
-- Init type: `RedisQueueInit` (not `MemoryDashboardInit`)
-- Creation type: `RedisQueueCreation` (not `MessageQueueCreation`)
-- Connection string: `ConnectionStrings.Redis` (reads connectionstring-redis.txt)
-- No scope sharing: `AddConnection` uses 2-arg overload (no `RegisterNonScopedSingleton`)
-- Options: `_creation.Options.EnableHistory = true` (RedisBaseTransportOptions)
-- Not-found IDs: use string `"nonexistent-id-12345"` instead of integer `99999`
-- Using directives: `DotNetWorkQueue.Transport.Redis.Basic` (not Memory)
-
-Complete file content follows:
-
-```csharp
 // ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
@@ -80,38 +26,43 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Queue;
-using DotNetWorkQueue.Transport.Redis.Basic;
+using DotNetWorkQueue.Transport.LiteDb.Basic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
     /// <summary>
-    /// Tests for the history API endpoints when history is NOT enabled on a Redis transport.
+    /// Tests for the history API endpoints when history is NOT enabled on a LiteDb transport.
     /// The NoOp handlers should return empty results.
     /// </summary>
     [TestClass]
-    public class RedisHistoryDisabledTests
+    public class LiteDbHistoryDisabledTests
     {
         private DashboardTestServer _server;
-        private TransportFixture<RedisQueueInit, RedisQueueCreation> _fixture;
+        private TransportFixture<LiteDbMessageQueueInit, LiteDbMessageQueueCreation> _fixture;
         private Guid _queueId;
 
         [TestInitialize]
         public async Task InitializeAsync()
         {
             var queueName = QueueNameGenerator.Create();
-            var connStr = ConnectionStrings.Redis;
+            var connStr = ConnectionStrings.LiteDbMemory;
 
-            _fixture = new TransportFixture<RedisQueueInit, RedisQueueCreation>(
-                queueName, connStr);
+            _fixture = new TransportFixture<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(
+                queueName, connStr,
+                options =>
+                {
+                    options.Options.EnableStatusTable = true;
+                });
 
             _fixture.SendMessages<FakeMessage>(3);
 
             _server = await DashboardTestServer.CreateAsync(options =>
             {
                 options.EnableSwagger = false;
-                options.AddConnection<RedisQueueInit>(connStr,
+                options.AddConnection<LiteDbMessageQueueInit>(connStr,
+                    serviceRegister => serviceRegister.RegisterNonScopedSingleton(_fixture.Scope),
                     conn => conn.AddQueue(queueName));
             });
 
@@ -153,7 +104,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         public async Task HistoryByMessageId_Returns_NotFound_When_Not_Enabled()
         {
             var response = await _server.Client.GetAsync(
-                $"api/v1/dashboard/queues/{_queueId}/history/nonexistent-id-12345");
+                $"api/v1/dashboard/queues/{_queueId}/history/99999");
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -169,37 +120,39 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     }
 
     /// <summary>
-    /// Tests for the history API endpoints when history IS enabled on a Redis transport.
+    /// Tests for the history API endpoints when history IS enabled on a LiteDb transport.
     /// Messages are sent and consumed to completion so that history records are populated.
     /// </summary>
     [TestClass]
-    public class RedisHistoryEnabledTests
+    public class LiteDbHistoryEnabledTests
     {
         private const int MessageCount = 5;
         private DashboardTestServer _server;
         private string _queueName;
         private ICreationScope _scope;
-        private QueueCreationContainer<RedisQueueInit> _creationContainer;
-        private RedisQueueCreation _creation;
+        private QueueCreationContainer<LiteDbMessageQueueInit> _creationContainer;
+        private LiteDbMessageQueueCreation _creation;
         private Guid _queueId;
 
         [TestInitialize]
         public async Task InitializeAsync()
         {
             _queueName = QueueNameGenerator.Create();
-            var connStr = ConnectionStrings.Redis;
+            var connStr = ConnectionStrings.LiteDbMemory;
             var queueConnection = new QueueConnection(_queueName, connStr);
 
-            // Create queue with history enabled
-            _creationContainer = new QueueCreationContainer<RedisQueueInit>();
-            _creation = _creationContainer.GetQueueCreation<RedisQueueCreation>(queueConnection);
+            // Create queue with status table and history enabled
+            _creationContainer = new QueueCreationContainer<LiteDbMessageQueueInit>();
+            _creation = _creationContainer.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
+            _creation.Options.EnableStatusTable = true;
             _creation.Options.EnableHistory = true;
             var createResult = _creation.CreateQueue();
             Assert.IsTrue(createResult.Success, createResult.ErrorMessage);
             _scope = _creation.Scope;
 
             // Send and consume messages to completion (generates history records)
-            using (var queueContainer = new QueueContainer<RedisQueueInit>())
+            using (var queueContainer = new QueueContainer<LiteDbMessageQueueInit>(
+                       serviceRegister => serviceRegister.RegisterNonScopedSingleton(_scope)))
             {
                 using (var producer = queueContainer.CreateProducer<FakeMessage>(queueConnection))
                 {
@@ -211,27 +164,33 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 }
 
                 var processedCount = 0;
+                var committedCount = 0;
                 var waitHandle = new ManualResetEventSlim(false);
                 using (var consumer = queueContainer.CreateConsumer(queueConnection))
                 {
                     consumer.Configuration.Worker.WorkerCount = 1;
                     consumer.Start<FakeMessage>((message, notifications) =>
                     {
-                        if (Interlocked.Increment(ref processedCount) >= MessageCount)
+                        Interlocked.Increment(ref processedCount);
+                    }, new ConsumerQueueNotifications(onMessageCompleted: _ =>
+                    {
+                        if (Interlocked.Increment(ref committedCount) >= MessageCount)
                             waitHandle.Set();
-                    }, new ConsumerQueueNotifications());
+                    }));
 
                     waitHandle.Wait(TimeSpan.FromSeconds(30));
                 }
 
                 Assert.AreEqual(MessageCount, processedCount, "Not all messages were processed");
+                Assert.AreEqual(MessageCount, committedCount, "Not all messages were committed");
             }
 
             // Start Dashboard server
             _server = await DashboardTestServer.CreateAsync(options =>
             {
                 options.EnableSwagger = false;
-                options.AddConnection<RedisQueueInit>(connStr,
+                options.AddConnection<LiteDbMessageQueueInit>(connStr,
+                    serviceRegister => serviceRegister.RegisterNonScopedSingleton(_scope),
                     conn => conn.AddQueue(_queueName));
             });
 
@@ -384,7 +343,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         public async Task HistoryByQueueId_NotFound()
         {
             var response = await _server.Client.GetAsync(
-                $"api/v1/dashboard/queues/{_queueId}/history/nonexistent-id-12345");
+                $"api/v1/dashboard/queues/{_queueId}/history/99999");
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -437,16 +396,3 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         }
     }
 }
-```
-  </action>
-  <verify>dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" -c Debug --no-restore 2>&1 | tail -5</verify>
-  <done>File exists at Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs. Build succeeds with 0 errors. File contains both RedisHistoryDisabledTests (4 test methods) and RedisHistoryEnabledTests (14 test methods).</done>
-</task>
-
-<task id="2" files="Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/RedisHistoryTests.cs" tdd="false">
-  <action>
-Run the Redis history tests (both Disabled and Enabled classes). Requires a running Redis instance with connection string in `connectionstring-redis.txt`.
-  </action>
-  <verify>dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~RedisHistory" --no-build -c Debug 2>&1 | tail -20</verify>
-  <done>All 18 Redis history tests pass (4 disabled + 14 enabled). Zero failures, zero skipped.</done>
-</task>

@@ -1,5 +1,23 @@
 # Shipyard Lessons Learned
 
+## [2026-04-06] Phase 1: Dashboard API History Tests (Redis & LiteDb)
+
+### What Went Well
+- Pattern replication works well — following MemoryHistoryTests.cs exactly made both new test files straightforward
+- Integration tests catch real bugs immediately — LiteDb history tests found a transport bug in QueryMessageHistoryHandler.Get on the first run
+
+### Surprises / Discoveries
+- LiteDB `col.Find(x => x.Status == intValue)` does not reliably match recently-updated int fields. The same workaround (FindAll + LINQ Where) was already documented in GetCount but not applied to Get.
+- Consumer waitHandle must signal from `onMessageCompleted` (after `CommitMessage.Commit`), not from inside the handler body. History records are still Processing when the handler returns — the status transition happens during commit.
+
+### Pitfalls to Avoid
+- When replicating test patterns, check ALL existing workarounds in the transport handlers. A known bug in one method may exist unremedied in sibling methods.
+
+### Process Improvements
+- Adding integration test coverage for each transport before shipping transport-level fixes would have caught #103 immediately
+
+---
+
 ## [2026-04-06] Phase 1: Redis History Bug Fixes (#104, #103)
 
 ### What Went Well
