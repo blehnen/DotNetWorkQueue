@@ -508,3 +508,20 @@
 - **Pre-ship verification:** 19/19 LiteDb history tests passing (net8.0 + net10.0), Redis builds clean
 - **Lessons captured:** LiteDB query engine bug, test race condition with CommitMessage.Commit
 - **Status:** Shipped
+
+## 2026-04-07 — New Milestone: Publish Aq.ExpressionJsonSerializer as NuGet Package (issue #102)
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Publish vendored DLL as `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.0 on nuget.org, then swap DotNetWorkQueue to PackageReference
+- **Decisions:**
+  - Package ID: `DotNetWorkQueue.Aq.ExpressionJsonSerializer`, assembly/namespace unchanged
+  - Publish to nuget.org (consistent with DotNetWorkQueue)
+  - Version 1.0.0 (independent lifecycle from DotNetWorkQueue)
+  - Merge upstream (aquilae) loop/goto expression support before v1.0.0
+  - GitHub Actions CI with tag-triggered publish + Jenkinsfile for internal CI
+  - NUGET_API_KEY stored as GitHub secret
+- **Roadmap:** 2 phases + manual gate
+  - Phase 1: Prepare fork (merge upstream, NuGet metadata, CI pipelines)
+  - Manual Gate: User creates secret, pushes v1.0.0 tag, verifies nuget.org
+  - Phase 2: Swap DotNetWorkQueue to PackageReference, delete /Lib
+- **Status:** Roadmap approved, ready for Phase 1 planning
