@@ -592,3 +592,5 @@
   - Phases 3a-3f: Linq integration tests by transport (parallel)
   - Phase 4: CI + README + version bump
 - **Status:** Roadmap approved, ready for Phase 1 planning
+- [2026-04-07T19:59:51Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-07T20:01:43Z] Session ended during build (may need /shipyard:resume)
