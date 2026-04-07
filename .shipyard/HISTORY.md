@@ -537,3 +537,26 @@
 - **Decisions:** MIT license, Jenkins net10.0+net8.0 only, GH Actions matrix with windows-latest for net48
 - **Critique verdict:** READY — all file paths verified, API surface confirmed
 - **Status:** Ready for /shipyard:build 1
+
+## 2026-04-07 — Phase 1 Build Complete
+
+- **Action:** `/shipyard:build 1`
+- **Repo:** `F:\Git\expression-json-serializer` (fork)
+- **Plan executed:** 01-PLAN (3/3 tasks)
+- **Commits (8 in fork):**
+  - `9edeaaa` — Merge upstream (loop/goto)
+  - `dbb844f` — NuGet metadata + csproj updates + test TFM updates
+  - `58d0297` — GitHub Actions CI workflow
+  - `700e43f` — Jenkinsfile
+  - `32f22ec` — Fix review findings (SDK version floating, fetch-depth)
+  - `3e7ae03` — Suppress CS1591 for fork library
+  - `05eaa11` — Restrict CI workflow permissions (audit advisory)
+  - `220a01f` — Update README for NuGet package page
+- **Review:** MINOR_ISSUES → fixed (SDK pin, fetch-depth for Source Link)
+- **Verification:** PASS (after CS1591 suppression — 0 warnings, 0 errors in Release)
+- **Security audit:** PASS — no critical findings; applied permissions advisory
+- **Simplification:** Ship as-is — 2 unused imports in upstream code, no action needed
+- **Documentation:** README rewritten from stub to full content (install, usage, publish instructions)
+- **Tests:** 33/33 passing on net10.0 and net8.0
+- **Discoveries:** Upstream merge conflict in Deserializer.cs (resolved); TypeAs test exception changed in .NET 10 (fixed)
+- **Status:** Phase 1 complete — ready for manual gate (push to origin, create NUGET_API_KEY, tag v1.0.0)
