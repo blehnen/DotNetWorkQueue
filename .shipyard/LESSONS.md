@@ -1,5 +1,27 @@
 # Shipyard Lessons Learned
 
+## [2026-04-07] Milestone: Publish Aq.ExpressionJsonSerializer as NuGet Package (issue #102)
+
+### What Went Well
+- Two-repo project with manual gate worked smoothly — Phase 1 (fork prep) and Phase 2 (reference swap) were cleanly separated
+- Review gate caught real issues: SDK version pinning (10.0.100 → 10.0.x), missing fetch-depth for Source Link
+- Security audit advisory (permissions: contents: read) was a one-liner improvement
+
+### Surprises / Discoveries
+- Upstream merges can introduce plain `Dictionary` where `ConcurrentDictionary` was the fork convention — always grep for `Dictionary<` after merging upstream
+- Removing `DefineConstants` PropertyGroups can break `#if NETFULL` guards in tests — the net48 TypeAs test failed on GitHub Actions because `NETFULL` was no longer defined
+- Test project TFMs can go stale without anyone noticing — `netcoreapp3.1` was EOL and incompatible with CI matrix
+
+### Pitfalls to Avoid
+- When updating test project TFMs, check for conditional `DefineConstants` that depend on the old TFM conditions — they may guard platform-specific test behavior
+- Don't assume upstream code follows your fork's conventions — review the diff for thread safety, naming, and patterns
+
+### Process Improvements
+- CS1591 suppression is pragmatic for third-party forks where you won't write XML docs — enables `GenerateDocumentationFile` for consumer IntelliSense without requiring doc comments on every public member
+- Two-repo projects need a manual gate between phases for NuGet indexing — plan for this in the roadmap rather than discovering it during build
+
+---
+
 ## [2026-04-06] Phase 1: Dashboard API History Tests (Redis & LiteDb)
 
 ### What Went Well
