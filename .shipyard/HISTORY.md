@@ -525,3 +525,15 @@
   - Manual Gate: User creates secret, pushes v1.0.0 tag, verifies nuget.org
   - Phase 2: Swap DotNetWorkQueue to PackageReference, delete /Lib
 - **Status:** Roadmap approved, ready for Phase 1 planning
+
+## 2026-04-07 — Phase 1 Planned
+
+- **Action:** `/shipyard:plan 1`
+- **Plans:** 1 plan (01-PLAN), 3 sequential tasks
+  - Task 1: Merge upstream (loop/goto support) + update csproj with NuGet metadata + update test project TFMs
+  - Task 2: Add GitHub Actions CI (matrix: ubuntu for net10.0/net8.0, windows for net48, publish on v* tag)
+  - Task 3: Add Jenkinsfile (net10.0 + net8.0 only, Docker agent)
+- **Discovery:** Test project targets stale `netcoreapp3.1;net48` — updated to `net10.0;net8.0;net48`
+- **Decisions:** MIT license, Jenkins net10.0+net8.0 only, GH Actions matrix with windows-latest for net48
+- **Critique verdict:** READY — all file paths verified, API surface confirmed
+- **Status:** Ready for /shipyard:build 1

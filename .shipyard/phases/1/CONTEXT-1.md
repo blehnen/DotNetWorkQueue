@@ -1,9 +1,9 @@
-# Phase 1 Context: Dashboard API History Tests
+# Phase 1 Context: Prepare Fork for NuGet Publishing
 
 ## Decisions
 
-- **Pattern:** Follow MemoryHistoryTests.cs exactly (both Disabled + Enabled classes per transport)
-- **Scope:** Redis + LiteDb only (other transports already have history tests)
-- **CI:** Redis tests run in Jenkins only (connection string gated). LiteDb runs everywhere.
-- **No production changes:** Test-only files
-- **Skip research:** Existing test patterns already read during brainstorming
+- **License:** MIT (matches original aquilae repo)
+- **Jenkins TFMs:** net10.0 + net8.0 only (Docker agent lacks net48 targeting pack)
+- **GitHub Actions:** Matrix build — ubuntu for net10.0/net8.0/netstandard2.0, windows-latest for net48
+- **Upstream merge:** Merge aquilae/expression-json-serializer master (loop/goto support) before other changes
+- **Skip research:** Fork structure already explored during brainstorming — csproj, source files, test project all verified
