@@ -49,7 +49,6 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
   <ItemGroup>
     <PackageReference Include="DotNetWorkQueue.Aq.ExpressionJsonSerializer" />
     <PackageReference Include="GuerrillaNtp" />
-    <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="OpenTelemetry" />
