@@ -1,29 +1,27 @@
-# Session Handoff — 2026-04-06
+# Session Handoff — 2026-04-07
 
 ## Current Task
 
-All three milestones shipped this session. No active work in progress.
+Issue #101 milestone brainstormed and roadmap approved. No active build work.
 
 ## Approach
 
-Three milestones completed back-to-back:
-1. **Issue #97** — Fix history status for errored messages (PR #105, merged)
-2. **Issues #104/#103** — Redis history unchecked casts + broken purge (PR #106, merged)
-3. **Dashboard API history tests** — Redis & LiteDb integration tests (PR #107, open)
+Two milestones this session:
+1. **Issue #102** — Published `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.1 to nuget.org. PR #108 open (DotNetWorkQueue reference swap). Fork has GitHub Actions CI + Jenkinsfile.
+2. **Issue #101** — Drop net48/netstandard2.0, remove JpLabs.DynamicCode. Roadmap approved: 10 phases, 6 parallel. Ready for `/shipyard:plan 1`.
 
 ## Tried
 
-- PR #105: Decorator messageId capture + RecordProcessingStart guard in Redis/Memory. Review caught Redis null-cast collision (RedisValue.Null → int 0 = Enqueued). Fixed with HasValue check. Merged.
-- PR #106: HasValue guard on StartedUtc + purge logic rewrite with terminal-status-only deletion. Discovery: RedisValue.Null cast to (long) silently returns 0L (doesn't throw). Merged.
-- PR #107: LiteDb + Redis history integration tests (38 new tests). LiteDb tests immediately caught a real transport bug in QueryMessageHistoryHandler.Get (LiteDB query engine issue). Open, awaiting Jenkins CI.
+- Issue #102: Full pipeline — brainstorm, plan, build, review, audit, ship. v1.0.0 had deterministic build issue → patched to v1.0.1 with `ContinuousIntegrationBuild`. Also found 3 `Dictionary` → `ConcurrentDictionary` thread-safety issues and missing `NETFULL` define for net48 tests.
+- Issue #101: Brainstorming complete. Grep analysis shows 186 occurrences of `#if NETFULL`/`NETSTANDARD2_0` across 127 files. Roadmap phases the work by layer (core → test infra → per-transport Linq tests → CI/docs).
 
 ## Remaining
 
-- **PR #107** needs merge after Jenkins CI passes
-- **Issue #104** filed during session — now resolved by PR #106
-- **Branches to clean up after merge:** `fix_redis_history_bugs`, `fix_history_for_error_messages`, `dashboard-history-tests`
-- Open GitHub issues: #100 (Schyntax replacement), #101 (JpLabs removal), #102 (Aq.ExpressionJsonSerializer), #96 (Dashboard multi-API), #91 (login dark theme)
+- **PR #108** (issue #102) needs merge after Jenkins CI passes
+- **Issue #101** ready for `/shipyard:plan 1` — Phase 1 is core library + transport csproj + vendored DLL cleanup (~20 files, HIGH risk)
+- Stale branches to clean up: 46 merged remote branches identified earlier but not yet deleted (user chose to keep version branches 0.9.8, 0.9.9, 0.9.9-cancelsupport)
+- Currently on `master` branch (switched from `issue-102-nuget-serializer` for issue #101 work)
 
 ## Open Questions
 
-- None — all work is shipped or in open PRs awaiting CI
+- None — issue #101 design is fully captured in PROJECT.md and ROADMAP.md
