@@ -1,9 +1,8 @@
-# Phase 1 Context: Prepare Fork for NuGet Publishing
+# Phase 1 Context: Core Library, Transport Libraries, and Vendored DLL Cleanup
 
 ## Decisions
 
-- **License:** MIT (matches original aquilae repo)
-- **Jenkins TFMs:** net10.0 + net8.0 only (Docker agent lacks net48 targeting pack)
-- **GitHub Actions:** Matrix build — ubuntu for net10.0/net8.0/netstandard2.0, windows-latest for net48
-- **Upstream merge:** Merge aquilae/expression-json-serializer master (loop/goto support) before other changes
-- **Skip research:** Fork structure already explored during brainstorming — csproj, source files, test project all verified
+- **Branch:** Feature branch `issue-101-drop-net48` off master
+- **Skip research:** ROADMAP.md already exhaustive — grep analysis done during brainstorming (186 occurrences, 127 files)
+- **Scope:** Exactly as described in ROADMAP.md Phase 1 — core csproj, 10 .cs files, 8 transport csproj, vendored DLL deletion
+- **CompileException.cs:** Needs verification during build — keep class if referenced outside `#if NETFULL`, remove only NETFULL-specific members
